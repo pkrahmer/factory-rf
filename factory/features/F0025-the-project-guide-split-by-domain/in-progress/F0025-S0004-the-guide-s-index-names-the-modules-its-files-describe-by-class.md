@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 292
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T22:13:35.506733Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:13:35.512982Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T22:13:56.109136Z'
+  stage: intake
+  run: f652d7693a714fdfbdebfcaad0594dc2
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:14:16.775852Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T22:16:08.496323Z'
+  stage: tests
+  run: 7a78d5eaab224c40909988148d41a6cd
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:16:28.924116Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T22:17:31.105626Z'
+  stage: doing
+  run: 2d4b3b3eca8640c480edc9b3698832c2
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:17:51.527921Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T22:18:07.729924Z'
+  stage: review
+  run: 7b253c52d46c496f96cfa9a0a1e2ce44
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:18:28.061918Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T22:18:48.396239Z'
+  stage: docs
+  run: ce6bb58845ce459cb0a96849dd206546
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:19:09.272227Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T22:19:41.340215Z'
+  stage: smoke-test
+  run: 3bf7d0dca1be49ec8a4fdc5347024a28
+---
+
 # The guide's index names the modules its files describe by class
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -57,3 +141,90 @@ uv run -q python -m factory.entry.check_documents
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: "None" is right for a docs-only story. It names the two places that change (the `watching.md` line of `docs/project-guide/README.md`, one sentence of `docs/decisions.md`). I checked both exist as described (README line 19, decisions.md line 23).
+   Criteria: criterion 1 (nothing under src/tests/image/template/demo/claude changes) and criterion 2 (`make check` green) are each checkable. The docs criterion gives the exact insertions, the exact replacement sentence, the lines that stay as they are, the 600-line limit and `documents ok`. The story states no limit, error or rejected input, so no failing side needs a criterion. The three module names are absent from the guide today, so the insertions are real.
+   Smoke test: the commands are runnable and each Expect line is checkable (`True`/`0`/`True`; `1` and `0`; `0`; `documents ok`).
+   Architecture: no code layer is touched, and the guide's index is where CLAUDE.md sends agents.
+   Scope: it fits F0025, whose goal is the guide as index plus one file per domain. The story keeps the new `factory.entry.health` content out. Nothing in the feature's Out of scope is touched.
+4. factory: started tests as self.
+5. tester: No tests written. This story only changes docs, and its Interface says no test changes.
+   criterion 1 (nothing under src/, tests/, image/, template/, demo/ or claude/ changes): no test function; the tester changed nothing under those folders, as this entry confirms. The smoke test's `git diff --name-only origin/main -- src tests ...` checks it.
+   criterion 2 (`make check` stays green): no test function; the factory's checks cover it. I ran `make test` once and it was green, with no new red tests (coverage 99.12 %). `make lint` was green.
+   criterion 3 (docs): no test function; the documenter does this, and the docs stage's `make documents` and the smoke test check it. A test of these doc sentences would be a change under `tests/`, which criterion 1 forbids.
+   Files created: none. Modules the test runner could not import: none. The coder has no red tests to turn green on this branch.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (43.8 s)
+6. factory: started doing as self.
+7. coder: No code written. This story only changes docs. Its Interface says no module under `src/factory/` and no test changes, and the tester left no red tests. Following criterion 1, I changed nothing under src/, tests/, image/, template/, demo/ or claude/. The working tree holds only the factory's `.costs.jsonl` sidecar.
+   Main choice: leave the two doc edits (the `watching.md` line of `docs/project-guide/README.md` and the sentence in `docs/decisions.md`) to the documenter, as the Interface and CLAUDE.md say. I rejected making them here, because the coder does not write the guide or the decision log.
+   Refactor: no diff, so nothing to refactor.
+   Noticed, not touched: nothing.
+   `make check`: check: green (test: green, coverage 99.12 %).
+
+   `check`: check: green (not run again: passed on tree 3523d622cd0b at 2026-10-19T21:56:48Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar, which meets criterion 1: nothing under src/, tests/, image/, template/, demo/ or claude/ changed. The tester's entry (5) and the coder's entry (7) both say so, as the criterion requires.
+   1. Acceptance criteria: criterion 1 holds (the diff is empty). For criterion 2, the coder's entry (7) records `check: green`. Criterion 3 is the documenter's job. The Interface states no rule or limit, so no failing side needs a test.
+   2. to 4. Architecture, security and quality: there is no code to judge.
+   5. Work item hygiene: the coder's entry gives the main decision, which is to leave both doc edits to the documenter, and the option it rejected. The Description matches what was built, which is nothing outside docs. The docs criterion still describes what the next stage must write. I checked that its targets exist: the `watching.md` line at `docs/project-guide/README.md:19` holds `factory.adapters.health_file`, `factory.application.boundaries` and `factory.domain.stop_table`, the three anchors the insertions follow. The sentence it replaces is at `docs/decisions.md:23`. None of the three module names appears anywhere under `docs/project-guide/` yet.
+   6. Earlier tests: no test file is changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the work item and its sidecar).
+10. factory: started docs as self.
+11. documenter: Docs written for the criterion; no code, test or comment touched.
+
+    Files changed:
+    - `docs/project-guide/README.md` (*The files*, `watching.md` line): added `factory.adapters.preflight_stamp_file` after `factory.adapters.health_file`, `factory.application.dispatcher` after `factory.application.boundaries`, and `factory.domain.tick_status` after `factory.domain.stop_table`. Nothing else on the line or in the index changed.
+    - `docs/decisions.md` (*The project guide lives in `docs/`*): the last sentence now reads "Since F0025-S0001 the guide is an index and one file per domain (see *The project guide is an index and one file per domain*)." The first sentence and the dated F0011-S0005 entry are untouched.
+
+    Run: `python -m factory.entry.check_documents` printed `documents ok`. I checked the edited README line by hand: the three new names sit right after their anchors and the list order holds. I did not run `make check` because I changed only documents.
+
+    Cross-read and found current: the rest of `docs/project-guide/README.md`, and `docs/decisions.md` around the edited section. The diff has no code, so nothing else could have gone stale.
+
+    Findings: none. Stale text I saw but did not touch: none. `factory.entry.health` is still described only in the operator guide, which the story leaves for a later one.
+
+    `check`: check: green (not run again: passed on tree 3523d622cd0b at 2026-10-19T21:56:48Z)
+    `secrets`: secrets: green (0.8 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test run from the repository root, each command exactly as written. All four commands met their `Expect:` lines. No findings.
+
+    1. The index check (Python heredoc over `docs/project-guide/README.md`):
+    ```
+    True
+    0
+    True
+    ```
+    Expect: `True`, `0`, `True`. Met.
+
+    2. `grep -c "Since F0025-S0001 the guide is an index and one file per domain" docs/decisions.md; grep -c "Since F0025-S0001 the guide is the folder" docs/decisions.md`
+    ```
+    1
+    0
+    ```
+    Expect: `1` and `0`. Met.
+
+    3. `git diff --name-only origin/main -- src tests image template demo claude | wc -l`
+    ```
+    0
+    ```
+    Expect: `0`. Met.
+
+    4. `uv run -q python -m factory.entry.check_documents`
+    ```
+    documents ok
+    ```
+    Expect: `documents ok`. Met.
+
+    Checked against the acceptance criteria:
+    - Criterion 1: nothing changed under src/, tests/, image/, template/, demo/ or claude/ (command 3). The tester's entry (5) and the coder's entry (7) both say so.
+    - Criterion 2: I did not run `make check` because the smoke test does not list it. The factory's checks cover it. Entries 7 and 11 record `check: green` on tree 3523d622cd0b.
+    - Criterion 3: `git diff origin/main --stat` lists only `docs/decisions.md` (1 line), `docs/project-guide/README.md` (1 line), and the work item with its sidecar. I compared the `watching.md` line with `origin/main` item by item. The only difference is the three added names, each in backticks and each right after its anchor: `factory.adapters.preflight_stamp_file` after `factory.adapters.health_file`, `factory.application.dispatcher` after `factory.application.boundaries`, and `factory.domain.tick_status` after `factory.domain.stop_table`. No other line of the index changed. In `docs/decisions.md` only the last sentence of the paragraph changed, and it now reads exactly as the criterion requires. The first sentence is unchanged. Every guide file is at most 600 lines and `documents ok` prints.
+
+    Nothing contradicts any criterion. Nothing open.
