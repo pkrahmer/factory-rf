@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T11:29:35.957124Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-10-19T11:29:35.957124Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-19T11:31:57.297601Z'
+  stage: doing
+  run: 63c91f24a60b425ebf6795bdd7532c14
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -446,3 +448,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (42.4 s)
 24. factory: started doing as self.
+25. coder: Round 1. The reviewer's four findings in entry 19 were all about tests. The tester dealt with them in entry 23: dropped `_settings` in favour of `local_settings.model_copy`, and moved three shared helpers under the standing leave (`write_agent_settings` in `tests/adapters/opencode_stand_in.py`, `COMPOSE` in `tests/compose_support.py` with the `compose_service` fixture in `tests/conftest.py`, and `BASE` in `tests/settings_support.py`). The only thing left for this stage was the final check. I changed no code and no test in this run, and `make check` is green: check: green, test: green (41.9 s), coverage 99.06 %.
+
+    What I built (entries 10 and 17, committed on the branch; the code diff against main is unchanged):
+    - `src/factory/domain/settings.py`: the five `*_VARIABLE` constants, `AgentRuntimeName`, the five new `InstanceSettings` fields, and their readers.
+    - `src/factory/adapters/opencode_runtime.py`: the `runtime_folders` keyword.
+    - `src/factory/application/preflight.py`: `opencode_item` and `installed_models`; the runtime's own executable and pin in `MachineChecks`; the opencode probe command and the single sign-on hint.
+    - `src/factory/entry/wiring.py`: `_agent_runtime` picks `OpencodeRuntime` or `ClaudeCodeRuntime`, and `machine_extras` adds `opencode` after `confinement`.
+    - `image/Dockerfile` and `image/compose.yml`: the pin, the npm install, the two `ENV` lines, and the five compose entries.
+
+    Main choice: one private builder in the wiring, `_agent_runtime`, picks the runtime. I rejected a runtime registry or factory interface, which would be machinery the story does not need for two runtimes.
+
+    Refactor: the code diff is the same one I read in entry 17, and it still needs no change.
+
+    Noticed, not touched:
+    - `make duplicates` still shows the four `claude_runtime`/`opencode_runtime` similar-code pairs and `ManualWaiter` in `src/factory/adapters/clock.py`. The reviewer judged that both predate this story.
+    - The tester noted that other test modules still define their own `COMPOSE` (`test_claude_token_mount.py`, `test_compose_init.py`, `test_compose_project.py`, `test_image_credentials.py`, `test_token_folder.py`). No finding named them.
+
+    The journal did not change the Description.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
