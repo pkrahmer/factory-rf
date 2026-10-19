@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 297
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T22:50:23.316636Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-19T22:50:23.316636Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-19T22:50:39.073686Z'
+  stage: intake
+  run: e886143e59e24b999efb445da95a841c
+  blocked: question
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -106,3 +109,13 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: 1. The Interface says a limit line on standard error must hold the status "as a whole number". No criterion covers the failing side of that clause. Criterion 1's last row uses `HTTP 500`, which is a different status, not a number that merely contains 428. Two coders could read the clause two ways, for example a substring match against a whole-number match, and both would pass the tests. Options: (a) add a row to criterion 1 for a line such as `HTTP 4281 Precondition Required, retry after 120 seconds`, with a stand-in that ends with a valid result block: `completed`, `limit_wait` `None`; (b) drop "as a whole number" from the Interface. I would choose (a), with the new criterion placed before the two closing ones.
+
+   Everything else I checked is fine, as follows.
+   - Interface: it names concrete modules and signatures, and no `src/` module changes.
+   - Criteria: each is testable by one function, and each rule's passing and failing sides are covered, apart from the point above.
+   - Smoke test: the commands are runnable, and the `Expect:` line is checkable against the printed output.
+   - Architecture: the new tests sit under `tests/adapters/`, as `CLAUDE.md` requires, and they import the shared helpers.
+   - Scope: the story is within F0020's scope, and no earlier test changes.
+
+   The format check passed.
