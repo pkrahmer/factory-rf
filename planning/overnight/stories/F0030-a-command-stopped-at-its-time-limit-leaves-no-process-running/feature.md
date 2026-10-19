@@ -9,7 +9,7 @@ A fault F0024's acceptance found (`factory/features/F0024-mutation-testing-per-s
 - `src/factory/domain/sessions.py` (new): `ProcessEntry`, `parse_stat` and `left_to_kill`, the pure part of the kill (S0001).
 - `src/factory/adapters/process.py`: the kill at a time limit, at a callback's stop and at a callback's error ends every process of the child's session that the factory may signal, and returns when none is left (S0001).
 - `tests/domain/test_sessions.py` and `tests/adapters/test_process_session.py` (new) (S0001).
-- `docs/project-guide/processes-and-checks.md`, `docs/operator-guide.md` and `docs/decisions.md`, from the story's docs criterion.
+- `docs/project-guide/processes-and-checks.md` and `docs/decisions.md`, from the story's docs criterion.
 
 ## Out of scope
 
