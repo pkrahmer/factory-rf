@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 249
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T03:56:42.677214Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T03:56:42.677214Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T03:57:00.929721Z'
+  stage: intake
+  run: 6ebfa4a4bf58433fb7d71a07b44cdc98
 ---
 
 # What every agent runtime shares moves into one module
@@ -153,3 +155,9 @@ Expect: four lines, `/usr/bin/sudo -n -u agent -- timeout --signal=KILL 10s env 
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules (`factory.domain.agent_runs`, `factory.adapters.agent_launch`, `factory.adapters.claude_runtime`) with full signatures, the moved constants and the exact argv words of `launch`, `sudo_prefix`, `confined_argv` and `cleanup_argv`.
+   Criteria: 1 to 10 each map to one parametrized test over the Interface's rules, both sides included (with and without a user or wrapper, match and no match, below and at the limit, a measure from one call, from both, from neither, and `time_limit` for the second call); 11 and 12 are source searches and the unchanged earlier tests; 13 and 14 are the closing ones. One small note, not a blocker: `run_confinement`'s devices and temporary folder are covered only through the unchanged Claude Code runtime tests (criterion 12), as "today's `_confinement`".
+   Smoke test: runnable with `uv run -q python -` and a temporary folder; each of the four expected output lines is exact and checkable (sudo words and 40.0 s, the confine words, 1.00, `completed 4 1.25 3.0`).
+   Architecture: shared words and texts go in the adapters layer, the pure summing of a resumed run goes in the domain, and `agent_launch` imports no process module, so R5's one-wrapper rule and the layer order hold.
+   Scope: inside the feature's scope for S0002 (`agent_launch`, `resumed_result`, `claude_runtime`) and nothing from its Out of scope. No earlier test changes.
