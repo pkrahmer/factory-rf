@@ -20,7 +20,7 @@ class AgentRunResult(BaseModel):
 
 `factory.domain.cost_records` (`domain`):
 
-- `CostRecord` gains `login: Login | None = None`, as its last field, after `instance`. A `started` record with a `login` is refused with `a started record has no login`, like its other measures.
+- `CostRecord` gains `login: Login | None = None`, as its last field, after `denied_paths` (the record's fields end `instance`, `denials`, `denied_paths`, `login`). A `started` record with a `login` is refused with `a started record has no login`, like its other measures.
 
 `factory.application.costs` (`application`):
 
@@ -28,7 +28,7 @@ class AgentRunResult(BaseModel):
 
 `factory.adapters.cost_records_jsonl` (`adapters`):
 
-- The writer leaves `login` out of a line when it is `None`, as it does for `instance`, so a line written before the field existed is written back as read; when set, it is the line's last key. The reader reads a line with or without it.
+- The writer leaves `login` out of a line when it is `None`, as it does for `instance`, `denials` and `denied_paths`, so a line written before the field existed is written back as read; when set, it is the line's last key, after `denied_paths`: `..., "instance", "denials", "denied_paths", "login"`. The reader reads a line with or without it.
 
 `factory.domain.settings` (`domain`):
 
@@ -91,6 +91,10 @@ class ClaudeCodeRuntime(AgentRuntime):
 - The module imports the moved names (`LOGIN_SCRIPT`, `LOGIN_VARIABLE`, `LOGIN_PREFIX`, `SHELL_EXECUTABLE`) from `factory.adapters.agent_launch` and lists them in its `__all__`, beside its own public names, as `factory.domain.settings` and `factory.entry.wiring` re-export; so every earlier test that imports them from `factory.adapters.claude_runtime` passes `mypy --strict` unchanged. Never `import X as X`: ruff's `PLC0414` refuses it.
 - The temporary folder's removal keeps reading `SHELL_EXECUTABLE` from this module's namespace, so a test that sets `claude_runtime.SHELL_EXECUTABLE` still reaches the removal.
 
+`factory.domain.contract` (`domain`), `src/factory/contract/*.schema.json`:
+
+- `CostRecord` gains an optional field, so the records contract's minor version rises: `RECORDS_CONTRACT` goes from `"1.0"` to `"1.1"`, and the committed schemas are regenerated in this story with `uv run python -m factory.entry.contract` (never by hand): `cost-record.schema.json` gains the property `login` (a string of the three logins or null, not required), and every schema file carries `"x-records-contract": "1.1"`. `CostRecord`'s docstring says what `login` is, so the schema's description changes with it.
+
 `factory.entry.wiring` (`entry`):
 
 - `build_boundaries` passes `settings.api_login_file` to `ClaudeCodeRuntime` as `api_login_file`.
@@ -121,7 +125,7 @@ class ClaudeCodeRuntime(AgentRuntime):
 
 Tests (the tester writes them): `tests/adapters/test_agent_launch_login.py` (the script through the real `/bin/sh`, with a recording command written by `write_script` of `tests/confine_support.py`), `tests/adapters/test_claude_runtime_api_login.py` (the runtime with `tests/adapters/claude_stand_in.py`; it imports `REPLY`, `BUDGET_STOP`, `_request`, `_write_sudo` and `_sudo_calls` from the earlier modules and copies none of them; the `recorder` fixture and its `Recorder`, which `tests/adapters/test_claude_runtime_login.py` and `tests/adapters/test_claude_runtime_sudo_time_limit.py` each hold, move to `tests/conftest.py` under the standing leave of `CLAUDE.md` (*Tests*), because an imported fixture is ruff's `F811`), `tests/domain/test_login_records.py`, `tests/domain/test_settings_api_login.py`, `tests/adapters/test_cost_records_jsonl_login.py` (it imports the lines and records of `tests/adapters/test_cost_records_jsonl.py`), `tests/application/test_costs_login.py`, `tests/application/test_agent_run_probe_api_login.py`, `tests/entry/test_wiring_api_login.py`, `tests/test_api_login_mount.py` (it reads the Dockerfile through `tests/dockerfile_support.py`).
 
-Changed under the feature's decision 19, by the tester only, nothing else in that module: `tests/test_compose.py`, the test `test_the_three_volumes_are_mounted_and_declared`, whose expected list gains the bind above as its fifth entry (the test keeps its name). `tests/adapters/test_claude_runtime_login.py` and `tests/entry/test_wiring_login.py` stay as they are: their imports from `factory.adapters.claude_runtime` reach the re-exported names.
+Changed under the feature's decision 19, by the tester only, nothing else in those modules: `tests/test_compose.py`, the test `test_the_three_volumes_are_mounted_and_declared`, whose expected list gains the bind above as its fifth entry (the test keeps its name); `tests/domain/test_contract.py`, the test `test_a_schema_starts_with_the_dialect_and_the_contract_version`, whose expected version is `"1.1"` (the test keeps its name). `tests/adapters/test_claude_runtime_login.py` and `tests/entry/test_wiring_login.py` stay as they are: their imports from `factory.adapters.claude_runtime` reach the re-exported names.
 
 Test values: a stand-in key is held in a name without `key`, `token`, `secret` or `password` (`API_LOGIN = "stand-in-api-login"`, as `LOGIN = "stand-in-login"` today), and an environment entry is written with the name's constant (`{API_LOGIN_VARIABLE: API_LOGIN}`), never as a quoted `"ANTHROPIC_API_KEY": "..."` pair: detect-secrets flags both, and `make secrets` runs in the coder's `make check`.
 
@@ -141,13 +145,14 @@ Test values: a stand-in key is held in a name without `key`, `token`, `secret` o
 12. A run stopped by its budget whose API file is emptied by the first call (a stand-in step that writes it) is resumed with the token. The resumed call sees `CLAUDE_CODE_OAUTH_TOKEN`, and the result's `login` is `subscription`.
 13. The version call of a runtime with both files gets no login words and neither name.
 14. A completed `CostRecord` keeps `login` `api_key` or `None`, and a `started` one with a `login` is refused with `a started record has no login` (rows). `CostRecorder.complete` with a result whose `login` is `api_key` writes it into the sidecar's completed record, and with `None` leaves it out.
-15. The JSON Lines writer writes `"login":"api_key"` as the line's last key and leaves the key out for `None`. The reader reads both lines back to equal records, and one with `"instance"` and `"login"` keeps them in that order (rows).
+15. The JSON Lines writer writes `"login":"api_key"` as the line's last key and leaves the key out for `None`. The reader reads both lines back to equal records, and a line with `"instance"`, `"denials"`, `"denied_paths"` and `"login"` keeps them in that order, `"login"` last (rows).
 16. `build_boundaries` with `api_login_file` set to a file holding a key gives a runtime whose run hands it to the stand-in, and with it unset hands none (rows, `confine_executable=None`).
 17. `agent_run_probe_item` with a completed probe result whose `login` is `api_key`, `subscription`, `none` or `None` passes with the four details above. A `died` probe result with `login` `api_key` fails with today's first part and the API hint, and one with `subscription` fails with today's detail (rows).
 18. A preflight run whose machine items pass, one of them with the detail `the agent runs log in with the API key from /home/agent/.anthropic-api-key`, writes the log line `preflight: agent-run-probe: the agent runs log in with the API key from /home/agent/.anthropic-api-key` and no line for items with an empty detail. A second run on the same image's stamp writes none (rows).
 19. The Dockerfile sets `FACTORY_API_LOGIN_FILE` once, to the value the compose bind's `target` names, after the `FACTORY_CLAUDE_LOGIN_FILE` instruction and before `USER factory`. The compose bind is the fifth volume entry, exactly as above, and its target lies in the agent's home, outside `/home/factory/.secrets` and outside the named volumes.
-20. `make check` stays green.
-21. docs: `docs/operator-guide.md`: the configuration table gets `FACTORY_API_LOGIN_FILE` (not required; the image sets it to `/home/agent/.anthropic-api-key`; blank counts as unset). A section *The agent's API key* says: the host file `image/secrets/anthropic-api-key`, or the one `FACTORY_API_KEY_FILE` names for an instance's compose calls, must exist, empty for no key, or Compose refuses to start (as for `claude-token`); an instance that is to stay on the subscription keeps an empty file while another instance on the same machine has a key in its own; a key in it wins over the token, which is not read then; it is read at every call; save it as plain ASCII; switching back means emptying the file and recreating the container; the cost record's `login` and the log line `preflight: agent-run-probe: ...` show the login in force. The `agent-run-probe` row gets the passed detail and the API hint, and *The agent runtime* gets the `--api-login` words. `docs/project-guide.md`: `factory.adapters.agent_launch` as the runtimes' shared module, the login shell's report line and `AgentRunResult.login`. `docs/decisions.md`: an entry *An agent run logs in with an API key when its file holds one*, dated with the story, with the reasons of the feature's decisions 1 to 3.
+20. The records contract's version is `1.1` and the committed schemas are the generated ones: `cost-record.schema.json` lists `login` among its properties and not among its required ones, with the three logins and null as its values; the other four files differ from the earlier ones only in `x-records-contract`, which reads `1.1` in all five; `uv run python -m factory.entry.contract` leaves the committed files unchanged (the existing comparison test passes).
+21. `make check` stays green.
+22. docs: `docs/operator-guide.md`: the configuration table gets `FACTORY_API_LOGIN_FILE` (not required; the image sets it to `/home/agent/.anthropic-api-key`; blank counts as unset). A section *The agent's API key* says: the host file `image/secrets/anthropic-api-key`, or the one `FACTORY_API_KEY_FILE` names for an instance's compose calls, must exist, empty for no key, or Compose refuses to start (as for `claude-token`); an instance that is to stay on the subscription keeps an empty file while another instance on the same machine has a key in its own; a key in it wins over the token, which is not read then; it is read at every call; save it as plain ASCII; switching back means emptying the file and recreating the container; the cost record's `login` and the log line `preflight: agent-run-probe: ...` show the login in force. The `agent-run-probe` row gets the passed detail and the API hint, and *The agent runtime* gets the `--api-login` words. `docs/project-guide.md`: `factory.adapters.agent_launch` as the runtimes' shared module, the login shell's report line and `AgentRunResult.login`. `docs/decisions.md`: an entry *An agent run logs in with an API key when its file holds one*, dated with the story, with the reasons of the feature's decisions 1 to 3. `docs/operator-guide.md` and `docs/project-guide.md`: the records contract's version now reads `1.1`, and `login` is among the cost record's fields.
 
 ## Smoke test
 

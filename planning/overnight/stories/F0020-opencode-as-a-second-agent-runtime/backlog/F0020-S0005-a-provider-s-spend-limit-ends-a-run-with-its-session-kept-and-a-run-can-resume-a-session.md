@@ -56,9 +56,9 @@ class InstanceSettings(BaseModel):
 
 - `read_settings`: an unset or blank status variable gives 428; a value of ASCII digits from 100 to 599 gives that status; any other raises `SettingsInvalid` naming the variable with `is not an HTTP status from 100 to 599`. An unset or blank message variable gives `None`; a value that is not a regular expression raises `SettingsInvalid` naming the variable with `is not a regular expression: <error>`.
 
-`factory.domain.decisions`, `factory.domain.post_texts` (`domain`):
+`factory.domain.journal`, `factory.domain.post_texts` (`domain`):
 
-- `StallReason` gains `provider_limit`; its sentence is `the provider's spend limit lasted past the waiting ceiling` (a stall note is built from it as for every reason).
+- `StallReason` (in `factory.domain.journal`, where F0021-S0001 moved it; `factory.domain.decisions` keeps the name by assignment and changes in no line) gains `provider_limit`, so a `JournalRecord` of kind `stall` may carry it as its `reason`; `stall_reason_of` and `decisions` do not change. Its sentence in `post_texts` is `the provider's spend limit lasted past the waiting ceiling` (a stall note is built from it as for every reason).
 
 `factory.adapters.claude_runtime` (`adapters`):
 
@@ -73,13 +73,21 @@ class InstanceSettings(BaseModel):
 - A request with `resume_session` is called with `--session <resume_session>` right before the prompt.
 - Every result's `session` is the `sessionID` of the first event that carries one, else the request's `resume_session`, else `None`.
 
+`factory.application.costs` (`application`):
+
+- `CostRecorder.complete` treats a `provider_limit` result as a run that replied: its record gets `denials` and `denied_paths` from the result's refused calls, like a `completed`, `no_result` or `budget` one, and not `None` (only `died` and `time_limit` leave them unknown). `end_reason` `provider_limit` is copied as it is.
+
+`factory.domain.contract` (`domain`), `src/factory/contract/*.schema.json`:
+
+- The end reason `provider_limit` is an added value of `cost-record`'s `end_reason`, and the stall reason an added value of the `reason` of the journal records in `work-item-state` and `acceptance-state`, so the records contract's minor version rises: `RECORDS_CONTRACT` goes from `"1.1"` (S0001) to `"1.2"`, and the committed schemas are regenerated in this story with `uv run python -m factory.entry.contract` (never by hand): `cost-record.schema.json`, `work-item-state.schema.json` and `acceptance-state.schema.json` list `provider_limit` among those values, and every file carries `"x-records-contract": "1.2"`. `limit_wait` is a field of `AgentRunResult`, which no schema describes, so no schema gains it.
+
 `factory.entry.wiring` (`entry`):
 
 - `build_boundaries` passes `settings.provider_limit` to `ClaudeCodeRuntime`.
 
-Tests (the tester writes them): `tests/domain/test_provider_limits.py`, `tests/domain/test_agent_runs_session.py`, `tests/domain/test_settings_provider_limit.py`, `tests/domain/test_provider_limit_stall_text.py`, `tests/adapters/test_claude_runtime_provider_limit.py` and `tests/adapters/test_claude_runtime_resume_session.py` (with `tests/adapters/claude_stand_in.py`; `_request` of `tests/adapters/test_claude_runtime_os_user.py` imported, not copied), `tests/adapters/test_opencode_resume_session.py` (with `tests/adapters/opencode_stand_in.py` of S0004), `tests/entry/test_wiring_provider_limit.py`.
+Tests (the tester writes them): `tests/domain/test_provider_limits.py`, `tests/domain/test_agent_runs_session.py`, `tests/domain/test_settings_provider_limit.py`, `tests/domain/test_provider_limit_stall_text.py`, `tests/adapters/test_claude_runtime_provider_limit.py` and `tests/adapters/test_claude_runtime_resume_session.py` (with `tests/adapters/claude_stand_in.py`; `_request` of `tests/adapters/test_claude_runtime_os_user.py` imported, not copied), `tests/adapters/test_opencode_resume_session.py` (with `tests/adapters/opencode_stand_in.py` of S0004), `tests/entry/test_wiring_provider_limit.py`, `tests/application/test_costs_provider_limit.py`.
 
-Changed under the feature's decision 19, by the tester only, nothing else in that module: `tests/domain/test_agent_runs.py`, the test `test_question_and_the_five_end_reasons`, renamed `test_question_and_the_six_end_reasons`, whose expected count is 6 and whose expected set gains `provider_limit`.
+Changed under the feature's decision 19, by the tester only, nothing else in those modules: `tests/domain/test_agent_runs.py`, the test `test_question_and_the_five_end_reasons`, renamed `test_question_and_the_six_end_reasons`, whose expected count is 6 and whose expected set gains `provider_limit`; `tests/domain/test_contract.py`, the test `test_a_schema_starts_with_the_dialect_and_the_contract_version`, whose expected version is `"1.2"` (the test keeps its name).
 
 ## Acceptance criteria
 
@@ -98,8 +106,11 @@ Changed under the feature's decision 19, by the tester only, nothing else in tha
 13. A request with `resume_session` whose call is stopped by its budget is resumed once with `--resume ses_a` and the finish message.
 14. The opencode runtime with `resume_session` `"ses_a"` calls the stand-in with `--session ses_a` right before the prompt; its result's `session` is the first `sessionID` of the events, and `ses_a` when no event carries one; a run without it and without events has `session` `None` (rows).
 15. `build_boundaries` with a `provider_limit` of status 429 gives a Claude Code runtime whose run ends `provider_limit` on a stand-in error result naming 429 (`confine_executable=None`).
-16. `make check` stays green.
-17. docs: `docs/operator-guide.md`: the configuration table gets `FACTORY_PROVIDER_LIMIT_STATUS` (default 428) and `FACTORY_PROVIDER_LIMIT_MESSAGE` (a regular expression, unset by default), with a sentence on what each matches and where (an error result or event and standard error, never the agent's own text); the stall reasons gain `provider_limit`. `docs/project-guide.md`: the end reason `provider_limit`, `AgentRunResult.session` and `limit_wait`, `AgentRunRequest.resume_session` and how each runtime resumes a session. `docs/decisions.md`: an entry *A provider's spend limit is its own end reason, and the session is kept*, dated with the story, with the reasons of the feature's decisions 12 and 13.
+16. `CostRecorder.complete` with a `provider_limit` result that holds one refused call naming `/work/a.py` writes `end_reason` `provider_limit`, `denials` 1 and `denied_paths` `["/work/a.py"]`; with no refused call, `denials` 0 and `denied_paths` `[]`; a `died` and a `time_limit` result leave both unknown (rows).
+17. A `JournalRecord` of kind `stall` with `reason` `provider_limit` is valid and round-trips through the work item's state; every value of `StallReason` in `factory.domain.journal` is still a row of F0021-S0001's criterion that covers them, and `factory.domain.decisions.StallReason` is the same type.
+18. The records contract's version is `1.2` and the committed schemas are the generated ones: `provider_limit` is among the values of `end_reason` in `cost-record.schema.json` and of the journal record's `reason` in `work-item-state.schema.json` and `acceptance-state.schema.json`; `stop-record.schema.json` and `pipeline-definition.schema.json` differ from the earlier ones only in `x-records-contract`, which reads `1.2` in all five; `uv run python -m factory.entry.contract` leaves the committed files unchanged (the existing comparison test passes).
+19. `make check` stays green.
+20. docs: `docs/operator-guide.md`: the configuration table gets `FACTORY_PROVIDER_LIMIT_STATUS` (default 428) and `FACTORY_PROVIDER_LIMIT_MESSAGE` (a regular expression, unset by default), with a sentence on what each matches and where (an error result or event and standard error, never the agent's own text); the stall reasons gain `provider_limit`; the records contract's version now reads `1.2` and the cost record's `end_reason` and the journal record's `reason` list `provider_limit`. `docs/project-guide.md`: the end reason `provider_limit`, `AgentRunResult.session` and `limit_wait`, `AgentRunRequest.resume_session` and how each runtime resumes a session. `docs/decisions.md`: an entry *A provider's spend limit is its own end reason, and the session is kept*, dated with the story, with the reasons of the feature's decisions 12 and 13.
 
 ## Smoke test
 

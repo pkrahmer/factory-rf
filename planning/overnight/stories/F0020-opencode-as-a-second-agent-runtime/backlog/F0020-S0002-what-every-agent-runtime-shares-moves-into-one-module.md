@@ -12,7 +12,7 @@ The opencode runtime (S0004) starts its runs exactly as the Claude Code runtime 
 def resumed_result(first: AgentRunResult, second: AgentRunResult) -> AgentRunResult: ...
 ```
 
-- The result of a run whose `first` call was resumed by the `second`: `second`'s `end_reason`, `decision`, `entry` and `login`, `first`'s refused tool calls followed by `second`'s, and `duration` the sum of both.
+- The result of a run whose `first` call was resumed by the `second`: `second`'s `end_reason`, `decision`, `entry` and `login`, `first`'s refused tool calls followed by `second`'s, each unchanged (`PermissionDenial.path` included), and `duration` the sum of both.
 - When `second.end_reason` is `time_limit`, nothing else is summed: `model_duration`, `turns`, `tokens` and `cost_usd` are `second`'s (R24: a call the time limit ended reports no measures, and the first call's alone are partial).
 - Otherwise `model_duration`, `turns`, `cost_usd` and each count of `tokens` are the sums of both; a measure that one call left `None` is the other's, and one that both left `None` stays `None`.
 - It moves the private `_resumed_result`, `_add` and `_add_tokens` of `claude_runtime`, which now calls `resumed_result` (the run's duration is still set afterwards from the whole run's clock, as today).
@@ -90,7 +90,7 @@ Tests (the tester writes them): `tests/adapters/test_agent_launch.py` (the words
 7. `killed_at_limit` is true for exit 137 and for -9 at the limit with a user; false below the limit, without a user, and for exit 1 (rows).
 8. `first_word` gives `2.1.296` for `"\n2.1.296 (Claude Code)\n"` and `None` for `""` and `"  \n"` (rows).
 9. `resume_budget` gives `0.50` for `1`, `1.00` for `4` and `0.63` for `2.50` (rows, as `claude_runtime.resume_budget` today).
-10. `resumed_result` of two completed calls with every measure sums them, joins the refused calls in order and takes the second's decision, entry and login; a measure only one call reported is that call's; one neither reported stays `None`; a second call ended by `time_limit` keeps its own measures and gets both calls' refused calls; the duration is always the sum (rows).
+10. `resumed_result` of two completed calls with every measure sums them, joins the refused calls in order, each with its `path` unchanged, and takes the second's decision, entry and login; a measure only one call reported is that call's; one neither reported stays `None`; a second call ended by `time_limit` keeps its own measures and gets both calls' refused calls; the duration is always the sum (rows).
 11. No function of `factory.adapters.agent_launch` starts a process: `tests/test_wrapper_search.py` and `tests/test_process_search.py` pass unchanged; and neither `factory.adapters.agent_launch` nor `factory.adapters.claude_runtime` reads `os.environ` (a source search over both modules, which finds it in a snippet that does).
 12. Every earlier test of the Claude Code runtime passes unchanged, among them those that set `claude_runtime.SHELL_EXECUTABLE`, `CLEANUP_TIME_LIMIT`, `DEVICE_FOLDERS`, `DEVICE_FILES` and `run_process`.
 13. `make check` stays green.
