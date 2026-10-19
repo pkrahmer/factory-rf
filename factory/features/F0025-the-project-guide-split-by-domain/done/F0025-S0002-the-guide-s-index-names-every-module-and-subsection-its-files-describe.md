@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T09:09:58.450625Z'
   stage: smoke-test
   run: 31052bf52f52474eaedcadf3263bb05d
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T09:16:26.755718Z'
+  stage: approval
 ---
 
 # The guide's index names every module and subsection its files describe
@@ -271,3 +276,4 @@ Expect: `documents ok`
     - Criterion 3, the limits: no guide file passes 600 lines (command 1, second line), and `documents ok` is printed (command 4).
 
     Still open, not a finding: the Description says "Three smaller passages" above a list of two. Intake, the coder, the reviewer and the documenter all noted this. The criteria name the right two passages.
+14. factory: done (pull request merged); cost: 6 runs, 3.2 min, 29 turns, 93952 tokens in (360612 more from cache), 10724 out, $0.78
