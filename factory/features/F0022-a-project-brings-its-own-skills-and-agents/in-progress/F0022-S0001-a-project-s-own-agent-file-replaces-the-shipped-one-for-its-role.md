@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 264
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T13:14:53.661411Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T13:14:53.661411Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T13:15:19.389252Z'
+  stage: intake
+  run: ca799b0896894fb3891b557fab6428e9
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -166,3 +168,9 @@ Expect: five lines, `pushed`, `opus 2 The project's coder.`, `You test what the 
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: concrete modules and signatures throughout (`identifiers.is_name`, `paths.project_agent_file`, `PROTECTED_PATHS` as the eleventh entry, `AgentDefinitionReader.parse`, `FrontmatterAgentDefinitionReader.parse`, `ProjectAgentDefinitions` with its constructor and methods, the `build_boundaries` wiring). The faults of `parse` and the wrapped fault format are spelled out, and the earlier tests that must change are named in the Interface and in feature decision 14.
+   Criteria: 1 to 14 are each testable by one parametrized test. Every rule has both sides. The name check is in 1, 3 and 5. The project file versus the installed one is in 4. The ref versus the work tree, and no cache, is in 6. A faulty project file and no fallback is in 7. The names filter (subfolder, suffix, non-name, union, sorted) and the installed-reader error are in 8. The `GitError` and name-first ordering is in 5. The loader and its stop (raised and cleared) are in 10 and 11. The tick and the probe, valid and faulty, are in 12 and 13. The wiring is in 14. Two small gaps are not worth a question. "The installed file is then not read" is covered through 7, where a valid installed file exists. "Writes nothing" has no criterion of its own.
+   Smoke test: runnable. `GitCli.commit` stages everything, `push` returns "pushed", `clone` creates the folder, and `show_file` and `list_files` exist. `claude/agents` holds the seven names the Expect line lists. Each of the five Expect lines is checkable against the output.
+   Architecture: `ProjectAgentDefinitions` is an application class over the `Git` ABC and the reader ABC, and it is wired only in `factory.entry.wiring`. `is_name` and the paths sit in the domain, the adapter keeps the parsing, and `PIPELINE_REF` comes from the application layer. The layering holds.
+   Scope: it stays within feature scope S0001, with nothing from the out-of-scope list. Skills, the shipped agent texts and the entrypoint are left to S0002. The write paths cover the files named. The tester's changes to earlier tests are the ones decision 14 lists.
