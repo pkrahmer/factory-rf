@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 250
-comments_read: []
+comments_read: [6259541572]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 6b9747a9275848fb81f16b9634a9d198
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-19T04:18:11.974084Z'
+  stage: intake
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -109,3 +114,8 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    5. The Interface says an exception from the callback propagates. The criterion for the other side is missing: the callback raising on a line on standard error. Optional; I would accept it as is if you say that stdout alone is enough.
 
    Everything else checked out. The module and signatures are concrete. The smoke test is runnable and its `Expect:` line is checkable. The story is in the adapters layer, within the feature's scope, and it is not in "Out of scope".
+4. 2026-10-19 human: 1. (a): add the criterion with the rows (working directory, one variable from `request.env`, standard input at end of file).
+   2. Yes: add the `duration` criterion (at least the child's known run time, below an upper bound with room above it).
+   3. Yes, that is the intended meaning: after the callback stops on a line, no further line is passed, also not one already read in the same chunk. Add the row (`go` then `later` at once; `later` is never passed).
+   4. Yes: add to criterion 5 that no line printed after the limit is passed (`late` after a sleep longer than the limit).
+   5. Standard output is enough; leave it as is.
