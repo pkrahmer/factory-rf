@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 264
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T13:15:40.769641Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T13:15:19.389252Z'
   stage: intake
   run: ca799b0896894fb3891b557fab6428e9
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T13:15:40.769641Z'
+  stage: tests
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -174,3 +183,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: runnable. `GitCli.commit` stages everything, `push` returns "pushed", `clone` creates the folder, and `show_file` and `list_files` exist. `claude/agents` holds the seven names the Expect line lists. Each of the five Expect lines is checkable against the output.
    Architecture: `ProjectAgentDefinitions` is an application class over the `Git` ABC and the reader ABC, and it is wired only in `factory.entry.wiring`. `is_name` and the paths sit in the domain, the adapter keeps the parsing, and `PIPELINE_REF` comes from the application layer. The layering holds.
    Scope: it stays within feature scope S0001, with nothing from the out-of-scope list. Skills, the shipped agent texts and the entrypoint are left to S0002. The write paths cover the files named. The tester's changes to earlier tests are the ones decision 14 lists.
+4. factory: started tests as self.
