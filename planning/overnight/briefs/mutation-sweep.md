@@ -2,7 +2,7 @@
 
 ## Goal
 
-Feature acceptances run `make mutants` only over the modules a feature changed, so most of `src/factory/` has never been mutated as a whole on today's `main`. Run mutmut over all of `src/factory/` once, then sort every surviving mutant (and every mutant that was not checked) into one of:
+No stage runs `make mutants` (F0031); mutation testing runs only as these sweeps, which the human starts when the machine is idle. Run mutmut over all of `src/factory/` once, then sort every surviving mutant (and every mutant that was not checked) into one of:
 
 - **equivalent**: no test can tell it apart; say why in one line;
 - **missing test**: a behaviour no test pins; name the module, the behaviour, and the test module it belongs in;

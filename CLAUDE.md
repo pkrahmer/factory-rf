@@ -6,7 +6,7 @@ The second implementation of the factory (github.com/pkrahmer/factory), planned 
 - Everything in this repository is English: code, comments, docs, work items, commit messages.
 
 ## Vocabulary
-- `factory/v1/` is v1's history: its stage table, its forms and its features F0001 to F0017, in v1's words. Nothing reads it and no stage writes it; leave it as it is.
+- v1's history (its stage table, its forms and its features F0001 to F0017, in v1's words) was `factory/v1/`; it is kept at the tag `planning-history-2026-10-19`, with the planning history.
 - Everything else, the pipeline's own files under `factory/` included (the pipeline definition, the story and feature forms, the features and their work items), uses the glossary's names: work item, journal, backlog, start, approval, pipeline definition, write paths, project commands, acceptance reviewer, smoke test, error (R3). Stall, lease, crash, `time_limit` and provider limit keep the meanings the decision log gives them.
 
 ## Architecture
@@ -49,7 +49,7 @@ The second implementation of the factory (github.com/pkrahmer/factory), planned 
 - The standing leave to move a shared test helper: a helper, constant or fixture that a new test would copy from another story's test module, or that an earlier test module still holds as a copy of a shared one, may be moved to one shared place under `tests/` (a module at its root, or `tests/conftest.py` for a fixture), and the earlier tests that held it changed to use it from there, without asking, as long as every earlier test keeps its name and checks the same thing. The tester makes the move, never the coder, and its entry names each earlier test file it changed. Any other change to a test another story wrote still needs the human's leave.
 
 ## Docs
-- `README.md` is for the newcomer: what it is, how to run it, where to look next. `docs/operator-guide.md` is for the operator: install, configure, the stops and what to do about each. `docs/project-guide/` is the project guide for agents (R17): the index `README.md` and one file per domain, which a story reads when it touches that domain. `docs/decisions.md` is the decision log. The documenter stage keeps these four true from each story's docs criterion; the coder does not write them.
+- `README.md` is for the newcomer: what it is, how to run it, where to look next. `docs/operator-guide.md` is for the operator: install, configure, the stops and what to do about each. `docs/project-guide/` is the project guide for agents (R17): the index `README.md` and one file per domain, which a story reads when it touches that domain. `docs/decisions.md` is the decision log. The documenter stage keeps these four true from each story's docs criterion; the coder does not write them. `docs/operator-playbook.md` is the human's playbook for running the factory without the human: no stage keeps it, and a story changes it only when its docs criterion names it.
 - Docstrings: one per module (its purpose, a sentence) and one per public class and function in every package under `src/factory/`; none on private names or where the signature says it all. Comments say why, never what. `ruff`'s `D` rules (Google convention) enforce the presence; the reviewer judges the content.
 
 ## Checks

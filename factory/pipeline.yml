@@ -1,5 +1,5 @@
 # factory-rf's pipeline definition: v1.1 builds this repository since the handover.
-# Its predecessor is v1's stage table, kept as history in factory/v1/stages.yml: the same
+# Its predecessor is v1's stage table, factory/v1/stages.yml at the tag planning-history-2026-10-19: the same
 # stages, write paths, caps and project commands, in v1.1's names. Every time is in minutes.
 contract: "1.0"
 attempts_cap: 2             # v1's max_attempts: agent runs that end without a result before the factory asks

@@ -1465,4 +1465,4 @@ What v1 did and v1.1 does not, so that a file or an option you remember is not m
 
 - `factory-watch` has no `--follow` mode and nothing writes the file `factory-last-line`: `--follow` is an unknown option. A file of that name left by v1 is not read and can be deleted.
 - v1's leftover files in `.git/` (`factory-run.json`, `factory-tick.lock`, `factory-tick.json`) are neither read nor written; they change nothing and can be deleted.
-- This repository's v1 history lies in `factory/v1/` (v1's `stages.yml`, `TICKET.md`, `FEATURE.md` and its features F0001 to F0017). Nothing reads it, and `factory-check-story` does not apply to it. Since the handover of 2026-10-18 v1.1 builds this repository from `factory/pipeline.yml`, `factory/story-form.md` and the features under `factory/features/`.
+- This repository's v1 history (v1's `stages.yml`, `TICKET.md`, `FEATURE.md` and its features F0001 to F0017) was `factory/v1/` and is kept at the tag `planning-history-2026-10-19`. Since the handover of 2026-10-18 v1.1 builds this repository from `factory/pipeline.yml`, `factory/story-form.md` and the features under `factory/features/`.
