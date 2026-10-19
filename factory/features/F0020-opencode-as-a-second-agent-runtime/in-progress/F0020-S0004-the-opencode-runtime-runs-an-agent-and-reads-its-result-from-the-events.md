@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 251
-comments_read: [6259811093, 6259973629]
+comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
 claim: null
 journal:
@@ -104,6 +104,11 @@ journal:
   stage: doing
   run: bb075045ead94cb1acaeac4ef0535430
   blocked: question
+- number: 18
+  speaker: human
+  kind: comment
+  at: '2026-10-19T05:04:51.128229Z'
+  stage: doing
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -408,3 +413,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - (c) Add a `pragma: allowlist secret` in the journal. Same objection, and it breaks `tests/test_process_search.py`'s marker count only if that test scans work items (I have not checked).
 
     Not touched: the open points from entry 10 still stand. `make duplicates` reports 7 blocks similar to `claude_runtime`, and vulture flags `_ErrorData.status_code` and `OpencodeRuntime` as unused; later stories will use both. The journal did not change what the task means, so `## Description` stays as it is.
+18. 2026-10-19 human: (a), done by the human on the branch: the quote is reworded in journal entries 10 and 18 (commits 0b383f77 and 9d83e265); `detect-secrets scan` over every file the branch changes now finds nothing. No baseline entry, no pragma. Go on to review.
