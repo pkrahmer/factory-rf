@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T09:30:00.890469Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-19T09:29:40.339894Z'
   stage: docs
   run: 116a0decc28d47bcab78915397029a9c
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T09:30:00.890469Z'
+  stage: smoke-test
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -256,3 +265,4 @@ Expect: `documents ok`
 
     `check`: check: green
     `documents`: documents ok
+20. factory: started smoke-test as self.
