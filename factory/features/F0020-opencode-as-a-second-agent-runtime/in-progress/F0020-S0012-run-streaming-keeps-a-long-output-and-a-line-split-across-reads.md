@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 278
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T18:44:01.983017Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T18:44:01.983017Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T18:46:14.324213Z'
+  stage: tests
+  run: 8eb2b246c32a4a8b8db6912d1d022b6b
 ---
 
 # run_streaming keeps a long output and a line split across reads
@@ -93,3 +95,17 @@ Expect: two lines, `[('stdout', 200000)] 200001` and `[('stderr', 'hello'), ('st
    Architecture: it fits. The change is tests only, in `tests/adapters/`, mirroring the package. It uses no fake git and no mocks, and the child processes are real. The docs criterion names `docs/project-guide/processes-and-checks.md`, which has the `run_streaming` paragraph at line 71.
    Scope: it is within F0020 (S0003's streaming) and not in its Out of scope. Moving `Recorder` is covered by the standing leave and the story names the file changed. I changed nothing in the story.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 and 2, using real Python child processes, `python_argv` and `Recorder` from `tests/process_support.py`.
+   criterion 1: tests/adapters/test_process_streaming_reads.py::test_line_longer_than_one_read_reaches_the_callback_and_the_result_whole (two rows, `stdout` and `stderr`. Each checks that `on_line` was called exactly once, as `(stream, "x" * 200000)`, and that the stream's text in the result has length 200001.)
+   criterion 2: tests/adapters/test_process_streaming_reads.py::test_line_split_across_two_writes_reaches_the_callback_once_and_whole (two rows, `stdout` and `stderr`. The child writes `{"a":`, flushes, waits 0.5 s in the child, then writes `1}\n`. The test checks that the callback got exactly `['{"a":1}']` for that stream and that the stream's text is `{"a":1}\n`.)
+   criterion 3 (`make check`) and criterion 4 (docs) are not test criteria. They belong to the coder and the documenter.
+
+   Files created: tests/adapters/test_process_streaming_reads.py.
+   Earlier test files changed under the standing leave in CLAUDE.md (*Tests*), as the Interface names:
+   - tests/process_support.py: `Recorder` moved here, along with its `threading` and `Stream` imports. The module docstring now covers the wider purpose.
+   - tests/adapters/test_process_streaming.py: `Recorder` removed and imported from `process_support`. Its tests keep their names and what they check.
+
+   Modules the test runner could not import: none. The story pins behaviour the code already has and changes no code, so the new tests pass from the start (`make test`: `test: green`). They do not fail first, as the story intends. They fail under the two surviving mutants: the 200000-character line takes several reads of at most 64 KiB, and the split line takes two. `make lint` is green. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (45.8 s)
