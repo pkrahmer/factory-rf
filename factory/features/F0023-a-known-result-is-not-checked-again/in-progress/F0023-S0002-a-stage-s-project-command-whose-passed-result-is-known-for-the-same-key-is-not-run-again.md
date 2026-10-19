@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 268
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T14:54:30.797525Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T14:54:30.797525Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T14:54:58.770383Z'
+  stage: intake
+  run: e2ca4484ff484362a2916a6277480492
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -198,3 +200,9 @@ Expect: four lines, `check: green True`, `check: green True`, `True True`, `2 [T
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names concrete modules and signatures (`factory.domain.known_results`, `factory.domain.checks`, `factory.application.boundaries`, `factory.application.known_results`, `factory.application.stage`, `factory.entry.wiring`). Every comment-stated behaviour has a criterion: the digest rule (1), the `reused`-only-on-passed rules (2), the `known_result` ordering and the skipping of reuse records (3), the `command_line` format (4), the no-records path (5), the key and the clock (6), the result and record of a reuse (7), the three faults and the error propagation (9, 10), the stage line and order (11, 12), the wiring (13).
+   - Criteria: each fits one test function (the parametrized ones are rows of one test). Both sides are covered: the failing side of each model rule in 2, failed and time-limited last runs in 3, 8 and 12, a run for a changed key and a reuse for an unchanged one in 8 and 11, the fault paths in 9 and 10. `not_read` appears with and without in 8 and 11. The decision 15 change to `test_fields_are_exactly_the_generic_seven` is named and carries the feature's authority.
+   - Smoke test: runnable. `GitCli.work_tree_id` already copes with a repository that has no index or commit yet (`src/factory/adapters/git_cli.py:419`). Its `Expect:` line is checkable and consistent with the script (the Makefile appends two lines to `ran`; the records are `[True, False, False, True]`).
+   - Architecture: domain holds the pure models and rules, application holds `KnownResults` and the optional `Boundaries.result_records`, entry wires the `JsonLinesRecordLog`. Git is reached only through `Git.work_tree_id`, and `ProjectCommands` and its implementations stay unchanged. This matches `CLAUDE.md`.
+   - Scope: every item is in the feature's Scope list. Nothing touches its "Out of scope" (agents' own checks, the preflight probe, the template and demos, pruning, counters). S0001's `TreeId` and `work_tree_id` are already in the tree. The two `CLAUDE.md` edits are the human's change 2, not this story's.
