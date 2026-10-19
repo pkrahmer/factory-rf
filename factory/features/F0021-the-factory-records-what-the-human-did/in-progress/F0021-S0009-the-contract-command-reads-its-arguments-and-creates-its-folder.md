@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T01:36:16.516979Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-19T01:36:16.516979Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T01:36:46.595978Z'
+  stage: review
+  run: 83ebef1c9c7d4e128b3a716522a666fa
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -213,3 +215,19 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 16. factory: started review as self.
+17. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item and `src/factory/entry/contract.py`. The diff touches three files: `tests/contract_support.py` (new), `tests/entry/test_contract_arguments.py` (new) and `tests/entry/test_contract.py` (changed).
+    Group 1, acceptance criteria:
+    - Criterion 1 is one parametrized test with three rows: `folder`, `no-folder` and `two-arguments`. Each row sets `sys.argv`, patches `CONTRACT_FOLDER` into `tmp_path` and checks the return code, stdout, stderr and where the schemas are written.
+    - The "two or more" limit is tested at two arguments, and its other side at one and at none.
+    - Reading `sys.argv[2:]`, or ignoring `sys.argv`, would fail the `folder` and `two-arguments` rows.
+    - Criterion 2 is one parametrized test with two rows, `no-parent` and `parent-exists`. It checks that the paths come back in `CONTRACT` order and that each file exists. Dropping `parents=True` would fail the `no-parent` row.
+    - The coder's `make check` was green (entry 15).
+    Groups 2 to 5: no source changes, so the architecture and security rules are not touched. The round-0 finding (entry 9, item 1) is fixed: `WRITTEN`, `USAGE` and `MainRow` now exist only in `tests/contract_support.py`. The Description and the docs criterion still match what was built.
+
+    no findings
+
+    Earlier tests:
+    - `tests/entry/test_contract.py`: changed under the standing leave to move a shared test helper. It now imports `WRITTEN`, `USAGE` and `MainRow` from `tests/contract_support.py` instead of holding its own copies and `_MainRow`. `test_main_writes_the_schemas_into_the_folder_given_or_the_default` keeps its name, its rows and what it checks.
+
+    Notes:
+    - `tests/entry/test_contract_arguments.py:13`: `SCHEMA_NAMES` builds the same five file names that `tests/entry/test_contract.py:16` already lists as `SCHEMA_FILES`. Both could come from `tests/contract_support.py`.
