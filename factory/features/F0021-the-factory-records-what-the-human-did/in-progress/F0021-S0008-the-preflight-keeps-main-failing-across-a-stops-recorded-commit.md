@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T01:14:55.661810Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-19T01:14:35.249729Z'
   stage: tests
   run: 87678f39cc634ffda0f6e20ceb773eb9
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:14:55.661810Z'
+  stage: doing
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -237,3 +246,4 @@ Expect: `0`
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (48.5 s)
+14. factory: started doing as self.
