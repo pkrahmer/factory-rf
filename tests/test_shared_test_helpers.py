@@ -47,5 +47,5 @@ def test_each_shared_helper_is_written_in_one_module(pattern: str, module: str) 
 def test_the_image_layout_fixture_returns_the_entrypoints_layout() -> None:
     conftest = (TESTS / "conftest.py").read_text(encoding="utf-8")
 
-    assert "from test_entrypoint import Layout as ImageLayout\n" in conftest
+    assert "from entrypoint_support import Layout as ImageLayout\n" in conftest
     assert "    return ImageLayout" + "(tmp_path)\n" in conftest

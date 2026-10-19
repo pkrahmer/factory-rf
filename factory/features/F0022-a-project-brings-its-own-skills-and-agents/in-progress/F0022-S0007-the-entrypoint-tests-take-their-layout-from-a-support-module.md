@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T23:48:40.568999Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T23:48:40.568999Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T23:51:11.795297Z'
+  stage: tests
+  run: f87e82b61e41442f8745d4a2eed1c954
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -100,3 +102,26 @@ Expect: `exit 0`
    Architecture: tests-only change that follows the CLAUDE.md standing leave on shared helpers (support module at the `tests/` root, tester makes the move). The layers are untouched.
    Scope: it stays inside the feature's "tests named in decision 14" scope. It is not in the feature's Stories list, but decision 14 already names S0007, so I took that as the human's intent. Nothing in "Out of scope" is touched.
 4. factory: started tests as self.
+5. tester: I made the moves the Interface names, under the standing leave in CLAUDE.md (*Tests*), and changed the one check that has the S0007 leave in decision 14. Nothing under `src/` changed.
+
+   Criteria → tests:
+   - criterion 1: no new test. Before and after the move I compared the ids from `pytest --collect-only -q` for tests/test_entrypoint.py, tests/test_agent_home_ownership.py, tests/test_entrypoint_skills.py and tests/test_shared_test_helpers.py: the same 27 ids. conftest's `image_layout` fixture is unchanged apart from its import.
+   - criterion 2: tests/test_entrypoint_support.py::test_the_entrypoint_layout_lives_in_its_support_module_alone
+   - criterion 3: tests/test_shared_test_helpers.py::test_the_image_layout_fixture_returns_the_entrypoints_layout. It keeps its name; its expected line is now `"from entrypoint_support import Layout as ImageLayout\n"`, so it would fail against the old conftest line.
+   - criterion 4: `make check`, the coder's check.
+   - criterion 5: docs: none.
+
+   Files created:
+   - tests/entrypoint_support.py: `ROOT`, `ENTRYPOINT`, `STAMP`, `STAMPED`, `SYSTEM_PATH`, `AGENT_TEXT`, `SETTINGS_TEXT` and `Layout`, all exactly as they were in test_entrypoint.py; also `texts(output: str) -> list[str]`, the old `_texts` body under a public name.
+   - tests/test_entrypoint_support.py: the one test. It leaves itself out of the search, and its search texts are split.
+
+   Earlier test files changed:
+   - Under the standing leave: tests/test_entrypoint.py (its own copies removed, imports now from `entrypoint_support`; in `test_a_missing_image_file_ends_the_run_with_one_line_before_the_instance` the local `texts` is renamed `lines`), tests/test_agent_home_ownership.py and tests/test_entrypoint_skills.py (imports), tests/conftest.py (import line; ruff re-sorted it into the import block).
+   - Under the human's leave in decision 14: tests/test_shared_test_helpers.py, the one expected line.
+
+   Run: `make test` → `test: green (37.8 s)`. These are not red tests: in this story the tester does the move itself, so the coder has nothing to implement beyond confirming `make check`. `make lint` → green. The test run imported every module. I did not run the type check (stage rule).
+
+   Open: none.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (38.8 s)
