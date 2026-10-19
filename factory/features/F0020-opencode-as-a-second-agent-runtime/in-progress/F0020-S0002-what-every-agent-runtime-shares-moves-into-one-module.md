@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T04:13:31.114909Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-19T04:13:31.114909Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T04:14:16.143187Z'
+  stage: smoke-test
+  run: 288f1ddd92cd4568ba2c877f7e6592dc
 ---
 
 # What every agent runtime shares moves into one module
@@ -425,3 +427,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Ran the one command under `## Smoke test` from the repository root, exactly as written, in a bash shell. It created its temporary directory with `mktemp -d` and removed it through its own `trap`.
+
+    Command 1 (the `uv run -q python - "$d"` heredoc), output (exit 0):
+
+    ```
+    /usr/bin/sudo -n -u agent -- timeout --signal=KILL 10s env -i HOME=/home/agent claude 40.0
+    factory-confine --rules D/rules.json -- claude
+    1.00
+    completed 4 1.25 3.0
+    ```
+
+    Met its `Expect:` line: yes. All four lines match the expected text exactly.
+
+    Checked against the acceptance criteria:
+    - The `launch` line has the words of criterion 1 in the Interface's order. The time limit is the given 10 s plus `SUDO_GRACE`, which makes 40.0.
+    - The `confined_argv` line has the shape criterion 2 gives.
+    - `resume_budget(4)` is `1.00`, as criterion 9 says.
+    - `resumed_result` takes the second call's `end_reason`. It sums `turns` (3+1), `cost_usd` (1.00+0.25) and `duration` (1+2 s), as the Interface and criterion 10 say.
+
+    The output contradicts no criterion. The commands did not exercise criteria 3–8 and 11–14; the factory's checks gate `make check`. I did not run `make check` myself, because this stage only runs the smoke test.
+
+    Findings: none.
