@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 1
@@ -98,6 +98,11 @@ journal:
   at: '2026-10-19T16:44:22.604346Z'
   stage: smoke-test
   run: e014cc81242f4223a6d92eea146d8c53
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-19T16:46:45.753074Z'
+  stage: approval
 ---
 
 # The reviewer reads the story's surviving mutants, and the acceptance reviewer runs the report until it is complete
@@ -296,3 +301,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     I fixed nothing and changed no file.
 
     Open: nothing.
+17. factory: done (pull request merged); cost: 7 runs, 4.9 min, 44 turns, 153390 tokens in (916527 more from cache), 17435 out, $1.30
