@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 278
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T18:44:01.983017Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T18:43:40.616337Z'
   stage: intake
   run: 30dcdd2f68aa4627abba3dade15a12d6
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:44:01.983017Z'
+  stage: tests
 ---
 
 # run_streaming keeps a long output and a line split across reads
@@ -83,3 +92,4 @@ Expect: two lines, `[('stdout', 200000)] 200001` and `[('stderr', 'hello'), ('st
    Smoke test: it runs as written with `uv run -q python` on real child processes, and the `Expect:` line gives the exact values to compare. The run's two lines and the sorted list make the second check order-independent.
    Architecture: it fits. The change is tests only, in `tests/adapters/`, mirroring the package. It uses no fake git and no mocks, and the child processes are real. The docs criterion names `docs/project-guide/processes-and-checks.md`, which has the `run_streaming` paragraph at line 71.
    Scope: it is within F0020 (S0003's streaming) and not in its Out of scope. Moving `Recorder` is covered by the standing leave and the story names the file changed. I changed nothing in the story.
+4. factory: started tests as self.
