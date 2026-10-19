@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T10:49:21.707926Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-19T10:49:21.707926Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-19T10:49:52.735479Z'
+  stage: doing
+  run: 16f277d025334f0b8d5e4b8f7a78eb6c
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -461,3 +463,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: none changed. Every test file in the diff has status `A`.
 20. factory: started doing as self.
+21. coder: The reviewer added criterion 18 in entry 19. It needs only its test, so this goes to the tester. I changed no code and no test.
+
+    The test change: add two rows to the parametrized `tests/domain/test_settings_provider_limit_wait.py::test_the_cooldown_and_ceiling_are_read_in_minutes`:
+    - `{COOLDOWN: "1", CEILING: "1"}` gives a cool-down and a ceiling of 1 minute each.
+    - `{COOLDOWN: "30", CEILING: "30"}` gives a cool-down and a ceiling of 30 minutes each.
+
+    They sit beside the existing `5`/`60` row. The test file has no such rows yet.
+
+    No change under `src/` is expected. `_provider_limit` in `src/factory/domain/settings.py` refuses only `ceiling < cooldown`, and `_minutes` accepts any whole number of at least 1. Both new rows are on the accepting side of those rules, so the current code already accepts them.
+
+    What I built is unchanged from entries 10 and 17: `src/factory/application/{machine,provider_limits,sealed_runs,stage,boundaries}.py`, `src/factory/adapters/clock.py`, `src/factory/domain/{provider_limits,settings}.py` and `src/factory/entry/wiring.py`.
+
+    Description: the reviewer added criterion 18 to the work item. The task means the same, and the Interface already states both limits, so I did not rewrite the Description.
+
+    Noticed, not touched: nothing new.
