@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 290
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T21:58:37.410370Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T21:58:37.410370Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T21:58:56.345940Z'
+  stage: docs
+  run: 3809f80a3acb45eda1325ad17d3b7a5a
 ---
 
 # The operator guide's not_read example leaves out only what lint does not read
@@ -154,3 +156,21 @@ Expect: `documents ok`
    - 5. Work item hygiene: the coder's entry gives the main decision (leave `docs/operator-guide.md` to the documenter) and what it rejected. The Description matches what was built, which is nothing outside the docs. The docs criterion is still accurate. Every passage it names is still on the branch: `docs/operator-guide.md:900` (`lint: {time_limit: 10, not_read: ["factory/*", "docs/*"]}`), `:903` ("List only what the command does not read at all"), `:905` ("after the story that built the key"), `:909` (`check: {time_limit: 15, ...}`) and `:914` ("will run `secrets`"). `factory/pipeline.yml:10` holds `check: {time_limit: 8, not_read: [...]}` with the same `not_read` list. The documenter copies that line.
    - 6. Earlier tests: no test file is changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the two files under `factory/`).
 10. factory: started docs as self.
+11. documenter: Changed one file, `docs/operator-guide.md`, in *The pipeline definition* (criterion 3). No other passage changed.
+    - The first `not_read` example is now `check: {time_limit: 10, not_read: ["README.md", "docs/*.md"]}`. It leaves out file types, not folders.
+    - After "List only what the command does not read at all." I added one sentence: a linter, formatter or type checker that walks the whole tree reads every source file in every folder, so leave out file types it does not read, never a whole folder.
+    - "factory-rf's own definition takes this after the story that built the key" is now "factory-rf's own definition, `factory/pipeline.yml`, takes this".
+    - The `check` line in factory-rf's block now says `time_limit: 8`, the line `factory/pipeline.yml` holds on `main`. Its `not_read` list was already identical.
+    - "docs stage will run `secrets`" is now "docs stage runs `secrets`", with the rest of the sentence unchanged.
+
+    Run: `uv run python -m factory.entry.check_documents` printed `documents ok`.
+
+    I did not run `make check`, because I changed only a document under `docs/`; the factory's check after this stage decides. I did not run the smoke-test greps. The edits are exact string replacements, so the old strings are gone and the new `not_read` example appears once.
+
+    I did not cross-read other documents; the story covers one passage. The diff holds no code change, so there is no finding for the coder.
+
+    Stale text noticed and not touched: none.
+
+    `check`: check: green (not run again: passed on tree 3523d622cd0b at 2026-10-19T21:56:48Z)
+    `secrets`: secrets: green (0.8 s)
+    `documents`: documents ok
