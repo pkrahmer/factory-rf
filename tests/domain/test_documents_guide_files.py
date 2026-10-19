@@ -35,6 +35,7 @@ def test_the_guide_is_an_index_in_its_folder() -> None:
         ("docs/project-guide/README.md", False),
         ("docs/project-guide/sub/x.md", False),
         ("docs/project-guide/notes.txt", False),
+        ("docs/project-guide/a.md.bak", False),
         ("docs/project-guide/.md", False),
         ("docs/project-guide/X.MD", False),
         ("docs/project-guide.md", False),

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T06:39:30.567675Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T06:39:30.567675Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T06:41:12.600938Z'
+  stage: tests
+  run: 13d2ad645d464696ab4c99c13233640b
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -305,3 +307,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The journal changed nothing in the Description: the reviewer already wrote the new row into criterion 2.
 12. factory: started tests as self.
+13. tester: I made the test change that the coder's entry 11 names. The reviewer's entry 9 added the row to criterion 2.
+
+    - Change: `tests/domain/test_documents_guide_files.py::test_a_guide_file_is_an_md_file_directly_beside_the_index` gets the row `("docs/project-guide/a.md.bak", False)`. It sits after the `notes.txt` row, in criterion 2's order.
+    - Why: the row tests the refused side of the rule that a name must *fully* match `[^/]+\.md`. A name with text after `.md` was not covered by any row.
+    - Nothing else in the module changed, and the test keeps its name.
+
+    Mapping, unchanged apart from the new row:
+    - criterion 1: tests/domain/test_documents_guide_files.py::test_the_guide_is_an_index_in_its_folder
+    - criterion 2: tests/domain/test_documents_guide_files.py::test_a_guide_file_is_an_md_file_directly_beside_the_index (now 12 rows: 2 True, 10 False)
+    - criterion 3: tests/domain/test_documents_guide_files.py::test_a_guide_file_is_checked_for_its_words_only
+    - criterion 4: tests/domain/test_documents_guide_files.py::test_guide_files_follow_the_four_documents_in_path_order_and_other_keys_are_ignored
+    - criterion 5: tests/entry/test_check_documents_guide_files.py::test_the_files_beside_the_index_are_read
+    - criterion 6: tests/entry/test_check_documents_guide_files.py::test_the_old_guide_path_is_not_read
+    - criteria 7 and 8: no test (they are `make check` and the docs criterion).
+
+    I created no new files in this round, and the test run could import every module. One `make test` run is green: the new row passes against the existing `fullmatch` in `is_guide_file`. `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (36.4 s)
