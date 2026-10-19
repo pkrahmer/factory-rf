@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853, 6262583574]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T08:05:04.754841Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -201,6 +197,12 @@ journal:
   kind: started
   at: '2026-10-19T08:05:04.754841Z'
   stage: review
+- number: 35
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T08:05:47.048562Z'
+  stage: review
+  run: 30e03fe15cef425bb2bb18afd4f8d9fe
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -663,3 +665,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 33. 2026-10-19 human: Go on, one more round, limited to entry 31's finding: the tester writes the test for criterion 19 (a time-limited run of both runtimes carries its `session`), the code stays as built. The reviewer then checks that test only; its two notes go forward as notes, not back.
 34. factory: started review as self.
+35. reviewer: Review, round 0 (counting again after the human's answer in entry 33). As entry 33 asks, this review covers only criterion 19. I read the work item, `git diff --name-status main...HEAD` and the tests that touch the time limit and the session. The factory's last `make check` after the coder was green (entry 29).
+
+    The answer in entry 33 had the tester write criterion 19's test. The factory sent the work item straight back to review instead (entry 34), and no commit since entry 31 has changed a test. So criterion 19 still has no test.
+
+    Findings:
+    1. `tests/adapters/test_claude_runtime_provider_limit.py:153` (`test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit`) and `tests/adapters/test_opencode_resume_session.py:27`: criterion 19 (a run that outlasts its time limit keeps its session) has no test. The Claude time-limit test checks `end_reason`, `limit_wait` and the elapsed time, but never `result.session` against the `--session-id` it was called with. The opencode table has no time-limited row. The fix is tests only, as entry 33 says, and the code stays as built:
+       - Claude: the time-limit test also asserts that `result.session` equals the `--session-id` argument of its call.
+       - opencode: add time-limited rows using `Step(stdout_before_wait=<events with a sessionID>, wait_seconds=...)` and a time limit of a few seconds. One row expects that `sessionID`. A second row prints no events, sets `resume_session` `"ses_a"` and expects `ses_a`. Both expect `end_reason` `time_limit`.
+       The coder hands this to the tester.
+
+    Earlier tests:
+    - tests/domain/test_agent_runs.py: the story's leave under the feature's decision 19 (renamed to `test_question_and_the_six_end_reasons`, count 6, `provider_limit` added). It stays within that leave.
+    - tests/domain/test_contract.py: the story's leave under decision 19 (expected version `"1.2"`, name kept). It stays within that leave.
+    - tests/domain/test_contract_login.py: the human's leave in journal entry 9 (the two version assertions removed, the test renamed). The removed import was the one those assertions alone used, so it stays within that leave.
+
+    Notes (carried forward from entry 31, as entry 33 asks):
+    - tests/adapters/test_claude_runtime_provider_limit.py:22 and tests/entry/test_wiring_provider_limit.py:14: the error reply is written out twice (`_error_reply` and `ERROR_REPLY`). The wiring test could import `_error_reply`.
+    - tests/domain/test_agent_runs_session.py, row `zero-wait`: the expected refusal `""` matches any validation error. A fragment such as `limit_wait` naming the positive rule would pin which rule refused it.
