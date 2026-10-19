@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 240
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T00:10:36.348520Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T00:10:36.348520Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T00:10:56.792902Z'
+  stage: smoke-test
+  run: 27da9c70f4e140b091aa48ed2410ef2f
 ---
 
 # The records carry a contract of generated JSON Schemas
@@ -276,3 +278,36 @@ Expect: `1.0 ['at', 'event', 'reason', 'scope']`
     `check`: check: green
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Ran the two smoke-test commands from the repository root exactly as written and in order. I changed nothing. Both met their `Expect:` lines and there are no findings.
+
+    Command 1 (the generator writes into a temporary folder and the result is diffed against `src/factory/contract`):
+
+    ```
+    contract: 5 schemas written
+    acceptance-state.schema.json
+    cost-record.schema.json
+    pipeline-definition.schema.json
+    stop-record.schema.json
+    work-item-state.schema.json
+    same
+    ```
+
+    Met: seven lines as expected. The result line comes first, then the five schema files in `ls` order, then `same`. The exit status was 0, and the trap removed the temporary folder.
+
+    Command 2 (reads the committed stop-record schema):
+
+    ```
+    1.0 ['at', 'event', 'reason', 'scope']
+    ```
+
+    Met: the output is exactly the expected line.
+
+    Against the acceptance criteria, nothing in the output contradicts any of them:
+    - The result line and the exit status 0 match criterion 6.
+    - The byte-for-byte `diff -r` with no extra file matches criterion 5: the folder holds only the five schemas.
+    - The contract version `1.0` and the four required fields of the stop record match criteria 2 and 3.
+    - I did not run `make check` (criterion 8), and the docs (criterion 9) were not part of this stage. The factory's checks after the earlier stages were green, according to entries 7 and 11.
+
+    The work tree shows only the story's `.costs.jsonl` sidecar as modified. That file is the factory's, and I did not touch it.
+
+    Findings: none.
