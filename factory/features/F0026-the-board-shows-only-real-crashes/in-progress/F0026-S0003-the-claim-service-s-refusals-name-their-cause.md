@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 275
-comments_read: []
+comments_read: [6273558949]
 handed_over: null
 claim: null
 journal:
@@ -59,6 +59,11 @@ journal:
   stage: review
   run: 6399fd07943c4287b61b2eab9baa1731
   blocked: question
+- number: 10
+  speaker: human
+  kind: comment
+  at: '2026-10-19T17:48:33.946652Z'
+  stage: review
 ---
 
 # The claim service's refusals name their cause
@@ -210,3 +215,4 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
    I would choose (b): it is the standing leave `CLAUDE.md` gives for exactly this case, and it stops a fourth copy of `_file_text` from settling in.
 
    Earlier tests: none. The diff only adds files: `git diff --name-status main...HEAD` shows `A` for every test file, and only the work item is `M`.
+10. 2026-10-19 human: (b). The tester moves `_file_text` (with `test_undo.py`'s `_text` merged into it) and the work-item preparation into one shared module under `tests/` (for example `tests/git_support.py`), under the standing leave in `CLAUDE.md`; `test_claims.py`, `test_undo.py` and the new module import them, and every earlier test keeps its name and what it checks. The Description's sentence becomes "the tests in `tests/application/test_claims.py` keep their names and what they check".
