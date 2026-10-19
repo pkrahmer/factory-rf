@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T06:31:57.826130Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T06:31:57.826130Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T06:34:14.769702Z'
+  stage: tests
+  run: dd2eafa2281143ffa67b66532b8cc304
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -181,3 +183,31 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: the change fits the layering. The rules and constants go in `domain.documents`, and the folder reading goes in `entry.check_documents`, the only place that touches the filesystem. There is no new dependency or package.
    Scope: the story stays inside the feature's Scope. Its Out of scope list (template, todo demo, operator guide and decision log staying single files, no code tree move) is respected.
 4. factory: started tests as self.
+5. tester: Wrote the tests for the criteria from the Interface. Each criterion with more than one case is one parametrized test.
+
+   - criterion 1: tests/domain/test_documents_guide_files.py::test_the_guide_is_an_index_in_its_folder
+   - criterion 2: tests/domain/test_documents_guide_files.py::test_a_guide_file_is_an_md_file_directly_beside_the_index (11 rows: 2 True, 9 False, as listed)
+   - criterion 3: tests/domain/test_documents_guide_files.py::test_a_guide_file_is_checked_for_its_words_only (rows: clean, v1-word, replaced-phrase, blank, none, replaced-section)
+   - criterion 4: tests/domain/test_documents_guide_files.py::test_guide_files_follow_the_four_documents_in_path_order_and_other_keys_are_ignored
+   - criterion 5: tests/entry/test_check_documents_guide_files.py::test_the_files_beside_the_index_are_read (rows: guide-file-read, others-ignored, utf-8)
+   - criterion 6: tests/entry/test_check_documents_guide_files.py::test_the_old_guide_path_is_not_read (rows: old-path, empty-root; empty-root imports `MISSING_LINES` from `entry.test_check_documents`)
+   - criterion 7 (`make check`) and criterion 8 (docs): these are for the coder and the documenter. They have no test.
+
+   Files created: tests/domain/test_documents_guide_files.py, tests/entry/test_check_documents_guide_files.py.
+
+   Earlier test changed under the feature's decision 9, as the Interface names: tests/entry/test_check_documents.py. In it, `MISSING_LINES` now holds `docs/project-guide/README.md: missing`. `test_each_finding_prints_one_line_in_order_and_returns_one` now expects `docs/project-guide/README.md: section 'Kill points' is missing`. Nothing else in that module changed, and every test keeps its name.
+
+   One `make test` run, red as intended:
+   - Collection error: tests/domain/test_documents_guide_files.py cannot import `PROJECT_GUIDE_FOLDER` and `is_guide_file` from `factory.domain.documents`.
+   - Failures:
+     - test_check_documents.py::test_each_finding_prints_one_line_in_order_and_returns_one
+     - test_check_documents.py::test_the_module_run_as_a_process_exits_with_the_status_of_main[empty-directory]
+     - the guide-file-read row of test_the_files_beside_the_index_are_read
+     - the old-path row of test_the_old_guide_path_is_not_read
+
+   The others-ignored and utf-8 rows of criterion 5 already pass today, because the current code reads no guide files.
+
+   `make lint` is green. I ran `ruff format` on the new files and made the parametrized arguments of the entry test keyword-only for PLR0917. No criterion needed interpreting.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/domain/test_documents_guide_files.py - ImportError while importin...

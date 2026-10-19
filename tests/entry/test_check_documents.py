@@ -20,7 +20,7 @@ from factory.entry.check_documents import main
 MISSING_LINES = (
     "README.md: missing\n"
     "docs/operator-guide.md: missing\n"
-    "docs/project-guide.md: missing\n"
+    "docs/project-guide/README.md: missing\n"
     "docs/decisions.md: missing\n"
 )
 
@@ -55,7 +55,7 @@ def test_each_finding_prints_one_line_in_order_and_returns_one(
     assert capsys.readouterr().out == (
         "README.md: missing\n"
         "docs/operator-guide.md: section 'Install' is missing\n"
-        "docs/project-guide.md: section 'Kill points' is missing\n"
+        "docs/project-guide/README.md: section 'Kill points' is missing\n"
         "docs/decisions.md: empty\n"
     )
     assert status == 1
