@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T21:16:41.705935Z'
   stage: acceptance
   run: 6d12626ee2244accb4c9cbb0b4aad88b
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T21:21:06.998989Z'
+  stage: done
 stories: [F0031-S0001]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of No stage runs mutation testing
@@ -143,3 +148,4 @@ All of them are time-limit tests, and none of them is this feature's. Disk is th
    6 Decisions: decisions 1 to 8 and 11 to 13 are built as listed. Two are open, the human's: decision 9 is half done (the `mutants` command is gone, but `mutants/*` is still in `tool_paths`), and decision 10 (time limit 40, lease 60) is not applied yet. The human's changes 1, 4 and 5 are done. Change 6 (the F0030 draft still names the removed operator-guide paragraph) is not. The two earlier tests were changed under decision 7, and none was changed without a leave.
    7 Slow checks: nothing beyond `make check`. The slowest tests are the time-limit tests, at 5.0 s each. Disk is unchanged (0.5 GB used on `/work`).
    8 Cost: 10 runs, 8.0 min, $2.30. No questions to the human and 0 h waited. Round 1 cost about $0.83 (36 % of the story) for one test-module docstring, where the tester paraphrased the text that decision 7 gave word for word.
+3. factory: done (pull request merged); cost: 1 runs, 4.5 min, 39 turns, 93024 tokens in (2352900 more from cache), 20220 out, $1.62
