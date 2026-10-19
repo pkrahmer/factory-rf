@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T07:58:30.606308Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-10-19T07:58:30.606308Z'
   stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-10-19T08:00:35.007937Z'
+  stage: doing
+  run: c600e2f4514046d5ae2e1303b5a38df5
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -579,3 +581,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (37.4 s)
 28. factory: started doing as self.
+29. coder: Round 2, after the tester's change in entry 27. The reviewer had one finding in entry 23. The tester settled it by changing the test, as I asked in entry 25: `tests/domain/test_provider_limits.py::test_the_named_wait_is_the_first_one_the_text_names` now has the rows `Retry-After: 5`, `retry-after 1234567` and `retry-after: soon`. All three pass against the code from entry 13, so I changed nothing under `src/` this round. I ran `make check` myself and it is green (`check: green`, coverage 99.05 %).
+
+    What I built is unchanged from entry 13:
+    - `src/factory/domain/provider_limits.py`
+    - `src/factory/domain/agent_runs.py`
+    - `src/factory/domain/settings.py`
+    - `src/factory/domain/journal.py`
+    - `src/factory/domain/post_texts.py`
+    - `src/factory/domain/contract.py`, with the schemas under `src/factory/contract/` regenerated at 1.2
+    - `src/factory/adapters/claude_runtime.py`
+    - `src/factory/adapters/opencode_runtime.py`
+    - `src/factory/entry/wiring.py`
+
+    Main design choice, also unchanged: the Claude runtime's `_result` takes the session as a parameter, and the resume call gets `first.session`. I rejected reading the session back from the argument list.
+
+    Refactor pass: there is no new diff this round, so nothing needed changing. The journal did not change what the task means, so `## Description` stays as it is.
+
+    Seen but not touched:
+    - The reviewer's note in entry 23 that the error reply is written out twice: `_error_reply` in `tests/adapters/test_claude_runtime_provider_limit.py` and `ERROR_REPLY` in `tests/entry/test_wiring_provider_limit.py`. That is the tester's to settle.
+    - The 5 new `make duplicates` findings from entry 13. None of them comes from this story's diff.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 1 gone
