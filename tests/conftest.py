@@ -43,6 +43,7 @@ from git_support import (
 from human_clone import HumanClone
 from proof_support import World, build_world, start_story
 from run_process_recorder import Recorder
+from test_entrypoint import Layout as ImageLayout
 from tmp_path_support import reopen
 from wiring_support import HOSTED_URL
 
@@ -131,6 +132,19 @@ def local_settings(tmp_path: Path) -> InstanceSettings:
         checkout=root / "checkout",
         state_directory=root / "state",
         agent_home=root / "agents-home",
+    )
+
+
+@pytest.fixture
+def probe_settings(agent_home: Path, tmp_path: Path) -> InstanceSettings:
+    """Return settings whose agents run as the user `agent`, the state in `tmp_path`."""
+    return InstanceSettings(
+        repository_url="/srv/project.git",
+        instance="factory-1",
+        state_directory=tmp_path / "state",
+        agent_home=agent_home,
+        pinned_agent_version="fake",
+        agent_user="agent",
     )
 
 
@@ -234,6 +248,12 @@ def work_item(world: World) -> WorkItemId:
 def layout(tmp_path: Path) -> Layout:
     """A checkout with `src` and `other`, a home and a temporary root under `tmp_path`."""
     return build_layout(tmp_path)
+
+
+@pytest.fixture
+def image_layout(tmp_path: Path) -> ImageLayout:
+    """Return the image layout, homes, state and stubs of one entrypoint run under `tmp_path`."""
+    return ImageLayout(tmp_path)
 
 
 @pytest.fixture

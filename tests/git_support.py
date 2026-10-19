@@ -72,6 +72,8 @@ STORY_FORM = """\
 AGENT_FILE = "---\nmodel: sonnet\ntools: [Read, Write]\nbudget_usd: 1\n---\nDo the work.\n"
 # An agent file whose last key is one the agent runtime does not apply.
 COLOURED_AGENT_FILE = AGENT_FILE.replace("budget_usd: 1\n", "budget_usd: 1\ncolour: red\n")
+# An agent file a project brings for its coder, with its own instructions.
+PROJECT_CODER = AGENT_FILE.replace("Do the work.", "The project's coder.")
 
 REMOTE_FILES = {
     "factory/pipeline.yml": PIPELINE_YAML,

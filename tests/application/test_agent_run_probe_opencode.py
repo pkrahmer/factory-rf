@@ -11,8 +11,8 @@ from factory.application.preflight import agent_run_probe_item
 from factory.domain.agent_runs import AgentRunResult, Login
 from factory.domain.settings import InstanceSettings
 from git_support import install_agents
+from probe_support import ENVIRONMENT
 
-ENVIRONMENT = {"PATH": "/opt/factory/bin:/usr/bin", "HOME": "/home/agent", "LANG": "C.UTF-8"}
 DIED = "the probe run ended died; run opencode run by hand as agent to see why"
 API_HINT = (
     "; the agent's API key is read from /home/agent/.anthropic-api-key: "

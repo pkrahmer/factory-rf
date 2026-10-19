@@ -13,8 +13,8 @@ from factory.application.preflight import agent_run_probe_item
 from factory.domain.agent_runs import AgentRunResult, EndReason
 from factory.domain.settings import InstanceSettings
 from git_support import install_agents
+from probe_support import ENVIRONMENT
 
-ENVIRONMENT = {"PATH": "/opt/factory/bin:/usr/bin", "HOME": "/home/agent", "LANG": "C.UTF-8"}
 LOGIN_FILE = Path("/home/agent/.claude-token")
 HINT = (
     "; the agent's login token is read from /home/agent/.claude-token: "
@@ -22,19 +22,6 @@ HINT = (
 )
 FAILED_REASONS: list[EndReason] = ["died", "no_result", "time_limit", "budget"]
 USERS = [("agent", "agent"), (None, "the factory user")]
-
-
-@pytest.fixture
-def settings(agent_home: Path, tmp_path: Path) -> InstanceSettings:
-    """Return settings whose state lies in `tmp_path`, with the test's agent home."""
-    return InstanceSettings(
-        repository_url="/srv/project.git",
-        instance="factory-1",
-        state_directory=tmp_path / "state",
-        agent_home=agent_home,
-        pinned_agent_version="fake",
-        agent_user="agent",
-    )
 
 
 @pytest.fixture
@@ -76,7 +63,7 @@ _ROWS = [
 @pytest.mark.parametrize(("reason", "agent_user", "login_file", "passed", "detail"), _ROWS)
 def test_a_probe_that_does_not_complete_names_the_login_file_when_one_is_set(
     boundaries: Boundaries,
-    settings: InstanceSettings,
+    probe_settings: InstanceSettings,
     agent_runtime: FakeAgentRuntime,
     *,
     reason: EndReason,
@@ -86,7 +73,9 @@ def test_a_probe_that_does_not_complete_names_the_login_file_when_one_is_set(
     detail: str,
 ) -> None:
     agent_runtime.queue(ScriptedRun(result=_probe_result(reason)))
-    probed = settings.model_copy(update={"agent_user": agent_user, "claude_login_file": login_file})
+    probed = probe_settings.model_copy(
+        update={"agent_user": agent_user, "claude_login_file": login_file}
+    )
 
     item = agent_run_probe_item(boundaries, probed, ENVIRONMENT)
 
@@ -97,7 +86,7 @@ def test_a_probe_that_does_not_complete_names_the_login_file_when_one_is_set(
 
 @pytest.mark.usefixtures("coder")
 def test_a_login_file_the_runtime_cannot_read_fails_the_probe_with_the_runtime_s_message(
-    boundaries: Boundaries, settings: InstanceSettings, tmp_path: Path
+    boundaries: Boundaries, probe_settings: InstanceSettings, tmp_path: Path
 ) -> None:
     folder = tmp_path / "login-folder"
     folder.mkdir()
@@ -105,7 +94,7 @@ def test_a_login_file_the_runtime_cannot_read_fails_the_probe_with_the_runtime_s
         str(tmp_path / "bin" / "claude"), tmp_path / "runtime-state", login_file=folder
     )
     claude = dataclasses.replace(boundaries, agent_runtime=runtime)
-    probed = settings.model_copy(update={"agent_user": None, "claude_login_file": folder})
+    probed = probe_settings.model_copy(update={"agent_user": None, "claude_login_file": folder})
 
     item = agent_run_probe_item(claude, probed, {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path)})
 

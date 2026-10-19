@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T20:10:46.284107Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T20:10:46.284107Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T20:15:02.032367Z'
+  stage: tests
+  run: cf763da2b0584cc38d0beb4686043da9
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -91,3 +93,32 @@ Expect: `1`
    Architecture: tests-only; shared helpers go to modules at the `tests/` root and conftest, as CLAUDE.md's standing leave allows. No `src/` change.
    Scope: within F0022's stated reach (the feature's test-helper follow-up from the acceptance), no item in "Out of scope"; the `PROJECT_CODER` of `test_project_agents.py` is rightly left alone.
 4. factory: started tests as self.
+5. tester: This story only moves code, so I made the four moves the Interface names, under the standing leave in CLAUDE.md (*Tests*), and added one structural test for criterion 2. No module under `src/factory/` changed. The tests cannot be red before the coder works, because the story is the moves themselves, and the tester makes those.
+
+   Criteria to tests:
+   - criterion 1 (same test ids): no test function. I checked it by sorting the `::` lines of `uv run pytest --co -q -o addopts=""` over the nine modules, before and after the moves. `diff` shows no change: 67 ids.
+   - criterion 2 (each helper written in one module): `tests/test_shared_test_helpers.py::test_each_shared_helper_is_written_in_one_module`, one row per helper (`environment`, `completed`, `project-coder`, `image-layout`). The other test, `tests/test_shared_test_helpers.py::test_the_image_layout_fixture_returns_the_entrypoints_layout`, checks the `as return ImageLayout(tmp_path)` part, which also needs the conftest's `from test_entrypoint import Layout as ImageLayout`.
+   - criterion 3 (`make check` green): the gate itself. I ran it after the moves and the last line was `check: green` (test: green, 43.7 s).
+   - criterion 4 (docs: none): nothing to test.
+
+   The test module splits its search texts (`"Layout" + "(tmp_path)"`), so the smoke test's `grep -rlF ... | wc -l` still counts `1` for each text. I checked that: 1, 1, 1.
+
+   Files created:
+   - `tests/probe_support.py`: `ENVIRONMENT` and `COMPLETED`, as `test_agent_run_probe.py` held them.
+   - `tests/test_shared_test_helpers.py`
+
+   Earlier test files changed under the standing leave (each test keeps its name and checks the same thing):
+   - `tests/conftest.py`: new fixtures `probe_settings(agent_home, tmp_path)` and `image_layout(tmp_path)`, plus the import `from test_entrypoint import Layout as ImageLayout`. The confinement's `layout` fixture there stays as it was.
+   - `tests/git_support.py`: `PROJECT_CODER`, placed after `COLOURED_AGENT_FILE`.
+   - `tests/application/test_agent_run_probe.py`, `test_agent_run_probe_project_agent.py` and `test_agent_run_probe_login.py`: the local `ENVIRONMENT`/`COMPLETED` and the local `settings` fixture are gone. These modules import from `probe_support`, and their tests take `probe_settings`. `test_agent_run_probe_project_agent.py` also imports `PROJECT_CODER` from `git_support`.
+   - `tests/application/test_agent_run_probe_opencode.py`: imports `ENVIRONMENT` from `probe_support`. Its own `settings` fixture stays.
+   - `tests/application/test_agent_run_probe_api_login.py`: imports `ENVIRONMENT` from `probe_support`, and still takes `HINT` and `LOGIN_FILE` from the login module.
+   - `tests/entry/test_wiring_project_agents.py`: imports `PROJECT_CODER` from `git_support`.
+   - `tests/test_entrypoint.py`, `tests/test_agent_home_ownership.py` and `tests/test_entrypoint_skills.py`: the local `layout` fixture is gone, and the tests take `image_layout`. The parameter is renamed in signatures and bodies; the type `Layout` stays.
+
+   Modules the test run could not import: none. `make test` was green (99.12 % coverage) and `make lint` is green.
+
+   Open: nothing. The coder has no code to write. `make check` is already green, so the coder's stage only needs to confirm it.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (43.2 s)
