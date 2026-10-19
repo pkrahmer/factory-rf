@@ -1,3 +1,104 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 279
+comments_read: [6274821134]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T18:52:33.928949Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:52:33.936980Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-19T18:52:57.471973Z'
+  stage: intake
+  run: 9d0bec5d8afa4c7792e39adcbfc114b0
+  blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-19T18:54:15.537321Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:54:33.792706Z'
+  stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-19T18:54:56.744121Z'
+  stage: intake
+  run: da70974357284d00babbdff386044130
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:55:18.335098Z'
+  stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-19T18:59:50.703288Z'
+  stage: tests
+  run: badbf64777e04dc884bd2152e65d8d7f
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-19T19:00:11.493658Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-19T19:02:39.404399Z'
+  stage: doing
+  run: e7d1d8fa7652462f983a40e8a8e457c1
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-19T19:03:00.709373Z'
+  stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T19:04:08.175679Z'
+  stage: review
+  run: 80eec480762f4fdaa75ddd7d5c59e90c
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-19T19:04:28.979558Z'
+  stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T19:05:02.584375Z'
+  stage: docs
+  run: 1bc58445f29f4e838da5edeeb3cec208
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-19T19:05:23.636099Z'
+  stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T19:05:55.828305Z'
+  stage: smoke-test
+  run: 846c6b424a8947fab9c679a07793fef2
+---
+
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -41,15 +142,17 @@ No earlier test changes.
 1. `parse_result_block`, one parametrized test:
    - the text `<factory-result>` / `decision: question` / `entry:` / `First line.` / (empty) / `Third line.` / `</factory-result>`, with `question` allowed, gives `("question", "First line.\n\nThird line.")`;
    - the same block with `note:` in place of `entry:` gives `None`;
-   - a block whose first line is `question` (no `decision: ` label) and whose second line is `entry:` gives `None`.
+   - a block whose first line is `question` (no `decision: ` label) and whose second line is `entry:` gives `None`;
+   - a block whose second line is `entry: First line.` gives `None`;
+   - a block whose entry is padded with blank lines and spaces around `First line.` gives `("question", "First line.")`.
 2. `model_duration`, one parametrized test:
    - one step from `step_start` at 1000 to `step_finish` at 2000, with two `tool_use` events between them spanning 1100–1200 and 1300–1500, gives 700 ms;
    - the same events after a `tool_use` spanning 0–400 that comes before the `step_start` also give 700 ms.
-3. `permission_denials`: a run with a `tool_use` of `status` `error` whose error is `exit 1`, followed by a `tool_use` refused with `permission denied by rule git push*`, lists exactly one denial, the second, with detail `{"command": "git push"}`. A row with the two events in the other order lists the same one denial.
+3. `permission_denials`: a run with a `tool_use` of `status` `error` whose error is `exit 1`, followed by a `tool_use` refused with `permission denied by rule git push*`, lists exactly one denial, the second, with detail `{"command": "git push"}`. A row with the two events in the other order lists the same one denial. Further rows: a `tool_use` of `status` `error` whose error holds only `permission`, one whose error holds only `denied`, and one whose error is `Permission Denied`, are each listed as a denial; a `tool_use` whose `status` is not `error` although its text contains `denied` is not listed.
 4. The second call's words, one parametrized test:
    - a run stopped at its budget (one `step_finish` of cost 1.2 against a budget of 1, session `ses_a`, the builders' `SESSION`) and resumed: the arguments the stand-in records for the second call are exactly `run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder --session ses_a <FINISH_MESSAGE>`;
    - a request with `resume_session` `ses_r` and prompt `Go on.`: the arguments the stand-in records are exactly `run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder --session ses_r Go on.`.
-5. As agent user `agent` with a stand-in `sudo`: a stand-in that prints a `step_start` (session `ses_a`, the builders' `SESSION`) and then sleeps past a time limit of 3 seconds ends `time_limit`, with `session` `ses_a` and `login` `api_key` when the API login file holds a key. The elapsed time stays below 20 seconds. A row whose stand-in exits 137 at once, before its time limit, ends `died`.
+5. As agent user `agent` with a stand-in `sudo`: a stand-in that prints a `step_start` (session `ses_a`, the builders' `SESSION`) and then sleeps past a time limit of 3 seconds ends `time_limit`, with `session` `ses_a` and `login` `api_key` when the API login file holds a key. The elapsed time stays below 20 seconds. A row whose stand-in exits 137 at once, before its time limit, ends `died`. A row whose stand-in is killed with exit status `-9` past the time limit ends `time_limit`; a row whose stand-in exits 1 after the time limit is reached ends `died`.
 6. With the write guard's wrapper `factory-confine` (`CONFINE` of `tests/confine_support.py`, which makes the run's temporary folder) and the layout's temporary root, the root is empty after the run, in three rows: a completed run, a run whose stand-in exits 1 without events (`died`), and a run past a time limit of 3 seconds (`time_limit`). With the agent user `agent`, a stand-in `sudo` and the stand-in confine executable of `write_confine`, the last call the stand-in `sudo` records is `-n -u agent -- /bin/sh -c`, then `CLEANUP_SCRIPT`, `factory-cleanup` and `<temporary root>/factory-run-<run>`, `<run>` being the id in the name of the configuration file the call was given (`opencode-<run>.json`).
 7. `make check` stays green.
 8. docs: none. The behaviour is already described in `docs/project-guide/agents.md` (*The opencode runtime*) and `docs/operator-guide.md` (*Running on opencode*). The documenter checks that those passages say each of the six rules above, and adds the one that is missing.
@@ -93,3 +196,125 @@ EOF
 Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "git push"}']` and `run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder --session ses_s`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: Format check passed. Questions, each a clause of the Interface with no criterion of its own (so a mutant on it would survive again):
+
+   1. `permission_denials` (Interface, `DENIAL_PATTERN` = `permission|denied`, any case): criterion 3 plays only the lowercase text `permission denied by rule git push*`, which holds both words. Nothing tests that an error with only `permission` is a denial, that one with only `denied` is a denial, that the match is case-insensitive (`Permission Denied`), or that a `tool_use` whose `status` is not `error` but whose error text contains `denied` is not listed. Proposed: add rows to criterion 3 for each of the four.
+   2. `KILL_STATUSES` is `{137, -9}` (`agent_launch.py:32`). Criterion 5 tests only 137, and only on the side "exits at once, before its time limit → `died`". Nothing tests `-9` as a kill status, nor the side "exit status not in `KILL_STATUSES` (e.g. 1) after the time limit is reached → not `time_limit`". Proposed: add a row with exit status `-9` ending `time_limit`, and a row that exits 1 after the limit and does not end `time_limit` (name the expected end reason).
+   3. `parse_result_block`: "the second line is exactly `entry:`". Criterion 1 tests `note:` only; a second line such as `entry: text` or ` entry:` (the "exactly" side) has no row, and neither does the "stripped" clause (an entry with leading or trailing blank lines or spaces around the entry). Proposed: add rows for `entry: First line.` giving `None` and for an entry padded with blank lines giving the stripped text.
+   4. Criterion 6 gives the cleanup under `sudo` only for the confine-and-agent-user case. The Interface says "as the agent user under `sudo` when one is set", which implies the other side (confine set, no `os_user`: the folder is removed without `sudo`). The no-sudo rows cover this only for the three end reasons. I judge this side covered; no change needed unless you want an explicit assertion that `sudo` is not called.
+
+   The smoke test is runnable and its `Expect:` line checks out against the stand-in (0.8 s = 1000 − 100 − 200 plus 100; the first call's cost of 1.2 passes the budget of 1). The Interface, architecture (adapters-only, tests only, no `src` change) and scope (within the feature's S0004/S0006 behaviour, nothing in Out of scope) are fine apart from the questions above.
+4. 2026-10-19 human: 1. Yes, add the rows to criterion 3 as you propose: an error with only `permission`, one with only `denied`, the case-insensitive `Permission Denied`, each listed as a denial; and a `tool_use` whose `status` is not `error` although its text contains `denied`, not listed.
+   2. Yes: a row with exit status `-9` past the limit ending `time_limit`, and a row that exits 1 after the limit is reached ending `died` (`agent_launch.py:315`: a status outside `KILL_STATUSES` is never `time_limit`; with no result block the run is `died`).
+   3. Yes: `entry: First line.` as the second line gives `None`, and an entry padded with blank lines and spaces gives the stripped text.
+   4. No change; the no-sudo rows cover that side.
+5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete. It names `OpencodeRuntime.run` and `parse_result_block` in `factory.adapters.opencode_runtime`, the constants `DENIAL_PATTERN`, `KILL_STATUSES` and `FINISH_MESSAGE`, the exact argument words of a resumed call, and the four new test modules. No `src` change.
+   - Criteria: I carried the human's answers (journal 4, items 1 to 3) into the story; the wording is mine, the content is theirs.
+     - Criterion 1 gained a row for `entry: First line.` as the second line (gives `None`) and a row for an entry padded with blank lines and spaces (gives the stripped text).
+     - Criterion 3 gained rows for an error with only `permission`, one with only `denied`, and `Permission Denied`, each listed; and a non-error `tool_use` whose text contains `denied`, not listed.
+     - Criterion 5 gained a `-9` row past the limit (ends `time_limit`) and a row that exits 1 after the limit (ends `died`).
+     - Item 4 of the human's answer changed nothing: the no-sudo rows of criterion 6 cover that side.
+     - Every Interface rule now has a criterion on both its passing and failing side. Each criterion is one test function, or one parametrized test.
+   - Smoke test: runnable. The stand-in `opencode` plays two calls. The first costs 1.2 against a budget of 1, so the runtime stops it and resumes with `--session ses_s`. The `Expect:` line is checkable against the output: 0.8 s model time (1000 less 100 less 200, plus 100), one denial `{"command": "git push"}`, and the resumed words.
+   - Architecture: tests only, in the adapters mirror under `tests/adapters/`. The stand-in and the builders in `opencode_stand_in.py` and `confine_support.py` are imported, not copied. No layer is touched.
+   - Scope: within F0020's S0004 and S0006 behaviour and decisions 7, 8, 11 and 18. Nothing in "Out of scope". No earlier test changes.
+7. factory: started tests as self.
+8. tester: Wrote the tests for criteria 1 to 6. They import the stand-in, the event builders and the confine helpers rather than copying them. No earlier test file changed.
+
+   Mapping:
+   - criterion 1: tests/adapters/test_opencode_measures.py::test_a_result_block_keeps_its_entry_s_lines_and_needs_both_labels (rows: lines-kept, no-entry-label, no-decision-label, entry-on-its-label, padded)
+   - criterion 2: tests/adapters/test_opencode_measures.py::test_the_model_time_takes_off_every_tool_call_of_its_step (rows: two-tool-calls, tool-call-before-the-step; both expect exactly 700 ms)
+   - criterion 3: tests/adapters/test_opencode_measures.py::test_every_refused_tool_call_is_a_denial_and_no_other (rows: failure-then-denial, denial-then-failure, permission, denied, any-case, not-an-error)
+   - criterion 4: tests/adapters/test_opencode_resumed_words.py::test_a_resumed_call_keeps_every_word_of_the_first_before_its_session (rows: budget-resume, resume-session)
+   - criterion 5: tests/adapters/test_opencode_sudo_time_limit.py::test_under_sudo_a_kill_at_the_limit_ends_time_limit_and_keeps_session_and_login (rows: killed-at-the-limit, 137-at-once, sigkill-past-the-limit, status-1-past-the-limit; time limit 3 s, elapsed below 20 s)
+   - criterion 6: tests/adapters/test_opencode_confinement.py::test_through_the_wrapper_the_temporary_root_is_empty_after_the_run (rows: completed, died, time-limit, through the real `CONFINE`) and tests/adapters/test_opencode_confinement.py::test_with_an_agent_user_the_temporary_folder_is_removed_through_sudo (stand-in `write_confine` and stand-in `sudo`)
+
+   Files created: the four test modules above.
+
+   How the tests are built:
+   - **Criterion 5, the `-9` and exit-1 rows.** These rows need an exit status that arrives after the limit, and the real inner `timeout` would kill the call at the limit first. So both rows use a local stand-in `sudo` (`ENDING_SUDO`) that runs nothing. It prints a `step_start`, waits 4.5 s (past the 3 s limit, inside the 30 s grace `sudo` calls get) and then kills itself with SIGKILL or exits 1. The other two rows use the existing `_write_sudo` of `test_claude_runtime_os_user`, which runs the real `timeout` chain.
+   - **Criterion 5, session and login.** Only the killed-at-the-limit row checks `session` (`ses_a`) and `login` (`api_key`), as the criterion says. The other rows check only their end reason.
+   - **Criterion 6.** The test makes the layout's `state` folder itself. The run id comes from the `OPENCODE_CONFIG` file name the stand-in recorded.
+
+   Test run: one `make test`, which ended `test: green`. Since the story changes no code, all the new tests pass, as expected; none fail. No module was missing at import. `make lint` is green. I also ran `make types`, which is green.
+
+   Open: none.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (52.5 s)
+9. factory: started doing as self.
+10. coder: Built nothing. This story adds tests only, and its Interface says no module under `src/factory/` changes. The tester's four new modules (`tests/adapters/test_opencode_measures.py`, `test_opencode_resumed_words.py`, `test_opencode_sudo_time_limit.py`, `test_opencode_confinement.py`) already pass against `factory.adapters.opencode_runtime` as it stands. I ran `make check` and it ended `check: green` (`test: green (52.9 s)`, total coverage 99.12 %).
+
+    Main choice: leave the working tree as it is. The alternative I rejected was touching `opencode_runtime.py` to "tidy" what the tests pin. That would go beyond the story, which forbids code changes. Refactor step: there is no coder diff to read, so nothing needed changing.
+
+    Description: the journal (human answer 4, carried in by intake 6) added rows to criteria 1, 3 and 5. The Description already holds them, so I did not rewrite it.
+
+    Noticed but did not touch:
+    - `test_opencode_sudo_time_limit.py` and `test_opencode_confinement.py` import the private helpers `_write_sudo` and `_sudo_calls` from `tests/adapters/test_claude_runtime_os_user.py`. `test_opencode_runtime_launch.py` and `test_opencode_runtime.py` already did the same before this story. The standing leave lets the tester move these helpers to a shared module, but it is a test change and not the coder's to make.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+11. factory: started review as self.
+12. reviewer: no findings
+
+    What I checked: the diff (`git diff main...HEAD -- . ':!factory'`) adds four test modules and changes nothing under `src/`, as the Interface says. I read each test against its criterion and against the builders in `tests/adapters/opencode_stand_in.py`:
+    - Criterion 1: `tests/adapters/test_opencode_measures.py::test_a_result_block_keeps_its_entry_s_lines_and_needs_both_labels` has all five rows: lines kept, `note:`, no `decision:` label, `entry: First line.`, and the padded entry stripped.
+    - Criterion 2: `test_the_model_time_takes_off_every_tool_call_of_its_step` expects exactly 700 ms in both rows. If only the last tool call were taken off, the result would be 800 ms. If the tool call before the step counted, the result would differ too.
+    - Criterion 3: `test_every_refused_tool_call_is_a_denial_and_no_other` covers both orders, `permission` alone, `denied` alone, `Permission Denied`, and a `completed` tool call whose error text says `denied`. The builder writes the `error` key whatever the status, so that last row separates status from text.
+    - Criterion 4: `tests/adapters/test_opencode_resumed_words.py` compares the exact word lists. One row is the budget resume (cost 1.2 against the request's budget of 1, session `ses_a`, then `FINISH_MESSAGE`). The other is `resume_session` `ses_r` with `Go on.`.
+    - Criterion 5: `tests/adapters/test_opencode_sudo_time_limit.py` has four rows: killed at the limit (`time_limit`, `ses_a`, `api_key`), 137 at once (`died`), a self-SIGKILL at 4.5 s against a 3 s limit (status -9, `time_limit`), and exit 1 after the limit (`died`). Every row checks that the run took less than `BOUND_SECONDS` (20 s). With these rows, `KILL_STATUSES` and the duration-reached-limit condition are each tested on both sides.
+    - Criterion 6: `tests/adapters/test_opencode_confinement.py` checks that the temporary root is empty after a completed run, a died run and a run past its time limit, all through the real `CONFINE`. A second test checks the last `sudo` call's exact words, deriving the run id from the `OPENCODE_CONFIG` file name.
+    - The factory's `make check` after the coder was green (coder's entry, journal 10). The coder's entry has no `mutants` line because no module under `src/` changed. The `duplicates` line, 5 new, cannot come from this diff, since it changes nothing in `src/factory`.
+
+    Considered and not raised:
+    - `test_opencode_sudo_time_limit.py` and `test_opencode_confinement.py` import the private `_write_sudo` and `_sudo_calls` from `tests/adapters/test_claude_runtime_os_user.py`. The story asks for imports rather than copies, and earlier opencode tests already do the same; moving these helpers to a shared module is the tester's standing leave, for a later story.
+    - In `test_opencode_confinement.py`, `_runtime` builds `OpencodeRuntime` in two branches that differ only in `sudo_executable`. This is small and inside a new test file.
+
+    Earlier tests: none. `git diff --name-status main...HEAD` lists only added test files (`A`), so no test that `main` holds was changed.
+13. factory: started docs as self.
+14. documenter: Docs criterion said `none`, with the check that `docs/project-guide/agents.md` (*The opencode runtime*) and `docs/operator-guide.md` (*Running on opencode*) say each of the six rules. I checked each against the tests. The diff changes only tests, and no finding for the coder came out of it.
+
+    Four rules were missing or too loose, so I changed `docs/project-guide/agents.md`:
+    - The result block: the entry's lines are joined with line feeds and inner line breaks stay. A second line `entry: text` gives `None`.
+    - The denials: the match on `permission` or `denied` is in any case.
+    - The end reason: under an `os_user`, a kill status after the limit is `time_limit` and keeps `session` and `login`. The same status before the limit, or any other status after it, is `died`.
+    - The run's temporary folder: with `confine_executable` it is removed after every call, as the agent user under `sudo` when `os_user` is set, also after a died or killed call.
+
+    The other two rules were already stated, so I left them. The model time takes off every tool call between a step's start and finish. A resumed call has the first call's words, then `--session <id>`, then the prompt, for both the budget resume and `resume_session`.
+
+    Cross-read and found current: `docs/operator-guide.md` *Running on opencode*, which describes the operator's view and none of these internals, and the rest of the opencode section of `agents.md`. I ran no examples, since I wrote none. Only documents changed, so I did not run `make check`; the factory's run after this stage decides.
+
+    Stale text noticed and not touched: none.
+
+    `check`: check: green (not run again: passed on tree 5e9e997b80f0 at 2026-10-19T19:01:37Z)
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok
+15. factory: started smoke-test as self.
+16. smoke-tester: No findings. I ran the smoke test from the repository root exactly as written, as one bash script: the stand-in `opencode` in a `mktemp -d` folder that removes itself on exit, then the Python snippet through `uv run -q python`. No server was involved. I fixed nothing.
+
+    Command 1, the stand-in `opencode` and the `OpencodeRuntime.run` snippet. Output (exit status 0):
+
+    ```
+    completed 'First line.\n\nThird line.' 0.8 ['{"command": "git push"}']
+    run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder --session ses_s
+    ```
+
+    Expect: met. The output is the two expected lines, character for character:
+    - The end reason is `completed`.
+    - The entry keeps its line breaks, including the empty middle line.
+    - The model time is 0.8 s. The first step is 1000 ms less both tool calls (100 ms and 200 ms), which leaves 700 ms, and the resumed step adds 100 ms.
+    - Exactly one denial is listed, `{"command": "git push"}`. The `exit 1` failure before it neither appears as a denial nor hides it.
+    - The second call's words are the first call's words, then `--session ses_s`, with `FINISH_MESSAGE` after them. The budget resume happened because the first call cost 1.2 against a budget of 1.
+
+    Acceptance criteria, read again against this output: nothing contradicts any of them.
+    - Criteria 1 to 4 (the result block, the model time, the denials, the resumed words): the run shows each behaviour as the criterion states it.
+    - Criteria 5 and 6 (the kill under `sudo`, the temporary folder after the run): the smoke test does not exercise them. The tester's tests cover them, and nothing here contradicts them.
+    - Criterion 7: the coder's `make check` was green (journal 10).
+    - Criterion 8 (docs) was handled by the documenter (journal 14).
+
+    Open: none.
