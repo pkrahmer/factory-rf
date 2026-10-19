@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T13:35:46.232089Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T13:35:25.406901Z'
   stage: intake
   run: fbcd6b2f42aa40f1932437691eecd412
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T13:35:46.232089Z'
+  stage: tests
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -153,3 +162,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: the commands are runnable, using a temporary layout, a stub `python` and a stub opencode, with no paid call. Every `Expect:` line is checkable: the 15 grep lines (7 + 7 + 1), the four lines for the entrypoint run, and the two lines for the opencode run.
    - Architecture: the placement is right. The `claude/*`, `image/*` and `src/factory/adapters/opencode_runtime.py` changes sit inside the coder's write paths, and the tests inside the tester's. The change to the opencode adapter keeps the layers intact. The tool left-out set lives in the adapter that owns `TOOL_NAMES`.
    - Scope: it matches the feature's scope list for S0002 and touches nothing in its "Out of scope". The changes to earlier tests are the ones decision 14 names, with the human's leave.
+4. factory: started tests as self.
