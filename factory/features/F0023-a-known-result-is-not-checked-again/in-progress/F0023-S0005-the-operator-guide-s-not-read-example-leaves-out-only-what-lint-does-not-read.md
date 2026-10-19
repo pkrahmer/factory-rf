@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 290
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T21:54:26.942465Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T21:54:26.942465Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T21:55:28.101651Z'
+  stage: tests
+  run: 66bd65e09cbc498bac058397de2c6d2c
 ---
 
 # The operator guide's not_read example leaves out only what lint does not read
@@ -93,3 +95,12 @@ Expect: `documents ok`
    - Architecture: not applicable beyond the write paths. The change is documentation in the operator guide, which the documenter stage keeps.
    - Scope: it stays within F0023, which covers the operator guide's `not_read` documentation and the feature's decisions 2 and 12. Nothing in "Out of scope" is touched.
 4. factory: started tests as self.
+5. tester: No tests written. This story only changes documentation, and its first criterion forbids any change under `tests/`.
+   - criterion 1 (nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes): no test function. As the criterion asks, this entry confirms that the tester changed nothing under `tests/` or any other folder it names. `git status` shows only the factory's own `.costs.jsonl` sidecar as changed.
+   - criterion 2 (`make check` stays green): no test function. The factory's check after each stage covers it.
+   - criterion 3 (docs: the operator guide's *The pipeline definition* passage): no test function. Checking a document's wording is not a test of the code. The documents check (`documents ok`) and the story's smoke-test greps cover this criterion in the docs and smoke-test stages.
+   Files created: none. Modules the test run could not import: none, since no new tests exist. I did not run `make test`, because there is no red test to confirm. `make lint`: green.
+   Open: nothing. The coder has no code to write for this story and only needs to keep `make check` green, and the documenter makes the change to `docs/operator-guide.md`.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (39.6 s)
