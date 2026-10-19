@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 284
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T20:30:19.979524Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T20:30:19.979524Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T20:32:06.401545Z'
+  stage: tests
+  run: c3cf987070584f3cb18a8bad46c56259
 ---
 
 # The documents name a nested skills folder and the upgrade of a reused agent home
@@ -92,3 +94,11 @@ Expect: `documents ok`
    Architecture: documents only, so no layer is touched. The wording follows the glossary and the guide's section names. The `*The agent runs as a second user*` section exists (operator-guide.md:125).
    Scope: the story is within F0022. It carries in decision 12's open point and the human's change 1, and it adds no behaviour. It stays inside the documenter's write paths (`docs/*`). It does not touch `feature.md`, `factory/`, `planning/` or `docs/runs/`.
 4. factory: started tests as self.
+5. tester: No tests written. This story changes only documents: its Interface says "None", and criterion 1 says no test changes. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed in this stage, and the tester's working tree changes no file.
+   criterion 1 (nothing outside the docs changes): no test function. It is a check on the diff, and the coder and reviewer confirm it. This entry is the tester's confirmation.
+   criterion 2 (`make check` stays green): no test function. This is the stage's own check. `make test` passed (99.12 % coverage, `test: green`) and `make lint` passed.
+   criterion 3 (docs): no test function. The documenter stage covers it, through `make documents` and the smoke test.
+   Files created: none. Modules the test run could not import: none. No red tests on this branch: there is no code for the coder to write, so the coder should change nothing and confirm criterion 1.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (46.1 s)
