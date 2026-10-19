@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T06:43:28.747063Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-19T06:43:28.747063Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T06:44:00.230778Z'
+  stage: review
+  run: 0f25911d08fe422d823ec0eec413c736
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -368,3 +370,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 4 gone
 16. factory: started review as self.
+17. reviewer: no findings
+
+    What I checked against the diff:
+    - Criterion 2 now has the `docs/project-guide/a.md.bak` row from entry 13, so the finding from round 0 is fixed. It covers the refused side of "fully matches". `is_guide_file` in `src/factory/domain/documents.py` uses `fullmatch`, splits the path with `rpartition("/")` and leaves out the index. Every row of the criterion is in the one parametrized test.
+    - Criteria 1, 3, 4, 5 and 6: each has a test that checks what the criterion says.
+      - Criterion 3 has six rows: clean, the v1 word, the replaced phrase, blank, `None`, and the exempt `## Replaced from v1` section.
+      - Criterion 4 tests the path order and the ignored keys.
+      - Criterion 5 tests a guide file being read, and that a `.txt` file, a file in a subfolder and an empty folder named `empty.md` are ignored. It also tests UTF-8 through `write_documents`, which writes UTF-8 bytes.
+      - Criterion 6 tests the old path and an empty root, which also covers a missing folder.
+      - Entry 15 records `make check` green after the coder.
+    - Architecture: the domain still does no I/O. The folder is listed only in `factory.entry.check_documents._guide_files`. The entry layer imports downward only.
+    - Security: no silencing markers and no strings run as commands. Only regular files directly in the guide folder are read.
+    - Quality: guide files reuse the word-only branch of `_messages`, so there is no second copy of the missing and empty handling. The module and public docstrings are updated. The 5 new `make duplicates` findings are in `claude_runtime` and `opencode_runtime`, which this diff does not touch.
+    - Work item: the Description and the docs criterion match what was built. The docs criterion still tells the documenter what the move is.
+
+    Earlier tests:
+    - `tests/entry/test_check_documents.py` (M): changed under the human's leave the story's Interface names (the feature's decision 9). Only the `MISSING_LINES` line and one expected line of `test_each_finding_prints_one_line_in_order_and_returns_one` changed, and every test keeps its name and what it checks.
