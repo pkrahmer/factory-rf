@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T14:40:00.435271Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-19T14:39:39.284092Z'
   stage: doing
   run: 0984ab8ae1e0459c9b46f94a3fd6f4d0
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:40:00.435271Z'
+  stage: review
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -385,3 +394,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 7 new, 33 known, 3 gone
+16. factory: started review as self.
