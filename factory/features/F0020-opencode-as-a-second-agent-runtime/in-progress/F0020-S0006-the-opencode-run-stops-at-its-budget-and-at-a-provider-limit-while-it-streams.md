@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T09:52:56.964322Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T09:52:36.619506Z'
   stage: intake
   run: 972e65115689495ab8c4eb281fa6d063
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T09:52:56.964322Z'
+  stage: tests
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -141,3 +150,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: runnable. It uses a stand-in `opencode` and the public API, with the 30-second waits bounded by the 20-second checks. The `Expect:` line is checkable: 0.6+0.6 stops at the budget, the resume adds 0.1 for a cost of 1.3, and the third call gives `provider_limit 420.0 None ses_smoke`.
    Architecture: the work lies in the adapters layer (`opencode_runtime`), reuses `agent_launch`, the process module's `run_streaming` and the domain's `resumed_result` and provider-limit helpers, and calls no tool outside the one wrapper. Wiring stays in `entry` (S0008).
    Scope: within F0020's S0006 scope line (budget stop and resume, provider limit while streaming). The waiting and continuing after a limit is left to S0007, and nothing in the feature's Out of scope is touched.
+4. factory: started tests as self.
