@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 275
 comments_read: [6273558949]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T17:50:35.473705Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-19T17:50:35.473705Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-19T17:53:20.274352Z'
+  stage: tests
+  run: a3bf0f5db08945b3a247372bbf5fefed
 ---
 
 # The claim service's refusals name their cause
@@ -276,3 +278,40 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
 
     Noticed but did not touch: nothing else.
 15. factory: started tests as self.
+16. tester: Round 1, test change approved by the human (entry 10) and named by the coder in entry 14 (review findings 1 and 2). I moved the shared helpers into one new shared module. Every earlier test keeps its name and checks the same thing. The criterion-to-test mapping has not changed since entry 5:
+    - criterion 1: tests/application/test_claims_refusals.py::test_service_refusal_of_an_instance_name_quotes_the_name
+    - criterion 2: tests/application/test_claims_refusals.py::test_claim_refusal_names_its_cause_and_writes_nothing
+
+    Files created:
+    - `tests/work_item_support.py` holds four shared helpers:
+      - `CREATED`
+      - `created_state(stage)`: the initial state whose journal holds only the "created" entry
+      - `put_work_item(boundaries, branch, path, document, *, committed=True)`: fetch, check out the branch from `origin/main`, write the work item, then commit and push when `committed`
+      - `checkout_text(boundaries, path)`
+
+    Earlier test files changed under the human's leave in entry 10:
+    - `tests/application/test_claims.py`:
+      - `_file_text` is removed; its callers now use `checkout_text`.
+      - `_prepare` keeps its signature but now builds the document and calls `put_work_item`.
+      - `_state` calls `created_state`.
+      - `CREATED` is imported from the shared module.
+    - `tests/application/test_undo.py`:
+      - `_text` is merged into `checkout_text`; every call now uses it.
+      - `_start` builds its state with `created_state`; its local `CREATED` is removed.
+      - `_start` keeps its own checkout and commit sequence, because it writes the base files between the checkout and the work item. `put_work_item` cannot fit that order without a new parameter, so I did not make one up.
+
+    Also changed: `tests/application/test_claims_refusals.py`, this story's own test module:
+    - `_file_text` is removed.
+    - The `prepared` fixture now calls `put_work_item`.
+    - `_document` uses `created_state`.
+
+    What I left alone: the `BODY` constant stays in each of the three modules. Neither finding named it, and `test_claims.py` builds its `BODY` from `BEFORE_JOURNAL`, which it also asserts on.
+
+    Runs: `make test` ended with `test: green (48.5 s)`, and `make lint` is green. The red tests went green in round 0 once the code existed, so a green run is expected here. I did not run `make types`; the coder's `make check` covers it.
+
+    Open: finding 3 of entry 12 (the Description and Interface sentences of the work item) is still not applied. The rewrite is spelled out in entry 14. The work item is outside the tester's write paths as well, so I did not edit it.
+
+    Modules the test run could not import: none.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (45.7 s)

@@ -14,11 +14,12 @@ from factory.application.undo import UndoReport, UndoService
 from factory.application.write_paths import WritePathService
 from factory.domain.errors import WorkItemFormatError
 from factory.domain.identifiers import branch_name
-from factory.domain.journal import JournalRecord, NewEntry, append_entry
+from factory.domain.journal import NewEntry, append_entry
 from factory.domain.paths import cost_records_path
-from factory.domain.work_item import WorkItemDocument, initial_state
+from factory.domain.work_item import WorkItemDocument
 from git_support import PIPELINE_YAML, write_files
 from human_clone import HumanClone
+from work_item_support import checkout_text, created_state
 
 INSTANCE = "factory-1"
 BRANCH = branch_name("F0001-S0001")
@@ -36,7 +37,6 @@ KEPT_TEXT = "x = 1\n"
 BODY = (
     "# First story\n\n## Description\n\nOriginal.\n\n## Journal\n\n1. 2026-10-12 human: created.\n"
 )
-CREATED = JournalRecord(number=1, speaker="human", kind="created")
 INTAKE_ROLE = 'intake: {write_paths: ["{work_item}"]}'
 BASE_FILES = {GUIDE: GUIDE_TEXT, KEPT: KEPT_TEXT, SECOND: "# Second story\n\nAs committed.\n"}
 BROKEN_FRONT_MATTER = "---\nstage: [unclosed\n  : :\n---\n# First story\n"
@@ -64,8 +64,7 @@ def _start(
     git.fetch()
     git.checkout(BRANCH, start_point="origin/main")
     write_files(boundaries.checkout, BASE_FILES)
-    state = initial_state(stage).model_copy(update={"journal": [CREATED]})
-    document = WorkItemDocument(state=state, body=BODY)
+    document = WorkItemDocument(state=created_state(stage), body=BODY)
     target = boundaries.checkout / PATH
     target.parent.mkdir(parents=True, exist_ok=True)
     boundaries.work_item_writer.write(target, document)
@@ -73,11 +72,6 @@ def _start(
     assert git.push(BRANCH) == "pushed"
     definition = boundaries.pipeline_reader.parse(text)
     return ClaimService(boundaries, INSTANCE, definition).claim(BRANCH, PATH, document, stage)
-
-
-def _text(boundaries: Boundaries, path: str) -> str | None:
-    target = boundaries.checkout / path
-    return target.read_text(encoding="utf-8") if target.exists() else None
 
 
 def _at_start(boundaries: Boundaries, start: StageStart, path: str) -> str:
@@ -109,7 +103,7 @@ def test_a_modified_tracked_file_outside_the_write_paths_is_reverted(
 
     report = _undo(boundaries, start)
 
-    assert _text(boundaries, GUIDE) == GUIDE_TEXT
+    assert checkout_text(boundaries, GUIDE) == GUIDE_TEXT
     assert report.reverted == [GUIDE]
     assert report.deleted == []
 
@@ -122,7 +116,7 @@ def test_a_new_untracked_file_outside_the_write_paths_is_deleted(
 
     report = _undo(boundaries, start)
 
-    assert _text(boundaries, "docs/new.md") is None
+    assert checkout_text(boundaries, "docs/new.md") is None
     assert report.deleted == ["docs/new.md"]
     assert report.reverted == []
 
@@ -135,7 +129,7 @@ def test_a_deleted_tracked_file_outside_the_write_paths_is_restored(
 
     report = _undo(boundaries, start)
 
-    assert _text(boundaries, GUIDE) == GUIDE_TEXT
+    assert checkout_text(boundaries, GUIDE) == GUIDE_TEXT
     assert report.reverted == [GUIDE]
     assert report.deleted == []
 
@@ -150,7 +144,7 @@ def test_a_file_changed_in_the_agents_own_commit_is_reverted_without_a_new_commi
 
     report = _undo(boundaries, start)
 
-    assert _text(boundaries, GUIDE) == GUIDE_TEXT
+    assert checkout_text(boundaries, GUIDE) == GUIDE_TEXT
     assert report.reverted == [GUIDE]
     assert boundaries.git.resolve("HEAD") == head
     assert boundaries.git.is_ancestor(agent_commit, "HEAD")
@@ -164,8 +158,8 @@ def test_files_inside_the_write_paths_are_left_as_the_agent_wrote_them(
 
     report = _undo(boundaries, start)
 
-    assert _text(boundaries, KEPT) == AGENT_TEXT
-    assert _text(boundaries, "src/new.py") == AGENT_TEXT
+    assert checkout_text(boundaries, KEPT) == AGENT_TEXT
+    assert checkout_text(boundaries, "src/new.py") == AGENT_TEXT
     assert report.reverted == []
     assert report.deleted == []
 
@@ -182,9 +176,9 @@ def test_protected_paths_are_undone_although_a_write_path_matches_them(
 
     report = _undo(boundaries, start)
 
-    assert _text(boundaries, STORY_FORM_FILE) == story_form
-    assert _text(boundaries, "pyproject.toml") is None
-    assert _text(boundaries, "src/a.py") == AGENT_TEXT
+    assert checkout_text(boundaries, STORY_FORM_FILE) == story_form
+    assert checkout_text(boundaries, "pyproject.toml") is None
+    assert checkout_text(boundaries, "src/a.py") == AGENT_TEXT
     assert report.reverted == [STORY_FORM_FILE]
     assert report.deleted == ["pyproject.toml"]
 
@@ -203,12 +197,12 @@ def test_everything_else_in_an_in_progress_folder_is_undone_whatever_the_write_p
 
     report = _undo(boundaries, start)
 
-    assert _text(boundaries, SECOND) == second
+    assert checkout_text(boundaries, SECOND) == second
     for path in (own_costs, THIRD_COSTS, NOTES):
-        assert _text(boundaries, path) is None
+        assert checkout_text(boundaries, path) is None
     assert report.reverted == [SECOND]
     assert report.deleted == sorted([own_costs, THIRD_COSTS, NOTES])
-    assert _text(boundaries, PATH) == edited
+    assert checkout_text(boundaries, PATH) == edited
 
 
 def test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths(
@@ -228,7 +222,7 @@ def test_files_not_directly_in_an_in_progress_folder_follow_the_write_paths(
     report = _undo(boundaries, start)
 
     for path in agent_files:
-        assert _text(boundaries, path) == AGENT_TEXT
+        assert checkout_text(boundaries, path) == AGENT_TEXT
     assert report.reverted == []
     assert report.deleted == []
 
@@ -267,7 +261,7 @@ def test_a_work_item_with_only_a_section_edit_is_left_as_the_agent_left_it(
 
     report = _undo(boundaries, start)
 
-    assert _text(boundaries, PATH) == edited
+    assert checkout_text(boundaries, PATH) == edited
     assert report.restored_work_item is False
 
 
@@ -279,7 +273,7 @@ def test_a_work_item_the_agent_deleted_is_restored_whole(
 
     report = _undo(boundaries, start)
 
-    assert _text(boundaries, PATH) == _at_start(boundaries, start, PATH)
+    assert checkout_text(boundaries, PATH) == _at_start(boundaries, start, PATH)
     assert report.restored_work_item is True
     assert PATH not in report.reverted
     assert PATH not in report.deleted
@@ -293,7 +287,7 @@ def test_a_work_item_the_agent_broke_is_restored_whole(
 
     report = _undo(boundaries, start)
 
-    assert _text(boundaries, PATH) == _at_start(boundaries, start, PATH)
+    assert checkout_text(boundaries, PATH) == _at_start(boundaries, start, PATH)
     assert report.restored_work_item is True
     assert PATH not in report.reverted
     assert PATH not in report.deleted
@@ -307,7 +301,7 @@ def test_a_work_item_the_role_may_not_write_is_reverted_whole(
 
     report = _undo(boundaries, start)
 
-    assert _text(boundaries, PATH) == _at_start(boundaries, start, PATH)
+    assert checkout_text(boundaries, PATH) == _at_start(boundaries, start, PATH)
     assert report.reverted == [PATH]
     assert report.restored_work_item is False
 
@@ -320,9 +314,9 @@ def test_a_widened_pipeline_definition_in_the_work_tree_widens_nothing(
 
     report = _undo(boundaries, start)
 
-    assert _text(boundaries, "docs/extra.md") is None
+    assert checkout_text(boundaries, "docs/extra.md") is None
     assert "docs/extra.md" in report.deleted
-    assert _text(boundaries, PIPELINE_FILE) == PIPELINE_YAML
+    assert checkout_text(boundaries, PIPELINE_FILE) == PIPELINE_YAML
 
 
 def test_an_invalid_pipeline_definition_in_the_work_tree_does_not_stop_the_undo(
@@ -336,8 +330,8 @@ def test_an_invalid_pipeline_definition_in_the_work_tree_does_not_stop_the_undo(
 
     report = _undo(boundaries, start)
 
-    assert _text(boundaries, PIPELINE_FILE) == PIPELINE_YAML
-    assert _text(boundaries, "docs/extra.md") is None
+    assert checkout_text(boundaries, PIPELINE_FILE) == PIPELINE_YAML
+    assert checkout_text(boundaries, "docs/extra.md") is None
     assert "docs/extra.md" in report.deleted
 
 
@@ -412,4 +406,4 @@ def test_a_missing_or_unreadable_baseline_raises_before_any_path_is_changed(
     with pytest.raises(WorkItemFormatError, match=re.escape(PATH)):
         _undo(boundaries, start)
 
-    assert _text(boundaries, GUIDE) == AGENT_TEXT
+    assert checkout_text(boundaries, GUIDE) == AGENT_TEXT

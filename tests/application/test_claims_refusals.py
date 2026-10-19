@@ -7,10 +7,10 @@ import pytest
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
 from factory.domain.git import WorkTreeStatus
-from factory.domain.journal import JournalRecord
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemDocument, initial_state
+from factory.domain.work_item import WorkItemDocument
 from git_support import remote_commit
+from work_item_support import checkout_text, created_state, put_work_item
 
 BRANCH = "work-item/F0001-S0001"
 OTHER_BRANCH = "work-item/F0001-S0002"
@@ -19,17 +19,10 @@ NOTES = "factory/features/F0001-example/in-progress/notes.md"
 BODY = (
     "# First story\n\n## Description\n\nOriginal.\n\n## Journal\n\n1. 2026-10-12 human: created.\n"
 )
-CREATED = JournalRecord(number=1, speaker="human", kind="created")
 
 
 def _document(stage: str) -> WorkItemDocument:
-    state = initial_state(stage).model_copy(update={"journal": [CREATED]})
-    return WorkItemDocument(state=state, body=BODY)
-
-
-def _file_text(boundaries: Boundaries, path: str) -> str | None:
-    target = boundaries.checkout / path
-    return target.read_text(encoding="utf-8") if target.exists() else None
+    return WorkItemDocument(state=created_state(stage), body=BODY)
 
 
 def _snapshot(
@@ -37,8 +30,8 @@ def _snapshot(
 ) -> tuple[WorkTreeStatus, str | None, str | None, str | None]:
     return (
         boundaries.git.status(),
-        _file_text(boundaries, PATH),
-        _file_text(boundaries, NOTES),
+        checkout_text(boundaries, PATH),
+        checkout_text(boundaries, NOTES),
         remote_commit(remote, BRANCH),
     )
 
@@ -46,14 +39,7 @@ def _snapshot(
 @pytest.fixture
 def prepared(boundaries: Boundaries) -> None:
     """Put the work item, at `doing`, on its own pushed branch, which stays checked out."""
-    git = boundaries.git
-    git.fetch()
-    git.checkout(BRANCH, start_point="origin/main")
-    target = boundaries.checkout / PATH
-    target.parent.mkdir(parents=True, exist_ok=True)
-    boundaries.work_item_writer.write(target, _document("doing"))
-    git.commit("prepare the work item")
-    assert git.push(BRANCH) == "pushed"
+    put_work_item(boundaries, BRANCH, PATH, _document("doing"))
 
 
 @pytest.mark.parametrize(
