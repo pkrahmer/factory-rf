@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T13:43:15.581948Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T13:42:55.086290Z'
   stage: review
   run: f9e34cd5c02b4a1baf8371efb03584f2
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T13:43:15.581948Z'
+  stage: doing
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -239,3 +248,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Earlier tests:
    - `tests/shipped_agents.py`: the human's leave, the feature's decision 14 as the story's Interface names it (`_ALL_TOOLS` and `_TOOLS_WITHOUT_WRITE` gain `"Skill"` last, nothing else changed).
    - `tests/test_claude_files.py`: the human's leave, the feature's decision 14 as the story's Interface names it (`SETTINGS` `allow` gains `"Skill"` after `"Grep"`, nothing else changed).
+10. factory: started doing as self.
