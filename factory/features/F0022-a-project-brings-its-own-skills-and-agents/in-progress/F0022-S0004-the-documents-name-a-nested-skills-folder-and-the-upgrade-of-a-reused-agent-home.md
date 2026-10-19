@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 284
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T20:34:04.093787Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T20:33:42.946340Z'
   stage: doing
   run: 8b09ff6203404f7b9e4cfda0751d9958
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:34:04.093787Z'
+  stage: review
 ---
 
 # The documents name a nested skills folder and the upgrade of a reused agent home
@@ -124,3 +133,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 4dd869fc6664 at 2026-10-19T20:22:35Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
