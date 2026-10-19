@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T10:45:46.669260Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-10-19T10:45:25.927757Z'
   stage: tests
   run: 505d9d0240d1462eb103fbd415307583
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:45:46.669260Z'
+  stage: doing
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -392,3 +401,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (37.8 s)
+16. factory: started doing as self.
