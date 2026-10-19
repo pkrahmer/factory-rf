@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T10:10:43.305863Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -87,6 +91,11 @@ journal:
   at: '2026-10-19T10:10:23.126590Z'
   stage: doing
   run: b228dd04a7354b5cac1301aa424e38bd
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:10:43.305863Z'
+  stage: tests
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -351,3 +360,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Noticed, not touched:
     - `_Watch.stopped_by` in `src/factory/adapters/opencode_runtime.py` is typed `EndReason | None`, although it only ever holds `budget` or `provider_limit`.
     - The row `tests/adapters/test_make_commands.py::test_output_tail_keeps_the_last_thirty_lines[30-1]`, which failed once in entry 8, may be flaky under the parallel test workers. If it fails again, it is worth a story of its own.
+15. factory: started tests as self.
