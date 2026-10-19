@@ -9,7 +9,7 @@ The mutation sweep of 2026-10-19 (`planning/overnight/mutation-sweep-2026-10-19.
 No module under `src/factory/` changes. The behaviour pinned, all of `factory.domain.settings.read_settings(environ, read_file)` (`domain`):
 
 - The password rule judges only the authority: the text after the *first* `://` up to the next `/`. Within it, the user information is everything before the *last* `@`, and the URL is refused when that holds a `:`. A `:` and `@` in the path count for nothing; a second `://` in the path counts for nothing; a user name with an `@` before the password's `:` is still refused.
-- Each refusal raises `SettingsInvalid` whose `variable` names the variable, whose `fault` is the exact text below, and whose `str()` is `<variable>: <fault>`.
+- Each refusal of criterion 2 raises `SettingsInvalid` whose `variable` names the variable, whose `fault` is the exact text that criterion gives, and whose `str()` is `<variable>: <fault>`. The other refusals of `read_settings` keep the tests they have.
 
 Tests (the tester writes them): `tests/domain/test_settings_url_edges.py`, which uses `BASE` of `tests/settings_support.py` as it is. A URL whose authority holds `<user>:<password>@` is built by concatenation, as `tests/domain/test_settings.py` does (`"https://user:" + "example-value" + "@github.com/..."`), so that `make secrets` finds no credential in the test. No constant's name holds `password`, `secret` or `token` (ruff's S105 and detect-secrets take such a string for a secret); the expected faults stand in the rows. No earlier test changes.
 
