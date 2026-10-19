@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 242
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T00:59:07.599290Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T00:59:07.599290Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T00:59:36.526730Z'
+  stage: review
+  run: 62706da793fa477c959f9075d7bc7577
 ---
 
 # The documents repair what the feature's stories left stale
@@ -139,3 +141,14 @@ Expect: `documents ok`
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I checked: `git diff main...HEAD -- . ':!factory'` is empty. The only changes on the branch are the work item and its `.costs.jsonl` sidecar (`git diff --name-status main...HEAD`), so criterion 1 holds: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed. Entries 5 and 7 each say so. Entry 7 shows the factory's `make check` was green after the coder (`check: green`). `duplicates: 0 new` means no new similar or dead code to read. No criterion describes behaviour that code could test, so the tester writing no tests is right.
+
+   The docs criterion is the documenter's next input, so I checked it against the code and documents on this branch. It still matches:
+   - `JournalRecord` (`src/factory/domain/journal.py:72-79`) ends with `run`, `blocked` and `reason`, all `None` by default. The example at `docs/project-guide.md:496` still prints only up to `run=None`.
+   - `Boundaries` (`src/factory/application/boundaries.py:44-47`) has `disk`, `disk_records` and `stop_records` after `settings`, all optional.
+   - `docs/operator-guide.md:601-602` still hold the stray `time_limit` cells. The two question texts the criterion quotes match `src/factory/domain/post_texts.py:80` and `:92`.
+   - The section "The stops reach main as raised and cleared records" exists at `docs/decisions.md:616`.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
