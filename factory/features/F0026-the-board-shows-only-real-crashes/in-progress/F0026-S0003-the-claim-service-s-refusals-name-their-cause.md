@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 275
 comments_read: [6273558949]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T17:58:10.100195Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-19T17:57:49.853716Z'
   stage: docs
   run: 5a8c0d184c1446df96f1032c5700dac8
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-19T17:58:10.100195Z'
+  stage: smoke-test
 ---
 
 # The claim service's refusals name their cause
@@ -410,3 +419,4 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
     `check`: check: green (not run again: passed on tree 1f8f58133ac5 at 2026-10-19T17:54:50Z)
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok
+23. factory: started smoke-test as self.
