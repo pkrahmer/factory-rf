@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 278
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T18:49:51.205034Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T18:49:30.077850Z'
   stage: review
   run: bf0a515435d44a0b8bb444d152e9644d
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:49:51.205034Z'
+  stage: docs
 ---
 
 # run_streaming keeps a long output and a line split across reads
@@ -149,3 +158,4 @@ Expect: two lines, `[('stdout', 200000)] 200001` and `[('stderr', 'hello'), ('st
    Earlier tests:
    - tests/process_support.py: changed under the standing leave to move a shared test helper. `Recorder` moved here unchanged, with its `threading` and `Stream` imports and a wider module docstring. The story's Interface names this file too.
    - tests/adapters/test_process_streaming.py: changed under the standing leave to move a shared test helper. Its own copy of `Recorder` was removed and it now imports `Recorder` from `process_support`. Every test keeps its name and what it checks. The story's Interface names this file too.
+10. factory: started docs as self.
