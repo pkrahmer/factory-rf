@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T13:48:44.155273Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-19T13:48:44.155273Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T13:49:11.904549Z'
+  stage: review
+  run: 68de848d0e0244308cadd1f0c10e43e9
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -338,3 +340,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 16. factory: started review as self.
+17. reviewer: no findings
+
+    Round 1 check of the round-0 finding: it is settled. `tests/adapters/test_opencode_left_out_tools.py::test_skill_is_left_out_and_every_other_tool_without_an_opencode_name_is_refused` is now one parametrized test with three rows for criterion 5. The rows are `read-and-skill`, `skill-alone` and `notebook-edit-refused`. The refused row checks the exact detail `the opencode runtime has no tool for NotebookEdit` and that the stand-in has no calls.
+
+    What I read and found sound:
+    - Criteria 1 and 2: `_ALL_TOOLS` and `_TOOLS_WITHOUT_WRITE` gain `"Skill"` last, and `SETTINGS` gains `"Skill"` after `"Grep"`. The existing tests that read them check the order and what follows `--tools`.
+    - Criterion 3: the line appears exactly once, as a whole line, and is the first non-empty line after R14, in all seven agents.
+    - Criterion 4: the three starting states, the folder (not a symlink), empty, owned by `os.getuid()`, mode `0755`, exit 0, and the three log lines.
+    - Criterion 6: one row per shipped agent, with tools mapped through `TOOL_NAMES` minus `Skill`.
+    - The code matches the Interface: the seven `tools` lines, the exact R15 text after R14 with one blank line, `claude/settings.json`, and the entrypoint loop in place before the log line with `${home:?}` guarding the `rm -rf`. `LEFT_OUT_TOOLS` is a `frozenset[str]` beside `TOOL_NAMES`, and `_tools` skips it before the lookup, so every other unmapped tool still raises (`src/factory/adapters/opencode_runtime.py:105,274`).
+    - Layers hold. The diff adds no marker, no secret and no command built from strings. The comment on `LEFT_OUT_TOOLS` says why.
+    - The coder's entry 15 reports `check: green`.
+    - The Description and the docs criterion still match what was built.
+
+    Earlier tests:
+    - `tests/shipped_agents.py`: the human's leave, the feature's decision 14 as the story's Interface names it. Only `_ALL_TOOLS` and `_TOOLS_WITHOUT_WRITE` gain `"Skill"` last.
+    - `tests/test_claude_files.py`: the human's leave, the feature's decision 14 as the story's Interface names it. Only the `SETTINGS` `allow` list gains `"Skill"` after `"Grep"`.
+
+    Notes:
+    - `tests/test_entrypoint_skills.py:13-16`: the `layout` fixture is a copy of the one in `tests/test_agent_home_ownership.py:15-17`. The story's Interface asks for it, and under the standing leave it could move to `tests/conftest.py`.
