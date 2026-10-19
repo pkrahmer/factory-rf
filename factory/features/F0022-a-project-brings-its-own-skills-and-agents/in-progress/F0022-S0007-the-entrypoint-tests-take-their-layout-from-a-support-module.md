@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T23:54:42.605637Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T23:54:22.068497Z'
   stage: review
   run: 8001e0460f66400d901e3e72b34c0cca
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:54:42.605637Z'
+  stage: doing
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -175,3 +184,4 @@ Expect: `exit 0`
    - `tests/test_agent_home_ownership.py`: standing leave to move a shared test helper (import line only).
    - `tests/test_entrypoint_skills.py`: standing leave to move a shared test helper (import and `_texts`→`texts` calls).
    - `tests/test_shared_test_helpers.py`: the human's leave, the S0007 bullet in decision 14 of `feature.md`. Only the one expected line changed.
+10. factory: started doing as self.
