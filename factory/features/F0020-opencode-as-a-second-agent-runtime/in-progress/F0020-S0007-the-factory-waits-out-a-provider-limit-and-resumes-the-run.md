@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 259
 comments_read: [6265170554]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T10:39:06.124824Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-10-19T10:39:06.124824Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-10-19T10:41:40.684349Z'
+  stage: doing
+  run: d9a14394ec744c159466958d48395923
+  blocked: question
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -314,3 +317,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_wiring_waiter.py - ImportError while importing test mo...
 9. factory: started doing as self.
+10. coder: I stopped at one failing test row: `tests/application/test_patient_runs.py::test_the_log_lines_give_whole_seconds_and_the_waits_are_kept_whole[ceiling]`. It contradicts the Interface. Everything else is built and passes. In `make check`, lint, types, layers, sast, secrets and licenses are green, and every test passes except this row.
+
+    **The contradiction.** The row sets a cool-down of 10 minutes and a ceiling of 1800.7 s. Every call ends `provider_limit` with no `limit_wait`. It expects the waits `[600, 600, 600.7]`. Interface step 4 says the run waits "the result's `limit_wait`, or the cool-down without one, at most what is left of the ceiling". So the third wait is min(600, 600.7) = 600 s, not 600.7 s. The waits then total 1800 s, which is still below the ceiling, so step 3 does not end the run: a fourth wait of 0.7 s follows. The waits are `[600, 600, 600, 0.7]`. After that the line `waited 1800 s, the ceiling of 1800 s; the run ends provider_limit` matches what the row expects. Only the `waiter.waits` assertion fails. The tester's entry assumes the waits are cut at the ceiling, which is right, but the third wait is the cool-down and the cut leaves it at 600 s.
+
+    **Options:**
+    - (a) Change the row's expected waits to `[timedelta(seconds=600)] * 3 + [timedelta(seconds=0.7)]`. The log line stays as it is, so it still checks whole seconds on the ceiling line. **I would choose (a).**
+    - (b) Keep the row's waits and change the Interface so that the last wait takes up a remainder of the ceiling shorter than the cool-down. That adds a rule no criterion asks for.
+    - (c) Use data that reaches 1800.7 s exactly, such as named waits of 600, 600 and 600.7 s under a ceiling of 1800.7 s. This also fixes the test, but changes its inputs more than (a).
+
+    **What I built:**
+    - `src/factory/application/machine.py`: the `Waiter` interface.
+    - `src/factory/adapters/clock.py`: `SleepingWaiter` and `ManualWaiter`. Both refuse a negative wait through one shared private check.
+    - `src/factory/application/boundaries.py`: `waiter`, added last.
+    - `src/factory/domain/provider_limits.py`: `DEFAULT_COOLDOWN`, `DEFAULT_CEILING`, and `cooldown` and `ceiling` on `ProviderLimit`. The cool-down must be at least a minute. A model validator raises "the ceiling is shorter than the cool-down".
+    - `src/factory/domain/settings.py`: the two variables, read by `_provider_limit` and `_minutes`. I extracted `_whole_number(environ, variable, unit)` and both `_min_free_gb` and `_minutes` now use it, so the ASCII-digit check is not copied a second time.
+    - `src/factory/application/provider_limits.py` (new): `CONTINUE_PROMPT` and `PatientRuns`, a loop that follows steps 1–6 in order. Resumed requests are built only with `model_copy`, and the calls are joined with `resumed_result`.
+    - `src/factory/application/sealed_runs.py`: `run_sealed(..., run=)`.
+    - `src/factory/application/stage.py`: `launch` passes `run=PatientRuns(boundaries).run`, so one cost record covers the whole patient run. The preflight is unchanged.
+    - `src/factory/entry/wiring.py`: `waiter=SleepingWaiter()`.
+
+    **Main choice:** `PatientRuns` is one loop that keeps the joined result and the total of the waits so far, so the budget and time left are worked out from the joined cost and duration. I rejected a recursive resume, which would need the waits passed down through each call.
+
+    **Noticed, not touched:** None of the models I changed appear in the records contract, so no schemas were regenerated. I did not run `make duplicates`.

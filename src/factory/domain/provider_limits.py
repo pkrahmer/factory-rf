@@ -1,13 +1,17 @@
-"""A provider's spend limit: the pattern that recognizes it in a text and the wait a text names."""
+"""A provider's spend limit: the pattern that shows it, the wait a text names, how long to wait."""
 
 import re
 from datetime import timedelta
+from typing import Self
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 DEFAULT_LIMIT_STATUS = 428
 LOWEST_STATUS = 100
 HIGHEST_STATUS = 599
+DEFAULT_COOLDOWN = timedelta(minutes=10)
+DEFAULT_CEILING = timedelta(minutes=120)
+SHORTEST_COOLDOWN = timedelta(minutes=1)
 
 _SECONDS_PER_UNIT: dict[str, int] = {
     "": 1,
@@ -34,12 +38,18 @@ _WAIT = re.compile(
 
 
 class ProviderLimit(BaseModel):
-    """How a provider's spend limit shows: its HTTP status and, optionally, a message pattern."""
+    """How a provider's spend limit shows, and how long the factory waits it out.
+
+    It shows by its HTTP status and, optionally, a message pattern. The factory waits a
+    `cooldown` after each limit, until the waits reach the `ceiling`.
+    """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     status: int = Field(default=DEFAULT_LIMIT_STATUS, ge=LOWEST_STATUS, le=HIGHEST_STATUS)
     message: str | None = None
+    cooldown: timedelta = Field(default=DEFAULT_COOLDOWN, ge=SHORTEST_COOLDOWN)
+    ceiling: timedelta = DEFAULT_CEILING
 
     @field_validator("message")
     @classmethod
@@ -51,6 +61,12 @@ class ProviderLimit(BaseModel):
             except re.error as error:
                 raise ValueError(f"message is not a regular expression: {error}") from error
         return message
+
+    @model_validator(mode="after")
+    def _ceiling_holds_the_cooldown(self) -> Self:
+        if self.ceiling < self.cooldown:
+            raise ValueError("the ceiling is shorter than the cool-down")
+        return self
 
 
 def limit_in_text(text: str, limit: ProviderLimit) -> bool:

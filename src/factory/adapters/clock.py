@@ -1,9 +1,10 @@
-"""The system clock, and the manual clock that tests advance by hand."""
+"""The system clock and the sleeping waiter, and the manual clock and waiter tests advance."""
 
+import time
 from datetime import UTC, datetime, timedelta
 from typing import override
 
-from factory.application.machine import Clock
+from factory.application.machine import Clock, Waiter
 
 
 class SystemClock(Clock):
@@ -30,3 +31,37 @@ class ManualClock(Clock):
     def advance(self, by: timedelta) -> None:
         """Move the clock forward by `by`."""
         self._now += by
+
+
+class SleepingWaiter(Waiter):
+    """Waits by sleeping."""
+
+    @override
+    def wait(self, duration: timedelta) -> None:
+        _refuse_negative(duration)
+        time.sleep(duration.total_seconds())
+
+
+class ManualWaiter(Waiter):
+    """Waits by advancing a manual clock at once, and records each wait."""
+
+    def __init__(self, clock: ManualClock) -> None:
+        """Advance `clock` on each wait."""
+        self._clock = clock
+        self._waits: list[timedelta] = []
+
+    @property
+    def waits(self) -> list[timedelta]:
+        """The waits so far, in order."""
+        return list(self._waits)
+
+    @override
+    def wait(self, duration: timedelta) -> None:
+        _refuse_negative(duration)
+        self._clock.advance(duration)
+        self._waits.append(duration)
+
+
+def _refuse_negative(duration: timedelta) -> None:
+    if duration < timedelta(0):
+        raise ValueError(f"a wait cannot be negative, got {duration}")

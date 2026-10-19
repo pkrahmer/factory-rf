@@ -14,7 +14,7 @@ from factory.application.files import (
 )
 from factory.application.git import Git
 from factory.application.hosting import HostingService
-from factory.application.machine import Clock, DiskSpace, FactoryLog, HealthStatusStore
+from factory.application.machine import Clock, DiskSpace, FactoryLog, HealthStatusStore, Waiter
 from factory.application.project_commands import ProjectCommands
 from factory.domain.disk import DiskRecord
 from factory.domain.settings import InstanceSettings
@@ -45,3 +45,4 @@ class Boundaries:
     disk: DiskSpace | None = None
     disk_records: RecordLog[DiskRecord] | None = None
     stop_records: RecordLog[StopRecord] | None = None
+    waiter: Waiter | None = None

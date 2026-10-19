@@ -2,6 +2,7 @@
 
 import re
 from collections.abc import Callable, Mapping
+from datetime import timedelta
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, PositiveInt, TypeAdapter, ValidationError
@@ -10,6 +11,8 @@ from factory.domain.errors import SettingsInvalid
 from factory.domain.git import DEFAULT_GIT_IDENTITY, GitIdentity
 from factory.domain.identifiers import Name
 from factory.domain.provider_limits import (
+    DEFAULT_CEILING,
+    DEFAULT_COOLDOWN,
     DEFAULT_LIMIT_STATUS,
     HIGHEST_STATUS,
     LOWEST_STATUS,
@@ -40,6 +43,8 @@ MIN_FREE_SPACE_VARIABLE = "FACTORY_MIN_FREE_GB"
 DEFAULT_MIN_FREE_GB = 5
 PROVIDER_LIMIT_STATUS_VARIABLE = "FACTORY_PROVIDER_LIMIT_STATUS"
 PROVIDER_LIMIT_MESSAGE_VARIABLE = "FACTORY_PROVIDER_LIMIT_MESSAGE"
+PROVIDER_LIMIT_COOLDOWN_VARIABLE = "FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES"
+PROVIDER_LIMIT_CEILING_VARIABLE = "FACTORY_PROVIDER_LIMIT_CEILING_MINUTES"
 RUNS_DIRECTORY_NAME = "runs"
 _HOME_VARIABLE = "HOME"
 _CLAUDE_EXECUTABLE_DEFAULT = "claude"
@@ -91,10 +96,7 @@ def read_settings(
         pinned_agent_version=_optional(environ, CLAUDE_VERSION_VARIABLE) or None,
         agent_user=_agent_user(environ),
         min_free_gb=_min_free_gb(environ),
-        provider_limit=ProviderLimit(
-            status=_provider_limit_status(environ),
-            message=_provider_limit_message(environ),
-        ),
+        provider_limit=_provider_limit(environ),
     )
 
 
@@ -134,15 +136,36 @@ def _agent_user(environ: Mapping[str, str]) -> str | None:
 
 
 def _min_free_gb(environ: Mapping[str, str]) -> int:
-    value = _optional(environ, MIN_FREE_SPACE_VARIABLE)
+    value = _whole_number(environ, MIN_FREE_SPACE_VARIABLE, "gigabytes")
+    return DEFAULT_MIN_FREE_GB if value is None else value
+
+
+def _whole_number(environ: Mapping[str, str], variable: str, unit: str) -> int | None:
+    value = _optional(environ, variable)
     if not value:
-        return DEFAULT_MIN_FREE_GB
+        return None
     # `isdigit` alone takes other scripts' digits, which `int` reads but no operator means.
     if not (value.isascii() and value.isdigit()) or int(value) < 1:
-        raise SettingsInvalid(
-            MIN_FREE_SPACE_VARIABLE, "is not a whole number of gigabytes of at least 1"
-        )
+        raise SettingsInvalid(variable, f"is not a whole number of {unit} of at least 1")
     return int(value)
+
+
+def _provider_limit(environ: Mapping[str, str]) -> ProviderLimit:
+    cooldown = _minutes(environ, PROVIDER_LIMIT_COOLDOWN_VARIABLE, DEFAULT_COOLDOWN)
+    ceiling = _minutes(environ, PROVIDER_LIMIT_CEILING_VARIABLE, DEFAULT_CEILING)
+    if ceiling < cooldown:
+        raise SettingsInvalid(PROVIDER_LIMIT_CEILING_VARIABLE, "is shorter than the cool-down")
+    return ProviderLimit(
+        status=_provider_limit_status(environ),
+        message=_provider_limit_message(environ),
+        cooldown=cooldown,
+        ceiling=ceiling,
+    )
+
+
+def _minutes(environ: Mapping[str, str], variable: str, default: timedelta) -> timedelta:
+    minutes = _whole_number(environ, variable, "minutes")
+    return default if minutes is None else timedelta(minutes=minutes)
 
 
 def _provider_limit_status(environ: Mapping[str, str]) -> int:

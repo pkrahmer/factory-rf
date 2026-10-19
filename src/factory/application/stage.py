@@ -13,6 +13,7 @@ from factory.application.claims import ClaimService, StageStart
 from factory.application.costs import CostRecorder, CostRun
 from factory.application.handlers.recording import commit_subject
 from factory.application.opening import PreparedWorkItem, WorkItemOpening
+from factory.application.provider_limits import PatientRuns
 from factory.application.sealed_runs import run_sealed
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
@@ -86,7 +87,8 @@ class StageLauncher:
         """Push the claim, then ensure the pull request, compose the request and run the agent.
 
         Nothing reaches the remote but the claim, and no agent runs before it is pushed. The
-        run's cost record is begun before it and completed after it, in the work tree only.
+        run's cost record is begun before it and completed after it, in the work tree only; a
+        run that waits out the provider's spend limit and resumes is one run and one record.
         `ValueError` for a conflicted work item or a stage without a role, before anything is
         read or pushed; `PushFailed`, `AgentDefinitionMissing`, `AgentRuntimeError` and
         `RepositoryUnsealed` propagate. A run that ends early is a result, not an error.
@@ -107,7 +109,7 @@ class StageLauncher:
         )
         request = self._composer.compose(context, agent)
         begun = self._costs.begin(started, _role_of(self._definition, stage))
-        sealed = run_sealed(self._boundaries, request)
+        sealed = run_sealed(self._boundaries, request, run=PatientRuns(self._boundaries).run)
         cost = self._costs.complete(begun, sealed.result)
         return LaunchedStage(
             started=started,

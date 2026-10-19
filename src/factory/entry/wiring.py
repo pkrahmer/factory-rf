@@ -11,7 +11,7 @@ from pathlib import Path
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.claude_guard import judge, read_guard_settings
 from factory.adapters.claude_runtime import SUDO_EXECUTABLE, ClaudeCodeRuntime
-from factory.adapters.clock import SystemClock
+from factory.adapters.clock import SleepingWaiter, SystemClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.disk_space import ShutilDiskSpace
 from factory.adapters.factory_log import TimestampedFactoryLog
@@ -278,6 +278,7 @@ def build_boundaries(
         disk=ShutilDiskSpace(),
         disk_records=JsonLinesRecordLog(state / _DISK_RECORDS_PATH, DiskRecord),
         stop_records=JsonLinesRecordLog(state / _STOP_RECORDS_PATH, StopRecord),
+        waiter=SleepingWaiter(),
     )
 
 
