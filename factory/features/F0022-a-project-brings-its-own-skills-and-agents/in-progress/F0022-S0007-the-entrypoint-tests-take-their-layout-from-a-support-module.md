@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T23:53:43.017934Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T23:53:43.017934Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T23:54:22.068497Z'
+  stage: review
+  run: 8001e0460f66400d901e3e72b34c0cca
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -161,3 +163,15 @@ Expect: `exit 0`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (seven test files, nothing under `src/`) against the work item. Group 1 holds. Criterion 1: the tester compared the collected ids before and after (entry 5). Every test function and parametrize id in the diff keeps its name. Criterion 2 is tested by `tests/test_entrypoint_support.py::test_the_entrypoint_layout_lives_in_its_support_module_alone`, which checks all three conditions. Criterion 3 is the changed expected line in `tests/test_shared_test_helpers.py`, which would fail against the old conftest line. The coder's `make check` was green (entry 7). Groups 2 and 3 hold: no layer, wrapper or security change, and no silencing marker. `tests/entrypoint_support.py` matches the removed code of `tests/test_entrypoint.py` line for line, and `_texts` is now `texts` with the same body. Group 4 fails:
+
+   1. `tests/test_entrypoint_support.py:9` (`_containing`, with its `TESTS` and `THIS` constants): this is a second copy of `_writing` in `tests/test_shared_test_helpers.py:13` (with `TESTS`/`THIS` at lines 8–10). Both do the same thing: rglob `*.py` under `tests`, leave out the calling module, and return the sorted relative paths of the files that match. The only difference is a substring test instead of a regex. Fix: under the standing leave, the tester moves this search to one shared module at the `tests/` root, for example `tests/search_support.py`. The function takes the module to leave out as an argument. Both test modules then use it, the new test with `re.escape` of its texts or a substring mode. `test_each_shared_helper_is_written_in_one_module` and its ids stay as they are, and so does what it checks.
+
+   Rejected: counting the three asserts in the one criterion-2 test as separate sides of one rule. Criterion 2 asks for exactly one test holding all three conditions.
+
+   Earlier tests:
+   - `tests/conftest.py`: standing leave to move a shared test helper (import line only; the `image_layout` fixture is unchanged).
+   - `tests/test_entrypoint.py`: standing leave to move a shared test helper (copies removed and imports from `entrypoint_support`). The local `texts`→`lines` rename in `test_a_missing_image_file_ends_the_run_with_one_line_before_the_instance` follows from the move; the story's Interface names it, and the test checks the same thing.
+   - `tests/test_agent_home_ownership.py`: standing leave to move a shared test helper (import line only).
+   - `tests/test_entrypoint_skills.py`: standing leave to move a shared test helper (import and `_texts`→`texts` calls).
+   - `tests/test_shared_test_helpers.py`: the human's leave, the S0007 bullet in decision 14 of `feature.md`. Only the one expected line changed.
