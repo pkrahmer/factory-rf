@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T10:39:06.124824Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-19T10:38:45.575529Z'
   stage: tests
   run: 85de9328a509459c9a424472213a5ac1
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:39:06.124824Z'
+  stage: doing
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -304,3 +313,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_wiring_waiter.py - ImportError while importing test mo...
+9. factory: started doing as self.
