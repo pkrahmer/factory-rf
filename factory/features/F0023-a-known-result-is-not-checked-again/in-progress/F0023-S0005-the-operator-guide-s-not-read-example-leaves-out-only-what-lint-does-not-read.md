@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 290
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T21:54:26.942465Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T21:54:06.126508Z'
   stage: intake
   run: c4366d1b426f4c47b3948a9ee9ae396d
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:54:26.942465Z'
+  stage: tests
 ---
 
 # The operator guide's not_read example leaves out only what lint does not read
@@ -83,3 +92,4 @@ Expect: `documents ok`
    - Smoke test: the four commands are runnable. Each `Expect:` line is a checkable value (`0`, `0`, `1`, `documents ok`). I confirmed in the guide that the old text exists: line 900 has `not_read: ["factory/*", "docs/*"]`, line 914 has "will run `secrets`", and line 905 has "after the story that built the key".
    - Architecture: not applicable beyond the write paths. The change is documentation in the operator guide, which the documenter stage keeps.
    - Scope: it stays within F0023, which covers the operator guide's `not_read` documentation and the feature's decisions 2 and 12. Nothing in "Out of scope" is touched.
+4. factory: started tests as self.
