@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T04:11:50.382898Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-19T04:11:50.382898Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T04:13:11.214318Z'
+  stage: docs
+  run: 4cb881dc38cc4d1fb3920176b5dffe5d
 ---
 
 # What every agent runtime shares moves into one module
@@ -396,3 +398,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Open, from entries 5, 7 and 13: `tests/test_agent_launch_search.py` reads the source, so it may need to join mutmut's list of left-out structural tests in `pyproject.toml`. That file is outside this story's write paths, so the human decides.
 18. factory: started docs as self.
+19. documenter: Docs, round 1. I read the story, the diff outside `factory/` and `docs/`, and the two documents I changed. I made no finding for the coder. The code matches the Interface.
+
+    Files changed:
+    - `docs/project-guide.md`, "The shared launch module": it now says what `agent_launch` holds beyond the login. That is the words of a run's start (`launch`, `sudo_prefix`, `confined_argv`), the run's folder and its removal (`temporary_folder`, `cleanup_argv`), the rules (`run_confinement`, `existing_devices`, `request_home`), the refusal and kill readers (`line_starting`, `killed_at_limit`, `first_word`) and the resume share. It states that the module imports no process module and does not read `os.environ`. It names the `claude_runtime` names that stay readable at the call. It describes `resumed_result` in the domain.
+    - `docs/project-guide.md`, the confinement and `sudo` paragraphs of the Claude Code runtime section: I replaced the private names that no longer exist. `_confinement` is now `run_confinement`, and "marked `timed_out` in `_call`" now points to `killed_at_limit`.
+    - `docs/decisions.md`: I added the entry "What the agent runtimes share lies in one module", dated 2026-10-19 with F0020-S0002. I could not read `feature.md` (R3), so the reasons come from the story's Description rather than the feature's decision 4 itself. Please check them against it.
+
+    Cross-read and found current: the "Measures of a resumed run" and budget-resume paragraphs (the sums and the time-limit rule match `resumed_result`), the login-shell paragraphs, and the project guide's note that `process` is imported by three modules. `README.md` and `docs/operator-guide.md` do not mention the moved names.
+
+    I did not run the examples in the docs; I added none. I did not run `make check`, because I changed only documents; the factory's check after this stage decides.
+
+    Stale text I noticed and did not touch:
+    - `docs/decisions.md` has older entries that name `_resumed_result` or the old private helpers (I did not search them all). They are history of earlier decisions, so I left them.
+    - Still open from the coder's and reviewer's entries: `tests/test_agent_launch_search.py` may need to join mutmut's left-out list in `pyproject.toml`. That file is outside my write paths, so the human decides.
+
+    `check`: check: green
+    `documents`: documents ok

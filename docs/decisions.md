@@ -651,3 +651,12 @@ Date: 2026-10-19 (F0020-S0001; F0020 decisions 1 to 3). Every agent run logged i
 - Decision: the factory never reads the key. The run's own shell reads it at every call, so it reaches no argument, run file, result, journal, cost record or log, and not the factory's environment. The shell reports on standard error which login it handed over; the runtime turns that into the run's `login`, which the cost record keeps and the preflight's probe names in the factory log.
 - Decision: the login shell moves to `factory.adapters.agent_launch`, so that the opencode runtime reuses it.
 - Reasons: the file is the mechanism the token already uses, so the factory holds no secret; a file for each instance lets one machine mix both logins.
+
+## What the agent runtimes share lies in one module
+
+Date: 2026-10-19 (F0020-S0002; F0020 decision 4). The opencode runtime starts its runs exactly as the Claude Code runtime does, and every helper for that was private to `factory.adapters.claude_runtime`, so a second runtime would have copied it.
+
+- Decision: the words of a run's start (`sudo`, `timeout`, `env -i`, `factory-confine`), the rules, the removal of the run's folder, the readers of the `sudo:` and `factory-confine:` refusal lines and the resume share move into `factory.adapters.agent_launch`, beside the login. The adding up of a resumed run moves into the domain as `resumed_result` (`factory.domain.agent_runs`).
+- Decision: `agent_launch` builds words and texts and imports no process module; each runtime keeps its own process calls. The names earlier tests import from or set on `claude_runtime` stay names of that module, read at the call.
+- Reasons: one copy means a change of the start reaches both runtimes; `resumed_result` is a rule on data, so it belongs where the rules are; keeping the process calls in the runtimes leaves `process` the one module that starts processes (R5), and the unchanged tests of the Claude Code runtime prove that it behaves as before.
+- Rejected: a base class for the runtimes (they differ in arguments, reply and files, and share only functions); copying the helpers into the opencode runtime (two copies drift).
