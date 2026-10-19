@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T23:03:54.212628Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-19T23:03:54.212628Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T23:04:29.342232Z'
+  stage: review
+  run: bd6b9162314c4c2da29486a1ae11811a
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -309,3 +311,17 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 19. factory: started review as self.
+20. reviewer: no findings
+
+    Round 1 review of `git diff main...HEAD -- . ':!factory'`: two new test modules, plus one constant added to a shared helper module. I read them against the criteria and the helpers they import: `stand_in_runtime(..., stderr_first=...)`, `WAIT_SECONDS` = 30 and `BOUND_SECONDS` = 20 in `tests/adapters/opencode_stand_in.py`, and `Recorder`, `is_gone` and `python_argv` in `tests/process_support.py`.
+    - Criterion 1 is `tests/adapters/test_opencode_limit_wait_on_stderr.py::test_a_limit_line_on_standard_error_gives_the_wait_it_names`. It has five rows: `seconds`, `minutes`, `no-wait`, `500` and `4281`. Each row checks `end_reason`, `limit_wait` and the `BOUND_SECONDS` bound. The limit rows wait `WAIT_SECONDS`, which is longer than the bound, so a run that missed the limit would fail. The `seconds` and `minutes` rows catch the `_stop_at_limit(None)` mutant. The `4281` row covers the failing side of the "whole number" rule, and the `500` row covers a line that names a wait but not the status.
+    - Criterion 2 is `tests/adapters/test_process_streaming_last_line.py::test_a_stop_on_a_last_line_without_a_newline_stops_the_call_at_once`. It has three rows: `stdout`, `stderr` and `no-stop`. Every row checks the exact calls, `stopped` and `exit_status`. The stop rows also check `timed_out`, the 10 s bound and `is_gone`. In the stop rows the other stream stays open while the child sleeps 60 s, so the `return False` mutant would run into the 30 s limit and fail the 10 s bound.
+    - `make check`: the coder's run in journal entry 18 ended `check: green`.
+    - Groups 2 to 5 hold. The diff touches tests only and changes nothing under `src/`. The one marker it adds is `# noqa: FBT001`, a lint marker with its reason beside it, not a security marker. The round 0 finding (journal entry 12, the copied reply constant) is fixed: `REPLY` now lives in `tests/adapters/opencode_stand_in.py:309`, and the new module imports it from there. The Description still matches what was built (tests only), and the docs criterion still names the two passages the documenter must check.
+
+    Earlier tests:
+    - `tests/adapters/opencode_stand_in.py` (M): changed under the standing leave to move a shared test helper. The change only adds `REPLY` to the shared module, moved out of the new test module. No earlier test changes.
+
+    Notes:
+    1. `tests/adapters/test_opencode_limit_wait_on_stderr.py:21`: `WAITING` is written inline the same way in `tests/adapters/test_opencode_provider_limit.py:132` and `tests/adapters/test_opencode_confinement.py:60`. It could become a shared constant in `tests/adapters/opencode_stand_in.py` in a later story.
+    2. `tests/adapters/test_process_streaming_last_line.py:57`: under `if stopped:`, the `timed_out` check and the 10 s bound run only in the stop rows. That matches criterion 2, but a `no-stop` row that timed out would go unnoticed.
