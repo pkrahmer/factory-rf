@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T01:18:23.176071Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-19T01:18:23.176071Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T01:19:06.505874Z'
+  stage: review
+  run: cbd75f0eecbb4478adae2b428899864a
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -271,3 +273,31 @@ Expect: `0`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 16. factory: started review as self.
+17. reviewer: no findings
+
+    Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item. I read the code itself, not the journal's account of it.
+
+    - Acceptance criteria: criteria 1 to 4 each have one parametrized test, and each test checks what its criterion says.
+      - Criterion 1 (tests/domain/test_preflight_stop_records_paths.py) has all eight rows. Both sides of the "not empty" limit are tested: `[]` and a single path.
+      - Criterion 2 has four rows. Each checks `preflight_failed`, the stop's presence and the log line.
+      - Criterion 3 (`stop_records` wired in) expects 0 `cleared` records on one row and 1 on the other.
+      - Criterion 4 covers the `GitError` side with `"a" * 40`.
+      - Entry 15 records `make check` green after the tester's moves.
+    - Architecture:
+      - `changes_only_stop_records` (src/factory/domain/preflight.py) is pure and imports only `factory.domain`.
+      - `_changes_only_stop_records` (src/factory/application/preflight.py) reaches git only through `Boundaries.git`, and turns `GitError` into a clear, as the Interface says.
+      - The other branches of `_clear_stale_failing_stop` are unchanged.
+    - Security: nothing to report. No markers, no new baseline entries, no strings built into commands.
+    - Quality:
+      - The round-0 findings (entry 9) are resolved. The new module now uses `log_lines` (tests/log_support.py), `CLEARED_LINE`/`fail_once`/`failed_once` (tests/preflight_support.py), the shared `records` fixture (tests/conftest.py) and `Rig.push_main`/`HumanClone.push_files` (tests/human_clone.py) in place of its own copies.
+      - The comment in `_changes_only_stop_records` explains why.
+    - Hygiene: the Description and the docs criterion match what was built.
+
+    Earlier tests:
+    - tests/application/test_disk_recorder.py: standing leave. Only `_log_lines` was replaced by the shared `log_lines`.
+    - tests/application/test_preflight_stale_main_stop.py: standing leave. `CLEARED_LINE`, the `failed_once` fixture and `_log_lines` moved to tests/preflight_support.py and tests/log_support.py; the tests keep their names and checks.
+    - tests/application/test_stale_branches.py: standing leave (`_log_lines` → `log_lines`).
+    - tests/application/test_tick.py: standing leave (`_log_lines` → `log_lines`).
+    - tests/application/test_tick_stop_records.py: standing leave. The `records` fixture moved to tests/conftest.py, and `_log_lines` became `log_lines`.
+    - tests/conftest.py: standing leave. It only gains the shared `records` fixture.
+    - tests/human_clone.py: standing leave. The new module's commit helper moved here as `push_files`. `push_file` delegates to it with the same steps and the same commit message.
