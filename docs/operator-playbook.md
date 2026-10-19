@@ -64,7 +64,7 @@ Since F0026 (the board shows only real crashes), the board shows a stage of its 
 5. **Write paths.** `git diff --stat origin/main...origin/work-item/<id> -- factory`: only the work item and its `.costs.jsonl`. And none of `Makefile`, `pyproject.toml`, `uv.lock`, `CLAUDE.md`, `.secrets.baseline` or `security/` in the first list. (The kernel and the undo already revert such writes; this is a second line.)
 6. **The cost.** The cost table: nothing far above the stories before it without a reason in the journal.
 
-A green check need not have run again. Since F0023 (a known result is not checked again), the docs stage may log `` `check`: check: green (not run again: passed on tree <12 characters> at <time>) ``. That line is a pass.
+A green check need not have run again. Since F0023 (a known result is not checked again), a stage may log `` `check`: check: green (not run again: passed on tree <12 characters> at <time>) ``. Mostly the docs stage logs it, and also a doing stage after a send-back. That line is a pass.
 
 Then merge: `gh pr merge <n> --merge`, never with `--delete-branch`; a merged story whose file is still in `in-progress/` would start again **(could be code)**. If the merge is refused once with "Head branch is out of date", try it again once. If it is refused again, find the cause before a third try. Name the six checks in the log's merge row.
 

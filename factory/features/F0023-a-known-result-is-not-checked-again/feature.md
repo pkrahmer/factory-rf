@@ -37,6 +37,9 @@ The build order; start one at a time, the next when the one before is archived i
 
 - S0001: The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
 - S0002: A stage's project command whose passed result is known for the same key is not run again
+- S0003: The git wrapper leaves out a path that starts with a dash (proposed by A0001)
+- S0004: The wired known results and disk records read back what they write (proposed by A0001)
+- S0005: The operator guide's not_read example leaves out only what lint does not read (proposed by A0001)
 
 ## The human's changes
 
