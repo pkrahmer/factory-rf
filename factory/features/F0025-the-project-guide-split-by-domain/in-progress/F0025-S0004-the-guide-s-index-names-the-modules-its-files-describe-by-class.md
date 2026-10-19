@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 292
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T22:14:16.775852Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T22:14:16.775852Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T22:16:08.496323Z'
+  stage: tests
+  run: 7a78d5eaab224c40909988148d41a6cd
 ---
 
 # The guide's index names the modules its files describe by class
@@ -105,3 +107,11 @@ Expect: `documents ok`
    Architecture: no code layer is touched, and the guide's index is where CLAUDE.md sends agents.
    Scope: it fits F0025, whose goal is the guide as index plus one file per domain. The story keeps the new `factory.entry.health` content out. Nothing in the feature's Out of scope is touched.
 4. factory: started tests as self.
+5. tester: No tests written. This story only changes docs, and its Interface says no test changes.
+   criterion 1 (nothing under src/, tests/, image/, template/, demo/ or claude/ changes): no test function; the tester changed nothing under those folders, as this entry confirms. The smoke test's `git diff --name-only origin/main -- src tests ...` checks it.
+   criterion 2 (`make check` stays green): no test function; the factory's checks cover it. I ran `make test` once and it was green, with no new red tests (coverage 99.12 %). `make lint` was green.
+   criterion 3 (docs): no test function; the documenter does this, and the docs stage's `make documents` and the smoke test check it. A test of these doc sentences would be a change under `tests/`, which criterion 1 forbids.
+   Files created: none. Modules the test runner could not import: none. The coder has no red tests to turn green on this branch.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (43.8 s)
