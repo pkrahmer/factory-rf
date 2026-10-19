@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 279
-comments_read: []
+comments_read: [6274821134]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 9d0bec5d8afa4c7792e39adcbfc114b0
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-19T18:54:15.537321Z'
+  stage: intake
 ---
 
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
@@ -134,3 +139,7 @@ Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "gi
    4. Criterion 6 gives the cleanup under `sudo` only for the confine-and-agent-user case. The Interface says "as the agent user under `sudo` when one is set", which implies the other side (confine set, no `os_user`: the folder is removed without `sudo`). The no-sudo rows cover this only for the three end reasons. I judge this side covered; no change needed unless you want an explicit assertion that `sudo` is not called.
 
    The smoke test is runnable and its `Expect:` line checks out against the stand-in (0.8 s = 1000 − 100 − 200 plus 100; the first call's cost of 1.2 passes the budget of 1). The Interface, architecture (adapters-only, tests only, no `src` change) and scope (within the feature's S0004/S0006 behaviour, nothing in Out of scope) are fine apart from the questions above.
+4. 2026-10-19 human: 1. Yes, add the rows to criterion 3 as you propose: an error with only `permission`, one with only `denied`, the case-insensitive `Permission Denied`, each listed as a denial; and a `tool_use` whose `status` is not `error` although its text contains `denied`, not listed.
+   2. Yes: a row with exit status `-9` past the limit ending `time_limit`, and a row that exits 1 after the limit is reached ending `died` (`agent_launch.py:315`: a status outside `KILL_STATUSES` is never `time_limit`; with no result block the run is `died`).
+   3. Yes: `entry: First line.` as the second line gives `None`, and an entry padded with blank lines and spaces gives the stripped text.
+   4. No change; the no-sudo rows cover that side.
