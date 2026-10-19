@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853, 6262583574]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T08:15:28.769123Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -267,6 +263,12 @@ journal:
   kind: started
   at: '2026-10-19T08:15:28.769123Z'
   stage: smoke-test
+- number: 47
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T08:15:51.159775Z'
+  stage: smoke-test
+  run: 5577222ee5f14bc5b8d454192809a033
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -869,3 +871,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `documents`: documents ok
 46. factory: started smoke-test as self.
+47. smoke-tester: Ran the `## Smoke test` block once, from the repository root and exactly as written, in a single bash shell. The temporary directory came from `mktemp -d` under `$TMPDIR` and the block's own `trap` removed it. I changed no files.
+
+    Command 1 is the whole block. It writes a stand-in `claude`, runs `ClaudeCodeRuntime` twice (a fresh run, then a resume of its session) and calls `limit_in_text` and `named_wait` directly. Output (exit status 0):
+
+    ```
+    provider_limit 0.01 420.0
+    True True True
+    True False 0:02:00
+    ```
+
+    Expect: three lines, `provider_limit 0.01 420.0`, `True True True`, `True False 0:02:00`. **Met**: all three lines match exactly.
+
+    Checked against the acceptance criteria:
+    - Criterion 9: the stand-in's 428 error reply ended the run `provider_limit`, kept the cost of 0.01 and gave a `limit_wait` of 420 s. The `session` is the id passed with `--session-id`.
+    - Criterion 12: the resumed request called the stand-in with `--resume <session>`, and the result's `session` is that same session.
+    - Criterion 4, in part: `limit_in_text` is true for `HTTP 428:` and false for `14280 tokens`.
+    - Criterion 6, in part: `named_wait("Retry-After: 120")` is 120 s.
+
+    The smoke test contradicts no criterion. It does not exercise the rest (settings, opencode, costs, contract schemas, docs); the factory's checks cover those.
+
+    Findings: none.
