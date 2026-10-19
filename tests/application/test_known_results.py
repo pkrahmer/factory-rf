@@ -23,6 +23,8 @@ from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.settings import InstanceSettings
 from git_support import PIPELINE_YAML
 from human_clone import HumanClone
+from log_support import log_lines
+from project_command_support import raising
 from record_support import UnwritableRecordLog
 
 NOT_READ = ["docs/*"]
@@ -54,13 +56,6 @@ def _answering(
     def answer(command: str, _limit: timedelta) -> CheckResult:
         clock.advance(timedelta(minutes=1))
         return _result(command, queue.pop(0) if queue else 0)
-
-    return answer
-
-
-def _raising(error: Exception) -> Callable[[str, timedelta], CheckResult]:
-    def answer(_command: str, _limit: timedelta) -> CheckResult:
-        raise error
 
     return answer
 
@@ -107,7 +102,7 @@ class Rig:
     commands: RecordingCommands
     records: JsonLinesRecordLog[ResultRecord]
     definition: PipelineDefinition
-    log_path: Path
+    tmp_path: Path
 
     def known(self) -> KnownResults:
         """A `KnownResults` on the rig's boundaries and definition."""
@@ -115,10 +110,7 @@ class Rig:
 
     def log_lines(self) -> list[str]:
         """The factory log's lines without their time stamps."""
-        if not self.log_path.exists():
-            return []
-        lines = self.log_path.read_text(encoding="utf-8").splitlines()
-        return [line.split(" ", 1)[1] for line in lines]
+        return [line.split(" ", 1)[1] for line in log_lines(self.tmp_path)]
 
 
 def _rig(
@@ -136,7 +128,7 @@ def _rig(
         boundaries, project_commands=commands, result_records=records if with_records else None
     )
     definition = rigged.pipeline_reader.parse(DEFINITION_YAML)
-    return Rig(rigged, commands, records, definition, tmp_path / "state" / "factory.log")
+    return Rig(rigged, commands, records, definition, tmp_path)
 
 
 def test_without_records_every_run_reaches_the_project_commands_and_no_key_is_built(
@@ -348,7 +340,7 @@ def test_a_fault_of_the_key_or_the_records_runs_the_command_and_is_logged(
 def test_an_error_of_the_inner_run_propagates_and_records_nothing(
     boundaries: Boundaries, tmp_path: Path, error: Exception
 ) -> None:
-    rig = _rig(boundaries, tmp_path, _raising(error))
+    rig = _rig(boundaries, tmp_path, raising(error))
 
     with pytest.raises(type(error)):
         rig.known().run("check")

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T15:12:46.006892Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-19T15:12:46.006892Z'
   stage: tests
+- number: 20
+  speaker: tester
+  kind: result
+  at: '2026-10-19T15:14:41.346278Z'
+  stage: tests
+  run: 2087952f11584bb68d23a036a4f97963
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -464,3 +466,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed but not touched: the comment "the record is telemetry" appears in both `KnownResults._append` and `RecordingProjectCommands.run`.
 19. factory: started tests as self.
+20. tester: I made the two test changes the coder named in entry 18. They come from the reviewer's findings in entry 16.
+
+    1. Moved the shared helper, under the standing leave in `CLAUDE.md` to move a shared test helper. `_raising` was defined twice, with the same signature and body: in `tests/application/test_known_results.py` and in `tests/application/test_recording_project_commands.py`. It now lives once, as `raising`, in the new module `tests/project_command_support.py`, and both test modules import it from there. The earlier test file I changed is `tests/application/test_recording_project_commands.py`: only the local definition is removed and the import is added. Every test in it keeps its name and checks the same thing.
+       - Not moved: `tests/application/test_preflight_run.py` has its own `_raising`. Its parameter has a different type (`ProjectCommandError`), and entry 18 did not name it.
+    2. In this story's `tests/application/test_known_results.py`, `Rig.log_lines` is now built on `log_support.log_lines(tmp_path)` and keeps only the stripping of the time stamp. `Rig.log_path` is dropped. `Rig` now holds `tmp_path`, and `_rig` passes it in.
+
+    The criterion → test mapping from entry 5 still holds. Every module imports, because the implementation exists.
+
+    Created: `tests/project_command_support.py`.
+    Changed: `tests/application/test_known_results.py` and `tests/application/test_recording_project_commands.py`.
+
+    `make lint`: lint: green (0.0 s)
+    `make test`: test: green (41.5 s), total coverage 99.08 %.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (42.4 s)

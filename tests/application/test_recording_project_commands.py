@@ -19,6 +19,7 @@ from factory.domain.checks import CheckResult, TargetTime, status_of
 from factory.domain.command_records import CommandRecord
 from factory.domain.errors import GitError, ProjectCommandError
 from factory.domain.git import CommitId
+from project_command_support import raising
 from record_support import UnwritableRecordLog
 
 TIME_LIMIT = timedelta(minutes=10)
@@ -40,13 +41,6 @@ def _result(command: str, exit_status: int | None, seconds: float = 183.5) -> Ch
 def _answering(results: Sequence[CheckResult]) -> Callable[[str, timedelta], CheckResult]:
     queue = list(results)
     return lambda _command, _limit: queue.pop(0)
-
-
-def _raising(error: Exception) -> Callable[[str, timedelta], CheckResult]:
-    def answer(_command: str, _limit: timedelta) -> CheckResult:
-        raise error
-
-    return answer
 
 
 class UnresolvableGit(GitCli):
@@ -147,7 +141,7 @@ def test_an_inner_error_propagates_and_records_nothing(
     clock: ManualClock,
     log_path: Path,
 ) -> None:
-    recorder = _recorder(_raising(error), checkout, records, clock, log_path)
+    recorder = _recorder(raising(error), checkout, records, clock, log_path)
 
     with pytest.raises(type(error)):
         recorder.run("check", time_limit=TIME_LIMIT)
