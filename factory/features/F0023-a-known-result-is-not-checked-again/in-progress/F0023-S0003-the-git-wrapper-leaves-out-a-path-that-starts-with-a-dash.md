@@ -12,7 +12,7 @@ No module under `src/factory/` changes. `factory.adapters.git_cli` (`adapters`):
 
 - A left-out path that starts with `-` or `--` is removed from the tree as a literal path, as any other listed path is, and the call raises no error.
 
-Tests (the tester writes them): `tests/adapters/test_git_cli_work_tree_dash.py`, with the `checkout` fixture of `tests/conftest.py` and `run_git` and `write_files` of `tests/git_support.py`, as `tests/adapters/test_git_cli_work_tree.py` uses them. No earlier test changes.
+Tests (the tester writes them): `tests/adapters/test_git_cli_work_tree_dash.py`, with the `checkout` fixture of `tests/conftest.py` and `CHECKOUT`, `run_git` and `write_files` of `tests/git_support.py`, as `tests/adapters/test_git_cli_work_tree.py` uses them. No earlier test changes.
 
 ## Acceptance criteria
 
