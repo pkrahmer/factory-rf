@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 254
-comments_read: [6261999766]
+comments_read: [6261999766, 6262128853]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: 03db98305dc646e580ed9154d53918e8
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-10-19T07:35:28.019041Z'
+  stage: tests
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -271,3 +276,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - `_committed` and `_values` from domain/test_contract_login
 
    Module the test run could not import: `factory.domain.provider_limits`. It causes collection errors in test_provider_limits.py, test_claude_runtime_provider_limit.py and test_wiring_provider_limit.py. The other new tests fail because the new fields and `provider_limit` don't exist yet, or the runtime doesn't use `--resume` yet. `make lint` is green.
+9. 2026-10-19 human: (a): leave, in the form of decision 19: in `tests/domain/test_contract_login.py`, remove the two version assertions of `test_the_committed_cost_record_schema_lists_the_optional_login_at_version_1_1`, keep its login checks, and rename it `test_the_committed_cost_record_schema_lists_the_optional_login`; nothing else in that module. The version is pinned by your new `tests/domain/test_contract_provider_limit.py`.
