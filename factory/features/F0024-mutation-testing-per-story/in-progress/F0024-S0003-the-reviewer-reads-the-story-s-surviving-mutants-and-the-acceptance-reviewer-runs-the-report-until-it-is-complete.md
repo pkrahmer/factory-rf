@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 272
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T16:35:34.971046Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T16:35:34.971046Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T16:36:00.543746Z'
+  stage: intake
+  run: 4b5ee6a1361b49d38646f03253a710da
 ---
 
 # The reviewer reads the story's surviving mutants, and the acceptance reviewer runs the report until it is complete
@@ -80,3 +82,9 @@ Expect: five lines, each `1`.
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names concrete files and sections. The reviewer's `## Role` gets the new paragraph between item 6 (line 60) and `Write findings as a numbered list` (line 62). The acceptance reviewer's check 3 (line 55) is replaced. Both give the exact text, and the test module and its helpers (`agent_body`, `section_text`) are named. I read the new texts against the banned-word regex in `tests/test_claude_agent_texts.py` and found none of its words.
+   - Criteria: criterion 1 pins both texts exactly. Criterion 2 pins the reviewer paragraph's position. Criterion 3 pins both sides of the old and new acceptance-reviewer text: the old sentence is absent and the new heading appears once. Criterion 4 covers the existing lessons, anchors and banned words. Every behaviour the Interface comments state (the finding rule, the notes at any round, partial as a note, at most three runs, the score and partial report) sits in the exact text, which criterion 1 pins. The failing side is covered by the notes sentence and by the old-text-absent row. Each criterion is one test function. The docs criterion is the documenter's.
+   - Smoke test: five grep commands, runnable from the repo root, each with a `Expect:` of five lines of `1`. Two use `.` for an apostrophe, which matches. They are checkable against the files.
+   - Architecture: the change touches only the shipped agent texts (coder write path `claude/*`) and a new test at the `tests/` root, which is right for a module outside the layers. It adds no source module and no layer change.
+   - Scope: it matches the feature's Scope (S0003: the two agent files, a test module, docs) and decisions 6 and 11. Nothing in "Out of scope" is touched, and no earlier test changes. The Makefile and CLAUDE.md lines it relies on are the human's change 1.
