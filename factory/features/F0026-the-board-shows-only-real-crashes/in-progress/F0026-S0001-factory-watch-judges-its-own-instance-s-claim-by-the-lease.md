@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T12:31:07.012649Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T12:31:07.006545Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T12:31:07.012649Z'
+  stage: intake
+---
+
 # factory-watch judges its own instance's claim by the lease
 
 ## Description
@@ -144,3 +171,5 @@ Expect: two lines, `0 event: idle:-  F0001-S0001 is held by self ''` and `0 even
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
