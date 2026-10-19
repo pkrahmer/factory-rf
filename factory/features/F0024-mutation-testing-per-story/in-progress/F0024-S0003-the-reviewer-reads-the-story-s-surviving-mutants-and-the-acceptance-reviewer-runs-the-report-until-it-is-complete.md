@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 272
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T16:40:59.688554Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T16:40:59.688554Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T16:41:30.123393Z'
+  stage: review
+  run: ad0d652d967c4397930e691f2279d959
 ---
 
 # The reviewer reads the story's surviving mutants, and the acceptance reviewer runs the report until it is complete
@@ -157,3 +159,14 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I checked:
+   - Acceptance criteria: I took the two `markdown` blocks out of the Interface and matched them against the files. Each appears exactly once as a whole line, in `claude/agents/reviewer.md` and `claude/agents/acceptance-reviewer.md`. The diff changes three lines in those two files: one line replaced in check 3, plus the new paragraph and its blank line. The Lessons sections and the anchors are untouched.
+   - Tests: `tests/test_claude_agent_texts_mutants.py` covers criterion 1 with one parametrized test of two rows (exact text inside `section_text(..., "Role")`). Criterion 2 is one test on the line positions in the body: item 6, then the paragraph, then `Write findings`. Criterion 3 is one parametrized test with two rows: the old sentence counted 0 times and the heading counted once, so both sides are covered. Criterion 4 is the existing `tests/test_claude_agent_texts.py`, which the diff leaves unchanged. The factory's `make check` after the coder was green (journal entry 7).
+   - Helpers: the module uses `agent_body` from `tests/shipped_agents.py` and `section_text` from `factory.domain.sections`, as the Interface says. It copies no helper.
+   - Architecture and security: the diff changes nothing under `src/` and adds no marker that silences a check.
+   - Mutation report: the coder's latest entry has no `mutants` line, and the diff changes no module under `src/factory`, so there were no survivors to read.
+   - Work item hygiene: the journal explains the scripted literal replacement and why typing the texts by hand was rejected. The Description matches what was built. The docs criterion still says what the documenter must write. The coder rightly noted that the fifth smoke-test grep waits for the docs stage.
+
+   Earlier tests: none. The diff only adds `tests/test_claude_agent_texts_mutants.py` (status `A`).
