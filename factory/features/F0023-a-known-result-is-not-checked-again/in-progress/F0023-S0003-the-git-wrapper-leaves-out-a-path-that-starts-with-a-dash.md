@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 288
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T21:28:54.588487Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T21:28:34.001214Z'
   stage: review
   run: 9eda14e9c0e14ebdaabb97d50a48e2b1
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:28:54.588487Z'
+  stage: docs
 ---
 
 # The git wrapper leaves out a path that starts with a dash
@@ -159,3 +168,4 @@ Expect: `True`
    5. Work item hygiene: the journal explains that no code changed and why, and names the alternative the coder rejected (`--stdin -z`). The Description matches what was built: tests only. The docs criterion ("none") holds, because `docs/project-guide/git-and-hosting.md:124` already says the left-out paths are removed with `update-index --force-remove --` as literal paths.
 
    Earlier tests: none. The diff only adds a test file (status `A`), and no file that `main` already holds under `tests/` changed.
+10. factory: started docs as self.
