@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T22:52:13.780524Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-19T22:52:13.780524Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-19T22:52:29.188918Z'
+  stage: intake
+  run: 29fa665e0b1f4342993a9172adc129db
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -75,7 +77,8 @@ No earlier test changes.
    - `HTTP 428 spend limit reached, retry after 120 seconds`: `provider_limit`, `limit_wait` 120 seconds;
    - `HTTP 428 Precondition Required: try again in 7 minutes`: `provider_limit`, `limit_wait` 420 seconds;
    - `HTTP 428 Precondition Required`: `provider_limit`, `limit_wait` `None`;
-   - `HTTP 500 Internal Server Error, retry after 120 seconds`, with a stand-in that ends with a valid result block instead of waiting: `completed`, `limit_wait` `None`.
+   - `HTTP 500 Internal Server Error, retry after 120 seconds`, with a stand-in that ends with a valid result block instead of waiting: `completed`, `limit_wait` `None`;
+   - `HTTP 4281 Precondition Required, retry after 120 seconds`, with a stand-in that ends with a valid result block instead of waiting: `completed`, `limit_wait` `None` (the status must be a whole number, not part of a longer one).
 2. One parametrized test of `run_streaming` with a `Recorder` that stops on `go`, and a time limit of 30 seconds. The child writes the stream's last line without a newline, flushes it, closes that stream and then sleeps 60 seconds with the other stream open:
    - row `stdout`: the last line `go` on standard output. The recorder's calls are exactly `[("stdout", "go")]`, `stopped` is `True`, `exit_status` `None`, `timed_out` `False`, the call returns within 10 seconds, and the child is gone afterwards (`is_gone`);
    - row `stderr`: the same on standard error, with the calls `[("stderr", "go")]`;
@@ -135,3 +138,9 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
    The format check passed.
 4. 2026-10-19 human: (a). Add a row to criterion 1 for a line such as `HTTP 4281 Precondition Required, retry after 120 seconds`, with a stand-in that ends with a valid result block: `completed`, `limit_wait` `None`. Place it before the two closing rows. This follows CLAUDE.md's rule that every limit the Interface states is tested on both sides.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: names concrete modules and signatures (`OpencodeRuntime.run`, `run_streaming(request, on_line) -> ProcessResult`); no `src/` module changes. The "whole number" clause now has its failing side (see below).
+   - Criteria: each is testable by one parametrized function. Every rule has both sides: a limit line with the status gives `provider_limit`, and a line without it (HTTP 500, or 4281) is no limit. The wait is covered in three forms (named in seconds, named in minutes, none). A stop on a last line is covered on stdout and stderr, and the no-stop row covers the other side. Carried in from journal entry 4 (the human's answer (a)): I added a row to criterion 1 for `HTTP 4281 Precondition Required, retry after 120 seconds`, with a stand-in that ends with a valid result block: `completed`, `limit_wait` `None`. It sits inside criterion 1, before the two closing criteria. That is the human's edit carried in, not my improvement.
+   - Smoke test: the commands are runnable and the `Expect:` line is checkable against the two printed lines.
+   - Architecture: the new tests sit under `tests/adapters/`, as `CLAUDE.md` requires. They import the shared helpers and change no earlier test.
+   - Scope: within F0020's scope, which covers the opencode runtime and `process.py` streaming. Nothing in the feature's Out of scope is touched.
