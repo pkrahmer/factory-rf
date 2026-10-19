@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T16:11:41.144234Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T16:11:19.938508Z'
   stage: review
   run: d1547e556c6d41189df56d4e7351ab13
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:11:41.144234Z'
+  stage: doing
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -251,3 +260,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Rejected as findings: the stopped-after 1 and 0 sides in tests/entry/test_check_mutants.py are in two functions. I left that out because criteria 8 and 10 group the command's rows by outcome, and the domain test checks both sides in one parametrized test. The missing `--names` row for a parse fault runs the same `try` in `main` as the row without `--names`. I found no copied test helper.
 
    Earlier tests: none. Every test file the diff touches has status `A`, and tests/entry/test_check_duplicates.py is unchanged.
+10. factory: started doing as self.
