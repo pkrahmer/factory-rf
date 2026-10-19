@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T04:56:48.036135Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-10-19T04:56:48.036135Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-19T04:58:32.190684Z'
+  stage: tests
+  run: 108e574eb374401489989af7f5696cde
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -369,3 +371,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 12. factory: started doing as self.
 13. coder: The human chose option (a) in entry 11, and that needs a test change, so this goes to the tester. In `tests/adapters/test_opencode_runtime.py::test_the_call_sees_its_configuration_file_and_only_the_request_s_environment`, change the two literal keys of `given` (`"ANTHROPIC_API_KEY"`, `"CLAUDE_CODE_OAUTH_TOKEN"`) to `API_LOGIN_VARIABLE` and `LOGIN_VARIABLE` from `factory.adapters.agent_launch`, as `tests/adapters/test_agent_launch_login.py` does. Nothing else changes: the test keeps its name and checks the same thing. This makes `make secrets` green; it is the only step of `make check` still red. The implementation is still the one entry 10 describes: `src/factory/adapters/opencode_runtime.py`, committed, and I changed no code in this run. The journal changed nothing in the meaning of the task, so `## Description` stays as it is. Still open from entry 10, not touched: `make duplicates` reports 7 blocks similar to `claude_runtime`, and vulture flags `_ErrorData.status_code` and `OpencodeRuntime` as unused, both of which later stories will use.
 14. factory: started tests as self.
+15. tester: I made the test change the human approved in entry 11, as the coder named it in entry 13. Nothing else changed.
+
+    - In `tests/adapters/test_opencode_runtime.py::test_the_call_sees_its_configuration_file_and_only_the_request_s_environment`, the two literal keys of `given` are now the constants `API_LOGIN_VARIABLE` and `LOGIN_VARIABLE`. They replace `"ANTHROPIC_API_KEY"` and `"CLAUDE_CODE_OAUTH_TOKEN"`.
+    - Both constants are imported from `factory.adapters.agent_launch`, the same way `tests/adapters/test_agent_launch_login.py` uses them.
+    - The test keeps its name and its values, and still checks that the request's login variables do not reach the call's environment.
+
+    Why: detect-secrets flagged the quoted key name as a Secret Keyword, so `make secrets` was red. Using the constants clears that without a pragma or a baseline entry, as the human decided.
+
+    File changed: `tests/adapters/test_opencode_runtime.py` (one import line, two dict keys). No files created. Every module imported: `make test` is green with 98.98 % coverage, and `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (37.7 s)

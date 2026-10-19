@@ -20,6 +20,7 @@ from adapters.opencode_stand_in import (
     write_opencode,
 )
 from adapters.test_claude_runtime_os_user import _without_locale
+from factory.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
 from factory.adapters.opencode_runtime import (
     CONFIG_VARIABLE,
     OPENCODE_TOOLS,
@@ -210,8 +211,8 @@ def test_the_call_sees_its_configuration_file_and_only_the_request_s_environment
     given = {
         "HOME": "/home/agent",
         "LANG": "C.UTF-8",
-        "ANTHROPIC_API_KEY": "request-key",
-        "CLAUDE_CODE_OAUTH_TOKEN": "request-token",
+        API_LOGIN_VARIABLE: "request-key",
+        LOGIN_VARIABLE: "request-token",
     }
     runtime = _runtime(tmp_path, [Step(stdout=REPLY)])
 
