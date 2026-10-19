@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T14:28:55.104292Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T14:28:34.739919Z'
   stage: tests
   run: a2fe8bf5b0744716ac8312611cf8741d
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:28:55.104292Z'
+  stage: doing
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -215,3 +224,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_tree_id.py - ImportError while importing test module ...
+6. factory: started doing as self.
