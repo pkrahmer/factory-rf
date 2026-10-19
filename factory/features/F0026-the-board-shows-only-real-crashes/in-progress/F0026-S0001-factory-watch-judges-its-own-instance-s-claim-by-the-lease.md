@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T12:48:53.532380Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-19T12:48:33.373150Z'
   stage: doing
   run: 7419d7b79f3e4f2a9ae79ff5504421aa
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T12:48:53.532380Z'
+  stage: review
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -389,3 +398,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+16. factory: started review as self.
