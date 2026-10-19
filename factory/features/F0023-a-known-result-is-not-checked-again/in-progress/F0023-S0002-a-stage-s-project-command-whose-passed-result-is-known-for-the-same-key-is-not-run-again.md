@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 268
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T15:00:21.640651Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,13 @@ journal:
   kind: started
   at: '2026-10-19T15:00:21.640651Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-19T15:03:28.681848Z'
+  stage: doing
+  run: 83a82119910244929a394682a97f06c0
+  blocked: question
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -270,3 +273,34 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_wiring_known_results.py - ImportError while importing ...
 6. factory: started doing as self.
+7. coder: I built the story to its Interface. One test assertion can't pass against the stall note, which the story leaves unchanged. So `make check` is red only at that test, and I stopped there.
+
+   Built:
+   - `src/factory/domain/known_results.py` (new): `DefinitionDigest`, `ResultKey`, `ResultRecord` (`reused` only on `passed`), `definition_digest`, `known_result`.
+   - `src/factory/domain/checks.py`: `ReusedRun`, `CheckResult.reused` (refused unless `passed`, in the existing validator), `command_line`.
+   - `src/factory/application/known_results.py` (new): `KnownResults` with the key, the reuse, and the three fault paths and their log lines, as the Interface lists them.
+   - `src/factory/application/boundaries.py`: `result_records`, last.
+   - `src/factory/application/stage.py`: `StageFinisher` runs checks and reports through one `KnownResults`. `_run_command` is gone. `_with_command_lines` uses `command_line`.
+   - `src/factory/entry/wiring.py`: `records/known-results.jsonl`.
+
+   Main choice: `KnownResults` builds the definition digest once, in its constructor. I rejected computing it on every `run`, because the definition does not change during the life of the object. The refactor pass found nothing to change.
+
+   `make check`: lint, types, layers, sast, secrets and licenses are green. In `make test` only one test fails:
+
+   `tests/application/test_stage_known_results.py::test_a_red_check_stalls_and_is_run_again_on_the_same_code`
+   ```
+   tests/application/test_stage_known_results.py:178: in test_a_red_check_stalls_and_is_run_again_on_the_same_code
+       assert "`check`\n" in note.body
+   E   AssertionError: assert '`check`\n' in 'Stalled (attempt 1 of 2): a check is red after the stage: `check`. Retrying on the next tick.\n\n```text\ncheck done\nmake: *** [Makefile:11: check] Error 2\n```\n\n<!-- factory -->...'
+   ```
+
+   The stall detail is still `` `check` `` followed by the tail, exactly as criterion 12 says. `stall_note` (`src/factory/domain/post_texts.py:52`) has always put the detail's first line into the sentence (`` ...: `check`. Retrying... ``) and the rest into a fenced block. So the posted note never contains `` `check` `` followed by a newline, before or after this story. Criterion 12 also says the stall stays "as today", so changing the note is out of scope.
+
+   Question: how should this test change?
+   - (a) Assert `` "`check`." in note.body `` (or `` stall_note("check_red", 1, 2, detail=...) ``, as `tests/application/test_stalls.py:459` does) together with the existing `"check done"` check. This checks the same thing against the note as it is rendered.
+   - (b) Read the stall detail from the journal or the stall result rather than from the posted note.
+   - (c) Change `stall_note`. I advise against this: it is outside the story's scope.
+
+   I would choose (a). If you agree, I will end with `tests` and name this change for the tester. I could not run the rest of that test separately, because my temporary probe was refused. Its other assertions (one `failed` record, then a second run of `check`) follow from `known_result` ignoring a failed last run.
+
+   Noticed but not touched: `KnownResults._append` repeats the comment "the record is telemetry" from `RecordingProjectCommands.run`. The two cases mean the same thing, so I left both.
