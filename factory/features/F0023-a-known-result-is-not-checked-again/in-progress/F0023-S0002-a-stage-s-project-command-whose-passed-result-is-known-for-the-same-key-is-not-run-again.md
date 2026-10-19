@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T15:12:46.006892Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-19T15:12:25.777726Z'
   stage: doing
   run: 0afba8f5936245a9af5cf416f68410db
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-19T15:12:46.006892Z'
+  stage: tests
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -454,3 +463,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     What the journal changed: only the tests, so `## Description` stays as it is.
 
     Noticed but not touched: the comment "the record is telemetry" appears in both `KnownResults._append` and `RecordingProjectCommands.run`.
+19. factory: started tests as self.
