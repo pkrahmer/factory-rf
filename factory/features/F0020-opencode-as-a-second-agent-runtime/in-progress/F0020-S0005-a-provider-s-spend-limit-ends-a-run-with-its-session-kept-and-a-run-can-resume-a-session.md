@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T07:49:32.734323Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-19T07:49:32.734323Z'
   stage: tests
+- number: 19
+  speaker: tester
+  kind: result
+  at: '2026-10-19T07:51:47.794695Z'
+  stage: tests
+  run: ce95d9941a6e42daba245ab94efe7a2d
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -430,3 +432,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Not touched: the 5 new `make duplicates` findings reported in entry 13. None of them comes from this story's diff.
 18. factory: started tests as self.
+19. tester: Round 1, a test change the human approved. I made the two test changes the coder lists in entry 17, which come from the reviewer's findings in entry 15. I changed nothing under `src/`.
+
+    1. `tests/domain/test_provider_limits.py::test_the_named_wait_is_the_first_one_the_text_names`: I added the accepted side of the one-to-six-digit limit to the existing parametrized table. The new rows are `("in 999999", timedelta(seconds=999999))` and `("retry-after 999999", timedelta(seconds=999999))`. The refused side, `in 1234567` → `None`, was already in the table.
+    2. `tests/adapters/test_claude_runtime_provider_limit.py`: I folded `test_a_budget_stop_that_names_the_status_ends_budget_and_is_resumed` into `test_a_call_the_limit_refused_ends_provider_limit_with_its_wait_and_session` as the row `budget-stop-naming-428`, and removed the separate function. The table's columns changed:
+       - The `step` column is now `steps` (a list of `Step`).
+       - The `measured: bool` column is now `measures`. It holds the expected `(cost_usd, turns)`, or `None` when nothing is measured; then cost, turns and tokens are all expected to be `None`, as before.
+       - A new `resumed` column pins the resume calls: each call after the first passes `--resume` with the first call's `--session-id`, and with `resumed` false there is no second call. The single-call rows therefore now also check that only one call was made.
+       - The new row expects end reason `budget`, `limit_wait` `None`, measures `(6.0, 10)` (two budget replies added together), and a resumed second call.
+       - The six earlier rows keep their ids and check the same things. `measures` and `resumed` are keyword-only so ruff's PLR0917 is satisfied without a `noqa`.
+       - The time-limit test stays separate, as the coder's entry says.
+
+    Files changed: tests/domain/test_provider_limits.py, tests/adapters/test_claude_runtime_provider_limit.py (both written by this story). No new files. Every module imported in the test run.
+
+    `make lint`: lint: green. `make test`: test: green (38.7 s). As the coder expected, both new rows pass against the current code.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (39.5 s)

@@ -71,6 +71,8 @@ SECONDS_120 = timedelta(seconds=120)
         ("in 120 sec", SECONDS_120),
         ("Retry-After: 120", SECONDS_120),
         ("retry-after 120", SECONDS_120),
+        ("in 999999", timedelta(seconds=999999)),
+        ("retry-after 999999", timedelta(seconds=999999)),
         ("in 2 h", timedelta(hours=2)),
         ("in 2 hours", timedelta(hours=2)),
         ("in 1 hour", timedelta(hours=1)),

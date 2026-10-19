@@ -41,75 +41,103 @@ def _runtime(
     return ClaudeCodeRuntime(str(executable), tmp_path / "state", provider_limit=limit)
 
 
+ONE_CALL = (Decimal("0.01"), 1)
+
+
 @pytest.mark.parametrize(
-    ("limit", "step", "end_reason", "limit_wait", "measured"),
+    ("limit", "steps", "end_reason", "limit_wait", "measures", "resumed"),
     [
         pytest.param(
             None,
-            Step(stdout=_error_reply(LIMIT_RESULT)),
+            [Step(stdout=_error_reply(LIMIT_RESULT))],
             "provider_limit",
             SEVEN_MINUTES,
-            True,
+            ONE_CALL,
+            False,
             id="error-reply-428",
         ),
         pytest.param(
-            None, Step(stdout=_error_reply("API Error: 500")), "died", None, True, id="error-500"
+            None,
+            [Step(stdout=_error_reply("API Error: 500"))],
+            "died",
+            None,
+            ONE_CALL,
+            False,
+            id="error-500",
         ),
         pytest.param(
             None,
-            Step(stderr="API Error: 428, try again in 7 minutes\n", exit_status=1),
+            [Step(stderr="API Error: 428, try again in 7 minutes\n", exit_status=1)],
             "provider_limit",
             SEVEN_MINUTES,
+            None,
             False,
             id="stderr-428-with-wait",
         ),
         pytest.param(
             None,
-            Step(stderr="API Error: 428\n", exit_status=1),
+            [Step(stderr="API Error: 428\n", exit_status=1)],
             "provider_limit",
+            None,
             None,
             False,
             id="stderr-428-without-wait",
         ),
         pytest.param(
             ProviderLimit(status=429),
-            Step(stderr="API Error: 428, try again in 7 minutes\n", exit_status=1),
+            [Step(stderr="API Error: 428, try again in 7 minutes\n", exit_status=1)],
             "died",
+            None,
             None,
             False,
             id="other-status-configured",
         ),
         pytest.param(
             ProviderLimit(message="spend limit"),
-            Step(stdout=_error_reply("the spend limit is reached")),
+            [Step(stdout=_error_reply("the spend limit is reached"))],
             "provider_limit",
             None,
-            True,
+            ONE_CALL,
+            False,
             id="message-configured",
+        ),
+        pytest.param(
+            None,
+            [Step(stdout=_budget_reply(result="API Error: 428")), Step(stdout=_budget_reply())],
+            "budget",
+            None,
+            (Decimal("6.0"), 10),
+            True,
+            id="budget-stop-naming-428",
         ),
     ],
 )
 def test_a_call_the_limit_refused_ends_provider_limit_with_its_wait_and_session(
     tmp_path: Path,
     limit: ProviderLimit | None,
-    step: Step,
+    steps: list[Step],
     end_reason: str,
     limit_wait: timedelta | None,
     *,
-    measured: bool,
+    measures: tuple[Decimal, int] | None,
+    resumed: bool,
 ) -> None:
-    runtime = _runtime(tmp_path, [step], limit)
+    runtime = _runtime(tmp_path, steps, limit)
 
     result = runtime.run(_request(tmp_path, None))
 
-    [call] = read_calls(tmp_path / "bin")
+    calls = read_calls(tmp_path / "bin")
+    session = _after(calls[0].arguments, "--session-id")
     assert result.end_reason == end_reason
     assert result.limit_wait == limit_wait
-    assert result.session == _after(call.arguments, "--session-id")
-    if measured:
-        assert (result.cost_usd, result.turns) == (Decimal("0.01"), 1)
-    else:
+    assert result.session == session
+    assert [_after(call.arguments, "--resume") for call in calls[1:]] == (
+        [session] if resumed else []
+    )
+    if measures is None:
         assert (result.cost_usd, result.turns, result.tokens) == (None, None, None)
+    else:
+        assert (result.cost_usd, result.turns) == measures
 
 
 # Prints the limit's status on standard error at once, then outlasts any time limit.
@@ -140,17 +168,6 @@ def test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit(
     assert result.end_reason == "time_limit"
     assert result.limit_wait is None
     assert elapsed < 20
-
-
-def test_a_budget_stop_that_names_the_status_ends_budget_and_is_resumed(tmp_path: Path) -> None:
-    steps = [Step(stdout=_budget_reply(result="API Error: 428")), Step(stdout=_budget_reply())]
-    runtime = _runtime(tmp_path, steps)
-
-    result = runtime.run(_request(tmp_path, None))
-
-    first, second = read_calls(tmp_path / "bin")
-    assert result.end_reason == "budget"
-    assert _after(second.arguments, "--resume") == _after(first.arguments, "--session-id")
 
 
 def test_a_resume_the_limit_refused_ends_provider_limit_with_both_calls_measures(
