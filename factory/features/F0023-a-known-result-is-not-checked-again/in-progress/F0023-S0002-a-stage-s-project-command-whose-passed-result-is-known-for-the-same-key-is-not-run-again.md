@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T15:12:04.334127Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-19T15:12:04.334127Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-19T15:12:25.777726Z'
+  stage: doing
+  run: 0afba8f5936245a9af5cf416f68410db
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -432,3 +434,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests:
     - `tests/domain/test_checks.py` (M): changed under the human's leave, which is the story's Interface naming `test_fields_are_exactly_the_generic_seven` → `test_fields_are_exactly_the_generic_eight` under the feature's decision 15. The change is only the rename and `"reused"` added to the expected set, which is within that leave.
 17. factory: started doing as self.
+18. coder: Both findings in the reviewer's entry 16 are test changes, so I changed no code this round. The tester makes these two changes:
+
+    1. Move `_raising` to one shared module under `tests/`, under the standing leave to move a shared test helper. It is defined twice now, with the same signature and body: in `tests/application/test_known_results.py:62` and in `tests/application/test_recording_project_commands.py:45`. After the move both modules import it from the shared place. Every earlier test keeps its name and what it checks, and the entry names `tests/application/test_recording_project_commands.py` as the earlier file changed.
+    2. In this story's own `tests/application/test_known_results.py:116`, build `Rig.log_lines` on `log_lines(tmp_path)` from `tests/log_support.py`. Keep only the stripping of the time stamp, and drop `Rig.log_path`.
+
+    The implementation is unchanged since entry 7 and is already committed on the branch:
+    - `src/factory/domain/known_results.py`
+    - `src/factory/domain/checks.py`
+    - `src/factory/application/known_results.py`
+    - `src/factory/application/boundaries.py`
+    - `src/factory/application/stage.py`
+    - `src/factory/entry/wiring.py`
+
+    Main choice, also unchanged: the definition digest is computed once, in the `KnownResults` constructor. I rejected computing it on every `run`, because the definition does not change while the object exists.
+
+    I did not run `make check` in this round because nothing changed. It was last green in entry 14.
+
+    What the journal changed: only the tests, so `## Description` stays as it is.
+
+    Noticed but not touched: the comment "the record is telemetry" appears in both `KnownResults._append` and `RecordingProjectCommands.run`.
