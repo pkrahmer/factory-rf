@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T16:14:31.370248Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-19T16:14:31.370248Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T16:16:25.131813Z'
+  stage: doing
+  run: cc3542f2918547f6b8be58afb2c8deac
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -310,3 +312,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (43.7 s)
 14. factory: started doing as self.
+15. coder: Round 1, after the tester's entry 13. I changed no code this round. The tester made both of the reviewer's findings: the merged parametrized test for criterion 1 in tests/domain/test_mutants.py, and the chaining test for criterion 12 in tests/entry/test_inputs.py. Both pass against the code from entry 7. I ran `make check` in the foreground and it ended `check: green`, with `test: green (44.0 s)` and total coverage at 99.07 %.
+
+    What I built (unchanged since entry 7): src/factory/domain/mutants.py, src/factory/entry/inputs.py and src/factory/entry/check_mutants.py, plus src/factory/entry/check_duplicates.py, which now reads its files through `read_input`.
+
+    Main choice (from entry 7, still holds): `--stopped-after` is checked by an argparse type function. A value of 0 or a non-integer therefore ends through argparse with status 2, which criterion 10 asks for. The alternative I rejected was letting the domain's `ValueError` from `mutation_report` reach `main`'s fault handler. That would print a `check-mutants:` line instead. The domain keeps its own check for callers that do not come through the command line.
+
+    Refactor: I read `git diff main -- src/factory` again and found nothing to change. The three status sets are constants, `partial` is computed once, and there is no duplicated reader now that `check_duplicates` uses `read_input`.
+
+    What the journal changed: criterion 12 was added and the closing criteria were renumbered (entry 9). The Description is still accurate, so I did not rewrite it.
+
+    Noticed but not touched: the docs for criterion 14 are the documenter's work. The `Makefile`, `CLAUDE.md` and the pipeline definition are the human's changes after this story. I did not run the smoke-test blocks this round.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
