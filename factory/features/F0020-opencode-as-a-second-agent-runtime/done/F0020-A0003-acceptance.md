@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T23:27:39.825829Z'
   stage: acceptance
   run: 58eaed07411143c8b07b723b48ca2114
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T23:28:59.429083Z'
+  stage: done
 stories: [F0020-S0001, F0020-S0002, F0020-S0003, F0020-S0004, F0020-S0005, F0020-S0006, F0020-S0007, F0020-S0008, F0020-S0010, F0020-S0011, F0020-S0012, F0020-S0013, F0020-S0014]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of opencode as a second agent runtime
@@ -300,3 +305,4 @@ S0004 and S0005 needed the human most, three times each:
    6. Decisions: decisions 1 to 23 are unchanged, and the human's changes 4 and 6 are still to be done. New: S0013's intake answer (a), the `4281` row for the whole-number rule, and its tester's choice to drop the separate `then` column. Earlier tests: S0013 added `REPLY` to the shared `opencode_stand_in.py` under the standing leave, named by the coder, tester and reviewer. No change without a leave was found.
    7. Slow checks: nothing beyond `make check`. `make test` took 39.5 s for 6016 tests. The slowest are the 5.0 s time-limit tests and the two 4.5 s sudo rows, which wait on purpose. Disk is unchanged against the previous record to the tenth.
    8. Cost: 151 runs, 197.2 min, $54.74 in all. S0013 and S0014 together cost 17 runs and $3.10. S0013 took 11 runs: a second intake run after its question, and a review round for the copied reply constant. S0004 ($10.01) and S0005 (21 runs) still stand out. 13 questions were answered (12 questions, 1 round cap), and the stories waited 0.3 h. The one new question was S0013's intake question. S0004 and S0005 needed the human most, three times each.
+3. factory: done (pull request merged); cost: 1 runs, 7.6 min, 39 turns, 98065 tokens in (2690168 more from cache), 30504 out, $1.93
