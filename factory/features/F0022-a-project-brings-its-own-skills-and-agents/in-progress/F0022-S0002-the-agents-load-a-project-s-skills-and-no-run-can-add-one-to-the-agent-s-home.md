@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T13:41:51.608202Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T13:41:30.929334Z'
   stage: doing
   run: e25951f6c12648c0b663b9e86e45efc0
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T13:41:51.608202Z'
+  stage: review
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -220,3 +229,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
