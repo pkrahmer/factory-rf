@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T01:29:39.074912Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T01:29:39.074912Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T01:30:08.365494Z'
+  stage: review
+  run: 6023e6b28b82414897d5898b20de76a7
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -135,3 +137,8 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`, which adds only `tests/entry/test_contract_arguments.py`, against the work item and `src/factory/entry/contract.py`. Criteria 1 and 2 are each covered by one parametrized test. The tests check what their criteria say. The rows kill the mutants named in the Description (`sys.argv[2:]`, ignoring `sys.argv`, no `parents=True`). The "two or more" limit is tested at two arguments, and its other side at one argument. The coder's `make check` was green (journal entry 7). Groups 1 to 3 pass. The finding below falls under group 4. It is round 0, so a point about a copied test helper still sends the work item back.
+
+   1. `tests/entry/test_contract_arguments.py:15-26`: this is a second copy of helpers from `tests/entry/test_contract.py:23-24,79-84`. The constants `WRITTEN` and `USAGE` are copied word for word, and the row dataclass `_ArgvRow` has the same fields as `_MainRow` (`written`, `out`, `err`, `code`, and a `Callable[[Path], list[str]]` argument field). Fix: under the standing leave in CLAUDE.md, the tester moves `WRITTEN`, `USAGE` and the row dataclass to one shared module at the `tests/` root. Both modules then import them from there, and every earlier test in `tests/entry/test_contract.py` keeps its name and what it checks.
+
+   Earlier tests: none. `git diff --name-status main...HEAD` lists no test file with a status other than `A`.
