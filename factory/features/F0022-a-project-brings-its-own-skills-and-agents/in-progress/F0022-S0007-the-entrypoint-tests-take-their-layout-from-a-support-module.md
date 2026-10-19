@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T23:53:43.017934Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T23:53:22.145701Z'
   stage: doing
   run: 21d52952865743fba045932c744cb832
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:53:43.017934Z'
+  stage: review
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -151,3 +160,4 @@ Expect: `exit 0`
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
