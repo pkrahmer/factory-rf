@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T01:25:18.039726Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T01:25:18.039726Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T01:27:11.944532Z'
+  stage: tests
+  run: 9f8e675a9d28491c976891198d6f77ce
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -94,3 +96,13 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
    Architecture: tests only, under `tests/entry/`, in the layer that mirrors `factory.entry`. No module under `src/` changes.
    Scope: it fits F0021's contract command (S0006). It is a pin proposed by the acceptance's mutants run and is not in "Out of scope". It adds a new test module and changes no earlier test.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 and 2 in a new module, `tests/entry/test_contract_arguments.py`. No earlier test changed.
+   criterion 1: tests/entry/test_contract_arguments.py::test_main_without_argv_reads_the_arguments_after_the_program_name (three rows: `folder`, `no-folder`, `two-arguments`)
+   criterion 2: tests/entry/test_contract_arguments.py::test_write_contract_creates_the_folder_and_its_missing_parents (two rows: `no-parent`, `parent-exists`)
+   criterion 3: `make check` is the factory's gate; no test of its own.
+   criterion 4: docs: none; nothing to test.
+   How the tests are set up: every row patches `CONTRACT_FOLDER` to `<tmp_path>/default`, creates that folder empty first so that "stays empty" can be checked literally, and sets `sys.argv` with `monkeypatch.setattr`. Every row also moves the working directory into `tmp_path` (`monkeypatch.chdir`). That way the row with the relative arguments `a b` cannot write outside `tmp_path`, and the test can check that it writes no file and creates neither `a` nor `b`.
+   The tests are not red: `make test` ended `test: green (37.5 s)`. This is expected, because the story pins behaviour that already exists ("The code is expected to pass as it is") and no source changes. The test runner could import every module. `make lint` is green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (37.2 s)
