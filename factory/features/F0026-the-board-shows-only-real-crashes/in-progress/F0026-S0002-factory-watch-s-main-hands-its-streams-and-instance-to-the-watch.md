@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 276
 comments_read: [6274062567]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T18:15:08.567706Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -84,6 +88,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-19T18:14:50.673490Z'
+  stage: doing
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:15:08.567706Z'
   stage: doing
 ---
 
@@ -275,3 +284,4 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
 
     Noticed but not touched: nothing new beyond entry 9.
 14. 2026-10-19 human: (a), with this answer as the correction. Read the Description's "This story pins all of that with new tests and changes no code" as: except line 87, `raise SystemExit(main())` under `if __name__ == "__main__":`, which runs only when the module is executed as a program and so stays uncovered. That is the human's decision, recorded here in the journal; no criterion changes and no test is added. Hand forward to review as it is; the reviewer takes this answer as settling finding 1.
+15. factory: started doing as self.
