@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 268
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T14:55:19.416080Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T14:55:19.416080Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T15:00:00.485885Z'
+  stage: tests
+  run: 46c8b62a088d4384ad2232594f5e525b
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -216,3 +218,45 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: domain holds the pure models and rules, application holds `KnownResults` and the optional `Boundaries.result_records`, entry wires the `JsonLinesRecordLog`. Git is reached only through `Git.work_tree_id`, and `ProjectCommands` and its implementations stay unchanged. This matches `CLAUDE.md`.
    - Scope: every item is in the feature's Scope list. Nothing touches its "Out of scope" (agents' own checks, the preflight probe, the template and demos, pruning, counters). S0001's `TreeId` and `work_tree_id` are already in the tree. The two `CLAUDE.md` edits are the human's change 2, not this story's.
 4. factory: started tests as self.
+5. tester: I wrote the tests for every acceptance criterion. They are red on purpose: they fail for the right reason, and `make lint` is green.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_known_results.py::test_the_definition_digest_changes_with_every_value_and_only_then
+   - criterion 2: tests/domain/test_known_results.py::test_a_reused_result_is_only_a_passed_one_and_the_key_holds_a_sha256_digest
+   - criterion 3: tests/domain/test_known_results.py::test_the_known_result_is_the_last_run_of_the_key_when_it_passed
+   - criterion 4: tests/domain/test_command_line.py::test_the_command_line_names_the_run_a_reused_result_took
+   - criterion 5: tests/application/test_known_results.py::test_without_records_every_run_reaches_the_project_commands_and_no_key_is_built
+   - criterion 6: tests/application/test_known_results.py::test_a_first_run_is_recorded_under_its_key_at_the_time_before_it
+   - criterion 7: tests/application/test_known_results.py::test_a_second_run_on_the_same_input_takes_the_known_result
+   - criterion 8: tests/application/test_known_results.py::test_only_a_change_of_what_the_command_reads_gives_a_new_key
+   - criterion 9: tests/application/test_known_results.py::test_a_fault_of_the_key_or_the_records_runs_the_command_and_is_logged
+   - criterion 10: tests/application/test_known_results.py::test_an_error_of_the_inner_run_propagates_and_records_nothing
+   - criterion 11: tests/application/test_stage_known_results.py::test_the_docs_stage_takes_the_coders_passed_check_on_the_same_code
+   - criterion 12: tests/application/test_stage_known_results.py::test_a_red_check_stalls_and_is_run_again_on_the_same_code
+   - criterion 13: tests/entry/test_wiring_known_results.py::test_the_built_known_results_are_written_to_the_state_directory
+   - criteria 14 and 15: no test; the checks and the docs stage cover them.
+
+   Files created:
+   - tests/domain/test_known_results.py
+   - tests/domain/test_command_line.py
+   - tests/application/test_known_results.py
+   - tests/application/test_stage_known_results.py
+   - tests/entry/test_wiring_known_results.py
+
+   Earlier test file changed, under the feature's decision 15 as the Interface names it: in tests/domain/test_checks.py I renamed `test_fields_are_exactly_the_generic_seven` to `test_fields_are_exactly_the_generic_eight` and added `"reused"` to its expected set. Nothing else in that module changed.
+
+   Test helpers, all kept inside the new modules:
+   - In tests/application/test_known_results.py:
+     - `CountingGit` and `KeylessGit` are `GitCli` subclasses that each override only `work_tree_id`.
+     - `UnreadableRecordLog` raises `OSError("unreadable")` on `read` and appends to the real JSON Lines log, so the record of criterion 9 can be read back.
+     - `RecordingCommands` is imported from `tests/application/test_preflight_run.py`, as the Interface says.
+   - In tests/application/test_stage_known_results.py: the Makefile's recipes append `$@` to `tmp_path/ran.log`, outside the checkout.
+
+   How the tests fail in the one run of `make test`:
+   - Five modules could not be imported, because `factory.domain.known_results`, `factory.application.known_results` and `factory.domain.checks.ReusedRun`/`command_line` do not exist yet: tests/application/test_known_results.py, tests/application/test_stage_known_results.py, tests/domain/test_command_line.py, tests/domain/test_known_results.py and tests/entry/test_wiring_known_results.py.
+   - `test_fields_are_exactly_the_generic_eight` fails because `CheckResult` has no `reused` field yet.
+
+   The type check was skipped, as the stage allows. No question is open.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/entry/test_wiring_known_results.py - ImportError while importing ...
