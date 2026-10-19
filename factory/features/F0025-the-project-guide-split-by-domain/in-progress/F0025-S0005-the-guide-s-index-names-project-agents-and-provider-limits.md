@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 295
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T22:37:49.377902Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T22:37:49.377902Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T22:38:53.368946Z'
+  stage: tests
+  run: 455fd3c2a2784ad18cee3080c1bf90b1
 ---
 
 # The guide's index names the project agents and the patient runs modules
@@ -100,3 +102,13 @@ Expect: `documents ok`
    Architecture: it fits. The documenter writes only `docs/*`, and no layer is touched.
    Scope: it is inside F0025's purpose, the index naming each module of the guide's files. It is not in "Out of scope", because it adds no lasting test and no rewording. The story leaves the question of a lasting check of the index's completeness open for the human (F0025-A0003).
 4. factory: started tests as self.
+5. tester: No tests written: this is a docs-only story. Its Interface says no test changes, and criterion 1 forbids changes under `tests/`.
+   Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. I created no files and left the working tree untouched; the factory's own `.costs.jsonl` sidecar is the only modified file.
+   criterion 1 (nothing under src/, tests/, image/, template/, demo/, claude/ changes): no test function. This is a constraint on the diff; the smoke test's `git diff --name-only` checks it, and this entry states it as the criterion asks.
+   criterion 2 (`make check` stays green): no test function; the factory's gate after the coder and docs stages checks it.
+   criterion 3 (docs: the `agents.md` and `stages.md` lines of `docs/project-guide/README.md`, *The files*): no test function. Adding a test would break criterion 1. The smoke test and `python -m factory.entry.check_documents` check it after the docs stage.
+   Modules the test run could not import: none. No test was added, so there is nothing red for the coder. The coder's job is also only to confirm that nothing changes; the documenter makes the two-line edit.
+   I did not run `make test`, because there was no new test to see fail. `make lint` is green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (49.0 s)
