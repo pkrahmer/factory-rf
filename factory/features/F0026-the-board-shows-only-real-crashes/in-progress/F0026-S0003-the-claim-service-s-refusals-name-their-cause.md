@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 275
 comments_read: [6273558949]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T17:53:41.391021Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-19T17:53:41.391021Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-19T17:55:48.340049Z'
+  stage: doing
+  run: 5d7bc83f9925475ebfdcd42956688a28
 ---
 
 # The claim service's refusals name their cause
@@ -325,3 +327,21 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
     `lint`: lint: green (0.0 s)
     `test`: test: green (45.7 s)
 17. factory: started doing as self.
+18. coder: Round 1, after the tester's helper moves (entry 16). I built nothing: no file under `src/` or `tests/` changed in this run. The story changes no code, and the tester has now moved the helpers that findings 1 and 2 of entry 12 named into `tests/work_item_support.py`. `tests/application/test_claims.py`, `tests/application/test_undo.py` and `tests/application/test_claims_refusals.py` now import from it. I ran `make check` in the foreground and it ended with `check: green` (`test: green (45.4 s)`, total coverage 99.07 %).
+
+    Main choice: I sent the work item back to review rather than changing anything. The alternative I rejected was editing `src/factory/application/claims.py`, for example moving the refusal texts into constants. The story pins the texts as they are and allows no code change, so that would be a restructuring outside its scope.
+
+    Refactor: my diff contains no code of mine, so there was nothing to refactor.
+
+    Description: still not rewritten, which is finding 3 of entry 12. The work item is outside the coder's write paths (see entry 14). The human's answer in entry 10 changes the task's meaning in two places:
+    - The Description's "and so is `tests/application/test_claims.py`" now reads "the tests in `tests/application/test_claims.py` keep their names and what they check".
+    - The Interface's "No earlier test changes" now means that `test_claims.py` and `test_undo.py` change under that leave to import the shared `tests/work_item_support.py`.
+
+    A stage that may write the work item has to apply this rewrite. No other stage in this pipeline can, so the human may have to make the edit.
+
+    Noticed but did not touch: `test_undo.py`'s `_start` keeps its own checkout-and-commit sequence instead of calling `put_work_item`. The tester gave the reason in entry 16: it writes base files between the checkout and the work item. Whether to add a parameter for that is the reviewer's call.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
