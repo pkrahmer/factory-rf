@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 294
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T22:33:53.217465Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T22:33:32.493933Z'
   stage: docs
   run: 27a407bbfdff4879a76445a81a2e0301
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:33:53.217465Z'
+  stage: smoke-test
 ---
 
 # The template's Makefile header calls mutants a sweep by hand
@@ -183,3 +192,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 4b0c868681a6 at 2026-10-19T22:31:26Z)
     `secrets`: secrets: green (0.1 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
