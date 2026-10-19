@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T13:35:46.232089Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T13:35:46.232089Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T13:38:41.995766Z'
+  stage: tests
+  run: 2069933ca20647d787e201b5f59a48bd
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -163,3 +165,30 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the placement is right. The `claude/*`, `image/*` and `src/factory/adapters/opencode_runtime.py` changes sit inside the coder's write paths, and the tests inside the tester's. The change to the opencode adapter keeps the layers intact. The tool left-out set lives in the adapter that owns `TOOL_NAMES`.
    - Scope: it matches the feature's scope list for S0002 and touches nothing in its "Out of scope". The changes to earlier tests are the ones decision 14 names, with the human's leave.
 4. factory: started tests as self.
+5. tester: Wrote the tests for every criterion. The branch has red tests on purpose. They are the coder's specification.
+
+   - criterion 1: no new test. The changed lists of `tests/shipped_agents.py` feed two existing tests: `tests/test_claude_files.py::test_front_matter_holds_the_four_applied_keys_with_their_values` checks the reader's tools as an ordered list, so `Skill` must be last, and `tests/adapters/test_shipped_agents_effect.py::test_call_passes_exactly_the_agent_tools` checks what follows `--tools`. Both have one row per agent.
+   - criterion 2: no new test. `tests/test_claude_files.py::test_settings_are_the_shared_permissions_and_environment` now checks the changed `SETTINGS`.
+   - criterion 3: `tests/test_claude_agent_skills.py::test_the_rules_hold_the_skills_rule_once_right_after_r14`, one row per agent. It reads the rules through `section_text` and `agent_body`.
+   - criterion 4: `tests/test_entrypoint_skills.py::test_each_start_leaves_skills_and_commands_empty_and_read_only_to_the_agent`, with rows nothing, planted-skill-and-command and file-and-nested-folder. It checks the exit status 0, the exact three log lines (through `_texts` of `tests/test_entrypoint.py`) and, for each folder, that it is a real folder, empty, owned by `os.getuid()` and mode `0755`.
+   - criterion 5: two test functions in `tests/adapters/test_opencode_left_out_tools.py`:
+     - `test_skill_turns_on_no_opencode_tool_and_is_not_refused`, with rows `["Read","Skill"]` and `["Skill"]`.
+     - `test_another_tool_without_an_opencode_name_is_still_refused_before_anything_starts`, with `NotebookEdit`: the exact text, and the stand-in is never called.
+   - criterion 6: `tests/adapters/test_opencode_left_out_tools.py::test_each_shipped_agent_runs_with_its_tools_but_skill`, one row per agent. It reads each agent with `FrontmatterAgentDefinitionReader(AGENT_HOME)` and expects the tools mapped through `TOOL_NAMES`, minus `Skill`. The shipped agents use `opus`, which the stand-in's `MODELS` does not map, so this test builds `OpencodeRuntime` itself with `MODELS` plus `"opus": "anthropic/claude-opus-5-5"`. That mapping is test setup only.
+   - criteria 7 and 8: not tests.
+
+   Files created:
+   - `tests/test_claude_agent_skills.py`
+   - `tests/test_entrypoint_skills.py`
+   - `tests/adapters/test_opencode_left_out_tools.py`
+
+   Earlier test files changed, under the feature's decision 14 as the Interface names:
+   - `tests/shipped_agents.py`: `_ALL_TOOLS` and `_TOOLS_WITHOUT_WRITE` gain `"Skill"` as their last entry.
+   - `tests/test_claude_files.py`: the `allow` list of `SETTINGS` gains `"Skill"` right after `"Grep"`.
+
+   F0020-S0004's test of a tool outside `TOOL_NAMES` (`tests/adapters/test_opencode_runtime.py`) already uses `NotebookEdit`, so it is unchanged.
+
+   Every module under test imported. The red comes from wrong results, since the agent files, settings, entrypoint and `LEFT_OUT_TOOLS` do not exist or have not changed yet. I ran `make test` once and saw only its last lines: the R15 rows fail. I did not run it again to see the other failures, as the stage says. `make lint` is green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/test_claude_agent_skills.py::test_the_rules_hold_the_skills_rule_once_right_after_r14[acceptance-reviewer]

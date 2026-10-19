@@ -10,8 +10,8 @@ from factory.adapters.work_item_markdown import RuamelYamlHandler, split_front_m
 ROOT = Path(__file__).parent.parent
 AGENT_HOME = ROOT / "claude"
 
-_ALL_TOOLS = ["Read", "Grep", "Glob", "Edit", "Bash", "Write"]
-_TOOLS_WITHOUT_WRITE = ["Read", "Grep", "Glob", "Edit", "Bash"]
+_ALL_TOOLS = ["Read", "Grep", "Glob", "Edit", "Bash", "Write", "Skill"]
+_TOOLS_WITHOUT_WRITE = ["Read", "Grep", "Glob", "Edit", "Bash", "Skill"]
 
 
 class ShippedAgent(BaseModel):

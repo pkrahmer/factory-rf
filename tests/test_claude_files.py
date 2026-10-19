@@ -26,6 +26,7 @@ SETTINGS = {
             "Write",
             "Glob",
             "Grep",
+            "Skill",
             "Bash(uv run *)",
             "Bash(uv sync*)",
             "Bash(make *)",
