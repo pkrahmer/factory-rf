@@ -93,6 +93,8 @@ Known limits: after the kill, the output is read without a limit, so a descendan
 
 The rules are pure functions in `factory.domain.duplicates` (`similar_code_findings`, `dead_code_findings`, `read_baseline`, `compare`, `report_lines`); the command only reads the files, prints and returns the exit status.
 
+The command reads its three files through `factory.entry.inputs.read_input`, which raises `UnreadableInput` for a file that is missing or not UTF-8; the command turns that into status 2 like a parse fault.
+
 ### The keys
 
 Each finding has a key that holds no line number, so editing code above or below a finding does not make it new:
@@ -159,3 +161,32 @@ The recipe runs mutmut with `TMPDIR` set to a folder of its own, made by `mktemp
 The acceptance reads the survivors with `uv run mutmut results` and `uv run mutmut show <name>`. The target drops mutmut's `not checked` lines, but it lists every survivor and timeout that `mutants/` holds, including those that earlier runs left for earlier features' modules. So the acceptance reads the survivors of its own feature's modules by their module name, for example `uv run mutmut results | grep 'factory.application.stage\.'`.
 
 Two ends are not a run. Without `FEATURE` the target prints `mutants: set FEATURE, as in make mutants FEATURE=F0012` and exits 2. A feature with no changed module prints `mutants: no module under src/factory changed by <id>` and exits 0. Which subjects it reads, and why only one feature's modules, is in the decision log (*Mutation testing is limited to one feature's modules*).
+
+### The report of a mutation run
+
+`factory.domain.mutants` holds the rules and `python -m factory.entry.check_mutants` the command. The command runs no mutmut: it reads the text that `mutmut results --all true` printed, saved in a file, and answers for the modules you name. The recipe of `make mutants` is to call it; that change to the `Makefile` comes after the story that built the command.
+
+**The input.** One line per mutant, `<name>: <status>`, split at the last `": "`; blank lines are skipped and every line is stripped. The status is one of the ten mutmut knows (`killed`, `survived`, `timeout`, `suspicious`, `no tests`, `skipped`, `segfault`, `caught by type check`, `check was interrupted by user`, `not checked`). A name has at least two dotted parts and no whitespace or colon. Any other line (a warning mutmut printed, say) is refused, so a change in mutmut's output stops the report instead of being skipped.
+
+**The module of a mutant** is its name without the last dotted part: `factory.application.stage.xǁStageRunnerǁrun__mutmut_3` belongs to `factory.application.stage`. A module matches whole, so `factory.domain.a` does not take the mutants of `factory.domain.ab`. A module named twice counts once.
+
+**The report.** Usage: `python -m factory.entry.check_mutants <results-file> <module>... [--stopped-after <seconds>]`. It prints the survivors of the named modules only, never those that earlier runs left for other modules: one line `<name>: <status>` for each mutant that `survived`, ended in `timeout`, is `suspicious` or ended in `segfault`, in the order of the file. The last line counts every status:
+
+```
+factory.domain.a.x_f__mutmut_2: survived
+mutants: partial, 1 killed, 1 survived, 0 timed out, 0 without tests, 1 not checked, 0 other of 3 mutant(s) in 2 module(s)
+```
+
+`other` counts `suspicious`, `skipped`, `segfault`, `caught by type check` and `check was interrupted by user`; `no tests` is printed as `without tests`. `--stopped-after` is the number of seconds (at least 1) after which the recipe stopped mutmut; it adds ` (stopped after <n> s)` to the last line.
+
+**Partial.** A report is partial when a chosen mutant is `not checked` or `--stopped-after` is given; the last line then starts `mutants: partial, `. A partial run is never taken for a complete one, and the survivors listed are only those found so far.
+
+**Exit statuses.** 0: the run is complete. 1: it is partial. 2: the results file cannot be read or holds a line that is not a result (one line `check-mutants: <reason>` on standard error, nothing on standard output); argparse also ends with 2 for no module, a `--stopped-after` that is not an integer of at least 1, or `--names` together with `--stopped-after`.
+
+**`--names`** prints, one per line and nothing else, what is left to run: the names of the chosen mutants that are neither `killed` nor `caught by type check`, in the file's order, then `<module>.*` for each named module that has no mutant in the file, in the order given. A module may have no mutant at all (an interface, a module of record models), and mutmut has no name to run for it; the pattern lets it select the module by its prefix. The exit status is 0, also for a partial run.
+
+```
+factory.domain.a.x_f__mutmut_2
+factory.domain.a.xǁCǁm__mutmut_3
+factory.domain.c.*
+```

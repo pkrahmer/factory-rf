@@ -1,3 +1,131 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 270
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T16:03:19.209860Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:03:19.217267Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T16:03:49.285388Z'
+  stage: intake
+  run: f37bae43a31f443c92a9422bc7018bf2
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:04:09.532042Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T16:07:13.717187Z'
+  stage: tests
+  run: f4f21d4b5bf445efa9acafec9ec94443
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:07:34.441159Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T16:10:05.817255Z'
+  stage: doing
+  run: 4ad2dbfae0244e05aa515e30298a8a5d
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:10:26.639579Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T16:11:19.938508Z'
+  stage: review
+  run: d1547e556c6d41189df56d4e7351ab13
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:11:41.144234Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T16:11:55.896688Z'
+  stage: doing
+  run: 38f65ea4b8ff4ffeab254b82c2f0b97c
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:12:16.391069Z'
+  stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T16:14:10.224150Z'
+  stage: tests
+  run: 0c5b5e7743da4a44b91456729b6bf827
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:14:31.370248Z'
+  stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T16:16:25.131813Z'
+  stage: doing
+  run: cc3542f2918547f6b8be58afb2c8deac
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:16:45.733708Z'
+  stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T16:17:38.266701Z'
+  stage: review
+  run: e6674a9363fb45318686a47226877155
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:17:58.743524Z'
+  stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T16:18:59.051582Z'
+  stage: docs
+  run: 17e299ccd4cf4d5fa3c4ab82ee5730fd
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:19:20.255129Z'
+  stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T16:19:45.856726Z'
+  stage: smoke-test
+  run: e9727ae2205d4dd9a1c1b4882b611f64
+---
+
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
 
 ## Description
@@ -95,8 +223,9 @@ Tests (the tester writes them): `tests/domain/test_mutants.py`, `tests/entry/tes
 9. `check_mutants --names` prints exactly the names of criterion 6's first row, one per line, and returns 0, also when the results hold a `not checked` mutant.
 10. The faults of `check_mutants` (rows of one parametrized test): a results path that does not exist returns 2, prints nothing to standard output, and prints one line to standard error that starts `check-mutants: cannot read `. A results file holding `garbage` returns 2 and prints `check-mutants: not a result line of mutmut: 'garbage'` to standard error. `--names` with a results path that does not exist also returns 2 and prints one line to standard error that starts `check-mutants: cannot read `, and nothing to standard output. No module, `--stopped-after 0`, `--stopped-after soon`, and `--names --stopped-after 540` each end with `SystemExit` with code 2.
 11. `check_duplicates` still reads its files and reports an unreadable one as before: every test of `tests/entry/test_check_duplicates.py` passes unchanged, and `factory.entry.check_duplicates` no longer defines `_read`.
-12. `make check` stays green.
-13. docs: `docs/project-guide/processes-and-checks.md`, *Mutation testing*: a new subsection *The report of a mutation run* for `factory.domain.mutants` and `python -m factory.entry.check_mutants`. It gives the input (what `mutmut results --all true` prints), the module of a mutant, the lines and the last line with an example, when a report is partial and its exit statuses 0, 1 and 2, what `--names` prints and why a module without a mutant gives a pattern, and that the recipe of `make mutants` calls it (the human's change after this story). *The duplicates report* (same file): one sentence that `check_duplicates` reads its files through `factory.entry.inputs.read_input`. `docs/decisions.md`: an entry *A mutation run's report is a line of its own, and a partial run is never complete*, dated with the story, with the feature's decisions 2, 3 and 8 and the rejected alternatives: a fourth check status, mutmut's own listing as the last line, and the survivors of every module in the report.
+12. `read_input`'s `UnreadableInput` is chained from the error it reports (rows of one parametrized test): for a missing file its `__cause__` is a `FileNotFoundError`, and for a file holding `b"\xff\xfe"` its `__cause__` is a `UnicodeDecodeError`.
+13. `make check` stays green.
+14. docs: `docs/project-guide/processes-and-checks.md`, *Mutation testing*: a new subsection *The report of a mutation run* for `factory.domain.mutants` and `python -m factory.entry.check_mutants`. It gives the input (what `mutmut results --all true` prints), the module of a mutant, the lines and the last line with an example, when a report is partial and its exit statuses 0, 1 and 2, what `--names` prints and why a module without a mutant gives a pattern, and that the recipe of `make mutants` calls it (the human's change after this story). *The duplicates report* (same file): one sentence that `check_duplicates` reads its files through `factory.entry.inputs.read_input`. `docs/decisions.md`: an entry *A mutation run's report is a line of its own, and a partial run is never complete*, dated with the story, with the feature's decisions 2, 3 and 8 and the rejected alternatives: a fourth check status, mutmut's own listing as the last line, and the survivors of every module in the report.
 
 ## Smoke test
 
@@ -126,3 +255,184 @@ Expect: four lines, `mutants: partial, 1 killed, 0 survived, 0 timed out, 0 with
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures (`factory.domain.mutants`, `factory.entry.inputs`, `factory.entry.check_mutants`, the `check_duplicates` change). The Pydantic models, the ten statuses, the name pattern and every message text are spelled out. Nothing is left for the coder to choose.
+   Criteria: each can be tested by one test function. Every rule has its failing side: the name and status refusals and the `ValueError` message (1), `stopped_after` 0 and 1 (5), a missing file, bad bytes and `garbage` (7, 10), the argparse refusals (10), and an unreadable file with `--names` (10). Every Interface comment on behaviour has a criterion: the module of a mutant (2), the line order and the counts (3), partial, stop suffix and distinct modules (4), the prefix match against `factory.domain.ab` (4), and the rerun order, the pattern and a pattern given twice (6). Two small gaps are not worth a question. `UnreadableInput` being chained from the `OSError` has no assertion. A parse fault with `--names` has no row, but it runs the same code path as the row without `--names`.
+   Smoke test: three runnable blocks that use only `mktemp` and `uv run -q python -m`. Each `Expect:` names exact lines and exit codes. I counted `cut -c1-26` and it yields `check-mutants: cannot read`.
+   Architecture: the pure rules are in `domain`, with no I/O. The file reading and the argument parsing are in `entry`. `check_duplicates` and the new command share one reader, as `CLAUDE.md` asks (no second copy). The story adds no dependency and no wrapper.
+   Scope: it matches the feature's S0001 scope exactly. The `Makefile`, `CLAUDE.md` and the pipeline definition are left to the human. No earlier test changes (`test_check_duplicates.py` passes unchanged), and the docs criterion covers the feature's decisions 2, 3 and 8.
+4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 11 from the Interface. Criteria 12 and 13 have no test of their own: 12 is `make check` and 13 is the documenter's.
+
+   - criterion 1: tests/domain/test_mutants.py::test_result_lines_are_read_in_their_order (two lines with a blank one between, empty text, one row per status) and tests/domain/test_mutants.py::test_a_line_that_is_no_result_is_refused (the seven refused lines, checking the exact message)
+   - criterion 2: tests/domain/test_mutants.py::test_the_module_of_a_mutant_is_its_name_without_the_last_part
+   - criterion 3: tests/domain/test_mutants.py::test_the_report_lists_the_open_mutants_of_the_chosen_modules_and_counts_them
+   - criterion 4: tests/domain/test_mutants.py::test_a_report_is_partial_while_a_mutant_is_not_checked_or_the_run_stopped (six rows: complete, not-checked, stopped, no-result-of-the-module, module-given-twice, other-modules-left-out with `factory.domain.ab`)
+   - criterion 5: tests/domain/test_mutants.py::test_stopped_after_is_at_least_one_second (rows 0 and 1)
+   - criterion 6: tests/domain/test_mutants.py::test_the_names_to_run_again_are_the_unkilled_mutants_and_modules_without_one (five rows)
+   - criterion 7: tests/entry/test_inputs.py::test_an_input_is_read_as_utf_8_or_reported_unreadable (utf-8, missing, `b"\xff\xfe"`)
+   - criterion 8: tests/entry/test_check_mutants.py::test_the_report_is_printed_and_a_partial_run_fails (complete, not-checked, `--stopped-after 540`, `sys.argv` through monkeypatch; plus a `--stopped-after 1` row so the accepted side of "at least 1" is tested too, since CLAUDE.md asks for both sides of every limit)
+   - criterion 9: tests/entry/test_check_mutants.py::test_names_prints_the_mutants_to_run_again_and_succeeds (the results hold a `not checked` mutant)
+   - criterion 10: tests/entry/test_check_mutants.py::test_a_fault_ends_with_status_2 (missing file, `garbage`, `--names` with a missing file, no module, `--stopped-after 0`, `--stopped-after soon`, `--names --stopped-after 540`)
+   - criterion 11: tests/entry/test_inputs.py::test_check_duplicates_has_no_reader_of_its_own. tests/entry/test_check_duplicates.py is untouched and covers the rest.
+
+   Files created: tests/domain/test_mutants.py, tests/entry/test_inputs.py, tests/entry/test_check_mutants.py. No earlier test file was changed.
+
+   Modules the test run could not import: `factory.domain.mutants`, `factory.entry.inputs`, `factory.entry.check_mutants`. All three new test modules stop at collection with ImportError; that is the expected red. `make lint` is green. I did not run the type check, as this stage says.
+
+   In the CLI tests, options come before the results path, as in the smoke test. No criterion needed interpreting, so there is no open question.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/entry/test_inputs.py - ImportError while importing test module '/...
+6. factory: started doing as self.
+7. coder: Built the mutation report rules, the shared input reader and the `check_mutants` command, as described in the Interface. `make check` is green: lint, types, layers, sast, secrets, licenses and test, ending with `check: green`. The tester's new tests pass, and so does `tests/entry/test_check_duplicates.py`, unchanged.
+
+   - `src/factory/domain/mutants.py` (new). It holds `MutantStatus`, `MutantName`, the two models `MutantResult` (with its `module` property) and `MutationReport`, and the functions `parse_results`, `mutation_report` and `rerun_names`.
+     - `parse_results` strips each line, skips blank lines and splits at the last `": "`. It refuses a line in two cases: when there is no `": "`, and when pydantic rejects the name or status. A rejection is caught as `ValidationError` and raised again as the `ValueError` with the Interface's message, chained from it.
+     - The three status sets are module constants: the ones the report lists, the ones counted as `other`, and the ones `rerun_names` treats as done.
+     - `_chosen` keeps the results whose module is in `modules`. It compares whole module names, so `factory.domain.ab` is not taken for `factory.domain.a`.
+     - `partial` is computed once and passed to `_last_line`.
+   - `src/factory/entry/inputs.py` (new). It holds `UnreadableInput` and `read_input`.
+   - `src/factory/entry/check_mutants.py` (new). It uses argparse with `results`, `modules` (`nargs="+"`), and a mutually exclusive group of `--stopped-after` and `--names`. `--stopped-after` uses its own type function, so 0 and non-integers end through argparse with status 2. Both an `UnreadableInput` and a parse `ValueError` print `check-mutants: <message>` to standard error and return 2.
+   - `src/factory/entry/check_duplicates.py`. I removed `_UnreadableError` and `_read`; it now reads through `read_input` and catches `UnreadableInput`. A parser fault is raised again as `UnreadableInput` with the parser's own message, so the output is unchanged.
+
+   Main choice: I checked `--stopped-after` in an argparse type function, so a bad value is refused before any file is read and exits 2 the way the criteria ask. `mutation_report` keeps its own `ValueError` for callers that do not come through the command line. The alternative I rejected was letting the domain's `ValueError` reach `main`'s fault handler. That would have printed a `check-mutants:` line and returned 2 instead of ending through argparse, and criterion 10 asks for the argparse ending.
+
+   Refactor: I made one pass over my own diff. I removed the second computation of `partial`, which had been worked out in both `mutation_report` and `_last_line`, and let ruff format the result. Nothing else needed changing.
+
+   I did not run the smoke-test blocks: the permission system denied the command (it held an `rm -rf` of the temporary folder). `make duplicates` was not run either.
+
+   Noticed but not touched: `docs/` (the documenter writes criterion 13), and the `Makefile`, `CLAUDE.md` and the pipeline definition, which are the human's changes after this story.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (src/factory/domain/mutants.py, src/factory/entry/inputs.py, src/factory/entry/check_mutants.py, src/factory/entry/check_duplicates.py and the three new test files) against the work item. Group 1 (acceptance criteria) fails, so I stopped there. The code itself matches the Interface: the domain has no I/O, `_chosen` compares whole module names, and `--stopped-after` is refused through argparse. The coder's journal entry records `make check` green.
+
+   1. tests/domain/test_mutants.py `test_result_lines_are_read_in_their_order` and `test_a_line_that_is_no_result_is_refused`: criterion 1 asks for "rows of one parametrized test", but the accepted lines and the refused lines of `parse_results` are two separate test functions. Fix: merge them into one parametrized test where each row expects either the results or the `ValueError` message.
+   2. criterion 12 added: it needs its test. The Interface says `read_input` raises `UnreadableInput` "chained from" the `OSError` or `UnicodeDecodeError`, and no criterion or test checked that (intake noted the gap). The new criterion 12 says that `__cause__` is a `FileNotFoundError` for a missing file and a `UnicodeDecodeError` for `b"\xff\xfe"`. Pinning it needs no change under `src/` (src/factory/entry/inputs.py already chains with `from error`). The two closing criteria are now 13 (`make check`) and 14 (docs).
+
+   Rejected as findings: the stopped-after 1 and 0 sides in tests/entry/test_check_mutants.py are in two functions. I left that out because criteria 8 and 10 group the command's rows by outcome, and the domain test checks both sides in one parametrized test. The missing `--names` row for a parse fault runs the same `try` in `main` as the row without `--names`. I found no copied test helper.
+
+   Earlier tests: none. Every test file the diff touches has status `A`, and tests/entry/test_check_duplicates.py is unchanged.
+10. factory: started doing as self.
+11. coder: Round 1: both of the reviewer's findings are test changes, so I changed no code and am handing them to the tester.
+
+    1. Criterion 1: in tests/domain/test_mutants.py, merge `test_result_lines_are_read_in_their_order` and `test_a_line_that_is_no_result_is_refused` into one parametrized test. Each row expects either the parsed results or the `ValueError` message `not a result line of mutmut: <repr>`.
+    2. Criterion 12 (the reviewer added it) needs only its test. Add a parametrized test to tests/entry/test_inputs.py: for a missing file, `UnreadableInput.__cause__` is a `FileNotFoundError`; for a file holding `b"\xff\xfe"`, it is a `UnicodeDecodeError`. The code already chains the error (`raise ... from error` in src/factory/entry/inputs.py), so this test should pass with no change under `src/`.
+
+    What I built: nothing new this round. The code from the previous round stays as it is: src/factory/domain/mutants.py, src/factory/entry/inputs.py, src/factory/entry/check_mutants.py and src/factory/entry/check_duplicates.py.
+
+    Main choice: I ended with `tests` and did not touch any code. The alternative I rejected was editing the tests myself, which the coder may never do.
+
+    What the journal changed: criterion 12 was added, and the two closing criteria are now 13 and 14. The Description already says this, so I did not rewrite it. I did not run `make check`, because the working tree has no code change since the green run recorded in entry 7.
+
+    Noticed but not touched: nothing new.
+12. factory: started tests as self.
+13. tester: I made the two test changes listed in the coder's entry 11: the reviewer's finding 1 and the test for the new criterion 12. I did not touch any code under `src/`.
+
+    - criterion 1: tests/domain/test_mutants.py::test_result_lines_are_read_in_their_order_and_other_lines_are_refused. This replaces `test_result_lines_are_read_in_their_order` and `test_a_line_that_is_no_result_is_refused`, merged into one parametrized test. It keeps the same rows: two lines with a blank line between, empty text, one row per status, and the seven refused lines. A refused row expects the `ValueError` with the exact message `not a result line of mutmut: <repr>`.
+    - criterion 12: tests/entry/test_inputs.py::test_an_unreadable_input_is_chained_from_the_error_it_reports. It has two rows. For a missing file, `__cause__` is a `FileNotFoundError`. For a file holding `b"\xff\xfe"`, it is a `UnicodeDecodeError`.
+
+    All other tests and the mapping in entry 5 are unchanged.
+
+    Files changed: tests/domain/test_mutants.py and tests/entry/test_inputs.py, both written by this story. I created no new files and changed no earlier test file.
+
+    Every module imported. `make test` is green. That is expected, because the code already existed and already chains the error (`from error` in src/factory/entry/inputs.py). `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (43.7 s)
+14. factory: started doing as self.
+15. coder: Round 1, after the tester's entry 13. I changed no code this round. The tester made both of the reviewer's findings: the merged parametrized test for criterion 1 in tests/domain/test_mutants.py, and the chaining test for criterion 12 in tests/entry/test_inputs.py. Both pass against the code from entry 7. I ran `make check` in the foreground and it ended `check: green`, with `test: green (44.0 s)` and total coverage at 99.07 %.
+
+    What I built (unchanged since entry 7): src/factory/domain/mutants.py, src/factory/entry/inputs.py and src/factory/entry/check_mutants.py, plus src/factory/entry/check_duplicates.py, which now reads its files through `read_input`.
+
+    Main choice (from entry 7, still holds): `--stopped-after` is checked by an argparse type function. A value of 0 or a non-integer therefore ends through argparse with status 2, which criterion 10 asks for. The alternative I rejected was letting the domain's `ValueError` from `mutation_report` reach `main`'s fault handler. That would print a `check-mutants:` line instead. The domain keeps its own check for callers that do not come through the command line.
+
+    Refactor: I read `git diff main -- src/factory` again and found nothing to change. The three status sets are constants, `partial` is computed once, and there is no duplicated reader now that `check_duplicates` uses `read_input`.
+
+    What the journal changed: criterion 12 was added and the closing criteria were renumbered (entry 9). The Description is still accurate, so I did not rewrite it.
+
+    Noticed but not touched: the docs for criterion 14 are the documenter's work. The `Makefile`, `CLAUDE.md` and the pipeline definition are the human's changes after this story. I did not run the smoke-test blocks this round.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+16. factory: started review as self.
+17. reviewer: no findings
+
+    Round 1 review of `git diff main...HEAD -- . ':!factory'` (src/factory/domain/mutants.py, src/factory/entry/inputs.py, src/factory/entry/check_mutants.py, src/factory/entry/check_duplicates.py, and the three new test files) against the work item. I checked groups 1 to 5 and none of them fails.
+
+    - Acceptance criteria: each of criteria 1 to 12 has a test that checks what the criterion says.
+      - Criterion 1 is now one parametrized test, tests/domain/test_mutants.py::test_result_lines_are_read_in_their_order_and_other_lines_are_refused. It covers the accepted rows, the ten statuses and the seven refused lines, each with its exact message.
+      - Criterion 12 is tests/entry/test_inputs.py::test_an_unreadable_input_is_chained_from_the_error_it_reports.
+      - The stated limits are tested on both sides:
+        - the name pattern: `a.b` is accepted (criterion 2), and a name with no dot, an empty part, whitespace or a colon is refused;
+        - `stopped_after` 0 and 1 in the domain, in one parametrized test;
+        - `--stopped-after` 0 and 1 on the command line;
+        - a module given twice;
+        - the `factory.domain.ab` prefix case.
+      - The coder's entry 15 records `make check` green. I did not run it again, as the stage says.
+    - Architecture: the domain module is pure Pydantic and rules with no I/O. File reading and argparse are in `entry`, and `entry` imports `domain`, which the layers allow. No command-line tool is called and no dependency is added.
+    - Security: there are no suppression markers and no secrets. Input is validated where it comes in: argparse checks the arguments and Pydantic checks each parsed line. A fault prints one `check-mutants:` line and nothing internal.
+    - Quality: names and docstrings fit and there is no dead code. The `check_duplicates` reader was moved, not copied. The `_read` helpers in check_demos.py and check_documents.py behave differently (one has no error handling, the other returns `None`), so `read_input` is not a second copy of either. `make duplicates` reports 5 new findings, all in claude_runtime/opencode_runtime and clock.py; none is in this diff.
+    - Work item hygiene: the Description and Interface match the code. Criterion 14 (docs) still says what the reader needs.
+
+    Notes:
+    1. tests/entry/test_check_mutants.py: the two sides of `--stopped-after`'s "at least 1" are in separate test functions. The `stopped-1` row is in `test_the_report_is_printed_and_a_partial_run_fails` and the `stopped-after-0` row is in `test_a_fault_ends_with_status_2`, not rows of one parametrized test. This is a test-file quality point in a file the diff adds, so from round 1 on it is a note.
+
+    Earlier tests: none. Every test file in the diff has status `A`, and tests/entry/test_check_duplicates.py is unchanged.
+18. factory: started docs as self.
+19. documenter: Docs round 1. No findings: the code matches the Interface and the criteria. I changed documents only, so I did not run `make check`; the factory's checks after this stage decide.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`: a new subsection *The report of a mutation run* under *Mutation testing*. It covers the input, the module of a mutant, the lines and the last line with an example, partial runs, exit statuses 0, 1 and 2, `--names` and the `<module>.*` pattern, and that the `make mutants` recipe is to call the command (the human's change after this story). In *The duplicates report* I added one sentence that `check_duplicates` reads its files through `factory.entry.inputs.read_input`.
+    - `docs/decisions.md`: a new entry, *A mutation run's report is a line of its own, and a partial run is never complete*, dated 2026-10-19. It has the decisions, the reasons, and the three rejected alternatives: a fourth check status, mutmut's own listing as the last line, and the survivors of every module in the report.
+    - `docs/project-guide/README.md`: the index line for `processes-and-checks.md` now names `factory.domain.mutants`, `factory.entry.check_mutants` and `factory.entry.inputs`, and the new subsection.
+
+    Examples: I ran the report, `--stopped-after 540`, `--names` and the missing-file fault against a results file in a temporary folder. The outputs and exit statuses 1, 1, 0 and 2 match what the docs show.
+
+    One thing differs from criterion 14. It asks for the feature's decisions 2, 3 and 8. The stage forbids reading `feature.md`, so I wrote the decision entry from the story's Description and criteria. The human may want to compare it with the feature's wording.
+
+    Cross-read and found current: the rest of `processes-and-checks.md` (*Mutation testing*, including the paragraph that describes today's `make mutants` recipe), the *Docs* and *Checks* sections of `CLAUDE.md`, and the other entries in `docs/decisions.md` that touch mutation testing.
+
+    Stale text I saw and did not touch:
+    - The *Mutation testing* paragraph on the acceptance reading survivors with `mutmut results | grep`, and `CLAUDE.md`'s "a second run goes on from the results kept in `mutants/`", describe the recipe as it is today. They change with the human's `Makefile` and `CLAUDE.md` changes after this story, not here.
+    - The reviewer's note that the two sides of `--stopped-after`'s "at least 1" sit in separate test functions is a test-file point, not a docs one.
+
+    `check`: check: green (not run again: passed on tree a2d0c03d102a at 2026-10-19T16:15:39Z)
+    `secrets`: secrets: green (1.0 s)
+    `documents`: documents ok
+20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test, round 1. I ran the three commands under `## Smoke test` from the repository root in the order written. Each block ran in its own `bash -c` so its `trap` removed its temporary folder. All three outputs matched their `Expect:` lines, and nothing in them contradicts an acceptance criterion. I changed nothing, and nothing was left in the working tree apart from the factory's `.costs.jsonl` sidecar.
+
+    Command 1: report with a `not checked` mutant, limited to `factory.domain.a`
+    ```
+    factory.domain.a.x_f__mutmut_2: survived
+    mutants: partial, 1 killed, 1 survived, 0 timed out, 0 without tests, 1 not checked, 0 other of 3 mutant(s) in 1 module(s)
+    exit 1
+    ```
+    Met. These are the three lines expected. The mutant `factory.domain.b` survived but is left out, as criteria 3 and 4 require (only chosen modules are reported). The run is partial and the exit status is 1, as criterion 8 requires.
+
+    Command 2: `--names` for `factory.domain.a` and `factory.domain.c`
+    ```
+    factory.domain.a.x_f__mutmut_2
+    factory.domain.a.x_g__mutmut_1
+    factory.domain.c.*
+    exit 0
+    ```
+    Met. The names that are not killed come in the order of the results, followed by the pattern for the module with no mutant. The exit status is 0 even though a mutant is `not checked`, as criteria 6 and 9 require.
+
+    Command 3: `--stopped-after 540` on a complete run, then a results file that does not exist
+    ```
+    mutants: partial, 1 killed, 0 survived, 0 timed out, 0 without tests, 0 not checked, 0 other of 1 mutant(s) in 1 module(s) (stopped after 540 s)
+    exit 1
+    exit 2
+    check-mutants: cannot read
+    ```
+    Met. The stop marks the report partial and adds the suffix (criteria 4 and 8). The missing file gives exit status 2, nothing on standard output, and a standard-error line that starts `check-mutants: cannot read` (criterion 10).
+
+    Findings: none.
+
+    Open: nothing.
