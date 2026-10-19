@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T09:17:52.328365Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T09:17:52.328365Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T09:19:36.952286Z'
+  stage: tests
+  run: 64ebc82187fc4ae4acf0f7545aa1eb46
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -103,3 +105,12 @@ Expect: `documents ok`
    - Architecture: the story only pins behaviour in the domain and entry layers, and nothing crosses a layer. It adds no new tests of another story and changes none.
    - Scope: this is acceptance follow-up work, inside F0025's document check. It touches neither the feature's "Out of scope" items nor any other story's tests. The feature lists only S0001 under Stories, so this story is a proposed addition that the human started by hand, which I accept as given.
 4. factory: started tests as self.
+5. tester: Wrote one parametrized test for each behaviour criterion. The tests pass, and they are meant to: the Description says the code already behaves this way, so these tests pin existing behaviour and do not drive new code.
+   - criterion 1: tests/domain/test_documents_line_edges.py::test_a_v1_word_is_found_at_a_line_edge_and_a_longer_word_is_not. It has five rows: `ticket` at the end of a line, at the start of a line and at the end of the text, each found, plus `ticketed` and `subticket`, which give `[]`. Each row is `clean_texts()` with `docs/project-guide/agents.md` added.
+   - criterion 2: tests/entry/test_check_documents_usage.py::test_a_wrong_argument_prints_the_usage_naming_the_command_and_exits_two. Two rows, `--bogus` and `--root` without a value. Each checks `SystemExit` code 2, empty standard output and the exact standard error, using `capsys`.
+   - criterion 3 (`make check` stays green) and criterion 4 (docs: none) get no test function.
+   Files created: tests/domain/test_documents_line_edges.py, tests/entry/test_check_documents_usage.py. No earlier test file was changed, and `clean_texts` from tests/document_texts.py is used as it is.
+   Every module imported. `make test` was green, including the new tests, which are green on purpose. `make lint` was green. The coder has nothing to implement, apart from confirming that `make check` is green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (36.2 s)
