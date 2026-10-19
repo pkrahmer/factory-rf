@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T13:49:32.525009Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-19T13:49:32.525009Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T13:51:18.587226Z'
+  stage: docs
+  run: c605e1100207429d81cc18eed9dab76e
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -370,3 +372,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - `tests/test_entrypoint_skills.py:13-16`: the `layout` fixture is a copy of the one in `tests/test_agent_home_ownership.py:15-17`. The story's Interface asks for it, and under the standing leave it could move to `tests/conftest.py`.
 18. factory: started docs as self.
+19. documenter: Docs for the Skill tool, rule R15, the emptied skills and commands folders, and `LEFT_OUT_TOOLS`. I found no findings: the diff matches the Interface.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - New section *A project's own skills* under *The agent files*: the `Skill` tool, R15, the protected path, the branch a run reads them from, and opencode leaving the tool out.
+      - *The shipped agents and settings*: `Skill` is last in each agent's `tools` and is allowed in the settings after `Grep`.
+      - *The agent runs as a second user*, the paragraph on the agent's home: the entrypoint remakes `skills/` and `commands/` empty at every start, and the paragraph gives mode `2755` in the image and why. I removed "skills" from the list of what stays writable there.
+    - `docs/project-guide/agents.md`:
+      - *The seven agents*: `Skill` added to the tools column.
+      - Replaced "No skills are shipped, because the runner applies no `skills` key" with the current truth and R15.
+      - *The opencode runtime*: `LEFT_OUT_TOOLS`, left out and not refused; every other unmapped tool is still refused.
+    - `docs/decisions.md`: new entry *The agents load a project's skills, and the agent's home gets none*, dated 2026-10-19, with the reasons of the feature's decisions 7 to 13. It also lists the rejected options and what stays open.
+
+    Cross-read and found current: `README.md`, the rest of `docs/operator-guide.md` (including "The kernel refuses every other write" and the key table of the agent file) and the rest of `docs/project-guide/agents.md`.
+
+    Stale text I saw and left, because it is history in the decision log: the entries of 2016-10-16 (F0010) and 2026-10-17 (F0012-S0025) still say skills stay writable in the home and no skills are shipped. The new entry supersedes both.
+
+    I changed no code, so I did not run `make check`. The factory runs it after this stage.
+
+    I did not run the story's smoke commands. I only wrote documents, and they hold no examples to run.
+
+    `check`: check: green
+    `documents`: documents ok
