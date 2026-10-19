@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T23:11:24.130124Z'
   stage: acceptance
   run: 61ca1cdf633c49c1ba48f8b83b1d2b8b
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T23:12:42.858861Z'
+  stage: done
 stories: [F0031-S0001, F0031-S0002]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of No stage runs mutation testing
@@ -160,3 +165,4 @@ S0001 stands out, and the first acceptance gave the cause. Its rework round 1 co
    6 Decisions: decisions 1 to 10 are built or applied, including changes 2 and 3 (`mutants/*` out of `tool_paths`, the acceptance reviewer at 40/60). Change 6 is applied in the F0030 draft's criterion 9, but the draft's `feature.md` still names the acceptance's `make mutants` and F0024-S0005, which is gone. Also open for the human: the demo's `Makefile:4` and the playbook line. Earlier tests: S0001's two were changed under decision 7, S0002 changed none, and none was changed without a leave.
    7 Slow checks: nothing beyond `make check`. The slowest tests are time-limit tests at 4.5 to 5.0 s, none of them this feature's. Disk use is unchanged (`/work` 0.5 GB). Free space fell by 0.1 GB on the shared volume, which the feature's own usage does not explain and does not need to.
    8 Cost: 16 runs, 11.3 min, $3.07 (S0001 $2.30, S0002 $0.77). S0001 stands out with a $0.83 rework round over a paraphrased docstring. 0 questions, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 3.8 min, 22 turns, 67554 tokens in (1170034 more from cache), 16175 out, $1.10
