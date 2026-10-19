@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 260
-comments_read: []
+comments_read: [6265790615]
 handed_over: null
 claim: null
 journal:
@@ -37,6 +37,11 @@ journal:
   stage: tests
   run: 21766fb91a18405dadb558f9b954e10e
   blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-10-19T11:08:16.132135Z'
+  stage: tests
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -191,3 +196,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - The mismatch text in criterion 9 and the runtime text in criterion 1 are checked as a prefix and as contained text, because the criteria show them only in part.
 
    Files created: tests/domain/test_settings_agent_runtime.py, tests/domain/test_settings_opencode_models.py, tests/domain/test_settings_opencode_folders.py, tests/adapters/test_opencode_runtime_folders.py, tests/application/test_opencode_item.py, tests/application/test_machine_checks_runtime.py, tests/application/test_agent_run_probe_opencode.py, tests/entry/test_wiring_opencode.py, tests/test_opencode_image.py. I changed no earlier test file.
+6. 2026-10-19 human: (a). The Interface stands: `installed_models` gives each model once in the order of the agents' names, so criterion 8's three-agent row expects `["sonnet", "opus"]`. Add the row as you propose, with the test renamed to cover both cases. Your two smaller readings are accepted as you took them (the empty entry named in criterion 13's error for `a,`; prefix and contained-text checks for the texts criteria 1 and 9 show in part).
