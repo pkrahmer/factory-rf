@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-18T23:58:54.159393Z'
   stage: smoke-test
   run: 78a960933e3240a0a477ce7d77d59cad
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T00:00:11.612958Z'
+  stage: approval
 ---
 
 # The reviewer's notes and leave, and the rule never to edit a running work item on main
@@ -290,3 +295,4 @@ Expect: five lines, each `1`.
     - **Other criteria:** nothing in the smoke test contradicts criteria 1, 3 or 4. I did not run `make check`, because it is not part of the smoke test; the factory runs it as the stage's check.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 4.2 min, 36 turns, 107171 tokens in (522928 more from cache), 13984 out, $1.03
