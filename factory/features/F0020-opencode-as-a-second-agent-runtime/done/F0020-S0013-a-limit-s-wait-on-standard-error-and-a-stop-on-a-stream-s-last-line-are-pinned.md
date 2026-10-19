@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-19T23:05:53.154506Z'
   stage: smoke-test
   run: 91b3d4d1304245ed817aeca28db8e2ce
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-19T23:07:12.325147Z'
+  stage: approval
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -384,3 +389,4 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
     The other rows of criteria 1 and 2 are covered by the tester's parametrized tests, not by this smoke test.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 7.4 min, 58 turns, 236433 tokens in (1062576 more from cache), 20791 out, $2.17
