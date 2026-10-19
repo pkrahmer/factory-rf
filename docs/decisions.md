@@ -670,3 +670,14 @@ Date: 2026-10-19 (F0020-S0003; F0020 decision 5). `run_process` hands a caller t
 - Decision: the lines are read in a selector loop on the calling thread. After a stop or a timeout nothing more is read or passed.
 - Reasons: the runtime acts on its output at once, which only a stream allows; one start keeps the isolation (own session, no shell, stdin from `/dev/null`) in one place; a single thread makes "one call at a time" and "no line after a stop" hold without locks.
 - Rejected: a separate process module for streaming (a second `Popen` and new markers); reader threads feeding a queue (thread handoff and cleanup for no gain); having the runtime read the pipes itself (it would start processes outside R5).
+
+## opencode's agent is generated per run from the shipped agent files
+
+Date: 2026-10-19 (F0020-S0004; F0020 decisions 6, 7, 8 and 10). The pipeline's rules live in `claude/agents/*.md` and in the installed `settings.json`, written for Claude Code. opencode has its own agent format, tool names and permission syntax, and no flag for a structured reply.
+
+- Decision: the runtime writes a configuration file for each run (`OPENCODE_CONFIG`) with one agent, whose prompt is the agent file's body, whose tools are the agent file's tools in opencode's names, and whose `bash` permission denies the patterns of the `Bash(...)` entries of `settings.json`. The file is removed after the run.
+- Decision: the agent must end its last message with a fixed block, and the runtime reads the decision and the entry from it strictly; a missing or malformed block is `no_result`.
+- Decision: the cost, tokens, turns, model time and refused calls are read from the `step_finish`, `step_start` and `tool_use` events; a line that does not validate is skipped, not repaired.
+- Decision: the run's rules allow opencode's three folders in the agent's home and nothing under `.config`.
+- Reasons: the agent files stay the one source of the pipeline's rules, so a change reaches both runtimes and none can drift; a generated file is the only place opencode lets a run define its prompt, tools and permissions; a strict block cannot be satisfied by a reply that merely mentions a decision; an agent that cannot write opencode's configuration folder cannot loosen its own permissions for the next run.
+- Rejected: a hand-kept opencode agent file in the repository (a second copy of the rules); reading the decision from free text (guessing a decision); allowing the whole home or `.config` (the agent could rewrite its configuration).

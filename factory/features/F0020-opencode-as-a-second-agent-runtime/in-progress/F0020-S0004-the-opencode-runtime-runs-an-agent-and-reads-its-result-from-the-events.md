@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T05:34:22.989850Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -228,6 +224,12 @@ journal:
   kind: started
   at: '2026-10-19T05:34:22.989850Z'
   stage: docs
+- number: 40
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T05:36:12.113328Z'
+  stage: docs
+  run: 4b0e79f8de574963a0991075554e4332
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -747,3 +749,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/test_model_configuration.py`: changed under the leave the story gives (the feature's decision 19). The change only adds the eight `opencode_runtime` models to `EXCEPTIONS`.
     - `tests/test_wrapper_search.py`: changed under the leave the story gives (the feature's decision 19). The change only adds `factory.adapters.opencode_runtime` to the expected importers.
 39. factory: started docs as self.
+40. documenter: I wrote the documentation the docs criterion asks for. I found no code that contradicts the Interface or the criteria. I ran no `make check`, because I changed only documents. I did not run the opencode examples, because the real `opencode` is never run; the command line, the block and the config shape are copied from the code and from the criteria.
+
+    Files changed:
+    - `docs/project-guide.md`: a new section *The opencode runtime*, under *The agent runtime*. It covers the call and its words, the per-run configuration, the strict result block, the events and measures, the end reasons, and opencode's three folders in the agent's home. It also covers `.config`, which stays closed.
+    - `docs/project-guide.md`: two corrections in the same chapter. The intro now names `OpencodeRuntime` as an implementation, and the fake becomes the third. The sentence "one of the three modules that import `factory.adapters.process`" now lists `opencode_runtime` among them.
+    - `docs/decisions.md`: a new entry, *opencode's agent is generated per run from the shipped agent files*, dated with the story. I wrote its reasons from the story text and the code, because I did not read `feature.md`. The reasons for the feature's decisions 6, 7, 8 and 10 are therefore my reading of the story, not the feature's own wording. Please check them.
+
+    Cross-read and found current: `README.md`, `docs/operator-guide.md` (no opencode mention, and none is due until the operator can choose the runtime in S0008), and the *Starting a process* section of `docs/project-guide.md` (`run_streaming`, already written for this runtime).
+
+    Stale or open, not mine to fix:
+    - `src/factory/adapters/opencode_runtime.py` has the error text `set FACTORY_OPENCODE_MODELS`, a setting that exists nowhere yet (S0008). The text is the coder's and I did not touch it. The guide says the settings come later.
+    - In `docs/project-guide.md`, `version()` and the stand-in note for the Claude Code runtime sit under the heading *The shared launch module*, though they belong to *The `claude -p` runtime*. This was already so before this story and is unrelated, so I left it.
+    - `factory/features/F0020-*/in-progress/F0020-S0004-*.costs.jsonl` shows as modified in the working tree. It is the factory's file, not mine.
+
+    `check`: check: green
+    `documents`: documents ok
