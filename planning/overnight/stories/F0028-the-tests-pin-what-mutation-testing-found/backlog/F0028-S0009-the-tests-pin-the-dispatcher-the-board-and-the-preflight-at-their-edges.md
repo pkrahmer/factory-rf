@@ -1,0 +1,47 @@
+# The tests pin the dispatcher, the board and the preflight at their edges
+
+## Description
+
+The mutation sweep of 2026-10-19 over `factory.application` (`planning/overnight/mutation-sweep-2026-10-19-part2.md`, the rest of its story 7) left six live mutants in the dispatcher, the board reader and the preflight, each a side that no test reaches. At the error cap the dispatcher posts its stop for the event's work item; a work item without a state gives the stop no pull request, and the stop service opens a draft (`dispatcher.py:196`). Every test's work item has a state, so a stop that read the state's pull request regardless would pass (it raises, and the report is lost). The board counts a feature's stories per folder, and no board test counts a story in progress in the feature's row (`board.py:40`). The opencode login hint names the agent's user, or `the factory user` when `FACTORY_AGENT_USER` is unset (`preflight.py:313`). Only the hint's first part is tested without a user. This story pins these as criteria. The code already behaves this way, so the coder has nothing to change: only the tester's work, as in F0025-S0003.
+
+## Interface
+
+No module under `src/factory/` changes. The behaviour pinned (`application`):
+
+- `factory.application.dispatcher.Dispatcher.dispatch(event)`: at the error cap, the stop for a work item whose document has no state carries no pull request, so `StopService.post` opens a draft on the work item's branch and posts the report there.
+- `factory.application.board.BoardReader.read(definition)`: a feature's row counts its story files in `backlog/`, `in-progress/` and `done/` on `origin/main`.
+- `factory.application.preflight.agent_run_probe_item(boundaries, settings, environment)` under opencode, after a probe run that died without a login (`login="none"`): the detail names `settings.agent_user`, or `the factory user` when it is `None`, in both of its sentences.
+
+Tests (the tester writes them): `tests/application/test_dispatcher_without_state.py`, `tests/application/test_board_in_progress.py` and `tests/application/test_agent_run_probe_factory_user.py`. Each builds its inputs itself, with the fixtures of `tests/conftest.py`, and its failing handler is a small class of its own. No earlier test changes.
+
+## Acceptance criteria
+
+1. The error stop of a work item without a state (one test): the human pushes `note.txt` to `work-item/F0001-S0001`, a fetch; the snapshot is `WorkItemSnapshot(id="F0001-S0001", path="factory/features/F0001-demo/in-progress/F0001-S0001-x.md", folder="in-progress", branch="work-item/F0001-S0001", branch_commit=<the branch's commit on the remote>, document=WorkItemDocument(state=None, body="# Demo story\n"))`. The event is `Event(kind="run", work_item=<it>, remote_state="a" * 40)`, dispatched three times by `Dispatcher({"run": <a handler that raises ValueError("boom")>}, TickStatus(), StopService(boundaries))`. The outcomes are exactly `["error", "error", "reported"]`. `hosting.pull_requests()` is one draft, number `1`, on `work-item/F0001-S0001`, titled `F0001-S0001: Demo story`, and the keys of its factory posts are exactly `[PostKey(work_item="F0001-S0001", kind="error", n="aaaaaaaaaaaa")]`.
+2. A story in progress on the board (one test): on top of the remote's seed, the feature `F0001-example`, titled `Example feature`, with the backlog story `F0001-S0001-first.md`, the human pushes `# Second story\n` to `backlog/F0001-S0002-second.md` and `# Third story\n` to `done/F0001-S0003-third.md` of that feature on `main`, then starts `F0001-S0001`. After a fetch, `BoardReader(boundaries).read(definition).features` is exactly `[FeatureRow(feature="F0001", title="Example feature", backlog=1, in_progress=1, done=1, acceptance="incomplete")]`.
+3. The opencode login hint by user (rows of one parametrized test; the agent `coder` installed in the test's agent home; `InstanceSettings(repository_url="/srv/project.git", instance="factory-1", state_directory=tmp_path / "state", agent_home=agent_home, agent_user=<user>, agent_runtime="opencode", pinned_opencode_version="1.19.3")`; the probe run queued as `AgentRunResult(end_reason="died", duration=timedelta(seconds=5), login="none")`; `agent_run_probe_item(boundaries, settings, {"PATH": "/usr/bin", "HOME": "/home/agent"}).detail`):
+   - `agent_user=None`: exactly `the probe run ended died; run opencode run by hand as the factory user to see why; the agent runs get no API key: log in once as the factory user with the opencode build's own login, or put a key in the file FACTORY_API_LOGIN_FILE names`.
+   - `agent_user="agent"`: exactly the same text with `agent` in both places of `the factory user`.
+4. `make check` stays green.
+5. docs: none. The operator guide already describes the error cap's report, the board's columns and the opencode login hint, and this story changes none of them.
+
+## Smoke test
+
+```bash
+uv run -q python - <<'EOF'
+from factory.domain.board import feature_rows
+from factory.domain.post_texts import error_report_text
+from factory.domain.work_item import StoryFile
+
+directory = "factory/features/F0001-example"
+stories = [
+    StoryFile(id=f"F0001-S000{n}", path=f"{directory}/{folder}/F0001-S000{n}-x.md", feature_directory="F0001-example", file_name=f"F0001-S000{n}-x.md", folder=folder)
+    for n, folder in [(1, "in-progress"), (2, "backlog"), (3, "done")]
+]
+print(feature_rows(stories, {"F0001": "Example feature"}))
+print(error_report_text("run:F0001-S0001", "ValueError: boom", "a" * 40, 3))
+EOF
+```
+
+Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlog=1, in_progress=1, done=1, acceptance=None)]` and ``The factory failed 3 times on `run:F0001-S0001` and has stopped retrying it. Last error: ValueError: boom. A new commit on the work item's branch (now at aaaaaaaaaaaa) makes the factory try again.``
+
+## Journal
