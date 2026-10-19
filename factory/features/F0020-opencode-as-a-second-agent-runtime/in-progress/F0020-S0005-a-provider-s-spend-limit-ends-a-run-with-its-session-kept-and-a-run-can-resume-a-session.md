@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853, 6262583574]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T08:06:07.226708Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -212,6 +208,12 @@ journal:
   kind: started
   at: '2026-10-19T08:06:07.226708Z'
   stage: doing
+- number: 37
+  speaker: coder
+  kind: result
+  at: '2026-10-19T08:06:25.898922Z'
+  stage: doing
+  run: f72631595db34e198e92924aabea56d9
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -693,3 +695,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/adapters/test_claude_runtime_provider_limit.py:22 and tests/entry/test_wiring_provider_limit.py:14: the error reply is written out twice (`_error_reply` and `ERROR_REPLY`). The wiring test could import `_error_reply`.
     - tests/domain/test_agent_runs_session.py, row `zero-wait`: the expected refusal `""` matches any validation error. A fragment such as `limit_wait` naming the positive rule would pin which rule refused it.
 36. factory: started doing as self.
+37. coder: Round 1, after the human's answer in entry 33 and the reviewer's finding in entry 35. The fix is tests only, and I changed nothing under `src/`. The code from entry 13 stays as built, as entry 33 says.
+
+    The answer in entry 33 sent criterion 19 to the tester. The factory went straight back to review instead (entry 34), so the test was never written. Entry 35 found that, and I am now handing it to the tester.
+
+    Change for the tester (criterion 19: a run that outlasts its time limit keeps its `session`):
+    - Claude: in `tests/adapters/test_claude_runtime_provider_limit.py::test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit`, also assert that `result.session` equals the `--session-id` argument of its call.
+    - opencode: in `tests/adapters/test_opencode_resume_session.py`, add two time-limited rows. Both use `Step(stdout_before_wait=..., wait_seconds=...)` with a time limit of a few seconds and expect `end_reason` `time_limit`.
+      - The first row prints events that carry a `sessionID` and expects that `sessionID`.
+      - The second row prints no events, sets `resume_session` to `"ses_a"` and expects `ses_a`.
+
+    What the code already does: in `src/factory/adapters/opencode_runtime.py`, `_result` computes `_session(events, request)` (lines 403–405 and 424) before the `timed_out` return at line 426. `_session` falls back to `request.resume_session`. The Claude runtime's `_result` passes the session into its time-limited early return. So all three checks should pass without a code change. If one fails, the work item comes back here.
+
+    Seen but not touched (notes carried forward, per entry 33):
+    - The error reply is written out twice: `_error_reply` in tests/adapters/test_claude_runtime_provider_limit.py and `ERROR_REPLY` in tests/entry/test_wiring_provider_limit.py.
+    - In tests/domain/test_agent_runs_session.py, the row `zero-wait` has the expected refusal `""`.
+    - The 5 new `make duplicates` findings from entry 13. None of them comes from this story's diff.
+
+    The journal (entry 31) added criterion 19, and the reviewer already wrote it into `## Acceptance criteria`. I did not touch `## Description`.
