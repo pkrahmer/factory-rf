@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 240
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T00:01:45.154998Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T00:01:24.892340Z'
   stage: intake
   run: 7442cdcf4b0b410cb4a79ed7022ab9e4
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:01:45.154998Z'
+  stage: tests
 ---
 
 # The records carry a contract of generated JSON Schemas
@@ -152,3 +161,4 @@ Expect: `1.0 ['at', 'event', 'reason', 'scope']`
    Smoke test: both commands are runnable with `uv run`. Each `Expect:` line is checkable: seven exact lines, and `1.0 ['at', 'event', 'reason', 'scope']`.
    Architecture: the pure `ContractEntry` and the schema text sit in `domain`; the file writing and the command sit in `entry`; the dependency direction is respected. The dataclass is explained, and no new dependency is added (decision 16).
    Scope: it matches the feature's S0006 bullets and decision 15. It names no stage, role or reader, and it changes no earlier test. The docs criterion covers the operator guide, the project guide and the decisions entry.
+4. factory: started tests as self.
