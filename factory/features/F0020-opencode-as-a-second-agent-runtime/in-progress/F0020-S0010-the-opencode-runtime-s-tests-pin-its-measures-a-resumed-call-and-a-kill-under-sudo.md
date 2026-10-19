@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 279
 comments_read: [6274821134]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T19:00:11.493658Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-19T19:00:11.493658Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-19T19:02:39.404399Z'
+  stage: doing
+  run: e7d1d8fa7652462f983a40e8a8e457c1
 ---
 
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
@@ -213,3 +215,14 @@ Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "gi
    `lint`: lint: green (0.0 s)
    `test`: test: green (52.5 s)
 9. factory: started doing as self.
+10. coder: Built nothing. This story adds tests only, and its Interface says no module under `src/factory/` changes. The tester's four new modules (`tests/adapters/test_opencode_measures.py`, `test_opencode_resumed_words.py`, `test_opencode_sudo_time_limit.py`, `test_opencode_confinement.py`) already pass against `factory.adapters.opencode_runtime` as it stands. I ran `make check` and it ended `check: green` (`test: green (52.9 s)`, total coverage 99.12 %).
+
+    Main choice: leave the working tree as it is. The alternative I rejected was touching `opencode_runtime.py` to "tidy" what the tests pin. That would go beyond the story, which forbids code changes. Refactor step: there is no coder diff to read, so nothing needed changing.
+
+    Description: the journal (human answer 4, carried in by intake 6) added rows to criteria 1, 3 and 5. The Description already holds them, so I did not rewrite it.
+
+    Noticed but did not touch:
+    - `test_opencode_sudo_time_limit.py` and `test_opencode_confinement.py` import the private helpers `_write_sudo` and `_sudo_calls` from `tests/adapters/test_claude_runtime_os_user.py`. `test_opencode_runtime_launch.py` and `test_opencode_runtime.py` already did the same before this story. The standing leave lets the tester move these helpers to a shared module, but it is a test change and not the coder's to make.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
