@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T04:33:31.911922Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-19T04:33:31.911922Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T04:34:34.951395Z'
+  stage: review
+  run: 5e5370a3222d4d6eabd93b2fe41044a6
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -320,3 +322,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 35 known, 4 gone
 19. factory: started review as self.
+20. reviewer: no findings
+
+    What I read: the work item, `git diff main...HEAD -- . ':!factory'` (`src/factory/adapters/process.py`, `tests/adapters/test_process_streaming.py`, `tests/adapters/test_process.py`, `tests/process_support.py`) and all of `src/factory/adapters/process.py`.
+
+    - Acceptance criteria (group 1): each of criteria 1–13 has a test that checks what the criterion names. This includes criterion 13, which round 0 added: `test_child_that_closed_its_streams_is_killed_at_the_time_limit` reaches the `subprocess.TimeoutExpired` branch of `_wait_for_exit`. The failing sides of the Interface's rules are covered: the missing executable (8), the callback that raises (6), and the time limit hit (5, 13) against a run that ends inside its limit (9, 10). Coder entry 18 reports `make check` green.
+    - Architecture and security (groups 2 and 3): the change stays inside the one process module in `factory.adapters`. The only new import is `selectors` from the standard library. The single `subprocess.Popen(` line moved into `_start` with its two existing markers and no new marker.
+    - Quality (group 4): `_decode`, `_seconds` and `_kill_group` are reused, not copied. Kill on stop, timeout and exception is correct, and so is the end-of-stream handling. The read loop drops the rest of a chunk once the callback says stop. I noticed docstrings on three private names (`_LineReader`, `_read_until_end`, `_wait_for_exit`). I did not count them as a finding: the module already has such docstrings elsewhere, and the one on `_read_until_end` gives the order of its returned tuple, which the signature does not. `make duplicates` reports one new item, vulture flagging `run_streaming` as unused, which is expected until S0004 calls it.
+    - Work item hygiene (group 5): entry 10 explains the main choice, a selector loop on the calling thread, and the alternative it rejected, reader threads feeding a queue. The Description matches what was built, and the docs criterion (15) still says what the reader must know.
+
+    Notes:
+    1. `tests/adapters/test_process_streaming.py:106` and `:128`: stopping on standard output and stopping on standard error are two sides of one rule but are written as two test functions; they could be rows of one parametrized test.
+
+    Earlier tests:
+    - tests/adapters/test_process.py: changed under the standing leave to move a shared test helper (CLAUDE.md, *Tests*). `_python` moved to `process_support.python_argv` and the unused `import sys` was dropped. Every test keeps its name and checks the same thing.
+    - tests/process_support.py: changed under the same standing leave, as the destination of the move. It only gains `python_argv`; `is_gone` and `GONE_WITHIN_SECONDS` are unchanged.
