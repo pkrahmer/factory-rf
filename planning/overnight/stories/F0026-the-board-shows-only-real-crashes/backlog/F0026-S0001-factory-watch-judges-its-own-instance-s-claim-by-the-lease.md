@@ -46,6 +46,7 @@ class Watcher:
 `factory.entry.watch` (`entry`):
 
 - `run_watch` evaluates with `Watcher(boundaries, instance, observer=True)`; the board, the exit statuses and the error lines are unchanged.
+- The module's docstring says that it shows the event of one evaluation as a look from outside the tick sees it, and the board, instead of "the event the next tick would handle".
 
 Unchanged: `Tick` (it evaluates with `Watcher(boundaries, instance)`), `RecoveryHandler`, `required_claim_status`, `CLAIM_EVENTS`, the board, `factory-run`.
 
