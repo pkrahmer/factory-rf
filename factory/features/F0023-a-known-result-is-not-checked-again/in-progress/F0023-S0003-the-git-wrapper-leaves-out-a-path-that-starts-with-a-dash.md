@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T21:22:58.323204Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T21:22:58.315978Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:22:58.323204Z'
+  stage: intake
+---
+
 # The git wrapper leaves out a path that starts with a dash
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -44,3 +71,6 @@ EOF
 Expect: `True`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
