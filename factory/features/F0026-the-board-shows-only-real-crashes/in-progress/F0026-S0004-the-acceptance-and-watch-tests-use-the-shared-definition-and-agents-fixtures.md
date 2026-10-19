@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 274
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T17:32:02.368822Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T17:32:02.368822Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T17:34:01.224702Z'
+  stage: doing
+  run: 6a3127ead1384c5eab424cee64f3a1e4
 ---
 
 # The acceptance and watch tests use the shared definition and agents fixtures
@@ -127,3 +129,14 @@ Expect: three lines, `tests/conftest.py`, `tests/conftest.py` and `pytest exit 0
    `lint`: lint: green (0.0 s)
    `test`: test: green (44.1 s)
 6. factory: started doing as self.
+7. coder: Built nothing: the story changes no code under `src/factory/`, and the tester already moved the fixtures (`tests/conftest.py`: `installed_agents` beside `definition`; the copies removed from the eleven acceptance modules, the six `_agents` modules and `tests/application/test_pipeline_loading_agents.py`; the new searches in `tests/test_shared_fixtures.py`). I ran `make check` on the committed state and it passed: `test: green (44.2 s)`, coverage 99.07 %, `check: green`.
+
+   Main choice: I left the working tree as it was. I did not touch the tester's move, for example to tidy imports in the changed test modules, because the coder never edits tests (R9). The tester owns that change.
+
+   Refactor: there is no coder diff, so there was nothing to refactor. Description: no journal entry changed the task's meaning, so it stays as written.
+
+   Noticed but not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+   `mutants`: mutants: no module under src/factory changed by F0026-S0004
