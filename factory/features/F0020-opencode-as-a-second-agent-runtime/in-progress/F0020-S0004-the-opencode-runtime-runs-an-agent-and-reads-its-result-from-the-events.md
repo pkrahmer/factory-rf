@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T05:07:22.444491Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-10-19T05:07:22.444491Z'
   stage: review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T05:09:41.141306Z'
+  stage: review
+  run: d7065fff3f6c40b59d4c2c57fe0de3c7
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -253,8 +255,10 @@ Changed under the feature's decision 19, by the tester only, nothing else in tho
 15. With an API login file holding a key, the stand-in sees `ANTHROPIC_API_KEY` with the key and the result's `login` is `api_key`; with an empty file it sees no such name and `login` is `none`; without the file, no login words and `login` `None`; an API file that is a folder raises `AgentRuntimeError` `agent runtime failed: cannot read the agent's API login file <path>: cannot be read` and the stand-in is never called; the key stands in no argument, no configuration file and not in the result's JSON (rows).
 16. `version()` gives `1.19.3` for `1.19.3\n`, and the stand-in's recorded call is `<executable> --version` alone, without login words, also when an API login file is set; a stand-in that exits 1, prints nothing or waits past a limit of 3 seconds raises `AgentRuntimeError` (rows).
 17. The kill point `AGENT_RUN` is reached once after a run, `OpencodeRuntime` is an `AgentRuntime`, and the module reads no `os.environ` (a source search, which finds it in a snippet that does).
-18. `make check` stays green.
-19. docs: `docs/project-guide.md`: a section *The opencode runtime*: the call and its words, the per-run configuration and why it is generated from the agent files and `settings.json`, the result block and its strict parsing, the events and the measures read from them, opencode's own folders in the agent's home and the folder it may not write. `docs/decisions.md`: an entry *opencode's agent is generated per run from the shipped agent files* with the reasons of the feature's decisions 6, 7, 8 and 10, dated with the story.
+18. The errors carry the Claude Code runtime's texts (rows): `version()` of an executable that exits 1 raises `<executable> --version failed: <stderr>`, of one that prints nothing `<executable> --version printed nothing`, and of one that does not exist `cannot start <executable>: <error>`; a run whose executable does not exist raises `cannot start <executable>: <error>` and leaves the state directory without a file; a run whose state directory does not exist raises `cannot write the state directory <path>: <error>` and the stand-in is never called.
+19. The non-negative limits are tested on the accepted side too: a `step_finish` with cost 0, `input` 0 and timestamp 0, after a `step_start` at timestamp 0, is a valid step that counts as a turn, with `cost_usd` `Decimal("0")`, tokens input 0 and a model time of 0 seconds (rows beside the negative ones of criterion 11).
+20. `make check` stays green.
+21. docs: `docs/project-guide.md`: a section *The opencode runtime*: the call and its words, the per-run configuration and why it is generated from the agent files and `settings.json`, the result block and its strict parsing, the events and the measures read from them, opencode's own folders in the agent's home and the folder it may not write. `docs/decisions.md`: an entry *opencode's agent is generated per run from the shipped agent files* with the reasons of the feature's decisions 6, 7, 8 and 10, dated with the story.
 
 ## Smoke test
 
@@ -458,3 +462,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 9 new, 35 known, 4 gone
 21. factory: started review as self.
+22. reviewer: Review, round 0: 7 findings, so the work item goes back to doing. I read every file in the diff against the 19 criteria. Criteria 1 to 17 each have a test, and each test checks what its criterion says. The architecture holds: the module sits in `adapters`, `test_wrapper_search` lets it import the process module, it reads no `os.environ`, and it implements the interface's ABC. Security is clean: no new markers, and the prompt is passed as a single argument. The findings are about copied helpers, one dead field and two behaviours no criterion named. I ran `make duplicates`: 7 new similar blocks against `claude_runtime`, all covered by findings 1 to 4.
+
+    1. `src/factory/adapters/opencode_runtime.py:254` `_since` is a second copy of `claude_runtime._since`. Fix: move it into `factory.adapters.agent_launch` (it needs no process import) and have both runtimes import it from there.
+    2. `src/factory/adapters/opencode_runtime.py:380` `_denied_path` copies `claude_runtime._denied_path`; only the keys differ. Fix: one shared function in `agent_launch` that takes the keys as an argument (`("filePath",)` here, `("file_path", "notebook_path")` in the Claude runtime).
+    3. `src/factory/adapters/opencode_runtime.py:452-470` `_has_usable_events`, `_sudo_refusal`, `_confine_refusal` and `_confinement` copy `claude_runtime._has_usable_reply`, `_sudo_refusal`, `_confine_refusal` and `_confinement`. Fix: share them in `agent_launch` with plain inputs (stderr, a usable flag, `os_user`, `runtime_folders`), so `agent_launch` still never imports the process module.
+    4. `src/factory/adapters/opencode_runtime.py:532-653` `version`, `_call`, `_check_confinement`, `_check_login`, `_remove_temporary_folder` and `_process_request` copy the `ClaudeCodeRuntime` methods of the same names almost line for line. Entry 10 says these cannot move because `agent_launch` may not import the process module, but that only applies to the `run_process`/`run_streaming` calls, which can stay in each wrapper's `_start`. Fix: move the logic around those calls into `agent_launch` with plain values, as `killed_at_limit` and `cleanup_argv` already are: the version reading from exit status, timed-out flag, stdout and stderr; the refusal checks; building the request from `launch`. If a shared module that itself calls the process module is wanted instead, that is a change to `tests/test_wrapper_search.py` and needs a question to the human.
+    5. `src/factory/adapters/opencode_runtime.py:229` `_Step.timestamp` is set but never read; the model time comes from the events. This is dead code. Fix: remove the field.
+    6. Criterion 18 added; it needs its test. The code builds error texts for `version()` (`--version failed: <stderr>`, `printed nothing`, `cannot start <executable>: <error>`), for a run whose executable cannot start, and for a state directory that cannot be written (`opencode_runtime.py:546-563`, `:651-653`). No criterion pinned them, and criterion 16's test only checks that `AgentRuntimeError` is raised. Pinning them needs no change under `src/`.
+    7. Criterion 19 added; it needs its test. CLAUDE.md asks for both sides of every limit the Interface states. The "non-negative" timestamps, counts and costs are tested only on the refused side (-1 or -0.5 in criterion 11); nothing tests 0 for cost, `input` or timestamp. For example, `_model_ms` checking `started is not None` against a truthiness check is unpinned for a `step_start` at 0. Pinning it needs no change under `src/`.
+
+    I renumbered the closing criteria: `make check` is now 20 and `docs:` is 21.
+
+    What I chose not to raise: negative values of `output`, `reasoning`, the cache counts and the span ends. The intake asked about those, and the human chose only the four rows of criterion 11 (journal entry 4). I did not count `_RunFiles` as a copy, since its fields differ from the Claude runtime's.
+
+    Earlier tests:
+    - `tests/test_model_configuration.py`: the story names it under the feature's decision 19. The change only adds the eight `opencode_runtime` models to `EXCEPTIONS`, which is within that leave.
+    - `tests/test_wrapper_search.py`: the story names it under the feature's decision 19. The change only adds `factory.adapters.opencode_runtime` to the expected importers, which is within that leave.
