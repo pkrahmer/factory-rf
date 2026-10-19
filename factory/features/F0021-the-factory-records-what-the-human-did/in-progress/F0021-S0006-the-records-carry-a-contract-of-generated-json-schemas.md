@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 240
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T00:01:45.154998Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T00:01:45.154998Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T00:04:31.307885Z'
+  stage: tests
+  run: 132e0a172c09407c8549b62994b39585
 ---
 
 # The records carry a contract of generated JSON Schemas
@@ -162,3 +164,25 @@ Expect: `1.0 ['at', 'event', 'reason', 'scope']`
    Architecture: the pure `ContractEntry` and the schema text sit in `domain`; the file writing and the command sit in `entry`; the dependency direction is respected. The dataclass is explained, and no new dependency is added (decision 16).
    Scope: it matches the feature's S0006 bullets and decision 15. It names no stage, role or reader, and it changes no earlier test. The docs criterion covers the operator guide, the project guide and the decisions entry.
 4. factory: started tests as self.
+5. tester: Wrote the red tests for the records contract. There is one test function per criterion, and the cases of each rule are rows of one parametrized test.
+
+   - criterion 1: tests/domain/test_contract.py::test_the_contract_holds_the_five_records_in_order
+   - criterion 2: tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version (one row per entry)
+   - criterion 3: tests/domain/test_contract.py::test_the_journal_record_carries_its_optional_causes, ::test_the_cost_record_carries_its_optional_denials, ::test_the_stop_record_requires_its_fields (one row per required field)
+   - criterion 4: tests/entry/test_contract.py::test_write_contract_writes_every_schema_into_the_folder (rows: no-folder, other-file, stale-schema)
+   - criterion 5: tests/entry/test_contract.py::test_the_committed_schemas_are_the_generated_ones (one row per file, plus a no-other-file row)
+   - criterion 6: tests/entry/test_contract.py::test_main_writes_the_schemas_into_the_folder_given_or_the_default (rows: folder, default, two-arguments; `CONTRACT_FOLDER` is patched in every row, so the usage row cannot write into the real folder)
+   - criterion 7: tests/entry/test_contract.py::test_a_committed_schema_requires_exactly_the_required_fields (one row per entry)
+   - criteria 8 and 9 (`make check`, docs): no tests; the factory's checks and the docs stage cover them.
+
+   Choices made where the criteria leave the detail open:
+   - A schema with no `required` key counts as an empty required list (`schema.get("required", [])`).
+   - "Exactly one newline" is checked as the text ending in `}\n`.
+   - In criterion 6, "writes nothing" for the usage row is checked as `tmp_path` staying empty.
+
+   Files created: tests/domain/test_contract.py and tests/entry/test_contract.py. No earlier test changed.
+
+   `make test` fails as intended: both new modules give collection errors (ImportError), because `factory.domain.contract` and `factory.entry.contract` do not exist yet. The other tests passed, at 99.08 % coverage. `make lint` is green. I skipped the type check, as this stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/entry/test_contract.py - ImportError while importing test module ...
