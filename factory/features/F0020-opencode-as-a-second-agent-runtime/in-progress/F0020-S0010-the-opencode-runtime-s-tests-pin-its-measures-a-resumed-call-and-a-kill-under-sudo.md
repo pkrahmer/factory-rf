@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 279
 comments_read: [6274821134]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T19:03:00.709373Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-19T19:03:00.709373Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T19:04:08.175679Z'
+  stage: review
+  run: 80eec480762f4fdaa75ddd7d5c59e90c
 ---
 
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
@@ -236,3 +238,19 @@ Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "gi
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 11. factory: started review as self.
+12. reviewer: no findings
+
+    What I checked: the diff (`git diff main...HEAD -- . ':!factory'`) adds four test modules and changes nothing under `src/`, as the Interface says. I read each test against its criterion and against the builders in `tests/adapters/opencode_stand_in.py`:
+    - Criterion 1: `tests/adapters/test_opencode_measures.py::test_a_result_block_keeps_its_entry_s_lines_and_needs_both_labels` has all five rows: lines kept, `note:`, no `decision:` label, `entry: First line.`, and the padded entry stripped.
+    - Criterion 2: `test_the_model_time_takes_off_every_tool_call_of_its_step` expects exactly 700 ms in both rows. If only the last tool call were taken off, the result would be 800 ms. If the tool call before the step counted, the result would differ too.
+    - Criterion 3: `test_every_refused_tool_call_is_a_denial_and_no_other` covers both orders, `permission` alone, `denied` alone, `Permission Denied`, and a `completed` tool call whose error text says `denied`. The builder writes the `error` key whatever the status, so that last row separates status from text.
+    - Criterion 4: `tests/adapters/test_opencode_resumed_words.py` compares the exact word lists. One row is the budget resume (cost 1.2 against the request's budget of 1, session `ses_a`, then `FINISH_MESSAGE`). The other is `resume_session` `ses_r` with `Go on.`.
+    - Criterion 5: `tests/adapters/test_opencode_sudo_time_limit.py` has four rows: killed at the limit (`time_limit`, `ses_a`, `api_key`), 137 at once (`died`), a self-SIGKILL at 4.5 s against a 3 s limit (status -9, `time_limit`), and exit 1 after the limit (`died`). Every row checks that the run took less than `BOUND_SECONDS` (20 s). With these rows, `KILL_STATUSES` and the duration-reached-limit condition are each tested on both sides.
+    - Criterion 6: `tests/adapters/test_opencode_confinement.py` checks that the temporary root is empty after a completed run, a died run and a run past its time limit, all through the real `CONFINE`. A second test checks the last `sudo` call's exact words, deriving the run id from the `OPENCODE_CONFIG` file name.
+    - The factory's `make check` after the coder was green (coder's entry, journal 10). The coder's entry has no `mutants` line because no module under `src/` changed. The `duplicates` line, 5 new, cannot come from this diff, since it changes nothing in `src/factory`.
+
+    Considered and not raised:
+    - `test_opencode_sudo_time_limit.py` and `test_opencode_confinement.py` import the private `_write_sudo` and `_sudo_calls` from `tests/adapters/test_claude_runtime_os_user.py`. The story asks for imports rather than copies, and earlier opencode tests already do the same; moving these helpers to a shared module is the tester's standing leave, for a later story.
+    - In `test_opencode_confinement.py`, `_runtime` builds `OpencodeRuntime` in two branches that differ only in `sudo_executable`. This is small and inside a new test file.
+
+    Earlier tests: none. `git diff --name-status main...HEAD` lists only added test files (`A`), so no test that `main` holds was changed.
