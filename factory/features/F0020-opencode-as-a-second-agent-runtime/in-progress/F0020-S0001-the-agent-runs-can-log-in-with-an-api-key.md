@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T03:43:29.068626Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T03:43:29.068626Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T03:45:11.849601Z'
+  stage: tests
+  run: 7d8e592116184907b05661142bfa48ec
 ---
 
 # The agent runs can log in with an API key
@@ -409,3 +411,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The description is unchanged; no journal entry changed the task.
 12. factory: started tests as self.
+13. tester: Round 1. I removed the copied test helpers from the reviewer's finding (entry 9), as the coder's entry 11 describes. I took the first option the coder named: both modules now import the names from `tests/adapters/test_agent_launch_login.py`, the same way they already import `REPLY` and `_request`. I did not move the names to a new shared module.
+
+    Changed (both are this story's test files):
+    - `tests/adapters/test_claude_runtime_api_login.py`: deleted its own `API_LOGIN`, `SUBSCRIPTION` and `_utf_16`. It now imports all three from `adapters.test_agent_launch_login`.
+    - `tests/entry/test_wiring_api_login.py`: deleted its own `API_LOGIN` and imports it from `adapters.test_agent_launch_login`.
+
+    The values were identical in every copy, so every test keeps its name and checks the same thing. I created no new files and edited no earlier story's test file.
+
+    The criterion-to-test mapping has not changed since entry 5.
+
+    `make lint` is green. `make test` is green: 99.09 % coverage. Every module imports.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (38.4 s)

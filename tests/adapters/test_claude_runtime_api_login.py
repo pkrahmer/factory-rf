@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from adapters.claude_stand_in import Step, read_calls, write_stand_in
+from adapters.test_agent_launch_login import API_LOGIN, SUBSCRIPTION, _utf_16
 from adapters.test_claude_runtime_login import BUDGET_STOP, REPLY
 from adapters.test_claude_runtime_os_user import _request, _sudo_calls, _write_sudo
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
@@ -14,8 +15,6 @@ from factory.domain.agent_runs import GuardSettings, Login
 from factory.domain.errors import AgentRuntimeError
 from run_process_recorder import Recorder
 
-API_LOGIN = "stand-in-api-login"
-SUBSCRIPTION = "stand-in-login"
 REQUEST_LOGIN = "request-login"
 
 
@@ -147,10 +146,6 @@ def test_the_key_stands_in_no_argument_no_run_file_and_no_result(
 def _folder(path: Path) -> None:
     path.unlink()
     path.mkdir()
-
-
-def _utf_16(path: Path) -> None:
-    path.write_bytes(API_LOGIN.encode("utf-16"))
 
 
 @pytest.mark.parametrize(

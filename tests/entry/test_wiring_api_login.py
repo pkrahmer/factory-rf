@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from adapters.claude_stand_in import Step, read_calls, write_stand_in
+from adapters.test_agent_launch_login import API_LOGIN
 from adapters.test_claude_runtime_login import REPLY
 from adapters.test_claude_runtime_os_user import _request
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE
@@ -12,8 +13,6 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
 from wiring_support import CREDENTIAL
-
-API_LOGIN = "stand-in-api-login"
 
 
 @pytest.mark.parametrize(
