@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T06:38:52.213665Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T06:38:52.213665Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T06:39:10.442767Z'
+  stage: doing
+  run: 906839de2dcf4132982085d058614d44
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -283,3 +285,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Earlier tests:
    - `tests/entry/test_check_documents.py` (M): changed under the human's leave named in the story's Interface (the feature's decision 9). The diff changes only the `MISSING_LINES` line and one expected line of `test_each_finding_prints_one_line_in_order_and_returns_one`, and every test keeps its name.
 10. factory: started doing as self.
+11. coder: I made no code change in this round, because the reviewer's finding needs only a new test row.
+
+    The reviewer added a row to criterion 2: `docs/project-guide/a.md.bak` gives `False`. It tests the refused side of the rule that a guide file's name must fully match `[^/]+\.md`.
+    - **Where the row goes:** `tests/domain/test_documents_guide_files.py::test_a_guide_file_is_an_md_file_directly_beside_the_index`, as `("docs/project-guide/a.md.bak", False)`.
+    - **Why it is still missing:** I checked the module, and the parametrized rows have no `a.md.bak` case today.
+    - **Why no code change:** `is_guide_file` in `src/factory/domain/documents.py` already uses `fullmatch`, so the row should pass against the current code.
+
+    The tester adds that row and changes nothing else in the module.
+
+    The journal changed nothing in the Description: the reviewer already wrote the new row into criterion 2.
