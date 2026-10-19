@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T11:18:15.562504Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-10-19T11:18:15.562504Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-19T11:20:13.666244Z'
+  stage: tests
+  run: 8c9e851d5cd14857b430feb836099384
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -310,3 +312,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     State: the implementation from my previous run is committed on the branch (`src/factory/domain/settings.py`, `src/factory/adapters/opencode_runtime.py`, `src/factory/application/preflight.py`, `src/factory/entry/wiring.py`, `image/Dockerfile`, `image/compose.yml`). Its design choice is in entry 10: one private `_agent_runtime` builder in the wiring, not a runtime registry. Still open for my next doing run, once the tests are settled: the refactor pass and the final `make check`. The journal changed nothing in the Description: the Interface and the runtime's fail-closed settings read stay as written.
 14. factory: started tests as self.
+15. tester: Made exactly the three test changes from the coder's entry 13, which the human approved in entry 11. All three are in this story's own tests.
+
+    1. `tests/entry/test_wiring_opencode.py::test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode_s`: before the run, the test now creates `settings.agent_home` and writes a `settings.json` holding a `permissions.deny` list (`{"permissions": {"allow": [], "deny": ["Bash(git push*)"]}}`) into it, as criterion 4's test does. Without it, the runtime's fail-closed read of the settings stops the run before the rules are written. I wrote it inline, so criterion 4's test is unchanged. What the test checks is unchanged: the folders in the home, in order.
+    2. `tests/application/test_opencode_item.py::test_the_opencode_item_does_not_depend_on_the_api_login_file`: the guard before `write_text` now also checks `content is not None`, which narrows `str | None` to `str` for mypy. The four rows and what they check are unchanged.
+    3. `tests/application/test_opencode_item.py::test_the_installed_models_are_each_agent_s_model_once_or_none_when_unreadable`: the `unreadable-agent-file` row's lambda built a tuple from `write_agent`, which returns `-> None`. A named helper `_write_an_unreadable_agent(home) -> None` replaces it and calls `write_agent` and `write_bytes` as statements. The row's id and expected `[]` are unchanged.
+
+    The criterion → test mapping in entry 8 still holds. No test was renamed or added.
+
+    I created no files. I changed only the two test files above, both written by this story, and no earlier story's test file. Every module now imports in the test run.
+
+    `make test` ran once: test: green (38.7 s), 99.06 % coverage. `make lint`: lint: green. As this stage says, I did not run `make types`. A plain `mypy` call on the two files did not count, because it ran without the project's setup. The coder's `make check` covers the type check.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (38.0 s)

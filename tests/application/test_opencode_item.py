@@ -86,7 +86,7 @@ def test_the_opencode_item_does_not_depend_on_the_api_login_file(
     tmp_path: Path, *, content: str | None, found: bool
 ) -> None:
     api_login_file = None if content is None else tmp_path / "api-login"
-    if api_login_file is not None and content != "missing":
+    if api_login_file is not None and content is not None and content != "missing":
         api_login_file.write_text(content, encoding="utf-8")
     models = ["opus", "sonnet"]
 
@@ -102,19 +102,17 @@ def _write_three_agents(home: Path) -> None:
         write_agent(home, role, AGENT_FILE.replace("model: sonnet", f"model: {model}"))
 
 
+def _write_an_unreadable_agent(home: Path) -> None:
+    write_agent(home, "coder", AGENT_FILE)
+    (home / "agents" / "intake.md").write_bytes(b"\xff\xfe")
+
+
 @pytest.mark.parametrize(
     ("prepare", "models"),
     [
         pytest.param(_write_three_agents, ["sonnet", "opus"], id="each-once-in-name-order"),
         pytest.param(lambda _: None, [], id="no-agents-folder"),
-        pytest.param(
-            lambda home: (
-                write_agent(home, "coder", AGENT_FILE),
-                (home / "agents" / "intake.md").write_bytes(b"\xff\xfe"),
-            ),
-            [],
-            id="unreadable-agent-file",
-        ),
+        pytest.param(_write_an_unreadable_agent, [], id="unreadable-agent-file"),
     ],
 )
 def test_the_installed_models_are_each_agent_s_model_once_or_none_when_unreadable(

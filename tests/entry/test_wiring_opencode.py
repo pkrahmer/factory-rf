@@ -132,6 +132,10 @@ def test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode
         opencode_models={"sonnet": "anthropic/claude-sonnet-5-5"},
         opencode_folders=folders,
     )
+    settings.agent_home.mkdir(parents=True)
+    (settings.agent_home / "settings.json").write_text(
+        json.dumps({"permissions": {"allow": [], "deny": ["Bash(git push*)"]}}), encoding="utf-8"
+    )
     (settings.state_directory / "runs").mkdir(parents=True)
     boundaries = build_boundaries(
         settings, CREDENTIAL, hosting=FakeHostingService(), confine_executable=str(confine)
