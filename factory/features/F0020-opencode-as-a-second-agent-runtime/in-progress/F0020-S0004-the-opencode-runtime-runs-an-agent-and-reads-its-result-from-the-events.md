@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T05:34:22.989850Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -219,6 +223,11 @@ journal:
   at: '2026-10-19T05:34:02.906493Z'
   stage: review
   run: 33fae1320c2a4f42837c1e98dac6b60c
+- number: 39
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:34:22.989850Z'
+  stage: docs
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -737,3 +746,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests:
     - `tests/test_model_configuration.py`: changed under the leave the story gives (the feature's decision 19). The change only adds the eight `opencode_runtime` models to `EXCEPTIONS`.
     - `tests/test_wrapper_search.py`: changed under the leave the story gives (the feature's decision 19). The change only adds `factory.adapters.opencode_runtime` to the expected importers.
+39. factory: started docs as self.
