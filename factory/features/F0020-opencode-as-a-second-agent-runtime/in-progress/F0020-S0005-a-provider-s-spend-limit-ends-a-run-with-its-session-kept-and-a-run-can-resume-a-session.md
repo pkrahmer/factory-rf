@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853, 6262583574]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T08:15:28.769123Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -258,6 +262,11 @@ journal:
   at: '2026-10-19T08:15:07.868916Z'
   stage: docs
   run: d4dc927002bc42e9b5ee499f5205ffcd
+- number: 46
+  speaker: factory
+  kind: started
+  at: '2026-10-19T08:15:28.769123Z'
+  stage: smoke-test
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -859,3 +868,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `documents`: documents ok
+46. factory: started smoke-test as self.
