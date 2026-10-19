@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T10:58:08.971295Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-10-19T10:58:08.971295Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T10:58:31.956438Z'
+  stage: smoke-test
+  run: d715a7d42c7f4758b6d3c3de40b908e4
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -631,3 +633,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `documents`: documents ok
 30. factory: started smoke-test as self.
+31. smoke-tester: I ran the smoke test exactly as written, from the repository root, as one bash script: the `mktemp -d` and trap, the work folder, and the inline Python under `uv run -q`. The exit status was 0. I fixed nothing and changed no files.
+
+    Command 1 (the whole `## Smoke test` block). Output:
+
+    ```
+    completed 0.6 15.0
+    [420.0, 600.0] 2026-10-18T00:17:00+00:00
+    True ses_smoke 0.8 55.0
+    provider limit: coder waits 420 s before it resumes ses_smoke
+    ```
+
+    Expect: four lines, `completed 0.6 15.0`, `[420.0, 600.0] 2026-10-18T00:17:00+00:00`, `True ses_smoke 0.8 55.0`, `provider limit: coder waits 420 s before it resumes ses_smoke`. **Met**: the four lines match the expectation exactly.
+
+    Checked against the acceptance criteria:
+    - The run was resumed twice and ended `completed`. Costs were summed (0.2 + 0.1 + 0.3 = 0.6) and so were durations (3 × 5 s = 15 s); the waits did not count toward the duration. This agrees with criteria 5 and 6.
+    - The first wait used the named `limit_wait` of 420 s instead of the cool-down. The second limit had no named wait and fell back to the default cool-down of 600 s. This agrees with criteria 6 and 11 (defaults without settings).
+    - The manual clock moved forward by the sum of the waits, 17 minutes. This agrees with criterion 1.
+    - The first resumed request had `CONTINUE_PROMPT`, the session `ses_smoke`, the budget left (0.8) and the time left (55 s). This agrees with criterion 5.
+    - The log line has whole seconds and names the session, as criteria 7 and 17 say.
+
+    Nothing in the output contradicts any criterion. Criteria 13–16 (stage, preflight probe, wiring) and 19–20 (`make check`, docs) are outside what this script runs, and it says nothing against them.
+
+    Findings: none.
+
+    Open: none.
