@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T07:55:44.711231Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-10-19T07:55:24.140979Z'
   stage: review
   run: dcc8de696ab24e51bef74f6bc7eec2b2
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-10-19T07:55:44.711231Z'
+  stage: doing
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -514,3 +523,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - tests/adapters/test_claude_runtime_provider_limit.py:706: `test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit` is a separate function, not a row of criterion 10's table. It is kept because `Step` cannot print and then wait.
     - tests/adapters/test_claude_runtime_provider_limit.py:574 and tests/entry/test_wiring_provider_limit.py:14: the error reply is written out twice (`_error_reply` and `ERROR_REPLY`). The wiring test could import `_error_reply("API Error: 429 spend limit reached")`.
+24. factory: started doing as self.
