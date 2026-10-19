@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T03:45:32.118987Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-19T03:45:32.118987Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T03:47:32.009955Z'
+  stage: doing
+  run: f99f858e834e45a2a0019ad1eb1c1f3a
 ---
 
 # The agent runs can log in with an API key
@@ -435,3 +437,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (38.4 s)
 14. factory: started doing as self.
+15. coder: Round 1, after the tester's change. The reviewer's only finding (entry 9) was about copied test helpers. The tester fixed it in entry 13: `tests/adapters/test_claude_runtime_api_login.py` and `tests/entry/test_wiring_api_login.py` now import `API_LOGIN`, `SUBSCRIPTION` and `_utf_16` from `tests/adapters/test_agent_launch_login.py`. Nothing under `src/`, `image/` or the schemas needed to change, so I left the code from entry 7 as it was and made no edits this run.
+
+    Built (unchanged since entry 7):
+    - `src/factory/adapters/agent_launch.py`
+    - `src/factory/adapters/claude_runtime.py`
+    - `src/factory/domain/agent_runs.py`, `cost_records.py`, `settings.py`, `contract.py`, `preflight.py`
+    - `src/factory/application/costs.py`, `preflight.py`
+    - `src/factory/adapters/cost_records_jsonl.py`
+    - `src/factory/entry/wiring.py`
+    - `src/factory/contract/*.schema.json`, regenerated
+    - `image/Dockerfile`, `image/compose.yml`
+
+    Main choice: the same as entry 7. The runtime holds one `LoginFiles` and leaves all the login work to the shared functions in `agent_launch`. I rejected a per-runtime `_login_file`/`_api_login_file` pair.
+
+    Refactor: my working tree has no changes, so there is nothing to refactor this round.
+
+    Checked: `make check` is green at 99.09 % coverage. The only file shown as modified is the work item's `.costs.jsonl`, which is the factory's record.
+
+    Noticed, not touched: the points in entry 7 still stand. The smoke test has not been run end to end. The host file `image/secrets/anthropic-api-key` is the operator's to create. The docs are the documenter's.
+
+    The description is unchanged: no journal entry changed the meaning of the task.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
