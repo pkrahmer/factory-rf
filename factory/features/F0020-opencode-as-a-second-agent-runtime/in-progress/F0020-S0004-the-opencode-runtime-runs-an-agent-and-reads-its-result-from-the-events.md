@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T04:49:39.935705Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-19T04:49:19.475246Z'
   stage: tests
   run: c87e26bb2e344fabaea4a7b6f0a56994
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:49:39.935705Z'
+  stage: doing
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -299,3 +308,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/adapters/test_opencode_runtime_launch.py - ImportError while impo...
+9. factory: started doing as self.
