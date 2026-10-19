@@ -100,7 +100,7 @@ duplicates:
 	echo "duplicates: $$similar similar code, $$dead dead code, in .reports/"
 
 # Mutation testing of the modules of the package that one feature's stories changed:
-# `make mutants FEATURE=F0001`. Slow, so not part of `check`; the feature acceptance runs it,
+# `make mutants FEATURE=F0001`. Slow, so not part of `check`; a sweep by hand runs it, never a stage,
 # and on an acceptance's branch (work-item/<feature id>-A<number>) FEATURE is that feature. A story's
 # commits are those whose subject starts `work item <id>:`, or `<id>:` after a squash merge.
 FEATURE ?= $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null | sed -n 's|^work-item/\(F[0-9]\{4\}\)-A[0-9]\{4\}$$|\1|p')

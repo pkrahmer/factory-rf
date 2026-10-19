@@ -1,3 +1,131 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 286
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T20:50:05.447263Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:50:05.454416Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T20:50:27.935593Z'
+  stage: intake
+  run: 6dedcc08f3dc416a855ead9a8ad44429
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:50:48.736600Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T20:53:24.236936Z'
+  stage: tests
+  run: 980123cff2644e24ba046a9ecdcb0181
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:53:45.980015Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T20:56:13.755388Z'
+  stage: doing
+  run: 31ef9302986d4f93a6e31131d13aaf75
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:56:35.011750Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T20:57:03.904444Z'
+  stage: review
+  run: 524c2a0cc4dd485b8e802f1836f3346d
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:57:24.472810Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T20:57:38.230068Z'
+  stage: doing
+  run: 3ffd636478c14af4b2e9487a1d9744fd
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:57:58.897017Z'
+  stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T20:59:59.343504Z'
+  stage: tests
+  run: 30993873f9b648aab5f3122338dd9c25
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:00:20.059729Z'
+  stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T21:02:13.064672Z'
+  stage: doing
+  run: 2d2e2941a2104de2b3c4736389df9b8f
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:02:33.993454Z'
+  stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T21:02:57.963878Z'
+  stage: review
+  run: d1b3c51175754e128154d2369a4adaa0
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:03:18.501814Z'
+  stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T21:04:16.204209Z'
+  stage: docs
+  run: b62740f3691f4358b757fefa344829b6
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:04:37.016854Z'
+  stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T21:04:58.882243Z'
+  stage: smoke-test
+  run: 26c2e8dd158c4860b95afd259ad4c25a
+---
+
 # The shipped agents neither run nor read mutation testing
 
 ## Description
@@ -67,3 +195,204 @@ Expect: `1`
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: no module under `src/` changes. It names four exact files (`claude/agents/acceptance-reviewer.md`, `claude/agents/reviewer.md`, `template/CLAUDE.md`, `template/Makefile`) and gives the old and new text of every passage. I found the old passages in the acceptance reviewer: check 7 is on line 59, step 1 on line 72 and step 3 on line 74. The template's Makefile still has the old comment line.
+   - Criteria: each is testable by a parametrized text-presence or text-count test. The rules have both sides. The new texts are present (1), the old texts occur 0 times and check 3 occurs once as the third numbered check (2), and the reviewer holds no `mutant`, `mutmut` or `mutation` plus the blank-line layout (3). The template's CLAUDE.md line and Makefile line are present once, and the old wording is gone (4). The unchanged tests still pass (5). Every behaviour in the Interface comments has a criterion. The changes to existing tests carry the human's leave under the feature's decision 7.
+   - Smoke test: the commands are runnable greps. I checked the first one: its four patterns sit on four separate lines (check 3, check 7, step 1, step 3), so `4` is right. The second block's four expected lines (`0`, `0`, `template/CLAUDE.md:0`, `template/Makefile:0`) match grep -c output for two files. Each `Expect:` line can be checked against the output.
+   - Architecture: only shipped agent texts and template files change, in `claude/` and `template/`. Those are the coder's write paths and the tests are the tester's. No layer, dependency or suppression marker is involved.
+   - Scope: it is within the feature's Scope. It leaves alone the Out-of-scope items (the `mutants` target, `src/`, the pipeline files and the todo demo). The pipeline file and the demo changes stay the human's, as the feature says.
+4. factory: started tests as self.
+5. tester: Wrote the tests for the shipped agents' and the template's mutation-testing texts. The tests are red on purpose until the coder changes the four files under `claude/` and `template/`.
+
+   - criterion 1: tests/test_claude_agent_texts_mutants.py::test_acceptance_reviewer_leaves_mutation_testing_to_sweeps (rows check-3, check-7, recommendation, proposals in *Role*; step-1, step-3 in *Stage*, through `section_text(agent_body("acceptance-reviewer"), ...)`)
+   - criterion 2: tests/test_claude_agent_texts_mutants.py::test_acceptance_reviewer_holds_no_old_mutation_text (seven old texts 0 times, `3. **Mutation testing.**` once) and tests/test_claude_agent_texts_mutants.py::test_acceptance_reviewer_mutation_testing_is_the_third_check (the next line starts `4. **What the stories noticed.**`)
+   - criterion 3: tests/test_claude_agent_texts_mutants.py::test_reviewer_names_no_mutation_testing (rows mutant, mutmut, mutation over the lowercased body) and tests/test_claude_agent_texts_mutants.py::test_reviewer_item_6_is_followed_by_the_findings_paragraph (one blank line, then `Write findings as a numbered list in your entry`)
+   - criterion 4: tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text (`TEMPLATE_RULES_LINES` now holds the new template sentence) and tests/test_claude_agent_texts_mutants.py::test_template_makefile_leaves_mutants_to_a_sweep_by_hand (rows: the new comment line occurs once, `the feature acceptance runs it` occurs 0 times)
+   - criterion 5: no new test. tests/test_claude_agent_texts.py, tests/test_acceptance_reviewer_disk.py, tests/test_claude_agent_texts_review_leave.py, tests/test_template_makefile.py and the rest of tests/test_claude_files.py are left as they were.
+   - criterion 6: `make check`, which the factory runs. criterion 7 is the docs stage's work.
+
+   Files: I created no new file.
+   - I rewrote `tests/test_claude_agent_texts_mutants.py`, an earlier test, as the story says. The old tests there pinned the texts that this story removes, so they are replaced by the tests above.
+   - I changed `TEMPLATE_RULES_LINES` in `tests/test_claude_files.py`, an earlier test. Only the string pieces that hold the sentence changed. The joined text is otherwise the same as before; the literal pieces after it are split differently only to keep lines within 100 characters.
+   - Both earlier files were changed under the leave of the feature's decision 7, which the story names.
+
+   Import failures: none. No module under `src/` is involved, so every test module was collected.
+
+   `make test` (one run) fails only in the new and changed tests. The texts are still the old ones, so the tail showed, among others, `test_reviewer_item_6_is_followed_by_the_findings_paragraph`, both rows of `test_template_makefile_leaves_mutants_to_a_sweep_by_hand` and `test_template_rules_file_is_the_python_project_text`. `make lint` is green.
+
+   Open: nothing.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text
+6. factory: started doing as self.
+7. coder: Replaced the mutation-testing texts in the four shipped files named by the Interface. Each replacement is the exact old/new pair from the Interface, and nothing else in those files changed.
+   - `claude/agents/acceptance-reviewer.md`: in *Role*, check 3 is now *Mutation testing* ("By sweep, not run here."). Check 7 now starts "beyond `make check` (...), but not `make mutants` (check 3)", and the rest of that line is unchanged. The recommendation no longer names survivors, and the proposals no longer say "one per mutant". In *Stage*, step 1 no longer runs `make mutants`, and step 3's entry no longer has the `make mutants <killed>/<total>` part.
+   - `claude/agents/reviewer.md`: removed the mutation-report paragraph together with one of its blank lines. Item 6 is now followed by one blank line and then the findings paragraph.
+   - `template/CLAUDE.md`: the `make mutants` sentence now says "for a sweep by hand, never run by a stage and never part of `make check`".
+   - `template/Makefile`: the comment above `FEATURE ?=` now says "a sweep by hand runs it, never a stage,". The next comment line and the recipe are unchanged.
+
+   Main choice: I made the replacements with a throwaway script that asserts each old text occurs exactly once before it replaces it. That way no partial or doubled edit could slip through. I rejected hand-editing the very long lines with Edit, because exact matching on them is fragile.
+
+   Refactor: nothing to change. The diff only swaps text.
+
+   Checks: `make check` is green (coverage 99.12 %). All three smoke-test blocks print what they expect: `4`; `0`, `0`, `template/CLAUDE.md:0`, `template/Makefile:0`; and `1`.
+
+   Seen but not touched: line 4 of `template/Makefile` still calls `duplicates` and `mutants` "reports outside `check`". The Interface keeps that line, and it is still true, but the word "reports" reads more like a stage report than a sweep. That could be a later wording story. The docs criterion (7) is the documenter's.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: Findings:
+
+   1. `tests/test_claude_agent_texts_mutants.py:1`: the module docstring goes beyond the leave this file was changed under. Decision 7 of `feature.md` says the tester makes exactly the listed changes and nothing else, and it sets the docstring to `"""No shipped agent runs or reads mutation testing; the acceptance's check 3 says it is done by sweep."""`. The tester wrote `"""No shipped agent runs or reads mutation testing; the template leaves it to a sweep by hand."""` instead. Fix: the tester sets the docstring to decision 7's exact text. The coder hands this on with `tests`. If the human prefers the tester's wording because the module now also holds the Makefile test, that is the human's call to make in an answer.
+
+   Everything else checked clean:
+   - The four files under `claude/` and `template/` match the Interface's old and new pairs exactly. The reviewer's paragraph is gone with one of its blank lines, and check 7's rest and the Disk sentence are unchanged.
+   - Criteria 1 to 4 each have a test that checks what the criterion names. Every count has a 0 row and a once row, and the sides are rows of parametrized tests.
+   - The coder's journal reports the factory's `make check` as green.
+   - No module under `src/` changed and there are no suppression markers, so architecture and security are clean.
+
+   Earlier tests:
+   - `tests/test_claude_agent_texts_mutants.py`: the human's leave, decision 7 of the feature, which the story names (rewritten; see finding 1 for the docstring that goes beyond it).
+   - `tests/test_claude_files.py`: the human's leave, decision 7 of the feature, which the story names. Only `TEMPLATE_RULES_LINES` changed: the sentence was replaced and the strings around it were wrapped again, and every other line and test is as it was.
+10. factory: started doing as self.
+11. coder: Round 1: the reviewer's only finding is about a test, so I changed no code. I'm passing it to the tester.
+
+    - Test change: in `tests/test_claude_agent_texts_mutants.py`, line 1, set the module docstring to decision 7's exact text: `"""No shipped agent runs or reads mutation testing; the acceptance's check 3 says it is done by sweep."""`. It currently reads `"""No shipped agent runs or reads mutation testing; the template leaves it to a sweep by hand."""`. Nothing else in that file changes.
+    - Code: the four files under `claude/` and `template/` stay as they were in entry 7. The reviewer found that they match the Interface exactly. No refactor was needed, and no other file changed.
+    - Choice: I'm handing the change on with `tests` rather than raising a question. The reviewer's finding names decision 7's exact text, so nothing is left to decide unless the human prefers the tester's wording. The reviewer left that call to the human, and I have no reason to ask for it.
+    - Noticed, not touched: what I reported in entry 7 still holds. Line 4 of `template/Makefile` calls `duplicates` and `mutants` "reports outside `check`", which could be a later wording story.
+12. factory: started tests as self.
+13. tester: Made the approved test change from coder entry 11 (reviewer finding 1, decision 7 of the feature). I changed only the module docstring of `tests/test_claude_agent_texts_mutants.py`.
+    - Old: `"""No shipped agent runs or reads mutation testing; the template leaves it to a sweep by hand."""`
+    - New: `"""No shipped agent runs or reads mutation testing; the acceptance's check 3 says it is done by sweep."""`
+
+    On one line, the exact text is 105 characters, and `make lint` failed with E501 (line limit 100). So I split the source line inside the docstring with a backslash line continuation after `testing; `. The docstring's value is still decision 7's exact text on one line; I checked it with `ast.get_docstring`. I rejected two other fixes:
+    - a `# noqa: E501` marker, because it would be a suppression;
+    - a summary line plus a body, because it would change the text.
+
+    Nothing else in the file changed. No other test file changed.
+
+    Criterion mapping is unchanged from entry 5:
+    - criterion 1: tests/test_claude_agent_texts_mutants.py::test_acceptance_reviewer_leaves_mutation_testing_to_sweeps
+    - criterion 2: tests/test_claude_agent_texts_mutants.py::test_acceptance_reviewer_holds_no_old_mutation_text and ::test_acceptance_reviewer_mutation_testing_is_the_third_check
+    - criterion 3: tests/test_claude_agent_texts_mutants.py::test_reviewer_names_no_mutation_testing and ::test_reviewer_item_6_is_followed_by_the_findings_paragraph
+    - criterion 4: tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text and tests/test_claude_agent_texts_mutants.py::test_template_makefile_leaves_mutants_to_a_sweep_by_hand
+    - criterion 5: the unchanged earlier tests
+
+    Files created: none. Earlier file changed: tests/test_claude_agent_texts_mutants.py, under decision 7's leave as the coder's entry passed it on. Import failures: none.
+
+    Checks:
+    - `make test`, run once before the line split: test: green (45.5 s), coverage 99.12 %.
+    - `make lint` after the split: green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (44.2 s)
+14. factory: started doing as self.
+15. coder: Round 1: the tester made the test change I passed on in entry 11, so this run changed no code and no file.
+    - What the tester did (entry 13): the module docstring of `tests/test_claude_agent_texts_mutants.py` now holds decision 7's exact text. The source line is split with a backslash continuation to stay within the line limit.
+    - Code: the four files under `claude/` and `template/` are as they were in entry 7: `claude/agents/acceptance-reviewer.md`, `claude/agents/reviewer.md`, `template/CLAUDE.md` and `template/Makefile`. The reviewer found that they match the Interface's old and new pairs exactly.
+    - Main choice: I'm sending it back to review without touching the code. Reviewer finding 1, the only finding, was in a test and is now done. I rejected re-editing the shipped texts, because no finding concerned them.
+    - Refactor: nothing to change. The diff is only exact text replacements.
+    - Checks: `make check` is green on the committed state (coverage 99.12 %).
+    - Noticed, not touched: what I said in entries 7 and 11 still holds. Line 4 of `template/Makefile` calls `duplicates` and `mutants` "reports outside `check`", which could be a later wording story. The docs criterion (7) is the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+16. factory: started review as self.
+17. reviewer: no findings
+
+    I checked:
+    - The four files under `claude/` and `template/` match the Interface's old and new pairs exactly.
+      - In `claude/agents/acceptance-reviewer.md`: check 3 and check 7 both changed, the rest of check 7 (`Say so.` through the Disk sentence) is as it was, and the recommendation, proposals, step 1 and step 3 all have their new text.
+      - In `claude/agents/reviewer.md`: the paragraph is gone along with one of its two blank lines.
+      - The `template/CLAUDE.md` bullet and the `template/Makefile` comment changed; the next comment line and the recipe are as they were.
+      - Nothing else in those files changed, and no module under `src/` changed.
+    - Criteria 1 to 4: each has a test that checks what the criterion names.
+      - `test_acceptance_reviewer_leaves_mutation_testing_to_sweeps` has six rows, one per new text, each read through `section_text` of the named section.
+      - `test_acceptance_reviewer_holds_no_old_mutation_text` has seven rows that count 0 and one row that counts once.
+      - `test_acceptance_reviewer_mutation_testing_is_the_third_check` checks that the line after check 3 starts check 4.
+      - `test_reviewer_names_no_mutation_testing` has three lowercased rows.
+      - `test_reviewer_item_6_is_followed_by_the_findings_paragraph` checks the blank line and then the findings paragraph.
+      - `test_template_makefile_leaves_mutants_to_a_sweep_by_hand` has a row for once and a row for 0.
+      - `TEMPLATE_RULES_LINES` holds the new sentence.
+      - Every count rule is tested on both sides, as rows of one parametrized test.
+    - Criterion 5: the earlier tests it names are not in the diff.
+    - The factory's `make check` after the coder is green (entry 15). It was red in entry 5 only because the tests were written before the code.
+    - Round 0's finding is fixed. The module docstring's value is decision 7's exact text; the backslash continuation sits inside the string literal, so the value is one line.
+    - Architecture and security: only shipped texts and tests changed, with no suppression markers and no secrets.
+    - Hygiene: the journal gives the coder's choice (a script that asserts each replacement happens exactly once) and what was rejected. The Description matches what was built. The docs criterion (7) still describes what the reader must know.
+
+    Earlier tests:
+    - `tests/test_claude_agent_texts_mutants.py`: the human's leave, decision 7 of the feature, which the story names. Rewritten as decision 7 lists: the docstring, the three old constants and their three tests replaced by criteria 1 to 3 and the Makefile test of criterion 4.
+    - `tests/test_claude_files.py`: the human's leave, decision 7 of the feature, which the story names. Only the sentence in `TEMPLATE_RULES_LINES` changed, with the strings wrapped again; every other line and every test is as it was.
+
+    Notes:
+    - `tests/test_claude_agent_texts_mutants.py:1`: the docstring is held under 100 columns by a backslash continuation inside the string. This is unusual, but needed to keep decision 7's exact one-line text.
+    - `template/Makefile:4` (the coder's entries 7, 11 and 15): it still calls `duplicates` and `mutants` "reports outside `check`". This is outside this story's Interface; the feature acceptance can consider it as a wording story.
+18. factory: started docs as self.
+19. documenter: Documented criterion 7. I changed documents only, so I did not run `make check`; the factory's checks decide.
+
+    Files changed:
+    - `docs/operator-guide.md`: *The mutation report of a story* is now *Mutation testing by sweep*.
+      - It says no stage or agent runs `make mutants` (the human's decision of 2026-10-19), and that the `mutants` target and `check_mutants` stay for sweeps.
+      - It says a coder's entry has no `mutants` line and the acceptance's check 3 says `By sweep, not run here.`
+      - *How long it takes* keeps its measures. I dropped its sentences on partial stories, the reviewer and the acceptance, and added the 2026-10-19 runs (4 mutants in 439 s on a fresh `mutants/`, 31 mutants in 12 s with the stats kept). A sweep pays the stats every time.
+      - *A run that never gets past mutmut's stats* stays. I removed its "while the factory is idle" wording.
+      - *What the reviewer does*, *What the acceptance does* and the `Permission denied` paragraph with its repair are gone.
+      - In *What a stage run shows*, item 3, I removed the paragraph that began "The `mutants` report of a story". The example of a report stopped at its time limit stays.
+    - `docs/project-guide/processes-and-checks.md`, *Mutation testing*:
+      - The first paragraph now says no stage runs the target. The two forms stay.
+      - The stop paragraph keeps `MUTANTS_SECONDS` and `--stopped-after 540`. The sentences on the shell tool, the report's `time_limit` and the factory's KILL are gone.
+      - The `EXIT` trap paragraph no longer gives the report and the agents' runs as the reason for `chmod`, and no longer points to the operator guide's repair.
+      - I added the sentence on copying non-Python files under `src/` into `mutants/src`.
+      - I also removed "(the report runs before the stage's result commit)" from the story-branch bullet, since no report runs.
+    - `docs/project-guide/agents.md`: the `template/Makefile` bullet now says `mutants` is for a sweep by hand and never run by a stage.
+    - `docs/decisions.md`: new entry *Mutation testing runs only as sweeps outside the factory*, with the reasons and the rejected options from the criterion. *Mutation testing per story* now names it as its superseder.
+
+    Cross-read and found current: `README.md` (it does not name mutation testing); `docs/project-guide/README.md`; the *Mutation testing* report sections of `processes-and-checks.md`, which describe the target and `check_mutants` and still hold. I also read line 121 of `processes-and-checks.md`, which describes the `duplicates` report after the coder, not `mutants`. It is accurate and I left it.
+
+    Stale text noticed, not touched:
+    - `template/Makefile:4` calls `duplicates` and `mutants` "reports outside `check`". Both the coder and the reviewer noted it, and it is outside this story's Interface.
+    - `docs/decisions.md` still holds older entries that describe the acceptance running `make mutants` (for example *Mutation testing is limited to one feature's modules*). They are history, and the new entry supersedes them.
+    - `factory/pipeline.yml:29` has a comment that says `make mutants` re-runs in the acceptance agent's run. That is the human's file (R14).
+
+    No findings for the coder: the code and shipped texts match the Interface and the docs criterion.
+
+    `check`: check: green (not run again: passed on tree be858289db70 at 2026-10-19T21:01:22Z)
+    `secrets`: secrets: green (1.9 s)
+    `documents`: documents ok
+20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test, round 1. I ran the three commands under `## Smoke test` from the repository root, exactly as written and in order. Each one met its `Expect:` line. I changed nothing.
+
+    Command 1 (the new texts of the acceptance reviewer):
+    ```
+    4
+    ```
+    Met: `4`. Check 3, check 7, step 1 and step 3 each hold their new text.
+
+    Command 2 (no old text is left):
+    ```
+    0
+    0
+    template/CLAUDE.md:0
+    template/Makefile:0
+    ```
+    Met: four lines, `0`, `0`, `template/CLAUDE.md:0` and `template/Makefile:0`.
+
+    Command 3 (the new template sentence):
+    ```
+    1
+    ```
+    Met: `1`.
+
+    Against the acceptance criteria: I also checked the line layout that the commands do not cover, and none of it contradicts a criterion.
+    - In `claude/agents/acceptance-reviewer.md`, the `3. **Mutation testing.**` line is at line 55, and the next line starts `4. **What the stories noticed.**` (criterion 2).
+    - In `claude/agents/reviewer.md`, the `6. **Earlier tests**` line is followed by one blank line and then `Write findings as a numbered list in your entry` (criterion 3).
+    - In `template/Makefile`, line 103 holds the new `make mutants FEATURE=F0001` comment line (criterion 4).
+
+    Not covered by this stage: criteria 5 and 6 (the earlier tests still pass, `make check` stays green) are proved by the factory's checks, not by this smoke test. The docs criterion belongs to the docs stage.
+
+    Findings: none.

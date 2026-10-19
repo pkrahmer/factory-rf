@@ -799,7 +799,7 @@ Date: 2026-10-19 (F0024-S0002; F0024 decision 10). A command that reaches its ti
 
 ## Mutation testing per story
 
-Date: 2026-10-19 (F0024-S0003; F0024 decisions 1, 2, 4 to 7 and 13). This supersedes *Mutation testing is limited to one feature's modules*. `make mutants` ran only at a feature's acceptance, inside the agent's run, and a large feature ended partial in every run (F0021: 2,806 of about 5,750 mutants in three runs). Now the factory runs it as a report after the coder, the reviewer reads the survivors while the story is open, and the acceptance re-runs what the stories left.
+Date: 2026-10-19 (F0024-S0003; superseded by *Mutation testing runs only as sweeps outside the factory*; F0024 decisions 1, 2, 4 to 7 and 13). This supersedes *Mutation testing is limited to one feature's modules*. `make mutants` ran only at a feature's acceptance, inside the agent's run, and a large feature ended partial in every run (F0021: 2,806 of about 5,750 mutants in three runs). Now the factory runs it as a report after the coder, the reviewer reads the survivors while the story is open, and the acceptance re-runs what the stories left.
 
 - Decision (1): on a story's branch the `Makefile` takes the modules the branch changes against `origin/main`, the work tree and untracked modules included. The engine knows neither the target nor the branch form.
 - Decision (2): a story's run takes every mutant of its modules by pattern. An acceptance's run, with `FEATURE` or on its branch, takes by name only the mutants that are not killed, and a module with no mutant yet by its pattern. mutmut 3.8 runs again every mutant a name selects, so a stopped run reaches the same mutants every time; only a list that loses its kills goes on.
@@ -809,3 +809,11 @@ Date: 2026-10-19 (F0024-S0003; F0024 decisions 1, 2, 4 to 7 and 13). This supers
 - Decision (7): a complete result is a known result like any report and is reused; a partial one exits 1, is never reused and runs again. `mutants` has no `not_read`.
 - Decision (13): `mutants/` belongs to two users of one group, so the `EXIT` trap runs `chmod -R g+w mutants`. A run killed by the factory skips the trap, and the next run of the other user fails with `Permission denied`; the operator repairs it with `chmod -R g+w` as root.
 - Rejected: running only the changed functions (mutmut resets their results while it runs, after the names are chosen); every unchecked mutant of the package (about 10,000); a longer lease; the report's whole output in the journal (a long list in every coder entry) or in a file of the factory's; a gentler stop (TERM before KILL) in the process module (all commands would be affected).
+
+## Mutation testing runs only as sweeps outside the factory
+
+Date: 2026-10-19 (F0031-S0001; the human's decision of 2026-10-19). This supersedes *Mutation testing per story*. No stage and no agent runs `make mutants` or mutmut: the shipped acceptance reviewer's check 3 says `By sweep, not run here.`, the reviewer no longer reads a mutation report, and the template's `CLAUDE.md` and `Makefile` name the target as a sweep by hand.
+
+- Why: every acceptance of 2026-10-19 ran `make mutants` one to four times at up to 540 s each, and every large feature still ended partial (F0019 to F0023). A sweep in idle time, on a fresh copy, needs neither a stage's time limit nor a `mutants/` shared by two users.
+- Decision: sweeps start with a fresh `mutants/` in a throwaway container. The `mutants` target and `factory.entry.check_mutants` stay for them.
+- Rejected: a longer limit for the acceptance; the report after the coder (taken out the same day); check 3 dropped and the checks renumbered, because the eight report sections, check 7's pinned start and the reports already written keep their numbers.
