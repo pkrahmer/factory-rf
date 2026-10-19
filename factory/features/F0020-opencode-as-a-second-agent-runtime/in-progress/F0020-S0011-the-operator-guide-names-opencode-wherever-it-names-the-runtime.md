@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 280
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T19:13:14.119943Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T19:13:14.119943Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T19:13:28.960158Z'
+  stage: review
+  run: 04dd7b7527494015ab915528d665aa37
 ---
 
 # The operator guide names opencode wherever it names the runtime
@@ -138,3 +140,10 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 5e9e997b80f0 at 2026-10-19T19:01:37Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar (`git diff --name-status main...HEAD`), as expected for a story that only changes docs.
+   - Item 1 (acceptance criteria): criterion 1 holds. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes, and the tester (entry 5) and the coder (entry 7) each say so. Criterion 2 holds: the coder's entry 7 carries `check: green`, a reused pass on tree 5e9e997b80f0, and that tree holds no change to anything `make check` reads. Criterion 3 is the docs criterion and belongs to the documenter, who comes next. The Interface states no rule or limit, so no failing side is owed. There is no mutation report line, because no module changed.
+   - Item 2 (architecture), item 3 (security) and item 4 (quality): there is no code or test in the diff to judge. The coder's `duplicates: 5 new` cannot come from this branch, since it changes nothing under `src/factory`. They are findings already on `main` and outside this review's scope.
+   - Item 5 (work item hygiene): the coder's entry gives the main choice (hand forward with no change) and what was rejected (editing `docs/operator-guide.md` from the doing stage). The Description still matches the work. The docs criterion names each passage and the exact wording the documenter must write.
+   - Item 6 (earlier tests): no test file that `main` holds is changed, renamed or deleted.
