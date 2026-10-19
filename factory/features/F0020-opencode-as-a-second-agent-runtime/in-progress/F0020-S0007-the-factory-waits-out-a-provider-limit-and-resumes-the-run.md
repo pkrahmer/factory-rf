@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T10:58:08.971295Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-10-19T10:57:48.650484Z'
   stage: docs
   run: d9a98590f23347ea8c69a01f85edd45d
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:58:08.971295Z'
+  stage: smoke-test
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -621,3 +630,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `documents`: documents ok
+30. factory: started smoke-test as self.
