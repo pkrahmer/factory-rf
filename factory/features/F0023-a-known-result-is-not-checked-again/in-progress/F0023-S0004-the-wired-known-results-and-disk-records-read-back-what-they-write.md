@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 289
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T21:46:41.010850Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T21:46:20.348776Z'
   stage: doing
   run: 436fb0f0e12e4c8ba23858e51c5fab5f
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:46:41.010850Z'
+  stage: review
 ---
 
 # The wired known results and disk records read back what they write
@@ -118,3 +127,4 @@ Expect: a line that starts with `2 passed`
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
