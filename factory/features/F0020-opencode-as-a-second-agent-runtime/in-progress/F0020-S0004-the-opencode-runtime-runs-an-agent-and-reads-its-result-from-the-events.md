@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T05:23:22.535432Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-10-19T05:23:02.283973Z'
   stage: doing
   run: a216550f445e4052997444c907468a80
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:23:22.535432Z'
+  stage: review
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -579,3 +588,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 4 gone
+29. factory: started review as self.
