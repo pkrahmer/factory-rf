@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T04:56:04.376420Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-19T04:56:04.376420Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-19T04:56:27.696241Z'
+  stage: doing
+  run: cb69f9748f684748a10c5733253bb31c
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -356,3 +358,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Vulture reports `_ErrorData.status_code` and `OpencodeRuntime` as unused (60 % confidence). The first is the field the provider-limit story will read; the runtime is wired in a later story.
 11. 2026-10-19 human: (a): the tester rewrites the two keys of `given` in `test_the_call_sees_its_configuration_file_and_only_the_request_s_environment` as `API_LOGIN_VARIABLE` and `LOGIN_VARIABLE` (from `factory.adapters.agent_launch`), as `tests/adapters/test_agent_launch_login.py` does; the test keeps its name and checks the same thing. No pragma, no baseline entry.
 12. factory: started doing as self.
+13. coder: The human chose option (a) in entry 11, and that needs a test change, so this goes to the tester. In `tests/adapters/test_opencode_runtime.py::test_the_call_sees_its_configuration_file_and_only_the_request_s_environment`, change the two literal keys of `given` (`"ANTHROPIC_API_KEY"`, `"CLAUDE_CODE_OAUTH_TOKEN"`) to `API_LOGIN_VARIABLE` and `LOGIN_VARIABLE` from `factory.adapters.agent_launch`, as `tests/adapters/test_agent_launch_login.py` does. Nothing else changes: the test keeps its name and checks the same thing. This makes `make secrets` green; it is the only step of `make check` still red. The implementation is still the one entry 10 describes: `src/factory/adapters/opencode_runtime.py`, committed, and I changed no code in this run. The journal changed nothing in the meaning of the task, so `## Description` stays as it is. Still open from entry 10, not touched: `make duplicates` reports 7 blocks similar to `claude_runtime`, and vulture flags `_ErrorData.status_code` and `OpencodeRuntime` as unused, both of which later stories will use.
