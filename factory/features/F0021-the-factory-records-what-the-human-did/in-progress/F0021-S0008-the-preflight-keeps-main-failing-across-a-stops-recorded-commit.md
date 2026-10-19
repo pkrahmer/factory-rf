@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T01:07:11.762646Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T01:07:11.762646Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T01:09:12.619941Z'
+  stage: doing
+  run: b1dd6c008bf34208822ef8d894a6eab0
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -145,3 +147,18 @@ Expect: `0`
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_preflight_stop_records_paths.py - ImportError while i...
 6. factory: started doing as self.
+7. coder: I added the rule so the preflight keeps `main_branch_failing` standing across a commit that changes only the stop records file. `make check` is green: it ran after my last edit, and there was nothing to refactor after that.
+
+   What I built:
+   - `src/factory/domain/preflight.py`: a new function, `changes_only_stop_records(paths)`. It returns true when `paths` is not empty and every path in it is `STOP_RECORDS_FILE` (from `factory.domain.paths`), whatever kind of change it is.
+   - `src/factory/application/preflight.py`: `_clear_stale_failing_stop` now clears the stop only when `main` differs from `stamp.main_failed` and the paths changed since `main_failed` are not the stop records file alone. A new private method, `_changes_only_stop_records(since)`, asks `git.changed_paths(since)` for those paths. If git raises `GitError`, the method returns false, so the stop is cleared as it is today.
+
+   Main choice: I put the `GitError` handling in a small private method that returns false, and kept the `if` in `_clear_stale_failing_stop` as one condition. I rejected nesting the try/except inside `_clear_stale_failing_stop`, which already holds one try/except for `resolve`. A second one would have given it two error paths and an extra branch that both clear the stop. Inside the method, the comment explains why a commit the clone cannot compare counts as a fix: that way a stop never outlasts a `main` the clone cannot check.
+
+   Noticed but did not touch:
+   - `changed_paths` compares against the work tree, not `origin/main`, as the tester's entry says. The rule therefore relies on the tick's restore leaving the checkout on `origin/main` before the preflight runs. That is the behaviour today, and I did not change it.
+   - The journal did not change what the task means, so I left the Description as it is.
+   - The docs for this story belong to the documenter.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone

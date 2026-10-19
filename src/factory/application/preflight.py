@@ -34,6 +34,7 @@ from factory.domain.preflight import (
     PreflightItem,
     PreflightReport,
     PreflightStamp,
+    changes_only_stop_records,
     machine_stop,
     version_matches,
 )
@@ -395,8 +396,17 @@ class Preflight:
             main = self._boundaries.git.resolve(_MAIN_REF)
         except GitError:
             return
-        if main != stamp.main_failed:
+        if main != stamp.main_failed and not self._changes_only_stop_records(stamp.main_failed):
             self._stops.clear_stop(_MAIN_FAILING)
+
+    def _changes_only_stop_records(self, since: CommitId) -> bool:
+        # Publishing the stops commits to main without fixing it; a commit the clone
+        # cannot compare is treated as a fix, so a stop never outlives an unknown main.
+        try:
+            paths = self._boundaries.git.changed_paths(since)
+        except GitError:
+            return False
+        return changes_only_stop_records(paths)
 
     def _probe(self, stamp: PreflightStamp) -> RepositoryStopReason | None:
         main = self._boundaries.git.resolve(_MAIN_REF)

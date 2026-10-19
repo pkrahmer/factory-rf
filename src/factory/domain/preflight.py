@@ -1,8 +1,11 @@
 """The preflight's report on the machine, the machine stop it becomes, and the stamp it leaves."""
 
+from collections.abc import Sequence
+
 from pydantic import AwareDatetime, BaseModel, ConfigDict
 
-from factory.domain.git import CommitId
+from factory.domain.git import ChangedPath, CommitId
+from factory.domain.paths import STOP_RECORDS_FILE
 from factory.domain.stops import RepositoryStop
 
 
@@ -56,3 +59,8 @@ def machine_stop(report: PreflightReport, *, at: AwareDatetime) -> RepositorySto
         return None
     detail = "; ".join(f"{item.name}: {item.detail}" for item in failed)
     return RepositoryStop(scope="machine", reason="preflight_failed", detail=detail, at=at)
+
+
+def changes_only_stop_records(paths: Sequence[ChangedPath]) -> bool:
+    """Whether `paths` is not empty and every one of them is the stop records file."""
+    return bool(paths) and all(changed.path == STOP_RECORDS_FILE for changed in paths)
