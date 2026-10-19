@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T14:44:56.951382Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -133,6 +129,12 @@ journal:
   kind: started
   at: '2026-10-19T14:44:56.951382Z'
   stage: doing
+- number: 23
+  speaker: coder
+  kind: result
+  at: '2026-10-19T14:46:55.998875Z'
+  stage: doing
+  run: 3c03081b15d54487aafd2ba0a3ab4256
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -493,3 +495,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (42.5 s)
 22. factory: started doing as self.
+23. coder: Round 2, after the tester's entry 21. I changed no code. The reviewer's only finding in entry 17 was criterion 9, the accepted rows for a `~` that is not at the start and a `..` inside a segment. The tester added those three rows to `tests/domain/test_pipeline_not_read.py::test_a_not_read_pattern_outside_the_checkout_is_refused`. They pass against the round-0 rule without any change, so that finding is closed. I ran `make check` on the committed state and it is green: `test: green (41.4 s)`, coverage 99.07 %, `check: green`.
+
+    What I built: nothing new this round. The round-0 paths are unchanged (entry 7):
+    - `src/factory/domain/git.py`: `TreeId`
+    - `src/factory/application/git.py`: the abstract method `Git.work_tree_id`
+    - `src/factory/adapters/git_cli.py`: `GitCli.work_tree_id`, using a temporary index through `_run(..., index=...)`, which sets `GIT_INDEX_FILE`
+    - `src/factory/domain/pipeline_definition.py`: the `not_read` field, the `is_inside_checkout` function moved in from `write_paths`, and the last rule in `_RULES`
+    - `src/factory/domain/write_paths.py` and `src/factory/domain/confinement.py`: they now import `is_inside_checkout` from `pipeline_definition`
+    - `src/factory/domain/contract.py`: the contract version is now 1.3
+    - `src/factory/contract/*.schema.json`: regenerated with `uv run python -m factory.entry.contract`
+
+    Main choice (from round 0): left-out paths are removed with `git update-index --force-remove -- <paths>`, which reads its arguments as literal paths. I rejected `git rm --cached` with `:(literal)` pathspecs, which would need a prefix on every path and complains about paths it does not find.
+
+    Refactor pass: this round has no new diff of mine to read, so nothing changed. The journal added criterion 9 but did not change what the task means, so `## Description` stays as it is.
+
+    Noticed but not touched (same as entries 7, 15 and 19):
+    - The `_changed` test helper is still copied in three earlier modules: `tests/adapters/test_pipeline_rules.py`, `tests/adapters/test_pipeline_strict_values.py` and `tests/adapters/test_pipeline_stage_moves.py`.
+    - `make duplicates` shows five findings that predate this story: four similar-code pairs between `claude_runtime` and `opencode_runtime`, and the unused class `ManualWaiter`.
+    - `update-index` gets all left-out paths in one argument list. A very large `left_out` could hit the system's limit on argument length.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 33 known, 3 gone
