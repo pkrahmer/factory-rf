@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 288
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T21:25:52.253507Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T21:25:31.585696Z'
   stage: tests
   run: d5b7f7e4d46c4738972f45b9fb672ea4
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:25:52.253507Z'
+  stage: doing
 ---
 
 # The git wrapper leaves out a path that starts with a dash
@@ -114,3 +123,4 @@ Expect: `True`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (40.5 s)
+6. factory: started doing as self.
