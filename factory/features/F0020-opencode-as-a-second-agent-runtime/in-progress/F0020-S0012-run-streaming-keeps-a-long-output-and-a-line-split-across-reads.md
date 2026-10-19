@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 278
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T18:49:06.060475Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T18:48:44.717775Z'
   stage: doing
   run: cbcead40275c4aebb5a5b3e8d6c7efc2
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:49:06.060475Z'
+  stage: review
 ---
 
 # run_streaming keeps a long output and a line split across reads
@@ -127,3 +136,4 @@ Expect: two lines, `[('stdout', 200000)] 200001` and `[('stderr', 'hello'), ('st
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
