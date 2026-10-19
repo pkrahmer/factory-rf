@@ -10,7 +10,7 @@ No module under `src/factory/` changes. The behaviour pinned (`domain`):
 
 - `factory.domain.tick_status.mark_reported(status, event_key, remote_state)`: marks exactly the entries whose `event_key` and `remote_state` both match.
 - `factory.domain.provider_limits.named_wait(text)`: a named wait of more than 0 seconds is that wait, one of 0 seconds is `None`.
-- `factory.domain.agent_runs.resumed_result(first, second)`: when `second` ended by `time_limit`, its session is `second.session`, else `first.session`.
+- `factory.domain.agent_runs.resumed_result(first, second)`: when `second` ended by `time_limit`, the result's session is `second.session` when that is not `None`, else `first.session`; its end reason is `time_limit` and its duration the sum of both calls' durations.
 - `factory.domain.duplicates.similar_code_findings(pylint_json)` and `dead_code_findings(vulture_text)`: an element of another symbol, and a blank line, are skipped, and what follows them is still read.
 - `factory.domain.errors.AgentDefinitionError(name, fault)`: `str()` is `agent <name>: <fault>` with a name and `<fault>` without one.
 - `factory.domain.send_back.reason_given(document)` and `recorded_since_latest_result(document, kind)`: a document without a state has no records; without a `result` record every record of the kind counts, numbered 1 included.
