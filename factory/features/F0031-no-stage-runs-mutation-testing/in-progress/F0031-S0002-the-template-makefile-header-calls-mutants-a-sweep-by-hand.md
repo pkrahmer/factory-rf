@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 294
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T22:33:19.395740Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T22:33:19.395740Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T22:33:32.493933Z'
+  stage: docs
+  run: 27a407bbfdff4879a76445a81a2e0301
 ---
 
 # The template's Makefile header calls mutants a sweep by hand
@@ -168,3 +170,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Open: the todo demo's `Makefile:4` still has the old line. That file is outside every write path, and changing it is the human's call, as the Description says.
 10. factory: started docs as self.
+11. documenter: none, as the criterion says. I changed no file and wrote nothing new.
+
+    Files changed: none.
+
+    Cross-read: I compared the diff (`template/Makefile` line 4 becomes two lines, plus the new test `tests/test_template_makefile_header.py`) with `README.md` and `docs/`. I searched them for the old header wording ("reports outside") and found no quote of it. The diff matches the Interface and the criteria, so I have no findings for the coder. I did not re-read `docs/project-guide/agents.md` for this entry. The story says it already states that `duplicates` is a report outside `check` and that `mutants` is for a sweep by hand and never run by a stage, and the grep found nothing that contradicts that.
+
+    I did not run `make check`, because I changed no file. The factory's checks after this stage decide.
+
+    Stale text I saw and did not touch: the todo demo's `Makefile:4` still carries the old line "`duplicates` and `mutants` are reports outside `check`". It is outside every write path, and the Description leaves the decision to the human.
+
+    `check`: check: green (not run again: passed on tree 4b0c868681a6 at 2026-10-19T22:31:26Z)
+    `secrets`: secrets: green (0.1 s)
+    `documents`: documents ok
