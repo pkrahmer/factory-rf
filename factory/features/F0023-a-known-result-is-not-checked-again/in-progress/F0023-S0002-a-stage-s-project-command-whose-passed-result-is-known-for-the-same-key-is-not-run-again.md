@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T15:18:36.193377Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -141,6 +145,11 @@ journal:
   at: '2026-10-19T15:18:15.735270Z'
   stage: review
   run: 39bf2f0f293f4fdbac8718f3ed6e8e95
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-19T15:18:36.193377Z'
+  stage: docs
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -541,3 +550,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests:
     - `tests/domain/test_checks.py` (M): human's leave. The Interface names the rename `test_fields_are_exactly_the_generic_seven` → `test_fields_are_exactly_the_generic_eight` and the added `"reused"`, under the feature's decision 15. The diff makes only that change.
     - `tests/application/test_recording_project_commands.py` (M): standing leave to move a shared test helper. The only change is that the local `_raising` is removed and `raising` is imported from `tests/project_command_support.py`. Every test keeps its name and still checks the same thing.
+25. factory: started docs as self.
