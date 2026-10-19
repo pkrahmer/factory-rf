@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T11:36:33.334498Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-10-19T11:36:12.739227Z'
   stage: docs
   run: 9a40e61146284be4958fe163ac959dc5
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:36:33.334498Z'
+  stage: smoke-test
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -542,3 +551,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `documents`: documents ok
+30. factory: started smoke-test as self.
