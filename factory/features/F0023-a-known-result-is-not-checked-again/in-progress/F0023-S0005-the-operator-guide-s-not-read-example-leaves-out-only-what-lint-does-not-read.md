@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 290
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T21:55:48.649261Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T21:55:28.101651Z'
   stage: tests
   run: 66bd65e09cbc498bac058397de2c6d2c
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:55:48.649261Z'
+  stage: doing
 ---
 
 # The operator guide's not_read example leaves out only what lint does not read
@@ -104,3 +113,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (39.6 s)
+6. factory: started doing as self.
