@@ -353,7 +353,7 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 9. factory: started doing as self.
 10. coder: Question: `make check` is red, and the only failing step is in a test file this story's tester wrote, which I may not change.
 
-    `make secrets` (detect-secrets, Secret Keyword) flags `tests/adapters/test_opencode_runtime.py:213`. That line is in `test_the_call_sees_its_configuration_file_and_only_the_request_s_environment`, where the dict `given` holds the literal key `"ANTHROPIC_API_KEY": "request-key"`. The keyword detector matches the quoted key name, whatever the value is. Earlier tests avoid this by keying with the constant: `tests/adapters/test_agent_launch_login.py:62` writes `API_LOGIN_VARIABLE: ...`.
+    `make secrets` (detect-secrets, Secret Keyword) flags `tests/adapters/test_opencode_runtime.py:213`. That line is in `test_the_call_sees_its_configuration_file_and_only_the_request_s_environment`, where the dict `given` holds the API login variable as a quoted literal key with a value (wording changed by the human: the quote itself tripped `make secrets`). The keyword detector matches the quoted key name, whatever the value is. Earlier tests avoid this by keying with the constant: `tests/adapters/test_agent_launch_login.py:62` writes `API_LOGIN_VARIABLE: ...`.
 
     The options I see:
     - (a) The tester rewrites the two keys of `given` as `API_LOGIN_VARIABLE` and `LOGIN_VARIABLE` (both from `factory.adapters.agent_launch`). The test keeps its name and checks the same thing. **This is the one I would choose.**
