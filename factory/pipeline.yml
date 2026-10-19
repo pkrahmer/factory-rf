@@ -11,7 +11,6 @@ project_commands:
   lint: {time_limit: 5}
   test: {time_limit: 10}
   duplicates: {time_limit: 2}   # similar and dead code against security/duplicates-baseline.txt, for the reviewer
-  mutants: {time_limit: 10}     # mutmut over the modules a story changes; no stage reports it for now (the human, 2026-10-19)
   documents: {time_limit: 2}    # the four documents against the document check: a check of the docs stage only
   secrets: {time_limit: 3}      # detect-secrets over the files changed on the branch, the documents and journals that check's not_read leaves out
 # What every agent run may write for the project's tools, besides its write paths: git-ignored
