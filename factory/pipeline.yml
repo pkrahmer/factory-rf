@@ -11,7 +11,7 @@ project_commands:
   lint: {time_limit: 5}
   test: {time_limit: 10}
   duplicates: {time_limit: 2}   # similar and dead code against security/duplicates-baseline.txt, for the reviewer
-  mutants: {time_limit: 10}     # mutmut over the modules a story changes, for the reviewer; it stops itself after 540 s
+  mutants: {time_limit: 10}     # mutmut over the modules a story changes; no stage reports it for now (the human, 2026-10-19)
   documents: {time_limit: 2}    # the four documents against the document check: a check of the docs stage only
   secrets: {time_limit: 3}      # detect-secrets over the files changed on the branch, the documents and journals that check's not_read leaves out
 # What every agent run may write for the project's tools, besides its write paths: git-ignored
@@ -32,7 +32,7 @@ roles:
 stages:
   intake: {role: intake, next: [tests]}
   tests: {role: tester, next: [doing], checks: [lint], reports: [test]}     # the new tests are red on purpose
-  doing: {role: coder, next: [review, tests], checks: [check], reports: [duplicates, mutants]}
+  doing: {role: coder, next: [review, tests], checks: [check], reports: [duplicates]}
   review: {role: reviewer, next: [docs, doing], round_cap: 2}
   docs: {role: documenter, next: [smoke-test, doing], checks: [check, secrets, documents], round_cap: 2}
   smoke-test: {role: smoke-tester, next: [approval, doing], round_cap: 2}
