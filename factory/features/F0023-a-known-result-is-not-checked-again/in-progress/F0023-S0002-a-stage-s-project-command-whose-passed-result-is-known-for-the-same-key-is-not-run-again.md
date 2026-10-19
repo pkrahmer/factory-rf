@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T15:15:01.857962Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-19T15:15:01.857962Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-19T15:17:15.679045Z'
+  stage: doing
+  run: b0ced1fc55974ea58605c5a412242c24
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -492,3 +494,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (42.4 s)
 21. factory: started doing as self.
+22. coder: The tester's changes from entry 20 are on the branch, and `make check` is green with no code change this round: `check: green`, `test: green (48.5 s)`, total coverage 99.08 %. Both of the reviewer's findings in entry 16 were test-side copies, and entry 20 fixed them:
+    - `raising` is now shared in `tests/project_command_support.py`.
+    - `Rig.log_lines` is now built on `tests/log_support.py`.
+
+    What I built, unchanged since entry 7 and already committed:
+    - `src/factory/domain/known_results.py`
+    - `src/factory/domain/checks.py`
+    - `src/factory/application/known_results.py`
+    - `src/factory/application/boundaries.py`
+    - `src/factory/application/stage.py`
+    - `src/factory/entry/wiring.py`
+
+    Main choice: `KnownResults` computes the definition digest once, in its constructor. I rejected computing it on every `run`, because the definition does not change while the object exists.
+
+    Refactor: there was no new diff of mine to re-read this round, so I changed nothing.
+
+    What the journal changed: only tests, so `## Description` stays as it is.
+
+    Noticed but not touched:
+    - The comment "the record is telemetry" appears in both `KnownResults._append` and `RecordingProjectCommands.run`.
+    - `tests/application/test_preflight_run.py` keeps its own `_raising`, typed for `ProjectCommandError`. Entry 20 left it out on purpose.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
