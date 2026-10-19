@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 289
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T21:41:50.516176Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T21:41:28.793183Z'
   stage: intake
   run: 00469f4ea1a9460e8571778f8b2f6978
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:41:50.516176Z'
+  stage: tests
 ---
 
 # The wired known results and disk records read back what they write
@@ -66,3 +75,4 @@ Expect: a line that starts with `2 passed`
    Smoke test: the command is runnable and the `Expect:` line (`2 passed`) can be checked against the output. It matches the two rows.
    Architecture: tests only, in `tests/entry/`, which mirrors `factory.entry`. Nothing is faked except the hosting service, as `CLAUDE.md` allows.
    Scope: `feature.md` lists only S0001 and S0002 under Stories, and its Scope names `result_records` but not `disk_records` (F0012's). This story is the feature acceptance's proposal and it is test-only, so I accepted it. If you would rather add it to the feature's story list, that edit is yours.
+4. factory: started tests as self.
