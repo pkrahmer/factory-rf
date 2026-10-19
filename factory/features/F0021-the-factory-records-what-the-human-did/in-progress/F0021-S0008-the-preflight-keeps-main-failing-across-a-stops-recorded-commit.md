@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T01:11:09.485931Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T01:11:09.485931Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T01:11:24.050324Z'
+  stage: doing
+  run: a0f57d8bebda4eeb917b1997291e426c
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -194,3 +196,9 @@ Expect: `0`
 
    Earlier tests: none. Every test file in the diff has status `A`.
 10. factory: started doing as self.
+11. coder: Round 1. The reviewer's four findings (entry 9) all concern copied helpers in the new test module, tests/application/test_preflight_stops_commit.py. The code in src/factory/domain/preflight.py and src/factory/application/preflight.py does not change. Under the standing leave in CLAUDE.md (*Tests*), the tester moves the helpers, not the coder. These are the moves I am asking the tester to make:
+    1. `_log_lines`: move it to one shared module at the root of `tests/`. Use it there from test_preflight_stops_commit.py and the earlier copies: tests/application/test_preflight_stale_main_stop.py, test_tick_stop_records.py, test_stale_branches.py, test_tick.py and test_disk_recorder.py.
+    2. `CLEARED_LINE` and the `failed_once` fixture (body `_failed_once`): move them out of tests/application/test_preflight_stale_main_stop.py to a shared place. The constant goes in a shared module and the fixture in `tests/conftest.py` or beside `rig`/`red_main`. test_preflight_stops_commit.py then builds its recording variant on the shared fixture.
+    3. The `records` fixture: move it from tests/application/test_tick_stop_records.py to `tests/conftest.py`, and use it from both modules.
+    4. `_commit_on_main` in test_preflight_stops_commit.py: replace it with `rig.human.push_file("main", ...)` (tests/human_clone.py) for the one-file rows. For the two-file row, reuse that shared helper (or extend HumanClone in tests/human_clone.py) instead of writing raw git calls again.
+    Every earlier test keeps its name and checks the same thing. I did not touch any test. The journal did not change what the task means, so the Description is unchanged. Not touched: the reliance of `changed_paths` on the tick's restore leaving the work tree at `origin/main`. The reviewer confirmed it is safe.
