@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-10-19T10:58:31.956438Z'
   stage: smoke-test
   run: d715a7d42c7f4758b6d3c3de40b908e4
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-10-19T11:00:53.135386Z'
+  stage: approval
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -658,3 +663,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Findings: none.
 
     Open: none.
+32. factory: done (pull request merged); cost: 14 runs, 16.9 min, 136 turns, 438193 tokens in (4057976 more from cache), 64362 out, $5.10
