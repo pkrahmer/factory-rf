@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T21:04:37.016854Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-19T21:04:16.204209Z'
   stage: docs
   run: b62740f3691f4358b757fefa344829b6
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:04:37.016854Z'
+  stage: smoke-test
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -353,3 +362,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree be858289db70 at 2026-10-19T21:01:22Z)
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
