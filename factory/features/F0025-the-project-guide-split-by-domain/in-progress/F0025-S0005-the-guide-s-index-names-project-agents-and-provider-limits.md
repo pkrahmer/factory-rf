@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 295
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T22:42:14.966939Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T22:41:54.803027Z'
   stage: review
   run: 9c27616d6cf94b85a18b4a865b732f76
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:42:14.966939Z'
+  stage: docs
 ---
 
 # The guide's index names the project agents and the patient runs modules
@@ -152,3 +161,4 @@ Expect: `documents ok`
    2-4. Architecture, security, quality: there is no code in the diff to judge. The coder's `duplicates: 5 new` cannot come from this branch, which changes nothing under `src/factory`.
    5. Work item hygiene: entries 5 and 7 explain why nothing was built (the documenter owns `docs/project-guide/`, under CLAUDE.md *Docs*) and what was rejected (the coder making the edit). The docs criterion still matches the repository. The `agents.md` line (README.md:14) lists `factory.adapters.validation_faults` and then `factory.domain.provider_limits`, so `project_agents` goes between them. The `stages.md` line (README.md:18) lists `factory.adapters.pipeline_yaml` first among "It also names". Both modules exist: `src/factory/application/project_agents.py` and `src/factory/application/provider_limits.py`.
    6. Earlier tests: none. No test file is changed, renamed or deleted.
+10. factory: started docs as self.
