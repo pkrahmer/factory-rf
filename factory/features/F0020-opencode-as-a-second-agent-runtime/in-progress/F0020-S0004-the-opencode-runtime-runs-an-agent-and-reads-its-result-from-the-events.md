@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 251
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T04:39:12.058578Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-19T04:39:12.058578Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-19T04:39:38.517187Z'
+  stage: intake
+  run: 5f835af96aea46b2943097666c68d747
+  blocked: question
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -199,3 +202,14 @@ Expect: six lines, `completed question The smoke entry.`, `0.012 1 10 7 100 20 0
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: Questions (the format check passed; the architecture and scope are fine: the new module sits in `adapters`, change 2 of CLAUDE.md and change 7 of pyproject.toml are in place, and every item is within the feature's Scope for S0004):
+
+   1. Interface, the event models: "Timestamps, counts and costs are non-negative; a negative one fails the line's validation", and "a `step_finish` needs `cost` and `tokens` with `input` and `output`". Criterion 11 tests only a negative cost and a missing cost. Nothing tests a negative timestamp, a negative token count (input, output, reasoning, cache read, cache write), a negative tool-span time, a `step_finish` without `tokens`, or one with `tokens` lacking `input` or `output`. Each is a stated rule whose failing side has no criterion. Option I would choose: extend criterion 11's rows with a negative `timestamp`, a negative `input`, a `step_finish` without `tokens`, and `tokens` without `output`, each skipped.
+
+   2. Interface, `model_duration`: "its timestamp less that of the last `step_start` before it". The story does not say what happens when a `step_finish` has no `step_start` before it. Counting it as zero, skipping the step, or using another start would each pass the criteria as written. Also, "the `tool_use` events between the two" does not say whether "between" is by event timestamp or by line order. Option I would choose: a `step_finish` with no earlier `step_start` adds 0 to the model time (and still counts as a turn), and "between" is by line order. Please add a criterion row for it in criterion 8.
+
+   3. Interface, the run's files: the rules file `confine-<run>.json` must also be written with mode `0640`. Criterion 4 checks the mode only of the configuration file, and criterion 14 does not check the rules file's mode. Option I would choose: add the rules file's mode `0640` to criterion 14.
+
+   4. Interface, `version()`: "called without login words". Criterion 16 does not test this, so a call through the login shell would pass. Option I would choose: add to criterion 16 that the stand-in's recorded call for `--version` has no login words (it is called as `<executable> --version` alone, even when an API login file is set).
+
+   5. Smoke test: `OpencodeRuntime(..., d / "state", ...)` is given a state directory that does not exist, and the Expect line ends with `[]` from `(d / "state").iterdir()`. The story does not say the runtime creates the state directory. If it does not, the smoke test fails with `FileNotFoundError` before any output. Option I would choose: add the sentence "the state directory is created when missing" to the Interface's run files and a row for it in criterion 4. The other choice is to make the smoke test create `state` first.
