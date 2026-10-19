@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T09:52:14.312636Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T09:52:14.306671Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T09:52:14.312636Z'
+  stage: intake
+---
+
 # The opencode run stops at its budget and at a provider limit while it streams
 
 ## Description
@@ -96,3 +123,5 @@ Expect: three lines, `completed 1.3 Stopped at the budget. True`, `True`, `provi
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
