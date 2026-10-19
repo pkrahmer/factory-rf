@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 259
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T10:30:35.112035Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-19T10:30:35.112035Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-19T10:30:57.474997Z'
+  stage: intake
+  run: dfd6d87e07b840e3a9d9ef5ad76e72d9
+  blocked: question
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -204,3 +207,13 @@ Expect: four lines, `completed 0.6 15.0`, `[420.0, 600.0] 2026-10-18T00:17:00+00
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: 1. The Interface says "Seconds in the log lines are whole seconds (`int(...)`)", and no criterion tests it. Every wait in criteria 5–9 is a whole number of seconds, so a coder who rounds, or who prints `600.0`, would pass. Proposed new criterion, placed before the two closing ones: a `limit_wait` of 90.9 seconds (the same input would also fix what `ManualWaiter.waits` records) gives the log line `provider limit: coder waits 90 s before it resumes ses_a`, and a ceiling reached after waits that sum to 1800.7 seconds gives `waited 1800 s`. I would choose this criterion. Alternative: drop the sentence from the Interface.
+
+   2. Criterion 9 checks only the prompt, `resume_session` and the log line for a limit without a session. Interface step 5 says the budget left and the time left apply in both cases. Proposed addition to criterion 9: the second request also carries a budget of 0.80 and a time limit of 55 seconds, as in criterion 5. I would choose this addition.
+
+   Checks that passed:
+   - The Interface names concrete modules and signatures, and `Boundaries.settings`, `FakeAgentRuntime.queue` and `requests`, `ManualClock` and `FactoryLog` exist.
+   - The smoke test is runnable and its numbers add up (cost 0.6, duration 15, waits 420 and 600 for 17 minutes, budget 0.8, time 55). Its `Expect:` lines are checkable.
+   - The architecture is right: the `Waiter` interface sits in `application`, the adapters in `adapters`, the limits in `domain`, and wiring in `entry`.
+   - The story is inside the feature's scope for S0007 and touches no "Out of scope" item.
+   - The rules each have a failing-side criterion, except the two gaps above.
