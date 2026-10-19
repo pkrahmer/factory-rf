@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 302
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T23:40:14.734792Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T23:40:14.734792Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T23:40:33.345402Z'
+  stage: review
+  run: a51f67ea404e43ed81c32e855257410d
 ---
 
 # The documents record the proof run of a project's skill and coder
@@ -141,3 +143,13 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar (`git diff --name-status main...HEAD`: `M` the `.md`, `A` the `.costs.jsonl`).
+   - Criterion 1 (nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes): it holds, because the diff is empty. The tester's entry (5) and the coder's entry (7) both say so.
+   - Criterion 2 (`make check` green): the coder's entry 7 records `check: green` on the unchanged tree. The `duplicates: 5 new` that entry 7 records cannot come from this branch, since it changes no code, so it is not under review here.
+   - Criterion 3 (docs): the documenter writes it next. I checked it against the current text. `docs/operator-guide.md:989` still holds both "(the feature's proof run looks)" and "A run reads them from its checkout". In `docs/decisions.md`, the entry *The agents load a project's skills, and the agent's home gets none* has an `Open:` bullet and no `Proven:` bullet. The criterion names each change exactly, the smoke test's `sed` range covers the new bullet, and "No other passage changes" keeps the scope tight.
+   - Work item: the Description matches what was built (nothing yet, documents only). The tester's and the coder's entries say why they wrote nothing: the documents belong to the docs stage.
+   - Not checked: the proof run's evidence (instance `skills-demo`, the `project coder:` and `skill: journal-marker` lines, the refused `mkdir`) is the human's account. Only the night log shows it, and the log is outside the review's scope, as the intake also noted.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
