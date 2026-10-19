@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T04:29:20.512660Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-19T04:29:20.512660Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-19T04:31:02.769747Z'
+  stage: tests
+  run: 3a87dab5e1da4296bf4f32d1d2c74d50
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -263,3 +265,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed but not touched: as entry 10 says, `make duplicates` reports `run_streaming` as unused. That is expected, because nothing calls it until S0004.
 15. factory: started tests as self.
+16. tester: Wrote the test for criterion 13, which the reviewer added (entry 12). The coder's entry 14 names it. No existing test was edited.
+
+    - criterion 13: tests/adapters/test_process_streaming.py::test_child_that_closed_its_streams_is_killed_at_the_time_limit. The child writes its own pid to a file in `tmp_path`, then closes fd 1 and fd 2 with `os.close` and sleeps 60 s, under a 3 s `time_limit`. The test checks four things:
+      - the call returns within 20 s;
+      - `timed_out` is true, `stopped` is false and `exit_status` is `None`;
+      - `is_gone` holds for the child's pid.
+
+    The mapping of criteria 1–12 is unchanged from entry 8. Criteria 14 (`make check`) and 15 (docs) have no test.
+
+    Files changed: tests/adapters/test_process_streaming.py, which gains the one test above. I created no new files. Every module imported: the code under test already exists, so the new test passes with the current `run_streaming`, as entry 14 expected.
+
+    `make test`: test: green (41.5 s). `make lint`: green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (37.5 s)

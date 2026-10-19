@@ -169,6 +169,32 @@ def test_child_is_killed_at_the_time_limit_and_no_later_line_is_passed(tmp_path:
     assert "late" not in [line for _, line in recorder.calls]
 
 
+def test_child_that_closed_its_streams_is_killed_at_the_time_limit(tmp_path: Path) -> None:
+    pid_file = tmp_path / "child.pid"
+    code = (
+        "import os, pathlib, sys, time; "
+        "pathlib.Path(sys.argv[1]).write_text(str(os.getpid())); "
+        "os.close(1); os.close(2); "
+        "time.sleep(60)"
+    )
+    start = time.monotonic()
+
+    result = run_streaming(
+        ProcessRequest(
+            argv=python_argv(code, str(pid_file)),
+            cwd=tmp_path,
+            time_limit=timedelta(seconds=3),
+        ),
+        Recorder(),
+    )
+
+    assert time.monotonic() - start < RETURNS_WITHIN_SECONDS
+    assert result.timed_out is True
+    assert result.stopped is False
+    assert result.exit_status is None
+    assert is_gone(int(pid_file.read_text(encoding="utf-8")))
+
+
 def test_callback_that_raises_kills_the_child_and_the_error_propagates(tmp_path: Path) -> None:
     code = "import os, time; print(os.getpid(), flush=True); time.sleep(60)"
     lines: list[str] = []
