@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 255
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T09:03:31.276274Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T09:03:31.276274Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T09:04:21.886143Z'
+  stage: tests
+  run: 9b1bca1350b743c2a965fb4d0ae66ed2
 ---
 
 # The guide's index names every module and subsection its files describe
@@ -131,3 +133,12 @@ Expect: `documents ok`
    - Scope: it is inside F0025 (the guide split by domain), and nothing in its Out of scope is touched. The feature's decision 2 promised that the index names *Boundaries*, and this story repairs that.
    - One slip, not blocking: the Description says "Three smaller passages need the same repair" but lists two bullets. The criteria cover the same two passages (`agents.md` and `decisions.md`), so I left the text as it is.
 4. factory: started tests as self.
+5. tester: No tests written. This story only changes documentation. Criterion 1 forbids any change under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`, and requires the tester's entry to say so. So for this stage, the specification is an unchanged `tests/`.
+   - criterion 1 (nothing under src/, tests/, image/, template/, demo/ or claude/ changes): no test function. The tester changed nothing there. The smoke test's `git diff --name-only origin/main -- src tests image template demo claude | wc -l` checks this.
+   - criterion 2 (`make check` stays green): no test function. The factory's checks cover it.
+   - criterion 3 (docs): no test function. Its clauses are checked by the smoke test and by `python -m factory.entry.check_documents` in the docs stage. Adding a test of the index's contents would change `tests/`, which criterion 1 forbids.
+   Files created: none. Modules the test runner could not import: none, because there are no new tests. I did not run `make test`: with no new tests there is no red result to confirm. `make lint` is green. The working tree holds no changes of mine.
+   For the coder: there is no code to write. The work is the documenter's.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (34.3 s)
