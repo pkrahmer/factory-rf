@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T01:38:23.816163Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-19T01:38:03.546426Z'
   stage: docs
   run: 9ae9088e69274bbfa5d24c9d418665c5
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:38:23.816163Z'
+  stage: smoke-test
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -253,3 +262,4 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
 
     `check`: check: green
     `documents`: documents ok
+20. factory: started smoke-test as self.
