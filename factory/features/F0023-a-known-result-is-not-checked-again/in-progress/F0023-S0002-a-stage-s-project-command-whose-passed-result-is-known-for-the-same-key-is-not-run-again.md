@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 268
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T14:55:19.416080Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T14:54:58.770383Z'
   stage: intake
   run: e2ca4484ff484362a2916a6277480492
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:55:19.416080Z'
+  stage: tests
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -206,3 +215,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: runnable. `GitCli.work_tree_id` already copes with a repository that has no index or commit yet (`src/factory/adapters/git_cli.py:419`). Its `Expect:` line is checkable and consistent with the script (the Makefile appends two lines to `ran`; the records are `[True, False, False, True]`).
    - Architecture: domain holds the pure models and rules, application holds `KnownResults` and the optional `Boundaries.result_records`, entry wires the `JsonLinesRecordLog`. Git is reached only through `Git.work_tree_id`, and `ProjectCommands` and its implementations stay unchanged. This matches `CLAUDE.md`.
    - Scope: every item is in the feature's Scope list. Nothing touches its "Out of scope" (agents' own checks, the preflight probe, the template and demos, pruning, counters). S0001's `TreeId` and `work_tree_id` are already in the tree. The two `CLAUDE.md` edits are the human's change 2, not this story's.
+4. factory: started tests as self.
