@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 259
-comments_read: []
+comments_read: [6265170554]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: dfd6d87e07b840e3a9d9ef5ad76e72d9
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-19T10:31:43.478001Z'
+  stage: intake
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -217,3 +222,5 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - The architecture is right: the `Waiter` interface sits in `application`, the adapters in `adapters`, the limits in `domain`, and wiring in `entry`.
    - The story is inside the feature's scope for S0007 and touches no "Out of scope" item.
    - The rules each have a failing-side criterion, except the two gaps above.
+4. 2026-10-19 human: 1. Yes, add the criterion as you propose, before the two closing ones: a `limit_wait` of 90.9 seconds gives the log line `provider limit: coder waits 90 s before it resumes ses_a` (and `ManualWaiter.waits` records what the Interface says it records), and a ceiling reached after waits summing to 1800.7 seconds gives `waited 1800 s`. Keep the Interface sentence.
+   2. Yes, extend criterion 9 as you propose: the second request also carries a budget of 0.80 and a time limit of 55 seconds, as in criterion 5.
