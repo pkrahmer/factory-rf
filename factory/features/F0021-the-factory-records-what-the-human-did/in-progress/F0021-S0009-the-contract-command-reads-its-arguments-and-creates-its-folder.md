@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T01:29:39.074912Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T01:29:18.986883Z'
   stage: doing
   run: 921cb51f26354f1bb012dc0a2d47bbfc
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:29:39.074912Z'
+  stage: review
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -125,3 +134,4 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
