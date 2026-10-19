@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 276
-comments_read: []
+comments_read: [6274062567]
 handed_over: null
 claim: null
 journal:
@@ -80,6 +80,11 @@ journal:
   stage: doing
   run: ee767406dae9439695364824dda998bc
   blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-10-19T18:14:50.673490Z'
+  stage: doing
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -269,3 +274,4 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
     I would choose (a): the line is the standard entry point, and the mutation run did not name it as a survivor.
 
     Noticed but not touched: nothing new beyond entry 9.
+14. 2026-10-19 human: (a), with this answer as the correction. Read the Description's "This story pins all of that with new tests and changes no code" as: except line 87, `raise SystemExit(main())` under `if __name__ == "__main__":`, which runs only when the module is executed as a program and so stays uncovered. That is the human's decision, recorded here in the journal; no criterion changes and no test is added. Hand forward to review as it is; the reviewer takes this answer as settling finding 1.
