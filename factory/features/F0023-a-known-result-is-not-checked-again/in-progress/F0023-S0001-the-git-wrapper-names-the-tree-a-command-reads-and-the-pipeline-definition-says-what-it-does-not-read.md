@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T14:42:53.979135Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-19T14:42:33.319043Z'
   stage: doing
   run: a1f7f8786ad24423a204b624c4ea2581
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:42:53.979135Z'
+  stage: tests
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -461,3 +470,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - The `_changed` helper is still copied in three earlier pipeline test modules: `tests/adapters/test_pipeline_rules.py`, `test_pipeline_strict_values.py` and `test_pipeline_stage_moves.py`.
     - `make duplicates` shows five findings older than this story: four similar-code pairs between `claude_runtime` and `opencode_runtime`, and the unused `ManualWaiter`.
     - `update-index` gets all left-out paths in one argument list, so a very large `left_out` could hit the system's limit on argument length.
+20. factory: started tests as self.
