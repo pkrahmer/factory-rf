@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 271
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T16:32:19.414570Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T16:31:58.884435Z'
   stage: review
   run: ba7af0cbbe85499e942140dbc120ce57
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:32:19.414570Z'
+  stage: docs
 ---
 
 # A report stopped at its time limit says so in its journal line
@@ -148,3 +157,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Hygiene: the journal names the main choice (an early return in `command_line`) and what was rejected (a helper per note). The description matches what was built, and the docs criterion still describes what the reader needs.
 
    Earlier tests: none. The diff only adds test files (status `A`).
+10. factory: started docs as self.
