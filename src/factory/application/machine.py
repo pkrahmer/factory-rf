@@ -1,7 +1,7 @@
 """The interfaces to the machine: its clock, the factory log, the health status store and disks."""
 
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from factory.domain.stops import HealthStatus
@@ -13,6 +13,14 @@ class Clock(ABC):
     @abstractmethod
     def now(self) -> datetime:
         """The current time, timezone-aware, in UTC."""
+
+
+class Waiter(ABC):
+    """Waits for a time without holding anything; the factory has no sleep of its own."""
+
+    @abstractmethod
+    def wait(self, duration: timedelta) -> None:
+        """Return after `duration`; a negative one raises `ValueError`."""
 
 
 class FactoryLog(ABC):

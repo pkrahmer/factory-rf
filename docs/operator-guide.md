@@ -29,6 +29,8 @@ One factory instance runs one project (R2) and is told what it needs through env
 | `FACTORY_MIN_FREE_GB` | no | The least free space, in whole gigabytes of 10^9 bytes, at least 1. Default 5; unset or blank gives the default. Anything else (`0`, `-1`, `2.5`, `five`) is refused with `FACTORY_MIN_FREE_GB` as the variable. It guards the disk: when the work directory (the checkout's parent) or the state directory has less free space, the tick stops with `disk_low` (see "The stops of the tick"). |
 | `FACTORY_PROVIDER_LIMIT_STATUS` | no | The HTTP status a provider answers with when its spend limit is reached. Default 428; unset or blank gives the default. A value of ASCII digits from 100 to 599 sets it; anything else is refused with `FACTORY_PROVIDER_LIMIT_STATUS` as the variable. See "A provider's spend limit". |
 | `FACTORY_PROVIDER_LIMIT_MESSAGE` | no | A regular expression (Python `re.search`, as written, case-sensitive unless it says otherwise) for the text the gateway returns with the limit. Unset or blank means none. A value that is not a regular expression is refused with `FACTORY_PROVIDER_LIMIT_MESSAGE` as the variable. See "A provider's spend limit". |
+| `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` | no | How long the factory waits after a provider's spend limit when the limit names no wait, in whole minutes of ASCII digits, at least 1. Default 10; unset or blank gives the default. Anything else (`0`, `-1`, `1.5`, `abc`) is refused with `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` as the variable. See "A provider's spend limit". |
+| `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` | no | How long the waits of one run may add up to before the run ends `provider_limit`, in whole minutes of ASCII digits, at least 1. Default 120; unset or blank gives the default. Anything else is refused with `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` as the variable; a ceiling below the cool-down is refused with `is shorter than the cool-down`. See "A provider's spend limit". |
 
 A required variable that is missing, empty or only spaces is refused. The two commit-identity variables are decided one by one: a half that is unset or only spaces falls back to its own default, so the commits are `factory <factory@noreply.invalid>` unless you set them. No preflight item checks the identity.
 
@@ -206,7 +208,32 @@ Some gateways limit the spend per model in a rolling window and answer a call pa
 - A run past its time limit, or stopped by its budget, keeps that end reason; the limit is looked for only when neither applies.
 - A message that names a wait (`in 7 minutes`, `after 30 s`, `retry-after: 420`) gives the run's wait; otherwise none is known.
 - The cost record's `end_reason` is `provider_limit`, and the record carries the refused calls (`denials`, `denied_paths`) like any run that replied.
-- For now such a run is a stall with the cause `the provider's spend limit lasted past the waiting ceiling`: it costs one attempt and is retried by the usual rules. Waiting out the limit and continuing the same session is a later story of the same feature.
+- The factory waits the limit out and continues the run; see below.
+
+#### The wait
+
+The stage's agent runs through `PatientRuns` (`factory.application.provider_limits`). When a call ends `provider_limit`, no agent process is left running. The factory waits, then resumes the same session with a short continue prompt, the budget that is left (the agent's budget less what the run has cost so far) and the time limit that is left (less the time the calls have used). It asks no one and counts no attempt.
+
+- The wait is the one the message names (`limit_wait`), or `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` (default 10) when it names none. A run with no session starts again from the stage's own prompt.
+- The waits count toward neither the stage's `time_limit` nor its attempts. A run resumed after a limit is one run and one cost record, with the costs of all its calls added up.
+- A limit that comes again is waited out again. When the waits add up to `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` (default 120), the last wait cut to what is left of it, the run ends `provider_limit`.
+- If nothing of the budget is left after a limit, the run ends `budget`; if none of the time is left, it ends `time_limit`. Neither waits.
+- The preflight's probe never waits: a limit there is a failed probe (`the probe run ended provider_limit; ...`).
+
+The factory log shows each wait and the end:
+
+```text
+2026-10-19T12:00:07Z provider limit: coder waits 600 s before it resumes ses_a
+2026-10-19T12:10:07Z provider limit: coder waited 7200 s, the ceiling of 7200 s; the run ends provider_limit
+```
+
+The first line is written before each wait (`a new run` stands in for the session when the run has none). The second ends the run. Seconds are whole.
+
+**What to do at the ceiling.** The stage stalls with the cause `the provider's spend limit lasted past the waiting ceiling`: one attempt is counted and the note is on the pull request (see "A stall: the stall note"). The next tick runs the stage again from what the stall kept, and at the attempts cap the factory asks you. A limit that lasts two hours is not a rolling window passing: look at the gateway (its quota, its window), or raise `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES`, before you answer.
+
+**The claim stays held while waiting.** The factory renews no lease, so a stage that waits may hold its claim past its `lease_duration` (the coder's time limit, the ceiling and the checks come to about 180 minutes, against a lease of 60). Only another instance on the same repository would act on the age; run one instance per repository.
+
+**A stop or a restart during a wait** is a crash of the factory's own claim: the stage runs again at once and counts toward the crash cap, not toward the attempts (see "A restart during a stage"). The wait starts over.
 
 ### An opencode run's budget
 
@@ -604,6 +631,7 @@ Stalled (attempt 1 of 2): the agent run died without a result. Retrying on the n
 
 - `attempt n of m`: `n` is the work item's attempts after this stall; `m` is `attempts_cap` of the pipeline definition.
 - The cause is one sentence. The reasons are: the agent run died without a result; it reached its time limit; it spent its budget, and the resume too; the provider's spend limit lasted past the waiting ceiling; the agent gave no valid decision and entry; the agent's decision is not an allowed one; the agent left the work item's branch; the work item's form broke during the stage; a check is red after the stage; merging the main branch conflicts and the merge was aborted; the agent left a git repository in the work tree, which the factory removed (the detail lists the paths). A detail, such as the name of a red check, follows the sentence after a colon. A detail of several lines (the output of a red check) puts its first line in the sentence and the other lines in a code block below it; see "A stall by a red check".
+- The cause `the provider's spend limit lasted past the waiting ceiling` (`provider_limit`) means the factory waited out the provider's limit for the whole ceiling and the limit was still there. Nothing for you to do for one such stall: the next tick tries again. If it repeats, see "A provider's spend limit", "What to do at the ceiling".
 - The note says "Retrying on the next tick." only while `n` is below `m`. Nothing for you to do then; the next tick runs the stage again from what the stall kept.
 - At the cap the note ends `The attempts cap is reached; the factory asks you next.` and says nothing about retrying. At the cap the evaluation makes the event `ask` with the detail `attempts cap`. The `ask` handler records the attempts-cap question and posts it (see "The factory's own questions"). You read the cause and the stall entries in the work item's journal, fix what stops the stage (the agent, the stage's time limit or budget, the pipeline definition, the project's checks, a conflict with `main`), and answer on the pull request; the factory does not run the stage again until you have.
 - The stall's pull request: an open pull request of the work item is reused; otherwise the stall opens a new draft titled `<id>: <title>` with the work item's text as description. It does not use the stop description, and it does not post on a closed pull request.
