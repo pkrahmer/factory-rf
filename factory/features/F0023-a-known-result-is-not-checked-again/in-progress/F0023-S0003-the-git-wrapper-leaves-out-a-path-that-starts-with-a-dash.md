@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 288
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T21:28:54.588487Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T21:28:54.588487Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T21:29:15.705431Z'
+  stage: docs
+  run: 159181129cdb41c5afc18d749f3309db
 ---
 
 # The git wrapper leaves out a path that starts with a dash
@@ -169,3 +171,14 @@ Expect: `True`
 
    Earlier tests: none. The diff only adds a test file (status `A`), and no file that `main` already holds under `tests/` changed.
 10. factory: started docs as self.
+11. documenter: Docs stage, no findings. I changed no file. The docs criterion says `none`, and I checked that.
+
+    - The diff is one new test, `tests/adapters/test_git_cli_work_tree_dash.py`. Nothing under `src/` changed, so no behaviour, name or example moved.
+    - Cross-read and found current: `docs/project-guide/git-and-hosting.md:124`. It says `work_tree_id` runs `update-index --force-remove --` for the left-out paths, as literal paths and never pathspecs. That is the rule this story pins, and `src/factory/adapters/git_cli.py:412-427` (read by the reviewer) agrees with it.
+    - The other mentions of `--` in the README, `docs/operator-guide.md` and the other project-guide files are about other commands (`sudo`, `factory-confine`, cleanup). The story does not touch them.
+    - Stale text noticed, not mine to fix: none.
+    - I did not run `make check`, because I changed no file. The factory's checks after this stage decide.
+
+    `check`: check: green (not run again: passed on tree ba5e71b10a03 at 2026-10-19T21:27:01Z)
+    `secrets`: secrets: green (0.1 s)
+    `documents`: documents ok
