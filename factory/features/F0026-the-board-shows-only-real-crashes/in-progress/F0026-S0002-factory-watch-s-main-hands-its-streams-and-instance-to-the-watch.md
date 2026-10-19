@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 276
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T18:08:05.704565Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -46,6 +50,11 @@ journal:
   at: '2026-10-19T18:07:44.732964Z'
   stage: tests
   run: be605248478f4993be62cb16be58f09e
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:08:05.704565Z'
+  stage: doing
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -193,3 +202,4 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (48.6 s)
+8. factory: started doing as self.
