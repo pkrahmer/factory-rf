@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 250
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T04:16:36.007769Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-19T04:16:36.007769Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-19T04:16:55.230625Z'
+  stage: intake
+  run: 6b9747a9275848fb81f16b9634a9d198
+  blocked: question
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -99,3 +102,10 @@ Expect: two lines, `stderr:two stdout:one stdout:stop` and `True None False True
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: 1. The Interface says `run_streaming` starts the process "as `run_process` does": without a shell, standard input from `/dev/null`, in `request.cwd` with `request.env`, in its own session. No criterion tests any of these for `run_streaming`. Criterion 10 only covers `run_process`'s existing tests, and the smoke test uses `cwd` but never reads it back. Two coders could wire these differently and still pass every test. Options: (a) add a criterion with rows: a child that prints its working directory, one variable from `request.env` and whether standard input is at end of file (read returns empty at once). I would choose this. (b) Drop the clause and say that `run_streaming` shares `run_process`'s start code, which is a structural claim and still needs a test.
+   2. The Interface states "`duration` is the time from the start to the result", and no criterion tests it. Suggested: a criterion that `duration` is at least the child's known run time, for example a child that prints a line and exits after a short wait, and below an upper bound with room above it. Or drop the clause.
+   3. The Interface says that after a stop "no further line is passed". Criterion 3 covers this only for a line that the child prints after a 60-second sleep, which the kill prevents anyway. It does not cover a child that prints several lines in a burst after the stop line. Suggested: add a row where the child prints `go` and then `later` at once, and the callback stops on `go`; `later` is never passed. Please confirm that this is the intended meaning, since lines already read in the same chunk are the ambiguous case.
+   4. The time-limit clause says "no line read after the kill is passed", and criterion 5 has no check for it. Suggested: add to criterion 5 that no call has a line printed after the limit, for example a child that prints `late` after a sleep longer than the limit.
+   5. The Interface says an exception from the callback propagates. The criterion for the other side is missing: the callback raising on a line on standard error. Optional; I would accept it as is if you say that stdout alone is enough.
+
+   Everything else checked out. The module and signatures are concrete. The smoke test is runnable and its `Expect:` line is checkable. The story is in the adapters layer, within the feature's scope, and it is not in "Out of scope".
