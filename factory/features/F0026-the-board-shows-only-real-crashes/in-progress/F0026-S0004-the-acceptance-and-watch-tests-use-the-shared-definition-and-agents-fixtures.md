@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 274
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T17:28:06.011389Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T17:28:06.011389Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T17:28:29.901086Z'
+  stage: intake
+  run: 074f839f876a4f1bb54b687fc284e833
 ---
 
 # The acceptance and watch tests use the shared definition and agents fixtures
@@ -73,3 +75,9 @@ Expect: three lines, `tests/conftest.py`, `tests/conftest.py` and `pytest exit 0
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: no `src/` change. `tests/conftest.py` gains `installed_agents(boundaries: Boundaries, agent_home: Path) -> None`, not autouse. Its `boundaries` and `agent_home` fixtures exist (conftest lines 156 and 111). The eleven acceptance modules, six `_agents` modules and `test_pipeline_loading_agents.py` match the grep: each holds the copy the story names. `definition` is already in conftest (line 187). The two other hits are unrelated and the story leaves them out: `tests/adapters/test_agent_files.py::_agents(agent_home)` has a different signature, and `tests/domain/test_decision_rules.py::definition()` takes no `boundaries`.
+   Criteria: 1 and 2 are each testable by one search test over `tests/**/*.py`. Both sides are covered, since each criterion requires a single definition site and the absence of the old `_agents`. Criteria 3 and 4 are the closing ones. This is a refactor with no new behaviour, so no rule lacks a failing-side criterion.
+   Smoke test: the two greps and the pytest line are runnable. The `Expect:` line is checkable: `tests/conftest.py`, `tests/conftest.py`, `pytest exit 0`.
+   Architecture: tests only, moved to the shared `tests/conftest.py` under the standing leave in CLAUDE.md (*Tests*). The tester makes the move, and the story names every changed module. No layer or `src/` change.
+   Scope: the feature.md Scope names only S0001's files. This story comes from the acceptance reviewer's proposal (R13) and touches only tests, and it stays out of the feature's Out-of-scope items. It changes no test of `test_watcher_move_rule.py`. The edits to other stories' modules are limited to the standing leave (removing duplicate fixtures, with test names unchanged).
