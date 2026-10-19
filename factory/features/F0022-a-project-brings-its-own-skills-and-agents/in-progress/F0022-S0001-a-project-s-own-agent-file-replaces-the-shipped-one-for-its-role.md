@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 264
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T13:23:33.369419Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T13:23:33.369419Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T13:24:30.582009Z'
+  stage: review
+  run: 5fe8c8a5480b4c188a5fafaa829d48b7
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -270,3 +272,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Round 0 review. I read the work item, the diff stat, the full diff under `src/` and `tests/`, and the output of `make duplicates`.
+
+   Checklist groups 1 to 3 pass:
+   - Group 1: each of criteria 1 to 14 has a test that checks what the criterion says, and the failing sides the Interface states are tested. The coder's `make check` was green (entry 7).
+   - Group 2: layers and wiring hold. `ProjectAgentDefinitions` sits in `factory.application` over the `Git` and `AgentDefinitionReader` ABCs, and it is wired only in `factory.entry.wiring` with the boundaries' `GitCli`.
+   - Group 3: the name is checked before any git path is built, and the diff adds no suppression marker.
+   - None of the 5 new `make duplicates` findings is in a file this diff touches (`claude_runtime`, `opencode_runtime`, `clock`).
+
+   Group 4 (quality) fails:
+   1. `src/factory/application/project_agents.py:30-31`: the name refusal `if not is_name(name): raise AgentDefinitionMissing(name, f"not an agent name: {name}")` copies `_check_name` in `src/factory/adapters/agent_files.py:24-26`, which this diff added. The fault text now lives in two places, and the application layer cannot import the adapter's private helper. Fix: move the check to one public domain function beside `is_name` in `factory.domain.identifiers` (or beside `AgentDefinitionMissing`) that raises `AgentDefinitionMissing` with that fault. Use it in `ProjectAgentDefinitions.read` and in `FrontmatterAgentDefinitionReader` in place of `_check_name`, keeping the check before git is read.
+   2. `src/factory/application/project_agents.py:53`: the literal `".md"` in `_project_names` repeats the agent suffix that `factory.domain.paths` holds as `_AGENT_SUFFIX` (and `agent_files.py` as its own `_AGENT_SUFFIX`). Fix: take the suffix from `factory.domain.paths`, for example as a public `AGENT_SUFFIX` beside `PROJECT_AGENTS_DIRECTORY` that `project_agent_file` uses, instead of writing it a third time.
+
+   Earlier tests:
+   - `tests/application/test_agent_definition_reader.py`: the human's leave. The story's Interface names both changes under the feature's decision 14 (`parse` added to the expected abstract methods and sorted names; both tests keep their names).
+   - `tests/domain/test_write_paths.py`: the human's leave. The story's Interface names the rename to `test_the_protected_paths_are_the_engines_eleven_patterns` and `"factory/agents/*"` added last.
+   - `tests/entry/test_wiring_boundaries.py`: the human's leave. The story's Interface names both changes: the expected class becomes `ProjectAgentDefinitions`, and the test clones `remote` into `settings.checkout` and checks the same names. The removed `FrontmatterAgentDefinitionReader` import was left unused by that change.
