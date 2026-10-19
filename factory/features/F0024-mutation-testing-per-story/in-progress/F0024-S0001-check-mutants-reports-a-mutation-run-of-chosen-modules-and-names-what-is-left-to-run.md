@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T16:19:20.255129Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-19T16:19:20.255129Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T16:19:45.856726Z'
+  stage: smoke-test
+  run: e9727ae2205d4dd9a1c1b4882b611f64
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -403,3 +405,34 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test, round 1. I ran the three commands under `## Smoke test` from the repository root in the order written. Each block ran in its own `bash -c` so its `trap` removed its temporary folder. All three outputs matched their `Expect:` lines, and nothing in them contradicts an acceptance criterion. I changed nothing, and nothing was left in the working tree apart from the factory's `.costs.jsonl` sidecar.
+
+    Command 1: report with a `not checked` mutant, limited to `factory.domain.a`
+    ```
+    factory.domain.a.x_f__mutmut_2: survived
+    mutants: partial, 1 killed, 1 survived, 0 timed out, 0 without tests, 1 not checked, 0 other of 3 mutant(s) in 1 module(s)
+    exit 1
+    ```
+    Met. These are the three lines expected. The mutant `factory.domain.b` survived but is left out, as criteria 3 and 4 require (only chosen modules are reported). The run is partial and the exit status is 1, as criterion 8 requires.
+
+    Command 2: `--names` for `factory.domain.a` and `factory.domain.c`
+    ```
+    factory.domain.a.x_f__mutmut_2
+    factory.domain.a.x_g__mutmut_1
+    factory.domain.c.*
+    exit 0
+    ```
+    Met. The names that are not killed come in the order of the results, followed by the pattern for the module with no mutant. The exit status is 0 even though a mutant is `not checked`, as criteria 6 and 9 require.
+
+    Command 3: `--stopped-after 540` on a complete run, then a results file that does not exist
+    ```
+    mutants: partial, 1 killed, 0 survived, 0 timed out, 0 without tests, 0 not checked, 0 other of 1 mutant(s) in 1 module(s) (stopped after 540 s)
+    exit 1
+    exit 2
+    check-mutants: cannot read
+    ```
+    Met. The stop marks the report partial and adds the suffix (criteria 4 and 8). The missing file gives exit status 2, nothing on standard output, and a standard-error line that starts `check-mutants: cannot read` (criterion 10).
+
+    Findings: none.
+
+    Open: nothing.
