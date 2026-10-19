@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T01:37:08.445955Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-19T01:36:46.595978Z'
   stage: review
   run: 83ebef1c9c7d4e128b3a716522a666fa
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:37:08.445955Z'
+  stage: docs
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -231,3 +240,4 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
 
     Notes:
     - `tests/entry/test_contract_arguments.py:13`: `SCHEMA_NAMES` builds the same five file names that `tests/entry/test_contract.py:16` already lists as `SCHEMA_FILES`. Both could come from `tests/contract_support.py`.
+18. factory: started docs as self.
