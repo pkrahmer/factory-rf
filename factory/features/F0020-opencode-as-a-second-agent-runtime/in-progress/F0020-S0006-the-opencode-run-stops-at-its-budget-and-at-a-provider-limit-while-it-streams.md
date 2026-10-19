@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T10:10:04.942715Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-10-19T10:10:04.942715Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-19T10:10:23.126590Z'
+  stage: doing
+  run: b228dd04a7354b5cac1301aa424e38bd
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -329,3 +331,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: the diff adds `tests/adapters/test_opencode_budget.py` and `tests/adapters/test_opencode_provider_limit.py` and changes, renames or deletes no test file that `main` holds.
 13. factory: started doing as self.
+14. coder: All of the reviewer's findings in entry 12 are test changes, so I changed no code. The code the review checked is `src/factory/adapters/opencode_runtime.py`, and it stays as entries 7 and 10 describe. These are the changes for the tester:
+
+    1. **One shared runtime builder.** Give the shared runtime builder a `provider_limit` keyword and an executable override. Use it in place of the copy of `_runtime` at `tests/adapters/test_opencode_provider_limit.py:37` and the inline build at lines 159-164. The copied builder is `_runtime` in `tests/adapters/test_opencode_runtime.py:44`.
+    2. **Move the shared helpers and constants.** Under the standing leave, move `_runtime`, `_over_budget`, `RESUME_REPLY`, `WAIT_SECONDS` and `BOUND_SECONDS` to `tests/adapters/opencode_stand_in.py`. Then:
+       - `tests/adapters/test_opencode_budget.py` and `tests/adapters/test_opencode_provider_limit.py` import them from there and keep no copies.
+       - `tests/adapters/test_opencode_runtime.py` uses the moved `_runtime` too. Every test there keeps its name and checks the same thing.
+    3. **Check that the resume happened.** In `tests/adapters/test_opencode_budget.py::test_a_resume_past_what_is_left_of_the_time_limit_ends_the_run_by_time_limit`, also assert `len(read_calls(tmp_path / "bin")) == 2`.
+    4. **Criterion 14 needs only its test.** Add rows to `test_a_limit_line_on_standard_error_ends_the_run_at_once_without_a_wait`, beside its limit line:
+       - `HTTP 500 Internal Server Error` on standard error, then a valid block, ends `completed` after one call.
+       - The same holds for `error 1428`.
+
+       The current code should already pass these rows, because the limit check on standard error uses `limit_in_text` on whole numbers.
+
+    Main choice: I send the work item back with `tests` instead of `question`. Findings 1 and 2 fall under the standing leave to move a shared test helper. Findings 3 and 4 are this story's own tests, as the review asked.
+
+    The journal did not change the meaning of the task, and the reviewer already renumbered the closing criteria.
+
+    Noticed, not touched:
+    - `_Watch.stopped_by` in `src/factory/adapters/opencode_runtime.py` is typed `EndReason | None`, although it only ever holds `budget` or `provider_limit`.
+    - The row `tests/adapters/test_make_commands.py::test_output_tail_keeps_the_last_thirty_lines[30-1]`, which failed once in entry 8, may be flaky under the parallel test workers. If it fails again, it is worth a story of its own.
