@@ -1,7 +1,8 @@
 # The contract between a project and the factory is three targets: `check`, `lint`, `test`.
 # `check` is what every stage must pass; `lint` and `test` are what the tests stage runs on its
 # own (the type check is skipped there, because the modules under test do not exist yet).
-# `duplicates` and `mutants` are reports outside `check`. A Python example with a src layout.
+# `duplicates` is a report outside `check`; `mutants` is for a sweep by hand, never a stage.
+# A Python example with a src layout.
 #
 # The development dependencies the targets need, pinned in pyproject.toml: ruff, mypy, semgrep,
 # bandit, detect-secrets, pip-licenses, pytest, pytest-cov, pytest-xdist, pylint, vulture,
