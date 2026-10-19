@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 242
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T00:54:26.617127Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T00:54:26.617127Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T00:54:47.753710Z'
+  stage: intake
+  run: 707f745ac3d541ea9d7f881bd182d205
 ---
 
 # The documents repair what the feature's stories left stale
@@ -81,3 +83,9 @@ Expect: `documents ok`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: "None" is right for a documents-only story. It names the three documents the documenter changes and says no module, test, image, template or agent file changes.
+   Criteria: Each docs bullet is one checkable passage (a literal string, a cell, a field list, a clause), so one check can test each. The two rules the story states have both sides: "No other cell changes" and "No other passage changes" with `documents ok` are the failing side. Criterion 1 (nothing outside `docs/` changes) is checkable by a diff. I checked the passages against the current files. The journal example at project-guide line 496 ends `run=None`, with no `blocked` or `reason`. The two operator-guide cells (lines 601-602) hold the `time_limit` text under the `Comment reads` header. The `Boundaries` text in project-guide mentions `disk_records` and `stop_records`. The decisions section "The stops reach main as raised and cleared records" exists at line 616.
+   Smoke test: All four commands are runnable. Each `Expect:` line is a count or an exact output that can be checked. The second test greps the two rows for `time_limit`, which sits only in the `Comment reads` cell being replaced, so `0` is right after the change.
+   Architecture: No layer is touched.
+   Scope: The story repairs the five passages the feature acceptance found and nothing else. It stays inside the feature's docs paths, and nothing in `feature.md`'s Out of scope covers it.
