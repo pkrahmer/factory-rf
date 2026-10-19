@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T01:07:11.762646Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T01:06:51.375124Z'
   stage: tests
   run: efe185d0f7ce45588091db9c02369c14
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:07:11.762646Z'
+  stage: doing
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -135,3 +144,4 @@ Expect: `0`
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_preflight_stop_records_paths.py - ImportError while i...
+6. factory: started doing as self.
