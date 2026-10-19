@@ -117,9 +117,10 @@ TEMPLATE_RULES_LINES = [
     "counts them on its last line: a report, never a check. `make mutants FEATURE=<feature id>` "
     "runs mutmut over the modules of <the package folder> that the feature's story commits on "
     "`origin/main` changed (`work item <id>: ...`, or the pull request's title `<id>: ...` after "
-    "a squash merge), and lists the surviving mutants: run by the feature acceptance, never part "
-    "of `make check`; mutmut rewrites the source with its own import, so its runs leave out the "
-    "tests that read the source (`pytest_add_cli_args` in `[tool.mutmut]` of `pyproject.toml`). "
+    "a squash merge), and lists the surviving mutants: for a sweep by hand, never run by a stage "
+    "and never part of `make check`; mutmut rewrites the source with its own import, so its "
+    "runs leave out the tests that read the source (`pytest_add_cli_args` in `[tool.mutmut]` "
+    "of `pyproject.toml`). "
     "The pipeline definition names `check`, `lint` and `test`; a project that wants the "
     "duplicates report after the coder adds `duplicates` to its `project_commands` and to the "
     "`reports` of the stage `doing`.",

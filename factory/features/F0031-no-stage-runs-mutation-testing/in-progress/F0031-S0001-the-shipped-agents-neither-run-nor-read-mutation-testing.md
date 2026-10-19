@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T20:50:48.736600Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T20:50:48.736600Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T20:53:24.236936Z'
+  stage: tests
+  run: 980123cff2644e24ba046a9ecdcb0181
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -114,3 +116,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: only shipped agent texts and template files change, in `claude/` and `template/`. Those are the coder's write paths and the tests are the tester's. No layer, dependency or suppression marker is involved.
    - Scope: it is within the feature's Scope. It leaves alone the Out-of-scope items (the `mutants` target, `src/`, the pipeline files and the todo demo). The pipeline file and the demo changes stay the human's, as the feature says.
 4. factory: started tests as self.
+5. tester: Wrote the tests for the shipped agents' and the template's mutation-testing texts. The tests are red on purpose until the coder changes the four files under `claude/` and `template/`.
+
+   - criterion 1: tests/test_claude_agent_texts_mutants.py::test_acceptance_reviewer_leaves_mutation_testing_to_sweeps (rows check-3, check-7, recommendation, proposals in *Role*; step-1, step-3 in *Stage*, through `section_text(agent_body("acceptance-reviewer"), ...)`)
+   - criterion 2: tests/test_claude_agent_texts_mutants.py::test_acceptance_reviewer_holds_no_old_mutation_text (seven old texts 0 times, `3. **Mutation testing.**` once) and tests/test_claude_agent_texts_mutants.py::test_acceptance_reviewer_mutation_testing_is_the_third_check (the next line starts `4. **What the stories noticed.**`)
+   - criterion 3: tests/test_claude_agent_texts_mutants.py::test_reviewer_names_no_mutation_testing (rows mutant, mutmut, mutation over the lowercased body) and tests/test_claude_agent_texts_mutants.py::test_reviewer_item_6_is_followed_by_the_findings_paragraph (one blank line, then `Write findings as a numbered list in your entry`)
+   - criterion 4: tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text (`TEMPLATE_RULES_LINES` now holds the new template sentence) and tests/test_claude_agent_texts_mutants.py::test_template_makefile_leaves_mutants_to_a_sweep_by_hand (rows: the new comment line occurs once, `the feature acceptance runs it` occurs 0 times)
+   - criterion 5: no new test. tests/test_claude_agent_texts.py, tests/test_acceptance_reviewer_disk.py, tests/test_claude_agent_texts_review_leave.py, tests/test_template_makefile.py and the rest of tests/test_claude_files.py are left as they were.
+   - criterion 6: `make check`, which the factory runs. criterion 7 is the docs stage's work.
+
+   Files: I created no new file.
+   - I rewrote `tests/test_claude_agent_texts_mutants.py`, an earlier test, as the story says. The old tests there pinned the texts that this story removes, so they are replaced by the tests above.
+   - I changed `TEMPLATE_RULES_LINES` in `tests/test_claude_files.py`, an earlier test. Only the string pieces that hold the sentence changed. The joined text is otherwise the same as before; the literal pieces after it are split differently only to keep lines within 100 characters.
+   - Both earlier files were changed under the leave of the feature's decision 7, which the story names.
+
+   Import failures: none. No module under `src/` is involved, so every test module was collected.
+
+   `make test` (one run) fails only in the new and changed tests. The texts are still the old ones, so the tail showed, among others, `test_reviewer_item_6_is_followed_by_the_findings_paragraph`, both rows of `test_template_makefile_leaves_mutants_to_a_sweep_by_hand` and `test_template_rules_file_is_the_python_project_text`. `make lint` is green.
+
+   Open: nothing.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text
