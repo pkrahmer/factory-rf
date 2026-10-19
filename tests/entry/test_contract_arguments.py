@@ -1,35 +1,23 @@
 """The contract command reads its arguments from `sys.argv` and creates missing parents."""
 
 import sys
-from collections.abc import Callable
-from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
 
 import factory.entry.contract
+from contract_support import USAGE, WRITTEN, MainRow
 from factory.domain.contract import CONTRACT, schema_file_name
 from factory.entry.contract import main, write_contract
 
 SCHEMA_NAMES = sorted(schema_file_name(entry) for entry in CONTRACT)
-WRITTEN = "contract: 5 schemas written\n"
-USAGE = "usage: python -m factory.entry.contract [<folder>]\n"
-
-
-@dataclass(frozen=True)
-class _ArgvRow:
-    argv: Callable[[Path], list[str]]
-    written: Callable[[Path], Path] | None
-    out: str
-    err: str
-    code: int
 
 
 @pytest.mark.parametrize(
     "row",
     [
         pytest.param(
-            _ArgvRow(
+            MainRow(
                 lambda tmp: ["contract", str(tmp / "given")],
                 lambda tmp: tmp / "given",
                 WRITTEN,
@@ -39,11 +27,11 @@ class _ArgvRow:
             id="folder",
         ),
         pytest.param(
-            _ArgvRow(lambda _: ["contract"], lambda tmp: tmp / "default", WRITTEN, "", 0),
+            MainRow(lambda _: ["contract"], lambda tmp: tmp / "default", WRITTEN, "", 0),
             id="no-folder",
         ),
         pytest.param(
-            _ArgvRow(lambda _: ["contract", "a", "b"], None, "", USAGE, 2), id="two-arguments"
+            MainRow(lambda _: ["contract", "a", "b"], None, "", USAGE, 2), id="two-arguments"
         ),
     ],
 )
@@ -51,13 +39,13 @@ def test_main_without_argv_reads_the_arguments_after_the_program_name(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
-    row: _ArgvRow,
+    row: MainRow,
 ) -> None:
     default = tmp_path / "default"
     default.mkdir()
     monkeypatch.setattr(factory.entry.contract, "CONTRACT_FOLDER", default)
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(sys, "argv", row.argv(tmp_path))
+    monkeypatch.setattr(sys, "argv", row.arguments(tmp_path))
 
     returned = main()
 

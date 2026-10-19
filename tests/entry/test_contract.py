@@ -2,13 +2,13 @@
 
 import json
 from collections.abc import Callable
-from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
 
 import factory
 import factory.entry.contract
+from contract_support import USAGE, WRITTEN, MainRow
 from factory.domain.contract import CONTRACT, ContractEntry, contract_schema, schema_file_name
 from factory.entry.contract import main, write_contract
 
@@ -20,8 +20,6 @@ SCHEMA_FILES = [
     "stop-record.schema.json",
     "pipeline-definition.schema.json",
 ]
-WRITTEN = "contract: 5 schemas written\n"
-USAGE = "usage: python -m factory.entry.contract [<folder>]\n"
 OTHER_TEXT = "not a schema\n"
 
 
@@ -75,32 +73,21 @@ def test_the_committed_schemas_are_the_generated_ones(tmp_path: Path, name: str 
         assert (COMMITTED / name).read_bytes() == (tmp_path / name).read_bytes()
 
 
-@dataclass(frozen=True)
-class _MainRow:
-    arguments: Callable[[Path], list[str]]
-    written: Callable[[Path], Path] | None
-    out: str
-    err: str
-    code: int
-
-
 @pytest.mark.parametrize(
     "row",
     [
+        pytest.param(MainRow(lambda tmp: [str(tmp)], lambda tmp: tmp, WRITTEN, "", 0), id="folder"),
         pytest.param(
-            _MainRow(lambda tmp: [str(tmp)], lambda tmp: tmp, WRITTEN, "", 0), id="folder"
+            MainRow(lambda _: [], lambda tmp: tmp / "default", WRITTEN, "", 0), id="default"
         ),
-        pytest.param(
-            _MainRow(lambda _: [], lambda tmp: tmp / "default", WRITTEN, "", 0), id="default"
-        ),
-        pytest.param(_MainRow(lambda tmp: [str(tmp), "x"], None, "", USAGE, 2), id="two-arguments"),
+        pytest.param(MainRow(lambda tmp: [str(tmp), "x"], None, "", USAGE, 2), id="two-arguments"),
     ],
 )
 def test_main_writes_the_schemas_into_the_folder_given_or_the_default(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
-    row: _MainRow,
+    row: MainRow,
 ) -> None:
     assert factory.entry.contract.CONTRACT_FOLDER == COMMITTED
     monkeypatch.setattr(factory.entry.contract, "CONTRACT_FOLDER", tmp_path / "default")

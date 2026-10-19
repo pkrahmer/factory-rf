@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T01:31:07.137921Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T01:31:07.137921Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T01:33:46.814411Z'
+  stage: tests
+  run: 69f6840e309c4477b68ffcd73a5a892e
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -168,3 +170,16 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
     Main choice: end with `tests` instead of `question`, because CLAUDE.md's standing leave covers exactly this move. I rejected touching the tests myself, because the coder never edits tests.
     Noticed, not touched: `src/factory/entry/contract.py:41` (the `__main__` guard) is still the one uncovered line, as entry 7 already said. No source changed, so there was nothing to refactor and no `make check` of my own to report. The journal did not change the meaning of the task, so `## Description` stays as it is.
 12. factory: started tests as self.
+13. tester: Made the move of a shared test helper that the coder named in entry 11, under the standing leave in CLAUDE.md (*Tests*). It answers the reviewer's finding in entry 9, item 1.
+    Created `tests/contract_support.py`. It holds the constants `WRITTEN` and `USAGE` and one frozen row dataclass, `MainRow`, with the fields `arguments`, `written`, `out`, `err` and `code`. It keeps the earlier field name `arguments`.
+    Earlier test file changed under the standing leave: `tests/entry/test_contract.py`. I removed its copies of `WRITTEN` and `USAGE` and its `_MainRow` class, and it now imports them from `contract_support`. Every test in it keeps its name and checks the same thing.
+    Also changed: `tests/entry/test_contract_arguments.py`, this story's own module. I removed its copies and `_ArgvRow`, and it now uses `MainRow` with `row.arguments(...)`. Its tests keep their names and rows.
+    Criterion mapping, unchanged:
+    criterion 1: tests/entry/test_contract_arguments.py::test_main_without_argv_reads_the_arguments_after_the_program_name
+    criterion 2: tests/entry/test_contract_arguments.py::test_write_contract_creates_the_folder_and_its_missing_parents
+    criterion 3: `make check` is the factory's gate; it has no test of its own.
+    criterion 4: docs: none.
+    The first `make test` gave an ImportError: I had written `from tests.contract_support`, but the other modules import support modules from the `tests/` root without a prefix, as in `from git_support import ...`. I switched to `from contract_support import ...` and ran it again. The second run ended `test: green (37.5 s)`, so every module imports. `make lint` ends `lint: green`, and `make types` is green too.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (37.2 s)
