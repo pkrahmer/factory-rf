@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 280
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T19:11:35.643326Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T19:11:35.643326Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T19:12:53.263834Z'
+  stage: doing
+  run: 6a908e56d8d344909a2f95f4f72d8f9e
 ---
 
 # The operator guide names opencode wherever it names the runtime
@@ -118,3 +120,11 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (47.8 s)
 6. factory: started doing as self.
+7. coder: No code written: the story is docs-only. Its Interface is "None", and criterion 1 says no file changes under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`.
+   - criterion 1: I created and changed no file under any of those folders, and no test. `git status --short` shows only the work item's `.costs.jsonl` sidecar, which the factory writes.
+   - criterion 2: `make check` ends `check: green` (test: green, coverage 99.12 %).
+   - criterion 3 (the docs criterion): the documenter edits `docs/operator-guide.md`. It is outside the coder's write paths and the coder does not write the docs.
+   Main choice: hand forward with no change. I rejected touching `docs/operator-guide.md` from this stage: CLAUDE.md gives the docs to the documenter. Refactor step: there is no diff to refactor. The journal did not change the meaning of the Description. I noticed nothing else and left nothing open.
+
+   `check`: check: green (not run again: passed on tree 5e9e997b80f0 at 2026-10-19T19:01:37Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
