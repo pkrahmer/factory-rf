@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T03:42:46.663195Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T03:42:26.125572Z'
   stage: review
   run: c4ddff7675b34486b84e063839ed3caa
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:42:46.663195Z'
+  stage: doing
 ---
 
 # The agent runs can log in with an API key
@@ -374,3 +383,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - `tests/conftest.py`: same leave. It only gains the moved `recorder` fixture.
    - `tests/domain/test_contract.py`: the human's leave. The story names `test_a_schema_starts_with_the_dialect_and_the_contract_version` under the feature's decision 19 (expected version `"1.1"`), and the test keeps its name.
    - `tests/test_compose.py`: the human's leave. The story names `test_the_three_volumes_are_mounted_and_declared` under decision 19; the fifth bind was added and the test keeps its name.
+10. factory: started doing as self.
