@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853, 6262583574]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T08:09:26.508209Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -234,6 +230,12 @@ journal:
   kind: started
   at: '2026-10-19T08:09:26.508209Z'
   stage: doing
+- number: 41
+  speaker: coder
+  kind: result
+  at: '2026-10-19T08:11:47.681895Z'
+  stage: doing
+  run: cf002eed748d403f92d652d3fc66a7cb
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -755,3 +757,33 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (49.1 s)
 40. factory: started doing as self.
+41. coder: Round 1, after the tester's change in entry 39. As entry 33 asked, this round covers only criterion 19: a run that outlasts its time limit keeps its `session`. I changed nothing under `src/`.
+
+    The tester added the test for criterion 19:
+    - Claude: `test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit` in tests/adapters/test_claude_runtime_provider_limit.py now also checks `result.session` against the `--session-id` of its call.
+    - opencode: the table in tests/adapters/test_opencode_resume_session.py gains the rows `timed-out-with-events` and `timed-out-resumed-without-events`.
+
+    These checks pass against the code built in entry 13. That code already keeps the session on a time-limited run: the Claude runtime's `_result` passes the session into its time-limit return, and the opencode runtime's `_result` reads the session from the events before its `timed_out` return, falling back to `resume_session`. I ran `make check` myself and it is green (`check: green`, coverage 99.05 %).
+
+    What I built is unchanged from entry 13:
+    - `src/factory/domain/provider_limits.py`
+    - `src/factory/domain/agent_runs.py`
+    - `src/factory/domain/settings.py`
+    - `src/factory/domain/journal.py`
+    - `src/factory/domain/post_texts.py`
+    - `src/factory/domain/contract.py`, with the schemas under `src/factory/contract/` regenerated at 1.2
+    - `src/factory/adapters/claude_runtime.py`
+    - `src/factory/adapters/opencode_runtime.py`
+    - `src/factory/entry/wiring.py`
+
+    Main design choice, also unchanged: the Claude runtime's `_result` takes the session as a parameter, and the resume call gets `first.session`. I rejected reading the session back from the argument list.
+
+    Refactor pass: there is no new code diff this round, so nothing needed changing. Entry 31 added criterion 19, and the reviewer already wrote it into `## Acceptance criteria`. It does not change what the task means, so `## Description` stays as it is.
+
+    Seen but not touched (notes carried forward, as entry 33 asks):
+    - The error reply is written out twice: `_error_reply` in tests/adapters/test_claude_runtime_provider_limit.py and `ERROR_REPLY` in tests/entry/test_wiring_provider_limit.py.
+    - In tests/domain/test_agent_runs_session.py, the row `zero-wait` expects the refusal `""`, which matches any validation error.
+    - The 5 new `make duplicates` findings from entry 13. None of them comes from this story's diff.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 1 gone
