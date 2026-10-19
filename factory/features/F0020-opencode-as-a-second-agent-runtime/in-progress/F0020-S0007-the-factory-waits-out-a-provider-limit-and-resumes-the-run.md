@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T10:54:23.463144Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-10-19T10:54:23.463144Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T10:55:24.897109Z'
+  stage: review
+  run: 908e8a4cda3e4a2abf62c926a9414b93
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -549,3 +551,41 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 6 new, 33 known, 3 gone
 26. factory: started review as self.
+27. reviewer: no findings
+
+    Round 1. I reviewed the whole diff again, not only the round-0 finding.
+    - Criterion 18 is now tested by the rows `one-and-one` and `ceiling-equals-cooldown` in `tests/domain/test_settings_provider_limit_wait.py::test_the_cooldown_and_ceiling_are_read_in_minutes`. Those rows cover the accepting side of both `read_settings` limits.
+    - Criteria 1 to 17 each have a test that checks what the criterion says.
+    - Every rule in the Interface has its failing side tested:
+      - a negative wait
+      - a 59-second cool-down
+      - a ceiling below the cool-down, both in the model and in the settings
+      - `0`, `-1`, `abc` and `1.5`
+      - the budget at 1.00 and 1.20 against 0.99, and the time at 60 s against 59 s, with budget winning when both are used up
+      - the ceiling reached
+      - no waiter
+      - the probe
+    - Entry 25 records that `make check` was green after the coder.
+
+    Checks against the code:
+    - `PatientRuns.run` (`src/factory/application/provider_limits.py`) follows steps 1 to 6 in order. Budget and time left come from the joined result, which `resumed_result` sums. Each resumed request is a `model_copy`. A ceiling cut is `min(wanted, ceiling - waited)`.
+    - `result.limit_wait or cooldown` cannot treat a zero wait as missing. `AgentRunResult` refuses a `limit_wait` that is not positive (`src/factory/domain/agent_runs.py:179`).
+    - Architecture holds:
+      - `Waiter` is an ABC in `application.machine`.
+      - Both waiters inherit it in `adapters.clock`.
+      - `ProviderLimit` stays pure in `domain`.
+      - The wiring is only in `entry.wiring`.
+      - The stage goes through `run_sealed(..., run=PatientRuns(...).run)`, and the preflight is unchanged.
+    - Security: no new markers, secrets or string-built commands.
+    - Quality:
+      - `_whole_number` makes `_min_free_gb` and `_minutes` share the ASCII-digit check instead of copying it.
+      - In `make duplicates`, the 4 new similar-code findings are in `claude_runtime` and `opencode_runtime`, which this diff does not touch.
+      - Also new in `make duplicates`: `ManualWaiter` flagged as dead code. It is used only by tests, as `ManualClock` already is.
+    - Hygiene: the Description matches what was built, and the docs criterion (20) still names what the operator and agents must know.
+
+    Earlier tests: none changed. Every test file in the diff has status `A`.
+
+    Notes:
+    - `tests/adapters/test_waiters.py:486`: `match=r"."` accepts any `ValueError` message; matching `negative` would pin the refusal.
+    - `tests/domain/test_provider_limit_wait.py:1076` (the `cooldown-59-seconds` row): the fault `""` matches any `ValidationError` text.
+    - `tests/application/test_sealed_runs_runner.py:849`: it imports the private helpers `_leave`, `_request` and `_swap_for_folder` from `application.test_sealed_runs`. Under the standing leave they would move to a shared module under `tests/` instead.
