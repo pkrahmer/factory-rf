@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T06:41:32.848277Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-19T06:41:12.600938Z'
   stage: tests
   run: 13d2ad645d464696ab4c99c13233640b
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:41:32.848277Z'
+  stage: doing
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -326,3 +335,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (36.4 s)
+14. factory: started doing as self.
