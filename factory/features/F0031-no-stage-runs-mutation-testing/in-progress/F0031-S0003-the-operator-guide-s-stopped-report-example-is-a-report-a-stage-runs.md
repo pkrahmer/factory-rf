@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 301
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T23:31:07.855420Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T23:31:07.855420Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T23:32:10.160645Z'
+  stage: doing
+  run: febb99ae723048739bc57d53c7fcbd0d
 ---
 
 # The operator guide's stopped-report example is a report a stage runs
@@ -110,3 +112,11 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.3 s)
 6. factory: started doing as self.
+7. coder: Built nothing. This story only changes documentation. Its Interface changes no module under `src/factory/` and no test, and criterion 1 says the coder changes nothing under `src/`, `tests/`, `image/`, `template/` or `claude/`. This entry confirms that: this stage changed no file at all.
+   Main choice: I left `docs/operator-guide.md` alone, because the documenter makes the one change, from the docs criterion, and CLAUDE.md says the coder does not write the guides. Rejected: changing the example in *What a stage run shows*, point 3, myself, which would take the documenter's work.
+   No refactor, since there is no diff to read. The journal did not change what the task means, so `## Description` stays as it is.
+   `make check` is green (`check: green`; `test: green (41.0 s)`, coverage 99.13 %).
+   Noticed but did not touch: nothing.
+
+   `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
