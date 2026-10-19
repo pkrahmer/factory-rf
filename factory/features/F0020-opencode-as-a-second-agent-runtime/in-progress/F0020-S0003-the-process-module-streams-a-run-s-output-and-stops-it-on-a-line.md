@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T04:34:55.037187Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-19T04:34:55.037187Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T04:36:06.802755Z'
+  stage: docs
+  run: 7c183c5f87e24198a44df7c4c22043f5
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -347,3 +349,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/adapters/test_process.py: changed under the standing leave to move a shared test helper (CLAUDE.md, *Tests*). `_python` moved to `process_support.python_argv` and the unused `import sys` was dropped. Every test keeps its name and checks the same thing.
     - tests/process_support.py: changed under the same standing leave, as the destination of the move. It only gains `python_argv`; `is_gone` and `GONE_WITHIN_SECONDS` are unchanged.
 21. factory: started docs as self.
+22. documenter: Documented `run_streaming` and `ProcessResult.stopped` as the docs criterion asks. I changed documents only, so I did not run `make check`; the factory's check after this stage is the gate.
+
+    Files changed:
+    - `docs/project-guide.md`, section "Starting a process": adds `ProcessResult.stopped` and a `run_streaming` paragraph. The paragraph covers what the function is for (the opencode runtime's budget and provider limit, from S0004), the shared private `_start` that holds the one `Popen` line, the lines passed, the three endings (stop, time limit, raising callback), what `stdout`/`stderr` hold, and the tests and helpers.
+    - `docs/decisions.md`: new entry *A run's output can be streamed by the one process module*, dated 2026-10-19 with the story. It has the decisions, the reasons and the rejected alternatives. I took the reasons from the story's Description, because my instructions keep me out of `feature.md`. The text therefore cites "F0020 decision 5" without having read it.
+
+    Cross-read and found current against the diff:
+    - The "Starting a process" paragraphs on `ProcessRequest`, `run_process` and `replace_process`.
+    - The `tests/test_process_search.py` paragraph: the single `Popen` line and the six markers are unchanged.
+    - The `claude -p` runtime and the git, make and confine sections that call `run_process`.
+
+    Code findings: none. The code matches the Interface.
+
+    Stale text noticed, left alone:
+    - The "Known limits" paragraph under "Starting a process" says output is read without a limit after the kill. That is true of `run_process` and still correct. `run_streaming` reads nothing after a kill, and my new paragraph says so.
+    - `make duplicates` reports vulture flagging `run_streaming` as unused. That is expected until S0004 calls it.
+
+    `check`: check: green
+    `documents`: documents ok
