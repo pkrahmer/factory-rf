@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 264
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T13:27:37.724482Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T13:27:37.724482Z'
   stage: review
+- number: 13
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T13:28:25.193850Z'
+  stage: review
+  run: db39a2456b954fea95959bf34becd2fc
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -332,3 +334,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 12. factory: started review as self.
+13. reviewer: Round 1 review. I read the work item, the diff's stat and name-status, and the full diff under `src/` and `tests/`.
+
+    no findings
+
+    - Group 1, acceptance criteria: each of criteria 1 to 14 has a test that checks what it says, with its rows as one parametrized test. The failing sides the Interface states are tested: a refused name in `read` and `parse`, `GitError` on a ref that does not exist (for both `read` and `names`), a faulty project file with no fallback to the installed one, an agent home with no `agents` folder, and the stop raised and then cleared. The coder's `make check` was green (entries 7 and 11).
+    - Group 2, architecture: `check_agent_name` sits in `factory.domain.agent_runs`, a domain module importing domain modules (`errors` does not import `agent_runs`, so there is no cycle). `ProjectAgentDefinitions` is in `factory.application` over the `Git` and `AgentDefinitionReader` ABCs. It is wired only in `factory.entry.wiring`.
+    - Group 3, security: the name is checked before any git path or file path is built, and the diff adds no suppression marker.
+    - Group 4, quality: both round-0 findings are fixed. `src/factory/domain/agent_runs.py:36` `check_agent_name` is now the only place the name refusal lives; `adapters/agent_files.py` and `application/project_agents.py` both call it. `src/factory/domain/paths.py:18` `AGENT_SUFFIX` is the only place `.md` is written for agent files; `agent_files.py`, `project_agents.py` and `project_agent_file` all use it. No dead code is left (`_is_name`, `_NAME` and `_AGENT_SUFFIX` are gone from `agent_files.py`). `make duplicates` is unchanged at 5 new, and none of them is in a file this diff touches (entry 9).
+    - Group 5, hygiene: entry 11 explains why `check_agent_name` went into `agent_runs` and not into `identifiers`. The Description and the docs criterion still describe what was built.
+
+    Earlier tests:
+    - `tests/application/test_agent_definition_reader.py`: the human's leave. The story's Interface lists it under the feature's decision 14: `parse` is added to the expected abstract methods and to the sorted names, and both tests keep their names.
+    - `tests/domain/test_write_paths.py`: the human's leave. The story's Interface names the rename to `test_the_protected_paths_are_the_engines_eleven_patterns` and `"factory/agents/*"` added last.
+    - `tests/entry/test_wiring_boundaries.py`: the human's leave. The story's Interface names both changes: the expected class is now `ProjectAgentDefinitions`, and the test clones `remote` into `settings.checkout` and checks the same names. The removed `FrontmatterAgentDefinitionReader` import is the one that change left unused.
+
+    Notes:
+    - `tests/application/test_agent_run_probe_project_agent.py:18-35`: `ENVIRONMENT`, `COMPLETED` and the `settings` fixture are copied from `tests/application/test_agent_run_probe.py:36-80`. The standing leave would let the tester move them to one shared place.
+    - `PROJECT_CODER` and its likes (`AGENT_FILE.replace("Do the work.", "The project's coder.")`, or the opus/Read/2 text) are defined again in `tests/application/test_project_agents.py`, `test_agent_run_probe_project_agent.py` and `tests/entry/test_wiring_project_agents.py`. One constant in `tests/git_support.py` would do.
+    - `tests/application/test_pipeline_loading_project_agents.py:30` and `tests/application/test_project_agents.py:69`: the tests take a parameter and branch on it in the body (`if project_file:`, `if files:`) rather than giving each row its own setup data.
