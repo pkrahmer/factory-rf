@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 254
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T07:25:18.091627Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-19T07:25:18.091627Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-19T07:25:41.567350Z'
+  stage: intake
+  run: 99589987c2734d4eb32f91bec4df5b0d
+  blocked: question
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -178,3 +181,12 @@ Expect: three lines, `provider_limit 0.01 420.0`, `True True True`, `True False 
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: Format check passed. I checked the Interface, criteria, smoke test, architecture and scope. The architecture and the scope are fine: the layers are right, and everything is inside F0020's scope and decisions 12, 13, 19 and 23. The smoke test is runnable, and each of its Expect values can be checked. Three Interface clauses have no criterion, and I did not answer them myself:
+
+   1. `read_settings` with `FACTORY_PROVIDER_LIMIT_MESSAGE` set to a valid regular expression (for example `spend limit`) should give `InstanceSettings.provider_limit.message` equal to that value. Criterion 7 only covers the unset, blank and invalid (`(`) cases. Without this, a coder could ignore a valid value and still pass. Proposed: add a row to criterion 7 where the message variable is `spend limit` and `provider_limit.message` is `spend limit`. A row where the status variable is `429` and `provider_limit.status` is 429 is already there.
+
+   2. `claude_runtime` says that with `resume_session` "the run's files are still named by a fresh id". No criterion tests it. Proposed: add to criterion 12 that the run's files (the run folder or file the runtime names by the id) use a new id that differs from `resume_session`. Or say which observable thing the test checks. Or drop the clause.
+
+   3. `limit_wait` for the standard-error path ("`named_wait` of that `result` or line"): criterion 9 tests the wait only for the `result` path. Criterion 10's standard-error row says "without measures" and does not mention the wait. Proposed: change that row so a stand-in printing `API Error: 428, try again in 7 minutes` on standard error gives `limit_wait` of 420 seconds. Also add a row where the stderr line names no wait and `limit_wait` is `None`.
+
+   I would choose all three proposals as written.
