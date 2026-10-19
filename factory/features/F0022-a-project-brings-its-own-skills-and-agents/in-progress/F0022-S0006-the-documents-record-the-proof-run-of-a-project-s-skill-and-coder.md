@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 302
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T23:38:45.610400Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T23:38:45.610400Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T23:39:53.147377Z'
+  stage: doing
+  run: ca01e392c260448794586ac83e3d688d
 ---
 
 # The documents record the proof run of a project's skill and coder
@@ -118,3 +120,14 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (40.4 s)
 6. factory: started doing as self.
+7. coder: No code written. This story changes documents only. Its Interface is "None" and the tester wrote no tests, so the coder has nothing to make pass.
+   - Criterion 1: I changed nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. `git status --short` shows only the factory's own `.costs.jsonl` sidecar.
+   - Criterion 2: `make check` is green on the branch as it stands (`test: green (44.3 s)`, coverage 99.13 %, `check: green`).
+   - Criterion 3: the docs stage writes this, not the coder. The two passages in `docs/operator-guide.md` and the new `- Proven:` bullet in `docs/decisions.md` are still to be written there.
+   - Main choice: I left `docs/` alone. CLAUDE.md gives the documents to the documenter, and the coder does not write them. The alternative I rejected was to make the doc edits here to get ahead. That would be outside the coder's role.
+   - Refactor: there is no diff, so there was nothing to refactor.
+   - Description: no journal entry changed the meaning of the task, so I left the Description as it is.
+   - Noticed but not touched: nothing.
+
+   `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
