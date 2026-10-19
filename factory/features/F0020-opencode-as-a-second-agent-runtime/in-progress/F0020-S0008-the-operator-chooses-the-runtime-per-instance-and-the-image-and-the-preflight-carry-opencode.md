@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T11:17:33.494144Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-19T11:17:33.494144Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-19T11:17:55.303815Z'
+  stage: doing
+  run: 3960e7dca5d84181bab3f9a8838fed7f
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -291,3 +293,10 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 11. 2026-10-19 human: 1. (a). The tester writes a `settings.json` with a `permissions.deny` list into `settings.agent_home` in `test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode_s`, as criterion 4's test does. The Interface and the runtime's fail-closed read of the settings stay as they are.
     2. Yes: end with `tests` naming the three changes, the two type errors in `tests/application/test_opencode_item.py` (line 90's `str | None` and line 112's lambda over a `-> None` helper) and change 1. These are this story's own tests.
 12. factory: started doing as self.
+13. coder: Following the human's answer (entry 11), I changed no code and no test. The tester needs to make three changes to this story's own tests:
+
+    1. In `tests/entry/test_wiring_opencode.py::test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode_s`, write a `settings.json` holding a `permissions.deny` list into `settings.agent_home` before the run, as criterion 4's test does at line 93. Without it, the opencode runtime fails closed with `cannot read the agent settings ...` before it writes the rules.
+    2. In `tests/application/test_opencode_item.py`, line 90 (`api_login_file.write_text(content, ...)`) fails `mypy --strict` with `arg-type`, because `content` is `str | None` there. Narrow it, for example with a check that `content is not None`.
+    3. In `tests/application/test_opencode_item.py`, line 112, the `no-agents-folder` neighbour row's lambda builds a tuple from the value of `write_agent`, which is typed `-> None`. That gives `func-returns-value`, the trap CLAUDE.md names. Make it a named helper function that calls `write_agent` and `write_bytes` as statements.
+
+    State: the implementation from my previous run is committed on the branch (`src/factory/domain/settings.py`, `src/factory/adapters/opencode_runtime.py`, `src/factory/application/preflight.py`, `src/factory/entry/wiring.py`, `image/Dockerfile`, `image/compose.yml`). Its design choice is in entry 10: one private `_agent_runtime` builder in the wiring, not a runtime registry. Still open for my next doing run, once the tests are settled: the refactor pass and the final `make check`. The journal changed nothing in the Description: the Interface and the runtime's fail-closed settings read stay as written.
