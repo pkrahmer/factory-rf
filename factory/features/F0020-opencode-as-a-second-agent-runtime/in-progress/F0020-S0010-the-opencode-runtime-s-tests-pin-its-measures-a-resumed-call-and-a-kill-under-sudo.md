@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T18:52:33.936980Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T18:52:33.928949Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:52:33.936980Z'
+  stage: intake
+---
+
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -93,3 +120,6 @@ EOF
 Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "git push"}']` and `run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder --session ses_s`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
