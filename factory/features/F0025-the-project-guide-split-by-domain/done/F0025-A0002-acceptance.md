@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T09:50:06.802420Z'
   stage: acceptance
   run: d495b122f4ec4778a9573fc90e9c3819
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T09:51:24.823693Z'
+  stage: done
 stories: [F0025-S0001, F0025-S0002, F0025-S0003]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The project guide split by domain
@@ -361,3 +366,4 @@ The stories cost 26 runs, 18.9 min, 151 turns, 515,799 tokens in (2,490,158 more
       - The slowest tests are F0020's runtime time-limit rows (5.0 s and 3.x s); F0025's tests take at most 0.16 s.
       - The mutation run took 410 s. Disk use is unchanged since the start.
    8. Cost: 26 runs, 18.9 min, $4.81. S0001 accounts for $2.74 (the move, code and tests); S0003 took 10 runs for one reviewer-added row. 0 questions answered, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 17.8 min, 40 turns, 119079 tokens in (2908363 more from cache), 27658 out, $2.09
