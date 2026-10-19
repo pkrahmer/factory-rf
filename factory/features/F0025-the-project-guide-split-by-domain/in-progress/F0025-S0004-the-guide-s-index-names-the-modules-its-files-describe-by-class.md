@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 292
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T22:19:09.272227Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T22:19:09.272227Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T22:19:41.340215Z'
+  stage: smoke-test
+  run: 3bf7d0dca1be49ec8a4fdc5347024a28
 ---
 
 # The guide's index names the modules its files describe by class
@@ -191,3 +193,38 @@ Expect: `documents ok`
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test run from the repository root, each command exactly as written. All four commands met their `Expect:` lines. No findings.
+
+    1. The index check (Python heredoc over `docs/project-guide/README.md`):
+    ```
+    True
+    0
+    True
+    ```
+    Expect: `True`, `0`, `True`. Met.
+
+    2. `grep -c "Since F0025-S0001 the guide is an index and one file per domain" docs/decisions.md; grep -c "Since F0025-S0001 the guide is the folder" docs/decisions.md`
+    ```
+    1
+    0
+    ```
+    Expect: `1` and `0`. Met.
+
+    3. `git diff --name-only origin/main -- src tests image template demo claude | wc -l`
+    ```
+    0
+    ```
+    Expect: `0`. Met.
+
+    4. `uv run -q python -m factory.entry.check_documents`
+    ```
+    documents ok
+    ```
+    Expect: `documents ok`. Met.
+
+    Checked against the acceptance criteria:
+    - Criterion 1: nothing changed under src/, tests/, image/, template/, demo/ or claude/ (command 3). The tester's entry (5) and the coder's entry (7) both say so.
+    - Criterion 2: I did not run `make check` because the smoke test does not list it. The factory's checks cover it. Entries 7 and 11 record `check: green` on tree 3523d622cd0b.
+    - Criterion 3: `git diff origin/main --stat` lists only `docs/decisions.md` (1 line), `docs/project-guide/README.md` (1 line), and the work item with its sidecar. I compared the `watching.md` line with `origin/main` item by item. The only difference is the three added names, each in backticks and each right after its anchor: `factory.adapters.preflight_stamp_file` after `factory.adapters.health_file`, `factory.application.dispatcher` after `factory.application.boundaries`, and `factory.domain.tick_status` after `factory.domain.stop_table`. No other line of the index changed. In `docs/decisions.md` only the last sentence of the paragraph changed, and it now reads exactly as the criterion requires. The first sentence is unchanged. Every guide file is at most 600 lines and `documents ok` prints.
+
+    Nothing contradicts any criterion. Nothing open.
