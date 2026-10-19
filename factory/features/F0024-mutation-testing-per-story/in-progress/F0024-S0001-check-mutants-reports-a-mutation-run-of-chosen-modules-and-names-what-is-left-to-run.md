@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T16:04:09.532042Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T16:04:09.532042Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T16:07:13.717187Z'
+  stage: tests
+  run: f4f21d4b5bf445efa9acafec9ec94443
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -173,3 +175,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: the pure rules are in `domain`, with no I/O. The file reading and the argument parsing are in `entry`. `check_duplicates` and the new command share one reader, as `CLAUDE.md` asks (no second copy). The story adds no dependency and no wrapper.
    Scope: it matches the feature's S0001 scope exactly. The `Makefile`, `CLAUDE.md` and the pipeline definition are left to the human. No earlier test changes (`test_check_duplicates.py` passes unchanged), and the docs criterion covers the feature's decisions 2, 3 and 8.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 11 from the Interface. Criteria 12 and 13 have no test of their own: 12 is `make check` and 13 is the documenter's.
+
+   - criterion 1: tests/domain/test_mutants.py::test_result_lines_are_read_in_their_order (two lines with a blank one between, empty text, one row per status) and tests/domain/test_mutants.py::test_a_line_that_is_no_result_is_refused (the seven refused lines, checking the exact message)
+   - criterion 2: tests/domain/test_mutants.py::test_the_module_of_a_mutant_is_its_name_without_the_last_part
+   - criterion 3: tests/domain/test_mutants.py::test_the_report_lists_the_open_mutants_of_the_chosen_modules_and_counts_them
+   - criterion 4: tests/domain/test_mutants.py::test_a_report_is_partial_while_a_mutant_is_not_checked_or_the_run_stopped (six rows: complete, not-checked, stopped, no-result-of-the-module, module-given-twice, other-modules-left-out with `factory.domain.ab`)
+   - criterion 5: tests/domain/test_mutants.py::test_stopped_after_is_at_least_one_second (rows 0 and 1)
+   - criterion 6: tests/domain/test_mutants.py::test_the_names_to_run_again_are_the_unkilled_mutants_and_modules_without_one (five rows)
+   - criterion 7: tests/entry/test_inputs.py::test_an_input_is_read_as_utf_8_or_reported_unreadable (utf-8, missing, `b"\xff\xfe"`)
+   - criterion 8: tests/entry/test_check_mutants.py::test_the_report_is_printed_and_a_partial_run_fails (complete, not-checked, `--stopped-after 540`, `sys.argv` through monkeypatch; plus a `--stopped-after 1` row so the accepted side of "at least 1" is tested too, since CLAUDE.md asks for both sides of every limit)
+   - criterion 9: tests/entry/test_check_mutants.py::test_names_prints_the_mutants_to_run_again_and_succeeds (the results hold a `not checked` mutant)
+   - criterion 10: tests/entry/test_check_mutants.py::test_a_fault_ends_with_status_2 (missing file, `garbage`, `--names` with a missing file, no module, `--stopped-after 0`, `--stopped-after soon`, `--names --stopped-after 540`)
+   - criterion 11: tests/entry/test_inputs.py::test_check_duplicates_has_no_reader_of_its_own. tests/entry/test_check_duplicates.py is untouched and covers the rest.
+
+   Files created: tests/domain/test_mutants.py, tests/entry/test_inputs.py, tests/entry/test_check_mutants.py. No earlier test file was changed.
+
+   Modules the test run could not import: `factory.domain.mutants`, `factory.entry.inputs`, `factory.entry.check_mutants`. All three new test modules stop at collection with ImportError; that is the expected red. `make lint` is green. I did not run the type check, as this stage says.
+
+   In the CLI tests, options come before the results path, as in the smoke test. No criterion needed interpreting, so there is no open question.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/entry/test_inputs.py - ImportError while importing test module '/...
