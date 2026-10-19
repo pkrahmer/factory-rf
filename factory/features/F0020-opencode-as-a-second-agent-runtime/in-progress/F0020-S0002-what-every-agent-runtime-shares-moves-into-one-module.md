@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T04:01:00.646410Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T04:00:40.266751Z'
   stage: tests
   run: acb506809d8c4fe8b583a9868a1e3efe
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:01:00.646410Z'
+  stage: doing
 ---
 
 # What every agent runtime shares moves into one module
@@ -200,3 +209,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_resumed_result.py - ImportError while importing test ...
+6. factory: started doing as self.
