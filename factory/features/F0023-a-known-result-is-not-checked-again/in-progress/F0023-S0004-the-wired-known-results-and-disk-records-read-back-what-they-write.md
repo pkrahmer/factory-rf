@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T21:41:09.467403Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T21:41:09.461905Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:41:09.467403Z'
+  stage: intake
+---
+
 # The wired known results and disk records read back what they write
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -28,3 +55,6 @@ uv run pytest --no-header -p no:cacheprovider tests/entry/test_wiring_record_log
 Expect: a line that starts with `2 passed`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
