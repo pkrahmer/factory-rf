@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T04:10:49.532573Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-19T04:10:49.532573Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T04:11:29.997381Z'
+  stage: review
+  run: 5d20ccacacf546b6a9ccb015c8382f4b
 ---
 
 # What every agent runtime shares moves into one module
@@ -361,3 +363,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 16. factory: started review as self.
+17. reviewer: Round 1 review. I read `git diff main...HEAD -- . ':!factory'` against the work item. I did not run `make check`: the coder's run in entry 15 was green.
+
+    no findings
+
+    Last round's one finding (entry 9, item 1) is fixed. `reads_os_environ` now has one copy, in `tests/source_search.py:48`. Both `tests/test_agent_launch_search.py` and `tests/test_agent_run_request_search.py` import it from there, and neither keeps its own copy.
+
+    Groups 1 to 5 hold:
+    - **Criteria 1 to 11:** each has a parametrized test that checks what its criterion says.
+      - Each stated limit is tested on both sides: `launch` at 29.2 s and at 30 s, `killed_at_limit` below, at and above the limit, `resume_budget` below, at and above the 0.50 minimum, and `line_starting` with a match that is not at a line's start.
+      - `resumed_result`'s rows cover a measure from both calls, from one, from neither, and a second call ended by `time_limit`.
+    - **Criterion 12:** no test of the Claude Code runtime changed.
+      - The run still reads `SHELL_EXECUTABLE`, `CLEANUP_TIME_LIMIT`, `DEVICE_FOLDERS`, `DEVICE_FILES` and `run_process` from `claude_runtime`'s own namespace at the call (`src/factory/adapters/claude_runtime.py:321`, `_remove_temporary_folder`, `_start`).
+      - The moved names are listed in `__all__`.
+    - **The one change in behaviour:** `resumed_result` now sums the duration even when the second call hit its `time_limit`. This changes no run, because `run` sets the whole run's duration afterwards (`claude_runtime.py:390`).
+    - **Layers:** `resumed_result` is in the domain and imports nothing new. `agent_launch` imports no process module and reads no `os.environ`.
+    - **Markers:** the diff adds no silencing markers.
+    - **Hygiene:** the journal explains the main choice and what was rejected. The Description matches what was built, and criterion 14 still says what the documenter must write. `request_home` (`src/factory/adapters/agent_launch.py:255`) is a public function the Interface does not name. It replaces the private `_home` so there is no second copy, and the journal (entry 7) records why. I do not count it as a finding.
+
+    Earlier tests:
+    - `tests/test_agent_run_request_search.py`: changed under the standing leave to move a shared test helper (entry 13). The private `_reads_os_environ` moved to `tests/source_search.py`, and both tests keep their names and what they check.
+    - `tests/source_search.py`: none needed. The diff only adds `reads_os_environ` and leaves the rest of the file as it was.
+
+    Open, from entries 5, 7 and 13: `tests/test_agent_launch_search.py` reads the source, so it may need to join mutmut's list of left-out structural tests in `pyproject.toml`. That file is outside this story's write paths, so the human decides.
