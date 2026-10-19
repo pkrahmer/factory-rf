@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T06:30:52.646885Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T06:30:52.641193Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:30:52.646885Z'
+  stage: intake
+---
+
 # The project guide becomes an index and one file per domain, and the document check reads them all
 
 ## Description
@@ -127,3 +154,5 @@ Expect: two lines, `docs/project-guide/notes.md: uses the v1 word 'ticket'` and 
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
