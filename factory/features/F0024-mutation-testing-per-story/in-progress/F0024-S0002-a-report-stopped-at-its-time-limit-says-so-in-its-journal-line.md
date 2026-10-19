@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 271
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T16:31:34.354556Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T16:31:34.354556Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T16:31:58.884435Z'
+  stage: review
+  run: ba7af0cbbe85499e942140dbc120ce57
 ---
 
 # A report stopped at its time limit says so in its journal line
@@ -136,3 +138,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   Read the work item, and the diff `git diff main...HEAD -- . ':!factory'` (`src/factory/domain/checks.py` and two new test modules).
+   - Acceptance criteria: criterion 1 is `tests/domain/test_command_line_time_limit.py::test_only_a_command_stopped_at_its_time_limit_gets_the_stop_note`, one parametrized test with five rows. It covers the time-limit line, the rounding down at 600.7 s and 599.999 s, the empty last line, and the unchanged passed and failed lines. Criterion 2 is `tests/application/test_stage_time_limited_report.py::test_a_report_stopped_at_its_time_limit_says_so_in_the_entry`. It goes through `run_stage` with a `ProjectCommands` subclass that hands every other command to the fixture's commands, as the Interface asks, and checks rule 6, `doing` and the last two lines of the tester's entry at `branch_head`. Per the coder's entry, `make check` was green after the coder.
+   - Code: `command_line` returns early for `time_limit`. When `last_line` is empty, the base line `` `cmd`: `` already ends in a space, so the empty-line form gives exactly `` `mutants`: (stopped at its time limit after 600 s) ``. The passed, failed and reused paths are unchanged. The docstring is updated. The function stays in `factory.domain` with no I/O, so the architecture holds.
+   - Security: no suppression markers, no new inputs.
+   - `make duplicates` reports 5 new findings: four similar-code findings between `claude_runtime` and `opencode_runtime`, and `ManualWaiter` in `clock.py`. None of them is in a file this diff changes.
+   - Hygiene: the journal names the main choice (an early return in `command_line`) and what was rejected (a helper per note). The description matches what was built, and the docs criterion still describes what the reader needs.
+
+   Earlier tests: none. The diff only adds test files (status `A`).
