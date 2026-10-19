@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T23:51:32.670300Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T23:51:32.670300Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T23:53:22.145701Z'
+  stage: doing
+  run: 21d52952865743fba045932c744cb832
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -135,3 +137,17 @@ Expect: `exit 0`
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.8 s)
 6. factory: started doing as self.
+7. coder: I built nothing, and that matches the Interface: this story changes only tests, and the tester made every move. No module under `src/factory/` changes, and I changed no file.
+
+   I checked the result:
+   - `make check` is green and ends with `check: green`. The test target reports `test: green (37.7 s)` with 99.13 % coverage.
+   - The first smoke command, the grep for `class Layout:`, finds two modules: `tests/confine_support.py` and `tests/entrypoint_support.py`.
+   - The second smoke command finds `from test_entrypoint import` in no module (`0`).
+   - `git diff main` outside `factory/` touches only the seven test files named in entry 5.
+
+   Main choice: I left the tester's move exactly as it is. The alternative I rejected was tidying the moved helpers in `tests/entrypoint_support.py` during the refactor step. The coder never edits tests (R9), so there was nothing of mine to refactor.
+
+   Noticed, not touched: none.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
