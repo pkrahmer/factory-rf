@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 275
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T17:43:37.949415Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T17:43:37.949415Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T17:45:45.068008Z'
+  stage: doing
+  run: 57c2627496f7419b8dde38fb0229f8bd
 ---
 
 # The claim service's refusals name their cause
@@ -156,3 +158,17 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
    `lint`: lint: green (0.0 s)
    `test`: test: green (48.6 s)
 6. factory: started doing as self.
+7. coder: I built nothing. The story says no module under `src/factory/` changes, and the tester's `tests/application/test_claims_refusals.py` already passes against `src/factory/application/claims.py` as it is. I changed no file under `src/` or `tests/`. I ran `make check` in the foreground and it ended with `check: green` (`test: green (47.7 s)`, total coverage 99.07 %).
+
+   Main choice: I left the seven refusal messages in `claims.py` exactly as they are, because the story pins their current text. The alternative I rejected was moving them into named constants or one message helper: that would be a restructuring the story rules out, and the tests compare the text, not where it is defined.
+
+   Refactor: the diff contains no code of mine, so there was nothing to refactor.
+
+   Description: no journal entry changed what the task means, so I left `## Description` as it is.
+
+   Noticed but did not touch:
+   - The tester's own `_snapshot` and `_file_text` helpers in `test_claims_refusals.py` repeat the ones in `tests/application/test_claims.py`. The tester explained in their entry why they kept the copies. Moving them to one shared place would be the tester's job under the standing leave, and only if the reviewer asks for it.
+   - Whether the seven mutants in `claims.py` are now killed is for the `mutants` report to show; I did not run it.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
