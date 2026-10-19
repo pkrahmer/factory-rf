@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T10:43:14.681817Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-19T10:43:14.681817Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-19T10:43:29.881559Z'
+  stage: doing
+  run: 929ed80a18a84b8f954271f9ba989fd8
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -356,3 +358,8 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     **Noticed, not touched:** None of the models I changed appear in the records contract, so no schemas were regenerated. I did not run `make duplicates`.
 11. 2026-10-19 human: (a). Change the row's expected waits to `[timedelta(seconds=600)] * 3 + [timedelta(seconds=0.7)]`, as the Interface's steps 3 and 4 give them; the log line stays `waited 1800 s, the ceiling of 1800 s; the run ends provider_limit`, so the row still checks whole seconds on the ceiling line (the waits sum to 1800.7 s). The Interface stays as it is. The tester makes the change in this story's own test.
 12. factory: started doing as self.
+13. coder: The human's answer (entry 11, option a) asks for a test change, so this goes to the tester. I changed no code and no test. One change is needed: in `tests/application/test_patient_runs.py::test_the_log_lines_give_whole_seconds_and_the_waits_are_kept_whole[ceiling]` (line 314), replace the expected waits `[timedelta(seconds=600)] * 2 + [timedelta(seconds=600.7)]` with `[timedelta(seconds=600)] * 3 + [timedelta(seconds=0.7)]`. Keep the row's ceiling of 1800.7 s and its log line `provider limit: coder waited 1800 s, the ceiling of 1800 s; the run ends provider_limit` as they are.
+
+    The code for this story was built and committed in the previous doing run (entry 10). It lives in `src/factory/application/{machine,provider_limits,sealed_runs,stage,boundaries}.py`, `src/factory/adapters/clock.py`, `src/factory/domain/{provider_limits,settings}.py` and `src/factory/entry/wiring.py`. With the code as it is, this row produces exactly the waits the answer names, so no code change is expected.
+
+    The answer does not change the meaning of the task. The Interface stays as it is, so the Description is not rewritten.
