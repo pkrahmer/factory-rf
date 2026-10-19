@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T10:07:38.706890Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -74,6 +70,12 @@ journal:
   kind: started
   at: '2026-10-19T10:07:38.706890Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T10:09:44.493948Z'
+  stage: review
+  run: 5ed053eb29224475b599c3219e1ab966
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -118,8 +120,9 @@ Tests (the tester writes them): `tests/adapters/test_opencode_budget.py`, `tests
 11. A `text` event whose text holds `HTTP 428` and a `tool_use` event whose input and error hold `428` stop nothing, and the run ends as its block says (rows).
 12. A limit in the resume after a budget stop ends the run `provider_limit` with both calls' costs and the session.
 13. The kill point `AGENT_RUN` is reached once for a run that was resumed.
-14. `make check` stays green.
-15. docs: `docs/project-guide/agents.md`, the section *The opencode runtime*: the budget is summed while the run streams and the run is stopped when the sum passes it, then resumed once by session with the finish message and a quarter of the budget (at least $0.50); a provider limit is recognized in an `error` event or a line of standard error, never in the agent's own text or tools' output, and stops the run at once with its session kept. `docs/operator-guide.md`, the agent runtime: an opencode run's budget is kept by the factory, and a run may pass its budget by the cost of one step. `docs/decisions.md`: an entry *opencode's budget is kept by the factory while the run streams*, dated with the story, with the reasons of the feature's decision 11.
+14. A line on standard error that does not hold the limit (`HTTP 500 Internal Server Error`, and `error 1428`) stops nothing: a stand-in that prints it and then a valid block ends the run `completed`, after one call (rows of the test of criterion 10, beside its limit line).
+15. `make check` stays green.
+16. docs: `docs/project-guide/agents.md`, the section *The opencode runtime*: the budget is summed while the run streams and the run is stopped when the sum passes it, then resumed once by session with the finish message and a quarter of the budget (at least $0.50); a provider limit is recognized in an `error` event or a line of standard error, never in the agent's own text or tools' output, and stops the run at once with its session kept. `docs/operator-guide.md`, the agent runtime: an opencode run's budget is kept by the factory, and a run may pass its budget by the cost of one step. `docs/decisions.md`: an entry *opencode's budget is kept by the factory while the run streams*, dated with the story, with the reasons of the feature's decision 11.
 
 ## Smoke test
 
@@ -302,3 +305,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 1 gone
 11. factory: started review as self.
+12. reviewer: Findings:
+    1. `tests/adapters/test_opencode_provider_limit.py:37` `_runtime`, and the inline build at lines 159-164: a second and a third copy of `_runtime` in `tests/adapters/test_opencode_runtime.py:44`, with only `provider_limit` (and the executable) added. Fix: give the one shared builder a `provider_limit` keyword (and an executable override for the stderr wrapper), and use it in both places.
+    2. `tests/adapters/test_opencode_budget.py:20` imports the private `_runtime` from the test module `test_opencode_runtime.py`, and `tests/adapters/test_opencode_provider_limit.py:26` imports the private `_over_budget` and `RESUME_REPLY` from `test_opencode_budget.py`. `WAIT_SECONDS` and `BOUND_SECONDS` are also copied in both new files (`test_opencode_budget.py:25-26`, `test_opencode_provider_limit.py:30-31`). Fix: the tester moves these helpers and constants to one shared place, `tests/adapters/opencode_stand_in.py`, under the standing leave, and both files import them from there.
+    3. `tests/adapters/test_opencode_budget.py:144` `test_a_resume_past_what_is_left_of_the_time_limit_ends_the_run_by_time_limit` does not check that a resume happened. It also passes when the budget stop never fires, because the first call is then killed at the 5-second limit. Fix: also assert `len(read_calls(tmp_path / "bin")) == 2`.
+    4. criterion 14 added: it needs its test. The Interface's stderr rule ("on a line of standard error the limit is in") has no test for its failing side, a stderr line that does not hold the limit (`HTTP 500 Internal Server Error`, `error 1428`), which must stop nothing. Pinning it needs no change under `src/`. The test becomes rows of criterion 10's test. The closing criteria are now 15 and 16.
+
+    Checked and sound:
+    - `src/factory/adapters/opencode_runtime.py`: the per-call `_Watch` stops the call when the sum is strictly greater than the budget, and reads a limit only from `error` events and stderr lines.
+    - `_resume` mirrors `ClaudeCodeRuntime._resume`. It uses `resume_budget` and `resumed_result`, the run files are removed in `finally` after both calls, and `finished_run` reaches `AGENT_RUN` once.
+    - The layers hold, and the diff adds no new markers.
+    - Criteria 1, 2, 4 and 6 to 13 have tests that pin them.
+    - `make duplicates` lists 5 new findings. All of them are blocks that S0004/S0005 shared with `claude_runtime` and that this diff did not add; `_resume` is not reported.
+
+    Earlier tests: the diff adds `tests/adapters/test_opencode_budget.py` and `tests/adapters/test_opencode_provider_limit.py` and changes, renames or deletes no test file that `main` holds.
