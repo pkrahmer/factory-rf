@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 246
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T02:14:45.949434Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T02:14:45.949434Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T02:15:01.701468Z'
+  stage: review
+  run: e5d1f0c18bf349b88b04e1544b48620b
 ---
 
 # The README names what the feature built and counts its commands right
@@ -144,3 +146,17 @@ Expect: `documents ok`
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   Reviewed `git diff main...HEAD -- . ':!factory'`, together with the work item.
+   - The diff is empty outside `factory/`. Only the work item and its `.costs.jsonl` sidecar changed, so criterion 1 holds. The tester's entry (5) and the coder's entry (7) each say that nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed.
+   - Criterion 2: the factory's `make check` after the coder was green (entry 7: `check: green`). `duplicates` reported 0 new findings.
+   - Criterion 3 is the documenter's job, and every premise it rests on still holds on this branch:
+     - `README.md:12` says "Seven commands exist", and `pyproject.toml` has seven `[project.scripts]`.
+     - `README.md:14` still says "six console commands".
+     - `factory.entry.contract` does not yet appear in `README.md`.
+     - `docs/operator-guide.md:814` holds the sentence "The command prints `contract: 5 schemas written`." that the new sentence goes after.
+     - `src/factory/entry/contract.py:12` prints exactly the usage line the docs criterion quotes.
+     - `src/factory/contract/` holds the five schemas.
+   - Hygiene: the coder's entry explains the main choice, which was to hand forward empty and leave the README and the guide to the documenter, and it names what was rejected. The Description matches what was built, which is nothing yet. The docs criterion still says what a newcomer and an operator must know.
+   - Earlier tests: none. The diff changes, renames or deletes no test file.
