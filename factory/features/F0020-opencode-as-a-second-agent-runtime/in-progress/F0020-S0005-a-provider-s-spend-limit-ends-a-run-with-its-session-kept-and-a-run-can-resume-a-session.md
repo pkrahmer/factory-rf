@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T07:54:17.099202Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-19T07:54:17.099202Z'
   stage: review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T07:55:24.140979Z'
+  stage: review
+  run: dcc8de696ab24e51bef74f6bc7eec2b2
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -492,3 +494,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 1 gone
 22. factory: started review as self.
+23. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'` without the generated schemas. For the generated schemas, I checked that `stop-record` and `pipeline-definition` differ only in `x-records-contract` (from `1.1` to `1.2`). The factory's `make check` after the coder was green (entry 21).
+
+    Both findings from entry 15 are settled:
+    - The six-digit rows `in 999999` and `retry-after 999999` are in the table.
+    - The budget stop that names 428 is now the row `budget-stop-naming-428` (an `is_error` reply with subtype `error_max_budget_usd`, resumed once). The time-limit case stays a test of its own, because `Step` cannot print to standard error and then wait.
+
+    Every other criterion has a passing test that checks what the criterion says. I read `claude_runtime._limit_text` and `_end_reason`: time limit first, then budget, then limit, then died. `_session_arguments` and `_resume_arguments` keep an existing `--resume`. In `opencode_runtime._session`, the events are parsed before the time-limit return. `named_wait` and `limit_in_text` in `src/factory/domain/provider_limits.py` match the Interface.
+
+    Group 1 (acceptance criteria) still fails, on one point:
+
+    1. `tests/domain/test_provider_limits.py`, `test_the_named_wait_is_the_first_one_the_text_names`: the Interface says "`<n>` has one to six digits" for both forms, but the `retry-after` form is tested only at three and six digits. Its refused upper side (seven digits), its accepted lower side (one digit) and its refused lower side (no digits) have no row, so a `retry-after` pattern of `\d+` or `\d{3,6}` would still pass. The `in` form has all three: `in 1234567`, `in 7 m` and `in seven minutes`. Fix: add three rows to the same parametrized table: `retry-after 1234567` → `None`, `Retry-After: 5` → `timedelta(seconds=5)` and `retry-after: soon` → `None`. The current code should already pass them, so this needs no change under `src/`.
+
+    Earlier tests:
+    - tests/domain/test_agent_runs.py: the leave the story names under the feature's decision 19 (renamed to `test_question_and_the_six_end_reasons`, count 6, `provider_limit` added). The change stays within that leave.
+    - tests/domain/test_contract.py: the leave the story names under decision 19 (expected version `"1.2"`, name kept). The change stays within that leave.
+    - tests/domain/test_contract_login.py: the human's leave in journal entry 9 (the two version assertions removed, the test renamed). The import removed with them was the one those assertions alone used, so the change stays within that leave.
+
+    Notes:
+    - tests/adapters/test_claude_runtime_provider_limit.py:706: `test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit` is a separate function, not a row of criterion 10's table. It is kept because `Step` cannot print and then wait.
+    - tests/adapters/test_claude_runtime_provider_limit.py:574 and tests/entry/test_wiring_provider_limit.py:14: the error reply is written out twice (`_error_reply` and `ERROR_REPLY`). The wiring test could import `_error_reply("API Error: 429 spend limit reached")`.
