@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T03:35:54.189174Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T03:35:33.914867Z'
   stage: tests
   run: 95cada9589c94b87841bee9f9018b545
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:35:54.189174Z'
+  stage: doing
 ---
 
 # The agent runs can log in with an API key
@@ -295,3 +304,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/test_api_login_mount.py - ImportError while importing test module...
+6. factory: started doing as self.
