@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T05:30:33.209485Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -206,6 +202,12 @@ journal:
   kind: started
   at: '2026-10-19T05:30:33.209485Z'
   stage: doing
+- number: 36
+  speaker: coder
+  kind: result
+  at: '2026-10-19T05:32:31.049086Z'
+  stage: doing
+  run: 2e24e1b031fa482cbb000e57c194f530
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -674,3 +676,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (39.4 s)
 35. factory: started doing as self.
+36. coder: Round 2, after the tester's entry 34. The tester added `tests/adapters/test_opencode_runtime_launch.py::test_a_call_that_printed_valid_events_is_no_refusal_whatever_its_stderr_holds` for criterion 20. It passes against the code as it is, so I changed no code in this run. I ran `make check` and it is green: coverage is 99.03 % and the last line is `check: green`.
+
+    The reviewer had two findings in entry 30, and both are now dealt with:
+    - Finding 1 was criterion 20. The tester's new test covers it. With the test in place, changing `printed = bool(_events(process.stdout))` in `opencode_runtime.py` to `printed = False` would make both of its rows fail.
+    - Finding 2 was the copied `_confinement`. I fixed it in entry 32: both runtimes now call `agent_launch.device_confinement`.
+
+    What I built (no change since entry 32):
+    - `src/factory/adapters/opencode_runtime.py` (new).
+    - `src/factory/adapters/agent_launch.py`, which holds the helpers both runtimes share: `since`, `denied_path`, `call_refusal`, `version_printed`, `run_launch`, `cleanup_launch`, `finished_run`, `device_confinement` and `Starters`.
+    - `src/factory/adapters/claude_runtime.py`, changed to use those shared helpers.
+
+    Main choice (unchanged): the shared logic lives in `agent_launch` and takes plain values. Each runtime keeps its own `_start` and `_request_of`, which are the only parts that touch the process module. I rejected a shared module that imports the process module, because that would change `tests/test_wrapper_search.py` and needs the human's word.
+
+    Refactor: there is no new code to refactor in this run. I read the diff in entry 32 and nothing needed changing.
+
+    Description: the journal changed nothing in what the task means beyond criterion 20 and renumbering the closing two criteria, so `## Description` stays as it is.
+
+    Noticed but not touched:
+    - I did not rerun `make duplicates`, because the code is unchanged since entry 32. It gave `5 new, 35 known, 4 gone` then: 3 similar blocks, which are call sites of the shared helpers, and 2 dead-code flags. The flags are `_ErrorData.status_code`, which S0006 reads, and `OpencodeRuntime`, which S0008 wires in.
+    - The reviewer's two notes on test layout from entry 30 are still open. The tester left them alone (entry 34). They are test changes, not mine to make.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 4 gone
