@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-19T20:27:57.841919Z'
   stage: smoke-test
   run: 202bac2b224847db980dada1e8608f95
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-19T20:29:18.352077Z'
+  stage: approval
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -421,3 +426,4 @@ Expect: `1`
     Findings: none. Command 3's literal mismatch is a fault in the command's text, not in the story's work, as the human ruled in entry 22.
 
     Open: command 3's text in `## Smoke test` (the human's section) still has the extra `-q`. If the human wants it to match literally next time, they could drop that `-q`.
+25. factory: done (pull request merged); cost: 11 runs, 9.5 min, 70 turns, 246488 tokens in (1588651 more from cache), 27185 out, $2.61
