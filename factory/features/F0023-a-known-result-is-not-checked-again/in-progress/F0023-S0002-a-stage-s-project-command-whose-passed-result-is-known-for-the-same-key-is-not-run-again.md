@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T15:07:51.420280Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-19T15:07:51.420280Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-19T15:09:58.251342Z'
+  stage: doing
+  run: 3ca6ba23dfd948ebb0b92e49fb7fe100
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -369,3 +371,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (47.8 s)
 13. factory: started doing as self.
+14. coder: The tester's change from entry 12 is on the branch, and `make check` is now green with no code change in this round: `check: green`, `test: green (41.9 s)`, total coverage 99.08 %.
+
+    Built (committed in entry 7, unchanged since):
+    - `src/factory/domain/known_results.py` (new): `DefinitionDigest`, `ResultKey`, `ResultRecord` (refuses `reused` unless the status is `passed`), `definition_digest`, `known_result`.
+    - `src/factory/domain/checks.py`: `ReusedRun`, `CheckResult.reused` (refused unless `passed`, inside the existing validator), `command_line`.
+    - `src/factory/application/known_results.py` (new): `KnownResults`. It builds the key, takes a known passed result, records each run and each reuse, and handles the three faults with their log lines.
+    - `src/factory/application/boundaries.py`: `result_records`, added as the last field.
+    - `src/factory/application/stage.py`: `StageFinisher` runs every check and report through one `KnownResults`. `_run_command` is removed, and `_with_command_lines` uses `command_line`.
+    - `src/factory/entry/wiring.py`: `records/known-results.jsonl` in the state directory.
+
+    Main choice: `KnownResults` computes the definition digest once, in its constructor. I rejected computing it on every `run`, because the definition does not change while the object exists.
+
+    Refactor pass: I read the whole diff against `main` again and found nothing to change. None of the changed models is in `factory.domain.contract.CONTRACT` (`CheckResult` and `ResultRecord` are not), so no schema needed regenerating.
+
+    What the journal changed: only one test assertion in the stall test (the human's answer (a) in entry 8, made by the tester in entry 12). The meaning of the task is the same, so I left `## Description` as it is.
+
+    Noticed but not touched: the comment "the record is telemetry" appears in both `KnownResults._append` and `RecordingProjectCommands.run`. The two cases mean the same thing, so I kept both.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
