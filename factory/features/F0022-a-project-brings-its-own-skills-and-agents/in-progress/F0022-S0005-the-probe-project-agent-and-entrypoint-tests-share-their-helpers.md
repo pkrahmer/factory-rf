@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T20:17:36.458297Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T20:17:36.458297Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T20:18:24.905114Z'
+  stage: review
+  run: 0487b3ff7124422cab2639789af1477b
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -156,3 +158,25 @@ Expect: `1`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Findings:
+
+   1. `tests/test_entrypoint.py:1`: the module docstring changed from "... in a temporary layout." to "... in a temporary image_layout.". This looks like a find-and-replace of the fixture name that also hit the prose. The docstring now names a fixture instead of the thing it describes, and the change goes beyond the standing leave (move a helper; every earlier test keeps what it checks). Fix: restore the docstring as `main` has it ("... in a temporary layout."). This is a test file, so the coder hands it to the tester with `tests`, naming this line and this change.
+
+   Checked and found right: every `def test_...` name and every `parametrize` line in the nine named modules is unchanged in the diff, and only fixture parameters were renamed (criterion 1; the tester's entry 5 compared the collected ids, and the diff confirms it). Criterion 2 is pinned by `tests/test_shared_test_helpers.py::test_each_shared_helper_is_written_in_one_module` (rows `environment`, `completed`, `project-coder`, `image-layout`) and `test_the_image_layout_fixture_returns_the_entrypoints_layout`. No module under `src/factory/` changes, so items 2 to 4 (architecture, security, quality) have nothing to read under `src/`. `make check` after the coder was green (entry 7). No mutation report line, as expected with no `src` change. No leftover `layout` parameter in the three entrypoint modules would now silently get the confinement's `layout` fixture from the conftest.
+
+   Earlier tests (item 6), each changed under the standing leave to move a shared test helper (`CLAUDE.md`, *Tests*), and each also named by the story:
+   - `tests/application/test_agent_run_probe.py`: standing leave
+   - `tests/application/test_agent_run_probe_api_login.py`: standing leave
+   - `tests/application/test_agent_run_probe_login.py`: standing leave
+   - `tests/application/test_agent_run_probe_opencode.py`: standing leave
+   - `tests/application/test_agent_run_probe_project_agent.py`: standing leave
+   - `tests/conftest.py`: standing leave
+   - `tests/git_support.py`: standing leave
+   - `tests/entry/test_wiring_project_agents.py`: standing leave
+   - `tests/test_agent_home_ownership.py`: standing leave
+   - `tests/test_entrypoint.py`: standing leave; its docstring change goes beyond it (finding 1)
+   - `tests/test_entrypoint_skills.py`: standing leave
+
+   Notes:
+   - `tests/conftest.py:46`: the conftest imports `Layout` from the test module `test_entrypoint`, as the Interface asks. A later move of `Layout` to a support module would remove that dependency (the coder noticed this too, in entry 7).
+   - entry 7, `duplicates: 5 new`: this diff changes nothing under `src/factory`, so the new findings cannot come from this story; the feature's acceptance may want to look at the baseline.
