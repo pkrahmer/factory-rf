@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 276
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T18:10:35.423939Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -57,6 +61,11 @@ journal:
   at: '2026-10-19T18:10:14.663404Z'
   stage: doing
   run: 79f605fd8e354d0ea1ef409bf5e14b9b
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:10:35.423939Z'
+  stage: review
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -215,3 +224,4 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+10. factory: started review as self.
