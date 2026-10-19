@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-19T21:04:58.882243Z'
   stage: smoke-test
   run: 26c2e8dd158c4860b95afd259ad4c25a
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-19T21:11:27.195287Z'
+  stage: approval
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -396,3 +401,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Not covered by this stage: criteria 5 and 6 (the earlier tests still pass, `make check` stays green) are proved by the factory's checks, not by this smoke test. The docs criterion belongs to the docs stage.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 8.0 min, 65 turns, 235842 tokens in (1291433 more from cache), 23762 out, $2.30
