@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 255
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T09:07:33.910840Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T09:07:13.406629Z'
   stage: review
   run: d636b66d75c44b74a30a0095a143543b
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T09:07:33.910840Z'
+  stage: docs
 ---
 
 # The guide's index names every module and subsection its files describe
@@ -185,3 +194,4 @@ Expect: `documents ok`
    - Group 5: the coder's entry gives the main decision, to leave the guide's edits to the documenter as the Interface says, and the rejected option of making them in the doing stage. The Description still says "Three smaller passages" above a list of two. Intake and the coder both noted this. I do not count it as a finding, because the docs criterion the documenter works from names the same two passages correctly.
 
    Earlier tests: none. No test file that `main` holds is changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the work item and its sidecar).
+10. factory: started docs as self.
