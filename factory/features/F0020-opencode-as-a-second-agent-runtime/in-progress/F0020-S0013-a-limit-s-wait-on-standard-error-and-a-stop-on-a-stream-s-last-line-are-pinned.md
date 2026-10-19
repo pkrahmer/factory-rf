@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T23:01:40.760924Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-19T23:01:40.760924Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-19T23:03:33.581329Z'
+  stage: doing
+  run: ca9f061fad454930ac3c16e295e0f340
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -284,3 +286,16 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
     `lint`: lint: green (0.0 s)
     `test`: test: green (45.4 s)
 17. factory: started doing as self.
+18. coder: Round 1, after the tester's move. The reviewer's only finding (entry 12, the copied reply constant) is answered by the tester's entry 16: `REPLY` now lives in `tests/adapters/opencode_stand_in.py`, and `tests/adapters/test_opencode_limit_wait_on_stderr.py` imports it. I changed no code. That is what the story asks for: the Interface says no module under `src/factory/` changes, and the two new test modules pass against the current `src/factory/adapters/opencode_runtime.py` and `src/factory/adapters/process.py`. The working tree holds nothing of mine; `git status` shows only the factory's costs sidecar.
+
+    I ran `make check` in the foreground and it ended `check: green`, with `test: green (38.1 s)` and coverage at 99.13 %.
+
+    - **Main choice:** I left the code as it is. The alternative I rejected was going back to the finding myself, which would mean editing tests (R9).
+    - **Refactor:** I didn't do one, because there is no diff under `src/`.
+    - **Description:** the journal does not change the meaning of the task in this round. The human's `4281` row was already carried in by intake.
+    - **Noticed but did not touch:** the earlier opencode test modules still hold their own copies of the reply constant, for example `tests/adapters/test_opencode_provider_limit.py:33` and `tests/adapters/test_opencode_resumed_words.py:38`. Removing them would be a story of its own. Nobody has checked that the new tests fail under the two mutants, because no stage runs `make mutants`; that is left to the human's next sweep.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
