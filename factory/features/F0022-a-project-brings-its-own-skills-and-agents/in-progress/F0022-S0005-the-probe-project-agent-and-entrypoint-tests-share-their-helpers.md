@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T20:24:33.921018Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-19T20:24:33.921018Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T20:24:48.023835Z'
+  stage: docs
+  run: 9010406901a9444aa51a4def0a17c617
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -306,3 +308,14 @@ Expect: `1`
     - `tests/conftest.py:46`: the conftest imports `Layout` from the test module `test_entrypoint`, as the Interface asks. A later story could move `Layout` to a support module so the conftest no longer depends on a test module (entries 7 and 15 note this too).
     - Entry 15 reports `duplicates: 5 new`. This diff changes nothing under `src/factory`, so those findings do not come from this story. The feature's acceptance may want to look at the baseline.
 18. factory: started docs as self.
+19. documenter: Docs criterion is `none`, and I changed no file. The diff moves test helpers only (`tests/probe_support.py`, `tests/conftest.py`, `tests/git_support.py` and the nine named test modules, plus `tests/test_shared_test_helpers.py`). Nothing under `src/factory/` changes, so no behaviour moved.
+
+    Cross-read: I grepped README.md and `docs/` for the moved names (`probe_support`, `probe_settings`, `image_layout`, `PROJECT_CODER`, `git_support`). The only hits are `docs/project-guide/stages.md` (lines 35 and 123) and `docs/project-guide/git-and-hosting.md` (line 195). They name `PIPELINE_YAML`, `install_agents`, `run_git` and related helpers in `tests/git_support.py`, which are all still there. I found them current. The hits under `docs/runs/` belong to the human and I did not touch them. I did not read the rest of README.md and `docs/` line by line, since the diff touches no behaviour.
+
+    No findings. No code, tests or comments were touched. I ran no `make check`, because I changed no file; the factory's check after this stage decides.
+
+    Stale text noticed but not mine: none.
+
+    `check`: check: green (not run again: passed on tree 4dd869fc6664 at 2026-10-19T20:22:35Z)
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok
