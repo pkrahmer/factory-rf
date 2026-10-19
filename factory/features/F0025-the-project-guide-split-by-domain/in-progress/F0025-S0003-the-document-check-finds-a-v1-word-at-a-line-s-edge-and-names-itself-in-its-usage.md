@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 256
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T09:17:16.286407Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T09:17:16.286407Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T09:17:32.281949Z'
+  stage: intake
+  run: 943f8bbb0822414abe712e378aab16e1
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -85,3 +87,9 @@ Expect: `documents ok`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names concrete functions and layers: `factory.domain.documents.check_documents(texts)` (domain) and `factory.entry.check_documents.main(argv)` (entry). I confirmed both exist, with `GLOSSARY_FORBIDDEN` holding "ticket", `_PROGRAM` passed as `prog` to argparse, and `clean_texts` in `tests/document_texts.py`. The two test modules are named, and no source file changes.
+   - Criteria: each is testable by one parametrized test function. Criterion 1 covers the start, end and text-end edges, plus the failing side of the word-contains-entry rule (`ticketed`, `subticket`). Criterion 2 gives the exact stderr for both an unknown argument and `--root` without a value, with empty stdout and exit code 2. Each behaviour in the Interface comments has a criterion, and each rule has a criterion for both sides.
+   - Smoke test: the three commands are runnable. Each `Expect:` line can be checked against the output: the three printed lists, the usage with `exit 2`, and `documents ok`.
+   - Architecture: the story only pins behaviour in the domain and entry layers, and nothing crosses a layer. It adds no new tests of another story and changes none.
+   - Scope: this is acceptance follow-up work, inside F0025's document check. It touches neither the feature's "Out of scope" items nor any other story's tests. The feature lists only S0001 under Stories, so this story is a proposed addition that the human started by hand, which I accept as given.
