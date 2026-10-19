@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T13:12:44.897605Z'
   stage: acceptance
   run: 3b7b8dd78a92487392e2b4f189162382
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T13:14:03.993440Z'
+  stage: done
 stories: [F0026-S0001]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The board shows only real crashes
@@ -325,3 +330,4 @@ Human interventions: 0 questions answered, 0.0 h waited. No story needed the hum
    6 Decisions taken for the human: feature decisions 1–8, plus the coder's shorter docstring (line length), the documenter's two sentences from decision 3 and the tester's `tests/watch_support.py`. Earlier tests changed: `test_claim_ownership.py` (decision 5), and `test_watcher_acceptance.py`, `test_watch_acceptance.py` and `conftest.py` (the standing leave). None was changed without a leave.
    7 Slow checks: the project has none beyond `make check` and `make mutants`. Disk is unchanged since the story's start (0.5 GB used on /work). The slowest tests are the 5.01 s runtime time-limit tests, none of them this feature's; its 27 new test cases take 2.86 s together.
    8 Cost: $3.33 over 10 runs and 12.2 min for the one story. Round 1 ($1.39) was spent on moving test helpers the new tests had copied, and the two tester runs ($0.60 and $0.58) are the largest items. No questions were asked and no time was spent waiting.
+3. factory: done (pull request merged); cost: 1 runs, 18.2 min, 68 turns, 141543 tokens in (6454176 more from cache), 50412 out, $3.43
