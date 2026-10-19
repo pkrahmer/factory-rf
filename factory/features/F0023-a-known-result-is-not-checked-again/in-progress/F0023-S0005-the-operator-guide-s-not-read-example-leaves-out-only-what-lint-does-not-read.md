@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 290
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T21:55:48.649261Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T21:55:48.649261Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T21:57:37.405541Z'
+  stage: doing
+  run: 12c3d3f6e8e54776b7a48da2318cb3d3
 ---
 
 # The operator guide's not_read example leaves out only what lint does not read
@@ -114,3 +116,12 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (39.6 s)
 6. factory: started doing as self.
+7. coder: No code written. This story changes only documentation, and its first criterion forbids changes under `src/`, `tests/`, `image/`, `template/`, `demo/` and `claude/`. I changed nothing in any of those folders or anywhere else. `git status --short` shows only the factory's `.costs.jsonl` sidecar for this work item.
+      - Main choice: I left `docs/operator-guide.md` to the documenter stage, as the Interface and `CLAUDE.md` say ("the coder does not write them"). The alternative was to make the criterion-3 edits now, which would mean writing outside the coder's role. I rejected it.
+      - `make check`: green (`check: green`, total coverage 99.12 %).
+      - Refactor: no diff, so there was nothing to refactor.
+      - Description: the journal did not change what the task means, so it is not rewritten.
+      - Noticed, not touched: the intake entry reports that `factory/pipeline.yml` on `main` holds `time_limit: 8` for `check`, while the guide's factory-rf block still shows `15`. The documenter has to copy the line exactly as `factory/pipeline.yml` holds it.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
