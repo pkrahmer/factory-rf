@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T21:03:18.501814Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-19T21:03:18.501814Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T21:04:16.204209Z'
+  stage: docs
+  run: b62740f3691f4358b757fefa344829b6
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -320,3 +322,34 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/test_claude_agent_texts_mutants.py:1`: the docstring is held under 100 columns by a backslash continuation inside the string. This is unusual, but needed to keep decision 7's exact one-line text.
     - `template/Makefile:4` (the coder's entries 7, 11 and 15): it still calls `duplicates` and `mutants` "reports outside `check`". This is outside this story's Interface; the feature acceptance can consider it as a wording story.
 18. factory: started docs as self.
+19. documenter: Documented criterion 7. I changed documents only, so I did not run `make check`; the factory's checks decide.
+
+    Files changed:
+    - `docs/operator-guide.md`: *The mutation report of a story* is now *Mutation testing by sweep*.
+      - It says no stage or agent runs `make mutants` (the human's decision of 2026-10-19), and that the `mutants` target and `check_mutants` stay for sweeps.
+      - It says a coder's entry has no `mutants` line and the acceptance's check 3 says `By sweep, not run here.`
+      - *How long it takes* keeps its measures. I dropped its sentences on partial stories, the reviewer and the acceptance, and added the 2026-10-19 runs (4 mutants in 439 s on a fresh `mutants/`, 31 mutants in 12 s with the stats kept). A sweep pays the stats every time.
+      - *A run that never gets past mutmut's stats* stays. I removed its "while the factory is idle" wording.
+      - *What the reviewer does*, *What the acceptance does* and the `Permission denied` paragraph with its repair are gone.
+      - In *What a stage run shows*, item 3, I removed the paragraph that began "The `mutants` report of a story". The example of a report stopped at its time limit stays.
+    - `docs/project-guide/processes-and-checks.md`, *Mutation testing*:
+      - The first paragraph now says no stage runs the target. The two forms stay.
+      - The stop paragraph keeps `MUTANTS_SECONDS` and `--stopped-after 540`. The sentences on the shell tool, the report's `time_limit` and the factory's KILL are gone.
+      - The `EXIT` trap paragraph no longer gives the report and the agents' runs as the reason for `chmod`, and no longer points to the operator guide's repair.
+      - I added the sentence on copying non-Python files under `src/` into `mutants/src`.
+      - I also removed "(the report runs before the stage's result commit)" from the story-branch bullet, since no report runs.
+    - `docs/project-guide/agents.md`: the `template/Makefile` bullet now says `mutants` is for a sweep by hand and never run by a stage.
+    - `docs/decisions.md`: new entry *Mutation testing runs only as sweeps outside the factory*, with the reasons and the rejected options from the criterion. *Mutation testing per story* now names it as its superseder.
+
+    Cross-read and found current: `README.md` (it does not name mutation testing); `docs/project-guide/README.md`; the *Mutation testing* report sections of `processes-and-checks.md`, which describe the target and `check_mutants` and still hold. I also read line 121 of `processes-and-checks.md`, which describes the `duplicates` report after the coder, not `mutants`. It is accurate and I left it.
+
+    Stale text noticed, not touched:
+    - `template/Makefile:4` calls `duplicates` and `mutants` "reports outside `check`". Both the coder and the reviewer noted it, and it is outside this story's Interface.
+    - `docs/decisions.md` still holds older entries that describe the acceptance running `make mutants` (for example *Mutation testing is limited to one feature's modules*). They are history, and the new entry supersedes them.
+    - `factory/pipeline.yml:29` has a comment that says `make mutants` re-runs in the acceptance agent's run. That is the human's file (R14).
+
+    No findings for the coder: the code and shipped texts match the Interface and the docs criterion.
+
+    `check`: check: green (not run again: passed on tree be858289db70 at 2026-10-19T21:01:22Z)
+    `secrets`: secrets: green (1.9 s)
+    `documents`: documents ok
