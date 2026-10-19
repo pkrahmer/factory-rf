@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T07:54:17.099202Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-10-19T07:53:56.728122Z'
   stage: doing
   run: cc4340d90fef477695b4d716df41b1a4
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-19T07:54:17.099202Z'
+  stage: review
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -482,3 +491,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 1 gone
+22. factory: started review as self.
