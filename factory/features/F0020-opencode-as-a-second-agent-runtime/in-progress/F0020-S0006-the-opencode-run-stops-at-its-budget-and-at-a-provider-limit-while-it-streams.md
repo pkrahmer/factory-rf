@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T10:17:39.749850Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   at: '2026-10-19T10:17:19.478784Z'
   stage: doing
   run: 315429a1dff044458a200e7d896c904a
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:17:39.749850Z'
+  stage: review
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -433,3 +442,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 1 gone
+19. factory: started review as self.
