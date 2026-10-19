@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 271
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T16:32:19.414570Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T16:32:19.414570Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T16:32:47.224336Z'
+  stage: docs
+  run: da76bd34d0834bb1a8f3ac583457f6ae
 ---
 
 # A report stopped at its time limit says so in its journal line
@@ -158,3 +160,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Earlier tests: none. The diff only adds test files (status `A`).
 10. factory: started docs as self.
+11. documenter: No findings. The code matches the Interface and the criteria. I ran the story's smoke script: the `time_limit` line and the empty-last-line form print exactly as expected. I did not run the failed row. Only documents changed, so I did not run `make check`; the factory's checks decide.
+
+    Files changed:
+    - `docs/operator-guide.md`: in *What a stage run shows*, point 3, I added the sentence about a report stopped at its time limit, with the `mutants` example and a note that the records hold `time_limit`. In the reports bullet (line ~736), "the line has the same form either way" was no longer true, so it now names the stop note as the exception.
+    - `docs/project-guide/processes-and-checks.md`: *Project commands* now states `command_line`'s rule for a `time_limit` result. The seconds are `int(duration.total_seconds())`. With an empty last line the note follows `` `<command>`: `` directly. A reused result is always `passed`, so the two notes never meet. It also names the two new test modules.
+    - `docs/project-guide/stages.md`: step 4 of the stage run, the line about `command_line`, now mentions the stop note. This file was not named in the docs criterion, but it described the same line.
+    - `docs/decisions.md`: new entry *The journal line of a command stopped at its time limit says so*, dated 2026-10-19, with feature decision 10 and the rejected alternatives: the suffix for failed results too, and a gentler stop in the process module.
+
+    Cross-read and found current: `README.md`, and the rest of `docs/operator-guide.md` and `docs/project-guide/processes-and-checks.md` (the *known results* text and the `check_mutants` report text).
+
+    Stale text I noticed but did not touch: none.
+
+    `check`: check: green (not run again: passed on tree 981e00c0d960 at 2026-10-19T16:30:25Z)
+    `secrets`: secrets: green (1.6 s)
+    `documents`: documents ok
