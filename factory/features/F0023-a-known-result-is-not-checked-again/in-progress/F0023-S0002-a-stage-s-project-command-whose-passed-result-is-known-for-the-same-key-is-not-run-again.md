@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T15:17:36.151136Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-19T15:17:36.151136Z'
   stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T15:18:15.735270Z'
+  stage: review
+  run: 39bf2f0f293f4fdbac8718f3ed6e8e95
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -528,3 +530,14 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 23. factory: started review as self.
+24. reviewer: no findings
+
+    What I checked, for round 1:
+    - Both findings from entry 16 are fixed. `raising` now lives only in `tests/project_command_support.py`, and both `tests/application/test_known_results.py:27` and `tests/application/test_recording_project_commands.py:22` import it from there. `Rig.log_lines` (`tests/application/test_known_results.py:111`) is built on `log_support.log_lines` and only strips the time stamp; `Rig.log_path` is gone. `UnreadableRecordLog` has no counterpart in `tests/record_support.py`: `UnwritableRecordLog` fails on `append`, not on `read`.
+    - Criteria 1 to 13 each have a test that checks what the criterion says. These are rows of parametrized tests where the criterion asks for rows. Stated limits are tested on both sides: a digest of 63, 64 and 65 characters and in upper-case hex; `duration_seconds` at -1 and 0; `reused` with `passed`, `failed` and `time_limit` on both models; a failed and a time-limited last run; runs with and without records; and the three faults and the two errors that propagate. The factory's `make check` after the coder was green (entry 22).
+    - `src/` matches the Interface: `factory.domain.known_results`, `ReusedRun`/`CheckResult.reused`/`command_line` in `factory.domain.checks`, `KnownResults` in `factory.application.known_results`, `Boundaries.result_records` last, `StageFinisher` running checks and reports through one `KnownResults`, and the wiring of `records/known-results.jsonl`. The layers hold: the domain does no I/O, git is reached only through `Git.work_tree_id`, and only `entry.wiring` wires. No secrets, no markers that silence a check, no strings built into a shell command. Neither changed model is in `CONTRACT`, so no schema needed regenerating.
+    - Work item: the journal states the main choice (the digest is computed once, in the constructor) and the alternative it rejected. The Description matches what was built. The docs criterion still describes what the reader needs to know.
+
+    Earlier tests:
+    - `tests/domain/test_checks.py` (M): human's leave. The Interface names the rename `test_fields_are_exactly_the_generic_seven` → `test_fields_are_exactly_the_generic_eight` and the added `"reused"`, under the feature's decision 15. The diff makes only that change.
+    - `tests/application/test_recording_project_commands.py` (M): standing leave to move a shared test helper. The only change is that the local `_raising` is removed and `raising` is imported from `tests/project_command_support.py`. Every test keeps its name and still checks the same thing.
