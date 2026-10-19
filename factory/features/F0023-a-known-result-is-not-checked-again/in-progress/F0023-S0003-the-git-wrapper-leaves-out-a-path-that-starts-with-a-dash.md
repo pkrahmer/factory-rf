@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 288
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T21:29:36.229926Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T21:29:15.705431Z'
   stage: docs
   run: 159181129cdb41c5afc18d749f3309db
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:29:36.229926Z'
+  stage: smoke-test
 ---
 
 # The git wrapper leaves out a path that starts with a dash
@@ -182,3 +191,4 @@ Expect: `True`
     `check`: check: green (not run again: passed on tree ba5e71b10a03 at 2026-10-19T21:27:01Z)
     `secrets`: secrets: green (0.1 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
