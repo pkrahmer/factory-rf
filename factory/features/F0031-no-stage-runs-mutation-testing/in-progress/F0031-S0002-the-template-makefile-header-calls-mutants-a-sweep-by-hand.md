@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 294
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T22:27:21.788167Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T22:27:21.788167Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T22:27:37.523959Z'
+  stage: intake
+  run: 4ee8082d05cc4e27b5384b24ca7ecf92
 ---
 
 # The template's Makefile header calls mutants a sweep by hand
@@ -80,3 +82,9 @@ Expect: two lines, ``# `duplicates` is a report outside `check`; `mutants` is fo
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: one line of `template/Makefile` (line 4) is replaced by two exact lines; no module under `src/` changes. I checked the old line 4 against the file and it matches. The new line is 92 characters, and the header's longest line is 95, as the story says.
+   Criteria: criterion 1 has three rows, each a countable text with an exact value (once as line 4, 0 occurrences of the old phrase, line 5 exact). That covers both the new text and the removal of the old. Criterion 2 names the tests that must pass unchanged. Criterion 3 is `make check`; criterion 4 is `docs: none`, with a reason. The Interface states no limit, validation or error, so no failing side is missing.
+   Smoke test: all three commands (`grep -c -F`, with `|| true` for the 0 case, and `sed -n '4,5p'`) run as written, and each `Expect:` line is checkable against the output.
+   Architecture: the change is to a template file in the coder's write path (`template/*`). The new test module goes under `tests/` and reads the file through `ROOT` of `tests/shipped_agents.py`. It is at the `tests/` root, which fits a module outside the layers. No dependency is added.
+   Scope: the change is in F0031's goal (the template's words on `make mutants`). The story leaves out the other lines, the `mutants` recipe, `template/CLAUDE.md`, `template/factory/pipeline.yml` and the todo demo. No earlier test is changed.
