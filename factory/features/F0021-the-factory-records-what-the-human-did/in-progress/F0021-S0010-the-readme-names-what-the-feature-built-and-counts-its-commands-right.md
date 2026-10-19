@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 246
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T02:14:45.949434Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T02:14:25.469564Z'
   stage: doing
   run: 9114f168a38c4514a3c396121a9c3cb2
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T02:14:45.949434Z'
+  stage: review
 ---
 
 # The README names what the feature built and counts its commands right
@@ -134,3 +143,4 @@ Expect: `documents ok`
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
