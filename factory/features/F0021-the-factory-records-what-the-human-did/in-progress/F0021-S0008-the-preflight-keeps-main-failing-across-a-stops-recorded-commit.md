@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T01:04:03.849629Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T01:03:43.258715Z'
   stage: intake
   run: 6b424916888c4fd19914b75b84f9e288
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:04:03.849629Z'
+  stage: tests
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -106,3 +115,4 @@ Expect: `0`
    Smoke test: both commands are runnable. The Python snippet prints three lines, and the `grep -c` prints a count. Each `Expect:` line can be checked against the output.
    Architecture: the layering follows CLAUDE.md. There is no new dependency, and the test modules mirror the package and reuse existing fixtures. Docs go to the three named files.
    Scope: the work is within feature decision 1, which left this change to a later story. The probe of a new `main`, the stamp and the other preflight rules stay as they are. The existing sentence in `docs/operator-guide.md` line 348 is what the docs criterion replaces.
+4. factory: started tests as self.
