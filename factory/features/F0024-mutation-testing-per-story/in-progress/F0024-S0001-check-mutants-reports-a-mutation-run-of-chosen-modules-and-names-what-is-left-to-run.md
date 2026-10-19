@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T16:14:31.370248Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-19T16:14:10.224150Z'
   stage: tests
   run: 0c5b5e7743da4a44b91456729b6bf827
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:14:31.370248Z'
+  stage: doing
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -300,3 +309,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (43.7 s)
+14. factory: started doing as self.
