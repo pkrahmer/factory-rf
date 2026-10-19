@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 301
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T23:33:48.409141Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T23:33:28.162193Z'
   stage: docs
   run: dfaf0b87032741f7aa83071cf504bbcf
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:33:48.409141Z'
+  stage: smoke-test
 ---
 
 # The operator guide's stopped-report example is a report a stage runs
@@ -162,3 +171,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
