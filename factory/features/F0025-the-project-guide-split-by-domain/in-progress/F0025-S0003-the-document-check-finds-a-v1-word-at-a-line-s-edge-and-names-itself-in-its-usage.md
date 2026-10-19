@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T09:22:10.295154Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T09:22:10.295154Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T09:22:46.543115Z'
+  stage: review
+  run: a63e09cc9a0a473187d4f871d7c7829f
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -87,8 +89,9 @@ Tests (the tester writes them): `tests/domain/test_documents_line_edges.py` and 
 2. The usage names the command (rows of one parametrized test, with `capsys`):
    - `main(["--bogus"])` raises `SystemExit` with code 2, standard output is empty, and standard error is exactly `usage: check-documents [-h] [--root ROOT]\ncheck-documents: error: unrecognized arguments: --bogus\n`.
    - `main(["--root"])` raises `SystemExit` with code 2, standard output is empty, and standard error is exactly `usage: check-documents [-h] [--root ROOT]\ncheck-documents: error: argument --root: expected one argument\n`.
-3. `make check` stays green.
-4. docs: none. *The document check* in `docs/project-guide/processes-and-checks.md` already says what the check finds and what the command prints, and this story changes neither.
+3. A longer word at the end of the text is not found (one more row of criterion 1's parametrized test, the same `clean_texts()` with `docs/project-guide/agents.md` added): `# Agents\n\nThe last ticketed` gives `[]`.
+4. `make check` stays green.
+5. docs: none. *The document check* in `docs/project-guide/processes-and-checks.md` already says what the check finds and what the command prints, and this story changes neither.
 
 ## Smoke test
 
@@ -144,3 +147,12 @@ Expect: `documents ok`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 35 known, 1 gone
 8. factory: started review as self.
+9. reviewer: 1. criterion 3 added: it needs its test. The gap is in `factory/features/F0025-the-project-guide-split-by-domain/in-progress/F0025-S0003-...md` under `## Acceptance criteria`. The Interface says a word that only contains the entry is not found "also at those edges", and the end of the text is one of those edges. Criterion 1 tests that `ticket` at the end of the text is found (row `end-of-text`), but no row tests that `ticketed` at the end of the text is not found. A longer word at a line's start and end is tested, but not at the text's end. To fix this, the tester adds one more row to `tests/domain/test_documents_line_edges.py::test_a_v1_word_is_found_at_a_line_edge_and_a_longer_word_is_not`: `"# Agents\n\nThe last ticketed"` gives `[]`. Nothing under `src/` changes. The closing criteria are renumbered to 4 (`make check`) and 5 (docs).
+
+   Everything else checks out:
+   - The two new test modules match criteria 1 and 2 row for row, with the exact stderr, empty stdout and exit code 2.
+   - They use `clean_texts` from `tests/document_texts.py` as it is.
+   - No file under `src/` changed.
+   - The coder's journal entry records `check: green`.
+
+   Earlier tests: none. The diff only adds test files (`A`). No test file that `main` already holds was changed, renamed or deleted.
