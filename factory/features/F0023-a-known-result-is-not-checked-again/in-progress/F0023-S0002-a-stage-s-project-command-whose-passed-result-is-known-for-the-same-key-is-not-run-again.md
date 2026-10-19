@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T15:05:44.274238Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-19T15:05:44.274238Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-10-19T15:07:30.313745Z'
+  stage: tests
+  run: 61fe1a6d000f4569a5804517c601c285
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -347,3 +349,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed but not touched: as entry 7 says, the comment "the record is telemetry" appears in both `KnownResults._append` and `RecordingProjectCommands.run`.
 11. factory: started tests as self.
+12. tester: I made the one test change the human approved in entry 8 (option a), which the coder named in entry 10.
+
+    Changed: in tests/application/test_stage_known_results.py::test_a_red_check_stalls_and_is_run_again_on_the_same_code (line 178), I replaced `assert "`check`\n" in note.body` with `assert "`check`." in note.body`. The reason: `stall_note` puts the detail's first line into its sentence (`...: `check`. Retrying...`), so a backtick-check-backtick followed by a newline never appears in the posted note. The `"check done"` assertion and the rest of the test are unchanged, and `stall_note` stays as it is.
+
+    The criterion → test mapping from entry 5 still holds. I created no new file. Every module imports now that the implementation exists.
+
+    `make test`: test: green (43.0 s), total coverage 99.08 %.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (47.8 s)

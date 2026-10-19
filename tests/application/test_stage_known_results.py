@@ -175,7 +175,7 @@ def test_a_red_check_stalls_and_is_run_again_on_the_same_code(
     assert report.stall is not None
     assert report.stall.reason == "check_red"
     [note] = hosting.factory_posts(report.pull_request)
-    assert "`check`\n" in note.body
+    assert "`check`." in note.body
     assert "check done" in note.body
     assert [record.status for record in stages.records.read()] == ["failed"]
 
