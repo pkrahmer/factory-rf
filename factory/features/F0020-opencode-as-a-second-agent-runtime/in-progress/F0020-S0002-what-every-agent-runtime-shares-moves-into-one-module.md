@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T04:05:58.380319Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T04:05:38.312620Z'
   stage: review
   run: 57f38ba25d9d45199405860f2576848d
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:05:58.380319Z'
+  stage: doing
 ---
 
 # What every agent runtime shares moves into one module
@@ -258,3 +267,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Earlier tests: none changed. All three test files in the diff are new (`A`), and the diff changes, renames or deletes no file that `main` already holds under `tests/`.
 
    Open, not a finding: `request_home` in `src/factory/adapters/agent_launch.py:255` is a public function that the Interface does not list. The coder made it so that a second private copy of `_home` was not needed. The `run_confinement` rows with and without `HOME` already cover it. When the work item goes back, the Interface could name it beside the other shared functions.
+10. factory: started doing as self.
