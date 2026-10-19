@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T04:18:29.536723Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-19T04:18:11.974084Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:18:29.536723Z'
   stage: intake
 ---
 
@@ -119,3 +128,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    3. Yes, that is the intended meaning: after the callback stops on a line, no further line is passed, also not one already read in the same chunk. Add the row (`go` then `later` at once; `later` is never passed).
    4. Yes: add to criterion 5 that no line printed after the limit is passed (`late` after a sleep longer than the limit).
    5. Standard output is enough; leave it as is.
+5. factory: started intake as self.
