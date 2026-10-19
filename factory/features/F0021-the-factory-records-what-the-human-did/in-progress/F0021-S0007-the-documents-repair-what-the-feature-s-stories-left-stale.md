@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 242
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T00:57:03.685853Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T00:57:03.685853Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T00:58:47.276209Z'
+  stage: doing
+  run: 20a1975dff374fbe9467ce9d5351d6ed
 ---
 
 # The documents repair what the feature's stories left stale
@@ -119,3 +121,11 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (39.1 s)
 6. factory: started doing as self.
+7. coder: Nothing built. This story changes only documents. Its Interface says no module, test, image, template or agent file changes, and the tester wrote no tests, so there was no failing test to make pass.
+   criterion 1: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed on my side either. `git status --short` shows only the work item's `.costs.jsonl` sidecar, which is the factory's.
+   criterion 2: `make check` is green (check: green; test: green, coverage 99.06 %).
+   criterion 3 (docs): left for the documenter. The five passages in `docs/project-guide.md`, `docs/operator-guide.md` and `docs/decisions.md` are not the coder's to write.
+   Main choice: leave the docs to the docs stage. I rejected editing the three documents now, because CLAUDE.md gives them to the documenter alone. Refactor: there is no diff, so nothing to refactor. The journal did not change the task's meaning, so the Description stays as it is. Noticed but not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
