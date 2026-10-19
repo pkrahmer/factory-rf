@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T01:25:18.039726Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T01:24:58.116177Z'
   stage: intake
   run: 1802a9d117d044308a864cb8b6177189
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:25:18.039726Z'
+  stage: tests
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -84,3 +93,4 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
    Smoke test: both blocks are runnable `uv run -q python -m factory.entry.contract` commands. Each `Expect:` line is checkable: the output line plus `5`, and the usage line plus `status 2`.
    Architecture: tests only, under `tests/entry/`, in the layer that mirrors `factory.entry`. No module under `src/` changes.
    Scope: it fits F0021's contract command (S0006). It is a pin proposed by the acceptance's mutants run and is not in "Out of scope". It adds a new test module and changes no earlier test.
+4. factory: started tests as self.
