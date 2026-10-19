@@ -17,6 +17,7 @@ from factory.application.hosting import HostingService
 from factory.application.machine import Clock, DiskSpace, FactoryLog, HealthStatusStore, Waiter
 from factory.application.project_commands import ProjectCommands
 from factory.domain.disk import DiskRecord
+from factory.domain.known_results import ResultRecord
 from factory.domain.settings import InstanceSettings
 from factory.domain.stops import StopRecord
 
@@ -46,3 +47,4 @@ class Boundaries:
     disk_records: RecordLog[DiskRecord] | None = None
     stop_records: RecordLog[StopRecord] | None = None
     waiter: Waiter | None = None
+    result_records: RecordLog[ResultRecord] | None = None

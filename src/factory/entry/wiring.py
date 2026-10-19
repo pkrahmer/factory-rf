@@ -73,6 +73,7 @@ from factory.domain.errors import SettingsInvalid
 from factory.domain.events import EventKind
 from factory.domain.git import GitOptions
 from factory.domain.identifiers import Name
+from factory.domain.known_results import ResultRecord
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.preflight import PreflightItem
 from factory.domain.settings import (
@@ -125,6 +126,7 @@ _PREFLIGHT_STAMP_FILE_NAME = "preflight-stamp.json"
 _COMMAND_RECORDS_PATH = Path("records", "project-commands.jsonl")
 _DISK_RECORDS_PATH = Path("records", "disk.jsonl")
 _STOP_RECORDS_PATH = Path("records", "stops.jsonl")
+_RESULT_RECORDS_PATH = Path("records", "known-results.jsonl")
 
 _SEGMENT = r"[A-Za-z0-9._-]+"
 # The host and its separator for https, scp-like ssh and ssh URLs; then owner and name.
@@ -280,6 +282,7 @@ def build_boundaries(
         disk_records=JsonLinesRecordLog(state / _DISK_RECORDS_PATH, DiskRecord),
         stop_records=JsonLinesRecordLog(state / _STOP_RECORDS_PATH, StopRecord),
         waiter=SleepingWaiter(),
+        result_records=JsonLinesRecordLog(state / _RESULT_RECORDS_PATH, ResultRecord),
     )
 
 

@@ -3,7 +3,6 @@
 import re
 from collections import Counter
 from collections.abc import Mapping
-from datetime import timedelta
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, PositiveInt
@@ -12,6 +11,7 @@ from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
 from factory.application.costs import CostRecorder, CostRun
 from factory.application.handlers.recording import commit_subject
+from factory.application.known_results import KnownResults
 from factory.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.application.provider_limits import PatientRuns
 from factory.application.sealed_runs import run_sealed
@@ -21,7 +21,7 @@ from factory.application.undo import UndoReport, UndoService
 from factory.application.write_paths import WritePathService
 from factory.domain.acceptance import acceptance_description
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
-from factory.domain.checks import CheckResult
+from factory.domain.checks import CheckResult, command_line
 from factory.domain.decisions import StageMove, StallReason, agent_entry, decide, stall_reason_of
 from factory.domain.errors import HostingServiceError, PushFailed
 from factory.domain.git import CommitId
@@ -286,6 +286,7 @@ class StageFinisher:
         self._definition = definition
         self._claims = ClaimService(boundaries, instance, definition)
         self._stalls = StallService(boundaries, instance, definition)
+        self._known_results = KnownResults(boundaries, definition)
 
     def finish(self, aftermath: AgentAftermath) -> StageReport:
         """Decide on the aftermath, run the checks and reports of a forward move, push the result.
@@ -336,16 +337,12 @@ class StageFinisher:
         stage = self._definition.stages[stage_name]
         green: list[CheckResult] = []
         for check in stage.checks:
-            result = self._run_command(check)
+            result = self._known_results.run(check)
             if not result.passed:
                 return green, result
             green.append(result)
-        reports = [self._run_command(report) for report in stage.reports]
+        reports = [self._known_results.run(report) for report in stage.reports]
         return green + reports, None
-
-    def _run_command(self, name: str) -> CheckResult:
-        minutes = self._definition.project_commands[name].time_limit
-        return self._boundaries.project_commands.run(name, time_limit=timedelta(minutes=minutes))
 
     def _stall_red(
         self, aftermath: AgentAftermath, green: list[CheckResult], red: CheckResult
@@ -474,7 +471,7 @@ def _role_of(definition: PipelineDefinition, stage: str) -> str:
 def _with_command_lines(entry: NewEntry, ran: list[CheckResult]) -> NewEntry:
     if not ran:
         return entry
-    lines = "\n".join(f"`{result.command}`: {result.last_line}" for result in ran)
+    lines = "\n".join(command_line(result) for result in ran)
     return entry.model_copy(update={"text": f"{entry.text}\n\n{lines}"})
 
 

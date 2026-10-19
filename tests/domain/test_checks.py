@@ -57,7 +57,7 @@ def test_other_command_names_are_rejected(command: str) -> None:
         _result(command=command)
 
 
-def test_fields_are_exactly_the_generic_seven() -> None:
+def test_fields_are_exactly_the_generic_eight() -> None:
     assert set(CheckResult.model_fields) == {
         "command",
         "status",
@@ -66,4 +66,5 @@ def test_fields_are_exactly_the_generic_seven() -> None:
         "last_line",
         "output_tail",
         "targets",
+        "reused",
     }

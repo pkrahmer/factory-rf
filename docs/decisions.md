@@ -765,3 +765,15 @@ Date: 2026-10-19 (F0022-S0002; F0022 decisions 7 to 13). No shipped agent could 
 - Reasons: a skill is a project's way to say how to work, and the instructions winning keeps the pipeline's rules (write paths, no commit, foreground checks) out of a skill's reach; the remade folders close the one route by which a run could change later runs.
 - Rejected: a sentinel in `TOOL_NAMES` for the left-out tool (it mixes two kinds of tool and changes the type); checking what a skill says (no check can judge it); leaving the home's folders writable (the planted-skill route).
 - Open: a user `CLAUDE.md` and `.claude.json` in the home stay writable and are read by `claude`; whether opencode loads skills of its own is not checked.
+
+## A known result is not checked again
+
+Date: 2026-10-19 (F0023-S0002). After an agent the factory ran every check and report of the stage, though it had run the same command on the same input minutes before; the docs stage's `check` on the coder's unchanged code is the plain case.
+
+- Decision: the factory keeps the result of every check and report a stage runs in `records/known-results.jsonl` in the state directory, under a key: the command, the tree it reads (`work_tree_id` without the command's `not_read`), a digest of the pipeline definition and the image. When the last real run of the key passed, the command is not run again; the result comes back marked as reused, and the reuse is a record too.
+- Reasons: the key is what the command reads, not the commit (the checks run before the stage's commit, and every commit carries a new journal entry) and not the stage (a docs stage's `check` on the coder's code is the same input).
+- Decision: the project lists what the command does not read (`not_read`), not what it reads. A forgotten path costs one run, never a silenced check.
+- Decision: a failed or timed-out result is never reused, and the last real run of a key decides. A flaky test is not hidden by an earlier pass.
+- Decision: the store is a record log of its own in the state directory, not new fields on `CommandRecord`. No agent can write there, and `RecordingProjectCommands` sees no key.
+- Decision: only the factory's own runs are known. An agent's own `make check` would be the agent's word.
+- Rejected: a positive list of the paths a command reads; keying on the commit or the stage; fields on `CommandRecord`; counting an agent's run.
