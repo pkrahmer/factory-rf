@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 294
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T22:32:36.600915Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T22:32:15.866631Z'
   stage: doing
   run: 9e72cc131a604e8094bb323eb5f50d71
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:32:36.600915Z'
+  stage: review
 ---
 
 # The template's Makefile header calls mutants a sweep by hand
@@ -134,3 +143,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
