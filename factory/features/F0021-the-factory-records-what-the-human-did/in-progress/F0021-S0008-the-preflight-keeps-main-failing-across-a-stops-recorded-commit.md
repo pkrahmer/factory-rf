@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T01:14:55.661810Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-19T01:14:55.661810Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T01:18:03.045864Z'
+  stage: doing
+  run: 2eecade3647247ac9c39f29e8abb5dce
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -247,3 +249,15 @@ Expect: `0`
     `lint`: lint: green (0.0 s)
     `test`: test: green (48.5 s)
 14. factory: started doing as self.
+15. coder: Round 1. All four findings in entry 9 were about copied test helpers. The tester resolved them in entry 13 under the standing leave: tests/log_support.py, tests/preflight_support.py, the shared `records` fixture in tests/conftest.py, and `HumanClone.push_files` in tests/human_clone.py. None of the findings concerned code, so I changed no source this round. src/factory/domain/preflight.py (`changes_only_stop_records`) and src/factory/application/preflight.py (`_clear_stale_failing_stop` and the private `_changes_only_stop_records`) are as entry 7 describes. I ran `make check` on the committed state with the tester's moves in place and it is green (coverage 99.06 %).
+
+    Main choice: same as entry 7. I kept the `GitError` handling in a small private method that returns false, so the stop is cleared. The rejected alternative was a second try/except nested in `_clear_stale_failing_stop`. Refactor: no diff this round, so nothing to change.
+
+    Noticed but did not touch:
+    - tests/application/test_stop_publisher.py still holds its own identical copy of the `records` fixture, as the tester noted in entry 13. Removing it is a test change for the tester, and no finding names it.
+    - The journal did not change what the task means, so the Description stays as it is.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
