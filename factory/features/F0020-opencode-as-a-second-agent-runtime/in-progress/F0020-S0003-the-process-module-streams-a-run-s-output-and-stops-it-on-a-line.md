@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T04:36:26.962373Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-19T04:36:06.802755Z'
   stage: docs
   run: 7c183c5f87e24198a44df7c4c22043f5
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:36:26.962373Z'
+  stage: smoke-test
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -368,3 +377,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `documents`: documents ok
+23. factory: started smoke-test as self.
