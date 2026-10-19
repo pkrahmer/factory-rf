@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T12:37:09.492769Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T12:36:48.602420Z'
   stage: tests
   run: 123b6c61b7364611891103a5ea96d9d2
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T12:37:09.492769Z'
+  stage: doing
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -216,3 +225,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_lease_observed.py - ImportError while importing test ...
+6. factory: started doing as self.
