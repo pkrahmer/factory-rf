@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T07:47:11.513638Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-10-19T07:47:11.513638Z'
   stage: review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T07:48:32.654219Z'
+  stage: review
+  run: fc2f2989da7e46d091c901ea2c527e00
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -383,3 +385,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 1 gone
 14. factory: started review as self.
+15. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'` without the generated schemas. Of those schemas, I checked that `stop-record` and `pipeline-definition` differ only in `x-records-contract` (now `1.2`). The factory's `make check` after the coder was green (entry 13). Group 1 (acceptance criteria) fails, so this report stops there. The other criteria each have a passing test that checks what the criterion says. I checked these points:
+    - the budget row really uses an `is_error` reply naming 428, so the ordering is pinned
+    - the run-files id is read from the instructions file name
+    - `--session` comes right before the prompt
+    - `_events` skips malformed lines, so parsing before the time-limit return cannot raise
+
+    Findings:
+    1. `tests/domain/test_provider_limits.py`, `test_the_named_wait_is_the_first_one_the_text_names`: the Interface's limit "`<n>` has one to six digits" is tested only on its refused side (`in 1234567` → `None`). No row has six digits, so a pattern capped at three or four digits would still pass every row. Fix: add a row such as `in 999999` → `timedelta(seconds=999999)` (and `retry-after 999999` for the second form) to the same parametrized table.
+    2. `tests/adapters/test_claude_runtime_provider_limit.py`, `test_a_budget_stop_that_names_the_status_ends_budget_and_is_resumed`: criterion 10 asks for rows, but this side of the rule (a budget stop beats the limit) is a separate test function. The table `test_a_call_the_limit_refused_ends_provider_limit_with_its_wait_and_session` could hold it if its step became a list of steps. Fix: make it a row of that parametrized table, with the expected end reason `budget` and `limit_wait` `None`, plus the resume check. The time-limit case can stay separate: it needs its own executable that prints to standard error before it waits, which `Step` cannot do.
+
+    Earlier tests:
+    - tests/domain/test_agent_runs.py: the leave the story names under the feature's decision 19 (rename to `test_question_and_the_six_end_reasons`, count 6, `provider_limit` added); within that leave.
+    - tests/domain/test_contract.py: the leave the story names under decision 19 (expected version `"1.2"`, name kept); within that leave.
+    - tests/domain/test_contract_login.py: the human's leave in journal entry 9 (two version assertions removed, test renamed). The removed import is the unused import that this removal left, so it is within that leave.
