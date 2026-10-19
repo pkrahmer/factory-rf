@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 289
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T21:41:50.516176Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T21:41:50.516176Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T21:44:03.189350Z'
+  stage: tests
+  run: 68ce178efcbd44c6840658807086c092
 ---
 
 # The wired known results and disk records read back what they write
@@ -76,3 +78,19 @@ Expect: a line that starts with `2 passed`
    Architecture: tests only, in `tests/entry/`, which mirrors `factory.entry`. Nothing is faked except the hosting service, as `CLAUDE.md` allows.
    Scope: `feature.md` lists only S0001 and S0002 under Stories, and its Scope names `result_records` but not `disk_records` (F0012's). This story is the feature acceptance's proposal and it is test-only, so I accepted it. If you would rather add it to the feature's story list, that edit is yours.
 4. factory: started tests as self.
+5. tester: Wrote the test of criterion 1 as one parametrized test with one row per wired log. It builds the boundaries the way `tests/entry/test_wiring_stop_records.py` does: the `local_settings` fixture, `CREDENTIAL` from `tests/wiring_support.py` and a `FakeHostingService`. In each row a typed helper calls `read()` on the wired log, then `append(record)`, then `read()` again, all through the same object. The test checks that the first read gives `[]` and the second gives `[record]`. The two records are the ones the criterion gives.
+
+   criterion 1: tests/entry/test_wiring_record_logs.py::test_a_wired_record_log_reads_back_what_was_appended_through_it[result_records] and [disk_records]
+   criterion 2 (`make check` green): no test; the factory's checks cover it.
+   criterion 3 (docs: none): no test.
+
+   Files created: tests/entry/test_wiring_record_logs.py. No earlier test changed.
+
+   Modules the test run could not import: none. The story expects no code change, and `build_boundaries` already gives both logs their models, so both rows pass now instead of failing. That is what the description says: the test catches the surviving mutants that build these logs with no model, and it does not ask the coder for anything.
+
+   Runs: `make test` is green (40.0 s, coverage 99.12 %) and `make lint` is green. I also ran `make types`, which the stage says to skip, to confirm that the typed rows pass `mypy --strict`; it is green.
+
+   I set one step aside: I ran the new test file once on its own, to check the smoke test's `2 passed` line. The stage asks for a single `make test` run only.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (38.5 s)
