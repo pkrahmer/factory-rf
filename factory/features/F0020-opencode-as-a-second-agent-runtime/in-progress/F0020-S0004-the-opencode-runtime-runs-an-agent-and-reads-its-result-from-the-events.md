@@ -1,3 +1,248 @@
+---
+stage: approval
+blocked: null
+round: 2
+attempts: 0
+crashes: 0
+pull_request: 251
+comments_read: [6259811093, 6259973629, 6260061257]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T04:39:12.053294Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:39:12.058578Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-19T04:39:38.517187Z'
+  stage: intake
+  run: 5f835af96aea46b2943097666c68d747
+  blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-19T04:41:57.255889Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:42:14.852550Z'
+  stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-19T04:42:35.507885Z'
+  stage: intake
+  run: 81e36e6f3fed4c91b6bf302fd542e530
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:42:55.866030Z'
+  stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-19T04:49:19.475246Z'
+  stage: tests
+  run: c87e26bb2e344fabaea4a7b6f0a56994
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:49:39.935705Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-10-19T04:54:30.355887Z'
+  stage: doing
+  run: ac22a570d30c4544a587165d9b406023
+  blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-10-19T04:55:46.723662Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:56:04.376420Z'
+  stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-19T04:56:27.696241Z'
+  stage: doing
+  run: cb69f9748f684748a10c5733253bb31c
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:56:48.036135Z'
+  stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-19T04:58:32.190684Z'
+  stage: tests
+  run: 108e574eb374401489989af7f5696cde
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:58:52.107502Z'
+  stage: doing
+- number: 17
+  speaker: coder
+  kind: question
+  at: '2026-10-19T05:00:28.736833Z'
+  stage: doing
+  run: bb075045ead94cb1acaeac4ef0535430
+  blocked: question
+- number: 18
+  speaker: human
+  kind: comment
+  at: '2026-10-19T05:04:51.128229Z'
+  stage: doing
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:05:09.026289Z'
+  stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-10-19T05:07:02.417045Z'
+  stage: doing
+  run: 3208ffcbb2bd4b9fadae1298a6a8bf64
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:07:22.444491Z'
+  stage: review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T05:09:41.141306Z'
+  stage: review
+  run: d7065fff3f6c40b59d4c2c57fe0de3c7
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:10:01.637468Z'
+  stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-10-19T05:17:28.244557Z'
+  stage: doing
+  run: dc6e66f97146489eaa37833f837d2826
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:17:48.908099Z'
+  stage: tests
+- number: 26
+  speaker: tester
+  kind: result
+  at: '2026-10-19T05:20:31.438504Z'
+  stage: tests
+  run: 3a34411588de4dd68bb1ef8ff67962b6
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:20:51.457424Z'
+  stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-10-19T05:23:02.283973Z'
+  stage: doing
+  run: a216550f445e4052997444c907468a80
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:23:22.535432Z'
+  stage: review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T05:25:32.989358Z'
+  stage: review
+  run: 8458e5f88c064ec7bde94b7302ff46d8
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:25:53.566808Z'
+  stage: doing
+- number: 32
+  speaker: coder
+  kind: result
+  at: '2026-10-19T05:27:45.273803Z'
+  stage: doing
+  run: 4c846cfc9e1b448a8d07550a6cff8b25
+- number: 33
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:28:05.604011Z'
+  stage: tests
+- number: 34
+  speaker: tester
+  kind: result
+  at: '2026-10-19T05:30:13.159807Z'
+  stage: tests
+  run: fc0e571eb7664811a4b0f5990b3b9180
+- number: 35
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:30:33.209485Z'
+  stage: doing
+- number: 36
+  speaker: coder
+  kind: result
+  at: '2026-10-19T05:32:31.049086Z'
+  stage: doing
+  run: 2e24e1b031fa482cbb000e57c194f530
+- number: 37
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:32:51.244613Z'
+  stage: review
+- number: 38
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T05:34:02.906493Z'
+  stage: review
+  run: 33fae1320c2a4f42837c1e98dac6b60c
+- number: 39
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:34:22.989850Z'
+  stage: docs
+- number: 40
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T05:36:12.113328Z'
+  stage: docs
+  run: 4b0e79f8de574963a0991075554e4332
+- number: 41
+  speaker: factory
+  kind: started
+  at: '2026-10-19T05:36:32.676358Z'
+  stage: smoke-test
+- number: 42
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T05:36:56.888035Z'
+  stage: smoke-test
+  run: 12ab485eaa904c338b357e6c19109171
+---
+
 # The opencode runtime runs an agent and reads its result from the events
 
 ## Description
@@ -110,24 +355,27 @@ Changed under the feature's decision 19, by the tester only, nothing else in tho
 5. `result_instructions(["doing", "question"])` is the text above, exactly.
 6. `parse_result_block` gives `("doing", "Built it.")` for a text that ends with a valid block, also with text before it, with trailing spaces and line feeds after the closing line, and with spaces around the decision word; it gives the later block of two; it gives `None` for text after the closing line, a missing closing line, a missing opening line, a missing `decision:` line, a missing `entry:` line, the two lines in the other order, a decision outside the allowed ones and a blank entry (rows of one parametrized test).
 7. Two steps with costs 0.012 and 0.03, inputs 10 and 20, outputs 5 and 6, reasoning 2 and 0, cache reads 100 and 0 and writes 20 and 5 give `cost_usd` `Decimal("0.042")`, tokens input 30, output 13, cache read 100, cache creation 25, and `turns` 2; a step without `reasoning` and without `cache` counts 0 for each (rows).
-8. A step from 1000 to 2000 ms with a tool call from 1200 to 1700 ms, and a step from 3000 to 3400 ms without one, give a model time of 0.9 seconds; a step whose tool spans exceed it counts zero (rows).
+8. A step from 1000 to 2000 ms with a tool call from 1200 to 1700 ms, and a step from 3000 to 3400 ms without one, give a model time of 0.9 seconds; a step whose tool spans exceed it counts zero; a `step_finish` with no earlier `step_start` adds 0 to the model time and still counts as a turn; the tool calls "between" a step's start and finish are those by line order (rows).
 9. A `tool_use` error `permission denied by rule git push*` and one `Denied: rm -rf *` are refused calls with the tool and the sorted input; an error `file not found` and a completed call are none (rows).
 10. A refused `write` call whose input is `{"filePath": "/work/src/a.py", "content": "x"}` gives a denial with `path` `/work/src/a.py`, and so does a refused `edit` call with `filePath`; a refused `bash` call, one whose input is no object, one whose `filePath` is no string, and one whose input names only `file_path` give a denial with `path` `None`; a result with two refused calls on the same file records it once in `denied_paths` of its cost record (`CostRecorder.complete`) (rows).
-11. Lines that are no JSON, an object without `type`, an unknown type, a `step_finish` with a negative cost and a `step_finish` without `cost` are skipped: the measures are those of the valid lines alone (rows).
+11. Lines that are no JSON, an object without `type`, an unknown type, a `step_finish` with a negative cost, a `step_finish` without `cost`, one with a negative `timestamp`, one with a negative `input`, one without `tokens` and one whose `tokens` lack `output` are skipped: the measures are those of the valid lines alone (rows).
 12. The end reasons (rows): a valid block and exit 0 is `completed` with the block's decision and entry; a block naming `review` when only `doing` and `question` are allowed is `no_result` with its measures; a valid block and exit 1 is `died` with its measures; no `step_finish` is `died` with no measures; a stand-in that prints one step and waits 30 seconds under a time limit of 3 seconds is `time_limit` without measures, and the call returns within 20 seconds.
 13. With an agent user, the stand-in `sudo` sees `-n -u agent -- timeout --signal=KILL <limit>s env -i` and the environment's assignments, `OPENCODE_CONFIG` among them, before the stand-in's words; a refusal `sudo: a password is required` raises `AgentRuntimeError` `<sudo> refused the agent run: sudo: a password is required` (rows).
-14. Through a stand-in wrapper, the call starts as `<wrapper> --rules <state>/confine-<run>.json -- ...`; the rules allow `<HOME>/.local/share/opencode`, `<HOME>/.local/state/opencode` and `<HOME>/.cache/opencode` as folders and nothing under `<HOME>/.config`; the run's temporary folder is gone after the run; a wrapper line `factory-confine: ...` without events raises `AgentRuntimeError` naming it (rows).
+14. Through a stand-in wrapper, the call starts as `<wrapper> --rules <state>/confine-<run>.json -- ...`, the rules file having mode `0640`; the rules allow `<HOME>/.local/share/opencode`, `<HOME>/.local/state/opencode` and `<HOME>/.cache/opencode` as folders and nothing under `<HOME>/.config`; the run's temporary folder is gone after the run; a wrapper line `factory-confine: ...` without events raises `AgentRuntimeError` naming it (rows).
 15. With an API login file holding a key, the stand-in sees `ANTHROPIC_API_KEY` with the key and the result's `login` is `api_key`; with an empty file it sees no such name and `login` is `none`; without the file, no login words and `login` `None`; an API file that is a folder raises `AgentRuntimeError` `agent runtime failed: cannot read the agent's API login file <path>: cannot be read` and the stand-in is never called; the key stands in no argument, no configuration file and not in the result's JSON (rows).
-16. `version()` gives `1.19.3` for `1.19.3\n`; a stand-in that exits 1, prints nothing or waits past a limit of 3 seconds raises `AgentRuntimeError` (rows).
+16. `version()` gives `1.19.3` for `1.19.3\n`, and the stand-in's recorded call is `<executable> --version` alone, without login words, also when an API login file is set; a stand-in that exits 1, prints nothing or waits past a limit of 3 seconds raises `AgentRuntimeError` (rows).
 17. The kill point `AGENT_RUN` is reached once after a run, `OpencodeRuntime` is an `AgentRuntime`, and the module reads no `os.environ` (a source search, which finds it in a snippet that does).
-18. `make check` stays green.
-19. docs: `docs/project-guide.md`: a section *The opencode runtime*: the call and its words, the per-run configuration and why it is generated from the agent files and `settings.json`, the result block and its strict parsing, the events and the measures read from them, opencode's own folders in the agent's home and the folder it may not write. `docs/decisions.md`: an entry *opencode's agent is generated per run from the shipped agent files* with the reasons of the feature's decisions 6, 7, 8 and 10, dated with the story.
+18. The errors carry the Claude Code runtime's texts (rows): `version()` of an executable that exits 1 raises `<executable> --version failed: <stderr>`, of one that prints nothing `<executable> --version printed nothing`, and of one that does not exist `cannot start <executable>: <error>`; a run whose executable does not exist raises `cannot start <executable>: <error>` and leaves the state directory without a file; a run whose state directory does not exist raises `cannot write the state directory <path>: <error>` and the stand-in is never called.
+19. The non-negative limits are tested on the accepted side too: a `step_finish` with cost 0, `input` 0 and timestamp 0, after a `step_start` at timestamp 0, is a valid step that counts as a turn, with `cost_usd` `Decimal("0")`, tokens input 0 and a model time of 0 seconds (rows beside the negative ones of criterion 11).
+20. A call that printed an event that validates is no refusal, whatever its standard error holds (rows): with an agent user, a `sudo` stand-in that prints the line `sudo: a password is required` and then runs the call, which prints a valid step and block, gives `completed` with the block's decision and entry; through a stand-in wrapper that prints its `factory-confine: ...` line and the valid events and exits 0, the same.
+21. `make check` stays green.
+22. docs: `docs/project-guide.md`: a section *The opencode runtime*: the call and its words, the per-run configuration and why it is generated from the agent files and `settings.json`, the result block and its strict parsing, the events and the measures read from them, opencode's own folders in the agent's home and the folder it may not write. `docs/decisions.md`: an entry *opencode's agent is generated per run from the shipped agent files* with the reasons of the feature's decisions 6, 7, 8 and 10, dated with the story.
 
 ## Smoke test
 
 ```bash
 d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
-mkdir "$d/work"
+mkdir "$d/work" "$d/state"
 cat > "$d/opencode" <<'EOF'
 #!/bin/sh
 here=$(dirname "$0")
@@ -170,3 +418,389 @@ Expect: six lines, `completed question The smoke entry.`, `0.012 1 10 7 100 20 0
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: Questions (the format check passed; the architecture and scope are fine: the new module sits in `adapters`, change 2 of CLAUDE.md and change 7 of pyproject.toml are in place, and every item is within the feature's Scope for S0004):
+
+   1. Interface, the event models: "Timestamps, counts and costs are non-negative; a negative one fails the line's validation", and "a `step_finish` needs `cost` and `tokens` with `input` and `output`". Criterion 11 tests only a negative cost and a missing cost. Nothing tests a negative timestamp, a negative token count (input, output, reasoning, cache read, cache write), a negative tool-span time, a `step_finish` without `tokens`, or one with `tokens` lacking `input` or `output`. Each is a stated rule whose failing side has no criterion. Option I would choose: extend criterion 11's rows with a negative `timestamp`, a negative `input`, a `step_finish` without `tokens`, and `tokens` without `output`, each skipped.
+
+   2. Interface, `model_duration`: "its timestamp less that of the last `step_start` before it". The story does not say what happens when a `step_finish` has no `step_start` before it. Counting it as zero, skipping the step, or using another start would each pass the criteria as written. Also, "the `tool_use` events between the two" does not say whether "between" is by event timestamp or by line order. Option I would choose: a `step_finish` with no earlier `step_start` adds 0 to the model time (and still counts as a turn), and "between" is by line order. Please add a criterion row for it in criterion 8.
+
+   3. Interface, the run's files: the rules file `confine-<run>.json` must also be written with mode `0640`. Criterion 4 checks the mode only of the configuration file, and criterion 14 does not check the rules file's mode. Option I would choose: add the rules file's mode `0640` to criterion 14.
+
+   4. Interface, `version()`: "called without login words". Criterion 16 does not test this, so a call through the login shell would pass. Option I would choose: add to criterion 16 that the stand-in's recorded call for `--version` has no login words (it is called as `<executable> --version` alone, even when an API login file is set).
+
+   5. Smoke test: `OpencodeRuntime(..., d / "state", ...)` is given a state directory that does not exist, and the Expect line ends with `[]` from `(d / "state").iterdir()`. The story does not say the runtime creates the state directory. If it does not, the smoke test fails with `FileNotFoundError` before any output. Option I would choose: add the sentence "the state directory is created when missing" to the Interface's run files and a row for it in criterion 4. The other choice is to make the smoke test create `state` first.
+4. 2026-10-19 human: 1. Yes: extend criterion 11's rows with a negative `timestamp`, a negative `input`, a `step_finish` without `tokens`, and `tokens` without `output`, each skipped.
+   2. Yes: a `step_finish` with no earlier `step_start` adds 0 to the model time and still counts as a turn; "between" is by line order. Add the row to criterion 8.
+   3. Yes: add the rules file's mode `0640` to criterion 14.
+   4. Yes: add to criterion 16 that `--version` is called as `<executable> --version` alone, without login words, even when an API login file is set.
+   5. The other choice: the smoke test creates `state` first (`mkdir` before the runtime is built); the runtime does not create its state directory, which always exists in the instance. The `Expect:` line stays.
+5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete module `factory.adapters.opencode_runtime`, with constants, signatures, the call words, the configuration keys, the result block and the events all stated. The answers to my questions are carried in; the state directory is not created by the runtime, per journal entry 4.
+   - Criteria: each is testable as rows of one test. Every Interface rule has both sides. Carried in from the human's answers (journal entry 4), as edits to the story and no other change of mine:
+     - Criterion 11: added rows for a negative `timestamp`, a negative `input`, a `step_finish` without `tokens`, and `tokens` without `output`, each skipped (answer 1).
+     - Criterion 8: added the row for a `step_finish` with no earlier `step_start`, which adds 0 to the model time and still counts as a turn, and that "between" is by line order (answer 2).
+     - Criterion 14: the rules file has mode `0640` (answer 3).
+     - Criterion 16: `--version` is called as `<executable> --version` alone, without login words, also with an API login file set (answer 4).
+   - Smoke test: runnable. Per answer 5 it now runs `mkdir "$d/work" "$d/state"` before the runtime is built, and the `Expect:` line is unchanged and checkable line by line.
+   - Architecture: the new module sits in `adapters`, and the Wrappers bullet of CLAUDE.md already allows `opencode_runtime`. The runtime reads no `os.environ`, and the interface is an ABC implementation.
+   - Scope: within the feature's Scope for S0004, outside its Out of scope. The two test-module changes are covered by decision 19.
+7. factory: started tests as self.
+8. tester: Wrote the tests of every acceptance criterion against the Interface. They are red on purpose: `factory.adapters.opencode_runtime` does not exist yet.
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_opencode_runtime.py::test_a_run_calls_opencode_run_with_its_words_in_the_working_directory (rows: alias, provider-model)
+   - criterion 2: tests/adapters/test_opencode_runtime.py::test_a_request_the_runtime_cannot_configure_fails_before_anything_starts (rows: alias without mapping, tool outside `TOOL_NAMES`, settings missing, settings no JSON, a JSON array, `{}`, no `deny`, `deny` not a list, `deny` not all strings)
+   - criterion 3: tests/adapters/test_opencode_runtime.py::test_the_configuration_defines_the_agent_from_its_definition_and_the_settings (rows: settings, no-settings; it also checks the order of the `bash` keys)
+   - criterion 4: tests/adapters/test_opencode_runtime.py::test_the_call_sees_its_configuration_file_and_only_the_request_s_environment and ::test_the_state_directory_holds_no_file_after_a_run (rows: completed, died, timed-out)
+   - criterion 5: tests/adapters/test_opencode_result_block.py::test_the_result_instructions_name_the_allowed_decisions_and_the_entry
+   - criterion 6: tests/adapters/test_opencode_result_block.py::test_the_result_block_gives_its_decision_and_entry_only_when_it_ends_the_text_whole
+   - criterion 7: tests/adapters/test_opencode_events.py::test_cost_tokens_and_turns_are_summed_over_the_finished_steps
+   - criterion 8: tests/adapters/test_opencode_events.py::test_the_model_time_is_each_step_less_its_tool_calls_summed (rows include a finish without a start, a tool line between by line order, and a tool line after the finish)
+   - criterion 9: tests/adapters/test_opencode_events.py::test_a_tool_call_refused_by_permission_is_a_denial_with_its_sorted_input
+   - criterion 10: tests/adapters/test_opencode_events.py::test_a_denial_names_the_file_path_of_its_call and ::test_two_refused_calls_on_one_file_record_it_once_in_the_cost_record
+   - criterion 11: tests/adapters/test_opencode_events.py::test_a_line_that_does_not_validate_is_skipped
+   - criterion 12: tests/adapters/test_opencode_events.py::test_the_end_reason_follows_the_exit_the_steps_and_the_block and ::test_a_call_past_its_time_limit_ends_by_time_limit_without_measures
+   - criterion 13: tests/adapters/test_opencode_runtime_launch.py::test_with_an_agent_user_sudo_starts_the_call_after_env_i_and_its_environment (rows: runs, refused)
+   - criterion 14: tests/adapters/test_opencode_runtime_launch.py::test_through_the_wrapper_the_call_gets_its_rules_with_opencode_s_folders and ::test_a_wrapper_line_without_events_is_a_runtime_error_naming_it
+   - criterion 15: tests/adapters/test_opencode_runtime_launch.py::test_the_call_gets_the_api_file_s_key_and_the_result_names_the_login (rows: key, empty, no-file) and ::test_an_api_file_that_is_a_folder_stops_the_run_naming_it
+   - criterion 16: tests/adapters/test_opencode_runtime_launch.py::test_the_version_is_the_first_word_of_a_call_without_login_words and ::test_a_version_that_cannot_be_read_is_a_runtime_error (rows: exit-1, nothing, waits past a 3 s limit)
+   - criterion 17: tests/adapters/test_opencode_runtime.py::test_the_kill_point_is_reached_once_after_a_run_and_the_runtime_is_an_agent_runtime and tests/test_opencode_runtime_search.py::test_neither_the_opencode_runtime_nor_the_launch_module_reads_os_environ
+
+   Files created:
+   - tests/adapters/opencode_stand_in.py: `write_opencode`, `read_config_modes`, one builder per event (`step_start`, `tool_use`, `text`, `step_finish`, `error`), `result_text`, `stdout`, `opencode_request` and `MODELS`. It reuses `Step`, `STEPS` and `read_calls`/`StandInCall` from `claude_stand_in`. The configuration file's text goes into `StandInCall.files` and its mode into `config-modes.jsonl`, because `StandInCall` forbids extra fields.
+   - tests/adapters/test_opencode_runtime.py
+   - tests/adapters/test_opencode_result_block.py
+   - tests/adapters/test_opencode_events.py
+   - tests/adapters/test_opencode_runtime_launch.py (it imports `_write_sudo`/`_sudo_calls` and the `confine_support` helpers rather than copying them)
+   - tests/test_opencode_runtime_search.py
+
+   Earlier test files changed under the feature's decision 19, nothing else in them:
+   - tests/test_wrapper_search.py: `factory.adapters.opencode_runtime` added to the expected importers.
+   - tests/test_model_configuration.py: `EXCEPTIONS` gains the eight private event models.
+
+   Readings to check:
+   - Criterion 2's "one that is no JSON": I read it as the Interface's "no JSON object with a list of strings at `permissions.deny`". So invalid JSON expects `the agent settings <path> hold no permissions.deny list`, not `cannot read ...`. The parallel wording supports this; if the coder or reviewer reads it the other way, it is a question for the human.
+   - Following the intake answer, the runtime does not create its state directory, so every test creates `state` first.
+   - `version()` without login words is checked through the stand-in: its arguments are `["--version"]` and `ANTHROPIC_API_KEY` is absent, with an API file holding a key. The process-module `recorder` fixture patches `claude_runtime` only.
+
+   `make test`: the four new adapter modules fail at collection with ImportError, because `factory.adapters.opencode_runtime` cannot be imported. The search, wrapper-search and model-configuration tests fail on a wrong result. `make lint` is green. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/adapters/test_opencode_runtime_launch.py - ImportError while impo...
+9. factory: started doing as self.
+10. coder: Question: `make check` is red, and the only failing step is in a test file this story's tester wrote, which I may not change.
+
+    `make secrets` (detect-secrets, Secret Keyword) flags `tests/adapters/test_opencode_runtime.py:213`. That line is in `test_the_call_sees_its_configuration_file_and_only_the_request_s_environment`, where the dict `given` holds the API login variable as a quoted literal key with a value (wording changed by the human: the quote itself tripped `make secrets`). The keyword detector matches the quoted key name, whatever the value is. Earlier tests avoid this by keying with the constant: `tests/adapters/test_agent_launch_login.py:62` writes `API_LOGIN_VARIABLE: ...`.
+
+    The options I see:
+    - (a) The tester rewrites the two keys of `given` as `API_LOGIN_VARIABLE` and `LOGIN_VARIABLE` (both from `factory.adapters.agent_launch`). The test keeps its name and checks the same thing. **This is the one I would choose.**
+    - (b) Add a `pragma: allowlist secret` on that line. CLAUDE.md lists this under "Not without asking", and it would also break `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`.
+    - (c) Add a `.secrets.baseline` entry. This is also under "Not without asking".
+
+    If you answer (a), the next doing run ends with `tests` and names this change.
+
+    Where I stopped: the implementation is done. Every other step of the check is green when run on its own: lint, types, layers, sast, licenses, and `make test` (98.98 % coverage, with every new opencode test passing).
+
+    What I built: `src/factory/adapters/opencode_runtime.py` (new), following the Interface:
+    - `result_instructions` and `parse_result_block`.
+    - The eight private event models. `_Event` carries an after-validator that refuses a `step_finish` without cost or tokens, a `tool_use` without tool or state, and a `text` without text. Its `type` is a `Literal` of the five known types, so an unknown type fails validation and the line is skipped.
+    - Measures from the `step_finish` events. Model time follows line order and adds 0 for a finish with no earlier start.
+    - Denials matched by `DENIAL_PATTERN`, with the path taken from `filePath`.
+    - The per-run configuration, including `Bash(...)` deny patterns read from `settings.json`.
+    - `OpencodeRuntime.run` and `version`. Model, tools and settings are checked before any file is written. The call is launched through `login_argv`, `confined_argv` and `launch`, and run with `run_streaming` and a callback that never stops it.
+
+    Main choice: the settings file is parsed with a `TypeAdapter(JsonValue)` and then checked with `isinstance`. I rejected a private Pydantic settings model, because `tests/test_model_configuration.py` would then need a new `EXCEPTIONS` entry that the tester did not add. Text that is not JSON gives "hold no permissions.deny list", as the tester's reading (journal entry 8) and the tests expect. The runtime does not create its state directory (journal entry 4).
+
+    Refactor: I removed a `# noqa: PLR0913` that `test_process_search` counts as a forbidden marker. Ruff did not need it. Nothing else needed changing.
+
+    Noticed but not touched:
+    - `make duplicates` reports 7 new similar-code blocks against `claude_runtime`: the refusal checks, the temporary-folder cleanup, `version`, and building the `ProcessRequest` from `launch`. They cannot move into `agent_launch` without it importing the process module, which `tests/test_wrapper_search.py` forbids. Sharing them is a restructuring for its own story.
+    - Vulture reports `_ErrorData.status_code` and `OpencodeRuntime` as unused (60 % confidence). The first is the field the provider-limit story will read; the runtime is wired in a later story.
+11. 2026-10-19 human: (a): the tester rewrites the two keys of `given` in `test_the_call_sees_its_configuration_file_and_only_the_request_s_environment` as `API_LOGIN_VARIABLE` and `LOGIN_VARIABLE` (from `factory.adapters.agent_launch`), as `tests/adapters/test_agent_launch_login.py` does; the test keeps its name and checks the same thing. No pragma, no baseline entry.
+12. factory: started doing as self.
+13. coder: The human chose option (a) in entry 11, and that needs a test change, so this goes to the tester. In `tests/adapters/test_opencode_runtime.py::test_the_call_sees_its_configuration_file_and_only_the_request_s_environment`, change the two literal keys of `given` (`"ANTHROPIC_API_KEY"`, `"CLAUDE_CODE_OAUTH_TOKEN"`) to `API_LOGIN_VARIABLE` and `LOGIN_VARIABLE` from `factory.adapters.agent_launch`, as `tests/adapters/test_agent_launch_login.py` does. Nothing else changes: the test keeps its name and checks the same thing. This makes `make secrets` green; it is the only step of `make check` still red. The implementation is still the one entry 10 describes: `src/factory/adapters/opencode_runtime.py`, committed, and I changed no code in this run. The journal changed nothing in the meaning of the task, so `## Description` stays as it is. Still open from entry 10, not touched: `make duplicates` reports 7 blocks similar to `claude_runtime`, and vulture flags `_ErrorData.status_code` and `OpencodeRuntime` as unused, both of which later stories will use.
+14. factory: started tests as self.
+15. tester: I made the test change the human approved in entry 11, as the coder named it in entry 13. Nothing else changed.
+
+    - In `tests/adapters/test_opencode_runtime.py::test_the_call_sees_its_configuration_file_and_only_the_request_s_environment`, the two literal keys of `given` are now the constants `API_LOGIN_VARIABLE` and `LOGIN_VARIABLE`. They replace `"ANTHROPIC_API_KEY"` and `"CLAUDE_CODE_OAUTH_TOKEN"`.
+    - Both constants are imported from `factory.adapters.agent_launch`, the same way `tests/adapters/test_agent_launch_login.py` uses them.
+    - The test keeps its name and its values, and still checks that the request's login variables do not reach the call's environment.
+
+    Why: detect-secrets flagged the quoted key name as a Secret Keyword, so `make secrets` was red. Using the constants clears that without a pragma or a baseline entry, as the human decided.
+
+    File changed: `tests/adapters/test_opencode_runtime.py` (one import line, two dict keys). No files created. Every module imported: `make test` is green with 98.98 % coverage, and `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (37.7 s)
+16. factory: started doing as self.
+17. coder: Question: `make check` is still red. The only failing step is `make secrets`, and the line it flags is in this work item's own journal, which I may not edit.
+
+    detect-secrets (Secret Keyword) flags `factory/features/F0020-opencode-as-a-second-agent-runtime/in-progress/F0020-S0004-the-opencode-runtime-runs-an-agent-and-reads-its-result-from-the-events.md:353`. That line is in my journal entry 10. It quotes the tester's old dict line in backticks (the quote is reworded by the human). The tester's fix (entry 15) cleaned the test file, but the quote in the journal now trips the same detector. The front matter and `## Journal` belong to the factory (R5): any edit I make there is dropped, so I cannot remove the quote myself.
+
+    Every other step is green: lint, types, layers, sast and licenses all pass in this `make check` run, and `make test` is green with 98.98 % coverage. The implementation has not changed since entry 10 (`src/factory/adapters/opencode_runtime.py`), and I changed no code in this run.
+
+    The options I see:
+    - (a) You edit journal entry 10 by hand: drop the quoted literal, or write it as `ANTHROPIC_API_KEY: request-key` without the quotes, which the keyword detector does not match. Then the doing stage runs again and ends with `review`. **This is the one I would choose.** It changes a factory-owned record, but only by wording, and adds no marker.
+    - (b) Add a `.secrets.baseline` entry for that line. This is under "Not without asking", and the entry would point at a line number that moves as the journal grows.
+    - (c) Add a `pragma: allowlist secret` in the journal. Same objection, and it breaks `tests/test_process_search.py`'s marker count only if that test scans work items (I have not checked).
+
+    Not touched: the open points from entry 10 still stand. `make duplicates` reports 7 blocks similar to `claude_runtime`, and vulture flags `_ErrorData.status_code` and `OpencodeRuntime` as unused; later stories will use both. The journal did not change what the task means, so `## Description` stays as it is.
+18. 2026-10-19 human: (a), done by the human on the branch: the quote is reworded in journal entries 10 and 18 (commits 0b383f77 and 9d83e265); `detect-secrets scan` over every file the branch changes now finds nothing. No baseline entry, no pragma. Go on to review.
+19. factory: started doing as self.
+20. coder: `make check` is green: every step passes, `make secrets` included, and the last line is `check: green`. `make test` is green with 98.98 % coverage. The human reworded the quote in the journal (entry 18), and that was the only thing keeping `make secrets` red.
+
+    What I built: `src/factory/adapters/opencode_runtime.py` (new), the one described in entry 10. I changed no code in this run. Already in the module:
+    - `result_instructions` and `parse_result_block`.
+    - The eight private event models. `_Event`'s `type` is a `Literal` of the five known types, and an after-validator refuses a `step_finish` without cost or tokens.
+    - The measures over the `step_finish` events. The model time goes by line order, and a finish with no earlier start adds 0.
+    - The denials, with the path read from `filePath`.
+    - The configuration for each run, with the `Bash(...)` deny patterns read from `settings.json`.
+    - `OpencodeRuntime.run` and `version`, launched through `login_argv`, `confined_argv`, `launch` and `run_streaming`.
+
+    Main choice: the settings file is read with a `TypeAdapter(JsonValue)` and then checked with `isinstance`. I rejected a private Pydantic settings model, because it would need a new `EXCEPTIONS` entry in `tests/test_model_configuration.py` that the tester did not add. Text that is not JSON gives the error "hold no permissions.deny list", which is how the tester read criterion 2 (entry 8).
+
+    Refactor: I did the refactor in entry 10 (I removed a `# noqa: PLR0913` that ruff did not need). Nothing more needed changing.
+
+    Description: entries 11 to 18 changed only wording in a test and the journal, not what the task means, so `## Description` stays as it is.
+
+    Noticed but not touched:
+    - `make duplicates` reports 7 blocks similar to code in `claude_runtime`: the refusal checks, the temporary-folder cleanup, `version`, and building the `ProcessRequest`. They cannot move into `agent_launch` without it importing the process module, which `tests/test_wrapper_search.py` forbids. Sharing them would be a restructuring for its own story.
+    - Vulture flags `_ErrorData.status_code` (S0006 will read it) and `OpencodeRuntime` (S0008 wires it in) as unused.
+
+    `check`: check: green
+    `duplicates`: duplicates: 9 new, 35 known, 4 gone
+21. factory: started review as self.
+22. reviewer: Review, round 0: 7 findings, so the work item goes back to doing. I read every file in the diff against the 19 criteria. Criteria 1 to 17 each have a test, and each test checks what its criterion says. The architecture holds: the module sits in `adapters`, `test_wrapper_search` lets it import the process module, it reads no `os.environ`, and it implements the interface's ABC. Security is clean: no new markers, and the prompt is passed as a single argument. The findings are about copied helpers, one dead field and two behaviours no criterion named. I ran `make duplicates`: 7 new similar blocks against `claude_runtime`, all covered by findings 1 to 4.
+
+    1. `src/factory/adapters/opencode_runtime.py:254` `_since` is a second copy of `claude_runtime._since`. Fix: move it into `factory.adapters.agent_launch` (it needs no process import) and have both runtimes import it from there.
+    2. `src/factory/adapters/opencode_runtime.py:380` `_denied_path` copies `claude_runtime._denied_path`; only the keys differ. Fix: one shared function in `agent_launch` that takes the keys as an argument (`("filePath",)` here, `("file_path", "notebook_path")` in the Claude runtime).
+    3. `src/factory/adapters/opencode_runtime.py:452-470` `_has_usable_events`, `_sudo_refusal`, `_confine_refusal` and `_confinement` copy `claude_runtime._has_usable_reply`, `_sudo_refusal`, `_confine_refusal` and `_confinement`. Fix: share them in `agent_launch` with plain inputs (stderr, a usable flag, `os_user`, `runtime_folders`), so `agent_launch` still never imports the process module.
+    4. `src/factory/adapters/opencode_runtime.py:532-653` `version`, `_call`, `_check_confinement`, `_check_login`, `_remove_temporary_folder` and `_process_request` copy the `ClaudeCodeRuntime` methods of the same names almost line for line. Entry 10 says these cannot move because `agent_launch` may not import the process module, but that only applies to the `run_process`/`run_streaming` calls, which can stay in each wrapper's `_start`. Fix: move the logic around those calls into `agent_launch` with plain values, as `killed_at_limit` and `cleanup_argv` already are: the version reading from exit status, timed-out flag, stdout and stderr; the refusal checks; building the request from `launch`. If a shared module that itself calls the process module is wanted instead, that is a change to `tests/test_wrapper_search.py` and needs a question to the human.
+    5. `src/factory/adapters/opencode_runtime.py:229` `_Step.timestamp` is set but never read; the model time comes from the events. This is dead code. Fix: remove the field.
+    6. Criterion 18 added; it needs its test. The code builds error texts for `version()` (`--version failed: <stderr>`, `printed nothing`, `cannot start <executable>: <error>`), for a run whose executable cannot start, and for a state directory that cannot be written (`opencode_runtime.py:546-563`, `:651-653`). No criterion pinned them, and criterion 16's test only checks that `AgentRuntimeError` is raised. Pinning them needs no change under `src/`.
+    7. Criterion 19 added; it needs its test. CLAUDE.md asks for both sides of every limit the Interface states. The "non-negative" timestamps, counts and costs are tested only on the refused side (-1 or -0.5 in criterion 11); nothing tests 0 for cost, `input` or timestamp. For example, `_model_ms` checking `started is not None` against a truthiness check is unpinned for a `step_start` at 0. Pinning it needs no change under `src/`.
+
+    I renumbered the closing criteria: `make check` is now 20 and `docs:` is 21.
+
+    What I chose not to raise: negative values of `output`, `reasoning`, the cache counts and the span ends. The intake asked about those, and the human chose only the four rows of criterion 11 (journal entry 4). I did not count `_RunFiles` as a copy, since its fields differ from the Claude runtime's.
+
+    Earlier tests:
+    - `tests/test_model_configuration.py`: the story names it under the feature's decision 19. The change only adds the eight `opencode_runtime` models to `EXCEPTIONS`, which is within that leave.
+    - `tests/test_wrapper_search.py`: the story names it under the feature's decision 19. The change only adds `factory.adapters.opencode_runtime` to the expected importers, which is within that leave.
+23. factory: started doing as self.
+24. coder: Round 1. I fixed the reviewer's code findings 1 to 5. Findings 6 and 7 add criteria 18 and 19, which need only their tests, so this goes to the tester: **criterion 18** (the error texts of `version()`, of a run whose executable does not exist, and of a missing state directory) and **criterion 19** (a `step_finish` with cost 0, `input` 0 and timestamp 0, after a `step_start` at 0, is a valid step: one turn, `cost_usd` `Decimal("0")`, tokens input 0, model time 0 s). Neither needs any change under `src/`. `make check` is green (`check: green`).
+
+    What I built:
+    - **`src/factory/adapters/agent_launch.py`**: the logic both runtimes shared now lives here. It takes plain values, so the module still never imports the process module.
+      - `since` (finding 1).
+      - `denied_path(tool_input, keys)` (finding 2). The Claude runtime passes `("file_path", "notebook_path")`, opencode passes `("filePath",)`.
+      - `call_refusal(stderr, *, printed, timed_out, os_user, starters)` (finding 3). It replaces each runtime's `_has_usable_*`, `_sudo_refusal`, `_confine_refusal`, `_check_confinement` and `_check_login`, with the same order and the same texts.
+      - For finding 4:
+        - `version_printed`, which reads the version from the exit status, stdout and stderr.
+        - `run_launch`, which does `without_login`, merges the runtime's environment and calls `launch`.
+        - `cleanup_launch`, the removal call as a `Launch`.
+        - `finished_run`, which sets the duration and reaches the `AGENT_RUN` kill point.
+      - `Starters`, a new frozen model holding the sudo executable, the confine executable and the login files.
+    - **`src/factory/adapters/claude_runtime.py`** and **`src/factory/adapters/opencode_runtime.py`**:
+      - Both now use the shared functions and keep a `Starters` in `self._starters` instead of three attributes. `ClaudeCodeRuntime`'s `sudo_executable` and `confine_executable` properties read from it.
+      - Each keeps a small `_request_of(Launch, cwd) -> ProcessRequest`, its `_start`, and the `killed_at_limit` model copy. Those touch `ProcessRequest` or `ProcessResult`, which `agent_launch` may not import.
+      - The opencode runtime's `_Step.timestamp` is removed (finding 5).
+
+    Main choice: I grouped the start settings in the small `Starters` model. Without it, `call_refusal` would take seven arguments, and ruff's PLR0913 allows five. I rejected a `# noqa`, which `test_process_search` counts as a forbidden marker. I also rejected moving the shared code into a module that imports the process module: that would change `tests/test_wrapper_search.py`, and the reviewer said that needs a question.
+
+    Two constraints from the existing tests:
+    - `tests/adapters/test_claude_runtime_confinement.py` monkeypatches `claude_runtime.SHELL_EXECUTABLE` and `CLEANUP_TIME_LIMIT`. So `cleanup_launch` takes the shell and the time limit as arguments, and each runtime passes its own module's names.
+    - In `run_launch`, the caller wraps the words in `confined_argv` itself, to keep the function within five arguments.
+
+    Refactor: I read my diff once and changed `agent_launch`'s module docstring to cover the new end-of-run helpers. Nothing else needed changing.
+
+    Description: the journal added criteria 18 and 19 and changed nothing else in the meaning of the task, so `## Description` stays as it is.
+
+    Noticed but not touched:
+    - `make duplicates` now reports 3 new similar blocks, down from 7. They are only matching call sites of the shared helpers (the `call_refusal` call, the `version_printed` call, the temporary-folder removal), each with the same keyword arguments. `_request_of` is the same 4 lines in both runtimes, because `agent_launch` may not build a `ProcessRequest`.
+    - Vulture still flags `_ErrorData.status_code` (S0006 reads it) and `OpencodeRuntime` (S0008 wires it in) as unused.
+25. factory: started tests as self.
+26. tester: Round 1. The coder's entry 24 said criteria 18 and 19, which the reviewer added, need only their tests. I wrote those two tests and changed no existing test.
+
+    - criterion 18: `tests/adapters/test_opencode_runtime.py::test_a_version_that_cannot_be_read_names_the_reason` has three rows. The first is exit 1 with stderr: the detail is exactly `<executable> --version failed: <stderr>`. The second prints nothing: exactly `<executable> --version printed nothing`. The third is a missing executable: the detail starts with `cannot start <executable>: ` and an error text follows.
+    - criterion 18: `tests/adapters/test_opencode_runtime.py::test_a_run_that_cannot_start_names_the_reason` has two rows. The first is a missing executable: `cannot start <executable>: <error>`, and the state directory holds no file afterwards. The second is a missing state directory: `cannot write the state directory <path>: <error>`, and the stand-in is never called.
+    - criterion 19: `tests/adapters/test_opencode_events.py::test_a_step_with_zero_values_is_a_valid_step` checks that each step counts as one turn with the expected `cost_usd`, `tokens.input` and model time. It has four rows. Three set one value to zero each: cost 0, `input` 0, and a timestamp of 0 for both `step_start` and `step_finish`. The fourth is the criterion's combined case: cost 0, input 0 and timestamp 0, giving `Decimal("0")`, input 0 and 0 s. These rows are the accepted side of the limits whose refused side is in criterion 11's `test_a_line_that_does_not_validate_is_skipped`. I kept that existing test as it is rather than merging the two, because its rows check that a line is skipped, not that it is a valid step.
+
+    `<error>` is the operating system's text, so those rows check the fixed prefix and that some text follows it. They do not check the exact OS message.
+
+    Files changed: `tests/adapters/test_opencode_runtime.py` and `tests/adapters/test_opencode_events.py`, both written by this story; I only added tests to them. I created no new files.
+
+    `make test` is green: the code is already built, so the new tests pass rather than fail. Every module imported. `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (40.3 s)
+27. factory: started doing as self.
+28. coder: Round 1, after the tester's entry 26. The tester added tests for criteria 18 and 19, and they pass against the code as it stands. I changed no code in this run. `make check` is green: coverage is 99.03 % and the last line is `check: green`.
+
+    What I built: nothing new since entry 24. The implementation is still:
+    - `src/factory/adapters/opencode_runtime.py` (new).
+    - `src/factory/adapters/agent_launch.py`, which now holds the helpers both runtimes shared: `since`, `denied_path`, `call_refusal`, `version_printed`, `run_launch`, `cleanup_launch`, `finished_run` and `Starters`.
+    - `src/factory/adapters/claude_runtime.py`, changed to use those shared helpers.
+
+    Main choice (from entry 24, unchanged): the shared logic sits in `agent_launch` and takes plain values. Each runtime keeps its own `_start` and `_request_of`, the only parts that touch the process module. I rejected a shared module that imports the process module, because that would change `tests/test_wrapper_search.py` and needs the human's word.
+
+    Refactor: I read the diff against `main` again (three files under `src/factory/adapters/`). Nothing needed changing.
+
+    Description: the journal added criteria 18 and 19 and changed nothing else in what the task means, so `## Description` stays as it is.
+
+    Noticed but not touched:
+    - `make duplicates` reports `5 new, 35 known, 4 gone`. Three of the new findings are similar code: matching call sites of the shared helpers in both runtimes (the `call_refusal` call, the `version_printed` call, and the confine-executable check before the temporary-folder removal).
+    - The other two are vulture's dead-code flags on `_ErrorData.status_code` (S0006 reads it) and `OpencodeRuntime` (S0008 wires it in).
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 4 gone
+29. factory: started review as self.
+30. reviewer: Review, round 1: 2 findings, so the work item goes back to doing. I read the diff against the work item. Round 0's findings 1, 2, 4 and 5 are fixed: `since`, `denied_path`, `call_refusal`, `version_printed`, `run_launch`, `cleanup_launch` and `finished_run` now live in `agent_launch`, and `_Step.timestamp` is gone. I checked that `call_refusal` keeps the Claude Code runtime's order, texts and conditions. Criteria 1 to 19 each have a test that checks what the criterion says. The layer, process-import and `os.environ` rules hold, and the diff adds no suppression marker. I ran `make duplicates`: `5 new, 35 known, 4 gone`. The 3 similar-code blocks are only calls to the shared helpers (the `call_refusal` call, the `version_printed` call, the temporary-folder removal). Sharing them, or the four-line `_request_of`, would mean `agent_launch` imports the process module, which needs the human. So I did not count those. The 2 dead-code flags are the fields and the class that S0006 and S0008 will use.
+
+    1. Criterion 20 added; it needs its test. The Interface says a refused `sudo` or a refused wrapper raises "when the call printed no event that validates". No test covers a call that printed valid events while its stderr holds a `sudo:` or `factory-confine:` line. At `src/factory/adapters/opencode_runtime.py:556`, `printed = bool(_events(process.stdout))` could be `printed = False` and every test would still pass. The Claude Code runtime pins this side with `test_a_sudo_warning_before_a_reply_gives_the_reply_s_result`. Pinning it needs no change under `src/`. `_write_sudo(..., warning=...)` and `Played(stdout=..., exit_status=0)` already play both rows. `make check` is now 21 and the docs criterion 22.
+    2. `src/factory/adapters/opencode_runtime.py:440-442`: `_confinement` copies `claude_runtime._confinement` (`claude_runtime.py:293-295`); only the folders argument differs. Round 0's finding 3 named it, and entry 24 does not mention it. Fix: one function in `agent_launch` that computes `existing_devices(DEVICE_FOLDERS, DEVICE_FILES)` and calls `run_confinement` with the runtime's folders, used by both runtimes. It needs no process import.
+
+    Notes:
+    - `tests/adapters/test_opencode_events.py:276`: `test_a_step_with_zero_values_is_a_valid_step` tests the accepted side of the limits whose refused side is `test_a_line_that_does_not_validate_is_skipped` (:235). The two sides of one rule are two test functions, where criterion 19 asks for rows beside the negative ones.
+    - `tests/adapters/test_opencode_runtime.py:283`: `test_a_version_that_cannot_be_read_names_the_reason` repeats the exit-1 and nothing rows of `tests/adapters/test_opencode_runtime_launch.py:556` `test_a_version_that_cannot_be_read_is_a_runtime_error`. The two could be one parametrized test.
+
+    Earlier tests:
+    - `tests/test_model_configuration.py`: changed under the leave the story gives it (the feature's decision 19). The change only adds the eight `opencode_runtime` models to `EXCEPTIONS`.
+    - `tests/test_wrapper_search.py`: changed under the leave the story gives it (the feature's decision 19). The change only adds `factory.adapters.opencode_runtime` to the expected importers.
+31. factory: started doing as self.
+32. coder: Round 2. I fixed the reviewer's code finding 2 from entry 30. Finding 1 adds criterion 20, which needs only its test, so this goes to the tester for **criterion 20**: a call that printed an event that validates is not a refusal, whatever its stderr holds. It needs two rows. With an agent user, a `sudo` stand-in prints `sudo: a password is required` and then runs the call, which prints a valid step and block. Through a stand-in wrapper, the wrapper prints its `factory-confine: ...` line and the valid events and exits 0. Both should give `completed` with the block's decision and entry. No change under `src/` is needed for it. `make check` is green (`check: green`, coverage 99.03 %).
+
+    What I built:
+    - **`src/factory/adapters/agent_launch.py`**: a new `device_confinement(request, temporary, *, runtime_folders, device_folders, device_files)`. It runs `existing_devices` on the device lists and passes the result to `run_confinement`.
+    - **`src/factory/adapters/claude_runtime.py`** and **`src/factory/adapters/opencode_runtime.py`**: each runtime's private `_confinement` now just calls `device_confinement` with its own folders (`[RUNTIME_FOLDER]` and `RUNTIME_FOLDERS`). The `existing_devices` and `run_confinement` imports are gone from both.
+
+    Main choice: the device lists are arguments, not read from `factory.domain.confinement` inside `agent_launch`. I rejected the reviewer's literal fix, a shared function that computes `existing_devices(DEVICE_FOLDERS, DEVICE_FILES)` itself. `tests/adapters/test_claude_runtime_confinement.py::test_the_rules_hold_only_the_device_targets_that_exist` monkeypatches `claude_runtime.DEVICE_FOLDERS` and `DEVICE_FILES`, so the runtime has to pass its own module's names. `cleanup_launch` already takes `SHELL_EXECUTABLE` that way. I kept the one-line `_confinement` in each runtime so the call at the run site stays short. I also left `run_confinement`'s signature alone because `tests/adapters/test_agent_launch.py` calls it with `devices=`.
+
+    Refactor: I read the diff. Nothing more needed changing.
+
+    Description: the journal added criterion 20 and renumbered the closing two. Nothing else changed in what the task means, so `## Description` stays as it is.
+
+    Noticed but not touched:
+    - `make duplicates` gives `5 new, 35 known, 4 gone`, the same as the reviewer found in round 1. The 3 similar blocks are call sites of the shared helpers. The 2 dead-code flags are `_ErrorData.status_code` (S0006 reads it) and `OpencodeRuntime` (S0008 wires it in).
+    - The reviewer's notes on two pairs of tests are for the tester:
+      - `test_a_step_with_zero_values_is_a_valid_step` sits beside `test_a_line_that_does_not_validate_is_skipped` as a separate function.
+      - `test_a_version_that_cannot_be_read_names_the_reason` partly repeats `test_a_version_that_cannot_be_read_is_a_runtime_error`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 4 gone
+33. factory: started tests as self.
+34. tester: Round 2, the test change the coder's entry 32 names. Criterion 20 needed only its test, so I wrote it. I changed no existing test.
+
+    - criterion 20: `tests/adapters/test_opencode_runtime_launch.py::test_a_call_that_printed_valid_events_is_no_refusal_whatever_its_stderr_holds` has two rows.
+      - `sudo`: the `_write_sudo` stand-in, given `warning=`, prints `sudo: a password is required` on stderr and then runs the call. The call prints a valid step and the result block.
+      - `wrapper`: the stand-in wrapper plays `Played(stdout=REPLY, exit_status=0)`. It prints its `factory-confine: ...` line on stderr and the valid events on stdout.
+      - Both rows check `end_reason == "completed"`, plus the decision `doing` and the entry `Built it.` from the block.
+      - Two private builders, `_warned_by_sudo` and `_warned_by_wrapper`, make each row's runtime and request. They reuse the module's `_runtime`, `_confined_runtime`, `GIVEN` and `SUDO_LINE`, and the imported `_write_sudo`, `write_confine`, `Played` and `run_request`.
+
+    Files changed: `tests/adapters/test_opencode_runtime_launch.py`. This story wrote it, and I only added the test and its imports (`Callable`, `AgentRunRequest`). I created no files.
+
+    I left the reviewer's two notes from entry 30 alone: merging `test_a_step_with_zero_values_is_a_valid_step` into `test_a_line_that_does_not_validate_is_skipped`, and the overlap between the two version tests. Neither one is the change this mode asks for. Both are notes, not findings.
+
+    `make test` is green. The code was already built, so the new test passes rather than fails. Every module imported. `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (39.4 s)
+35. factory: started doing as self.
+36. coder: Round 2, after the tester's entry 34. The tester added `tests/adapters/test_opencode_runtime_launch.py::test_a_call_that_printed_valid_events_is_no_refusal_whatever_its_stderr_holds` for criterion 20. It passes against the code as it is, so I changed no code in this run. I ran `make check` and it is green: coverage is 99.03 % and the last line is `check: green`.
+
+    The reviewer had two findings in entry 30, and both are now dealt with:
+    - Finding 1 was criterion 20. The tester's new test covers it. With the test in place, changing `printed = bool(_events(process.stdout))` in `opencode_runtime.py` to `printed = False` would make both of its rows fail.
+    - Finding 2 was the copied `_confinement`. I fixed it in entry 32: both runtimes now call `agent_launch.device_confinement`.
+
+    What I built (no change since entry 32):
+    - `src/factory/adapters/opencode_runtime.py` (new).
+    - `src/factory/adapters/agent_launch.py`, which holds the helpers both runtimes share: `since`, `denied_path`, `call_refusal`, `version_printed`, `run_launch`, `cleanup_launch`, `finished_run`, `device_confinement` and `Starters`.
+    - `src/factory/adapters/claude_runtime.py`, changed to use those shared helpers.
+
+    Main choice (unchanged): the shared logic lives in `agent_launch` and takes plain values. Each runtime keeps its own `_start` and `_request_of`, which are the only parts that touch the process module. I rejected a shared module that imports the process module, because that would change `tests/test_wrapper_search.py` and needs the human's word.
+
+    Refactor: there is no new code to refactor in this run. I read the diff in entry 32 and nothing needed changing.
+
+    Description: the journal changed nothing in what the task means beyond criterion 20 and renumbering the closing two criteria, so `## Description` stays as it is.
+
+    Noticed but not touched:
+    - I did not rerun `make duplicates`, because the code is unchanged since entry 32. It gave `5 new, 35 known, 4 gone` then: 3 similar blocks, which are call sites of the shared helpers, and 2 dead-code flags. The flags are `_ErrorData.status_code`, which S0006 reads, and `OpencodeRuntime`, which S0008 wires in.
+    - The reviewer's two notes on test layout from entry 30 are still open. The tester left them alone (entry 34). They are test changes, not mine to make.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 4 gone
+37. factory: started review as self.
+38. reviewer: Review, round 2: no findings. The work item goes on to docs.
+
+    Both round 1 findings (entry 30) are fixed.
+    - Finding 1, criterion 20: covered by `tests/adapters/test_opencode_runtime_launch.py::test_a_call_that_printed_valid_events_is_no_refusal_whatever_its_stderr_holds`, with a `sudo` row and a `wrapper` row.
+      - The `sudo` row uses `_write_sudo(..., warning=...)`, so stderr holds `sudo: a password is required` before the call runs. The `wrapper` row plays `Played(stdout=REPLY, exit_status=0)`, whose default stderr is the `factory-confine: ...` line.
+      - Both rows check `completed` plus the block's decision and entry. If `printed = bool(_events(process.stdout))` at `src/factory/adapters/opencode_runtime.py:560` became `printed = False`, `call_refusal` would raise in both rows, so the test pins the side the Interface states.
+    - Finding 2, the copied `_confinement`: both runtimes now call the new `agent_launch.device_confinement`, and each passes its own module's `DEVICE_FOLDERS` and `DEVICE_FILES`. That keeps `tests/adapters/test_claude_runtime_confinement.py`'s monkeypatch of `claude_runtime.DEVICE_FOLDERS` working, so it is a sound change from the fix I suggested in round 1.
+
+    The rest of the review:
+    - Criteria 1 to 20 each have a test that checks what the criterion says. The factory's `make check` after the coder was green (entry 36).
+    - Architecture: the layers hold, `agent_launch` still imports no process module, neither module reads `os.environ`, and `OpencodeRuntime` derives from the `AgentRuntime` ABC.
+    - Security: the diff adds no suppression marker, and the prompt goes in as one argument.
+    - `call_refusal` keeps the Claude Code runtime's order, conditions and texts (sudo, then the wrapper, then the login).
+    - Work item: the `## Description` matches what was built, and docs criterion 22 still says what the documenter has to write.
+
+    Not raised: `_request_of` is the same four lines in both runtimes. Sharing it would mean `agent_launch` builds a `ProcessRequest`, which `tests/test_wrapper_search.py` forbids, so it would need the human. Round 1 did not count it either. `make duplicates` gave `5 new, 35 known, 4 gone` (entry 32), and the code has not changed since. The 3 similar blocks are calls to the shared helpers. The 2 dead-code flags are `_ErrorData.status_code` and `OpencodeRuntime`, which S0006 and S0008 use.
+
+    Notes:
+    - `tests/adapters/test_opencode_events.py:276`: `test_a_step_with_zero_values_is_a_valid_step` is still a separate function beside `test_a_line_that_does_not_validate_is_skipped` (:235). They are the two sides of one rule.
+    - `tests/adapters/test_opencode_runtime.py:283`: `test_a_version_that_cannot_be_read_names_the_reason` still repeats the exit-1 and printed-nothing rows of `tests/adapters/test_opencode_runtime_launch.py:262` `test_a_version_that_cannot_be_read_is_a_runtime_error`.
+
+    Earlier tests:
+    - `tests/test_model_configuration.py`: changed under the leave the story gives (the feature's decision 19). The change only adds the eight `opencode_runtime` models to `EXCEPTIONS`.
+    - `tests/test_wrapper_search.py`: changed under the leave the story gives (the feature's decision 19). The change only adds `factory.adapters.opencode_runtime` to the expected importers.
+39. factory: started docs as self.
+40. documenter: I wrote the documentation the docs criterion asks for. I found no code that contradicts the Interface or the criteria. I ran no `make check`, because I changed only documents. I did not run the opencode examples, because the real `opencode` is never run; the command line, the block and the config shape are copied from the code and from the criteria.
+
+    Files changed:
+    - `docs/project-guide.md`: a new section *The opencode runtime*, under *The agent runtime*. It covers the call and its words, the per-run configuration, the strict result block, the events and measures, the end reasons, and opencode's three folders in the agent's home. It also covers `.config`, which stays closed.
+    - `docs/project-guide.md`: two corrections in the same chapter. The intro now names `OpencodeRuntime` as an implementation, and the fake becomes the third. The sentence "one of the three modules that import `factory.adapters.process`" now lists `opencode_runtime` among them.
+    - `docs/decisions.md`: a new entry, *opencode's agent is generated per run from the shipped agent files*, dated with the story. I wrote its reasons from the story text and the code, because I did not read `feature.md`. The reasons for the feature's decisions 6, 7, 8 and 10 are therefore my reading of the story, not the feature's own wording. Please check them.
+
+    Cross-read and found current: `README.md`, `docs/operator-guide.md` (no opencode mention, and none is due until the operator can choose the runtime in S0008), and the *Starting a process* section of `docs/project-guide.md` (`run_streaming`, already written for this runtime).
+
+    Stale or open, not mine to fix:
+    - `src/factory/adapters/opencode_runtime.py` has the error text `set FACTORY_OPENCODE_MODELS`, a setting that exists nowhere yet (S0008). The text is the coder's and I did not touch it. The guide says the settings come later.
+    - In `docs/project-guide.md`, `version()` and the stand-in note for the Claude Code runtime sit under the heading *The shared launch module*, though they belong to *The `claude -p` runtime*. This was already so before this story and is unrelated, so I left it.
+    - `factory/features/F0020-*/in-progress/F0020-S0004-*.costs.jsonl` shows as modified in the working tree. It is the factory's file, not mine.
+
+    `check`: check: green
+    `documents`: documents ok
+41. factory: started smoke-test as self.
+42. smoke-tester: Smoke test, round 2. I ran the one command block under `## Smoke test` exactly as written, from the repository root. I copied the fenced block into a temporary file in `$TMPDIR`, ran it with `bash` and deleted the file afterwards. The block's own `trap` removed its temporary directory. It exited 0.
+
+    Output (complete, 6 lines):
+
+    ```
+    completed question The smoke entry.
+    0.012 1 10 7 100 20 0.5
+    ['bash']
+    False disabled ['bash', 'read']
+    []
+    run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder Smoke.
+    ```
+
+    Expect: six lines, `completed question The smoke entry.`, `0.012 1 10 7 100 20 0.5`, `['bash']`, `False disabled ['bash', 'read']`, `[]`, `run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder Smoke.`. **Met**: every line matches exactly.
+
+    Checked against the acceptance criteria:
+    - Criterion 1: the call words match, and the alias `sonnet` was turned into its mapped model.
+    - Criterion 3: the configuration has `snapshot` false and `share` `disabled`, and the only tools turned on are `bash` and `read`.
+    - Criterion 4: the state directory held no file after the completed run.
+    - Criterion 7: the output count of 7 is output 5 plus reasoning 2.
+    - Criterion 8: the model time is 0.5 s, the step from 1000 to 2000 ms less the tool span from 1200 to 1700 ms.
+    - Criterion 9: the denial `permission denied by rule git push*` was counted as a refused `bash` call.
+    - Criterion 12: a valid block with exit 0 ended `completed`, with the block's decision and entry.
+
+    The smoke test contradicts no criterion. It does not cover the criteria for sudo, the wrapper, login, the version call and the error paths (13–20). Their tests cover them.
+
+    Findings: none. I fixed nothing, and I did not run `make check` myself: the stage does not ask for it.

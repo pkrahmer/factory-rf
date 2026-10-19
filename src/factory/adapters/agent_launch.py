@@ -1,15 +1,18 @@
-"""What every agent runtime shares to start its calls: their words, rules, refusals and login."""
+"""What every agent runtime shares: its calls' words, rules, refusals and login, and a run's end."""
 
 import math
+import time
 from collections.abc import Mapping, Sequence
 from datetime import timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, JsonValue
 
-from factory.domain.agent_runs import AgentRunRequest, GuardSettings, Login
+from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, GuardSettings, Login
 from factory.domain.confinement import Confinement, WriteTarget, confinement_of, write_targets
+from factory.domain.errors import AgentRuntimeError
+from factory.domain.kill_points import KillPoint, KillPoints
 
 ENTRY_DESCRIPTION = (
     "your journal entry, without its number or your name: "
@@ -292,6 +295,19 @@ def run_confinement(
     )
 
 
+def device_confinement(
+    request: AgentRunRequest,
+    temporary: Path,
+    *,
+    runtime_folders: Sequence[str],
+    device_folders: Sequence[str],
+    device_files: Sequence[str],
+) -> Confinement:
+    """The rules of a run, with those of the `device_folders` and `device_files` that exist."""
+    devices = existing_devices(device_folders, device_files)
+    return run_confinement(request, temporary, runtime_folders=runtime_folders, devices=devices)
+
+
 def killed_at_limit(
     *, os_user: str | None, exit_status: int | None, duration: timedelta, time_limit: timedelta
 ) -> bool:
@@ -306,4 +322,109 @@ def first_word(output: str) -> str | None:
     for line in output.splitlines():
         if line.strip():
             return line.split()[0]
+    return None
+
+
+class Starters(BaseModel):
+    """What a runtime starts its calls through: `sudo`, the guard's wrapper, the login files."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    sudo_executable: str
+    confine_executable: str | None
+    login_files: LoginFiles
+
+
+def run_launch(
+    request: AgentRunRequest,
+    argv: Sequence[str],
+    runtime_environment: Mapping[str, str],
+    *,
+    sudo_executable: str,
+    time_limit: timedelta,
+) -> Launch:
+    """The call of a runtime's `argv` for `request`, its environment with `runtime_environment`."""
+    # The login comes from the files or not at all, never from the request.
+    environment = {**without_login(request.environment), **runtime_environment}
+    return launch(
+        argv,
+        environment,
+        os_user=request.os_user,
+        sudo_executable=sudo_executable,
+        time_limit=time_limit,
+    )
+
+
+def cleanup_launch(
+    shell: str,
+    temporary: Path,
+    *,
+    os_user: str | None,
+    sudo_executable: str,
+    time_limit: timedelta,
+) -> Launch:
+    """The call that removes a run's `temporary` folder through `shell`, as `os_user` if set."""
+    removal = cleanup_argv(shell, temporary, os_user=os_user, sudo_executable=sudo_executable)
+    return Launch(argv=removal, env={}, time_limit=time_limit)
+
+
+def call_refusal(
+    stderr: str, *, printed: bool, timed_out: bool, os_user: str | None, starters: Starters
+) -> str | None:
+    """Why `sudo`, the write guard's wrapper or the login shell refused a call, or `None`.
+
+    `printed` says the call printed a reply the runtime reads; one that also ended before its
+    time limit was refused by none of them.
+    """
+    if not printed or timed_out:
+        if os_user is not None:
+            sudo_line = line_starting(stderr, SUDO_PREFIX)
+            if sudo_line is not None:
+                # A refused `sudo` is a misconfiguration of the machine, not a stalled agent.
+                return f"{starters.sudo_executable} refused the agent run: {sudo_line}"
+        if starters.confine_executable is not None:
+            confine_line = line_starting(stderr, CONFINE_PREFIX)
+            if confine_line is not None:
+                return f"{starters.confine_executable} refused the agent run: {confine_line}"
+    if printed:
+        return None
+    return login_refusal(stderr, starters.login_files)
+
+
+def version_printed(executable: str, *, failed: bool, stdout: str, stderr: str) -> str:
+    """The version `<executable> --version` printed: the first word of `stdout`.
+
+    A call that `failed` or printed nothing is `AgentRuntimeError`.
+    """
+    if failed:
+        raise AgentRuntimeError(f"{executable} --version failed: {stderr}")
+    version = first_word(stdout)
+    if version is None:
+        raise AgentRuntimeError(f"{executable} --version printed nothing")
+    return version
+
+
+def since(started: float) -> timedelta:
+    """The time gone since `started`, a reading of `time.monotonic()`."""
+    return timedelta(seconds=time.monotonic() - started)
+
+
+def finished_run(
+    result: AgentRunResult, started: float, kill_points: KillPoints | None
+) -> AgentRunResult:
+    """`result` with the whole run's duration since `started`, its kill point reached."""
+    result = result.model_copy(update={"duration": since(started)})
+    if kill_points is not None:
+        kill_points.reach(KillPoint.AGENT_RUN)
+    return result
+
+
+def denied_path(tool_input: JsonValue, keys: Sequence[str]) -> str | None:
+    """The file a refused call named: the first string at one of `keys` of its `tool_input`."""
+    if not isinstance(tool_input, dict):
+        return None
+    for key in keys:
+        value = tool_input.get(key)
+        if isinstance(value, str):
+            return value
     return None

@@ -297,7 +297,7 @@ Known limits: after the kill, the output is read without a limit, so a descendan
 
 ## The agent runtime
 
-The factory reaches an agent only through the `AgentRuntime` interface (an abstract base class, `factory.application.agent_runtime`): `run(request) -> AgentRunResult` and `version() -> str`. The DTOs are in `factory.domain.agent_runs`. All are frozen and forbid unknown keys. The `claude -p` implementation is `ClaudeCodeRuntime` (below); it inherits `AgentRuntime`. The fake is the other implementation.
+The factory reaches an agent only through the `AgentRuntime` interface (an abstract base class, `factory.application.agent_runtime`): `run(request) -> AgentRunResult` and `version() -> str`. The DTOs are in `factory.domain.agent_runs`. All are frozen and forbid unknown keys. The `claude -p` implementation is `ClaudeCodeRuntime` and the `opencode run` implementation is `OpencodeRuntime` (both below); each inherits `AgentRuntime`. The fake is the third implementation.
 
 `AgentRunRequest` holds:
 
@@ -314,7 +314,7 @@ A run that dies, reaches its `time_limit` or exhausts its budget is a result wit
 
 `ClaudeCodeRuntime(executable, state_directory, kill_points=None, *, version_time_limit=VERSION_TIME_LIMIT, sudo_executable=SUDO_EXECUTABLE, login_file=None, confine_executable=None, temporary_root=None, api_login_file=None)` (`factory.adapters.claude_runtime`) runs an agent as a `claude -p` call, under the login of `request.os_user` when it is set and under the factory process's own login when not; a call stopped by its budget is resumed once (below).
 
-With `login_file` or `api_login_file` set, every call (not `version()`) starts through a login shell whose words come from `login_argv(LoginFiles(subscription=login_file, api=api_login_file))` (`factory.adapters.agent_launch`, below), followed by `<executable> <arguments>`, after `env -i` and its assignments when there is an `os_user`. With neither file there are no words. The request's own `CLAUDE_CODE_OAUTH_TOKEN` and `ANTHROPIC_API_KEY` entries are dropped (`without_login`): the files are the only source. The factory never reads either file. A refusal in standard error (`login_refusal`) raises `AgentRuntimeError("cannot read the agent's login file <path>: <reason>")`, or `"cannot read the agent's API login file <path>: <reason>"` for the API file, unless the reply parses. The result's `login` is `login_used(stderr)` of the run's last call. The file is read again at every call, so a changed file applies to the next call of the same runtime. The module re-exports `LOGIN_SCRIPT`, `LOGIN_VARIABLE`, `LOGIN_PREFIX` and `SHELL_EXECUTABLE` in its `__all__`, and keeps reading `SHELL_EXECUTABLE` from its own namespace when it removes the temporary folder. It starts the process through `run_process`, and with `git_cli` and `make_commands` it is one of the three modules that import `factory.adapters.process` (`tests/test_wrapper_search.py`).
+With `login_file` or `api_login_file` set, every call (not `version()`) starts through a login shell whose words come from `login_argv(LoginFiles(subscription=login_file, api=api_login_file))` (`factory.adapters.agent_launch`, below), followed by `<executable> <arguments>`, after `env -i` and its assignments when there is an `os_user`. With neither file there are no words. The request's own `CLAUDE_CODE_OAUTH_TOKEN` and `ANTHROPIC_API_KEY` entries are dropped (`without_login`): the files are the only source. The factory never reads either file. A refusal in standard error (`login_refusal`) raises `AgentRuntimeError("cannot read the agent's login file <path>: <reason>")`, or `"cannot read the agent's API login file <path>: <reason>"` for the API file, unless the reply parses. The result's `login` is `login_used(stderr)` of the run's last call. The file is read again at every call, so a changed file applies to the next call of the same runtime. The module re-exports `LOGIN_SCRIPT`, `LOGIN_VARIABLE`, `LOGIN_PREFIX` and `SHELL_EXECUTABLE` in its `__all__`, and keeps reading `SHELL_EXECUTABLE` from its own namespace when it removes the temporary folder. It starts the process through `run_process`, and with `git_cli` and `make_commands` it is one of the modules that import `factory.adapters.process` (`git_cli`, `make_commands` and `opencode_runtime` are the others; `tests/test_wrapper_search.py`).
 
 ### The shared launch module
 
@@ -376,6 +376,45 @@ Measures of a resumed run: `turns`, `cost_usd` and each of the four token counts
 `version()` runs `<executable> --version` through `run_process` in the process's current directory, with its current environment and the limit `version_time_limit` (`VERSION_TIME_LIMIT`, 30 seconds). It returns the first word of the first non-blank line, so `2.1.289 (Claude Code)` gives `2.1.289`. It raises `AgentRuntimeError` when the call cannot be started, exits non-zero, reaches the limit or prints nothing.
 
 Tests use a stand-in executable (`tests/adapters/claude_stand_in.py`: `write_stand_in(directory, steps)` and `read_calls(directory)`) written into `tmp_path`; the real `claude` is never run.
+
+### The opencode runtime
+
+`OpencodeRuntime(executable, state_directory, kill_points=None, *, models=None, settings_file=None, version_time_limit=VERSION_TIME_LIMIT, sudo_executable=SUDO_EXECUTABLE, api_login_file=None, confine_executable=None, temporary_root=None)` (`factory.adapters.opencode_runtime`) runs an agent as one `opencode run` call and reads the run's result from the JSON events the call prints. Nothing builds it yet except the tests: the operator's choice of this runtime and the settings that fill `models` and `settings_file` come in later stories of F0020 (S0008 for the choice), and the budget stop, the provider limit and a resumed session in S0005 and S0006. It reads no `os.environ`; its starts go through `run_process` and `run_streaming` (the callback never stops the run yet).
+
+**The call.** The words are, in order, the login words of `login_argv` (an API login file only; there is no subscription file), `<executable> run --format json --auto --model <model> --agent factory-<name> <prompt>`, the prompt one argument, in the request's working directory. `<model>` is the agent's `model` as it is when it holds a `/`, otherwise `models[alias]`; an alias without a mapping raises `AgentRuntimeError`. With an `os_user` and with `confine_executable`, `sudo`, `timeout`, `env -i` and `factory-confine` wrap the call exactly as for `claude -p`, through the helpers of `factory.adapters.agent_launch`. The call's environment is the request's, without `ANTHROPIC_API_KEY` and `CLAUDE_CODE_OAUTH_TOKEN` (the login file is the only source), plus `OPENCODE_CONFIG` and `PYTHONDONTWRITEBYTECODE=1`. `version()` runs `<executable> --version` without login words and returns the first word of the first non-blank line (`1.19.3`), with the errors of the Claude Code runtime.
+
+**The per-run configuration.** opencode has no flag for an agent's prompt, tools or permissions, so the runtime writes `opencode-<run>.json` into `state_directory` (mode `0640`) and names it in `OPENCODE_CONFIG`. The file defines one primary agent, `factory-<name>`, from the same `AgentDefinition` the Claude Code runtime gets from `claude/agents/*.md`:
+
+- `prompt`: the agent file's body, a blank line and `result_instructions(allowed_decisions)`;
+- `tools`: all twelve of `OPENCODE_TOOLS`, true for the agent file's tools translated through `TOOL_NAMES` (`Read` is `read`, `Bash` is `bash`, and so on) and false for the rest; a tool outside `TOOL_NAMES` raises `AgentRuntimeError`;
+- `permission`: `edit` allowed and `bash` `{"*": "allow"}` plus a `"deny"` for the pattern of each `Bash(<pattern>)` entry in `permissions.deny` of `settings_file` (the installed `settings.json`). Entries for other tools are not translated. A settings file that cannot be read, or holds no `permissions.deny` list of strings (also when it is no JSON), raises `AgentRuntimeError`; with no `settings_file` only `{"*": "allow"}` is written;
+- `autoupdate` false, `share` `disabled` and `snapshot` false, so a run neither updates itself nor uploads or snapshots anything.
+
+The model, tools and settings are checked before any file is written; the state directory must exist (the runtime does not create it). The configuration and the `confine-<run>.json` rules are removed after the run, whatever its end. Why the agent is generated and not shipped: see *opencode's agent is generated per run from the shipped agent files* in `docs/decisions.md`.
+
+**The result block.** opencode has no structured-output flag, so the prompt ends with a fixed block the agent must end its final message with:
+
+```
+<factory-result>
+decision: <one of: doing, question>
+entry:
+<the entry>
+</factory-result>
+```
+
+`parse_result_block(text, allowed_decisions)` reads it strictly from the last `text` event: the text must end with `</factory-result>` (trailing spaces and line feeds are ignored; text after it is not), the last `<factory-result>` before it opens the block, the first line is `decision:` and a word in `allowed_decisions` (spaces around it are fine), the second is `entry:`, and the lines after it, stripped, are the entry and must not be blank. Anything else gives `None`, and the run is `no_result`. There is no repair and no fuzzy match: a reply the factory cannot trust is not a decision.
+
+**The events.** With `--format json` each stdout line is one event; a line that is no JSON, has no known `type` (`step_start`, `tool_use`, `text`, `step_finish`, `error`), or has a negative number where a count, cost or timestamp belongs, is skipped, and so is a `step_finish` without `cost` or `tokens`. The measures come from the valid lines alone:
+
+- `cost_usd`, `turns` and `tokens` are summed over the `step_finish` events: `input`, `output` (plus `reasoning`), `cache.read` and `cache.write` (a missing part counts 0). Cost is added as `Decimal(str(cost))`.
+- `model_duration` is, for each step, `step_finish` timestamp minus the earlier `step_start` timestamp, minus the spans of the `tool_use` events between them by line order, never below 0; a finish with no earlier start adds 0 and still counts as a turn.
+- A `tool_use` whose state is an error that mentions `permission` or `denied` is a `PermissionDenial` (tool, sorted input as JSON, and `path` from the input's `filePath` when it is a string).
+
+**The end reason.** A timeout is `time_limit` with no measures. Otherwise a non-zero exit or no `step_finish` is `died`; a valid block is `completed` (with its decision and entry); anything else is `no_result`. A stderr line from `sudo` or `factory-confine` is a refusal only when no valid event was printed.
+
+**opencode's folders.** opencode writes its sessions, logs and caches to `.local/share/opencode`, `.local/state/opencode` and `.cache/opencode` in the agent's home (`RUNTIME_FOLDERS`); the run's rules allow those three, with the run's temporary folder and the write paths. `.config` is not allowed: opencode's own configuration there is what the next run reads, and an agent that could write it could change its own tools and permissions.
+
+Tests use `tests/adapters/opencode_stand_in.py` in `tmp_path`; the real `opencode` is never run.
 
 ### The fake
 
