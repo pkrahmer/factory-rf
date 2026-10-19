@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T07:48:53.131740Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-10-19T07:48:32.654219Z'
   stage: review
   run: fc2f2989da7e46d091c901ea2c527e00
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T07:48:53.131740Z'
+  stage: doing
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -399,3 +408,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/domain/test_agent_runs.py: the leave the story names under the feature's decision 19 (rename to `test_question_and_the_six_end_reasons`, count 6, `provider_limit` added); within that leave.
     - tests/domain/test_contract.py: the leave the story names under decision 19 (expected version `"1.2"`, name kept); within that leave.
     - tests/domain/test_contract_login.py: the human's leave in journal entry 9 (two version assertions removed, test renamed). The removed import is the unused import that this removal left, so it is within that leave.
+16. factory: started doing as self.
