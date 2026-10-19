@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T14:34:07.286058Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T14:34:07.286058Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T14:34:30.899753Z'
+  stage: doing
+  run: db0c5cecd9d441f19f806a6768ee64c4
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -297,3 +299,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - `tests/domain/test_contract.py`: the human's leave, the story under decision 15 (one `"1.2"` became `"1.3"`). Within the leave.
    - `tests/domain/test_contract_provider_limit.py`: the human's leave, the story under decision 15 (two `"1.2"` became `"1.3"`; name and docstring kept). Within the leave.
 10. factory: started doing as self.
+11. coder: Round 1: the reviewer's one finding (entry 9) is a duplicated test helper, which is a change to tests. CLAUDE.md's standing leave to move a shared test helper covers it, so the tester makes the move. I changed no code.
+
+    The change for the tester: the helper that parses a pipeline-definition text with `RuamelPipelineDefinitionReader` and returns `PipelineDefinitionInvalid.fault`, or `None` when the text loads. It currently exists as `_fault_of` in `tests/domain/test_pipeline_not_read.py:17` and as `_outcome` in four earlier modules. Move it to one shared module at the `tests/` root, for example beside `PIPELINE_YAML` in `tests/git_support.py`, with a public name such as `pipeline_outcome`. Then change every module that holds a copy to import it from there:
+    - `tests/domain/test_pipeline_not_read.py` (`_fault_of`, line 17, the new test)
+    - `tests/domain/test_tool_paths.py` (`_outcome`, line 39)
+    - `tests/adapters/test_pipeline_strict_values.py` (`_outcome`, line 52)
+    - `tests/adapters/test_pipeline_rules.py` (`_outcome`, line 40)
+    - `tests/adapters/test_pipeline_stage_moves.py` (`_outcome`, line 26). The reviewer did not list this one, but its body and docstring are identical, so leaving it would keep a copy.
+
+    Every earlier test keeps its name and checks the same thing.
+
+    What I built: nothing new this round. The round-0 code is unchanged; entry 7 lists its paths, and it recorded `make check` green.
+
+    Main choice: end with `tests` instead of `question`, because the standing leave in CLAUDE.md covers this exact move. I rejected adding the fifth module only as a note: the leave covers it too, and the reviewer would count it next round.
+
+    Noticed, not touched: the open notes from entry 7 still stand. `make duplicates` shows five findings that predate this story: four similar-code pairs between `claude_runtime` and `opencode_runtime`, and the unused class `ManualWaiter`. `update-index` receives the left-out paths in one argument list, which could hit the system's argument-length limit if a very large number of paths were left out.
