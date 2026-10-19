@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T10:19:02.118672Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-10-19T10:19:02.118672Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-19T10:19:22.319085Z'
+  stage: doing
+  run: f60af536e3f74677874fbc092fe37358
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -479,3 +481,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - `tests/adapters/test_opencode_provider_limit.py:695`: `len(read_calls(...)) <= 1` is weaker than "after one call" for the `500` and `1428` rows. It holds only because a `completed` end implies the stand-in ran. Splitting the expected call count per row would state it directly.
 21. factory: started doing as self.
+22. coder: Round 2. Both findings in the reviewer's entry 20 are test changes, so I changed no code. `src/factory/adapters/opencode_runtime.py` stays as entries 7 and 10 describe. The tester needs to make these two changes:
+
+    1. **Restore the renamed test.** In `tests/adapters/test_opencode_runtime.py:245`, rename `test_the_kill_point_is_reached_once_after_a_run_and_the_runtime_is_an_agentstand_in_runtime` back to `test_the_kill_point_is_reached_once_after_a_run_and_the_runtime_is_an_agent_runtime`, the name `main` has at line 259. The standing leave allows the helper move only if every test keeps its name.
+    2. **Criterion 15 needs only its test.** Add a test to `tests/adapters/test_opencode_budget.py` that runs `[over_budget(), RESUME_REPLY]` and asserts two things:
+       - the state directory is empty after the run;
+       - the resume's recorded call saw the text of its `OPENCODE_CONFIG` file.
+
+       The code already does this: `OpencodeRuntime.run` calls `files.remove()` in its `finally`, after `_resume` (`src/factory/adapters/opencode_runtime.py:586-589`). The new test should pass without any change under `src/`.
+
+    **Main choice:** I end with `tests`, not `question`. Finding 1 undoes a slip in the tester's own move made under the standing leave. Finding 2 adds a criterion that needs only its test.
+
+    **Not touched:** the reviewer's note that the `500` and `1428` rows in `tests/adapters/test_opencode_provider_limit.py` assert `len(read_calls(...)) <= 1`, where they could assert exactly one call per row. That one is up to the tester. Still open from earlier entries:
+    - `_Watch.stopped_by` is typed `EndReason | None`, although it only ever holds `budget` or `provider_limit`.
+    - `tests/adapters/test_make_commands.py::test_output_tail_keeps_the_last_thirty_lines[30-1]` may be flaky.
+
+    The journal did not change the meaning of the task. The reviewer already added criterion 15 and renumbered the closing criteria.
