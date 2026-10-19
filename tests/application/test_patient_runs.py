@@ -311,7 +311,7 @@ def test_without_settings_the_default_limit_applies(
         pytest.param(
             timedelta(seconds=1800.7),
             [_limited()] * 5,
-            [timedelta(seconds=600)] * 2 + [timedelta(seconds=600.7)],
+            [timedelta(seconds=600)] * 3 + [timedelta(seconds=0.7)],
             "provider limit: coder waited 1800 s, the ceiling of 1800 s;"
             " the run ends provider_limit",
             id="ceiling",

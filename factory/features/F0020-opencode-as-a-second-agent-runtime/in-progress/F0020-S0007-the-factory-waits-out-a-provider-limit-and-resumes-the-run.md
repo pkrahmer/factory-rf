@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T10:43:50.332898Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-10-19T10:43:50.332898Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-19T10:45:25.927757Z'
+  stage: tests
+  run: 505d9d0240d1462eb103fbd415307583
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -373,3 +375,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The answer does not change the meaning of the task. The Interface stays as it is, so the Description is not rewritten.
 14. factory: started tests as self.
+15. tester: I made the one test change the human approved (entry 11, option a), as the coder named it in entry 13.
+
+    The change is in the `ceiling` row of `tests/application/test_patient_runs.py::test_the_log_lines_give_whole_seconds_and_the_waits_are_kept_whole` (line 314). The expected waits were `[timedelta(seconds=600)] * 2 + [timedelta(seconds=600.7)]` and are now `[timedelta(seconds=600)] * 3 + [timedelta(seconds=0.7)]`. These are the waits that Interface steps 3 and 4 give: each wait is the cool-down, cut to what is left of the ceiling.
+
+    These parts of the row are unchanged:
+    - the ceiling of 1800.7 s
+    - the five limited results, which are enough calls for four waits
+    - the expected log line `provider limit: coder waited 1800 s, the ceiling of 1800 s; the run ends provider_limit`
+
+    Because the log line is unchanged, the row still checks that the ceiling line gives whole seconds.
+
+    No other test was changed. Files changed: tests/application/test_patient_runs.py.
+
+    `make test` ran once and ended `test: green (38.9 s)`. Every module imported.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (37.8 s)
