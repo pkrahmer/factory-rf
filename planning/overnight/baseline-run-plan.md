@@ -16,7 +16,7 @@ Step 10 of "The order of the work after F0011" (`planning/overnight/restructure-
 3. every stop reached the human;
 4. the cost and the agent minutes of each story that is first-pass in both runs are within the band of run 4's (section 1; the band's direction is open point Q1).
 
-Start-to-archive minutes are recorded, not compared. The run is the baseline v2 is measured against.
+Start-to-archive minutes are recorded, not compared. The run is the baseline every later change of the factory is measured against (v2 is retired as a rewrite, factory-v2 decision 009).
 
 Written on 2026-10-19 from the records named in each section. "The v1.1 repository" means `pkrahmer/factory-rf`, or `pkrahmer/factory` after the rename of step 9. Every command runs in Git Bash on the human's PC unless it says otherwise.
 
@@ -243,7 +243,7 @@ A fault found during the run is recorded with where it sat. The run then either 
 **What keeps it fair:**
 
 - The demo is built as shipped. No `not_read` is added, and no per-story mutants record or project agent: the opt-ins of F0023 and F0024 stay off. The baseline then measures v1.1's engine and agents on the same demo, not a tuned demo.
-- A later run with the opt-ins on is a separate measure for v2, compared against this baseline, not against run 4.
+- A later run with the opt-ins on is a separate measure of those levers, compared against this baseline, not against run 4.
 - The Claude Code pin stays at what the image carries at the tag. A newer pin is a human's choice made before the tag, named in the report.
 
 ### The 25 % band: recommendation
@@ -309,7 +309,7 @@ The rule stays per story, as the human's answer says. The report also gives the 
 8. **Disk.** The start and end records, host and container side by side, their growth, and the bound with its verdict.
 9. **Project commands.** From `project-commands.jsonl`: count, total and mean time per command and target, and the count of `make check` per commit (the F0023 lever measured on a project that did not opt in).
 10. **Findings,** each with where it sat (agent, pipeline definition, engine, template, demo, machine) and the story or human's change it proposes. Proposed only: nothing is fixed during or as part of the run.
-11. **For v2:** the numbers v2 is measured against: the comparison table, the per-item table, the totals and the disk growth, in one place.
+11. **For later changes:** the numbers every later change is measured against: the comparison table, the per-item table, the totals and the disk growth, in one place.
 
 ## Open points for the human
 
@@ -321,4 +321,4 @@ The rule stays per story, as the human's answer says. The report also gives the 
 | Q4 | The disk bound | as in section 2 (`/tmp` +100 MB, `/work` +2 GB, Docker's disk image +5 GB beyond the build), or other numbers | the numbers of section 2; the run's own records then set v2's bound |
 | Q5 | `self` during the run | A: stopped; B: idle but running; C: building on | **A**: no shared usage windows or CPU, and nothing that could look like a fix |
 | Q6 | The repository's name | `pkrahmer/factory-baseline-todo`, or another | `factory-baseline-todo` |
-| Q7 | The opt-ins of F0023 and F0024 for the demo | A: off (the demo as shipped); B: on | **A** for the baseline; B later, as v2's first comparison against it |
+| Q7 | The opt-ins of F0023 and F0024 for the demo | A: off (the demo as shipped); B: on | **A** for the baseline; B later, as the first comparison against it |

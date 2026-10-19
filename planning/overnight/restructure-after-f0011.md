@@ -175,7 +175,7 @@ Today a project's pipeline definition names its roles, their write paths and whi
 - The preflight and every tick check a project agent as they check a shipped one (the applied keys, the budget, the tools, the refusals); a faulty file stops with its reason.
 - The operator guide says how to replace a role's agent and how to add a role with its own agent; the decision log records "replaces, never extends".
 - Proved in a test project: a project agent for `coder` is the text the run gets, and without it the shipped one is.
-- Close to v2's archetypes (a kind of project with its own agents and rules); built small in v1.1, revisited there.
+- Close to the planned v2's archetypes (a kind of project with its own agents and rules); built small in v1.1 and grown there, since v2 is retired as a rewrite (factory-v2 decision 009, 2026-10-19).
 
 ## The demo, shipped with v1.1 (the human's word, 2026-10-17)
 
