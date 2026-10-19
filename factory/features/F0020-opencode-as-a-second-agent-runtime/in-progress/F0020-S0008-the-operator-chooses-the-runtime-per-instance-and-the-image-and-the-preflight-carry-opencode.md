@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T11:25:04.188628Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-10-19T11:24:43.675525Z'
   stage: review
   run: 877af524d69e4832a93d388913c7cc98
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:25:04.188628Z'
+  stage: doing
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -381,3 +390,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     4. tests/domain/test_settings_agent_runtime.py:13, tests/domain/test_settings_opencode_models.py:8 and tests/domain/test_settings_opencode_folders.py:8: `BASE` is a further copy of the environment constant that tests/domain/test_settings_pinned.py:7 and its neighbours hold. Fix: one shared constant under `tests/`, moved under the standing leave, imported by the new modules.
 
     Earlier tests: none. Every test file in the diff is new (status `A`), and no earlier test file changed.
+20. factory: started doing as self.
