@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 264
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T13:27:37.724482Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T13:27:16.588576Z'
   stage: doing
   run: 20d831e10db24367bf8c2fbd356e36d8
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T13:27:37.724482Z'
+  stage: review
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -322,3 +331,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+12. factory: started review as self.
