@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 279
 comments_read: [6274821134]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T18:54:33.792706Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-19T18:54:33.792706Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-19T18:54:56.744121Z'
+  stage: intake
+  run: da70974357284d00babbdff386044130
 ---
 
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
@@ -85,15 +87,17 @@ No earlier test changes.
 1. `parse_result_block`, one parametrized test:
    - the text `<factory-result>` / `decision: question` / `entry:` / `First line.` / (empty) / `Third line.` / `</factory-result>`, with `question` allowed, gives `("question", "First line.\n\nThird line.")`;
    - the same block with `note:` in place of `entry:` gives `None`;
-   - a block whose first line is `question` (no `decision: ` label) and whose second line is `entry:` gives `None`.
+   - a block whose first line is `question` (no `decision: ` label) and whose second line is `entry:` gives `None`;
+   - a block whose second line is `entry: First line.` gives `None`;
+   - a block whose entry is padded with blank lines and spaces around `First line.` gives `("question", "First line.")`.
 2. `model_duration`, one parametrized test:
    - one step from `step_start` at 1000 to `step_finish` at 2000, with two `tool_use` events between them spanning 1100–1200 and 1300–1500, gives 700 ms;
    - the same events after a `tool_use` spanning 0–400 that comes before the `step_start` also give 700 ms.
-3. `permission_denials`: a run with a `tool_use` of `status` `error` whose error is `exit 1`, followed by a `tool_use` refused with `permission denied by rule git push*`, lists exactly one denial, the second, with detail `{"command": "git push"}`. A row with the two events in the other order lists the same one denial.
+3. `permission_denials`: a run with a `tool_use` of `status` `error` whose error is `exit 1`, followed by a `tool_use` refused with `permission denied by rule git push*`, lists exactly one denial, the second, with detail `{"command": "git push"}`. A row with the two events in the other order lists the same one denial. Further rows: a `tool_use` of `status` `error` whose error holds only `permission`, one whose error holds only `denied`, and one whose error is `Permission Denied`, are each listed as a denial; a `tool_use` whose `status` is not `error` although its text contains `denied` is not listed.
 4. The second call's words, one parametrized test:
    - a run stopped at its budget (one `step_finish` of cost 1.2 against a budget of 1, session `ses_a`, the builders' `SESSION`) and resumed: the arguments the stand-in records for the second call are exactly `run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder --session ses_a <FINISH_MESSAGE>`;
    - a request with `resume_session` `ses_r` and prompt `Go on.`: the arguments the stand-in records are exactly `run --format json --auto --model anthropic/claude-sonnet-5-5 --agent factory-coder --session ses_r Go on.`.
-5. As agent user `agent` with a stand-in `sudo`: a stand-in that prints a `step_start` (session `ses_a`, the builders' `SESSION`) and then sleeps past a time limit of 3 seconds ends `time_limit`, with `session` `ses_a` and `login` `api_key` when the API login file holds a key. The elapsed time stays below 20 seconds. A row whose stand-in exits 137 at once, before its time limit, ends `died`.
+5. As agent user `agent` with a stand-in `sudo`: a stand-in that prints a `step_start` (session `ses_a`, the builders' `SESSION`) and then sleeps past a time limit of 3 seconds ends `time_limit`, with `session` `ses_a` and `login` `api_key` when the API login file holds a key. The elapsed time stays below 20 seconds. A row whose stand-in exits 137 at once, before its time limit, ends `died`. A row whose stand-in is killed with exit status `-9` past the time limit ends `time_limit`; a row whose stand-in exits 1 after the time limit is reached ends `died`.
 6. With the write guard's wrapper `factory-confine` (`CONFINE` of `tests/confine_support.py`, which makes the run's temporary folder) and the layout's temporary root, the root is empty after the run, in three rows: a completed run, a run whose stand-in exits 1 without events (`died`), and a run past a time limit of 3 seconds (`time_limit`). With the agent user `agent`, a stand-in `sudo` and the stand-in confine executable of `write_confine`, the last call the stand-in `sudo` records is `-n -u agent -- /bin/sh -c`, then `CLEANUP_SCRIPT`, `factory-cleanup` and `<temporary root>/factory-run-<run>`, `<run>` being the id in the name of the configuration file the call was given (`opencode-<run>.json`).
 7. `make check` stays green.
 8. docs: none. The behaviour is already described in `docs/project-guide/agents.md` (*The opencode runtime*) and `docs/operator-guide.md` (*Running on opencode*). The documenter checks that those passages say each of the six rules above, and adds the one that is missing.
@@ -153,3 +157,14 @@ Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "gi
    3. Yes: `entry: First line.` as the second line gives `None`, and an entry padded with blank lines and spaces gives the stripped text.
    4. No change; the no-sudo rows cover that side.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete. It names `OpencodeRuntime.run` and `parse_result_block` in `factory.adapters.opencode_runtime`, the constants `DENIAL_PATTERN`, `KILL_STATUSES` and `FINISH_MESSAGE`, the exact argument words of a resumed call, and the four new test modules. No `src` change.
+   - Criteria: I carried the human's answers (journal 4, items 1 to 3) into the story; the wording is mine, the content is theirs.
+     - Criterion 1 gained a row for `entry: First line.` as the second line (gives `None`) and a row for an entry padded with blank lines and spaces (gives the stripped text).
+     - Criterion 3 gained rows for an error with only `permission`, one with only `denied`, and `Permission Denied`, each listed; and a non-error `tool_use` whose text contains `denied`, not listed.
+     - Criterion 5 gained a `-9` row past the limit (ends `time_limit`) and a row that exits 1 after the limit (ends `died`).
+     - Item 4 of the human's answer changed nothing: the no-sudo rows of criterion 6 cover that side.
+     - Every Interface rule now has a criterion on both its passing and failing side. Each criterion is one test function, or one parametrized test.
+   - Smoke test: runnable. The stand-in `opencode` plays two calls. The first costs 1.2 against a budget of 1, so the runtime stops it and resumes with `--session ses_s`. The `Expect:` line is checkable against the output: 0.8 s model time (1000 less 100 less 200, plus 100), one denial `{"command": "git push"}`, and the resumed words.
+   - Architecture: tests only, in the adapters mirror under `tests/adapters/`. The stand-in and the builders in `opencode_stand_in.py` and `confine_support.py` are imported, not copied. No layer is touched.
+   - Scope: within F0020's S0004 and S0006 behaviour and decisions 7, 8, 11 and 18. Nothing in "Out of scope". No earlier test changes.
