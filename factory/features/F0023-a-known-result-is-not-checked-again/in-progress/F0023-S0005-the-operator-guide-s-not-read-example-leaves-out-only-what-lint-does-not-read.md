@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 290
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T21:59:16.728661Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T21:58:56.345940Z'
   stage: docs
   run: 3809f80a3acb45eda1325ad17d3b7a5a
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:59:16.728661Z'
+  stage: smoke-test
 ---
 
 # The operator guide's not_read example leaves out only what lint does not read
@@ -174,3 +183,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 3523d622cd0b at 2026-10-19T21:56:48Z)
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
