@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 242
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T00:57:03.685853Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T00:56:43.753529Z'
   stage: tests
   run: 8d60d618fa3e4f4ab95107b05a1509d2
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:57:03.685853Z'
+  stage: doing
 ---
 
 # The documents repair what the feature's stories left stale
@@ -109,3 +118,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (39.1 s)
+6. factory: started doing as self.
