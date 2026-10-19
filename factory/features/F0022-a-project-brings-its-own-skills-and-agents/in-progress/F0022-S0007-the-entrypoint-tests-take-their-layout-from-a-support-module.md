@@ -21,14 +21,15 @@ Tests. The tester makes the moves under the standing leave of `CLAUDE.md` (*Test
   - `Layout`, with every constant it uses (`ROOT`, `ENTRYPOINT`, `SYSTEM_PATH`, `AGENT_TEXT`, `SETTINGS_TEXT`), each exactly as `tests/test_entrypoint.py` holds it today;
   - `STAMP`, `STAMPED`;
   - `texts(output: str) -> list[str]`, today's `_texts` under a public name, with the same body.
-- `tests/test_entrypoint.py`, `tests/test_agent_home_ownership.py` and `tests/test_entrypoint_skills.py` import what they use from `entrypoint_support`. None keeps its own copy, and no module under `tests/` imports from `test_entrypoint`.
+- `tests/test_entrypoint.py`, `tests/test_agent_home_ownership.py` and `tests/test_entrypoint_skills.py` import what they use from `entrypoint_support`. None keeps its own copy, and no module under `tests/` imports from `test_entrypoint`. In `test_a_missing_image_file_ends_the_run_with_one_line_before_the_instance`, the local variable `texts` is renamed `lines`, because it would shadow the imported `texts` (`UnboundLocalError`); the test checks the same thing.
 - `tests/conftest.py`: the import becomes `from entrypoint_support import Layout as ImageLayout`. The `image_layout` fixture is otherwise unchanged.
+- `tests/test_entrypoint_support.py` (new): the one test of criterion 2. It leaves itself out of its search, as `tests/test_shared_test_helpers.py` does, and changes no earlier test.
 - `tests/test_shared_test_helpers.py` (F0022-S0005's): in `test_the_image_layout_fixture_returns_the_entrypoints_layout`, the expected import line becomes `"from entrypoint_support import Layout as ImageLayout\n"`. The test keeps its name, and nothing else in the module changes. This is a change of what an earlier test checks, so it needs the human's leave: a bullet for S0007 in decision 14 of `feature.md`, added before the story starts.
 
 ## Acceptance criteria
 
 1. Every test function of the five changed test modules keeps its name and its parametrize ids. The modules are `tests/test_entrypoint.py`, `tests/test_agent_home_ownership.py`, `tests/test_entrypoint_skills.py`, `tests/test_shared_test_helpers.py`, and `tests/conftest.py` through its fixture users. `pytest --collect-only` lists the same test ids for them before and after the change.
-2. Under `tests/`, `class Layout:` is defined in exactly one module, `tests/entrypoint_support.py`. No module under `tests/` contains `from test_entrypoint import`. `def _texts(` appears in no module.
+2. One test in `tests/test_entrypoint_support.py`, over every `*.py` under `tests/`: `class Layout:` is defined in exactly two modules, `tests/confine_support.py` (the confinement tests' own layout, which this story leaves as it is) and `tests/entrypoint_support.py`; no module contains `from test_entrypoint import`; and `def _texts(output` appears in no module (`tests/application/test_tick.py` keeps its own `_texts(lines`).
 3. `tests/conftest.py` holds the line `from entrypoint_support import Layout as ImageLayout`. `test_the_image_layout_fixture_returns_the_entrypoints_layout` passes against it and would fail against the old line.
 4. `make check` stays green.
 5. docs: none. No behaviour changes, and no document names these test helpers.
@@ -36,9 +37,9 @@ Tests. The tester makes the moves under the standing leave of `CLAUDE.md` (*Test
 ## Smoke test
 
 ```bash
-grep -rlF 'class Layout:' tests | sort
+grep -rlF --include='*.py' 'class Layout:' tests | sort
 ```
-Expect: `tests/entrypoint_support.py`, alone
+Expect: two lines, `tests/confine_support.py` and then `tests/entrypoint_support.py`
 
 ```bash
 grep -rlF 'from test_entrypoint import' tests | wc -l
