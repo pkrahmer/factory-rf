@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T23:51:32.670300Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T23:51:11.795297Z'
   stage: tests
   run: f87e82b61e41442f8745d4a2eed1c954
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:51:32.670300Z'
+  stage: doing
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -125,3 +134,4 @@ Expect: `exit 0`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.8 s)
+6. factory: started doing as self.
