@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 289
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T21:41:09.461905Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:41:09.467403Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T21:41:28.793183Z'
+  stage: intake
+  run: 00469f4ea1a9460e8571778f8b2f6978
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:41:50.516176Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T21:44:03.189350Z'
+  stage: tests
+  run: 68ce178efcbd44c6840658807086c092
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:44:23.800167Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T21:46:20.348776Z'
+  stage: doing
+  run: 436fb0f0e12e4c8ba23858e51c5fab5f
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:46:41.010850Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T21:47:04.105539Z'
+  stage: review
+  run: 12f5154a06224fc3a00bbcd85231ca0d
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:47:24.502300Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T21:47:39.917725Z'
+  stage: docs
+  run: d6cfb63be49b49e9a79b363a8fe7bdb5
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:48:00.423269Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T21:48:16.249238Z'
+  stage: smoke-test
+  run: e9f6d3f04be948978f6385002f398440
+---
+
 # The wired known results and disk records read back what they write
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -28,3 +112,87 @@ uv run pytest --no-header -p no:cacheprovider tests/entry/test_wiring_record_log
 Expect: a line that starts with `2 passed`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: no module under `src/` changes. `factory.entry.wiring.build_boundaries` exists and sets `result_records` (`JsonLinesRecordLog(..., ResultRecord)`) and `disk_records` (`JsonLinesRecordLog(..., DiskRecord)`). The rule is stated concretely: `read()` gives `[]` before an append and `[record]` after one. The named test helpers exist: `CREDENTIAL` in `tests/wiring_support.py`, `local_settings` in `tests/conftest.py`, and `tests/entry/test_wiring_stop_records.py` as the pattern. `DiskUse` has path, free_bytes and used_bytes as the story's example uses them. I did not check `ResultRecord`, `ResultKey` or `DiskRecord` field by field.
+   Criteria: criterion 1 is one parametrized test with a row per log, and both sides (before and after the append) are stated. The Interface states no limit, rejected input or default beyond that. `make check` and `docs: none` are the last two, as the form requires.
+   Smoke test: the command is runnable and the `Expect:` line (`2 passed`) can be checked against the output. It matches the two rows.
+   Architecture: tests only, in `tests/entry/`, which mirrors `factory.entry`. Nothing is faked except the hosting service, as `CLAUDE.md` allows.
+   Scope: `feature.md` lists only S0001 and S0002 under Stories, and its Scope names `result_records` but not `disk_records` (F0012's). This story is the feature acceptance's proposal and it is test-only, so I accepted it. If you would rather add it to the feature's story list, that edit is yours.
+4. factory: started tests as self.
+5. tester: Wrote the test of criterion 1 as one parametrized test with one row per wired log. It builds the boundaries the way `tests/entry/test_wiring_stop_records.py` does: the `local_settings` fixture, `CREDENTIAL` from `tests/wiring_support.py` and a `FakeHostingService`. In each row a typed helper calls `read()` on the wired log, then `append(record)`, then `read()` again, all through the same object. The test checks that the first read gives `[]` and the second gives `[record]`. The two records are the ones the criterion gives.
+
+   criterion 1: tests/entry/test_wiring_record_logs.py::test_a_wired_record_log_reads_back_what_was_appended_through_it[result_records] and [disk_records]
+   criterion 2 (`make check` green): no test; the factory's checks cover it.
+   criterion 3 (docs: none): no test.
+
+   Files created: tests/entry/test_wiring_record_logs.py. No earlier test changed.
+
+   Modules the test run could not import: none. The story expects no code change, and `build_boundaries` already gives both logs their models, so both rows pass now instead of failing. That is what the description says: the test catches the surviving mutants that build these logs with no model, and it does not ask the coder for anything.
+
+   Runs: `make test` is green (40.0 s, coverage 99.12 %) and `make lint` is green. I also ran `make types`, which the stage says to skip, to confirm that the typed rows pass `mypy --strict`; it is green.
+
+   I set one step aside: I ran the new test file once on its own, to check the smoke test's `2 passed` line. The stage asks for a single `make test` run only.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (38.5 s)
+6. factory: started doing as self.
+7. coder: I didn't change any code, which is what the story expected. I ran `make check` before doing anything and it was already green (`check: green`, test 39.0 s, coverage 99.12 %). The tester's test `tests/entry/test_wiring_record_logs.py` passes against `build_boundaries` in `src/factory/entry/wiring.py` as it stands. That module already builds `result_records` with `JsonLinesRecordLog(..., ResultRecord)` and `disk_records` with `JsonLinesRecordLog(..., DiskRecord)`.
+
+   Paths built: none. My diff outside `factory/` and `tests/` is empty, so the refactor step had nothing to change.
+
+   Main choice: I left `src/factory/` untouched. The alternative I rejected was adding something to the wiring so this story has a code change of its own. The interface says no module under `src/factory/` changes, and the test only pins behaviour that already exists.
+
+   What the journal changed: nothing in the meaning of the task, so I did not rewrite `## Description`.
+
+   Noticed but not touched: the log of the command records under `RecordingProjectCommands` is still not read back through the wiring by any test. The description leaves that out because reaching the log would change code. `feature.md` does not list this story; intake already pointed that out to the human.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the work item and `git diff main...HEAD -- . ':!factory'`. The only change is one added file, `tests/entry/test_wiring_record_logs.py`. Nothing under `src/` changed, which is what the Interface says.
+
+   1. Acceptance criteria:
+      - Criterion 1 is tested by `test_a_wired_record_log_reads_back_what_was_appended_through_it`. It is one parametrized test with a row each for `result_records` and `disk_records`, and both records are exactly the ones the criterion gives.
+      - In each row, `_read_back` calls `read()`, `append(record)` and `read()` again on the same wired object. The test checks `[]` before the append and `[record]` after it.
+      - I checked this against `JsonLinesRecordLog` in `src/factory/adapters/record_log_jsonl.py` and against `build_boundaries` in `src/factory/entry/wiring.py`, lines 282 and 285. A log built with no model gives `[]` before the append, because the file does not exist yet, and then raises `AttributeError` on the second read. A log built with the other record model drops each line as a `ValidationError` and gives `[]`. The test catches both mutants.
+      - The Interface states no other limit or rejected input.
+      - The factory's `make check` after the coder was green (journal entry 7).
+   2. Architecture: the test sits in `tests/entry/`, which mirrors `factory.entry`. Only the hosting service is faked, and git is not faked.
+   3. Security: the change is a test only. It adds no markers, and its hex values are low-entropy (`"a" * 40`, `"b" * 64`).
+   4. Quality: the names say what they are. `_read_back` is generic over the record model and copies no existing helper; I searched `tests/` for one.
+   5. Work item hygiene: the journal records the main choice (no code change, and the rejected idea of adding code for its own sake) and what is still open (the log of `RecordingProjectCommands`). The Description matches what was built, and `docs: none` still holds.
+   6. Earlier tests: the diff changes no file that `main` already holds under `tests/`. The only test file in the diff has status `A`, so no leave was needed.
+10. factory: started docs as self.
+11. documenter: Docs stage, no findings. I changed no files. The docs criterion says `none`, and the diff is one added test file, `tests/entry/test_wiring_record_logs.py`. Nothing under `src/` changed, so nothing a reader sees changed.
+
+    Cross-read and found current: `docs/operator-guide.md`, the sections on `records/known-results.jsonl` (line 561 onward) and `records/disk.jsonl` (line 615). Both name the files and describe their fields, and the diff does not touch what they describe. I did not read the README or the project guide against the diff, because nothing they describe moved.
+
+    Stale text noticed and not touched: none. The one open point is already in the coder's entry: no test reads the `RecordingProjectCommands` log back through the wiring, and the description leaves that out on purpose. `feature.md` does not list this story. That edit is the human's.
+
+    I did not run `make check`, because I changed no file. The factory's checks run right after this stage.
+
+    `check`: check: green (not run again: passed on tree 3523d622cd0b at 2026-10-19T21:45:24Z)
+    `secrets`: secrets: green (0.1 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: no findings.
+
+    I ran the one command under `## Smoke test` from the repository root, exactly as written.
+
+    1. `uv run pytest --no-header -p no:cacheprovider tests/entry/test_wiring_record_logs.py 2>&1 | tail -n 1`
+    ```
+    2 passed in 0.02s
+    ```
+    Expect: a line that starts with `2 passed`. Met.
+
+    Judged against the acceptance criteria:
+    - Criterion 1: the two passing tests are the two rows of the parametrized test, one for `result_records` and one for `disk_records`. That matches "one row per log". Nothing in the output contradicts it.
+    - Criterion 2: the smoke test does not cover `make check`, and nothing in it contradicts the criterion. The factory's own checks gate it, and the coder's run was green (journal entry 7).
+    - Criterion 3 (docs: none): the smoke test does not contradict it.
+
+    I changed no files. Open from earlier entries, not a finding: no test reads the `RecordingProjectCommands` log back through the wiring. The description leaves that out on purpose. `feature.md` does not list this story, and that edit is the human's.
