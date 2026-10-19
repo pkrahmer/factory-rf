@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T09:30:00.890469Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-19T09:30:00.890469Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T09:30:19.397597Z'
+  stage: smoke-test
+  run: ef7c3b781f374d1d81d08829edfa2759
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -266,3 +268,34 @@ Expect: `documents ok`
     `check`: check: green
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: I ran the three `## Smoke test` commands from the repository root, as written and in order. All three met their `Expect:` line. I changed no files.
+
+    1. The domain check over three texts:
+       ```
+       ["uses the v1 word 'ticket'"]
+       ["uses the v1 word 'ticket'"]
+       []
+       ```
+       Met. The output is three lines: `ticket` at the end of a line is found, `ticket` at the start of a line is found, and `ticketed` gives `[]`.
+
+    2. `uv run -q python -m factory.entry.check_documents --bogus; echo "exit $?"`:
+       ```
+       usage: check-documents [-h] [--root ROOT]
+       check-documents: error: unrecognized arguments: --bogus
+       exit 2
+       ```
+       Met. The usage names `check-documents`, the error line follows it, and the exit code is 2.
+
+    3. `uv run -q python -m factory.entry.check_documents`:
+       ```
+       documents ok
+       ```
+       Met. The exit code was 0.
+
+    Against the acceptance criteria, the smoke test contradicts none of them:
+    - Criteria 1 and 2: the output matches the found and not-found sides, and the exact usage and error text.
+    - Criterion 3 (`ticketed` at the end of the text): the commands did not cover it, and nothing in the output contradicts it.
+    - Criterion 4: I did not run `make check` in this stage. Entry 15 records it green, and the factory runs the checks.
+    - Criterion 5 (docs: none): command 3 reports `documents ok`.
+
+    Findings: none.
