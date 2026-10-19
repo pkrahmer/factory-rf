@@ -7,7 +7,9 @@ import sys
 from collections.abc import Iterable
 from pathlib import Path
 
+from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.process import ProcessRequest, run_process
+from factory.domain.errors import PipelineDefinitionInvalid
 from factory.domain.git import GitIdentity
 
 CHECKOUT = "checkout"
@@ -42,6 +44,16 @@ stages:
   approval: {approval: true, next: [done, doing]}
   done: {}
 """
+
+
+def pipeline_outcome(text: str) -> str | None:
+    """The fault of a refused pipeline-definition text, or `None` when the text is accepted."""
+    try:
+        RuamelPipelineDefinitionReader().parse(text)
+    except PipelineDefinitionInvalid as error:
+        return error.fault
+    return None
+
 
 STORY_FORM = """\
 # Story title

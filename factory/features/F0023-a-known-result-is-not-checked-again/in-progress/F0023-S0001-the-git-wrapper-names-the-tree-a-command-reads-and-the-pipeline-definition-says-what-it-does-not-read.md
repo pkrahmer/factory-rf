@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T14:34:51.352028Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T14:34:51.352028Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T14:36:58.183346Z'
+  stage: tests
+  run: ec2395a87fb340d9a1c3a19ca9a14d13
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -325,3 +327,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: the open notes from entry 7 still stand. `make duplicates` shows five findings that predate this story: four similar-code pairs between `claude_runtime` and `opencode_runtime`, and the unused class `ManualWaiter`. `update-index` receives the left-out paths in one argument list, which could hit the system's argument-length limit if a very large number of paths were left out.
 12. factory: started tests as self.
+13. tester: Round 1, a test change: I moved the shared test helper that the coder named in entry 11, as the reviewer's finding in entry 9 asked. The standing leave in CLAUDE.md (*Tests*, moving a shared test helper) covers this move. No criterion's test changed in what it checks.
+
+    What I changed:
+    - `tests/git_support.py`: added `pipeline_outcome(text) -> str | None` beside `PIPELINE_YAML`. It parses the text with `RuamelPipelineDefinitionReader` and returns `PipelineDefinitionInvalid.fault`, or `None` when the text loads. Its body is the same as the copies it replaces.
+    - Five modules dropped their copy and now import `pipeline_outcome` from `git_support`. I also removed the imports that were no longer used. Every test keeps its name and checks the same thing:
+      - `tests/domain/test_pipeline_not_read.py`: this story's test; its copy was `_fault_of`.
+      - Four earlier test files, each changed under the standing leave; each copy was `_outcome`:
+        - `tests/domain/test_tool_paths.py`
+        - `tests/adapters/test_pipeline_strict_values.py`
+        - `tests/adapters/test_pipeline_rules.py`: I also wrapped three assert lines that the longer name pushed past 100 characters.
+        - `tests/adapters/test_pipeline_stage_moves.py`
+
+    Rejected: also moving the `_changed` helper that `test_pipeline_rules.py`, `test_pipeline_strict_values.py` and `test_pipeline_stage_moves.py` each hold. The coder named only the parse helper, and an approved change is exactly the change named.
+
+    Criterion → test mapping: unchanged from my entry in round 0.
+
+    `make lint` is green and `make test` is green (coverage 99.07 %).
+
+    Open: none.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (48.6 s)

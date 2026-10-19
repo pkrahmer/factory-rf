@@ -3,8 +3,7 @@
 import pytest
 
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.domain.errors import PipelineDefinitionInvalid
-from git_support import PIPELINE_YAML
+from git_support import PIPELINE_YAML, pipeline_outcome
 
 CHECK_LINE = "  check: {time_limit: 10}\n"
 LINT_LINE = "  lint: {time_limit: 5}\n"
@@ -12,15 +11,6 @@ LINT_LINE = "  lint: {time_limit: 5}\n"
 
 def _with_check(not_read: str) -> str:
     return PIPELINE_YAML.replace(CHECK_LINE, f"  check: {{time_limit: 10, not_read: {not_read}}}\n")
-
-
-def _fault_of(text: str) -> str | None:
-    """The fault of a refused text, or `None` when the text is accepted."""
-    try:
-        RuamelPipelineDefinitionReader().parse(text)
-    except PipelineDefinitionInvalid as error:
-        return error.fault
-    return None
 
 
 def _fault(command: str, pattern: str) -> str:
@@ -73,7 +63,7 @@ REFUSED = ["/etc/*", "~/notes/*", "../docs/*", "docs/../src/*", "{work_item}", "
     ],
 )
 def test_a_not_read_pattern_outside_the_checkout_is_refused(text: str, fault: str | None) -> None:
-    assert _fault_of(text) == fault
+    assert pipeline_outcome(text) == fault
 
 
 @pytest.mark.parametrize(
@@ -86,7 +76,7 @@ def test_a_not_read_pattern_outside_the_checkout_is_refused(text: str, fault: st
     ],
 )
 def test_a_not_read_that_is_not_a_list_of_patterns_is_refused(value: str) -> None:
-    fault = _fault_of(_with_check(value))
+    fault = pipeline_outcome(_with_check(value))
 
     assert fault is not None
     assert "not_read" in fault

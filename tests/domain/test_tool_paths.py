@@ -6,9 +6,8 @@ import pytest
 
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.domain.agent_runs import GuardSettings
-from factory.domain.errors import PipelineDefinitionInvalid
 from factory.domain.write_paths import refusal
-from git_support import PIPELINE_YAML
+from git_support import PIPELINE_YAML, pipeline_outcome
 
 REFUSED = [
     "*.log",
@@ -34,15 +33,6 @@ def _with_tool_paths(value: str) -> str:
 
 def _fault(path: str) -> str:
     return f"tool path {path}: must be <folder>/* or ~/<folder>/*"
-
-
-def _outcome(text: str) -> str | None:
-    """The fault of a refused text, or `None` when the text is accepted."""
-    try:
-        RuamelPipelineDefinitionReader().parse(text)
-    except PipelineDefinitionInvalid as error:
-        return error.fault
-    return None
 
 
 @pytest.mark.parametrize(
@@ -73,7 +63,7 @@ def test_the_tool_paths_load_in_order_and_default_to_none(text: str, expected: l
     ],
 )
 def test_a_tool_path_of_neither_folder_form_is_refused(value: str, faults: list[str]) -> None:
-    fault = _outcome(_with_tool_paths(value))
+    fault = pipeline_outcome(_with_tool_paths(value))
 
     assert fault is not None
     assert sorted(fault.split("; ")) == sorted(faults)
