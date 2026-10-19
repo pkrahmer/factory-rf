@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T19:53:43.591707Z'
   stage: acceptance
   run: a93fa77b95bc4ed98e016530f9c08f4c
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T20:00:12.583756Z'
+  stage: done
 stories: [F0020-S0001, F0020-S0002, F0020-S0003, F0020-S0004, F0020-S0005, F0020-S0006, F0020-S0007, F0020-S0008, F0020-S0010, F0020-S0011, F0020-S0012]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of opencode as a second agent runtime
@@ -343,3 +348,4 @@ S0004 and S0005 needed the human most:
    6. Decisions: decisions 1 to 23 are unchanged, and the human's changes 4 and 6 are still due. New: S0010's four intake answers. Earlier tests changed: S0012 moved `Recorder` to `tests/process_support.py` under the standing leave, named in its story. No change without a leave was found.
    7. Slow checks: none beyond `make check` and `make mutants`. `make test` took 54.0 s for 5974 tests. The slowest are the 5.0 s time-limit tests and S0010's two 4.5 s sudo rows, which wait on purpose. Disk: free space is down 0.2 GB on the shared host file system, with no growth in the folders' use; `mutants/` holds 59 MB.
    8. Cost: 134 runs, 187.4 min, $51.64. S0010 to S0012 cost 19 runs and $4.14, each with one round and no rework. S0004 ($10.01) and S0005 (21 runs) still stand out, as the first acceptance said. The human answered 12 questions (11 questions, 1 round cap) and the stories waited 0.3 h. The one new question was S0010's intake question, answered within two minutes. S0004 and S0005 needed the human most, three times each.
+3. factory: done (pull request merged); cost: 1 runs, 35.6 min, 52 turns, 132583 tokens in (4354534 more from cache), 40549 out, $2.74
