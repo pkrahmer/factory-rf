@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 295
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T22:41:30.432793Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T22:41:10.029802Z'
   stage: doing
   run: 0e7fc979e4754e1b812425b73d7639cd
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:41:30.432793Z'
+  stage: review
 ---
 
 # The guide's index names the project agents and the patient runs modules
@@ -133,3 +142,4 @@ Expect: `documents ok`
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
