@@ -154,17 +154,33 @@ A demo's stories are backlog stories checked at the path they will have in the p
 
 ## Mutation testing
 
-`make mutants FEATURE=<id>` (for example `FEATURE=F0012`) runs mutmut over the modules under `src/factory` that the commits of that feature changed. It finds them by the feature's id in the commit subjects on `origin/main`. It is not part of `make check`: it is slow, and the feature acceptance runs it. On v1's acceptance branch `acceptance/<id>-<slug>` the id is read from the branch name, so plain `make mutants` works there.
+`make mutants` runs mutmut over the modules under `src/factory` that one story or one feature changed. It is not part of `make check`: it is slow. The factory runs it as a report after the coder (`mutants` in `factory/pipeline.yml`), and the feature acceptance runs it again. What it takes depends on where it runs:
 
-The recipe runs mutmut with `TMPDIR` set to a folder of its own, made by `mktemp -d`, and its `EXIT` trap opens that folder for its owner and removes it when the recipe ends, also after `mutants: stopped after ...` and after a failed run. So every pytest that mutmut starts keeps its base folders there, and a run leaves `/tmp/pytest-of-<user>` as it found it. Why, and the ways rejected, is in the decision log (*make mutants runs under a temporary root of its own*).
+- **On a story's branch** (`work-item/<story id>`) it takes the modules the branch changes against `origin/main`, the work tree included (the report runs before the stage's result commit), plus untracked modules. It runs all their mutants by pattern, `<module>.*`.
+- **With `FEATURE=<id>`** (for example `make mutants FEATURE=F0012`), or on an acceptance's branch (`work-item/<feature id>-A<n>`, or v1's `acceptance/<id>-<slug>`, where the id is read from the branch name), it takes the modules that the feature's story commits changed on `origin/main`: the subjects that start `work item <id>-S<nnnn>:` (or v1's older form of that subject, which the `FEATURE_MODULES` pattern in the `Makefile` names). It runs by name only their mutants that are not killed (`check_mutants --names`, below), and a module with no mutant yet by its pattern.
 
-The acceptance reads the survivors with `uv run mutmut results` and `uv run mutmut show <name>`. The target drops mutmut's `not checked` lines, but it lists every survivor and timeout that `mutants/` holds, including those that earlier runs left for earlier features' modules. So the acceptance reads the survivors of its own feature's modules by their module name, for example `uv run mutmut results | grep 'factory.application.stage\.'`.
+The two forms differ because mutmut 3.8 runs again every mutant that a name or a pattern selects, whatever it kept from earlier runs. A run stopped at its limit therefore reaches the same mutants every time, so a story's run starts over, while each acceptance run shortens its list by what it kills and goes on. Running only the changed functions does not work either: mutmut resets the results of a changed function while it runs, after the names would have been chosen.
 
-Two ends are not a run. Without `FEATURE` the target prints `mutants: set FEATURE, as in make mutants FEATURE=F0012` and exits 2. A feature with no changed module prints `mutants: no module under src/factory changed by <id>` and exits 0. Which subjects it reads, and why only one feature's modules, is in the decision log (*Mutation testing is limited to one feature's modules*).
+The recipe stops mutmut with `timeout` after `MUTANTS_SECONDS` (540 s). The agent's shell command ends after 10 minutes and the report's `time_limit` is 10 minutes, so the 60 s that remain are for `mutmut results`, the last line and the `EXIT` trap. The recipe's own stop bounds the run: the factory's KILL of the report's process group runs no trap and does not reach mutmut, which `timeout` runs in a group of its own. A stopped run ends with `--stopped-after 540` in the last line.
+
+The recipe runs mutmut with `TMPDIR` set to a folder of its own, made by `mktemp -d`. Its `EXIT` trap opens that folder for its owner and removes it, removes any `.git` folder a mutant made in `mutants/`, and runs `chmod -R g+w mutants`, because the factory's report and the agents' runs write `mutants/` as two users of one group. This happens also after a stop and after a failed run, so a run leaves `/tmp/pytest-of-<user>` as it found it. A run killed by the factory skips the trap; the operator guide's *The mutation report of a story* gives the repair. The ways rejected are in the decision log (*make mutants runs under a temporary root of its own*, *Mutation testing per story*).
+
+The recipe ends with `python -m factory.entry.check_mutants`, which prints the survivors of the chosen modules and the last line (below). That line is the target's last line, and its exit status is the target's: 0 for a complete run, 1 for a partial one, 2 for a results file it cannot read.
+
+To read the survivors of one module, list them from mutmut's own results and show one:
+
+```
+uv run mutmut results | grep -F 'factory.application.stage.'
+uv run mutmut show <name>
+```
+
+`mutants/` holds the latest run of each module, those of earlier stories and features too, so filter by the module names of the diff. After a stopped run, the mutants it did not reach keep the result of an earlier run of their unchanged function.
+
+Two ends are not a run. With neither `FEATURE` nor a story's branch the target prints `mutants: set FEATURE, as in make mutants FEATURE=F0012, or run it on a story's branch` and exits 2. With no changed module it prints `mutants: no module under src/factory changed by <id>` and exits 0.
 
 ### The report of a mutation run
 
-`factory.domain.mutants` holds the rules and `python -m factory.entry.check_mutants` the command. The command runs no mutmut: it reads the text that `mutmut results --all true` printed, saved in a file, and answers for the modules you name. The recipe of `make mutants` is to call it; that change to the `Makefile` comes after the story that built the command.
+`factory.domain.mutants` holds the rules and `python -m factory.entry.check_mutants` the command. The command runs no mutmut: it reads the text that `mutmut results --all true` printed, saved in a file, and answers for the modules you name. The recipe of `make mutants` calls it, for the report and for `--names`.
 
 **The input.** One line per mutant, `<name>: <status>`, split at the last `": "`; blank lines are skipped and every line is stripped. The status is one of the ten mutmut knows (`killed`, `survived`, `timeout`, `suspicious`, `no tests`, `skipped`, `segfault`, `caught by type check`, `check was interrupted by user`, `not checked`). A name has at least two dotted parts and no whitespace or colon. Any other line (a warning mutmut printed, say) is refused, so a change in mutmut's output stops the report instead of being skipped.
 
