@@ -9,18 +9,12 @@ from factory.application.boundaries import Boundaries
 from factory.domain.errors import CannotHandle
 from factory.domain.events import Event
 from factory.domain.pipeline_definition import PipelineDefinition
-from git_support import PIPELINE_YAML, remote_commit, run_git
+from git_support import remote_commit, run_git
 from human_clone import HumanClone
 
 TODO = "factory/features/F0002-todo"
 BRANCH = "work-item/F0002-A0001"
 STATE = "a" * 40
-
-
-@pytest.fixture
-def definition(boundaries: Boundaries) -> PipelineDefinition:
-    """Return the test remote's pipeline definition, with an acceptance stage."""
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
 
 
 @pytest.fixture

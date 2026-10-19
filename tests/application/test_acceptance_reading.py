@@ -10,7 +10,7 @@ from factory.domain.board import FeatureRow
 from factory.domain.errors import WorkItemFormatError
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument
-from git_support import PIPELINE_YAML, write_files
+from git_support import write_files
 from human_clone import HumanClone
 
 FEATURES = "factory/features"
@@ -18,12 +18,6 @@ EXAMPLE = f"{FEATURES}/F0001-example"
 TODO = f"{FEATURES}/F0002-todo"
 ARCHIVED = ["F0002-S0001", "F0002-S0002"]
 IN_FLIGHT_REPORT = f"{EXAMPLE}/in-progress/F0001-A0001-acceptance.md"
-
-
-@pytest.fixture
-def definition(boundaries: Boundaries) -> PipelineDefinition:
-    """Return the test remote's pipeline definition, with an acceptance stage."""
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
 
 
 @pytest.fixture

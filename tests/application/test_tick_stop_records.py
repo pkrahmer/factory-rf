@@ -28,7 +28,6 @@ from git_support import (
     COLOURED_AGENT_FILE,
     PIPELINE_YAML,
     TEST_IDENTITY,
-    install_agents,
     remote_commit,
     run_git,
     write_agent,
@@ -84,9 +83,7 @@ def _remote_pairs(remote: Path) -> list[tuple[str, str]]:
     return [(record.event, record.reason) for record in parse_stop_records(text)]
 
 
-@pytest.fixture(autouse=True)
-def _agents(agent_home: Path, boundaries: Boundaries) -> None:
-    install_agents(agent_home, boundaries.pipeline_reader.parse(PIPELINE_YAML).roles)
+pytestmark = pytest.mark.usefixtures("installed_agents")
 
 
 @pytest.fixture

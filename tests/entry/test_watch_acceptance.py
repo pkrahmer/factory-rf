@@ -1,23 +1,20 @@
 """The watcher's command line shows a due acceptance as its event and in the board's column."""
 
 import io
-from pathlib import Path
 
 import pytest
 
 from factory.application.board import BoardReader
 from factory.application.boundaries import Boundaries
 from factory.entry.watch import run_watch
-from git_support import PIPELINE_YAML, install_agents
+from git_support import PIPELINE_YAML
 from human_clone import HumanClone
 from watch_support import push_complete
 
 INSTANCE = "factory-1"
 
 
-@pytest.fixture(autouse=True)
-def _agents(agent_home: Path, boundaries: Boundaries) -> None:
-    install_agents(agent_home, boundaries.pipeline_reader.parse(PIPELINE_YAML).roles)
+pytestmark = pytest.mark.usefixtures("installed_agents")
 
 
 @pytest.fixture

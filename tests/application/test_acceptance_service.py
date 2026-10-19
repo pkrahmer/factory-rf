@@ -21,7 +21,7 @@ from factory.domain.paths import cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument
 from factory.domain.write_paths import is_writable
-from git_support import PIPELINE_YAML, remote_commit, run_git, write_files
+from git_support import remote_commit, run_git, write_files
 from human_clone import HumanClone
 
 FEATURES = "factory/features"
@@ -32,12 +32,6 @@ ARCHIVED_PATHS = [f"{TODO}/done/F0002-S0001-a.md", f"{TODO}/done/F0002-S0002-b.m
 ACCEPTANCE = "F0002-A0001"
 BRANCH = f"work-item/{ACCEPTANCE}"
 REPORT = f"{TODO}/in-progress/F0002-A0001-acceptance.md"
-
-
-@pytest.fixture
-def definition(boundaries: Boundaries) -> PipelineDefinition:
-    """Return the test remote's pipeline definition, with the acceptance stage `acceptance`."""
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
 
 
 def _push_todo(human: HumanClone, *, feature_text: str | None = "# Todo service\n") -> None:

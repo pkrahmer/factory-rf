@@ -31,7 +31,15 @@ from factory.domain.kill_points import KillPoints
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.settings import InstanceSettings
 from factory.domain.stops import StopRecord
-from git_support import CHECKOUT, PIPELINE_YAML, TEST_IDENTITY, clone, copy_remote, make_remote
+from git_support import (
+    CHECKOUT,
+    PIPELINE_YAML,
+    TEST_IDENTITY,
+    clone,
+    copy_remote,
+    install_agents,
+    make_remote,
+)
 from human_clone import HumanClone
 from proof_support import World, build_world, start_story
 from run_process_recorder import Recorder
@@ -187,6 +195,12 @@ def boundaries(
 def definition(boundaries: Boundaries) -> PipelineDefinition:
     """Return the test remote's pipeline definition, with the acceptance stage `acceptance`."""
     return boundaries.pipeline_reader.parse(PIPELINE_YAML)
+
+
+@pytest.fixture
+def installed_agents(boundaries: Boundaries, agent_home: Path) -> None:
+    """Install a valid agent file for every role of the remote's definition."""
+    install_agents(agent_home, boundaries.pipeline_reader.parse(PIPELINE_YAML).roles)
 
 
 @pytest.fixture

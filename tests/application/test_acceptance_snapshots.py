@@ -12,7 +12,7 @@ from factory.domain.acceptance import AcceptanceState
 from factory.domain.errors import WorkItemFormatError
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import PIPELINE_YAML, run_git
+from git_support import run_git
 from human_clone import HumanClone
 
 FEATURES = "factory/features"
@@ -24,12 +24,6 @@ ACCEPTANCE = "F0002-A0001"
 BRANCH = f"work-item/{ACCEPTANCE}"
 REPORT = f"{TODO}/in-progress/F0002-A0001-acceptance.md"
 DONE_REPORT = f"{TODO}/done/F0002-A0001-acceptance.md"
-
-
-@pytest.fixture
-def definition(boundaries: Boundaries) -> PipelineDefinition:
-    """Return the test remote's pipeline definition, with the acceptance stage `acceptance`."""
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
 
 
 @pytest.fixture

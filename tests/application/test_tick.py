@@ -27,7 +27,6 @@ from git_support import (
     CHECKOUT,
     PIPELINE_YAML,
     TEST_IDENTITY,
-    install_agents,
     remote_commit,
     write_files,
 )
@@ -154,9 +153,7 @@ class _CountingHosting(FakeHostingService):
         super().set_labels(number, labels)
 
 
-@pytest.fixture(autouse=True)
-def _agents(agent_home: Path, boundaries: Boundaries) -> None:
-    install_agents(agent_home, boundaries.pipeline_reader.parse(PIPELINE_YAML).roles)
+pytestmark = pytest.mark.usefixtures("installed_agents")
 
 
 def _factory(handlers: Mapping[EventKind, Handler]) -> HandlerFactory:

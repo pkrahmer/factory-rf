@@ -1,7 +1,6 @@
 """factory-watch shows its own instance's claim as held while the claim's lease runs."""
 
 import io
-from pathlib import Path
 
 import pytest
 
@@ -9,7 +8,6 @@ from factory.adapters.clock import ManualClock
 from factory.application.boundaries import Boundaries
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.entry.watch import run_watch
-from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 from watch_support import (
     ACCEPTANCE,
@@ -23,9 +21,7 @@ from watch_support import (
 INSTANCE = "factory-1"
 
 
-@pytest.fixture(autouse=True)
-def _agents(agent_home: Path, boundaries: Boundaries) -> None:
-    install_agents(agent_home, boundaries.pipeline_reader.parse(PIPELINE_YAML).roles)
+pytestmark = pytest.mark.usefixtures("installed_agents")
 
 
 @pytest.mark.parametrize(

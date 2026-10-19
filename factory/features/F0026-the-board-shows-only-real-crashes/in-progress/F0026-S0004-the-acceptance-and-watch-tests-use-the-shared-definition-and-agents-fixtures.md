@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 274
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T17:28:50.747992Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T17:28:50.747992Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T17:31:41.105396Z'
+  stage: tests
+  run: 71d5025f285148f8a8bf8b062e8ad2f9
 ---
 
 # The acceptance and watch tests use the shared definition and agents fixtures
@@ -91,3 +93,27 @@ Expect: three lines, `tests/conftest.py`, `tests/conftest.py` and `pytest exit 0
    Architecture: tests only, moved to the shared `tests/conftest.py` under the standing leave in CLAUDE.md (*Tests*). The tester makes the move, and the story names every changed module. No layer or `src/` change.
    Scope: the feature.md Scope names only S0001's files. This story comes from the acceptance reviewer's proposal (R13) and touches only tests, and it stays out of the feature's Out-of-scope items. It changes no test of `test_watcher_move_rule.py`. The edits to other stories' modules are limited to the standing leave (removing duplicate fixtures, with test names unchanged).
 4. factory: started tests as self.
+5. tester: Wrote the two search tests and made the fixture move myself, as the story assigns it to the tester under the standing leave in `CLAUDE.md` (*Tests*). No change under `src/`.
+
+   Criterion → test:
+   - criterion 1: tests/test_shared_fixtures.py::test_the_definition_fixture_is_defined_only_in_conftest
+   - criterion 2: tests/test_shared_fixtures.py::test_the_agents_fixture_is_defined_only_in_conftest (both parts: `def installed_agents(` only in conftest, and `def _agents(agent_home: Path, boundaries: Boundaries)` in no file)
+   - criteria 3 and 4: the closing ones. They need no test.
+
+   The tests match each signature only at the start of a line (column 0). Otherwise they would find their own string literals in `tests/test_shared_fixtures.py`.
+
+   Files created: `tests/test_shared_fixtures.py`.
+
+   Files changed under the standing leave:
+   - `tests/conftest.py`: gains `installed_agents(boundaries, agent_home) -> None`, not autouse, beside `definition`. It also imports `install_agents` from `git_support`.
+   - The `definition` fixture is removed from these eleven files under `tests/application/`: `test_acceptance_closed.py`, `test_acceptance_due_handler.py`, `test_acceptance_hand_over.py`, `test_acceptance_merged.py`, `test_acceptance_merged_before_approval.py`, `test_acceptance_reading.py`, `test_acceptance_repeated.py`, `test_acceptance_service.py`, `test_acceptance_snapshots.py`, `test_stage_run_acceptance.py` and `test_task_acceptance.py`.
+   - The autouse `_agents` fixture is replaced by `pytestmark = pytest.mark.usefixtures("installed_agents")` in `tests/application/test_tick.py`, `test_tick_disk.py`, `test_tick_stop_records.py`, `tests/entry/test_watch.py`, `test_watch_acceptance.py` and `test_watch_own_claim.py`. None of these modules had a `pytestmark` before.
+   - `tests/application/test_pipeline_loading_agents.py`: its `installed_agents` fixture is removed and its `pytestmark` stays.
+   - `ruff --select F401 --fix` removed the imports that only the removed fixtures used: `PIPELINE_YAML`, `install_agents` and `Path` where unused. Nothing else changed: every test keeps its name and what it checks.
+
+   Run: `make test` once, after the move: `test: green (48.6 s)`. The new tests do not fail first: this story's change is the move itself, which the tester makes, so they pass once it is done. No module failed to import. `make lint` is green after shortening the new module's docstring line (E501). I skipped `make types` as the stage says. All the edits remove code, apart from the new fixture, which has the same signature as the one it replaces.
+
+   Open: none. The coder has no code to write; `make check` for the whole suite is still to be run by the coder.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (44.1 s)
