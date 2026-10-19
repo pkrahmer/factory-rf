@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-19T01:22:15.903767Z'
   stage: smoke-test
   run: da6b21106e1f4891bb3adf80e4ef94ee
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-19T01:23:34.239495Z'
+  stage: approval
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -364,3 +369,4 @@ Expect: `0`
     Findings: none.
 
     Open: nothing.
+22. factory: done (pull request merged); cost: 10 runs, 10.2 min, 72 turns, 220956 tokens in (1417283 more from cache), 31553 out, $2.47
