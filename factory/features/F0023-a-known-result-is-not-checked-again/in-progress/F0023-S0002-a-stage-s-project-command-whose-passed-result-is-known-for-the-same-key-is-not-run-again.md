@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T15:05:44.274238Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-19T15:05:22.679392Z'
   stage: doing
   run: af99403547124ba0bf719c2c12ed5ea1
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-19T15:05:44.274238Z'
+  stage: tests
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -337,3 +346,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `make check` was not run in this round, since nothing changed. In entry 7, that test was the only red result in `make check`. Once the tester has changed it, the next doing round runs `make check` again.
 
     Noticed but not touched: as entry 7 says, the comment "the record is telemetry" appears in both `KnownResults._append` and `RecordingProjectCommands.run`.
+11. factory: started tests as self.
