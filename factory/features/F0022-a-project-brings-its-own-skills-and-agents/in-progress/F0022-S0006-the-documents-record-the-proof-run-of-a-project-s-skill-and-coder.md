@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 302
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T23:40:54.042215Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T23:40:33.345402Z'
   stage: review
   run: a51f67ea404e43ed81c32e855257410d
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:40:54.042215Z'
+  stage: docs
 ---
 
 # The documents record the proof run of a project's skill and coder
@@ -153,3 +162,4 @@ Expect: `documents ok`
    - Not checked: the proof run's evidence (instance `skills-demo`, the `project coder:` and `skill: journal-marker` lines, the refused `mkdir`) is the human's account. Only the night log shows it, and the log is outside the review's scope, as the intake also noted.
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
