@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T01:19:27.191498Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-19T01:19:06.505874Z'
   stage: review
   run: cbd75f0eecbb4478adae2b428899864a
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:19:27.191498Z'
+  stage: docs
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -301,3 +310,4 @@ Expect: `0`
     - tests/application/test_tick_stop_records.py: standing leave. The `records` fixture moved to tests/conftest.py, and `_log_lines` became `log_lines`.
     - tests/conftest.py: standing leave. It only gains the shared `records` fixture.
     - tests/human_clone.py: standing leave. The new module's commit helper moved here as `push_files`. `push_file` delegates to it with the same steps and the same commit message.
+18. factory: started docs as self.
