@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-19T12:52:55.260428Z'
   stage: smoke-test
   run: 68f944ec3f994d3fbe1a192124cbc0ca
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-19T12:53:41.461027Z'
+  stage: approval
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -507,3 +512,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The tests and the factory's checks cover those.
 
     Findings: none. Open: nothing.
+22. factory: done (pull request merged); cost: 10 runs, 12.2 min, 91 turns, 317345 tokens in (1751757 more from cache), 39462 out, $3.33
