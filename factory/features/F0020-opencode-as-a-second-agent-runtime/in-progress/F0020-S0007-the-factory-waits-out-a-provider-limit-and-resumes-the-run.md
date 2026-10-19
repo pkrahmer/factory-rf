@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T10:55:45.466993Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-10-19T10:55:45.466993Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T10:57:48.650484Z'
+  stage: docs
+  run: d9a98590f23347ea8c69a01f85edd45d
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -599,3 +601,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/domain/test_provider_limit_wait.py:1076` (the `cooldown-59-seconds` row): the fault `""` matches any `ValidationError` text.
     - `tests/application/test_sealed_runs_runner.py:849`: it imports the private helpers `_leave`, `_request` and `_swap_for_folder` from `application.test_sealed_runs`. Under the standing leave they would move to a shared module under `tests/` instead.
 28. factory: started docs as self.
+29. documenter: docs, round 1. I found no code contradicting the Interface or the criteria, so there are no findings. I did not run `make check`, because I changed only documents. `make documents` printed `documents ok`.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - The configuration table has the two new variables, `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` and `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES`.
+      - *A provider's spend limit* has a new subsection, *The wait*. It covers what the factory does after a limit, the two log lines, what to do at the ceiling, the claim held past `lease_duration` (run one instance per repository), and a stop or restart during a wait counting as a crash.
+      - I replaced the bullet "For now such a run is a stall... a later story", which this story made stale.
+      - *A stall: the stall note* has a bullet on the `provider_limit` cause.
+    - `docs/project-guide/stages.md`: *Starting a stage* step 9 now names `run_sealed(..., run=PatientRuns(...).run)`. The section also describes `PatientRuns` in steps 1 to 6 and the `Waiter` interface with `SleepingWaiter` and `ManualWaiter`.
+    - `docs/project-guide/watching.md`: *Boundaries* has the new `waiter` field and `run_sealed`'s `run` keyword. I also corrected the "only caller of `agent_runtime.run`" sentence, which was no longer true.
+    - `docs/decisions.md`: new entry *The factory waits out a provider limit around a stage's run*, with the reasons of the feature's decision 14.
+
+    Cross-read and found current: `README.md`, the *Stall reasons* text in `docs/project-guide/stages.md`, and the records contract text. The contract needs no change, because this story adds no schema field or value.
+
+    I did not run the examples. The log lines in the operator guide are written from `src/factory/application/provider_limits.py`. The `tests/application/test_patient_runs.py` tests check them, and I did not run them either.
+
+    Noticed, not touched: the work item's `.costs.jsonl` sidecar shows as modified. The factory writes that file.
+
+    `check`: check: green
+    `documents`: documents ok

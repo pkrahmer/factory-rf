@@ -710,3 +710,14 @@ Date: 2026-10-19 (F0020-S0006; F0020 decision 11). `claude -p` stops itself at `
 - Reasons: the cost is known only from the events, and only while they stream can the run be stopped before it spends more; reading the end reason from what stopped the call, not again from the output, keeps one rule; the Claude Code runtime's resume gives the agent room to finish with a decision.
 - Cost: a run may pass its budget by the cost of one step, since a step is counted when it ends. Only a real run shows how far a real step overshoots.
 - Rejected: a budget read after the run (it would spend all of it first), and a wrapper around opencode's own cost report (none is given before the step ends).
+
+## The factory waits out a provider limit around a stage's run
+
+Date: 2026-10-19 (F0020-S0007; F0020 decision 14). After S0005 and S0006 a run that met the provider's spend limit ended `provider_limit` with its session kept, but the stage still stalled it, counted an attempt and asked the human at the cap. At the human's work the limit passes within minutes, and the factory must run unattended.
+
+- Decision: `PatientRuns`, in the application layer around the stage's run (not the preflight's probe, which reports a limit as a failed probe), waits after a `provider_limit` with no agent process running, then resumes the same session with a short continue prompt, the budget left and the time left. The wait is the one the message names, or `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` (default 10). The waits count toward neither the `time_limit` nor the attempts; the run is one cost record.
+- Decision: when the waits reach `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` (default 120) the run ends `provider_limit` and the stage stalls with that reason, one attempt counted, its note on the pull request.
+- Decision: waiting is the interface `Waiter` (`SleepingWaiter`, `ManualWaiter`), so tests advance a manual clock instead of sleeping.
+- Decision: the claim stays held while waiting. The factory renews no lease, so a stage may hold its claim past `lease_duration` (about 180 minutes for the coder against 60), which only another instance on the same repository would act on; one repository has one instance. A stop or restart during a wait is a crash of the factory's own claim: the stage reruns at once and counts toward `crash_cap`, not the attempts. The human's answer of 2026-10-18.
+- Reasons: the wait lies in the application layer so both runtimes share it and each only maps its own signal; a stall at the ceiling reaches the human through the usual note, with no new stop to clear.
+- Rejected: a machine stop at the ceiling (it would need its own clearing rule, a stop that the next passing probe clears); lease renewal during the wait (not built in v1.1).
