@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T20:07:55.377608Z'
   stage: smoke-test
   run: 9ecc8c50a0684191be8ca03d0c8a5df1
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T20:09:15.001875Z'
+  stage: approval
 ---
 
 # The opencode runtime leaves out Skill wherever it stands in an agent's tools
@@ -219,3 +224,4 @@ Expect: two lines, `completed question`, `['grep', 'read']`
     - Criterion 3 (docs: none): nothing contradicts it. The output has no new message or behaviour.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 3.8 min, 28 turns, 102724 tokens in (378194 more from cache), 7057 out, $0.86
