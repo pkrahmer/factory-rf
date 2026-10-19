@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T22:48:45.853511Z'
   stage: acceptance
   run: 715f68b6be614e04bccdce6faed3b6a2
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T22:50:04.430287Z'
+  stage: done
 stories: [F0025-S0001, F0025-S0002, F0025-S0003, F0025-S0004, F0025-S0005]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The project guide split by domain
@@ -332,3 +337,4 @@ None. Nothing found is worth a story. The one open point (B under 6) is a change
       - S0005 cost $0.76, of which $0.26 went to tester and coder runs that did nothing.
       - The three earlier acceptances cost $5.92 together.
       - 0 questions answered, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 3.6 min, 13 turns, 53199 tokens in (536766 more from cache), 14614 out, $0.83
