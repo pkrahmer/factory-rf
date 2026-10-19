@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 271
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T16:33:07.592279Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T16:33:07.592279Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T16:33:22.521156Z'
+  stage: smoke-test
+  run: 84cd9dc757644b3d9c51ff93a9546055
 ---
 
 # A report stopped at its time limit says so in its journal line
@@ -185,3 +187,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.6 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed. No findings.
+
+    I ran the one command under `## Smoke test` exactly as written, from the repository root (`uv run -q python -` with the heredoc). It exited with status 0.
+
+    ```
+    `mutants`: 1718/1858 mutants (stopped at its time limit after 600 s)
+    `mutants`: (stopped at its time limit after 600 s)
+    `mutants`: mutants: partial, 3 killed
+    ```
+
+    Expect: met. It printed three lines, each matching the `Expect:` line exactly:
+    - The `time_limit` result at 600.7 s ends with ` (stopped at its time limit after 600 s)`, so the seconds are rounded down.
+    - The empty last line gives `` `mutants`: `` followed directly by the note, with no double space.
+    - The failed result's line is unchanged and has no suffix.
+
+    Criteria check: the output agrees with criterion 1's time-limit row, empty-last-line row and failed row. The smoke test does not touch criterion 2 (the stage test), criterion 3 (`make check`) or criterion 4 (docs), and nothing in its output contradicts them. I fixed nothing.
