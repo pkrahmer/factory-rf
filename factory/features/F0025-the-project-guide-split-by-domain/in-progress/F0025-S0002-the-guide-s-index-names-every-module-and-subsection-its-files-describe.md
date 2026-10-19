@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 255
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T09:02:41.792979Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T09:02:41.792979Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T09:03:10.737618Z'
+  stage: intake
+  run: 0654c570856b4441b7f769fb39f561d6
 ---
 
 # The guide's index names every module and subsection its files describe
@@ -112,3 +114,10 @@ Expect: `documents ok`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is right for a documentation-only story. It names the three files the documenter changes (`docs/project-guide/README.md` *The files*, one sentence of `agents.md`, one sentence of `docs/decisions.md`) and the four `### ` subsections with the file line each goes on. I checked these against the repository. The `###` headings exist: *Boundaries* (`watching.md:260`), *The feature acceptance* and *The records contract* (`work-items.md`), *The opencode runtime* (`agents.md:91`). The sentence "(see *The story form check*)" is at `agents.md:283`. The `decisions.md:23` sentence opens with `docs/project-guide.md` is the guide for agents. The F0011-S0005 entry at line 337 is the dated one that stays.
+   - Criteria: every one can be tested from the repository's files. 1 (nothing outside docs changes), 2 (`make check`) and 3 (docs) cover each clause: the module coverage rule, the four subsections, the `agents.md` wording, the `decisions.md` wording, the 600-line limit and `documents ok`. There is no code rule with a failing side. The one rule-like clause, "the file that describes it", is bounded by "at least one file that names it", which the smoke test checks.
+   - Smoke test: all four blocks are runnable. The index lines match the script's `- \`name\`` pattern. The `Expect:` lines are exact outputs (`0 True` and `True`; `1` and `0`; `0`; `documents ok`).
+   - Architecture: nothing in `src/` changes, and the documenter writes only within `README.md` and `docs/*`.
+   - Scope: it is inside F0025 (the guide split by domain), and nothing in its Out of scope is touched. The feature's decision 2 promised that the index names *Boundaries*, and this story repairs that.
+   - One slip, not blocking: the Description says "Three smaller passages need the same repair" but lists two bullets. The criteria cover the same two passages (`agents.md` and `decisions.md`), so I left the text as it is.
