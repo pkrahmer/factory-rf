@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -168,6 +168,11 @@ journal:
   at: '2026-10-19T14:51:04.344929Z'
   stage: smoke-test
   run: 725dd2ec47794271ad1f15c8f95c90e5
+- number: 30
+  speaker: factory
+  kind: done
+  at: '2026-10-19T14:53:28.024443Z'
+  stage: approval
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -631,3 +636,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Nothing contradicts any criterion. The commands do not cover criteria 1, 4, 5, 9 and 10, and they contradict none of them; the tests and the earlier stages' `make check` cover those.
 
     Findings: none.
+30. factory: done (pull request merged); cost: 14 runs, 15.4 min, 112 turns, 474136 tokens in (2600749 more from cache), 49553 out, $4.91
