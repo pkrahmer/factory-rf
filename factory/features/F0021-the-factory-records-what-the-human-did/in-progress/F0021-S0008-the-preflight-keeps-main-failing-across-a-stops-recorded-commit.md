@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T01:11:09.485931Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T01:10:49.028949Z'
   stage: review
   run: 48340b1330eb463e9c6e45a9c88766f5
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:11:09.485931Z'
+  stage: doing
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -184,3 +193,4 @@ Expect: `0`
    4. tests/application/test_preflight_stops_commit.py:38 `_commit_on_main` is a second implementation, in raw git calls, of `HumanClone.push_file` (tests/human_clone.py:29): fetch, switch to `origin/main`, write, commit, push. Fix: use `rig.human.push_file("main", ...)` for the one-file rows. For the two-file row, reuse the shared helper rather than another raw-git copy.
 
    Earlier tests: none. Every test file in the diff has status `A`.
+10. factory: started doing as self.
