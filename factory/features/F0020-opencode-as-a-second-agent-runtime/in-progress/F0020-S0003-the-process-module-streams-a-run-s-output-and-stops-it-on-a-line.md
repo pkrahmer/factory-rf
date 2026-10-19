@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T04:19:18.008910Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-19T04:19:18.008910Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-19T04:22:41.833023Z'
+  stage: tests
+  run: 4f3ad73be4904dbe9135b7d731828d31
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -149,3 +151,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: it sits in the adapters layer, in the one process module, and keeps the single `Popen` line. No new wrapper or dependency.
    - Scope: within F0020's scope (S0003 in the feature's Scope and decision 5), and not in "Out of scope".
 7. factory: started tests as self.
+8. tester: Wrote the tests for `run_streaming` and `ProcessResult.stopped`, using real Python child processes. Each child that has to be killed starts a grandchild, and `is_gone` waits for it to end.
+
+   - criterion 1: tests/adapters/test_process_streaming.py::test_every_line_of_both_streams_reaches_the_callback_on_the_calling_thread
+   - criterion 2: tests/adapters/test_process_streaming.py::test_last_line_and_undecodable_bytes_reach_the_callback (rows: no-line-feed, not-utf-8)
+   - criterion 3: tests/adapters/test_process_streaming.py::test_callback_saying_stop_on_standard_output_kills_the_group_at_once (rows: before-a-sleep, which checks `stdout == "go\n"`; same-chunk, which writes `go\nlater\n` in one write and does not check `stdout`, because the criterion leaves it open for that row)
+   - criterion 4: tests/adapters/test_process_streaming.py::test_callback_saying_stop_on_standard_error_kills_the_group_at_once
+   - criterion 5: tests/adapters/test_process_streaming.py::test_child_is_killed_at_the_time_limit_and_no_later_line_is_passed (a 3 s limit, with `late` printed after a 60 s sleep)
+   - criterion 6: tests/adapters/test_process_streaming.py::test_callback_that_raises_kills_the_child_and_the_error_propagates (the child's first line is its pid)
+   - criterion 7: tests/adapters/test_process_streaming.py::test_merged_standard_error_comes_as_standard_output_in_the_order_written
+   - criterion 8: tests/adapters/test_process_streaming.py::test_missing_executable_raises_file_not_found_without_a_call
+   - criterion 9: tests/adapters/test_process_streaming.py::test_lines_reach_the_callback_while_the_child_runs (the child polls for the file; the test does not sleep; a 20 s time limit keeps it from hanging when the output is not streamed)
+   - criterion 10: tests/adapters/test_process_streaming.py::test_child_starts_as_run_process_starts_it (rows: working-directory, environment, standard-input)
+   - criterion 11: tests/adapters/test_process_streaming.py::test_duration_covers_the_child_run_time (at least 0.5 s, below 20 s)
+   - criterion 12: tests/adapters/test_process_streaming.py::test_run_process_shares_the_one_popen_line_and_reports_no_stop, plus the unchanged tests of tests/adapters/test_process.py and tests/test_process_search.py
+   - criteria 13 and 14: no test (`make check`, docs).
+
+   Files created: tests/adapters/test_process_streaming.py.
+   Earlier test files changed under the standing leave to move a shared test helper (CLAUDE.md, *Tests*), as the Interface asks:
+   - tests/process_support.py: gains `python_argv`, moved from `_python`.
+   - tests/adapters/test_process.py: uses `python_argv` from there; every test keeps its name and checks the same thing.
+
+   `make test`: the run could not import tests/adapters/test_process_streaming.py (an ImportError, because `Stream` and `run_streaming` do not exist yet in `factory.adapters.process`). This is the expected red. `make lint`: green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/adapters/test_process_streaming.py - ImportError while importing ...
