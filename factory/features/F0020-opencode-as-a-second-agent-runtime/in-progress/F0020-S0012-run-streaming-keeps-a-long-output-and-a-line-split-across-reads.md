@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 278
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T18:49:51.205034Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T18:49:51.205034Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T18:50:12.135031Z'
+  stage: docs
+  run: 60e523348b744e36bdcdefd22125c7c0
 ---
 
 # run_streaming keeps a long output and a line split across reads
@@ -159,3 +161,15 @@ Expect: two lines, `[('stdout', 200000)] 200001` and `[('stderr', 'hello'), ('st
    - tests/process_support.py: changed under the standing leave to move a shared test helper. `Recorder` moved here unchanged, with its `threading` and `Stream` imports and a wider module docstring. The story's Interface names this file too.
    - tests/adapters/test_process_streaming.py: changed under the standing leave to move a shared test helper. Its own copy of `Recorder` was removed and it now imports `Recorder` from `process_support`. Every test keeps its name and what it checks. The story's Interface names this file too.
 10. factory: started docs as self.
+11. documenter: No findings. The diff is tests only (`tests/adapters/test_process_streaming_reads.py` new; `Recorder` moved to `tests/process_support.py`); nothing under `src/` changed, so the code and the story's Interface agree.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`: in the `run_streaming` paragraph, one added sentence says a line reaches the callback once and whole however many reads it takes (a line longer than one 64 KiB read, or one split by a pause), and that `stdout` and `stderr` hold the whole output (criterion 4). The "Tests:" line now also names `tests/adapters/test_process_streaming_reads.py` and says `Recorder` is among the helpers in `tests/process_support.py`, since it moved there.
+
+    Cross-read and found current: `docs/project-guide/agents.md` (the `run_streaming` mention in the opencode runtime), `docs/decisions.md` (the `run_streaming` entries), and the rest of `processes-and-checks.md`. I changed documents only, so I did not run `make check`; the factory's checks run after this stage.
+
+    Stale text noticed, not touched: none.
+
+    `check`: check: green (not run again: passed on tree c16507d52c1f at 2026-10-19T18:47:44Z)
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok
