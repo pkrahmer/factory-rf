@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 295
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T22:39:13.813057Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T22:38:53.368946Z'
   stage: tests
   run: 455fd3c2a2784ad18cee3080c1bf90b1
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:39:13.813057Z'
+  stage: doing
 ---
 
 # The guide's index names the project agents and the patient runs modules
@@ -112,3 +121,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (49.0 s)
+6. factory: started doing as self.
