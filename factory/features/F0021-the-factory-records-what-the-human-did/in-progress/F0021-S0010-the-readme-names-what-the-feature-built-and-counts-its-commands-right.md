@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 246
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T02:11:16.777828Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T02:10:57.080490Z'
   stage: intake
   run: d19a9d232e94442eb845175f9adfb69c
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T02:11:16.777828Z'
+  stage: tests
 ---
 
 # The README names what the feature built and counts its commands right
@@ -91,3 +100,4 @@ Expect: `documents ok`
    Smoke test: every command is runnable. Each has an `Expect:` line that output can be checked against. The `grep -c` and `uv run` commands are the project's own.
    Architecture: no code layer is touched, so there is nothing to place. The documenter's write paths cover `README.md` and `docs/*`.
    Scope: within F0021. The story repairs the README and the operator guide's contract section, which belong to the S0006 docs and the feature's goal. Nothing in "Out of scope" is touched.
+4. factory: started tests as self.
