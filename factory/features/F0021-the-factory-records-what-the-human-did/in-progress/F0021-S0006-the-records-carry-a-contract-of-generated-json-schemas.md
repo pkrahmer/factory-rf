@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 240
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T00:04:51.381749Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T00:04:31.307885Z'
   stage: tests
   run: 132e0a172c09407c8549b62994b39585
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:04:51.381749Z'
+  stage: doing
 ---
 
 # The records carry a contract of generated JSON Schemas
@@ -186,3 +195,4 @@ Expect: `1.0 ['at', 'event', 'reason', 'scope']`
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_contract.py - ImportError while importing test module ...
+6. factory: started doing as self.
