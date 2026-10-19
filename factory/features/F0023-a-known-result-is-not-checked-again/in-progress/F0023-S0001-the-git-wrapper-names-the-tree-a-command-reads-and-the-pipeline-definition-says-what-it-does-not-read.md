@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T14:34:07.286058Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T14:33:45.904837Z'
   stage: review
   run: 6cd31f31389b45f58c6f4bfbac87d2a7
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:34:07.286058Z'
+  stage: doing
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -287,3 +296,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - `tests/application/test_interfaces.py`: the human's leave, the story under decision 15 (test renamed). Within the leave.
    - `tests/domain/test_contract.py`: the human's leave, the story under decision 15 (one `"1.2"` became `"1.3"`). Within the leave.
    - `tests/domain/test_contract_provider_limit.py`: the human's leave, the story under decision 15 (two `"1.2"` became `"1.3"`; name and docstring kept). Within the leave.
+10. factory: started doing as self.
