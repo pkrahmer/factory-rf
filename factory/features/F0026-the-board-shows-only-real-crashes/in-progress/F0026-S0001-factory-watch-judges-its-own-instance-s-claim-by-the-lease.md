@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T12:43:08.557633Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T12:42:47.966695Z'
   stage: doing
   run: 6a248fe4e04746e994954f9b7e6db0b0
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T12:43:08.557633Z'
+  stage: tests
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -306,3 +315,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Refactor: I read my diff again and found nothing else to change.
 
     Not touched: the docs for criterion 8 are the documenter's.
+12. factory: started tests as self.
