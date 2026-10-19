@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 279
 comments_read: [6274821134]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T18:55:18.335098Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-19T18:54:56.744121Z'
   stage: intake
   run: da70974357284d00babbdff386044130
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:55:18.335098Z'
+  stage: tests
 ---
 
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
@@ -168,3 +177,4 @@ Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "gi
    - Smoke test: runnable. The stand-in `opencode` plays two calls. The first costs 1.2 against a budget of 1, so the runtime stops it and resumes with `--session ses_s`. The `Expect:` line is checkable against the output: 0.8 s model time (1000 less 100 less 200, plus 100), one denial `{"command": "git push"}`, and the resumed words.
    - Architecture: tests only, in the adapters mirror under `tests/adapters/`. The stand-in and the builders in `opencode_stand_in.py` and `confine_support.py` are imported, not copied. No layer is touched.
    - Scope: within F0020's S0004 and S0006 behaviour and decisions 7, 8, 11 and 18. Nothing in "Out of scope". No earlier test changes.
+7. factory: started tests as self.
