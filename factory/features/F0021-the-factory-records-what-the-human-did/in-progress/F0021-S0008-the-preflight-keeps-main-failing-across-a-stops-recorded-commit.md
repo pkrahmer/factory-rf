@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 243
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T01:03:27.841706Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T01:03:27.841706Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T01:03:43.258715Z'
+  stage: intake
+  run: 6b424916888c4fd19914b75b84f9e288
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -98,3 +100,9 @@ Expect: `0`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: `changes_only_stop_records(paths: Sequence[ChangedPath]) -> bool` in `factory.domain.preflight` and the change to `Preflight._clear_stale_failing_stop` are concrete. `ChangedPath` (`factory.domain.git`), `Git.changed_paths(since)`, `STOP_RECORDS_FILE` (`factory.domain.paths`) and the method itself exist. The domain function sits in the domain layer, the use of `git.changed_paths` in the application layer.
+   Criteria: each is testable by one parametrized test. Criterion 1 covers every Interface clause: empty, each change kind, mixed paths, a similar name and another path. Criterion 2 covers the keep (one commit, two commits) and the clear (mixed, other file). Criterion 3 covers the `cleared` record on both sides. Criterion 4 covers the `GitError` side. The no-stamp, no-`main_failed`, `resolve` error and equal-main branches are stated unchanged, so they need no new criterion.
+   Smoke test: both commands are runnable. The Python snippet prints three lines, and the `grep -c` prints a count. Each `Expect:` line can be checked against the output.
+   Architecture: the layering follows CLAUDE.md. There is no new dependency, and the test modules mirror the package and reuse existing fixtures. Docs go to the three named files.
+   Scope: the work is within feature decision 1, which left this change to a later story. The probe of a new `main`, the stamp and the other preflight rules stay as they are. The existing sentence in `docs/operator-guide.md` line 348 is what the docs criterion replaces.
