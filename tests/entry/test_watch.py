@@ -26,7 +26,7 @@ from factory.domain.identifiers import branch_name
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument, WorkItemState
 from factory.entry.watch import main, render_event, run_watch
-from git_support import PIPELINE_YAML, TEST_IDENTITY, install_agents, run_git
+from git_support import PIPELINE_YAML, TEST_IDENTITY, run_git
 from human_clone import HumanClone
 from source_search import SRC
 
@@ -85,9 +85,7 @@ class _CountingHosting(FakeHostingService):
         super().set_labels(number, labels)
 
 
-@pytest.fixture(autouse=True)
-def _agents(agent_home: Path, boundaries: Boundaries) -> None:
-    install_agents(agent_home, boundaries.pipeline_reader.parse(PIPELINE_YAML).roles)
+pytestmark = pytest.mark.usefixtures("installed_agents")
 
 
 def _definition(boundaries: Boundaries) -> PipelineDefinition:

@@ -15,7 +15,7 @@ from factory.domain.events import EventKind
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.settings import InstanceSettings
 from factory.domain.stops import RepositoryStop
-from git_support import CHECKOUT, PIPELINE_YAML, install_agents, remote_commit
+from git_support import CHECKOUT, remote_commit
 from human_clone import HumanClone
 
 INSTANCE = "factory-1"
@@ -24,9 +24,7 @@ ENOUGH = MIN_FREE_GB * GIGABYTE
 SHORT = ENOUGH - 1
 
 
-@pytest.fixture(autouse=True)
-def _agents(agent_home: Path, boundaries: Boundaries) -> None:
-    install_agents(agent_home, boundaries.pipeline_reader.parse(PIPELINE_YAML).roles)
+pytestmark = pytest.mark.usefixtures("installed_agents")
 
 
 @pytest.fixture

@@ -21,7 +21,7 @@ from factory.domain.paths import cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import done_entry_text
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot
-from git_support import PIPELINE_YAML, remote_commit
+from git_support import remote_commit
 from human_clone import HumanClone
 
 TODO = "factory/features/F0002-todo"
@@ -39,12 +39,6 @@ def _done_report(work_item: str) -> str:
 
 
 Merge = Callable[[str, list[CostRecord]], Event]
-
-
-@pytest.fixture
-def definition(boundaries: Boundaries) -> PipelineDefinition:
-    """Return the test remote's pipeline definition, with the acceptance stage `acceptance`."""
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
 
 
 @pytest.fixture

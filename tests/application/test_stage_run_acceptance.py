@@ -14,7 +14,7 @@ from factory.domain.acceptance import acceptance_description
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemState
-from git_support import PIPELINE_YAML, install_agents
+from git_support import install_agents
 from human_clone import HumanClone
 
 INSTANCE = "factory-1"
@@ -22,12 +22,6 @@ TODO = "factory/features/F0002-todo"
 ACCEPTANCE = "F0002-A0001"
 BRANCH = f"work-item/{ACCEPTANCE}"
 ENVIRONMENT = {"PATH": "/usr/local/bin:/usr/bin", "HOME": "/home/factory"}
-
-
-@pytest.fixture
-def definition(boundaries: Boundaries) -> PipelineDefinition:
-    """Return the test remote's pipeline definition, with the acceptance stage `acceptance`."""
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
 
 
 @pytest.fixture

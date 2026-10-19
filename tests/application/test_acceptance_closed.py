@@ -35,7 +35,7 @@ from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import CLOSE_ENTRY_TEXT
 from factory.domain.sections import section_text
 from factory.domain.work_item import Blocked, WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import PIPELINE_YAML, remote_commit, run_git
+from git_support import remote_commit, run_git
 from human_clone import HumanClone
 
 TODO = "factory/features/F0002-todo"
@@ -61,12 +61,6 @@ RESULT = NewEntry(speaker=ROLE, kind="result", text="accepted with stories.")
 EARLIER_CLOSE = NewEntry(speaker=HUMAN, kind="close", text=CLOSE_ENTRY_TEXT, on=date(2026, 10, 12))
 
 Publish = Callable[..., WorkItemSnapshot]
-
-
-@pytest.fixture
-def definition(boundaries: Boundaries) -> PipelineDefinition:
-    """Return the test remote's pipeline definition, with the acceptance stage `acceptance`."""
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
 
 
 @pytest.fixture

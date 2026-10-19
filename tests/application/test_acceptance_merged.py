@@ -22,7 +22,7 @@ from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.domain.paths import cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import PIPELINE_YAML, remote_commit, run_git
+from git_support import remote_commit, run_git
 from human_clone import HumanClone
 
 TODO = "factory/features/F0002-todo"
@@ -52,12 +52,6 @@ def _body(recommendation: str) -> str:
 
 Publish = Callable[..., WorkItemSnapshot]
 Merge = Callable[[WorkItemSnapshot], Event]
-
-
-@pytest.fixture
-def definition(boundaries: Boundaries) -> PipelineDefinition:
-    """Return the test remote's pipeline definition, with the acceptance stage `acceptance`."""
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
 
 
 @pytest.fixture

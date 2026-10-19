@@ -14,7 +14,7 @@ from factory.domain.paths import STORY_FORM_FILE
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.prompts import PromptFacts, allowed_decisions, compose_prompt
 from factory.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import CHECKOUT, PIPELINE_YAML, run_git
+from git_support import CHECKOUT, run_git
 from human_clone import HumanClone
 
 TODO = "factory/features/F0002-todo"
@@ -25,12 +25,6 @@ STORY_PATH = "factory/features/F0001-example/in-progress/F0001-S0002-second.md"
 REPORT_BODY = "# Acceptance of Todo service\n\n## Journal\n"
 ENVIRONMENT = {"PATH": "/opt/guard", "HOME": "/home/factory"}
 FACT_PREFIX = "Archived stories:"
-
-
-@pytest.fixture
-def definition(boundaries: Boundaries) -> PipelineDefinition:
-    """Return the test remote's pipeline definition, with the acceptance stage `acceptance`."""
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
 
 
 @pytest.fixture

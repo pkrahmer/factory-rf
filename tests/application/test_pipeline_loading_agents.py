@@ -21,12 +21,6 @@ FIRST_ROLE = "tester"
 SECOND_ROLE = "coder"
 
 
-@pytest.fixture
-def installed_agents(boundaries: Boundaries, agent_home: Path) -> None:
-    """Install a valid agent file for every role of the remote's definition."""
-    install_agents(agent_home, boundaries.pipeline_reader.parse(PIPELINE_YAML).roles)
-
-
 pytestmark = pytest.mark.usefixtures("installed_agents")
 
 
