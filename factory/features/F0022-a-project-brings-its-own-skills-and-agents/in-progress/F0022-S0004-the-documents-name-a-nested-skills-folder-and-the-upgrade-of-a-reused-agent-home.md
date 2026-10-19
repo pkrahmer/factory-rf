@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 284
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T20:34:45.458740Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T20:34:24.904423Z'
   stage: review
   run: 301d88d98c3d4d108688f838ddf2ff55
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:34:45.458740Z'
+  stage: docs
 ---
 
 # The documents name a nested skills folder and the upgrade of a reused agent home
@@ -145,3 +154,4 @@ Expect: `documents ok`
    6. Earlier tests: no test file changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the work item's two files).
 
    The coder's `duplicates: 5 new` record cannot come from this branch, since it changes nothing under `src/factory`. It is outside this review's scope.
+10. factory: started docs as self.
