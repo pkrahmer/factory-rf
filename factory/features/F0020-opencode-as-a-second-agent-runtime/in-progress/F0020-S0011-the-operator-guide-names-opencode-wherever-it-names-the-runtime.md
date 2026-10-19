@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 280
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T19:09:22.418535Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T19:09:01.860400Z'
   stage: intake
   run: 1954926014f04202a4728400b340dfdc
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T19:09:22.418535Z'
+  stage: tests
 ---
 
 # The operator guide names opencode wherever it names the runtime
@@ -88,3 +97,4 @@ Expect: `documents ok`
    - Smoke test: all three blocks run as written. I checked the current counts in `docs/operator-guide.md` and the headings the `sed` range uses. "The agent runtime's executable" appears once and "the runtime's own folder" appears once, so the Expect values of `0` are reachable by the edit. `.local/state/opencode` appears once now, so the Expect of at least `2` needs the new bullet to mention it, as criterion 3 requires. `### Update the pins` and `### Claude Code` both exist, in that order, so the `sed` range is valid. Each `Expect:` line is a number or a string that the output can be checked against.
    - Architecture: the story changes only `docs/operator-guide.md`, which is the documenter's write path. It touches no layer, no code and no test. It names `tests/test_opencode_image.py` and `image/` only as text for the guide to cite.
    - Scope: F0020's scope lists `docs/operator-guide.md` under each story's docs criterion. The story adds no new section and does not touch Out of scope items. It corrects older passages that S0008's `Running on opencode` section left inconsistent.
+4. factory: started tests as self.
