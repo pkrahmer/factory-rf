@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T20:25:08.457788Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-19T20:24:48.023835Z'
   stage: docs
   run: 9010406901a9444aa51a4def0a17c617
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:25:08.457788Z'
+  stage: smoke-test
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -319,3 +328,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 4dd869fc6664 at 2026-10-19T20:22:35Z)
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
