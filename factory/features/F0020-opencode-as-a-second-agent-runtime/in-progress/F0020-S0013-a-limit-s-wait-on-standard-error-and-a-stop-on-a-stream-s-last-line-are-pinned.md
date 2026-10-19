@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T23:01:40.760924Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-19T23:01:20.574439Z'
   stage: tests
   run: 4c2ec8b77b324468812a76ec23d31103
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:01:40.760924Z'
+  stage: doing
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -274,3 +283,4 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (45.4 s)
+17. factory: started doing as self.
