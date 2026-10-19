@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 302
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T23:41:34.122229Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T23:41:13.681451Z'
   stage: docs
   run: d4a9fbb9b57e465fb6d2553a01de5962
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:41:34.122229Z'
+  stage: smoke-test
 ---
 
 # The documents record the proof run of a project's skill and coder
@@ -180,3 +189,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
