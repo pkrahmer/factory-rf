@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-19T04:36:53.600527Z'
   stage: smoke-test
   run: 214e01b6ad80448bbb017e3175a6b3c2
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-19T04:38:11.605292Z'
+  stage: approval
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -397,3 +402,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Judged against the acceptance criteria: the output agrees with criterion 1 (stream labels for both streams), criterion 3 (a stop on a line kills the run at once, returns within the bound, and passes no later line) and criterion 9 (`one` and `two` arrived before `stop`, while the child was still running). It contradicts no criterion. The smoke test does not exercise the time limit, a callback that raises, `merge_stderr`, a missing executable or `duration`; the tests cover those.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 11.8 min, 79 turns, 258015 tokens in (1498986 more from cache), 39566 out, $2.77
