@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 271
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T16:29:22.644247Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T16:29:22.644247Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T16:31:13.590887Z'
+  stage: doing
+  run: a1dace531ebc4bd5a9b51d8ae44c3d91
 ---
 
 # A report stopped at its time limit says so in its journal line
@@ -116,3 +118,11 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/domain/test_command_line_time_limit.py::test_only_a_command_stopped_at_its_time_limit_gets_the_stop_note[empty-last-line]
 6. factory: started doing as self.
+7. coder: Built `command_line` in `src/factory/domain/checks.py`. For a result whose status is `time_limit`, the line gets ` (stopped at its time limit after <s> s)` at its end, where `<s>` is `int(result.duration.total_seconds())`. When the last line is empty, the note follows `` `<command>`: `` directly, with no double space. Passed, failed and reused lines go through the same code as before. Nothing outside `checks.py` changed: `StageFinisher` already writes every check and report through `command_line`.
+   Main choice: the stop note is an early return inside `command_line`, ahead of the reuse note. A reused result is always `passed`, so the two notes never meet. Rejected: a separate helper for each note, which would add structure that one extra branch does not need.
+   Refactor: I read the diff and found nothing to change.
+   `make check`: green. The two new tests by the tester pass, and so do the earlier `tests/domain/test_command_line.py` and `tests/application/test_stage_finish.py`.
+   Noticed, not touched: the docs (criterion 4) are the documenter's job.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone

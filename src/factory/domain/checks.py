@@ -86,8 +86,12 @@ class CheckResult(BaseModel):
 
 
 def command_line(result: CheckResult) -> str:
-    """`` `<command>`: <last line> ``, naming the earlier run a reused result took."""
+    """`` `<command>`: <last line> ``, naming a stop at the time limit or the reused run."""
     line = f"`{result.command}`: {result.last_line}"
+    if result.status == "time_limit":
+        seconds = int(result.duration.total_seconds())
+        note = f"(stopped at its time limit after {seconds} s)"
+        return f"{line} {note}" if result.last_line else f"{line}{note}"
     if result.reused is None:
         return line
     tree = result.reused.tree[:12]
