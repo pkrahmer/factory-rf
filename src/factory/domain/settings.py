@@ -1,5 +1,6 @@
 """The settings of one factory instance: its one project, its name and its fixed paths."""
 
+import re
 from collections.abc import Callable, Mapping
 from pathlib import Path
 
@@ -8,6 +9,12 @@ from pydantic import BaseModel, ConfigDict, PositiveInt, TypeAdapter, Validation
 from factory.domain.errors import SettingsInvalid
 from factory.domain.git import DEFAULT_GIT_IDENTITY, GitIdentity
 from factory.domain.identifiers import Name
+from factory.domain.provider_limits import (
+    DEFAULT_LIMIT_STATUS,
+    HIGHEST_STATUS,
+    LOWEST_STATUS,
+    ProviderLimit,
+)
 
 # The default identity is still read from here; its one definition is in the git module.
 __all__ = ["DEFAULT_GIT_IDENTITY", "InstanceSettings", "read_setting_file", "read_settings"]
@@ -31,6 +38,8 @@ API_LOGIN_FILE_VARIABLE = "FACTORY_API_LOGIN_FILE"
 AGENT_USER_VARIABLE = "FACTORY_AGENT_USER"
 MIN_FREE_SPACE_VARIABLE = "FACTORY_MIN_FREE_GB"
 DEFAULT_MIN_FREE_GB = 5
+PROVIDER_LIMIT_STATUS_VARIABLE = "FACTORY_PROVIDER_LIMIT_STATUS"
+PROVIDER_LIMIT_MESSAGE_VARIABLE = "FACTORY_PROVIDER_LIMIT_MESSAGE"
 RUNS_DIRECTORY_NAME = "runs"
 _HOME_VARIABLE = "HOME"
 _CLAUDE_EXECUTABLE_DEFAULT = "claude"
@@ -58,6 +67,7 @@ class InstanceSettings(BaseModel):
     agent_user: Name | None = None
     min_free_gb: PositiveInt = DEFAULT_MIN_FREE_GB
     temporary_directory: Path | None = None
+    provider_limit: ProviderLimit = ProviderLimit()
 
 
 def read_settings(
@@ -81,6 +91,10 @@ def read_settings(
         pinned_agent_version=_optional(environ, CLAUDE_VERSION_VARIABLE) or None,
         agent_user=_agent_user(environ),
         min_free_gb=_min_free_gb(environ),
+        provider_limit=ProviderLimit(
+            status=_provider_limit_status(environ),
+            message=_provider_limit_message(environ),
+        ),
     )
 
 
@@ -129,6 +143,34 @@ def _min_free_gb(environ: Mapping[str, str]) -> int:
             MIN_FREE_SPACE_VARIABLE, "is not a whole number of gigabytes of at least 1"
         )
     return int(value)
+
+
+def _provider_limit_status(environ: Mapping[str, str]) -> int:
+    value = _optional(environ, PROVIDER_LIMIT_STATUS_VARIABLE)
+    if not value:
+        return DEFAULT_LIMIT_STATUS
+    # `isdigit` alone takes other scripts' digits, which `int` reads but no operator means.
+    if not (value.isascii() and value.isdigit()) or not (
+        LOWEST_STATUS <= int(value) <= HIGHEST_STATUS
+    ):
+        raise SettingsInvalid(
+            PROVIDER_LIMIT_STATUS_VARIABLE,
+            f"is not an HTTP status from {LOWEST_STATUS} to {HIGHEST_STATUS}",
+        )
+    return int(value)
+
+
+def _provider_limit_message(environ: Mapping[str, str]) -> str | None:
+    value = _optional(environ, PROVIDER_LIMIT_MESSAGE_VARIABLE)
+    if not value:
+        return None
+    try:
+        re.compile(value)
+    except re.error as error:
+        raise SettingsInvalid(
+            PROVIDER_LIMIT_MESSAGE_VARIABLE, f"is not a regular expression: {error}"
+        ) from error
+    return value
 
 
 def _name(variable: str, value: str) -> str:

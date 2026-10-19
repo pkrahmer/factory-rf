@@ -205,6 +205,7 @@ class _Event(BaseModel):
 
     type: Literal["step_start", "tool_use", "text", "step_finish", "error"]
     timestamp: NonNegativeInt
+    session_id: str | None = Field(default=None, alias="sessionID")
     part: _Part | None = None
     error: _Error | None = None
 
@@ -399,6 +400,11 @@ def _answer(events: Sequence[_Event], allowed_decisions: Sequence[str]) -> tuple
     return None if not texts else parse_result_block(texts[-1], allowed_decisions)
 
 
+def _session(events: Sequence[_Event], request: AgentRunRequest) -> str | None:
+    named = (event.session_id for event in events if event.session_id is not None)
+    return next(named, request.resume_session)
+
+
 def _end_reason(
     process: ProcessResult, steps: Sequence[_Step], answer: tuple[str, str] | None
 ) -> EndReason:
@@ -414,10 +420,11 @@ def _end_reason(
 def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
     # The duration is the whole run's, so `run` sets it once the call has ended.
     login = login_used(process.stderr)
+    events = _events(process.stdout)
+    session = _session(events, request)
     # A killed call's output is cut short, so whatever it printed is not its measure.
     if process.timed_out:
-        return AgentRunResult(end_reason="time_limit", duration=_ZERO, login=login)
-    events = _events(process.stdout)
+        return AgentRunResult(end_reason="time_limit", duration=_ZERO, login=login, session=session)
     steps = _steps(events)
     answer = _answer(events, request.allowed_decisions)
     end_reason = _end_reason(process, steps, answer)
@@ -433,6 +440,7 @@ def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
         cost_usd=sum((Decimal(str(step.cost)) for step in steps), Decimal(0)) if steps else None,
         permission_denials=_denials(events),
         login=login,
+        session=session,
     )
 
 
@@ -583,6 +591,8 @@ class OpencodeRuntime(AgentRuntime):
     def _opencode_argv(self, request: AgentRunRequest, model: str) -> list[str]:
         agent = f"{AGENT_PREFIX}{request.agent.name}"
         arguments = ["run", "--format", "json", "--auto", "--model", model, "--agent", agent]
+        if request.resume_session is not None:
+            arguments += ["--session", request.resume_session]
         return [
             *login_argv(self._starters.login_files),
             self._executable,

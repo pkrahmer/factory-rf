@@ -37,7 +37,7 @@ ALLOWED_ENVIRONMENT_NAMES: frozenset[str] = frozenset(
     {"PATH", "HOME", "LANG", "LC_ALL", "TERM", "TZ"}
 )
 
-EndReason = Literal["completed", "no_result", "time_limit", "budget", "died"]
+EndReason = Literal["completed", "no_result", "time_limit", "budget", "died", "provider_limit"]
 # The login a run's calls were handed: an API key, the subscription's token, or neither.
 Login = Literal["api_key", "subscription", "none"]
 
@@ -94,6 +94,7 @@ class AgentRunRequest(BaseModel):
     environment: dict[str, str] = {}
     guard: GuardSettings | None = None
     os_user: str | None = None
+    resume_session: str | None = None
 
     @field_validator("allowed_decisions")
     @classmethod
@@ -111,6 +112,13 @@ class AgentRunRequest(BaseModel):
         if time_limit <= timedelta(0):
             raise ValueError(f"time limit must be positive, got {time_limit}")
         return time_limit
+
+    @field_validator("resume_session")
+    @classmethod
+    def _resume_session_is_not_blank(cls, session: str | None) -> str | None:
+        if session is not None and not session.strip():
+            raise ValueError("a session to resume must not be blank")
+        return session
 
 
 class TokenCounts(BaseModel):
@@ -149,6 +157,8 @@ class AgentRunResult(BaseModel):
     cost_usd: Decimal | None = None
     permission_denials: list[PermissionDenial] = []
     login: Login | None = None
+    session: str | None = None
+    limit_wait: timedelta | None = None
 
     @model_validator(mode="after")
     def _decision_and_entry_only_when_completed(self) -> Self:
@@ -158,6 +168,16 @@ class AgentRunResult(BaseModel):
                 raise ValueError(f"a completed run needs a {field}")
             if not completed and value is not None:
                 raise ValueError(f"a run that ended by {self.end_reason} has no {field}")
+        return self
+
+    @model_validator(mode="after")
+    def _limit_wait_only_when_limited(self) -> Self:
+        if self.limit_wait is None:
+            return self
+        if self.end_reason != "provider_limit":
+            raise ValueError(f"a run that ended by {self.end_reason} has no limit_wait")
+        if self.limit_wait <= timedelta(0):
+            raise ValueError(f"limit_wait must be positive, got {self.limit_wait}")
         return self
 
     @property
@@ -191,11 +211,15 @@ def resumed_result(first: AgentRunResult, second: AgentRunResult) -> AgentRunRes
     """The result of a run whose `first` call the `second` resumed: its answer, both calls' sums."""
     denials = [*first.permission_denials, *second.permission_denials]
     duration = first.duration + second.duration
+    session = second.session if second.session is not None else first.session
     # R24: a resume the time limit ended has no measures, and the first call's alone are partial.
     if second.end_reason == "time_limit":
-        return second.model_copy(update={"permission_denials": denials, "duration": duration})
+        return second.model_copy(
+            update={"permission_denials": denials, "duration": duration, "session": session}
+        )
     return second.model_copy(
         update={
+            "session": session,
             "duration": duration,
             "model_duration": _add(first.model_duration, second.model_duration),
             "turns": _add(first.turns, second.turns),

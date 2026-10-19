@@ -37,6 +37,7 @@ _STALL_SENTENCES: dict[StallReason, str] = {
     "nested_repository": (
         "the agent left a git repository in the work tree, which the factory removed"
     ),
+    "provider_limit": "the provider's spend limit lasted past the waiting ceiling",
 }
 
 

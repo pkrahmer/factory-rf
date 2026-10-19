@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T07:39:04.600998Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-19T07:39:04.600998Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-19T07:46:51.207230Z'
+  stage: doing
+  run: 07ccd54c62c048ae8237285abeb1b5a9
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -331,3 +333,43 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: ERROR tests/entry/test_wiring_provider_limit.py - ImportError while importing...
 12. factory: started doing as self.
+13. coder: I made the failing tests pass without editing any test. `make check` is green.
+
+    What I built:
+    - `src/factory/domain/provider_limits.py` (new). It holds `ProviderLimit`: status 100 to 599, and a `message` that must compile; a `re.error` is turned into a `ValueError` so Pydantic refuses it. It also holds `limit_in_text`, which matches the status as a whole number through `(?<!\d)`/`(?!\d)` or searches the message, and `named_wait`, which is one case-insensitive regex. Its unit list puts the longer names first, so `min` is not read as `m`.
+    - `src/factory/domain/agent_runs.py`:
+      - `EndReason` gains `provider_limit`.
+      - `AgentRunRequest.resume_session` refuses a blank value.
+      - `AgentRunResult.session` and `limit_wait` are new; a separate validator refuses a `limit_wait` on any other reason, or one that is not positive.
+      - `resumed_result` takes the second call's session, else the first's.
+    - `src/factory/domain/settings.py`: `PROVIDER_LIMIT_STATUS_VARIABLE`, `PROVIDER_LIMIT_MESSAGE_VARIABLE` and `InstanceSettings.provider_limit`. The status takes ASCII digits only, the same guard as `_min_free_gb`.
+    - `src/factory/domain/journal.py` and `src/factory/domain/post_texts.py`: the stall reason `provider_limit` and its sentence.
+    - `src/factory/domain/contract.py`: `RECORDS_CONTRACT` is now `"1.2"`. I regenerated the five schemas under `src/factory/contract/` with `uv run python -m factory.entry.contract`.
+    - `src/factory/adapters/claude_runtime.py`:
+      - `_Reply.result` is new, and so is the constructor keyword `provider_limit`.
+      - `_limit_text` returns the error reply's `result`, or, when no reply parses, the first standard error line that holds the limit. `_end_reason` checks it after `time_limit` and `budget`.
+      - `limit_wait` is `named_wait` of that text.
+      - Every result carries `session`.
+      - `_session_arguments` uses `--resume <resume_session>` in place of `--session-id`. The run's files still take a fresh uuid.
+      - `_resume_arguments` leaves an existing `--resume` as it is.
+      - Adding the new return in `_end_reason` hit ruff's PLR0911 limit, so I moved the answer check into `_answered`.
+    - `src/factory/adapters/opencode_runtime.py`:
+      - `_Event.session_id` (alias `sessionID`) is new.
+      - `_session` gives the first event's session, else the request's `resume_session`.
+      - `--session <id>` goes right before the prompt.
+      - A time-limited result also carries the session, so the events are now parsed before the time-limit return.
+    - `src/factory/entry/wiring.py`: passes `settings.provider_limit` to `ClaudeCodeRuntime`.
+    - `src/factory/application/costs.py` needed no change: it already treats only `died` and `time_limit` as having no reply.
+
+    Main design choice: `_result` in the Claude runtime is given the session as a parameter, and the resume call gets `first.session`. I rejected two alternatives:
+    - Reading the session back from the argument list.
+    - A helper that raises when a result has no session. That would be a branch no test can reach, only there to satisfy the type.
+
+    I also rejected stretching `_end_reason` with a seventh return and a lint exception. Splitting out `_answered` keeps it under ruff's limit.
+
+    Refactor pass: I moved the comment in the opencode `_result` back next to the `if process.timed_out` it explains. Nothing else needed changing.
+
+    Seen but not touched: `make duplicates` reports 5 new findings, none from this story's diff. Three are code shared between the two runtimes, at the `call_refusal`, `version_printed` and `confine_executable` blocks. Two are vulture dead-code reports: `status_code` at opencode_runtime.py:193 and the class `OpencodeRuntime`. The opencode ones are not in `security/duplicates-baseline.txt` (it has no opencode entries at all), so they most likely come from the earlier opencode stories. The docs (criterion 20) are for the docs stage.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 1 gone
