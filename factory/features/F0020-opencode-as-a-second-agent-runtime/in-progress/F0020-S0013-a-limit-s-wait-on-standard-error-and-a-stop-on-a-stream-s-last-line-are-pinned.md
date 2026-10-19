@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T22:52:13.780524Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-19T22:51:56.041325Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:52:13.780524Z'
   stage: intake
 ---
 
@@ -125,3 +134,4 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
 
    The format check passed.
 4. 2026-10-19 human: (a). Add a row to criterion 1 for a line such as `HTTP 4281 Precondition Required, retry after 120 seconds`, with a stand-in that ends with a valid result block: `completed`, `limit_wait` `None`. Place it before the two closing rows. This follows CLAUDE.md's rule that every limit the Interface states is tested on both sides.
+5. factory: started intake as self.
