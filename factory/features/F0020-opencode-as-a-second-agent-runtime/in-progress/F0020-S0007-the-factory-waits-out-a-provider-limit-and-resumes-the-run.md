@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T10:49:21.707926Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-10-19T10:49:01.372614Z'
   stage: review
   run: 8748505153d444448db07be10fb3efcb
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:49:21.707926Z'
+  stage: doing
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -451,3 +460,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     I stopped at group 1 (acceptance criteria), as the checklist says. Every other criterion from 1 to 17 has a test that checks what its criterion says. Entry 17 records that `make check` was green after the coder.
 
     Earlier tests: none changed. Every test file in the diff has status `A`.
+20. factory: started doing as self.
