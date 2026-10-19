@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T14:47:18.041497Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -144,6 +140,12 @@ journal:
   kind: started
   at: '2026-10-19T14:47:18.041497Z'
   stage: review
+- number: 25
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T14:47:56.219692Z'
+  stage: review
+  run: 0013be7b4d404c608a3546ce0766b02c
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -529,3 +531,30 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 7 new, 33 known, 3 gone
 24. factory: started review as self.
+25. reviewer: Round 2 review of `git diff main...HEAD -- . ':!factory'` against the work item. Of the generated schemas, I left out the five `src/factory/contract/*.schema.json` files and checked them only through `--stat` and the tests. Four of them change one line each (the version). The pipeline definition's schema gains `not_read`, which `tests/entry/test_contract_not_read.py` checks.
+
+    no findings
+
+    Checked:
+    - Acceptance criteria: criteria 1 to 9 each have a test that checks what the criterion says. Round 1's finding is closed: criterion 9's rows `docs/~old/*`, `docs/a..b/*` and `docs..x/*` are now in `ACCEPTED` (`tests/domain/test_pipeline_not_read.py:50`). So the leading-`~` limit and the `..`-segment limit of `_is_checkout_pattern` (`src/factory/domain/pipeline_definition.py:278`) are each tested on both sides.
+    - Other limits tested on both sides:
+      - `TreeId`: 39, 40 and 41 characters, upper case, and a non-hex character.
+      - `work_tree_id`: `Docs/*` (case) and `docsx` (a sibling folder).
+      - Literal removal: `a[*]b.md` and `:x.md` are removed, while `aXb.md` and `x.md` stay.
+      - Errors: the refused patterns, the order and joining of the faults (also after `tool_paths`), the non-list, number, empty and blank `not_read`, and `GitError` together with the emptied temporary folder.
+    - Entry 23 records `make check` green.
+    - Architecture: git is reached only through `GitCli._run`. The temporary index reaches git through the `index` keyword, which `_environment` turns into `GIT_INDEX_FILE`. `update-index --force-remove --` takes literal paths. `is_inside_checkout` moved into `pipeline_definition` without an import cycle. The contract minor goes from 1.2 to 1.3 for an optional field, as the version rule requires.
+    - Security: no markers, no shell or SQL built from strings, no secrets.
+    - Quality: the round-0 copied helper is now one `pipeline_outcome` in `tests/git_support.py`. `TreeId` repeats `CommitId`'s pattern, but the Interface prescribes that line.
+    - Hygiene: the Description matches what was built. Criterion 11 (docs) still names what the documenter must write.
+
+    Earlier tests (status M against `main`):
+    - `tests/application/test_git_interface.py`: the human's leave, the story's named change under the feature's decision 15 (`work_tree_id` added to `OPERATIONS`, test renamed to `..._twenty_four_...`). Within it.
+    - `tests/application/test_interfaces.py`: the human's leave, decision 15 (test renamed to `..._twenty_four_...`). Within it.
+    - `tests/domain/test_contract.py`: the human's leave, decision 15 (one `"1.2"` became `"1.3"`). Within it.
+    - `tests/domain/test_contract_provider_limit.py`: the human's leave, decision 15 (two `"1.2"` became `"1.3"`, name and docstring kept). Within it.
+    - `tests/git_support.py`: the standing leave to move a shared test helper (`pipeline_outcome` added as the shared place). Within it.
+    - `tests/domain/test_tool_paths.py`: the standing leave (`_outcome` replaced by `pipeline_outcome`, the unused import dropped). Within it.
+    - `tests/adapters/test_pipeline_rules.py`: the standing leave (`_outcome` replaced; three asserts rewrapped, each checking the same text). Within it.
+    - `tests/adapters/test_pipeline_strict_values.py`: the standing leave (`_outcome` replaced). Within it.
+    - `tests/adapters/test_pipeline_stage_moves.py`: the standing leave (`_outcome` replaced). Within it.
