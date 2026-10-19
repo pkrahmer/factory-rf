@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T18:40:35.120866Z'
   stage: acceptance
   run: 73149d370e334165bb2874178d4709c9
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T18:42:58.724313Z'
+  stage: done
 stories: [F0026-S0001, F0026-S0002, F0026-S0003, F0026-S0004]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The board shows only real crashes
@@ -414,3 +419,4 @@ None. Every leftover found is cosmetic, settled, outside the feature or the huma
    6 Decisions taken for the human: `feature.md` decisions 1–8; the human's answers S0002 (a), line 87 uncovered, and S0003 (b), helpers moved to `tests/work_item_support.py`; the defaults of the S0003 and S0004 testers and of S0003's reviewer. Open for the human: who rewrites a Description, since the coder lacks `{work_item}`; I would choose the reviewer. Every earlier test was changed with a leave: entry 10 of S0003, or the standing leave for S0004's 19 modules.
    7 Slow checks: none beyond `make check` and `make mutants`. Disk used is unchanged (0.5 GB on /work). Free space fell by 1 GB on the shared filesystem, outside the factory's folders. The slowest tests are the 5.01 s runtime time-limit tests, none of them this feature's. The 20 new test cases take 2.63 s together.
    8 Cost: $8.91 over 36 runs and 34.8 min: S0001 $3.33, S0002 $1.81, S0003 $2.54, S0004 $1.23. Two questions answered, 0.1 h waited, one each for S0002 and S0003. S0003 cost more for its question: a full rework round. Both questions came from the wording of the first acceptance's proposals.
+3. factory: done (pull request merged); cost: 1 runs, 8.8 min, 25 turns, 113992 tokens in (1832007 more from cache), 22537 out, $1.73
