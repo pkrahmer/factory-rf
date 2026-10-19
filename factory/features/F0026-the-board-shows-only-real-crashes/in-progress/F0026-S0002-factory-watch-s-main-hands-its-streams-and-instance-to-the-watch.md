@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 276
 comments_read: [6274062567]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T18:16:49.584875Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -105,6 +101,12 @@ journal:
   kind: started
   at: '2026-10-19T18:16:49.584875Z'
   stage: review
+- number: 18
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T18:17:12.502993Z'
+  stage: review
+  run: f14baac4a94e47f3849bf680cbeeb198
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -313,3 +315,22 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
     `check`: check: green (not run again: passed on tree e7b6aec770f3 at 2026-10-19T18:09:19Z)
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 17. factory: started review as self.
+18. reviewer: no findings
+
+    I reviewed `git diff main...HEAD -- . ':!factory'`. It adds two test files, `tests/entry/test_watch_main.py` and `tests/application/test_watcher_main_ref.py`. Nothing under `src/` changes.
+
+    - Group 1, acceptance criteria: each of criteria 1 to 5 has a test that checks what the criterion says. I read them against `main` in `src/factory/entry/watch.py:59-83`.
+      - Criterion 1 removes `FACTORY_INSTANCE`, so a `main` that read the environment would end with status 2.
+      - Criterion 3 has one row per stream.
+      - Criterion 4's `only-instance` row would fail if `main` dropped `instance = settings.instance`: the claim would read `expired` instead of `crash`.
+      - Criterion 5 checks the exact `str` through both `run_watch` and `Watcher`.
+      - Entry 16 reports `check: green` after the merge of `origin/main` (a93997d1).
+      - The coder's entry has no `mutants` line, so there was no mutation report to read.
+    - Groups 2 to 4 (architecture, security, quality): the files are tests only, in folders that mirror the package. They add no markers that silence a check, and they copy no existing helper.
+    - Group 5, work item hygiene: finding 1 of round 0 (line 87 of `watch.py` still uncovered while the Description says "pins all of that") is settled by the human's answer in entry 14, option (a). Line 87 stays uncovered, and the journal records the Description's exception. The docs criterion, "none", still holds.
+
+    Earlier tests: none needed. `git diff --name-status main...HEAD` shows only added test files (`A`), so no test file that `main` already holds was changed.
+
+    Notes:
+    - `tests/entry/test_watch_main.py:108-111`: the stand-in names its keyword `_hosting`, but `boundaries_from_environment` (`src/factory/entry/wiring.py:205-207`) calls it `hosting`. `main` passes no hosting, so nothing breaks, but `hosting` would match the real function.
+    - `tests/entry/test_watch_main.py:65-91`: the criterion 3 test does not assert `main`'s return status. The criterion does not ask for it, and criteria 1 and 2 already pin it.
