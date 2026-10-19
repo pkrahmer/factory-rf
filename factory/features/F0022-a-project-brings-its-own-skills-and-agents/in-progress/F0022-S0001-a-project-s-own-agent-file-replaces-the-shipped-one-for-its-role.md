@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 264
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T13:24:51.211353Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T13:24:30.582009Z'
   stage: review
   run: 5fe8c8a5480b4c188a5fafaa829d48b7
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T13:24:51.211353Z'
+  stage: doing
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -288,3 +297,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - `tests/application/test_agent_definition_reader.py`: the human's leave. The story's Interface names both changes under the feature's decision 14 (`parse` added to the expected abstract methods and sorted names; both tests keep their names).
    - `tests/domain/test_write_paths.py`: the human's leave. The story's Interface names the rename to `test_the_protected_paths_are_the_engines_eleven_patterns` and `"factory/agents/*"` added last.
    - `tests/entry/test_wiring_boundaries.py`: the human's leave. The story's Interface names both changes: the expected class becomes `ProjectAgentDefinitions`, and the test clones `remote` into `settings.checkout` and checks the same names. The removed `FrontmatterAgentDefinitionReader` import was left unused by that change.
+10. factory: started doing as self.
