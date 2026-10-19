@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T10:32:50.565965Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-19T10:32:50.565965Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-19T10:38:45.575529Z'
+  stage: tests
+  run: 85de9328a509459c9a424472213a5ac1
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -253,3 +255,52 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the `Waiter` interface lives in `application`, its implementations in `adapters`, the limit values in `domain`, and the wiring in `entry`. The layering holds, and no `AgentRunRequest` is built outside `model_copy`.
    - Scope: within S0007's part of F0020's Scope. It touches no "Out of scope" item and changes no earlier test.
 7. factory: started tests as self.
+8. tester: Wrote the tests for criteria 1–17. `make lint` is green. `make test` fails as intended: the test modules cannot be imported because the modules and names under test don't exist yet.
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_waiters.py::test_a_manual_wait_advances_the_clock_and_is_recorded, and tests/adapters/test_waiters.py::test_a_wait_of_zero_returns_and_a_negative_one_is_refused (rows: sleeping and manual waiter × zero and minus one second)
+   - criterion 2: tests/domain/test_provider_limit_wait.py::test_the_limit_waits_ten_minutes_up_to_two_hours_by_default, and tests/domain/test_provider_limit_wait.py::test_the_cooldown_is_a_minute_or_more_and_the_ceiling_no_shorter (rows: 1 min/1 min, 59 s cool-down, ceiling one second below the cool-down)
+   - criterion 3: tests/domain/test_settings_provider_limit_wait.py::test_the_variables_have_their_names, ::test_the_cooldown_and_ceiling_are_read_in_minutes, ::test_a_value_that_is_not_whole_minutes_of_at_least_one_is_refused, ::test_a_ceiling_below_the_cooldown_is_refused_naming_the_ceiling
+   - criterion 4: tests/application/test_patient_runs.py::test_a_run_not_stopped_by_a_limit_comes_back_as_it_is
+   - criterion 5: tests/application/test_patient_runs.py::test_a_limited_run_waits_the_cooldown_and_resumes_its_session_with_what_is_left
+   - criterion 6: tests/application/test_patient_runs.py::test_a_named_wait_is_waited_instead_of_the_cooldown_within_the_ceiling
+   - criterion 7: tests/application/test_patient_runs.py::test_a_limit_that_lasts_ends_the_run_at_the_ceiling
+   - criterion 8: tests/application/test_patient_runs.py::test_a_named_wait_is_cut_to_what_is_left_of_the_ceiling (rows: second limit names 25 min, or names nothing)
+   - criterion 9: tests/application/test_patient_runs.py::test_a_limited_run_without_a_session_starts_a_new_run_with_what_is_left
+   - criterion 10: tests/application/test_patient_runs.py::test_a_limited_run_with_nothing_left_ends_without_a_wait (rows on both sides of each bound: cost 1.00, 1.20 and 0.99; duration 60 s and 59 s; both used up)
+   - criterion 11: tests/application/test_patient_runs.py::test_without_a_waiter_a_limited_run_comes_back_after_one_call, and ::test_without_settings_the_default_limit_applies
+   - criterion 12: tests/application/test_sealed_runs_runner.py::test_a_sealed_run_calls_its_runner_instead_of_the_runtime (rows: git folder left sealed, git folder swapped)
+   - criterion 13: tests/application/test_stage_provider_limit.py::test_a_stage_that_waits_out_a_limit_moves_on_as_a_completed_run
+   - criterion 14: tests/application/test_stage_provider_limit.py::test_a_stage_whose_limit_outlasts_the_ceiling_stalls_with_its_note
+   - criterion 15: tests/application/test_sealed_runs_runner.py::test_the_probe_does_not_wait_out_a_provider_limit
+   - criterion 16: tests/entry/test_wiring_waiter.py::test_the_built_boundaries_wait_by_sleeping
+   - criterion 17: tests/application/test_patient_runs.py::test_the_log_lines_give_whole_seconds_and_the_waits_are_kept_whole (rows: a 90.9 s named wait; a ceiling of 1800.7 s reached after waits of 600, 600 and 600.7 s)
+
+   Files created:
+   - tests/adapters/test_waiters.py
+   - tests/domain/test_provider_limit_wait.py
+   - tests/domain/test_settings_provider_limit_wait.py
+   - tests/application/test_patient_runs.py
+   - tests/application/test_sealed_runs_runner.py
+   - tests/application/test_stage_provider_limit.py
+   - tests/entry/test_wiring_waiter.py
+
+   No earlier test was changed.
+
+   Decisions worth knowing:
+   - The stage tests (13, 14) use the shared helpers in `tests/stage_run_support.py` (`open_story`, `run_stage`, `pushed_state`, `branch_head`). This is the shared form of what test_stage_launch and test_stalls do, so nothing is copied.
+   - The sealed-run tests import `_request`, `_swap_for_folder` and the constants from `application.test_sealed_runs`.
+   - The probe test (15) is in test_sealed_runs_runner.py, because the Interface names no file for it.
+   - For criterion 17's second row, the 1800.7 s total is only reachable with a ceiling of exactly 1800.7 s. The waits are cut at the ceiling, so they can never add up to more than it. The expected line is therefore `waited 1800 s, the ceiling of 1800 s`.
+
+   Modules the test run could not import (the cause of the collection errors):
+   - factory.adapters.clock: ManualWaiter, SleepingWaiter
+   - factory.application.machine: Waiter
+   - factory.application.provider_limits
+   - factory.domain.provider_limits: DEFAULT_COOLDOWN, DEFAULT_CEILING
+   - factory.domain.settings: PROVIDER_LIMIT_COOLDOWN_VARIABLE, PROVIDER_LIMIT_CEILING_VARIABLE
+
+   `Boundaries.waiter` and `run_sealed(..., run=)` don't exist yet either.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/entry/test_wiring_waiter.py - ImportError while importing test mo...
