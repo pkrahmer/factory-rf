@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 284
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T20:34:04.093787Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T20:34:04.093787Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T20:34:24.904423Z'
+  stage: review
+  run: 301d88d98c3d4d108688f838ddf2ff55
 ---
 
 # The documents name a nested skills folder and the upgrade of a reused agent home
@@ -134,3 +136,12 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 4dd869fc6664 at 2026-10-19T20:22:35Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar under `factory/`. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed.
+   1. Acceptance criteria: criterion 1 holds, because the diff outside `factory/` is empty, and the tester (entry 5) and the coder (entry 7) each say so. Criterion 2: the coder's entry records `check: green`. Criterion 3 is the documenter's. The Interface states no rule or limit, so no failing side is left untested. There is no mutation report line to read.
+   2. to 4. Architecture, security and quality: there is no code, so none apply.
+   5. Work item hygiene: entries 5 and 7 explain the main choice, which was to change nothing, and the rejected option, the coder writing `docs/`. The Description matches: documents only. I checked that the docs criterion still names passages that exist on this branch: `docs/project-guide/agents.md:254` holds "there is no other copy", and both guides have *A project's own agents* (`docs/project-guide/agents.md:179`, `docs/operator-guide.md:987`). The volume name `factory-<instance>_claude-home` matches the one in feature.md change 1 (`factory-self_claude-home`).
+   6. Earlier tests: no test file changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the work item's two files).
+
+   The coder's `duplicates: 5 new` record cannot come from this branch, since it changes nothing under `src/factory`. It is outside this review's scope.
