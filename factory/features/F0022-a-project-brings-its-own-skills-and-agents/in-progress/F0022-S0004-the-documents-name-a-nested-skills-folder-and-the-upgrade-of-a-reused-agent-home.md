@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 284
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T20:29:37.310835Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:29:37.317717Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T20:29:59.286344Z'
+  stage: intake
+  run: 79a9706a59a0431ebe70eaa12858e59b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:30:19.979524Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T20:32:06.401545Z'
+  stage: tests
+  run: c3cf987070584f3cb18a8bad46c56259
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:32:27.773536Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T20:33:42.946340Z'
+  stage: doing
+  run: 8b09ff6203404f7b9e4cfda0751d9958
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:34:04.093787Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T20:34:24.904423Z'
+  stage: review
+  run: 301d88d98c3d4d108688f838ddf2ff55
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:34:45.458740Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T20:35:23.391373Z'
+  stage: docs
+  run: fe88aaf2f11141a2b75dbf57444d97a3
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:35:44.643442Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T20:36:06.638540Z'
+  stage: smoke-test
+  run: 1abbaa0b5eb14424a917316a4f92f072
+---
+
 # The documents name a nested skills folder and the upgrade of a reused agent home
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -45,3 +129,102 @@ Expect: `documents ok`
 
 ## Journal
 
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: states "None" and names the three documents the documenter changes (`docs/operator-guide.md`, `docs/decisions.md`, `docs/project-guide/agents.md`). No module or signature exists to check, and no `# comment` states a behaviour.
+   Criteria: criterion 1 (nothing outside the docs changes) can be checked by one diff check and has a failing side, since any change under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` breaks it. Criterion 2 is `make check` and criterion 3 is the docs criterion. Each document change in criterion 3 names its section and its exact wording. `check_documents` must print `documents ok`. I found no Interface rule that lacks a criterion.
+   Smoke test: all five commands are runnable. I confirmed that the sections they read exist: `### A project's own skills` (operator-guide.md:998), `## The agents load a project's skills...` (decisions.md:757) and the sentence "there is no other copy" (project-guide/agents.md:254). Each `Expect:` is a count or a fixed string. The first four counts are 0 today, so they fail now and pass after the documenter's edit. The documenter must put `src/.claude/skills` on exactly one line in each of those two sections, and `rm: cannot remove` on exactly one line in the guide.
+   Architecture: documents only, so no layer is touched. The wording follows the glossary and the guide's section names. The `*The agent runs as a second user*` section exists (operator-guide.md:125).
+   Scope: the story is within F0022. It carries in decision 12's open point and the human's change 1, and it adds no behaviour. It stays inside the documenter's write paths (`docs/*`). It does not touch `feature.md`, `factory/`, `planning/` or `docs/runs/`.
+4. factory: started tests as self.
+5. tester: No tests written. This story changes only documents: its Interface says "None", and criterion 1 says no test changes. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed in this stage, and the tester's working tree changes no file.
+   criterion 1 (nothing outside the docs changes): no test function. It is a check on the diff, and the coder and reviewer confirm it. This entry is the tester's confirmation.
+   criterion 2 (`make check` stays green): no test function. This is the stage's own check. `make test` passed (99.12 % coverage, `test: green`) and `make lint` passed.
+   criterion 3 (docs): no test function. The documenter stage covers it, through `make documents` and the smoke test.
+   Files created: none. Modules the test run could not import: none. No red tests on this branch: there is no code for the coder to write, so the coder should change nothing and confirm criterion 1.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (46.1 s)
+6. factory: started doing as self.
+7. coder: No code written. This story changes documents only: its Interface says "None", and the tester left no red tests. The documenter makes the three document changes in criterion 3.
+   criterion 1: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed in this stage. `git diff --stat main` over those paths is empty, and my working tree changes no file. This entry is the coder's confirmation.
+   criterion 2: `make check` ran in the foreground and ended `check: green` (coverage 99.12 %, `test: green (47.0 s)`).
+   Main choice: I changed nothing, as the story asks. I rejected writing the document passages myself: `docs/` is the documenter's to change, not the coder's (CLAUDE.md, *Docs*).
+   Refactor: there is no diff, so nothing to refactor.
+   The journal did not change the meaning of the task, so `## Description` is unchanged.
+   Noticed, not touched: nothing.
+
+   `check`: check: green (not run again: passed on tree 4dd869fc6664 at 2026-10-19T20:22:35Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar under `factory/`. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed.
+   1. Acceptance criteria: criterion 1 holds, because the diff outside `factory/` is empty, and the tester (entry 5) and the coder (entry 7) each say so. Criterion 2: the coder's entry records `check: green`. Criterion 3 is the documenter's. The Interface states no rule or limit, so no failing side is left untested. There is no mutation report line to read.
+   2. to 4. Architecture, security and quality: there is no code, so none apply.
+   5. Work item hygiene: entries 5 and 7 explain the main choice, which was to change nothing, and the rejected option, the coder writing `docs/`. The Description matches: documents only. I checked that the docs criterion still names passages that exist on this branch: `docs/project-guide/agents.md:254` holds "there is no other copy", and both guides have *A project's own agents* (`docs/project-guide/agents.md:179`, `docs/operator-guide.md:987`). The volume name `factory-<instance>_claude-home` matches the one in feature.md change 1 (`factory-self_claude-home`).
+   6. Earlier tests: no test file changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the work item's two files).
+
+   The coder's `duplicates: 5 new` record cannot come from this branch, since it changes nothing under `src/factory`. It is outside this review's scope.
+10. factory: started docs as self.
+11. documenter: Documents only; no code, test or comment changed. I did not run `make check`, because only documents changed. The factory's checks run after this stage.
+
+    Files changed:
+    - `docs/operator-guide.md`, *A project's own skills*, second paragraph: the `.claude/*` protection covers the repository's root `.claude/` only. A stage may write a `.claude/skills/` in its own write paths (for example `src/.claude/skills/`). Whether Claude Code loads such a nested folder is not known, and the review and the human's merge see it in the diff.
+    - `docs/operator-guide.md`, *The agent runs as a second user*, the paragraph on the agent's home, after the sentence on a `claude-home` volume made by an earlier image: a `skills/` or `commands/` folder made without group write cannot be removed by the entrypoint, so the instance restarts with `rm: cannot remove ...` in `docker logs`. The sentence gives the root `docker run ... rm -rf /h/skills /h/commands` fix.
+    - `docs/decisions.md`, the entry *The agents load a project's skills, and the agent's home gets none*: the `Open:` bullet adds the nested `.claude/skills/` of decision 12. A sentence says the entry supersedes "skills" in the open point of the entry dated 2026-10-17 (F0012-S0025).
+    - `docs/project-guide/agents.md`, *The seven agents*: "there is no other copy" becomes "there is no other copy of a shipped agent", followed by a sentence that a project's own agent is its file under `factory/agents/` on `origin/main` (see *A project's own agents*).
+
+    Checks run:
+    - The four smoke-test greps each print `1`.
+    - `python -m factory.entry.check_documents` prints `documents ok`.
+    - I did not run the `docker run` command, because it needs a Docker volume. It follows the story's wording and the volume naming of `factory-<instance>_claude-home` already in the guide.
+
+    Cross-read and found current against the (empty) code diff:
+    - The rest of `docs/operator-guide.md` (the sections *A project's own agents* and *The shipped agents and settings*).
+    - `docs/project-guide/agents.md`, on R15 and the entrypoint's remade `skills/` and `commands/`.
+    - `README.md` was not read for this story, since it is untouched by the criteria.
+
+    Stale text seen but not touched: none.
+
+    Findings for the coder: none. The branch has no code diff.
+
+    `check`: check: green (not run again: passed on tree 4dd869fc6664 at 2026-10-19T20:22:35Z)
+    `secrets`: secrets: green (1.6 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: I ran all five commands as written from the repository root. Each one met its `Expect:` line, and there are no findings.
+
+    1. `sed -n "/^### A project's own skills/,/^### /p" docs/operator-guide.md | grep -c 'src/.claude/skills'`, met (Expect: `1`)
+    ```
+    1
+    ```
+    2. `grep -c 'rm: cannot remove' docs/operator-guide.md`, met (Expect: `1`)
+    ```
+    1
+    ```
+    3. `sed -n "/^## The agents load a project's skills/,/^## /p" docs/decisions.md | grep -c 'src/.claude/skills'`, met (Expect: `1`)
+    ```
+    1
+    ```
+    4. `grep -c 'there is no other copy of a shipped agent' docs/project-guide/agents.md`, met (Expect: `1`)
+    ```
+    1
+    ```
+    5. `uv run python -m factory.entry.check_documents`, met (Expect: `documents ok`; exit 0)
+    ```
+    documents ok
+    ```
+
+    I then read the acceptance criteria again against `git diff main...HEAD`:
+    - Criterion 1: the branch changes only `docs/decisions.md`, `docs/operator-guide.md`, `docs/project-guide/agents.md` and the work item with its `.costs.jsonl` sidecar. Nothing changed under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. Entries 5 (tester) and 7 (coder) each confirm this.
+    - Criterion 2: I did not run `make check` in this stage. The last result on record is entry 7, where it ended `check: green`; no code has changed since then, and the factory runs the gate itself.
+    - Criterion 3: each passage is where the criterion puts it.
+      - *A project's own skills*: the sentence on the root `.claude/` only, with `src/.claude/skills/`, the unknown loading and the diff.
+      - *The agent runs as a second user*: the `rm: cannot remove ...` restart and the root `docker run ... rm -rf /h/skills /h/commands` fix, with `factory-self_claude-home` as the example.
+      - The decisions entry: its `Open:` bullet holds the nested folder of decision 12, and the sentence superseding "skills" in the 2026-10-17 (F0012-S0025) entry is there.
+      - `agents.md`: "there is no other copy of a shipped agent", plus the `factory/agents/` on `origin/main` sentence.
+      - No other passage in these files changed. Nothing in the smoke test contradicts a criterion.
+
+    Open: none. I did not run the `docker run` fix, because it needs a Docker volume; the smoke test does not ask for it.
