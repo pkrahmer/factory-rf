@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T07:27:56.618032Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-19T07:27:36.153542Z'
   stage: intake
   run: 5630e5c1e65b4046a2b3999a48486767
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-19T07:27:56.618032Z'
+  stage: tests
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -219,3 +228,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: runnable with a stand-in `claude`. The three Expect values (`provider_limit 0.01 420.0`, `True True True`, `True False 0:02:00`) can be checked against the output.
    - Architecture: pure rules are in `domain`, the tool-specific recognition is in the adapters, and the wiring is in `entry`. The layer order is kept.
    - Scope: inside F0020's scope and its decisions 12, 13, 19 and 23. The test changes it names are the ones decision 19 allows.
+7. factory: started tests as self.
