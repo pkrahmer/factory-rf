@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 268
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T15:00:21.640651Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T15:00:00.485885Z'
   stage: tests
   run: 46c8b62a088d4384ad2232594f5e525b
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T15:00:21.640651Z'
+  stage: doing
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -260,3 +269,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_wiring_known_results.py - ImportError while importing ...
+6. factory: started doing as self.
