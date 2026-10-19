@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T04:42:14.852550Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-19T04:42:14.852550Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-19T04:42:35.507885Z'
+  stage: intake
+  run: 81e36e6f3fed4c91b6bf302fd542e530
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -154,15 +156,15 @@ Changed under the feature's decision 19, by the tester only, nothing else in tho
 5. `result_instructions(["doing", "question"])` is the text above, exactly.
 6. `parse_result_block` gives `("doing", "Built it.")` for a text that ends with a valid block, also with text before it, with trailing spaces and line feeds after the closing line, and with spaces around the decision word; it gives the later block of two; it gives `None` for text after the closing line, a missing closing line, a missing opening line, a missing `decision:` line, a missing `entry:` line, the two lines in the other order, a decision outside the allowed ones and a blank entry (rows of one parametrized test).
 7. Two steps with costs 0.012 and 0.03, inputs 10 and 20, outputs 5 and 6, reasoning 2 and 0, cache reads 100 and 0 and writes 20 and 5 give `cost_usd` `Decimal("0.042")`, tokens input 30, output 13, cache read 100, cache creation 25, and `turns` 2; a step without `reasoning` and without `cache` counts 0 for each (rows).
-8. A step from 1000 to 2000 ms with a tool call from 1200 to 1700 ms, and a step from 3000 to 3400 ms without one, give a model time of 0.9 seconds; a step whose tool spans exceed it counts zero (rows).
+8. A step from 1000 to 2000 ms with a tool call from 1200 to 1700 ms, and a step from 3000 to 3400 ms without one, give a model time of 0.9 seconds; a step whose tool spans exceed it counts zero; a `step_finish` with no earlier `step_start` adds 0 to the model time and still counts as a turn; the tool calls "between" a step's start and finish are those by line order (rows).
 9. A `tool_use` error `permission denied by rule git push*` and one `Denied: rm -rf *` are refused calls with the tool and the sorted input; an error `file not found` and a completed call are none (rows).
 10. A refused `write` call whose input is `{"filePath": "/work/src/a.py", "content": "x"}` gives a denial with `path` `/work/src/a.py`, and so does a refused `edit` call with `filePath`; a refused `bash` call, one whose input is no object, one whose `filePath` is no string, and one whose input names only `file_path` give a denial with `path` `None`; a result with two refused calls on the same file records it once in `denied_paths` of its cost record (`CostRecorder.complete`) (rows).
-11. Lines that are no JSON, an object without `type`, an unknown type, a `step_finish` with a negative cost and a `step_finish` without `cost` are skipped: the measures are those of the valid lines alone (rows).
+11. Lines that are no JSON, an object without `type`, an unknown type, a `step_finish` with a negative cost, a `step_finish` without `cost`, one with a negative `timestamp`, one with a negative `input`, one without `tokens` and one whose `tokens` lack `output` are skipped: the measures are those of the valid lines alone (rows).
 12. The end reasons (rows): a valid block and exit 0 is `completed` with the block's decision and entry; a block naming `review` when only `doing` and `question` are allowed is `no_result` with its measures; a valid block and exit 1 is `died` with its measures; no `step_finish` is `died` with no measures; a stand-in that prints one step and waits 30 seconds under a time limit of 3 seconds is `time_limit` without measures, and the call returns within 20 seconds.
 13. With an agent user, the stand-in `sudo` sees `-n -u agent -- timeout --signal=KILL <limit>s env -i` and the environment's assignments, `OPENCODE_CONFIG` among them, before the stand-in's words; a refusal `sudo: a password is required` raises `AgentRuntimeError` `<sudo> refused the agent run: sudo: a password is required` (rows).
-14. Through a stand-in wrapper, the call starts as `<wrapper> --rules <state>/confine-<run>.json -- ...`; the rules allow `<HOME>/.local/share/opencode`, `<HOME>/.local/state/opencode` and `<HOME>/.cache/opencode` as folders and nothing under `<HOME>/.config`; the run's temporary folder is gone after the run; a wrapper line `factory-confine: ...` without events raises `AgentRuntimeError` naming it (rows).
+14. Through a stand-in wrapper, the call starts as `<wrapper> --rules <state>/confine-<run>.json -- ...`, the rules file having mode `0640`; the rules allow `<HOME>/.local/share/opencode`, `<HOME>/.local/state/opencode` and `<HOME>/.cache/opencode` as folders and nothing under `<HOME>/.config`; the run's temporary folder is gone after the run; a wrapper line `factory-confine: ...` without events raises `AgentRuntimeError` naming it (rows).
 15. With an API login file holding a key, the stand-in sees `ANTHROPIC_API_KEY` with the key and the result's `login` is `api_key`; with an empty file it sees no such name and `login` is `none`; without the file, no login words and `login` `None`; an API file that is a folder raises `AgentRuntimeError` `agent runtime failed: cannot read the agent's API login file <path>: cannot be read` and the stand-in is never called; the key stands in no argument, no configuration file and not in the result's JSON (rows).
-16. `version()` gives `1.19.3` for `1.19.3\n`; a stand-in that exits 1, prints nothing or waits past a limit of 3 seconds raises `AgentRuntimeError` (rows).
+16. `version()` gives `1.19.3` for `1.19.3\n`, and the stand-in's recorded call is `<executable> --version` alone, without login words, also when an API login file is set; a stand-in that exits 1, prints nothing or waits past a limit of 3 seconds raises `AgentRuntimeError` (rows).
 17. The kill point `AGENT_RUN` is reached once after a run, `OpencodeRuntime` is an `AgentRuntime`, and the module reads no `os.environ` (a source search, which finds it in a snippet that does).
 18. `make check` stays green.
 19. docs: `docs/project-guide.md`: a section *The opencode runtime*: the call and its words, the per-run configuration and why it is generated from the agent files and `settings.json`, the result block and its strict parsing, the events and the measures read from them, opencode's own folders in the agent's home and the folder it may not write. `docs/decisions.md`: an entry *opencode's agent is generated per run from the shipped agent files* with the reasons of the feature's decisions 6, 7, 8 and 10, dated with the story.
@@ -171,7 +173,7 @@ Changed under the feature's decision 19, by the tester only, nothing else in tho
 
 ```bash
 d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
-mkdir "$d/work"
+mkdir "$d/work" "$d/state"
 cat > "$d/opencode" <<'EOF'
 #!/bin/sh
 here=$(dirname "$0")
@@ -233,3 +235,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    4. Yes: add to criterion 16 that `--version` is called as `<executable> --version` alone, without login words, even when an API login file is set.
    5. The other choice: the smoke test creates `state` first (`mkdir` before the runtime is built); the runtime does not create its state directory, which always exists in the instance. The `Expect:` line stays.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete module `factory.adapters.opencode_runtime`, with constants, signatures, the call words, the configuration keys, the result block and the events all stated. The answers to my questions are carried in; the state directory is not created by the runtime, per journal entry 4.
+   - Criteria: each is testable as rows of one test. Every Interface rule has both sides. Carried in from the human's answers (journal entry 4), as edits to the story and no other change of mine:
+     - Criterion 11: added rows for a negative `timestamp`, a negative `input`, a `step_finish` without `tokens`, and `tokens` without `output`, each skipped (answer 1).
+     - Criterion 8: added the row for a `step_finish` with no earlier `step_start`, which adds 0 to the model time and still counts as a turn, and that "between" is by line order (answer 2).
+     - Criterion 14: the rules file has mode `0640` (answer 3).
+     - Criterion 16: `--version` is called as `<executable> --version` alone, without login words, also with an API login file set (answer 4).
+   - Smoke test: runnable. Per answer 5 it now runs `mkdir "$d/work" "$d/state"` before the runtime is built, and the `Expect:` line is unchanged and checkable line by line.
+   - Architecture: the new module sits in `adapters`, and the Wrappers bullet of CLAUDE.md already allows `opencode_runtime`. The runtime reads no `os.environ`, and the interface is an ABC implementation.
+   - Scope: within the feature's Scope for S0004, outside its Out of scope. The two test-module changes are covered by decision 19.
