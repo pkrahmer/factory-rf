@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 301
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T23:33:10.965748Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T23:33:10.965748Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T23:33:28.162193Z'
+  stage: docs
+  run: dfaf0b87032741f7aa83071cf504bbcf
 ---
 
 # The operator guide's stopped-report example is a report a stage runs
@@ -149,3 +151,14 @@ Expect: `documents ok`
    5. Work item hygiene: the docs criterion still matches the guide. `docs/operator-guide.md:703` (*What a stage run shows*, point 3) holds the old example `` `mutants`: 1718/1858 mutants (stopped at its time limit after 600 s) ``, and it is the only `` `mutants`: `` in the guide. The new example is accurate: `factory/pipeline.yml` lists `test` among the tests stage's `reports`, with `time_limit: 10`, which is 600 s.
    6. Earlier tests: none changed. The diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: Changed one file: `docs/operator-guide.md`, *What a stage run shows*, point 3. The stopped-report example was the `mutants` line, which no stage writes any more. It is now `` `test`: ........ [ 87%] (stopped at its time limit after 600 s) ``, with the note that it is the tests stage's `make test` stopped at its 10 minutes, as the Interface gives it. No other line changed.
+
+    Checked, as the smoke test asks: `` `mutants`: `` occurs 0 times in the guide, the new example occurs once, and `uv run python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed only a document and the factory runs it right after this stage.
+
+    Cross-read against the diff, which holds no code (the branch changes only this work item's files): the guide's passage on mutation testing by sweep and the stop-report rule in point 3 are current. I did not read the other documents, because the diff has nothing for them to disagree with.
+
+    Findings: none. Stale text I saw and did not touch: none.
+
+    `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
+    `secrets`: secrets: green (0.8 s)
+    `documents`: documents ok
