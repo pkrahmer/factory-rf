@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T11:20:34.120668Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-10-19T11:20:13.666244Z'
   stage: tests
   run: 8c9e851d5cd14857b430feb836099384
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T11:20:34.120668Z'
+  stage: doing
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -326,3 +335,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (38.0 s)
+16. factory: started doing as self.
