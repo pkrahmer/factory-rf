@@ -13,7 +13,7 @@ No module under `src/factory/` changes. The behaviour pinned is that of `Opencod
 - A tool in `LEFT_OUT_TOOLS` turns on no name of `OPENCODE_TOOLS` and is not refused, wherever it stands in the agent's `tools`. Every tool before and after it is mapped through `TOOL_NAMES` as if it were absent.
 - A tool outside both `TOOL_NAMES` and `LEFT_OUT_TOOLS` raises `AgentRuntimeError` `the opencode runtime has no tool for <tool>` before anything starts, also when it stands after a left-out tool.
 
-Tests (the tester writes them): three rows added to `test_skill_is_left_out_and_every_other_tool_without_an_opencode_name_is_refused` in `tests/adapters/test_opencode_left_out_tools.py` (F0022-S0002's), with the stand-in and builders it already imports. The test keeps its name and its three rows. This change to another story's test needs the human's leave, which the human adds to the feature's `feature.md` under its decision 14 when they refine this story. Without that leave, the rows go into a new module, `tests/adapters/test_opencode_left_out_order.py`, as one parametrized test.
+Tests (the tester writes them): four rows added to `test_skill_is_left_out_and_every_other_tool_without_an_opencode_name_is_refused` in `tests/adapters/test_opencode_left_out_tools.py` (F0022-S0002's), with the stand-in and builders it already imports. The test keeps its name and its three rows. The leave for this change is the feature's decision 14 (S0003).
 
 ## Acceptance criteria
 
