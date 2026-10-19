@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T04:42:55.866030Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-19T04:42:55.866030Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-19T04:49:19.475246Z'
+  stage: tests
+  run: c87e26bb2e344fabaea4a7b6f0a56994
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -255,3 +257,45 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the new module sits in `adapters`, and the Wrappers bullet of CLAUDE.md already allows `opencode_runtime`. The runtime reads no `os.environ`, and the interface is an ABC implementation.
    - Scope: within the feature's Scope for S0004, outside its Out of scope. The two test-module changes are covered by decision 19.
 7. factory: started tests as self.
+8. tester: Wrote the tests of every acceptance criterion against the Interface. They are red on purpose: `factory.adapters.opencode_runtime` does not exist yet.
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_opencode_runtime.py::test_a_run_calls_opencode_run_with_its_words_in_the_working_directory (rows: alias, provider-model)
+   - criterion 2: tests/adapters/test_opencode_runtime.py::test_a_request_the_runtime_cannot_configure_fails_before_anything_starts (rows: alias without mapping, tool outside `TOOL_NAMES`, settings missing, settings no JSON, a JSON array, `{}`, no `deny`, `deny` not a list, `deny` not all strings)
+   - criterion 3: tests/adapters/test_opencode_runtime.py::test_the_configuration_defines_the_agent_from_its_definition_and_the_settings (rows: settings, no-settings; it also checks the order of the `bash` keys)
+   - criterion 4: tests/adapters/test_opencode_runtime.py::test_the_call_sees_its_configuration_file_and_only_the_request_s_environment and ::test_the_state_directory_holds_no_file_after_a_run (rows: completed, died, timed-out)
+   - criterion 5: tests/adapters/test_opencode_result_block.py::test_the_result_instructions_name_the_allowed_decisions_and_the_entry
+   - criterion 6: tests/adapters/test_opencode_result_block.py::test_the_result_block_gives_its_decision_and_entry_only_when_it_ends_the_text_whole
+   - criterion 7: tests/adapters/test_opencode_events.py::test_cost_tokens_and_turns_are_summed_over_the_finished_steps
+   - criterion 8: tests/adapters/test_opencode_events.py::test_the_model_time_is_each_step_less_its_tool_calls_summed (rows include a finish without a start, a tool line between by line order, and a tool line after the finish)
+   - criterion 9: tests/adapters/test_opencode_events.py::test_a_tool_call_refused_by_permission_is_a_denial_with_its_sorted_input
+   - criterion 10: tests/adapters/test_opencode_events.py::test_a_denial_names_the_file_path_of_its_call and ::test_two_refused_calls_on_one_file_record_it_once_in_the_cost_record
+   - criterion 11: tests/adapters/test_opencode_events.py::test_a_line_that_does_not_validate_is_skipped
+   - criterion 12: tests/adapters/test_opencode_events.py::test_the_end_reason_follows_the_exit_the_steps_and_the_block and ::test_a_call_past_its_time_limit_ends_by_time_limit_without_measures
+   - criterion 13: tests/adapters/test_opencode_runtime_launch.py::test_with_an_agent_user_sudo_starts_the_call_after_env_i_and_its_environment (rows: runs, refused)
+   - criterion 14: tests/adapters/test_opencode_runtime_launch.py::test_through_the_wrapper_the_call_gets_its_rules_with_opencode_s_folders and ::test_a_wrapper_line_without_events_is_a_runtime_error_naming_it
+   - criterion 15: tests/adapters/test_opencode_runtime_launch.py::test_the_call_gets_the_api_file_s_key_and_the_result_names_the_login (rows: key, empty, no-file) and ::test_an_api_file_that_is_a_folder_stops_the_run_naming_it
+   - criterion 16: tests/adapters/test_opencode_runtime_launch.py::test_the_version_is_the_first_word_of_a_call_without_login_words and ::test_a_version_that_cannot_be_read_is_a_runtime_error (rows: exit-1, nothing, waits past a 3 s limit)
+   - criterion 17: tests/adapters/test_opencode_runtime.py::test_the_kill_point_is_reached_once_after_a_run_and_the_runtime_is_an_agent_runtime and tests/test_opencode_runtime_search.py::test_neither_the_opencode_runtime_nor_the_launch_module_reads_os_environ
+
+   Files created:
+   - tests/adapters/opencode_stand_in.py: `write_opencode`, `read_config_modes`, one builder per event (`step_start`, `tool_use`, `text`, `step_finish`, `error`), `result_text`, `stdout`, `opencode_request` and `MODELS`. It reuses `Step`, `STEPS` and `read_calls`/`StandInCall` from `claude_stand_in`. The configuration file's text goes into `StandInCall.files` and its mode into `config-modes.jsonl`, because `StandInCall` forbids extra fields.
+   - tests/adapters/test_opencode_runtime.py
+   - tests/adapters/test_opencode_result_block.py
+   - tests/adapters/test_opencode_events.py
+   - tests/adapters/test_opencode_runtime_launch.py (it imports `_write_sudo`/`_sudo_calls` and the `confine_support` helpers rather than copying them)
+   - tests/test_opencode_runtime_search.py
+
+   Earlier test files changed under the feature's decision 19, nothing else in them:
+   - tests/test_wrapper_search.py: `factory.adapters.opencode_runtime` added to the expected importers.
+   - tests/test_model_configuration.py: `EXCEPTIONS` gains the eight private event models.
+
+   Readings to check:
+   - Criterion 2's "one that is no JSON": I read it as the Interface's "no JSON object with a list of strings at `permissions.deny`". So invalid JSON expects `the agent settings <path> hold no permissions.deny list`, not `cannot read ...`. The parallel wording supports this; if the coder or reviewer reads it the other way, it is a question for the human.
+   - Following the intake answer, the runtime does not create its state directory, so every test creates `state` first.
+   - `version()` without login words is checked through the stand-in: its arguments are `["--version"]` and `ANTHROPIC_API_KEY` is absent, with an API file holding a key. The process-module `recorder` fixture patches `claude_runtime` only.
+
+   `make test`: the four new adapter modules fail at collection with ImportError, because `factory.adapters.opencode_runtime` cannot be imported. The search, wrapper-search and model-configuration tests fail on a wrong result. `make lint` is green. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/adapters/test_opencode_runtime_launch.py - ImportError while impo...

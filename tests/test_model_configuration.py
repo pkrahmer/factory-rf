@@ -16,6 +16,14 @@ EXCEPTIONS = [
     "factory.adapters.claude_runtime._Denial",
     "factory.adapters.claude_runtime._StructuredOutput",
     "factory.adapters.claude_runtime._Reply",
+    "factory.adapters.opencode_runtime._Event",
+    "factory.adapters.opencode_runtime._Part",
+    "factory.adapters.opencode_runtime._Tokens",
+    "factory.adapters.opencode_runtime._CacheTokens",
+    "factory.adapters.opencode_runtime._ToolState",
+    "factory.adapters.opencode_runtime._Span",
+    "factory.adapters.opencode_runtime._Error",
+    "factory.adapters.opencode_runtime._ErrorData",
 ]
 
 
