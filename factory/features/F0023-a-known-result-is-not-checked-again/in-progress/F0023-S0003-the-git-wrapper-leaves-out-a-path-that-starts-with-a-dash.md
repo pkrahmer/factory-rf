@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 288
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T21:23:40.918296Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T21:23:40.918296Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T21:25:31.585696Z'
+  stage: tests
+  run: d5b7f7e4d46c4738972f45b9fb672ea4
 ---
 
 # The git wrapper leaves out a path that starts with a dash
@@ -92,3 +94,23 @@ Expect: `True`
    - Architecture: adapter layer only, with tests under `tests/adapters/` using the shared fixtures `checkout`, `run_git` and `write_files`, as the CLAUDE.md test layout requires. No earlier test changes.
    - Scope: it is inside F0023 and S0001's `work_tree_id`, adds a test only, and touches nothing in the feature's Out of scope.
 4. factory: started tests as self.
+5. tester: Wrote the one test for criterion 1. It is a parametrized test with four rows, built the way `tests/adapters/test_git_cli_work_tree.py` builds its tests: the `checkout` fixture plus `CHECKOUT` and `write_files` from `tests/git_support.py`. Each row writes `a.md`, `-x.md` and `--y.md` at the work tree's root and takes `work_tree_id(left_out)`. It then deletes the files that row expects to be left out and checks that the result equals `work_tree_id()`. Because the two ids must be equal, every file that is not left out still counts.
+
+   - criterion 1: tests/adapters/test_git_cli_work_tree_dash.py::test_a_left_out_path_that_starts_with_a_dash_is_removed_as_a_literal_path, with these rows:
+     - both-dash-files: `["-x.md", "--y.md"]`
+     - single-dash-file-only: `["-x.md"]`, so `--y.md` still counts
+     - dash-pattern: `["-*"]`, so `a.md` still counts
+     - plain-file-only: `["a.md"]`, so both dash files still count
+   - criterion 2 (`make check` stays green): no test; the factory's check covers it.
+   - criterion 3 (docs: none): no test.
+
+   Files created: tests/adapters/test_git_cli_work_tree_dash.py. No earlier test file changed.
+
+   Modules the test run could not import: none. The test is not red, and that is on purpose. The story expects no code change, because `GitCli.work_tree_id` already passes `--` to `update-index --force-remove`. One `make test` run was green ("test: green (41.0 s)"), with all four rows passing. `make lint` is green.
+
+   I did not check by hand that this test kills the mutant that replaces `--`. Doing so would need a temporary edit under `src/`, which is outside my write paths. If the `--` were missing, git would read `-x.md` as an option and the call would raise, so the dash rows would fail.
+
+   Open: nothing. The coder has no code to write; their `make check` is the remaining gate.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (40.5 s)
