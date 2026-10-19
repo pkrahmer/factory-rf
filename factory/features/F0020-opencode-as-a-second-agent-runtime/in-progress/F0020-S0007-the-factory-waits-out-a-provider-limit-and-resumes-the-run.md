@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T10:32:06.284441Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-19T10:32:06.284441Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-19T10:32:29.572034Z'
+  stage: intake
+  run: af491629e30f465888a9f8628f122908
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -156,7 +158,7 @@ Tests (the tester writes them): `tests/adapters/test_waiters.py`, `tests/domain/
 6. A `limit_wait` of 420 seconds is waited instead of the cool-down; one of 3 hours is cut to the ceiling of 2 hours (rows).
 7. Under a cool-down of 10 and a ceiling of 30 minutes, a runtime that ends `provider_limit` on every call is called four times with three waits of 600 seconds, and the run ends `provider_limit`; the factory log holds three wait lines and then `provider limit: coder waited 1800 s, the ceiling of 1800 s; the run ends provider_limit`.
 8. A limit with a named wait of 25 minutes under a ceiling of 30 minutes waits 1500 seconds, then 300 seconds after a second limit, then ends at the third (rows of waits recorded).
-9. A `provider_limit` result without a session is followed by a call with the request's own prompt and no `resume_session`, and the log line ends `before it resumes a new run`.
+9. A `provider_limit` result without a session is followed by a call with the request's own prompt and no `resume_session`, and the log line ends `before it resumes a new run`; the second request also carries a budget of 0.80 and a time limit of 55 seconds, as in criterion 5.
 10. A `provider_limit` result whose cost is 1.00 or more under a budget of 1 ends the run `budget`, one whose duration has used the whole time limit ends it `time_limit`, and one that has used up both ends it `budget`, each without a wait and after one call, with no `limit_wait` (rows).
 11. Without a waiter, a `provider_limit` result comes back after one call; without settings, the defaults of 600 and 7200 seconds apply (rows).
 12. `run_sealed` with `run` calls it and not the runtime, and seals and checks as without it (rows).
@@ -164,8 +166,9 @@ Tests (the tester writes them): `tests/adapters/test_waiters.py`, `tests/domain/
 14. A stage under a cool-down and a ceiling of one minute whose runtime ends `provider_limit` twice stalls with the reason `provider_limit`: attempt 1 of 2, the note `Stalled (attempt 1 of 2): the provider's spend limit lasted past the waiting ceiling. Retrying on the next tick.` on the pull request.
 15. The preflight's probe whose fake run ends `provider_limit` fails `agent-run-probe` after one call, with no wait (`the probe run ended provider_limit; ...`).
 16. `build_boundaries` gives a `SleepingWaiter`.
-17. `make check` stays green.
-18. docs: `docs/operator-guide.md`: a section *A provider's spend limit*: what a limit is (HTTP 428 behind a gateway, or the operator's pattern), that the factory waits the named wait or `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` (default 10) and resumes the same session with what is left of the budget and the time limit, without counting an attempt; that it stalls after `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` (default 120) of waiting, and what to do then; the two log lines; that the claim stays held while waiting, so that a stage may hold it past its `lease_duration`, which only another instance on the same repository would act on (run one instance per repository); that a stop or restart during a wait reruns the stage as a crash. The configuration table gets both variables, and the stall reasons `provider_limit` gets what to do. `docs/project-guide/stages.md`, *Starting a stage*: `PatientRuns`, the `Waiter` interface and its two implementations. `docs/project-guide/watching.md`, *Boundaries* in *Stops, the clock and the factory log*: `run_sealed`'s `run`. `docs/decisions.md`: an entry *The factory waits out a provider limit around a stage's run*, dated with the story, with the reasons of the feature's decision 14.
+17. A `limit_wait` of 90.9 seconds gives the log line `provider limit: coder waits 90 s before it resumes ses_a` and `ManualWaiter.waits` records the wait of 90.9 seconds; a ceiling reached after waits that sum to 1800.7 seconds gives the log line `provider limit: coder waited 1800 s, the ceiling of <c> s; the run ends provider_limit` with whole seconds (rows).
+18. `make check` stays green.
+19. docs: `docs/operator-guide.md`: a section *A provider's spend limit*: what a limit is (HTTP 428 behind a gateway, or the operator's pattern), that the factory waits the named wait or `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` (default 10) and resumes the same session with what is left of the budget and the time limit, without counting an attempt; that it stalls after `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` (default 120) of waiting, and what to do then; the two log lines; that the claim stays held while waiting, so that a stage may hold it past its `lease_duration`, which only another instance on the same repository would act on (run one instance per repository); that a stop or restart during a wait reruns the stage as a crash. The configuration table gets both variables, and the stall reasons `provider_limit` gets what to do. `docs/project-guide/stages.md`, *Starting a stage*: `PatientRuns`, the `Waiter` interface and its two implementations. `docs/project-guide/watching.md`, *Boundaries* in *Stops, the clock and the factory log*: `run_sealed`'s `run`. `docs/decisions.md`: an entry *The factory waits out a provider limit around a stage's run*, dated with the story, with the reasons of the feature's decision 14.
 
 ## Smoke test
 
@@ -234,3 +237,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 4. 2026-10-19 human: 1. Yes, add the criterion as you propose, before the two closing ones: a `limit_wait` of 90.9 seconds gives the log line `provider limit: coder waits 90 s before it resumes ses_a` (and `ManualWaiter.waits` records what the Interface says it records), and a ceiling reached after waits summing to 1800.7 seconds gives `waited 1800 s`. Keep the Interface sentence.
    2. Yes, extend criterion 9 as you propose: the second request also carries a budget of 0.80 and a time limit of 55 seconds, as in criterion 5.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete modules and signatures (`Waiter`, `SleepingWaiter`, `ManualWaiter`, `Boundaries.waiter`, `ProviderLimit` fields, the two settings variables, `PatientRuns`, `run_sealed(run=)`). The step-by-step order of `PatientRuns.run` is fully stated. Every behaviour has a criterion. This includes the whole-second log lines, which journal entry 4 added as criterion 17.
+   - Criteria: each is testable by one parametrized test. Every rule has its failing side: negative duration (1), cool-down under one minute and ceiling below the cool-down (2), invalid settings values and ceiling below cool-down (3), budget and time-limit exhaustion with no wait (10), no waiter (11), probe without wait (15). The ceiling cut, the named wait, the session-less resume and the whole-second logging each have their own criterion (6, 8, 9, 17). Edits carried in from the human's answer (journal entry 4): criterion 9 now also names the second request's budget of 0.80 and time limit of 55 seconds; the new criterion 17 (whole seconds, `ManualWaiter.waits` recording 90.9) sits before the two closing ones, which are now 18 (`make check`) and 19 (`docs:`).
+   - Smoke test: runnable, and its numbers add up (cost 0.6, duration 15 s, waits 420 and 600 s, clock 00:17:00, budget 0.8, time limit 55 s). Its `Expect:` line is checkable.
+   - Architecture: the `Waiter` interface lives in `application`, its implementations in `adapters`, the limit values in `domain`, and the wiring in `entry`. The layering holds, and no `AgentRunRequest` is built outside `model_copy`.
+   - Scope: within S0007's part of F0020's Scope. It touches no "Out of scope" item and changes no earlier test.
