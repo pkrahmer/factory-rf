@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T03:47:52.158635Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-19T03:47:32.009955Z'
   stage: doing
   run: f99f858e834e45a2a0019ad1eb1c1f3a
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:47:52.158635Z'
+  stage: review
 ---
 
 # The agent runs can log in with an API key
@@ -461,3 +470,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
+16. factory: started review as self.
