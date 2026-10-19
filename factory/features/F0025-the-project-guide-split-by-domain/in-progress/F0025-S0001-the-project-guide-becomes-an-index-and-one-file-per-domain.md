@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T06:34:35.068775Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T06:34:35.068775Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T06:37:16.002668Z'
+  stage: doing
+  run: bc54e5c9d6014db78ca9d20eecd31c3f
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -221,3 +223,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_documents_guide_files.py - ImportError while importin...
 6. factory: started doing as self.
+7. coder: I made the document check follow the guide's new layout: an index plus one file per domain. `make check` is green, and the tester's tests are unchanged.
+
+   Built:
+   - `src/factory/domain/documents.py`:
+     - Adds `PROJECT_GUIDE_FOLDER = "docs/project-guide"`.
+     - `PROJECT_GUIDE` is now built from that folder as `docs/project-guide/README.md`. `DOCUMENT_PATHS` keeps its order.
+     - Adds `is_guide_file(path)`. It splits the path at its last `/` and returns true when the folder is exactly `PROJECT_GUIDE_FOLDER`, the name fully matches `[^/]+\.md` (case-sensitive) and the path is not the index.
+     - `check_documents` checks the four documents first, then the sorted keys that `is_guide_file` accepts.
+   - `src/factory/entry/check_documents.py`:
+     - Adds `_guide_files(root)`. It lists the regular files directly in `<root>/docs/project-guide/`, writes each key as `docs/project-guide/<name>`, and keeps the ones `is_guide_file` accepts. A missing folder gives nothing.
+     - `main` reads those files together with `DOCUMENT_PATHS` through the existing `_read`.
+
+   Main choice: a guide file goes through the existing `_messages`. Its path matches none of the three special documents, so it falls through to the same word-only check `README.md` gets. That covers missing, empty, the replaced phrases, the v1 words and the exempt `## Replaced from v1` section without another branch. I rejected a separate `_guide_file_messages` function because it would have repeated the missing and empty handling.
+
+   Refactor pass: I removed a separator check from `is_guide_file` that never changed the result, because a path without `/` has an empty folder. Nothing else needed changing.
+
+   Noticed but not touched:
+   - Until the docs stage moves the guide into `docs/project-guide/`, `make documents` on this branch reports `docs/project-guide/README.md: missing`. This is expected; `make documents` is the docs stage's check, not part of `make check`.
+   - `tests/test_claude_files.py` still quotes `CLAUDE.md`'s sentence naming `docs/project-guide.md`. The human's change 1 after the merge covers that.
+   - The journal changed nothing in the Description.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 35 known, 4 gone
