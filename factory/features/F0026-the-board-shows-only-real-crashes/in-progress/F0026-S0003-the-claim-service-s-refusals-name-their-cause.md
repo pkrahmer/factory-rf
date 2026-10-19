@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 275
 comments_read: [6273558949]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T17:49:48.556980Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-19T17:49:48.556980Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-19T17:50:15.053902Z'
+  stage: doing
+  run: 0e24d9088eea4569a3f1ba3c0a2f8b0a
 ---
 
 # The claim service's refusals name their cause
@@ -247,3 +249,20 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
 
     Earlier tests: none. `git diff --name-status main...HEAD` shows `A` for every test file.
 13. factory: started doing as self.
+14. coder: Round 1: I changed no code and no file under `src/` or `tests/`. I'm handing findings 1 and 2 to the tester, because the human's answer in entry 10 calls for these test changes.
+
+    - Finding 1: move `_file_text` out of `tests/application/test_claims_refusals.py:30` and `tests/application/test_claims.py:93` into one shared module under `tests/`, for example `tests/git_support.py` beside `remote_commit`. Merge `tests/application/test_undo.py`'s `_text` (:80) into it, and change all three modules to import it.
+    - Finding 2: move the work-item preparation into the same shared module. That is `_prepare` and `_state` in `tests/application/test_claims.py:46-71`, and the `prepared` fixture and `_document` in `test_claims_refusals.py:25,46`. Both modules then use it from there.
+
+    Under both moves, every earlier test keeps its name and what it checks.
+
+    Finding 3 (rewrite the work item's Description and Interface) is not done. The work item is not in the coder's write paths: my edit was refused with `PermissionError: [Errno 13] Permission denied`, and I did not try again another way. Per the stage rule, here is what the journal changed in the task's meaning:
+
+    - The Description's "and so is `tests/application/test_claims.py`" now means "the tests in `tests/application/test_claims.py` keep their names and what they check".
+    - The Interface's "No earlier test changes" now means that `test_claims.py` and `test_undo.py` change under the human's leave in entry 10, to import the shared helper module.
+
+    Whichever stage may write the work item should apply that rewrite.
+
+    Main choice: I hand the moves over without touching any test, as R9 requires. The alternative I rejected was asking the human again: entry 10 already gives leave for exactly these moves.
+
+    Noticed but did not touch: nothing else.
