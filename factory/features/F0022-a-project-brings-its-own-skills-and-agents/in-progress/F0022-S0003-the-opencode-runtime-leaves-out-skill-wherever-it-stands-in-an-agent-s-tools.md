@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 282
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T20:06:14.663423Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T20:05:53.863283Z'
   stage: doing
   run: 2f9b6a748428411aa7df308893c98022
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:06:14.663423Z'
+  stage: review
 ---
 
 # The opencode runtime leaves out Skill wherever it stands in an agent's tools
@@ -138,3 +147,4 @@ Expect: two lines, `completed question`, `['grep', 'read']`
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
