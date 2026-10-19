@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 255
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T09:03:31.276274Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T09:03:10.737618Z'
   stage: intake
   run: 0654c570856b4441b7f769fb39f561d6
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T09:03:31.276274Z'
+  stage: tests
 ---
 
 # The guide's index names every module and subsection its files describe
@@ -121,3 +130,4 @@ Expect: `documents ok`
    - Architecture: nothing in `src/` changes, and the documenter writes only within `README.md` and `docs/*`.
    - Scope: it is inside F0025 (the guide split by domain), and nothing in its Out of scope is touched. The feature's decision 2 promised that the index names *Boundaries*, and this story repairs that.
    - One slip, not blocking: the Description says "Three smaller passages need the same repair" but lists two bullets. The criteria cover the same two passages (`agents.md` and `decisions.md`), so I left the text as it is.
+4. factory: started tests as self.
