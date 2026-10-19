@@ -14,6 +14,7 @@ FEATURE_FORM_FILE = "factory/feature-form.md"
 FEATURES_DIRECTORY = "factory/features"
 FEATURE_FILE_NAME = "feature.md"
 STOP_RECORDS_FILE = "factory/stops.jsonl"
+PROJECT_AGENTS_DIRECTORY = "factory/agents"
 LifecycleFolder = Literal["backlog", "in-progress", "done"]
 LIFECYCLE_FOLDERS: tuple[LifecycleFolder, ...] = ("backlog", "in-progress", "done")
 COST_RECORDS_SUFFIX = ".costs.jsonl"
@@ -21,6 +22,7 @@ BRANCH_PREFIX = identifiers.BRANCH_PREFIX
 LABEL_PREFIX = "stage:"
 
 _WORK_ITEM_SUFFIX = ".md"
+_AGENT_SUFFIX = ".md"
 
 
 def work_item_path(feature_directory: str, folder: LifecycleFolder, file_name: str) -> str:
@@ -38,6 +40,11 @@ def cost_records_path(work_item_path: str) -> str:
     if not work_item_path.endswith(_WORK_ITEM_SUFFIX):
         raise ValueError(f"not a work item path: {work_item_path!r}")
     return work_item_path.removesuffix(_WORK_ITEM_SUFFIX) + COST_RECORDS_SUFFIX
+
+
+def project_agent_file(name: str) -> str:
+    """Return the repository path of the project's own agent file for the agent `name`."""
+    return f"{PROJECT_AGENTS_DIRECTORY}/{name}{_AGENT_SUFFIX}"
 
 
 def folder_of(path: str) -> LifecycleFolder | None:

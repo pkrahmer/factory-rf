@@ -9,6 +9,7 @@ from factory.domain.paths import (
     FEATURE_FILE_NAME,
     FEATURE_FORM_FILE,
     PIPELINE_DEFINITION_FILE,
+    PROJECT_AGENTS_DIRECTORY,
     STORY_FORM_FILE,
 )
 from factory.domain.pipeline_definition import (
@@ -28,6 +29,7 @@ PROTECTED_PATHS: tuple[str, ...] = (
     FEATURE_FORM_FILE,
     FEATURE_FILE_NAME,
     "*/" + FEATURE_FILE_NAME,
+    f"{PROJECT_AGENTS_DIRECTORY}/*",
 )
 
 _PLACEHOLDER = re.compile(r"\{[a-z_]+\}")

@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 264
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T13:20:07.125169Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T13:20:07.125169Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T13:23:12.653072Z'
+  stage: doing
+  run: 61b207a83e2943428362380f1307848e
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -232,3 +234,29 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_wiring_project_agents.py - ImportError while importing...
 6. factory: started doing as self.
+7. coder: I implemented the Interface, and all the tester's tests pass unchanged. `make check` is green (`check: green`). No code changed after that run.
+
+   What I built:
+   - `src/factory/domain/identifiers.py`: new `is_name`, built on the existing `Name` type through a module-level `TypeAdapter`.
+   - `src/factory/domain/paths.py`: `PROJECT_AGENTS_DIRECTORY` and `project_agent_file`.
+   - `src/factory/domain/write_paths.py`: `PROTECTED_PATHS` gains `f"{PROJECT_AGENTS_DIRECTORY}/*"` as its eleventh and last entry.
+   - `src/factory/application/agent_runtime.py`: the abstract `AgentDefinitionReader.parse`.
+   - `src/factory/adapters/agent_files.py`: the private `_is_name` is gone and the reader uses `is_name`. The name refusal is now one private `_check_name`, used by both `read` and `parse`. `read` finds and reads the file as before, then returns `self.parse(name, text)`. `parse` does the front matter, unapplied-key and validation checks that `read` used to do inline, in the same order, so `read`'s faults are unchanged.
+   - `src/factory/application/project_agents.py` (new): `ProjectAgentDefinitions`.
+     - `read` checks the name before any git call, then reads `show_file(ref, project_agent_file(name))`. With no file it falls back to `installed.read`. With a file it uses `installed.parse` and re-raises an `AgentDefinitionInvalid` with the fault prefixed `<path> at <ref>: `, keeping its key.
+     - `names` is the sorted union of the installed names and the project's names.
+     - Nothing is kept between calls.
+   - `src/factory/entry/wiring.py`: `build_boundaries` wraps the single `FrontmatterAgentDefinitionReader` in `ProjectAgentDefinitions` with the boundaries' `GitCli`.
+
+   Main choice: `names()` keeps a project file only when its stem passes `is_name` and `project_agent_file(stem)` gives back exactly the listed path. That one round trip drops files in subfolders, files with another suffix and stems that are not names, and reuses the path helper. I rejected splitting the path with `PurePosixPath` and checking the parent folder and suffix separately: that is more code and repeats what `project_agent_file` already says.
+
+   Refactor pass: I gave `paths.py` its own `_AGENT_SUFFIX` rather than reusing `_WORK_ITEM_SUFFIX` for agent files, which would have misled the reader, and I folded the duplicated name refusal into `_check_name`. Nothing else needed changing.
+
+   Noticed but not touched:
+   - I did not run the work item's smoke test, because running that script was not permitted in this stage; the smoke-test stage still has to run it.
+   - `project_agents.py` uses a literal `".md"` when it strips the suffix in `names()`. It is safe because of the round-trip check against `project_agent_file`, but a reviewer may prefer a shared constant from `paths`. I left it rather than export a new public name.
+
+   The journal did not change the meaning of the task, so I left `## Description` as it is.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone

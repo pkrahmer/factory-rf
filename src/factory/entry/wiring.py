@@ -61,6 +61,7 @@ from factory.application.preflight import (
     token_file_item,
     tool_item,
 )
+from factory.application.project_agents import ProjectAgentDefinitions
 from factory.application.project_commands import RecordingProjectCommands
 from factory.application.recovery import RecoveryHandler
 from factory.application.stops import StopService
@@ -267,7 +268,9 @@ def build_boundaries(
         cost_reader=JsonLinesCostRecordReader(),
         cost_writer=JsonLinesCostRecordWriter(),
         pipeline_reader=RuamelPipelineDefinitionReader(),
-        agent_definitions=FrontmatterAgentDefinitionReader(settings.agent_home),
+        agent_definitions=ProjectAgentDefinitions(
+            git, FrontmatterAgentDefinitionReader(settings.agent_home)
+        ),
         clock=clock,
         log=log,
         health=health_store(state),

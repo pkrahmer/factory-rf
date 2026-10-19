@@ -38,3 +38,11 @@ class AgentDefinitionReader(ABC):
         `AgentDefinitionMissing` when no such agent is installed, `AgentDefinitionInvalid`
         when its file does not define an agent.
         """
+
+    @abstractmethod
+    def parse(self, name: str, text: str) -> AgentDefinition:
+        """The definition of the agent `name` from the text of an agent file.
+
+        `AgentDefinitionMissing` when `name` is not an agent name, `AgentDefinitionInvalid`
+        when the text does not define an agent, with the faults of `read`.
+        """
