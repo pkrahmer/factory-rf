@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T07:48:53.131740Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-19T07:48:53.131740Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-19T07:49:12.315731Z'
+  stage: doing
+  run: 45b46b45a9d34f1e95fcd3673ede0ce5
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -409,3 +411,12 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/domain/test_contract.py: the leave the story names under decision 19 (expected version `"1.2"`, name kept); within that leave.
     - tests/domain/test_contract_login.py: the human's leave in journal entry 9 (two version assertions removed, test renamed). The removed import is the unused import that this removal left, so it is within that leave.
 16. factory: started doing as self.
+17. coder: Round 1. Both of the reviewer's findings in entry 15 are changes to tests, not to code. I changed nothing under `src/`, and the code from entry 13 stays as it is.
+
+    Changes for the tester:
+    1. `tests/domain/test_provider_limits.py`, `test_the_named_wait_is_the_first_one_the_text_names`: add the accepted side of the one-to-six-digit limit. That means a row `in 999999` → `timedelta(seconds=999999)`, plus a row for the second form, `retry-after 999999`, in the same parametrized table.
+    2. `tests/adapters/test_claude_runtime_provider_limit.py`: fold `test_a_budget_stop_that_names_the_status_ends_budget_and_is_resumed` into `test_a_call_the_limit_refused_ends_provider_limit_with_its_wait_and_session` as a row. The table's step becomes a list of steps, and the new row expects end reason `budget`, `limit_wait` `None`, and the resume check. The time-limit case stays a separate test.
+
+    What I expect from the code: `named_wait` in `src/factory/domain/provider_limits.py` already accepts up to six digits, so the new rows should pass without a code change. If either one fails, the work item comes back here.
+
+    Not touched: the 5 new `make duplicates` findings reported in entry 13. None of them comes from this story's diff.
