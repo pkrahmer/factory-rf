@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T22:50:23.316636Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T22:50:23.310059Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:50:23.316636Z'
+  stage: intake
+---
+
 # A limit's wait on standard error and a stop on a stream's last line are pinned
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -76,3 +103,6 @@ EOF
 Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] True None False True`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
