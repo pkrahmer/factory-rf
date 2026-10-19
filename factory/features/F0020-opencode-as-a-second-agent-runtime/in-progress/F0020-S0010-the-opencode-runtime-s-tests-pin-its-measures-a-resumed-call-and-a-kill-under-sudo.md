@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 279
 comments_read: [6274821134]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T18:54:33.792706Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-19T18:54:15.537321Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:54:33.792706Z'
   stage: intake
 ---
 
@@ -143,3 +152,4 @@ Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "gi
    2. Yes: a row with exit status `-9` past the limit ending `time_limit`, and a row that exits 1 after the limit is reached ending `died` (`agent_launch.py:315`: a status outside `KILL_STATUSES` is never `time_limit`; with no result block the run is `died`).
    3. Yes: `entry: First line.` as the second line gives `None`, and an entry padded with blank lines and spaces gives the stripped text.
    4. No change; the no-sudo rows cover that side.
+5. factory: started intake as self.
