@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T09:52:56.964322Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T09:52:56.964322Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T10:00:51.424988Z'
+  stage: tests
+  run: 3241096e02644d168513d42fdf220417
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -151,3 +153,39 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: the work lies in the adapters layer (`opencode_runtime`), reuses `agent_launch`, the process module's `run_streaming` and the domain's `resumed_result` and provider-limit helpers, and calls no tool outside the one wrapper. Wiring stays in `entry` (S0008).
    Scope: within F0020's S0006 scope line (budget stop and resume, provider limit while streaming). The waiting and continuing after a limit is left to S0007, and nothing in the feature's Out of scope is touched.
 4. factory: started tests as self.
+5. tester: I wrote the tests for criteria 1 to 13 in two files. Both use the stand-in and the event builders of `tests/adapters/opencode_stand_in.py` by import. Each stopped stand-in plays its events in `stdout_before_wait` and then waits 30 seconds. Every elapsed time is checked against 20 seconds.
+
+   - criterion 1: tests/adapters/test_opencode_budget.py::test_a_call_is_stopped_once_its_summed_cost_passes_the_budget (rows at-the-budget, past-the-budget)
+   - criterion 2: tests/adapters/test_opencode_budget.py::test_the_resume_continues_the_session_with_the_finish_message_and_sums_both_calls
+   - criterion 3: tests/adapters/test_opencode_budget.py::test_a_resume_past_its_own_budget_ends_the_run_by_budget_without_a_third_call
+   - criterion 4: tests/adapters/test_opencode_budget.py::test_a_budget_stop_without_a_known_session_is_not_resumed
+   - criterion 5: tests/adapters/test_opencode_budget.py::test_a_resume_past_what_is_left_of_the_time_limit_ends_the_run_by_time_limit
+   - criterion 6: tests/adapters/test_opencode_provider_limit.py::test_a_limit_error_after_a_step_ends_the_run_at_once_with_its_wait_and_session
+   - criterion 7: tests/adapters/test_opencode_provider_limit.py::test_a_limit_error_before_any_step_ends_the_run_without_measures
+   - criterion 8: tests/adapters/test_opencode_provider_limit.py::test_an_error_that_is_no_limit_does_not_stop_the_call (rows 500-default-limit, 428-limit-429)
+   - criterion 9: tests/adapters/test_opencode_provider_limit.py::test_an_error_without_a_status_is_a_limit_when_its_message_holds_the_pattern (rows pattern, default-limit)
+   - criterion 10: tests/adapters/test_opencode_provider_limit.py::test_a_limit_line_on_standard_error_ends_the_run_at_once_without_a_wait
+   - criterion 11: tests/adapters/test_opencode_provider_limit.py::test_a_limit_in_the_agent_s_text_or_a_tool_s_output_stops_nothing (rows text, tool-use)
+   - criterion 12: tests/adapters/test_opencode_provider_limit.py::test_a_limit_in_the_resume_ends_the_run_by_the_limit_with_both_calls_costs
+   - criterion 13: tests/adapters/test_opencode_budget.py::test_the_kill_point_is_reached_once_for_a_resumed_run
+   - criteria 14 and 15: no test (`make check` and the docs).
+
+   **Files created:**
+   - `tests/adapters/test_opencode_budget.py`
+   - `tests/adapters/test_opencode_provider_limit.py`
+
+   I changed no earlier test file. The budget file imports the runtime builder `_runtime` from `tests/adapters/test_opencode_runtime.py`. The provider-limit file imports `RESUME_REPLY` and `_over_budget` from the budget file. It has its own builder, which passes `provider_limit=`.
+
+   **Choices that stay within the criteria:**
+   - The stand-in prints standard error only after its wait. So for criterion 10, a small wrapper executable in `tmp_path` writes the line to standard error and then execs the stand-in.
+   - The stand-in's `error` builder always sets `statusCode`. So for criterion 9, the test drops that key from the built event's JSON instead of copying the builder.
+   - The token sums in criterion 2 are what the runtime already counts for one step of the stand-in's builders (input 10, output 5 + 2 reasoning, cache read 100, cache write 20), times 4.
+
+   **Test run:** one `make test`; I saw only its last lines. They list failures in the budget file, and `make test` ended with an error, which is the expected red. Every module imports: `factory.adapters.agent_launch.FINISH_MESSAGE`, `factory.domain.provider_limits.ProviderLimit`, `factory.adapters.opencode_runtime.OpencodeRuntime` and `factory.domain.kill_points`.
+   - The budget tests fail on the result: the run is never stopped, so the call count or end reason is wrong.
+   - The provider-limit tests should fail because `OpencodeRuntime` does not yet take the `provider_limit` keyword. The output I saw did not show those lines, so this is my expectation, not a confirmed result.
+
+   `make lint` is green. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/adapters/test_opencode_budget.py::test_the_kill_point_is_reached_once_for_a_resumed_run
