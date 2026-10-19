@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 271
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T16:26:59.253210Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T16:26:59.253210Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T16:29:01.484769Z'
+  stage: tests
+  run: a22d91aac353454295af6500799cc056
 ---
 
 # A report stopped at its time limit says so in its journal line
@@ -95,3 +97,12 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: The change sits in `factory.domain.checks`, which is pure (no I/O). The stage test uses a `ProjectCommands` subclass, as CLAUDE.md requires, and no layer is crossed.
    Scope: It matches feature decision 10 and the scope line for `checks.py` (S0002). It does not touch the Out of scope items (no new status, no gentler stop). The earlier tests stay as they are (decision 15).
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 and 2. They are red now because the implementation is missing.
+   criterion 1: tests/domain/test_command_line_time_limit.py::test_only_a_command_stopped_at_its_time_limit_gets_the_stop_note (one parametrized test with five rows: time-limit 600.7 s gives 600 s, rounded-down 599.999 s gives 599 s, empty-last-line, passed unchanged, failed unchanged)
+   criterion 2: tests/application/test_stage_time_limited_report.py::test_a_report_stopped_at_its_time_limit_says_so_in_the_entry (a `StoppedTestCommands(ProjectCommands)` subclass in the module returns the Interface's `time_limit` result for `test` and hands every other command to the fixture's `boundaries.project_commands`; the test builds the boundaries with `dataclasses.replace` and uses `open_story`, `stage_makefile`, `completed`, `run_stage`, `branch_head` and `ScriptedRun`; it asserts rule 6, next stage `doing`, and that the tester's entry at `branch_head` ends with the `lint` and `test` lines)
+   criterion 3 (`make check` stays green) and criterion 4 (docs) are not test criteria.
+   Files created: tests/domain/test_command_line_time_limit.py, tests/application/test_stage_time_limited_report.py. No earlier test was changed.
+   Every module imported: `command_line` and `CheckResult` already exist, so nothing failed at collection. `make test` (one run) fails on the three time_limit rows of the domain test and on the stage test. The passed and failed rows pass, as they should, because those lines are unchanged. `make lint` is green after `ruff format` on the stage test file. I skipped the type check as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/domain/test_command_line_time_limit.py::test_only_a_command_stopped_at_its_time_limit_gets_the_stop_note[empty-last-line]
