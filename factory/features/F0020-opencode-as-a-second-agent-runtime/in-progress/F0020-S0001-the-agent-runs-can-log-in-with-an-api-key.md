@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T03:47:52.158635Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-19T03:47:52.158635Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T03:49:05.941138Z'
+  stage: review
+  run: 5ca70f34faa84acb81f758c7b8e3b379
 ---
 
 # The agent runs can log in with an API key
@@ -471,3 +473,35 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 36 known, 3 gone
 16. factory: started review as self.
+17. reviewer: Round 1. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item. I read all the code under `src/` and `image/`, the schema diffs and every test file the diff adds or changes.
+
+    Since entry 9, the tester has removed the copied `_utf_16`, `API_LOGIN` and `SUBSCRIPTION`. `tests/adapters/test_claude_runtime_api_login.py` and `tests/entry/test_wiring_api_login.py` now import them from `tests/adapters/test_agent_launch_login.py`. Nothing under `src/` changed in this round, and the coder's `make check` is green (entry 15).
+
+    Checklist:
+    - **Group 1, acceptance criteria:** criteria 1 to 20 each have a test that checks what the criterion says.
+      - Each failing side the Interface states is tested: the unreadable and the non-ASCII API file, a started record that has a login, a `None` login left out of the line, a `factory-login-used: other` line, stderr with no refusal, the second preflight run on a stamped image, and the shell environment's own `ANTHROPIC_API_KEY` in every row of criterion 3.
+    - **Group 2, architecture:** `factory.adapters.agent_launch` imports only `factory.domain` and pydantic, not `factory.adapters.process`. Wiring stays in `entry`. `Login` and the new fields are in `domain`, and the preflight details are in `application`.
+    - **Group 3, security:**
+      - The diff adds no suppression markers.
+      - `LOGIN_SCRIPT` is built from constants only and has no `NAME="..."` pair for a secret.
+      - The key goes into no argument: each run's shell reads it from the file at every call.
+      - The environment drops both login names through `without_login`.
+    - **Group 4, quality:**
+      - `line_starting` moved to `agent_launch` and is shared; it was not copied.
+      - `make duplicates` reports 0 new findings.
+      - The docstrings are present and accurate (`CostRecord`, `PreflightItem`, the `ClaudeCodeRuntime` constructor).
+      - The schemas are generated: the only changes are the new `login` property, the docstring and `1.1`.
+    - **Group 5, work item hygiene:** the description matches what was built. The coder's journal entries name the main choice (one `LoginFiles` handed to the shared functions) and what was rejected. The docs criterion still describes what the reader must know.
+
+    no findings
+
+    Earlier tests (files `main` already holds that the diff changes):
+    - `tests/adapters/test_claude_runtime_login.py`: standing leave to move a shared test helper, also named in the story's Interface. Its `Recorder` and `recorder` fixture moved to `tests/run_process_recorder.py` and `tests/conftest.py`. Every test keeps its name and what it checks.
+    - `tests/adapters/test_claude_runtime_sudo_time_limit.py`: the same leave and the same move. The merged `Recorder` still answers with the given results first.
+    - `tests/conftest.py`: the same leave. Its only change is the moved `recorder` fixture.
+    - `tests/domain/test_contract.py`: the human's leave, through the feature's decision 19 as the story names it. In `test_a_schema_starts_with_the_dialect_and_the_contract_version` the expected version is now `"1.1"`, and the test keeps its name.
+    - `tests/test_compose.py`: the human's leave, through decision 19. `test_the_three_volumes_are_mounted_and_declared` gains the fifth bind and keeps its name.
+
+    Notes:
+    - `tests/adapters/test_claude_runtime_api_login.py:52` and `:76`: criterion 8 is tested by two functions. The first is a sequence on one runtime (key, then the emptied file), so it does not fit as a row beside the other two cases; I left it.
+    - `tests/adapters/test_claude_runtime_api_login.py:39`: `_runtime` leaves out the `api_login_file` keyword when it is `None`, so the "built without `api_login_file`" rows use the constructor's default. That is deliberate and correct, but there is no comment saying why.
