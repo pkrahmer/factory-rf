@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T05:28:05.604011Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-10-19T05:28:05.604011Z'
   stage: tests
+- number: 34
+  speaker: tester
+  kind: result
+  at: '2026-10-19T05:30:13.159807Z'
+  stage: tests
+  run: fc0e571eb7664811a4b0f5990b3b9180
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -646,3 +648,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 4 gone
 33. factory: started tests as self.
+34. tester: Round 2, the test change the coder's entry 32 names. Criterion 20 needed only its test, so I wrote it. I changed no existing test.
+
+    - criterion 20: `tests/adapters/test_opencode_runtime_launch.py::test_a_call_that_printed_valid_events_is_no_refusal_whatever_its_stderr_holds` has two rows.
+      - `sudo`: the `_write_sudo` stand-in, given `warning=`, prints `sudo: a password is required` on stderr and then runs the call. The call prints a valid step and the result block.
+      - `wrapper`: the stand-in wrapper plays `Played(stdout=REPLY, exit_status=0)`. It prints its `factory-confine: ...` line on stderr and the valid events on stdout.
+      - Both rows check `end_reason == "completed"`, plus the decision `doing` and the entry `Built it.` from the block.
+      - Two private builders, `_warned_by_sudo` and `_warned_by_wrapper`, make each row's runtime and request. They reuse the module's `_runtime`, `_confined_runtime`, `GIVEN` and `SUDO_LINE`, and the imported `_write_sudo`, `write_confine`, `Played` and `run_request`.
+
+    Files changed: `tests/adapters/test_opencode_runtime_launch.py`. This story wrote it, and I only added the test and its imports (`Callable`, `AgentRunRequest`). I created no files.
+
+    I left the reviewer's two notes from entry 30 alone: merging `test_a_step_with_zero_values_is_a_valid_step` into `test_a_line_that_does_not_validate_is_skipped`, and the overlap between the two version tests. Neither one is the change this mode asks for. Both are notes, not findings.
+
+    `make test` is green. The code was already built, so the new test passes rather than fails. Every module imported. `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (39.4 s)

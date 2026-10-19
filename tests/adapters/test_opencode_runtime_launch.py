@@ -1,6 +1,7 @@
 """The opencode runtime starts its call as the agent user, through the wrapper, with the API key."""
 
 import time
+from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
 
@@ -30,6 +31,7 @@ from confine_support import (
 )
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE, temporary_folder
 from factory.adapters.opencode_runtime import CONFIG_VARIABLE, SWITCHES, OpencodeRuntime
+from factory.domain.agent_runs import AgentRunRequest
 from factory.domain.confinement import Confinement
 from factory.domain.errors import AgentRuntimeError
 
@@ -153,6 +155,38 @@ def test_a_wrapper_line_without_events_is_a_runtime_error_naming_it(layout: Layo
         runtime.run(run_request(layout))
 
     assert raised.value.detail == f"{confine} refused the agent run: {LINE}"
+
+
+def _warned_by_sudo(tmp_path: Path, _: Layout) -> tuple[OpencodeRuntime, AgentRunRequest]:
+    sudo = _write_sudo(tmp_path / "sudo-bin", warning=f"{SUDO_LINE}\n")
+    runtime = _runtime(tmp_path, [Step(stdout=REPLY)], sudo=sudo)
+    return runtime, opencode_request(tmp_path / "work", environment=GIVEN, os_user="agent")
+
+
+def _warned_by_wrapper(_: Path, layout: Layout) -> tuple[OpencodeRuntime, AgentRunRequest]:
+    confine = write_confine(layout, Played(stdout=REPLY, exit_status=0))
+    return _confined_runtime(layout, [Step(stdout=REPLY)], confine), run_request(layout)
+
+
+@pytest.mark.parametrize(
+    "build",
+    [
+        pytest.param(_warned_by_sudo, id="sudo"),
+        pytest.param(_warned_by_wrapper, id="wrapper"),
+    ],
+)
+def test_a_call_that_printed_valid_events_is_no_refusal_whatever_its_stderr_holds(
+    tmp_path: Path,
+    layout: Layout,
+    build: Callable[[Path, Layout], tuple[OpencodeRuntime, AgentRunRequest]],
+) -> None:
+    runtime, request = build(tmp_path, layout)
+
+    result = runtime.run(request)
+
+    assert result.end_reason == "completed"
+    assert result.decision == "doing"
+    assert result.entry == "Built it."
 
 
 def _api_file(tmp_path: Path, content: str | None) -> Path | None:
