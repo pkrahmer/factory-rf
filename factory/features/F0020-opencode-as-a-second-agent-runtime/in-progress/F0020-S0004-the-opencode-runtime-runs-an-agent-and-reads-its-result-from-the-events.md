@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T05:23:22.535432Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-10-19T05:23:22.535432Z'
   stage: review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T05:25:32.989358Z'
+  stage: review
+  run: 8458e5f88c064ec7bde94b7302ff46d8
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -299,8 +301,9 @@ Changed under the feature's decision 19, by the tester only, nothing else in tho
 17. The kill point `AGENT_RUN` is reached once after a run, `OpencodeRuntime` is an `AgentRuntime`, and the module reads no `os.environ` (a source search, which finds it in a snippet that does).
 18. The errors carry the Claude Code runtime's texts (rows): `version()` of an executable that exits 1 raises `<executable> --version failed: <stderr>`, of one that prints nothing `<executable> --version printed nothing`, and of one that does not exist `cannot start <executable>: <error>`; a run whose executable does not exist raises `cannot start <executable>: <error>` and leaves the state directory without a file; a run whose state directory does not exist raises `cannot write the state directory <path>: <error>` and the stand-in is never called.
 19. The non-negative limits are tested on the accepted side too: a `step_finish` with cost 0, `input` 0 and timestamp 0, after a `step_start` at timestamp 0, is a valid step that counts as a turn, with `cost_usd` `Decimal("0")`, tokens input 0 and a model time of 0 seconds (rows beside the negative ones of criterion 11).
-20. `make check` stays green.
-21. docs: `docs/project-guide.md`: a section *The opencode runtime*: the call and its words, the per-run configuration and why it is generated from the agent files and `settings.json`, the result block and its strict parsing, the events and the measures read from them, opencode's own folders in the agent's home and the folder it may not write. `docs/decisions.md`: an entry *opencode's agent is generated per run from the shipped agent files* with the reasons of the feature's decisions 6, 7, 8 and 10, dated with the story.
+20. A call that printed an event that validates is no refusal, whatever its standard error holds (rows): with an agent user, a `sudo` stand-in that prints the line `sudo: a password is required` and then runs the call, which prints a valid step and block, gives `completed` with the block's decision and entry; through a stand-in wrapper that prints its `factory-confine: ...` line and the valid events and exits 0, the same.
+21. `make check` stays green.
+22. docs: `docs/project-guide.md`: a section *The opencode runtime*: the call and its words, the per-run configuration and why it is generated from the agent files and `settings.json`, the result block and its strict parsing, the events and the measures read from them, opencode's own folders in the agent's home and the folder it may not write. `docs/decisions.md`: an entry *opencode's agent is generated per run from the shipped agent files* with the reasons of the feature's decisions 6, 7, 8 and 10, dated with the story.
 
 ## Smoke test
 
@@ -589,3 +592,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 4 gone
 29. factory: started review as self.
+30. reviewer: Review, round 1: 2 findings, so the work item goes back to doing. I read the diff against the work item. Round 0's findings 1, 2, 4 and 5 are fixed: `since`, `denied_path`, `call_refusal`, `version_printed`, `run_launch`, `cleanup_launch` and `finished_run` now live in `agent_launch`, and `_Step.timestamp` is gone. I checked that `call_refusal` keeps the Claude Code runtime's order, texts and conditions. Criteria 1 to 19 each have a test that checks what the criterion says. The layer, process-import and `os.environ` rules hold, and the diff adds no suppression marker. I ran `make duplicates`: `5 new, 35 known, 4 gone`. The 3 similar-code blocks are only calls to the shared helpers (the `call_refusal` call, the `version_printed` call, the temporary-folder removal). Sharing them, or the four-line `_request_of`, would mean `agent_launch` imports the process module, which needs the human. So I did not count those. The 2 dead-code flags are the fields and the class that S0006 and S0008 will use.
+
+    1. Criterion 20 added; it needs its test. The Interface says a refused `sudo` or a refused wrapper raises "when the call printed no event that validates". No test covers a call that printed valid events while its stderr holds a `sudo:` or `factory-confine:` line. At `src/factory/adapters/opencode_runtime.py:556`, `printed = bool(_events(process.stdout))` could be `printed = False` and every test would still pass. The Claude Code runtime pins this side with `test_a_sudo_warning_before_a_reply_gives_the_reply_s_result`. Pinning it needs no change under `src/`. `_write_sudo(..., warning=...)` and `Played(stdout=..., exit_status=0)` already play both rows. `make check` is now 21 and the docs criterion 22.
+    2. `src/factory/adapters/opencode_runtime.py:440-442`: `_confinement` copies `claude_runtime._confinement` (`claude_runtime.py:293-295`); only the folders argument differs. Round 0's finding 3 named it, and entry 24 does not mention it. Fix: one function in `agent_launch` that computes `existing_devices(DEVICE_FOLDERS, DEVICE_FILES)` and calls `run_confinement` with the runtime's folders, used by both runtimes. It needs no process import.
+
+    Notes:
+    - `tests/adapters/test_opencode_events.py:276`: `test_a_step_with_zero_values_is_a_valid_step` tests the accepted side of the limits whose refused side is `test_a_line_that_does_not_validate_is_skipped` (:235). The two sides of one rule are two test functions, where criterion 19 asks for rows beside the negative ones.
+    - `tests/adapters/test_opencode_runtime.py:283`: `test_a_version_that_cannot_be_read_names_the_reason` repeats the exit-1 and nothing rows of `tests/adapters/test_opencode_runtime_launch.py:556` `test_a_version_that_cannot_be_read_is_a_runtime_error`. The two could be one parametrized test.
+
+    Earlier tests:
+    - `tests/test_model_configuration.py`: changed under the leave the story gives it (the feature's decision 19). The change only adds the eight `opencode_runtime` models to `EXCEPTIONS`.
+    - `tests/test_wrapper_search.py`: changed under the leave the story gives it (the feature's decision 19). The change only adds `factory.adapters.opencode_runtime` to the expected importers.
