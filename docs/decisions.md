@@ -20,7 +20,7 @@ PyGithub is LGPL-3.0, and `pip-licenses` reports it as `GNU Library or Lesser Ge
 
 ## The project guide lives in `docs/`
 
-`docs/project-guide.md` is the guide for agents (R17). It is in `docs/` and not in `CLAUDE.md` so that the documenter, whose write paths are `README.md` and `docs/*`, can keep it true; `CLAUDE.md` stays the human's, and points to the guide.
+`docs/project-guide.md` is the guide for agents (R17). It is in `docs/` and not in `CLAUDE.md` so that the documenter, whose write paths are `README.md` and `docs/*`, can keep it true; `CLAUDE.md` stays the human's, and points to the guide. Since F0025-S0001 the guide is the folder `docs/project-guide/` (see *The project guide is an index and one file per domain*).
 
 ## The one module that starts processes may carry four markers
 
@@ -681,3 +681,13 @@ Date: 2026-10-19 (F0020-S0004; F0020 decisions 6, 7, 8 and 10). The pipeline's r
 - Decision: the run's rules allow opencode's three folders in the agent's home and nothing under `.config`.
 - Reasons: the agent files stay the one source of the pipeline's rules, so a change reaches both runtimes and none can drift; a generated file is the only place opencode lets a run define its prompt, tools and permissions; a strict block cannot be satisfied by a reply that merely mentions a decision; an agent that cannot write opencode's configuration folder cannot loosen its own permissions for the next run.
 - Rejected: a hand-kept opencode agent file in the repository (a second copy of the rules); reading the decision from free text (guessing a decision); allowing the whole home or `.config` (the agent could rewrite its configuration).
+
+## The project guide is an index and one file per domain
+
+Date: 2026-10-19 (F0025-S0001). `docs/project-guide.md` had grown to 1,905 lines and every agent run reads the guide before it changes anything; the file tool reads 2,000 lines by default. The guide is now the folder `docs/project-guide/`: an index, `README.md`, with what every story needs and the sections the document check reads (*Errors*, *The models' configuration*, *Kill points*, *Fault-injection paths*), and eight files, one domain each (`git-and-hosting.md`, `processes-and-checks.md`, `agents.md`, `write-guard.md`, `work-items.md`, `costs.md`, `stages.md`, `watching.md`). An agent reads the index and then the files of the domains its story touches; the index lists each file with its sections.
+
+- Why: one file for everything cannot grow with F0020 to F0024; a file of about 600 lines or less is read in one call, and a domain is the unit a story touches. A file is split by the same rule before it passes about 600 lines, and the index names the new file.
+- A move, not a rewrite: each `## ` section kept its heading and its lines, so the change is checked as a move (every old section in exactly one file, unchanged). The only text changes are the path of the guide in the text and *The document check*. The documenter moved the text with a script, because an agent that writes 1,900 lines out again can change words without noticing.
+- The document check reads the index as the project guide, with its sections and table rows, and checks the v1 words and the replaced phrases of every other `.md` file directly in the folder (`is_guide_file`), with *Replaced from v1* exempt; their findings follow the four documents in path order. The engine knows no file of the guide by name beyond the index, and reads no subfolder.
+- Rejected: a lasting test of the layout or of a file's length (a documenter who lets a file grow would stall at the check after the docs stage, with nothing in the story to fix; the move is checked once, where it happens); keeping the index at `docs/project-guide.md` beside the folder, or a stub at the old path (two files would name the guide); links between the sections (the guide refers to sections by name, and nothing would check the links).
+- The template and the todo demo keep their single `docs/project-guide.md`; the operator guide and this log stay single files.

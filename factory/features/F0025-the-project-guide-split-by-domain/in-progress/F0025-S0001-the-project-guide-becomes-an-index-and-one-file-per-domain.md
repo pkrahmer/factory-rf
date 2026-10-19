@@ -1,3 +1,131 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 252
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T06:30:52.641193Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:30:52.646885Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T06:31:35.571848Z'
+  stage: intake
+  run: f825ff04273b4127a65b62265f11490c
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:31:57.826130Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T06:34:14.769702Z'
+  stage: tests
+  run: dd2eafa2281143ffa67b66532b8cc304
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:34:35.068775Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T06:37:16.002668Z'
+  stage: doing
+  run: bc54e5c9d6014db78ca9d20eecd31c3f
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:37:36.462319Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T06:38:31.897492Z'
+  stage: review
+  run: 4a04ea9975cc4a598f41e87386c285f6
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:38:52.213665Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T06:39:10.442767Z'
+  stage: doing
+  run: 906839de2dcf4132982085d058614d44
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:39:30.567675Z'
+  stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T06:41:12.600938Z'
+  stage: tests
+  run: 13d2ad645d464696ab4c99c13233640b
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:41:32.848277Z'
+  stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T06:43:08.347035Z'
+  stage: doing
+  run: 4c31837e0f2c4b769160471862ac5eda
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:43:28.747063Z'
+  stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T06:44:00.230778Z'
+  stage: review
+  run: 0f25911d08fe422d823ec0eec413c736
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:44:20.499075Z'
+  stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T06:46:26.003360Z'
+  stage: docs
+  run: 75acb588c06e47988206ba063409977c
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:46:46.586748Z'
+  stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T06:47:19.197080Z'
+  stage: smoke-test
+  run: 1bb31f76631e497eb677d3fd5448f640
+---
+
 # The project guide becomes an index and one file per domain, and the document check reads them all
 
 ## Description
@@ -38,7 +166,7 @@ Changed under the feature's decision 9, by the tester only, nothing else in that
 ## Acceptance criteria
 
 1. `PROJECT_GUIDE == "docs/project-guide/README.md"`, `PROJECT_GUIDE_FOLDER == "docs/project-guide"` and `DOCUMENT_PATHS == ("README.md", "docs/operator-guide.md", "docs/project-guide/README.md", "docs/decisions.md")`.
-2. `is_guide_file` (rows of one parametrized test): `docs/project-guide/agents.md` and `docs/project-guide/a.b.md` give `True`. `docs/project-guide/README.md`, `docs/project-guide/sub/x.md`, `docs/project-guide/notes.txt`, `docs/project-guide/.md`, `docs/project-guide/X.MD`, `docs/project-guide.md`, `docs/project-guidex/a.md`, `docs/a.md` and `docs/project-guide/` give `False`.
+2. `is_guide_file` (rows of one parametrized test): `docs/project-guide/agents.md` and `docs/project-guide/a.b.md` give `True`. `docs/project-guide/README.md`, `docs/project-guide/sub/x.md`, `docs/project-guide/notes.txt`, `docs/project-guide/a.md.bak`, `docs/project-guide/.md`, `docs/project-guide/X.MD`, `docs/project-guide.md`, `docs/project-guidex/a.md`, `docs/a.md` and `docs/project-guide/` give `False`.
 3. A guide file is checked for its words only (rows of one parametrized test; each row is `clean_texts()` with one more key, `docs/project-guide/agents.md`). The text `# Agents\n\nThe factory runs agents.\n` gives `[]`, although it has no `## Kill points` and no table row. `# Agents\n\nEach ticket moves on.\n` gives exactly `[DocumentFinding(document="docs/project-guide/agents.md", message="uses the v1 word 'ticket'")]`. `# Agents\n\nThe run record is gone.\n` gives the one finding `describes a replaced behaviour: 'run record'`. `"  \n"` gives `empty` and `None` gives `missing`. `# Agents\n\n## Replaced from v1\n\n| ticket | work item |\n` gives `[]`.
 4. The order and the keys: `clean_texts()` with `docs/decisions.md` set to `"  \n"`, then the keys `docs/project-guide/b.md`, `docs/project-guide/a.md`, `docs/other.md` and `docs/project-guide/sub/c.md` added in that order, each `A ticket.\n`, gives exactly three findings, in this order: `docs/decisions.md` `empty`, `docs/project-guide/a.md` `uses the v1 word 'ticket'`, `docs/project-guide/b.md` `uses the v1 word 'ticket'`.
 5. The command reads the files beside the index (rows of one parametrized test, each a root with `write_documents(root, clean_texts())`). With `docs/project-guide/stages.md` holding `# Stages\n\nEach ticket waits.\n`, `main(["--root", <root>])` prints exactly `docs/project-guide/stages.md: uses the v1 word 'ticket'\n` and returns 1. With `docs/project-guide/stages.md` holding `# Stages\n\nThe stages run.\n`, `docs/project-guide/notes.txt` and `docs/project-guide/old/x.md` each holding `A ticket.\n`, and an empty folder `docs/project-guide/empty.md/`, it prints `documents ok\n` and returns 0. With `docs/project-guide/stages.md` holding `# Stages\n\nThe café opens — every day.\n`, written as UTF-8 bytes, it prints `documents ok\n` and returns 0.
@@ -127,3 +255,217 @@ Expect: two lines, `docs/project-guide/notes.md: uses the v1 word 'ticket'` and 
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: concrete. It names `factory.domain.documents` (`PROJECT_GUIDE`, `PROJECT_GUIDE_FOLDER`, `is_guide_file(path) -> bool`, `check_documents(texts)`) and `factory.entry.check_documents.main(argv)`. It also states the exact rule for `is_guide_file` and the order of the findings.
+   Criteria: each one can be tested by one test function. Every clause of the Interface has a criterion, and each rule has both its passing and its failing side.
+   - Criterion 1: the constants and `DOCUMENT_PATHS`.
+   - Criterion 2: the `is_guide_file` rows, covering the case-sensitive `X.MD`, the index itself, a subfolder, a non-`.md` name, `.md` alone, the old path, a sibling folder and the bare folder.
+   - Criterion 3: clean text, the v1 word, the replaced phrase, blank, `None`, and the exempt `## Replaced from v1` section.
+   - Criterion 4: finding order, plus ignored keys.
+   - Criterion 5: the command reads a guide file, ignores a `.txt` file, a subfolder file and a folder named `x.md`, and reads UTF-8.
+   - Criterion 6: a missing folder and the old path not being read.
+   - Criterion 9 of the feature gives the leave to change the two named tests.
+   Smoke test: the three blocks are runnable. The first needs the move to have been made, which the docs stage does. Each `Expect:` line is checkable against the output (`False []`, `documents ok` with `exit 0`, the `notes.md` finding with `exit 1`).
+   Architecture: the change fits the layering. The rules and constants go in `domain.documents`, and the folder reading goes in `entry.check_documents`, the only place that touches the filesystem. There is no new dependency or package.
+   Scope: the story stays inside the feature's Scope. Its Out of scope list (template, todo demo, operator guide and decision log staying single files, no code tree move) is respected.
+4. factory: started tests as self.
+5. tester: Wrote the tests for the criteria from the Interface. Each criterion with more than one case is one parametrized test.
+
+   - criterion 1: tests/domain/test_documents_guide_files.py::test_the_guide_is_an_index_in_its_folder
+   - criterion 2: tests/domain/test_documents_guide_files.py::test_a_guide_file_is_an_md_file_directly_beside_the_index (11 rows: 2 True, 9 False, as listed)
+   - criterion 3: tests/domain/test_documents_guide_files.py::test_a_guide_file_is_checked_for_its_words_only (rows: clean, v1-word, replaced-phrase, blank, none, replaced-section)
+   - criterion 4: tests/domain/test_documents_guide_files.py::test_guide_files_follow_the_four_documents_in_path_order_and_other_keys_are_ignored
+   - criterion 5: tests/entry/test_check_documents_guide_files.py::test_the_files_beside_the_index_are_read (rows: guide-file-read, others-ignored, utf-8)
+   - criterion 6: tests/entry/test_check_documents_guide_files.py::test_the_old_guide_path_is_not_read (rows: old-path, empty-root; empty-root imports `MISSING_LINES` from `entry.test_check_documents`)
+   - criterion 7 (`make check`) and criterion 8 (docs): these are for the coder and the documenter. They have no test.
+
+   Files created: tests/domain/test_documents_guide_files.py, tests/entry/test_check_documents_guide_files.py.
+
+   Earlier test changed under the feature's decision 9, as the Interface names: tests/entry/test_check_documents.py. In it, `MISSING_LINES` now holds `docs/project-guide/README.md: missing`. `test_each_finding_prints_one_line_in_order_and_returns_one` now expects `docs/project-guide/README.md: section 'Kill points' is missing`. Nothing else in that module changed, and every test keeps its name.
+
+   One `make test` run, red as intended:
+   - Collection error: tests/domain/test_documents_guide_files.py cannot import `PROJECT_GUIDE_FOLDER` and `is_guide_file` from `factory.domain.documents`.
+   - Failures:
+     - test_check_documents.py::test_each_finding_prints_one_line_in_order_and_returns_one
+     - test_check_documents.py::test_the_module_run_as_a_process_exits_with_the_status_of_main[empty-directory]
+     - the guide-file-read row of test_the_files_beside_the_index_are_read
+     - the old-path row of test_the_old_guide_path_is_not_read
+
+   The others-ignored and utf-8 rows of criterion 5 already pass today, because the current code reads no guide files.
+
+   `make lint` is green. I ran `ruff format` on the new files and made the parametrized arguments of the entry test keyword-only for PLR0917. No criterion needed interpreting.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/domain/test_documents_guide_files.py - ImportError while importin...
+6. factory: started doing as self.
+7. coder: I made the document check follow the guide's new layout: an index plus one file per domain. `make check` is green, and the tester's tests are unchanged.
+
+   Built:
+   - `src/factory/domain/documents.py`:
+     - Adds `PROJECT_GUIDE_FOLDER = "docs/project-guide"`.
+     - `PROJECT_GUIDE` is now built from that folder as `docs/project-guide/README.md`. `DOCUMENT_PATHS` keeps its order.
+     - Adds `is_guide_file(path)`. It splits the path at its last `/` and returns true when the folder is exactly `PROJECT_GUIDE_FOLDER`, the name fully matches `[^/]+\.md` (case-sensitive) and the path is not the index.
+     - `check_documents` checks the four documents first, then the sorted keys that `is_guide_file` accepts.
+   - `src/factory/entry/check_documents.py`:
+     - Adds `_guide_files(root)`. It lists the regular files directly in `<root>/docs/project-guide/`, writes each key as `docs/project-guide/<name>`, and keeps the ones `is_guide_file` accepts. A missing folder gives nothing.
+     - `main` reads those files together with `DOCUMENT_PATHS` through the existing `_read`.
+
+   Main choice: a guide file goes through the existing `_messages`. Its path matches none of the three special documents, so it falls through to the same word-only check `README.md` gets. That covers missing, empty, the replaced phrases, the v1 words and the exempt `## Replaced from v1` section without another branch. I rejected a separate `_guide_file_messages` function because it would have repeated the missing and empty handling.
+
+   Refactor pass: I removed a separator check from `is_guide_file` that never changed the result, because a path without `/` has an empty folder. Nothing else needed changing.
+
+   Noticed but not touched:
+   - Until the docs stage moves the guide into `docs/project-guide/`, `make documents` on this branch reports `docs/project-guide/README.md: missing`. This is expected; `make documents` is the docs stage's check, not part of `make check`.
+   - `tests/test_claude_files.py` still quotes `CLAUDE.md`'s sentence naming `docs/project-guide.md`. The human's change 1 after the merge covers that.
+   - The journal changed nothing in the Description.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 35 known, 4 gone
+8. factory: started review as self.
+9. reviewer: 1. Criterion 2 extended: it needs its row. Location: `tests/domain/test_documents_guide_files.py::test_a_guide_file_is_an_md_file_directly_beside_the_index`. The Interface says the name must *fully* match `[^/]+\.md`, but no row tests the refused side of "fully". Every False row would also be False under `re.match`, so a name with text after `.md` (an editor's `stages.md.bak` or `.orig`) is not pinned. I added `docs/project-guide/a.md.bak` → `False` to criterion 2's list in the work item. The fix: the tester adds that row to the parametrized test. No change under `src/` is needed, because `src/factory/domain/documents.py:170` already uses `fullmatch`.
+
+   Otherwise the diff matches the Interface:
+   - `PROJECT_GUIDE` and `PROJECT_GUIDE_FOLDER` match it.
+   - `DOCUMENT_PATHS` keeps its order.
+   - `is_guide_file` is case-sensitive and leaves out the index.
+   - Guide files reach the existing word-only branch of `_messages` and come in sorted order after the four documents.
+   - `_guide_files` in `src/factory/entry/check_documents.py` reads only regular files directly in the folder, and a missing folder gives nothing.
+
+   The layers hold: the domain does no I/O, and the folder is listed in `entry`. Nothing has a silencing marker. Criteria 1 and 3 to 6 each have a fitting test. The coder's journal entry 7 records `make check` green.
+
+   `make duplicates` shows 5 new findings, all in `claude_runtime` and `opencode_runtime`, which this diff does not touch. They are outside this review.
+
+   Earlier tests:
+   - `tests/entry/test_check_documents.py` (M): changed under the human's leave named in the story's Interface (the feature's decision 9). The diff changes only the `MISSING_LINES` line and one expected line of `test_each_finding_prints_one_line_in_order_and_returns_one`, and every test keeps its name.
+10. factory: started doing as self.
+11. coder: I made no code change in this round, because the reviewer's finding needs only a new test row.
+
+    The reviewer added a row to criterion 2: `docs/project-guide/a.md.bak` gives `False`. It tests the refused side of the rule that a guide file's name must fully match `[^/]+\.md`.
+    - **Where the row goes:** `tests/domain/test_documents_guide_files.py::test_a_guide_file_is_an_md_file_directly_beside_the_index`, as `("docs/project-guide/a.md.bak", False)`.
+    - **Why it is still missing:** I checked the module, and the parametrized rows have no `a.md.bak` case today.
+    - **Why no code change:** `is_guide_file` in `src/factory/domain/documents.py` already uses `fullmatch`, so the row should pass against the current code.
+
+    The tester adds that row and changes nothing else in the module.
+
+    The journal changed nothing in the Description: the reviewer already wrote the new row into criterion 2.
+12. factory: started tests as self.
+13. tester: I made the test change that the coder's entry 11 names. The reviewer's entry 9 added the row to criterion 2.
+
+    - Change: `tests/domain/test_documents_guide_files.py::test_a_guide_file_is_an_md_file_directly_beside_the_index` gets the row `("docs/project-guide/a.md.bak", False)`. It sits after the `notes.txt` row, in criterion 2's order.
+    - Why: the row tests the refused side of the rule that a name must *fully* match `[^/]+\.md`. A name with text after `.md` was not covered by any row.
+    - Nothing else in the module changed, and the test keeps its name.
+
+    Mapping, unchanged apart from the new row:
+    - criterion 1: tests/domain/test_documents_guide_files.py::test_the_guide_is_an_index_in_its_folder
+    - criterion 2: tests/domain/test_documents_guide_files.py::test_a_guide_file_is_an_md_file_directly_beside_the_index (now 12 rows: 2 True, 10 False)
+    - criterion 3: tests/domain/test_documents_guide_files.py::test_a_guide_file_is_checked_for_its_words_only
+    - criterion 4: tests/domain/test_documents_guide_files.py::test_guide_files_follow_the_four_documents_in_path_order_and_other_keys_are_ignored
+    - criterion 5: tests/entry/test_check_documents_guide_files.py::test_the_files_beside_the_index_are_read
+    - criterion 6: tests/entry/test_check_documents_guide_files.py::test_the_old_guide_path_is_not_read
+    - criteria 7 and 8: no test (they are `make check` and the docs criterion).
+
+    I created no new files in this round, and the test run could import every module. One `make test` run is green: the new row passes against the existing `fullmatch` in `is_guide_file`. `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (36.4 s)
+14. factory: started doing as self.
+15. coder: Round 1: I made no code change. The only finding was the reviewer's in entry 9: criterion 2 needed a row for `docs/project-guide/a.md.bak`. That row only needed a test, and the tester added it in entry 13. It passes against the existing `fullmatch` in `is_guide_file` (`src/factory/domain/documents.py`).
+
+    What I built is unchanged from entry 7:
+    - `src/factory/domain/documents.py`: `PROJECT_GUIDE_FOLDER`, the new `PROJECT_GUIDE`, `is_guide_file`, and guide files checked in sorted order after the four documents.
+    - `src/factory/entry/check_documents.py`: `_guide_files(root)` lists the files directly in `docs/project-guide/`.
+
+    Main choice, also unchanged: guide files go through the existing word-only branch of `_messages`. I rejected a separate function for them, because it would repeat the missing and empty handling.
+
+    Refactor pass: nothing to change, since this round has no diff of mine.
+
+    `make check` is green on this branch.
+
+    Noticed but not touched:
+    - `make documents` reports `docs/project-guide/README.md: missing` until the docs stage moves the guide. That check belongs to the docs stage, not to `make check`.
+    - `tests/test_claude_files.py` still quotes `CLAUDE.md`'s sentence about `docs/project-guide.md`. The human's change 1 after the merge covers it.
+
+    The journal changed nothing in the Description.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 4 gone
+16. factory: started review as self.
+17. reviewer: no findings
+
+    What I checked against the diff:
+    - Criterion 2 now has the `docs/project-guide/a.md.bak` row from entry 13, so the finding from round 0 is fixed. It covers the refused side of "fully matches". `is_guide_file` in `src/factory/domain/documents.py` uses `fullmatch`, splits the path with `rpartition("/")` and leaves out the index. Every row of the criterion is in the one parametrized test.
+    - Criteria 1, 3, 4, 5 and 6: each has a test that checks what the criterion says.
+      - Criterion 3 has six rows: clean, the v1 word, the replaced phrase, blank, `None`, and the exempt `## Replaced from v1` section.
+      - Criterion 4 tests the path order and the ignored keys.
+      - Criterion 5 tests a guide file being read, and that a `.txt` file, a file in a subfolder and an empty folder named `empty.md` are ignored. It also tests UTF-8 through `write_documents`, which writes UTF-8 bytes.
+      - Criterion 6 tests the old path and an empty root, which also covers a missing folder.
+      - Entry 15 records `make check` green after the coder.
+    - Architecture: the domain still does no I/O. The folder is listed only in `factory.entry.check_documents._guide_files`. The entry layer imports downward only.
+    - Security: no silencing markers and no strings run as commands. Only regular files directly in the guide folder are read.
+    - Quality: guide files reuse the word-only branch of `_messages`, so there is no second copy of the missing and empty handling. The module and public docstrings are updated. The 5 new `make duplicates` findings are in `claude_runtime` and `opencode_runtime`, which this diff does not touch.
+    - Work item: the Description and the docs criterion match what was built. The docs criterion still tells the documenter what the move is.
+
+    Earlier tests:
+    - `tests/entry/test_check_documents.py` (M): changed under the human's leave the story's Interface names (the feature's decision 9). Only the `MISSING_LINES` line and one expected line of `test_each_finding_prints_one_line_in_order_and_returns_one` changed, and every test keeps its name and what it checks.
+18. factory: started docs as self.
+19. documenter: I moved the project guide into `docs/project-guide/` and updated every reference to it. No findings: the code matches the Interface and the criteria, and the public functions have their docstrings.
+
+    The move was made by a script kept in `$TMPDIR`. It cut the old guide at its `## ` headings with `factory.domain.sections.sections` and wrote each section's lines unchanged.
+
+    Files changed:
+    - `docs/project-guide.md`: deleted.
+    - `docs/project-guide/README.md`: new index. It holds the opening paragraph reworded (the guide is this index plus one file per domain), the 600-line split rule, and a section *The files* that names each file, its domain, its modules and its sections. Below that come *Errors*, *The models' configuration*, *Kill points* and *Fault-injection paths*.
+    - `docs/project-guide/git-and-hosting.md`, `processes-and-checks.md`, `agents.md`, `write-guard.md`, `work-items.md`, `costs.md`, `stages.md`, `watching.md`: one domain each. The sections are the table's, in the old guide's order, under a title and one sentence. The largest file is `work-items.md` at 375 lines.
+    - In the moved text, one sentence of *The write paths* now names `` `docs/project-guide/` ``. *The document check* is rewritten as the criterion says: the index is the project guide, every other guide file is checked for words, its findings follow in path order, and a story that changes a guide file runs the check.
+    - `README.md`: the last sentence of the opening paragraph and *Where to look next* now name `docs/project-guide/` and its index.
+    - `docs/operator-guide.md`: five references to the project guide now name their files. The guard command is in `write-guard.md`. "The rules of the definition" is in `stages.md` (two places). The form check is in `work-items.md`. *Kill points* and *Fault-injection paths* are in `docs/project-guide/README.md`.
+    - `docs/decisions.md`: new entry *The project guide is an index and one file per domain*, dated 2026-10-19, with the reasons of the feature's decisions 1 to 6. One sentence added to *The project guide lives in `docs/`* that the guide is the folder since this story.
+
+    Checks run:
+    - The smoke test's first block gave `False []`.
+    - `uv run python -m factory.entry.check_documents` gave `documents ok` with exit 0.
+    - No `docs/project-guide.md` is left in `README.md`, the operator guide or the guide folder. I did not run the smoke test's third block (a temporary copy with a bad `notes.md`).
+    - I changed only documents, so I did not run `make check`; the factory's run after this stage decides.
+
+    Cross-read and found current: the rest of `docs/operator-guide.md` and `README.md` against the diff. The code change touches only the document check, and the operator guide has no text about it.
+
+    Stale text I did not touch:
+    - The F0011-S0005 entry of `docs/decisions.md` still names `docs/project-guide.md`. It is dated history, and the feature's decision 8 leaves it as it is.
+    - `CLAUDE.md`, `factory/story-form.md` and `tests/test_claude_files.py` still name the old path. They are the human's change 1 after the merge.
+    - The guide's sections still say "see *Section name*" without a file. The index leads from a name to its file, and links were rejected under decision 4.
+
+    `check`: check: green
+    `documents`: documents ok
+20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test, round 1. I ran the three commands under `## Smoke test` from the repository root, exactly as written and in order. All three met their `Expect:` lines. I fixed nothing.
+
+    Command 1 (the script that compares the guide's sections with `origin/main:docs/project-guide.md`):
+    ```
+    False []
+    ```
+    Met: `False []`. The old file is gone. Every old `## ` section is in exactly one file, unchanged except *The document check*. Every file and every section is named in the index. No heading appears twice, no file passes 600 lines, and no file outside the index has a section the old guide did not have.
+
+    Command 2 (`uv run -q python -m factory.entry.check_documents; echo "exit $?"`):
+    ```
+    documents ok
+    exit 0
+    ```
+    Met: two lines, `documents ok` and `exit 0`.
+
+    Command 3 (a copy of the documents in a `mktemp -d` folder, with `docs/project-guide/notes.md` holding "Each ticket moves on." and `docs/project-guide/old/x.md` holding "A ticket."):
+    ```
+    docs/project-guide/notes.md: uses the v1 word 'ticket'
+    exit 1
+    ```
+    Met: two lines, the `notes.md` finding and `exit 1`. The file in the subfolder was not read.
+
+    I also read `## Acceptance criteria` again, and nothing the smoke test showed contradicts any of them:
+    - Criterion 1: `src/factory/domain/documents.py:16-19` sets `PROJECT_GUIDE_FOLDER = "docs/project-guide"` and `PROJECT_GUIDE = "docs/project-guide/README.md"`. `DOCUMENT_PATHS` keeps its order.
+    - Criterion 8, the files: the guide has the index and the eight domain files the table names. Line counts: README 144, agents 301, costs 89, git-and-hosting 197, processes-and-checks 147, stages 300, watching 276, work-items 375, write-guard 184. Each domain file opens with its title and a sentence saying to read the index first. The index opens with `# Project guide`, the "index and one file per domain" paragraph and the 600-line split rule.
+    - Criterion 8, the old path: no `docs/project-guide.md` is left inside the guide.
+    - Criterion 8, the other documents: `README.md` names `docs/project-guide/` in its opening paragraph and `docs/project-guide/README.md` under *Where to look next*. `docs/operator-guide.md` names `write-guard.md`, `stages.md` (twice), `work-items.md` and `README.md` for the sections the criterion lists. `docs/decisions.md` has the new entry *The project guide is an index and one file per domain*, and *The project guide lives in `docs/`* has its added sentence.
+    - Criterion 7: I did not run `make check`. The factory runs the stage's checks itself.
+
+    Findings: none.

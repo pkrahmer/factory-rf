@@ -1,4 +1,4 @@
-"""The check of the four documents: required sections, table rows, replaced phrases, v1 words."""
+"""The check of the four documents and the guide's other files: sections, rows, phrases, words."""
 
 import re
 from collections.abc import Mapping, Sequence
@@ -13,7 +13,8 @@ from factory.domain.stop_table import STOP_TABLE, Destination
 
 README: Final = "README.md"
 OPERATOR_GUIDE: Final = "docs/operator-guide.md"
-PROJECT_GUIDE: Final = "docs/project-guide.md"
+PROJECT_GUIDE_FOLDER: Final = "docs/project-guide"
+PROJECT_GUIDE: Final = f"{PROJECT_GUIDE_FOLDER}/README.md"
 DECISION_LOG: Final = "docs/decisions.md"
 DOCUMENT_PATHS: Final = (README, OPERATOR_GUIDE, PROJECT_GUIDE, DECISION_LOG)
 OPERATOR_GUIDE_SECTIONS: Final = ("Install", "Configuration", "The stops")
@@ -57,6 +58,7 @@ _DESTINATION_WORDS: Final[Mapping[Destination, str]] = {
     "none": "no stop",
 }
 _TABLE_ROW_PREFIX = "|"
+_GUIDE_FILE_NAME = re.compile(r"[^/]+\.md")
 # A word character or a hyphen: next to an entry, it makes the entry part of a longer word.
 _WORD_EDGE = r"[\w-]"
 
@@ -163,10 +165,26 @@ def _messages(document: str, text: str | None) -> list[str]:
     return _wording(text)
 
 
+def is_guide_file(path: str) -> bool:
+    """Whether `path` is a file of the project guide beside its index: `<folder>/<name>.md`."""
+    folder, _, name = path.rpartition("/")
+    return (
+        folder == PROJECT_GUIDE_FOLDER
+        and _GUIDE_FILE_NAME.fullmatch(name) is not None
+        and path != PROJECT_GUIDE
+    )
+
+
 def check_documents(texts: Mapping[str, str | None]) -> list[DocumentFinding]:
-    """The findings of the four documents, in their order; an absent key is a missing document."""
+    """The findings of the four documents, in their order, then of the guide's other files.
+
+    An absent key among the four documents is a missing document; a guide file is checked for its
+    words only, in path order, and every other key is ignored.
+    """
+    guide_files = sorted(path for path in texts if is_guide_file(path))
+    documents = [*DOCUMENT_PATHS, *guide_files]
     return [
         DocumentFinding(document=document, message=message)
-        for document in DOCUMENT_PATHS
+        for document in documents
         for message in _messages(document, texts.get(document))
     ]
