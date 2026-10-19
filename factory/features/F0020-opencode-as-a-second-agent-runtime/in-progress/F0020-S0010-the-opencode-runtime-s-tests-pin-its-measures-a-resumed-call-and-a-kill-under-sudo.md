@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 279
 comments_read: [6274821134]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T19:00:11.493658Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-19T18:59:50.703288Z'
   stage: tests
   run: badbf64777e04dc884bd2152e65d8d7f
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-19T19:00:11.493658Z'
+  stage: doing
 ---
 
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
@@ -203,3 +212,4 @@ Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "gi
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (52.5 s)
+9. factory: started doing as self.
