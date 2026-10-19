@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T23:29:18.073844Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T23:29:18.068013Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:29:18.073844Z'
+  stage: intake
+---
+
 # The operator guide's stopped-report example is a report a stage runs
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -40,3 +67,6 @@ uv run python -m factory.entry.check_documents
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
