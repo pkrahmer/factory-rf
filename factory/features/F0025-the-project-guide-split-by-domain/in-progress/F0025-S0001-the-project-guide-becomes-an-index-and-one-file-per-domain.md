@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T06:37:36.462319Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T06:37:36.462319Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T06:38:31.897492Z'
+  stage: review
+  run: 4a04ea9975cc4a598f41e87386c285f6
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -98,7 +100,7 @@ Changed under the feature's decision 9, by the tester only, nothing else in that
 ## Acceptance criteria
 
 1. `PROJECT_GUIDE == "docs/project-guide/README.md"`, `PROJECT_GUIDE_FOLDER == "docs/project-guide"` and `DOCUMENT_PATHS == ("README.md", "docs/operator-guide.md", "docs/project-guide/README.md", "docs/decisions.md")`.
-2. `is_guide_file` (rows of one parametrized test): `docs/project-guide/agents.md` and `docs/project-guide/a.b.md` give `True`. `docs/project-guide/README.md`, `docs/project-guide/sub/x.md`, `docs/project-guide/notes.txt`, `docs/project-guide/.md`, `docs/project-guide/X.MD`, `docs/project-guide.md`, `docs/project-guidex/a.md`, `docs/a.md` and `docs/project-guide/` give `False`.
+2. `is_guide_file` (rows of one parametrized test): `docs/project-guide/agents.md` and `docs/project-guide/a.b.md` give `True`. `docs/project-guide/README.md`, `docs/project-guide/sub/x.md`, `docs/project-guide/notes.txt`, `docs/project-guide/a.md.bak`, `docs/project-guide/.md`, `docs/project-guide/X.MD`, `docs/project-guide.md`, `docs/project-guidex/a.md`, `docs/a.md` and `docs/project-guide/` give `False`.
 3. A guide file is checked for its words only (rows of one parametrized test; each row is `clean_texts()` with one more key, `docs/project-guide/agents.md`). The text `# Agents\n\nThe factory runs agents.\n` gives `[]`, although it has no `## Kill points` and no table row. `# Agents\n\nEach ticket moves on.\n` gives exactly `[DocumentFinding(document="docs/project-guide/agents.md", message="uses the v1 word 'ticket'")]`. `# Agents\n\nThe run record is gone.\n` gives the one finding `describes a replaced behaviour: 'run record'`. `"  \n"` gives `empty` and `None` gives `missing`. `# Agents\n\n## Replaced from v1\n\n| ticket | work item |\n` gives `[]`.
 4. The order and the keys: `clean_texts()` with `docs/decisions.md` set to `"  \n"`, then the keys `docs/project-guide/b.md`, `docs/project-guide/a.md`, `docs/other.md` and `docs/project-guide/sub/c.md` added in that order, each `A ticket.\n`, gives exactly three findings, in this order: `docs/decisions.md` `empty`, `docs/project-guide/a.md` `uses the v1 word 'ticket'`, `docs/project-guide/b.md` `uses the v1 word 'ticket'`.
 5. The command reads the files beside the index (rows of one parametrized test, each a root with `write_documents(root, clean_texts())`). With `docs/project-guide/stages.md` holding `# Stages\n\nEach ticket waits.\n`, `main(["--root", <root>])` prints exactly `docs/project-guide/stages.md: uses the v1 word 'ticket'\n` and returns 1. With `docs/project-guide/stages.md` holding `# Stages\n\nThe stages run.\n`, `docs/project-guide/notes.txt` and `docs/project-guide/old/x.md` each holding `A ticket.\n`, and an empty folder `docs/project-guide/empty.md/`, it prints `documents ok\n` and returns 0. With `docs/project-guide/stages.md` holding `# Stages\n\nThe café opens — every day.\n`, written as UTF-8 bytes, it prints `documents ok\n` and returns 0.
@@ -256,3 +258,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 35 known, 4 gone
 8. factory: started review as self.
+9. reviewer: 1. Criterion 2 extended: it needs its row. Location: `tests/domain/test_documents_guide_files.py::test_a_guide_file_is_an_md_file_directly_beside_the_index`. The Interface says the name must *fully* match `[^/]+\.md`, but no row tests the refused side of "fully". Every False row would also be False under `re.match`, so a name with text after `.md` (an editor's `stages.md.bak` or `.orig`) is not pinned. I added `docs/project-guide/a.md.bak` → `False` to criterion 2's list in the work item. The fix: the tester adds that row to the parametrized test. No change under `src/` is needed, because `src/factory/domain/documents.py:170` already uses `fullmatch`.
+
+   Otherwise the diff matches the Interface:
+   - `PROJECT_GUIDE` and `PROJECT_GUIDE_FOLDER` match it.
+   - `DOCUMENT_PATHS` keeps its order.
+   - `is_guide_file` is case-sensitive and leaves out the index.
+   - Guide files reach the existing word-only branch of `_messages` and come in sorted order after the four documents.
+   - `_guide_files` in `src/factory/entry/check_documents.py` reads only regular files directly in the folder, and a missing folder gives nothing.
+
+   The layers hold: the domain does no I/O, and the folder is listed in `entry`. Nothing has a silencing marker. Criteria 1 and 3 to 6 each have a fitting test. The coder's journal entry 7 records `make check` green.
+
+   `make duplicates` shows 5 new findings, all in `claude_runtime` and `opencode_runtime`, which this diff does not touch. They are outside this review.
+
+   Earlier tests:
+   - `tests/entry/test_check_documents.py` (M): changed under the human's leave named in the story's Interface (the feature's decision 9). The diff changes only the `MISSING_LINES` line and one expected line of `test_each_finding_prints_one_line_in_order_and_returns_one`, and every test keeps its name.
