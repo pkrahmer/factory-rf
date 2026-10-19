@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 302
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T23:41:34.122229Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T23:41:34.122229Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T23:41:54.921421Z'
+  stage: smoke-test
+  run: 090bbd9461964d59bc9c718cd8c54e34
 ---
 
 # The documents record the proof run of a project's skill and coder
@@ -190,3 +192,34 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: all four commands met their `Expect:` lines, and the smoke test contradicts no criterion. No findings.
+
+    1. `grep -c "the feature's proof run looks" docs/operator-guide.md`. **Met** (Expect: `0`). The exit code is 1, which is how grep reports a count of 0 matches; it is not an error.
+    ```
+    0
+    ```
+
+    2. `grep -c 'A run reads them from its checkout' docs/operator-guide.md`. **Met** (Expect: `0`). The exit code is 1 here too, again because the count is 0.
+    ```
+    0
+    ```
+
+    3. `sed -n "/^## The agents load a project's skills/,/^## /p" docs/decisions.md | grep -c 'skill: journal-marker'`. **Met** (Expect: `1`).
+    ```
+    1
+    ```
+
+    4. `uv run python -m factory.entry.check_documents`. **Met** (Expect: `documents ok`).
+    ```
+    documents ok
+    ```
+
+    Criteria, checked against `git diff main...HEAD`:
+    - Criterion 1: the branch changes only `docs/decisions.md`, `docs/operator-guide.md`, the work item and its `.costs.jsonl` sidecar. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed. The tester's entry (5) and the coder's entry (7) both say so.
+    - Criterion 2: I did not run `make check` in this stage. The documenter's entry (11) records `check: green`, reused from tree 5006d1b6db9a, and the branch changes no code since then.
+    - Criterion 3:
+      - `docs/operator-guide.md:989`: "(the feature's proof run looks)" is gone. The sentence now says the nested folder "was not checked, so the review and your merge see it in the diff". "A run reads them" now reads "A run reads the root `.claude/skills/` from its checkout, the work item's branch."
+      - `docs/decisions.md`: a new `- Proven:` bullet comes before `Open:`. It names `skills-demo`, `project coder:`, `skill: journal-marker` for the intake, tester and coder, the shipped coder given again after the project's coder was removed from `main`, and the refused folder in the home's `skills/` (`self`). It is three sentences, one more than the criterion's "one or two sentences", which I count as wording, not a finding. The `Open:` bullet keeps the nested `.claude/skills/` and adds "the proof run did not check it".
+      - Only these two passages changed in the diff.
+
+    Not checked: the proof run's evidence itself is the human's account, as the earlier stages also noted.
