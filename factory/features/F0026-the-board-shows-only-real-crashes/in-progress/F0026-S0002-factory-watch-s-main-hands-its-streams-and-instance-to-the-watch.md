@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 276
 comments_read: [6274062567]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T18:15:08.567706Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -94,6 +90,12 @@ journal:
   kind: started
   at: '2026-10-19T18:15:08.567706Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-10-19T18:16:29.067425Z'
+  stage: doing
+  run: ec7358873fd6481b83abb442dce31810
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -285,3 +287,19 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
     Noticed but not touched: nothing new beyond entry 9.
 14. 2026-10-19 human: (a), with this answer as the correction. Read the Description's "This story pins all of that with new tests and changes no code" as: except line 87, `raise SystemExit(main())` under `if __name__ == "__main__":`, which runs only when the module is executed as a program and so stays uncovered. That is the human's decision, recorded here in the journal; no criterion changes and no test is added. Hand forward to review as it is; the reviewer takes this answer as settling finding 1.
 15. factory: started doing as self.
+16. coder: I built nothing in this round. The human's answer in entry 14 settles the reviewer's finding 1 with option (a): read the Description's "This story pins all of that with new tests and changes no code" as excluding line 87, `raise SystemExit(main())` under `if __name__ == "__main__":`. That line runs only when the module is executed as a program, so it stays uncovered. No criterion changes and no test is added.
+
+    I did not rewrite `## Description`, because the work item is outside the coder's write paths (entry 13). The human's answer in the journal is the record of that correction, as they asked. I changed no file under `src/` or `tests/`, and the only file changed in the working tree is the factory's `.costs.jsonl` sidecar.
+
+    The branch now includes a merge of `origin/main` (a93997d1), so I ran `make check` again. It ended `check: green` (`test: green (50.6 s)`, total coverage 99.10 %), and the only line it reports uncovered in `src/factory/entry/watch.py` is line 87.
+
+    Main choice: I handed forward unchanged, as the human said to. The alternative I rejected was adding a pragma or a subprocess test for line 87, which the human ruled out.
+
+    Refactor step: there is no diff of mine to read, so nothing needed changing.
+
+    Noticed but not touched: nothing new beyond entry 9.
+
+    `check`: check: green
+
+    `check`: check: green (not run again: passed on tree e7b6aec770f3 at 2026-10-19T18:09:19Z)
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
