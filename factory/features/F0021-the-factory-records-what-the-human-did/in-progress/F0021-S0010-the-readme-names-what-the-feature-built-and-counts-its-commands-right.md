@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 246
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T02:15:21.748120Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T02:15:01.701468Z'
   stage: review
   run: e5d1f0c18bf349b88b04e1544b48620b
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T02:15:21.748120Z'
+  stage: docs
 ---
 
 # The README names what the feature built and counts its commands right
@@ -160,3 +169,4 @@ Expect: `documents ok`
      - `src/factory/contract/` holds the five schemas.
    - Hygiene: the coder's entry explains the main choice, which was to hand forward empty and leave the README and the guide to the documenter, and it names what was rejected. The Description matches what was built, which is nothing yet. The docs criterion still says what a newcomer and an operator must know.
    - Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
