@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 288
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T21:22:58.323204Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T21:22:58.323204Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T21:23:20.190763Z'
+  stage: intake
+  run: aa86554ae37d48f79ed12866f9547c41
 ---
 
 # The git wrapper leaves out a path that starts with a dash
@@ -74,3 +76,9 @@ Expect: `True`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: no module changes. It names `GitCli.work_tree_id(left_out=())` in `factory.adapters.git_cli` and the one rule to pin. I read the code: `src/factory/adapters/git_cli.py:412-427` matches the left-out patterns with `matches_any` and passes the matched paths after `--` to `update-index --force-remove`. So a `-*` pattern works as a pattern, and the removed paths are literal.
+   - Criteria: criterion 1 is one parametrized test with four rows, and each row compares two exact values. The rows are both dash files, `-x.md` alone, the `-*` pattern, and `a.md` alone. The failing side is covered: a path that is not left out still counts, and a missing `--` would make git read `-x.md` as an option and raise. "Raises no error" is checked by the call itself. The two closing criteria are in place: `make check` stays green, and docs: none with its reason.
+   - Smoke test: the commands are runnable (git init, three files, a short python script via `uv run`). The `Expect: True` line is checkable against the printed output.
+   - Architecture: adapter layer only, with tests under `tests/adapters/` using the shared fixtures `checkout`, `run_git` and `write_files`, as the CLAUDE.md test layout requires. No earlier test changes.
+   - Scope: it is inside F0023 and S0001's `work_tree_id`, adds a test only, and touches nothing in the feature's Out of scope.
