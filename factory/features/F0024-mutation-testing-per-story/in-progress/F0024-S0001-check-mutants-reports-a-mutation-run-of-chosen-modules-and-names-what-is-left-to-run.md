@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T16:16:45.733708Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-19T16:16:25.131813Z'
   stage: doing
   run: cc3542f2918547f6b8be58afb2c8deac
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:16:45.733708Z'
+  stage: review
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -326,3 +335,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+16. factory: started review as self.
