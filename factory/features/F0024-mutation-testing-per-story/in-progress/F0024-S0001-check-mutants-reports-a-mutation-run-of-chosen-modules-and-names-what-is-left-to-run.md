@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T16:16:45.733708Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-19T16:16:45.733708Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T16:17:38.266701Z'
+  stage: review
+  run: e6674a9363fb45318686a47226877155
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -336,3 +338,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 16. factory: started review as self.
+17. reviewer: no findings
+
+    Round 1 review of `git diff main...HEAD -- . ':!factory'` (src/factory/domain/mutants.py, src/factory/entry/inputs.py, src/factory/entry/check_mutants.py, src/factory/entry/check_duplicates.py, and the three new test files) against the work item. I checked groups 1 to 5 and none of them fails.
+
+    - Acceptance criteria: each of criteria 1 to 12 has a test that checks what the criterion says.
+      - Criterion 1 is now one parametrized test, tests/domain/test_mutants.py::test_result_lines_are_read_in_their_order_and_other_lines_are_refused. It covers the accepted rows, the ten statuses and the seven refused lines, each with its exact message.
+      - Criterion 12 is tests/entry/test_inputs.py::test_an_unreadable_input_is_chained_from_the_error_it_reports.
+      - The stated limits are tested on both sides:
+        - the name pattern: `a.b` is accepted (criterion 2), and a name with no dot, an empty part, whitespace or a colon is refused;
+        - `stopped_after` 0 and 1 in the domain, in one parametrized test;
+        - `--stopped-after` 0 and 1 on the command line;
+        - a module given twice;
+        - the `factory.domain.ab` prefix case.
+      - The coder's entry 15 records `make check` green. I did not run it again, as the stage says.
+    - Architecture: the domain module is pure Pydantic and rules with no I/O. File reading and argparse are in `entry`, and `entry` imports `domain`, which the layers allow. No command-line tool is called and no dependency is added.
+    - Security: there are no suppression markers and no secrets. Input is validated where it comes in: argparse checks the arguments and Pydantic checks each parsed line. A fault prints one `check-mutants:` line and nothing internal.
+    - Quality: names and docstrings fit and there is no dead code. The `check_duplicates` reader was moved, not copied. The `_read` helpers in check_demos.py and check_documents.py behave differently (one has no error handling, the other returns `None`), so `read_input` is not a second copy of either. `make duplicates` reports 5 new findings, all in claude_runtime/opencode_runtime and clock.py; none is in this diff.
+    - Work item hygiene: the Description and Interface match the code. Criterion 14 (docs) still says what the reader needs.
+
+    Notes:
+    1. tests/entry/test_check_mutants.py: the two sides of `--stopped-after`'s "at least 1" are in separate test functions. The `stopped-1` row is in `test_the_report_is_printed_and_a_partial_run_fails` and the `stopped-after-0` row is in `test_a_fault_ends_with_status_2`, not rows of one parametrized test. This is a test-file quality point in a file the diff adds, so from round 1 on it is a note.
+
+    Earlier tests: none. Every test file in the diff has status `A`, and tests/entry/test_check_duplicates.py is unchanged.
