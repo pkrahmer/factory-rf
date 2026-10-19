@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T23:46:25.183609Z'
   stage: acceptance
   run: 93629201354c4d49b6ef4d343b04da52
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T23:47:43.934750Z'
+  stage: done
 stories: [F0031-S0001, F0031-S0002, F0031-S0003]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of No stage runs mutation testing
@@ -193,3 +198,4 @@ None. Every open item is either in the human's files (the todo demo's `Makefile:
    6 Decisions: decisions 1 to 10 and 13 are built or applied. Decision 12 planned one story, and the feature took three, two of them one-line follow-ups. Open for the human: the F0030 draft's `feature.md` (lines 5 and 19) still names the acceptance's `make mutants`, plus the demo's `Makefile:4` and the playbook line. Earlier tests: S0001's two were changed under decision 7, S0002 and S0003 changed none, and none was changed without a leave.
    7 Slow checks: nothing beyond `make check`. The slowest tests are four time-limit tests at 4.5 to 5.0 s, none of them this feature's. Disk is unchanged (`/work` 0.5 GB used, 970.3 GB free).
    8 Cost: 22 runs, 13.5 min, $3.77 (S0001 $2.30, S0002 $0.77, S0003 $0.70, with no rework in S0003). S0001 stands out with its $0.83 rework round over a paraphrased docstring. The two one-line follow-ups and their acceptances cost more than folding the noticed lines into S0001 would have. 0 questions, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 2.8 min, 18 turns, 59230 tokens in (774044 more from cache), 11652 out, $0.86
