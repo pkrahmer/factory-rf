@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 240
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T00:10:36.348520Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T00:10:16.028985Z'
   stage: docs
   run: a3267d5b90624064a1b82036375c219a
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:10:36.348520Z'
+  stage: smoke-test
 ---
 
 # The records carry a contract of generated JSON Schemas
@@ -266,3 +275,4 @@ Expect: `1.0 ['at', 'event', 'reason', 'scope']`
 
     `check`: check: green
     `documents`: documents ok
+12. factory: started smoke-test as self.
