@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T10:19:02.118672Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   at: '2026-10-19T10:18:41.393486Z'
   stage: review
   run: 324a5e848bf04cfda35256b16576470e
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:19:02.118672Z'
+  stage: doing
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -469,3 +478,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Notes:
     - `tests/adapters/test_opencode_provider_limit.py:695`: `len(read_calls(...)) <= 1` is weaker than "after one call" for the `500` and `1428` rows. It holds only because a `completed` end implies the stand-in ran. Splitting the expected call count per row would state it directly.
+21. factory: started doing as self.
