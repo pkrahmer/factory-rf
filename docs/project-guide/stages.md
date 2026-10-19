@@ -28,7 +28,7 @@ This file covers the pipeline definition and a stage from the claim to the resul
 
 **`ClaimService` is the only module that builds or judges claims.** Only `factory.application.claims` imports `claim_status`, `lease_expired`, `lease_age` or `observed_claim_status`, and only it calls `Claim(...)`; `tests/test_claim_ownership.py` searches the source with `ast` and fails otherwise. Code that needs to know a claim's standing asks the service.
 
-In tests, set the work item up on its branch before `claim` (a state, a journal entry and a `## Journal` section, or `append_entry` raises `WorkItemFormatError`); see `tests/application/test_claims.py`.
+In tests, set the work item up on its branch before `claim` (a state, a journal entry and a `## Journal` section, or `append_entry` raises `WorkItemFormatError`); `put_work_item` and `created_state` in `tests/work_item_support.py` do it, and `tests/application/test_claims.py` uses them.
 
 ## The pipeline definition
 

@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 275
 comments_read: [6273558949]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T17:57:27.083942Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-19T17:57:27.083942Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T17:57:49.853716Z'
+  stage: docs
+  run: 5a8c0d184c1446df96f1032c5700dac8
 ---
 
 # The claim service's refusals name their cause
@@ -394,3 +396,17 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
     - tests/application/test_claims_refusals.py:19: `BODY` is the same text as `BODY` in `tests/application/test_undo.py:37` and in `tests/application/test_claims.py:34`. It could join `tests/work_item_support.py`.
     - tests/application/test_claims_refusals.py:28: `_snapshot` is a four-field variant of `_snapshot` in `tests/application/test_claims.py:85`.
 21. factory: started docs as self.
+22. documenter: Docs round 1. The docs criterion is `none` (only tests changed; no module under `src/` changed), so I wrote nothing new. I ran no `make check`, because the only file I changed is a document; the factory's check after this stage decides.
+
+    Files changed:
+    - `docs/project-guide/stages.md` (line 31): the sentence on setting a work item up on its branch before `claim` pointed at `tests/application/test_claims.py`. That preparation now lives in `tests/work_item_support.py` (`put_work_item`, `created_state`), which this story added by moving it. The sentence now names those helpers and says `test_claims.py` uses them.
+
+    Cross-read and found current: `README.md`, `docs/project-guide/README.md` (the *The claim service* part, which says `claim` refuses with `ValueError` before writing anything, matches the code and the pinned texts), `docs/project-guide/git-and-hosting.md` (the `human` fixture paragraph), and a search of all of `docs/` for `test_claims`, `_file_text`, `work_item_support`, `human_clone`. Nothing else names the moved helpers.
+
+    Code against the Interface: the seven messages in the Interface match the f-strings in `src/factory/application/claims.py`, as the reviewer found. No findings for the coder.
+
+    Stale text seen and not touched: none. The reviewer's notes in entry 20 (the repeated `BODY` constant, `_start` in `test_undo.py`, the four-field `_snapshot`) are test-code matters and not mine.
+
+    `check`: check: green (not run again: passed on tree 1f8f58133ac5 at 2026-10-19T17:54:50Z)
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok
