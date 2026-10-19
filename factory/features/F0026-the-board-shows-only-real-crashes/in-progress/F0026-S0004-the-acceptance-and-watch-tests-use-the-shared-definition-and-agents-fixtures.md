@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 274
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T17:35:49.854421Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T17:35:49.854421Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T17:37:14.313026Z'
+  stage: docs
+  run: b0206ba3c4ce4d4b9e919b4cec48cf83
 ---
 
 # The acceptance and watch tests use the shared definition and agents fixtures
@@ -201,3 +203,16 @@ Expect: three lines, `tests/conftest.py`, `tests/conftest.py` and `pytest exit 0
    - The coder's `make duplicates` reported `5 new` (entry 7). This branch changes nothing under `src/factory`, so those findings are not this diff's. They are worth a look at the feature's acceptance.
    - `mutants`: no module under `src/factory` changed, so there was no report to read.
 10. factory: started docs as self.
+11. documenter: Docs: none, as the criterion says. I changed no file.
+
+    Cross-read: I read the story and the diff, which touches only `tests/` and nothing under `src/factory/`. I then searched the README and `docs/` for the moved fixtures (`definition`, `_agents`, `installed_agents`). No document names them. `docs/project-guide/stages.md:123` names `install_agents` in `tests/git_support.py`, which stays, so it is current. `docs/project-guide/git-and-hosting.md:195` (the test remote and its helpers) is also unaffected.
+
+    Findings: none. The code matches the Interface.
+
+    Stale text I noticed but did not touch: none.
+
+    I ran no `make check`, because I changed no file.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok
