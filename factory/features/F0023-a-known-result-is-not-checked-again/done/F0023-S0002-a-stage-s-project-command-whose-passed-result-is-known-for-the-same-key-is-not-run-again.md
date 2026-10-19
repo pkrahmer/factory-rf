@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -163,6 +163,11 @@ journal:
   at: '2026-10-19T15:21:31.443128Z'
   stage: smoke-test
   run: 8bade8b43b3b4690b62ad0a479bba039
+- number: 29
+  speaker: factory
+  kind: done
+  at: '2026-10-19T15:23:54.539843Z'
+  stage: approval
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -612,3 +617,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Against `## Acceptance criteria`: the output agrees with criteria 6, 7 and 8. It agrees with the edit-of-`docs/guide.md` row (reuse) and the edit-of-`src/a.py` row (run). It also agrees with the record shape in the Interface: each run and each reuse adds one record. It contradicts no criterion. The smoke test does not exercise the journal line format, the fault paths, the stage integration or the wiring; their tests cover them, and this stage does not judge them.
 
     No findings. Nothing fixed, nothing changed in the working tree.
+29. factory: done (pull request merged); cost: 13 runs, 16.2 min, 125 turns, 423208 tokens in (3730514 more from cache), 57633 out, $4.87
