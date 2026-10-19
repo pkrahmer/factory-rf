@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 276
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T18:12:01.772253Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -77,6 +73,13 @@ journal:
   kind: started
   at: '2026-10-19T18:12:01.772253Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: question
+  at: '2026-10-19T18:12:30.277658Z'
+  stage: doing
+  run: ee767406dae9439695364824dda998bc
+  blocked: question
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -254,3 +257,15 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
 
     Earlier tests: none. `git diff --name-status main...HEAD` shows only added test files, so no earlier test file changed.
 12. factory: started doing as self.
+13. coder: I stopped before making any change. The reviewer's finding 1 (entry 11) needs the work item's `## Description` rewritten, and I can't write the work item: the write guard refused my edit with `PermissionError: [Errno 13] Permission denied` on the story file, so it is outside the coder's write paths. I did not try another way. Nothing under `src/` or `tests/` changed, and `make check` was green in round 0 (entry 9).
+
+    The mismatch: the Description says `watch.py` lines 82-83 and 87 were uncovered and that "This story pins all of that". Lines 82-83 are now covered. Line 87, `raise SystemExit(main())` under `if __name__ == "__main__":`, runs only when the module is executed as a program, so an in-process test of `main` can't reach it, and no criterion asks for it.
+
+    Question: which way should the Description and the work go?
+    - (a) You change the Description. After "This story pins all of that with new tests and changes no code", add: "except line 87, `raise SystemExit(main())` under `if __name__ == \"__main__\":`, which runs only when the module is executed as a program and so stays uncovered". No criterion changes, and I hand forward to review once more as it is.
+    - (b) You add a criterion before the two closing ones. It would say that running `python -m factory.entry.watch --help` (or an option that ends at once) in a subprocess exits with the status `main` returns. I would then end with `tests` so the tester writes it, still with no code change. The cost is a test that starts a process, against a single line.
+    - (c) You give the coder's write paths the work item for this edit, and I make the change described in (a).
+
+    I would choose (a): the line is the standard entry point, and the mutation run did not name it as a survivor.
+
+    Noticed but not touched: nothing new beyond entry 9.
