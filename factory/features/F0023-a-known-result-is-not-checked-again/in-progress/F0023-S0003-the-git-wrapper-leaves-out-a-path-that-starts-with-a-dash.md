@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 288
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T21:28:09.390325Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T21:27:48.648851Z'
   stage: doing
   run: 1194e1a9265a493ba57a42be13de4489
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:28:09.390325Z'
+  stage: review
 ---
 
 # The git wrapper leaves out a path that starts with a dash
@@ -136,3 +145,4 @@ Expect: `True`
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
