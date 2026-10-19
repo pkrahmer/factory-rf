@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T06:31:57.826130Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T06:31:35.571848Z'
   stage: intake
   run: f825ff04273b4127a65b62265f11490c
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:31:57.826130Z'
+  stage: tests
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -171,3 +180,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: the three blocks are runnable. The first needs the move to have been made, which the docs stage does. Each `Expect:` line is checkable against the output (`False []`, `documents ok` with `exit 0`, the `notes.md` finding with `exit 1`).
    Architecture: the change fits the layering. The rules and constants go in `domain.documents`, and the folder reading goes in `entry.check_documents`, the only place that touches the filesystem. There is no new dependency or package.
    Scope: the story stays inside the feature's Scope. Its Out of scope list (template, todo demo, operator guide and decision log staying single files, no code tree move) is respected.
+4. factory: started tests as self.
