@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T20:19:21.332672Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T20:19:00.793806Z'
   stage: doing
   run: 05ac47803e69479ebe13fc10a4ece436
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:19:21.332672Z'
+  stage: tests
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -199,3 +208,4 @@ Expect: `1`
     Main choice: I end with `tests` and not `review`, because the fix sits in a test file (R9). The alternative was to edit the docstring myself, which I rejected because that file belongs to the tester.
 
     Noticed but did not touch: nothing new beyond entry 7 (the conftest imports `Layout` from the `test_entrypoint` test module). There is still no change under `src/factory/`. The Description is unchanged, because the finding does not change what the task means.
+12. factory: started tests as self.
