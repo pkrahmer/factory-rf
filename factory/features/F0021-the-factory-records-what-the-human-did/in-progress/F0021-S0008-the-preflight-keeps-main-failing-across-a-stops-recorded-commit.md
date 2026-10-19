@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T01:21:48.955295Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-19T01:21:48.955295Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T01:22:15.903767Z'
+  stage: smoke-test
+  run: da6b21106e1f4891bb3adf80e4ef94ee
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -338,3 +340,27 @@ Expect: `0`
     `check`: check: green
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test round 1. I ran both commands from the repository root exactly as written and changed nothing.
+
+    Command 1 (the `changes_only_stop_records` snippet):
+    ```
+    False
+    True
+    False
+    ```
+    Exit status 0. It meets its `Expect:` line: three lines, `False`, `True`, `False`.
+
+    Command 2 (`grep -c "the rule does not yet ignore a commit that changes only" docs/operator-guide.md`):
+    ```
+    0
+    ```
+    It meets its `Expect:` line (`0`). The exit status is 1, which is what `grep -c` returns when nothing matches. It is not an error.
+
+    Against the acceptance criteria: neither command contradicts any criterion. For criterion 1, the three outputs agree with the `[]`, `[stops.jsonl modified]` and `[stops.jsonl modified, src/a.py modified]` rows. The smoke test does not exercise criteria 2 to 4 (the preflight runs) or criterion 5 (`make check`); journal entry 15 records `make check` green and the factory runs it as a check. For criterion 6, I also read the docs text that the second command targets:
+    - `docs/operator-guide.md:347-348`: the stale-stop bullet names the exception. The `stops recorded` bullet says the stop is kept across a commit that changes only `factory/stops.jsonl`, and that the probe still runs once when the machine's items pass.
+    - `docs/project-guide.md:791`: describes `changes_only_stop_records` and how `_clear_stale_failing_stop` uses it.
+    - `docs/decisions.md:626`: the "Accepted effect" line says this story removed the effect, and why.
+
+    Findings: none.
+
+    Open: nothing.
