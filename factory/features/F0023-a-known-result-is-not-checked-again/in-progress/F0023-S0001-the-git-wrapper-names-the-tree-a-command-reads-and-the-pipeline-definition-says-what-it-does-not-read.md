@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T14:41:54.778949Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-19T14:41:54.778949Z'
   stage: doing
+- number: 19
+  speaker: coder
+  kind: result
+  at: '2026-10-19T14:42:33.319043Z'
+  stage: doing
+  run: a1f7f8786ad24423a204b624c4ea2581
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -437,3 +439,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_pipeline_strict_values.py`: the standing leave (`_outcome` replaced). Within it.
     - `tests/adapters/test_pipeline_stage_moves.py`: the standing leave (`_outcome` replaced). Within it.
 18. factory: started doing as self.
+19. coder: Round 2. I changed no code. In entry 17 the reviewer added criterion 9, which needs only its test. The tester should add `docs/~old/*`, `docs/a..b/*` and `docs..x/*` as accepted rows of `test_a_not_read_pattern_outside_the_checkout_is_refused` in `tests/domain/test_pipeline_not_read.py`.
+
+    Why no code changes: the load rule already accepts all three patterns. I checked by calling `_is_checkout_pattern` (`src/factory/domain/pipeline_definition.py:278`) on each of them: all three return True. The rule refuses only a leading `~` and a `..` that is a segment of its own.
+
+    What I built: nothing new this round. The paths from round 0 are unchanged (entry 7):
+    - `src/factory/domain/git.py`
+    - `src/factory/application/git.py`
+    - `src/factory/adapters/git_cli.py`
+    - `src/factory/domain/pipeline_definition.py`
+    - `src/factory/domain/write_paths.py`
+    - `src/factory/domain/confinement.py`
+    - `src/factory/domain/contract.py`
+    - `src/factory/contract/*.schema.json`
+
+    Main choice: end with `tests` and name the criterion. I rejected tightening or rewriting the rule's code: the finding is only about missing test coverage, and the code is already correct.
+
+    Description: the reviewer wrote criterion 9 into `## Acceptance criteria` before the two closing ones. The Description itself keeps its meaning, so I left it as it is.
+
+    Noticed but not touched (same as entries 7 and 15):
+    - The `_changed` helper is still copied in three earlier pipeline test modules: `tests/adapters/test_pipeline_rules.py`, `test_pipeline_strict_values.py` and `test_pipeline_stage_moves.py`.
+    - `make duplicates` shows five findings older than this story: four similar-code pairs between `claude_runtime` and `opencode_runtime`, and the unused `ManualWaiter`.
+    - `update-index` gets all left-out paths in one argument list, so a very large `left_out` could hit the system's limit on argument length.
