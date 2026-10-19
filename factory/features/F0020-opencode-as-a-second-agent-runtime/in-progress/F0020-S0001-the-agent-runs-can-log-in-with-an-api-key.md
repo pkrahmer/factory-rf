@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T03:29:52.716385Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T03:29:32.769652Z'
   stage: intake
   run: 8b758a12977c4881aa29c6eb58f665e7
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:29:52.716385Z'
+  stage: tests
 ---
 
 # The agent runs can log in with an API key
@@ -227,3 +236,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: runnable as written (stand-in `claude`, real runtime, no sudo or confinement). The `Expect:` line gives four checkable lines in a fixed order.
    Architecture: the login shell and its helpers are in an adapters module that builds words and texts and does not import the process module. Wiring stays in `entry`, the preflight detail is in `application`, and the domain holds `Login` and the DTO fields. The records contract's version rise is covered by criterion 20.
    Scope: inside F0020's scope list for S0001. Nothing in Out of scope is touched. The edits to other stories' tests are the two named under decision 19.
+4. factory: started tests as self.
