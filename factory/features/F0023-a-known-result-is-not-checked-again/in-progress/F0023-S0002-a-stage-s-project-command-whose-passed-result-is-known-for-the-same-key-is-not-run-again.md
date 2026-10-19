@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T15:21:05.990878Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -152,6 +156,11 @@ journal:
   at: '2026-10-19T15:20:45.402060Z'
   stage: docs
   run: bfabba745f594896ab17bf901452931b
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-19T15:21:05.990878Z'
+  stage: smoke-test
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -576,3 +585,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `documents`: documents ok
+27. factory: started smoke-test as self.
