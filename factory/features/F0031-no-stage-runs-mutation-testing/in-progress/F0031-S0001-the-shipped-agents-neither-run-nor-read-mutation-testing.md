@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T21:00:20.059729Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-19T20:59:59.343504Z'
   stage: tests
   run: 30993873f9b648aab5f3122338dd9c25
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:00:20.059729Z'
+  stage: doing
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -246,3 +255,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (44.2 s)
+14. factory: started doing as self.
