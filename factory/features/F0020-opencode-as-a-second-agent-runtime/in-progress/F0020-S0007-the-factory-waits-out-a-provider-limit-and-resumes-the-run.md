@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T10:45:46.669260Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-19T10:45:46.669260Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-19T10:47:36.211318Z'
+  stage: doing
+  run: 4f6b0d7be5fb4d518f01eee69dc06ab8
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -402,3 +404,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (37.8 s)
 16. factory: started doing as self.
+17. coder: The code was already built in an earlier doing run (entry 10). The tester then changed the `ceiling` row as the human answered (entries 11 and 15). In this run I changed no code and no test. `make check` is green, ending with `check: green`; `make test` reached 99.05 % coverage.
+
+    What I built (in the earlier run, now complete):
+    - `src/factory/application/machine.py`: the `Waiter` interface.
+    - `src/factory/adapters/clock.py`: `SleepingWaiter` and `ManualWaiter`. They share one private check, `_refuse_negative`.
+    - `src/factory/application/boundaries.py`: `waiter: Waiter | None = None`, added last.
+    - `src/factory/domain/provider_limits.py`:
+      - the constants `DEFAULT_COOLDOWN`, `DEFAULT_CEILING` and `SHORTEST_COOLDOWN`
+      - `ProviderLimit.cooldown`, which must be at least one minute (`ge=`)
+      - `ProviderLimit.ceiling`, checked by a model validator that raises "the ceiling is shorter than the cool-down"
+    - `src/factory/domain/settings.py`: the two `..._MINUTES` variables, read by `_provider_limit` and `_minutes`. The ASCII-digit check now lives in one helper, `_whole_number(environ, variable, unit)`. `_min_free_gb` and `_minutes` both use it, so the check is not copied.
+    - `src/factory/application/provider_limits.py` (new): `CONTINUE_PROMPT` and `PatientRuns`. They follow the Interface's steps 1–6 in order. Each resumed request is a `model_copy` of the stage's request, and the calls are joined with `resumed_result`.
+    - `src/factory/application/sealed_runs.py`: `run_sealed(..., *, run=None)`.
+    - `src/factory/application/stage.py`: `StageLauncher.launch` passes `run=PatientRuns(boundaries).run`, so one cost record covers the whole patient run. The preflight's probe is unchanged.
+    - `src/factory/entry/wiring.py`: `waiter=SleepingWaiter()`.
+
+    Main choice: `PatientRuns.run` is a single loop. It keeps the joined result and the total waited so far. Because the joined result's cost and duration are already sums over the calls, the budget left and the time left come straight from them. I rejected a recursive resume, which would have to pass the waits and the original request down through every call.
+
+    Refactor pass: I read the diff against `main` and found nothing to rename, simplify or remove. I made no changes.
+
+    Description: the human's answer (entry 11) changed only one test row's expected waits. The Interface stays as it is, so I did not rewrite the Description.
+
+    Noticed, not touched:
+    - Neither `ProviderLimit` nor `InstanceSettings` is in the records contract, so no schemas were regenerated.
+    - I did not run `make duplicates`; it is a record for the reviewer.
+    - The docs criterion (19) is the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 33 known, 3 gone
