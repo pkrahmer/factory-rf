@@ -20,7 +20,7 @@ PyGithub is LGPL-3.0, and `pip-licenses` reports it as `GNU Library or Lesser Ge
 
 ## The project guide lives in `docs/`
 
-`docs/project-guide.md` is the guide for agents (R17). It is in `docs/` and not in `CLAUDE.md` so that the documenter, whose write paths are `README.md` and `docs/*`, can keep it true; `CLAUDE.md` stays the human's, and points to the guide. Since F0025-S0001 the guide is the folder `docs/project-guide/` (see *The project guide is an index and one file per domain*).
+`docs/project-guide/` is the guide for agents (R17). It is in `docs/` and not in `CLAUDE.md` so that the documenter, whose write paths are `README.md` and `docs/*`, can keep it true; `CLAUDE.md` stays the human's, and points to the guide. Since F0025-S0001 the guide is the folder `docs/project-guide/` (see *The project guide is an index and one file per domain*).
 
 ## The one module that starts processes may carry four markers
 

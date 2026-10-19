@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 255
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T09:07:33.910840Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T09:07:33.910840Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T09:09:05.935758Z'
+  stage: docs
+  run: 813371c09e464365b96040d5a2de49dd
 ---
 
 # The guide's index names every module and subsection its files describe
@@ -195,3 +197,31 @@ Expect: `documents ok`
 
    Earlier tests: none. No test file that `main` holds is changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the work item and its sidecar).
 10. factory: started docs as self.
+11. documenter: Docs-only story; I changed three documents and no code, test or comment. I did not run `make check`, because the factory runs it right after this stage.
+
+    Files changed:
+    - `docs/project-guide/README.md`, *The files*: each file's line now has the modules that other guide files name but no index line listed. They are added as "It also names `…`." before `Sections:`. Each module sits on the line of the file that describes it. Where several files name one module, I picked the one that fits it best:
+      - `factory.domain.errors` is on the `stages.md` line.
+      - `factory.application.files` is on the `work-items.md` line.
+      - `factory.entry.wiring` is on the `watching.md` line.
+      - `factory.application.preflight` is on the `processes-and-checks.md` line.
+      - The existing modules and `Sections:` lists are unchanged.
+    - The same lines now end with "Subsections other files refer to:". Under it: *Boundaries* on the `watching.md` line, *The records contract* and *The feature acceptance* on the `work-items.md` line, *The opencode runtime* on the `agents.md` line.
+    - `docs/project-guide/agents.md`: "(see *The story form check*)" now reads "(see *The story form check* in `stages.md`)".
+    - `docs/decisions.md`, *The project guide lives in `docs/`*: the first sentence names `docs/project-guide/` instead of `docs/project-guide.md`. The F0025-S0001 sentence and the dated F0011-S0005 entry are untouched.
+
+    Checks I ran:
+    - The smoke test's coverage rule: a script using the smoke test's module-matching logic lists 62 gap modules before my edit and 0 after.
+    - `uv run python -m factory.entry.check_documents` prints `documents ok`.
+    - The longest guide file is `work-items.md` at 375 lines, under the 600-line limit.
+
+    I did not run the smoke test's other blocks (the `grep` counts and the `git diff … | wc -l`).
+
+    Cross-read: the other guide files and `docs/decisions.md` against this change. Only the index and the two sentences needed edits. There is no code diff, so no names or behaviour moved.
+
+    Findings for the coder: none.
+
+    Stale text noticed, not touched: the Description says "Three smaller passages" above a list of two. Intake, the coder and the reviewer already noted it. The Description is not mine to rewrite.
+
+    `check`: check: green
+    `documents`: documents ok
