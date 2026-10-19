@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T04:05:58.380319Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T04:05:58.380319Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T04:06:16.462657Z'
+  stage: doing
+  run: 5650a9458e854e949f2332360bb907c2
 ---
 
 # What every agent runtime shares moves into one module
@@ -268,3 +270,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Open, not a finding: `request_home` in `src/factory/adapters/agent_launch.py:255` is a public function that the Interface does not list. The coder made it so that a second private copy of `_home` was not needed. The `run_confinement` rows with and without `HOME` already cover it. When the work item goes back, the Interface could name it beside the other shared functions.
 10. factory: started doing as self.
+11. coder: Round 1. The reviewer's only finding (entry 9, item 1) is a test helper copied from another test file. I'm sending it to the tests stage and changed no code.
+
+    The test change, under `CLAUDE.md`'s standing leave to move a shared test helper:
+    - Move `reads_os_environ` from `tests/test_agent_launch_search.py:11` and the private `_reads_os_environ` from `tests/test_agent_run_request_search.py:22` into `tests/source_search.py` as one public `reads_os_environ(tree: ast.Module) -> bool`.
+    - It must find all three forms: the attribute `os.environ`, `import os.environ` through `imported_modules`, and `from os import environ`.
+    - Change both test modules to import it from there. Each earlier test in `tests/test_agent_run_request_search.py` keeps its name and checks the same thing.
+
+    What I built in round 0 (entry 7) is unchanged:
+    - `src/factory/domain/agent_runs.py` (`resumed_result`)
+    - `src/factory/adapters/agent_launch.py` (the shared words, rules, refusals and resume share)
+    - `src/factory/adapters/claude_runtime.py` (uses the shared functions, re-exports the moved names through `__all__`, and reads the values tests set on it at the call)
+
+    Main choice: I did not edit either test file myself. The coder never changes a test, and the move is the tester's job under the standing leave. The alternative I rejected was to ask the human. That isn't needed, because the leave covers moving a copied helper to `tests/source_search.py`.
+
+    Noticed but not touched:
+    - The reviewer's open note: the Interface could name `request_home` in `src/factory/adapters/agent_launch.py`. It was not a finding, so I left `## Description` as it is.
+    - Still open from entries 5 and 7: `tests/test_agent_launch_search.py` may need to go on mutmut's list of left-out structural tests in `pyproject.toml`, which is outside my write paths.
+    - No journal entry changed the meaning of the task, so I did not rewrite the Description.
