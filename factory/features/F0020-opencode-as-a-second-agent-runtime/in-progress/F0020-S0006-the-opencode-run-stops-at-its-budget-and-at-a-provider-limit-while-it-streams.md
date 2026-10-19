@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 258
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T09:52:14.312636Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T09:52:14.312636Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T09:52:36.619506Z'
+  stage: intake
+  run: 972e65115689495ab8c4eb281fa6d063
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -125,3 +127,17 @@ Expect: three lines, `completed 1.3 Stopped at the budget. True`, `True`, `provi
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names `OpencodeRuntime.__init__` with the new last keyword `provider_limit: ProviderLimit | None`, the `run_streaming` callback, `resume_budget`, `resumed_result`, `FINISH_MESSAGE` from `agent_launch`, `limit_in_text`, `named_wait` and the kill point `AGENT_RUN`. Each one is a concrete module or name, and the wiring is correctly left to S0008.
+   Criteria: each is testable by one parametrized test function. Every Interface behaviour has a criterion:
+   - The budget sum, with the exact-budget case on both sides, is criterion 1.
+   - The resume's arguments and sums are 2, and the resume budget stop without a third call is 3.
+   - No resume without a session is 4, and the resume time limit is 5.
+   - A limit by `statusCode` is 6 and 7, and the non-limit error on both limit settings is 8.
+   - A limit by message, with the default limit refusing it, is 9, and a limit on stderr is 10.
+   - A limit never read from `text` or `tool_use` is 11.
+   - A limit in the resume is 12, and the kill point after a resume is 13.
+   Both sides of every rule are covered (stops/passes, limit/no limit).
+   Smoke test: runnable. It uses a stand-in `opencode` and the public API, with the 30-second waits bounded by the 20-second checks. The `Expect:` line is checkable: 0.6+0.6 stops at the budget, the resume adds 0.1 for a cost of 1.3, and the third call gives `provider_limit 420.0 None ses_smoke`.
+   Architecture: the work lies in the adapters layer (`opencode_runtime`), reuses `agent_launch`, the process module's `run_streaming` and the domain's `resumed_result` and provider-limit helpers, and calls no tool outside the one wrapper. Wiring stays in `entry` (S0008).
+   Scope: within F0020's S0006 scope line (budget stop and resume, provider limit while streaming). The waiting and continuing after a limit is left to S0007, and nothing in the feature's Out of scope is touched.
