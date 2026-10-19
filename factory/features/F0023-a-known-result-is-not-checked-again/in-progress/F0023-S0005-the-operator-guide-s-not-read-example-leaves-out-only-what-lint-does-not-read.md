@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 290
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T21:59:16.728661Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T21:59:16.728661Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T21:59:49.404432Z'
+  stage: smoke-test
+  run: c8dc84126a3d4db3af0df7ae40fc768b
 ---
 
 # The operator guide's not_read example leaves out only what lint does not read
@@ -184,3 +186,37 @@ Expect: `documents ok`
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: all four commands met their `Expect:` lines, and the smoke test contradicts no acceptance criterion. No findings.
+
+    1. `grep -c 'not_read: \["factory/\*", "docs/\*"\]' docs/operator-guide.md`. Expect `0`: met.
+    ```
+    0
+    ```
+
+    2. `grep -c 'will run `secrets`' docs/operator-guide.md`. Expect `0`: met.
+    ```
+    0
+    ```
+
+    3. `grep -c 'not_read: \["README.md", "docs/\*.md"\]' docs/operator-guide.md`. Expect `1`: met.
+    ```
+    1
+    ```
+
+    4. `uv run python -m factory.entry.check_documents`. Expect `documents ok`: met, exit status 0.
+    ```
+    documents ok
+    ```
+
+    Criteria checked once more against `git diff main...HEAD`:
+    - Criterion 1: holds. The branch changes `docs/operator-guide.md` and, under `factory/`, the work item and its `.costs.jsonl` sidecar. Nothing changes under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The tester's entry (5) and the coder's entry (7) both say so.
+    - Criterion 2: the factory's last `make check` was green (entries 7 and 11). I did not run it, because this stage runs only the smoke test.
+    - Criterion 3: the diff has five hunks, all in *The pipeline definition*, and nothing else:
+      - The first example is now `check: {time_limit: 10, not_read: ["README.md", "docs/*.md"]}`.
+      - The sentence about a linter, formatter or type checker follows "List only what the command does not read at all."
+      - The sentence about factory-rf's own definition is now in the present tense and names `factory/pipeline.yml`.
+      - The `check` line in factory-rf's block matches `factory/pipeline.yml:10` on `main` exactly (`time_limit: 8`, same `not_read` list).
+      - The warning now says "runs `secrets` as a check of its own, with nothing left out".
+      - The document check prints `documents ok`.
+
+    Open: nothing.
