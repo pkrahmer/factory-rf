@@ -13,6 +13,7 @@ from factory.domain.duplicates import (
     report_lines,
     similar_code_findings,
 )
+from factory.entry.inputs import UnreadableInput, read_input
 
 _PROGRAM = "check-duplicates"
 _BASELINE_HEADER = "# Accepted findings of make duplicates, one key per line."
@@ -21,22 +22,11 @@ _SOMETHING_NEW = 1
 _FAILURE = 2
 
 
-class _UnreadableError(Exception):
-    pass
-
-
-def _read(path: Path) -> str:
-    try:
-        return path.read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError) as error:
-        raise _UnreadableError(f"cannot read {path}: {error}") from error
-
-
 def _findings(pylint: Path, vulture: Path) -> list[DuplicateFinding]:
     try:
-        return similar_code_findings(_read(pylint)) + dead_code_findings(_read(vulture))
+        return similar_code_findings(read_input(pylint)) + dead_code_findings(read_input(vulture))
     except ValueError as error:
-        raise _UnreadableError(str(error)) from error
+        raise UnreadableInput(str(error)) from error
 
 
 def _write_baseline(path: Path, findings: Sequence[DuplicateFinding]) -> int:
@@ -47,7 +37,7 @@ def _write_baseline(path: Path, findings: Sequence[DuplicateFinding]) -> int:
 
 
 def _report(baseline: Path, findings: Sequence[DuplicateFinding]) -> int:
-    report = compare(findings, read_baseline(_read(baseline)))
+    report = compare(findings, read_baseline(read_input(baseline)))
     for line in report_lines(report):
         print(line)
     return _SOMETHING_NEW if report.new else _NOTHING_NEW
@@ -67,7 +57,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if arguments.write_baseline:
             return _write_baseline(baseline, findings)
         return _report(baseline, findings)
-    except _UnreadableError as error:
+    except UnreadableInput as error:
         print(f"{_PROGRAM}: {error}", file=sys.stderr)
         return _FAILURE
 

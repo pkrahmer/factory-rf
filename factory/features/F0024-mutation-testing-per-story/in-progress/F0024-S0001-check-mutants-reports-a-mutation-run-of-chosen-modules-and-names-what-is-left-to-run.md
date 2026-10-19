@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T16:07:34.441159Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T16:07:34.441159Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T16:10:05.817255Z'
+  stage: doing
+  run: 4ad2dbfae0244e05aa515e30298a8a5d
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -207,3 +209,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_inputs.py - ImportError while importing test module '/...
 6. factory: started doing as self.
+7. coder: Built the mutation report rules, the shared input reader and the `check_mutants` command, as described in the Interface. `make check` is green: lint, types, layers, sast, secrets, licenses and test, ending with `check: green`. The tester's new tests pass, and so does `tests/entry/test_check_duplicates.py`, unchanged.
+
+   - `src/factory/domain/mutants.py` (new). It holds `MutantStatus`, `MutantName`, the two models `MutantResult` (with its `module` property) and `MutationReport`, and the functions `parse_results`, `mutation_report` and `rerun_names`.
+     - `parse_results` strips each line, skips blank lines and splits at the last `": "`. It refuses a line in two cases: when there is no `": "`, and when pydantic rejects the name or status. A rejection is caught as `ValidationError` and raised again as the `ValueError` with the Interface's message, chained from it.
+     - The three status sets are module constants: the ones the report lists, the ones counted as `other`, and the ones `rerun_names` treats as done.
+     - `_chosen` keeps the results whose module is in `modules`. It compares whole module names, so `factory.domain.ab` is not taken for `factory.domain.a`.
+     - `partial` is computed once and passed to `_last_line`.
+   - `src/factory/entry/inputs.py` (new). It holds `UnreadableInput` and `read_input`.
+   - `src/factory/entry/check_mutants.py` (new). It uses argparse with `results`, `modules` (`nargs="+"`), and a mutually exclusive group of `--stopped-after` and `--names`. `--stopped-after` uses its own type function, so 0 and non-integers end through argparse with status 2. Both an `UnreadableInput` and a parse `ValueError` print `check-mutants: <message>` to standard error and return 2.
+   - `src/factory/entry/check_duplicates.py`. I removed `_UnreadableError` and `_read`; it now reads through `read_input` and catches `UnreadableInput`. A parser fault is raised again as `UnreadableInput` with the parser's own message, so the output is unchanged.
+
+   Main choice: I checked `--stopped-after` in an argparse type function, so a bad value is refused before any file is read and exits 2 the way the criteria ask. `mutation_report` keeps its own `ValueError` for callers that do not come through the command line. The alternative I rejected was letting the domain's `ValueError` reach `main`'s fault handler. That would have printed a `check-mutants:` line and returned 2 instead of ending through argparse, and criterion 10 asks for the argparse ending.
+
+   Refactor: I made one pass over my own diff. I removed the second computation of `partial`, which had been worked out in both `mutation_report` and `_last_line`, and let ruff format the result. Nothing else needed changing.
+
+   I did not run the smoke-test blocks: the permission system denied the command (it held an `rm -rf` of the temporary folder). `make duplicates` was not run either.
+
+   Noticed but not touched: `docs/` (the documenter writes criterion 13), and the `Makefile`, `CLAUDE.md` and the pipeline definition, which are the human's changes after this story.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
