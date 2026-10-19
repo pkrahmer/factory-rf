@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 275
 comments_read: [6273558949]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T17:58:10.100195Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-19T17:58:10.100195Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T17:58:36.266806Z'
+  stage: smoke-test
+  run: 465cb7c5447b41d097ce86f68d2edd96
 ---
 
 # The claim service's refusals name their cause
@@ -420,3 +422,26 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok
 23. factory: started smoke-test as self.
+24. smoke-tester: Smoke test run once from the repository root, exactly as written, in a `mktemp -d` folder that removes itself.
+
+    Command 1 (the script that builds the boundaries and calls `ClaimService` seven times; it exited with status 0):
+
+    ```
+    not an instance name: 'Factory-1'
+    the work item is in stage doing, not approval
+    nosuch is not a stage of the pipeline definition
+    stage approval has no role to claim it for
+    work-item/F0001-S0002 is not the work item's branch work-item/F0001-S0001
+    factory/features/F0001-example/in-progress/notes.md is not a work item's file
+    the checkout is on main, not on work-item/F0001-S0001
+    ```
+
+    Expect: met. The output was seven lines and each one matches its expected text exactly, in the expected order.
+
+    Acceptance criteria checked against what the run showed:
+    - Criterion 1: the `"Factory-1"` refusal text matches. The smoke test does not cover `""` or the accepted `"factory-1"`, and nothing it showed contradicts them.
+    - Criterion 2: every refusal text matches the form in the Interface. The smoke test claims `doing` for `approval` where the criterion says `review`. The format is the same, so this is no contradiction.
+    - The Interface says no module under `src/factory/` changes. `git diff --stat origin/main...HEAD -- src` is empty, so it holds.
+    - Criteria 3 (`make check`) and 4 (docs: none): the smoke test does not touch them, and the factory runs the checks.
+
+    Findings: none.
