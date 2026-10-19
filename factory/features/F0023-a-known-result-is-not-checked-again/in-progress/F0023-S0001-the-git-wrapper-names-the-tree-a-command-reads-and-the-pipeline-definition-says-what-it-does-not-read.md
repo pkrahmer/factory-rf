@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T14:50:29.269971Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -157,6 +161,11 @@ journal:
   at: '2026-10-19T14:50:07.765607Z'
   stage: docs
   run: db32725ca0c5441a9d4a57de20cbf125
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:50:29.269971Z'
+  stage: smoke-test
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -586,3 +595,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `documents`: documents ok
+28. factory: started smoke-test as self.
