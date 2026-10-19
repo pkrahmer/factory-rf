@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 276
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T18:08:05.704565Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -55,6 +51,12 @@ journal:
   kind: started
   at: '2026-10-19T18:08:05.704565Z'
   stage: doing
+- number: 9
+  speaker: coder
+  kind: result
+  at: '2026-10-19T18:10:14.663404Z'
+  stage: doing
+  run: 79f605fd8e354d0ea1ef409bf5e14b9b
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -203,3 +205,13 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
    `lint`: lint: green (0.0 s)
    `test`: test: green (48.6 s)
 8. factory: started doing as self.
+9. coder: I built nothing, because the story changes no code. The tester's new tests, `tests/entry/test_watch_main.py` and `tests/application/test_watcher_main_ref.py`, pass against `main`, `run_watch` and `Watcher` as they already are. I changed no file under `src/` or `tests/`. I ran `make check` once and it ended `check: green` (`test: green (46.6 s)`, total coverage 99.10 %).
+
+   Main choice: I left the code alone and handed it forward. The alternative I rejected was touching `src/factory/entry/watch.py` to make it more testable, since the story's Interface says "No module under `src/factory/` changes". Refactor step: there is no diff of mine to read, so nothing needed changing. The journal changed nothing about what the task means, so `## Description` stays as it is.
+
+   Noticed but not touched:
+   - Lines 82-83 of `src/factory/entry/watch.py` are now covered, but line 87 still shows as uncovered. It is the `raise SystemExit(main())` under `if __name__ == "__main__":`, which only runs when the module itself is executed, so an in-process call to `main` can never reach it. The Description lists line 87 among the gaps, but no criterion asks for it. Covering it would take running the module in a subprocess, or a `# pragma: no cover`, which would be a code change. Both are for the reviewer or the human to weigh.
+   - I did not run the mutation report (`make mutants`). The factory runs it after this stage and will show whether the 14 surviving mutants of `main` and the four `GitError` text survivors are now killed.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
