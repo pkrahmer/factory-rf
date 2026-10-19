@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T04:36:26.962373Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-19T04:36:26.962373Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T04:36:53.600527Z'
+  stage: smoke-test
+  run: 214e01b6ad80448bbb017e3175a6b3c2
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -378,3 +380,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `documents`: documents ok
 23. factory: started smoke-test as self.
+24. smoke-tester: Ran the smoke test from the repository root as written: one shell block. It creates a temporary directory with an EXIT trap and runs the Python script through `uv run -q python - "$d"`. Nothing was fixed or changed.
+
+    Command 1 (the `mktemp`/`uv run` block):
+
+    ```
+    stderr:two stdout:one stdout:stop
+    True None False True
+    exit: 0
+    ```
+
+    (`exit: 0` is the shell's exit status, which I printed after the block.)
+
+    Met its `Expect:` line: yes. The first line is exactly `stderr:two stdout:one stdout:stop` and the second is exactly `True None False True`. The callback returned `True` for `stop`, so the run ended with `stopped=True`, `exit_status=None` and `timed_out=False`. The call returned in under 20 seconds, even though the child would have slept another 60 seconds. `never` was never passed to the callback. Lines from both streams arrived, standard error as `stderr` and standard output as `stdout`, with no `merge_stderr`.
+
+    Judged against the acceptance criteria: the output agrees with criterion 1 (stream labels for both streams), criterion 3 (a stop on a line kills the run at once, returns within the bound, and passes no later line) and criterion 9 (`one` and `two` arrived before `stop`, while the child was still running). It contradicts no criterion. The smoke test does not exercise the time limit, a callback that raises, `merge_stderr`, a missing executable or `duration`; the tests cover those.
+
+    Findings: none.
