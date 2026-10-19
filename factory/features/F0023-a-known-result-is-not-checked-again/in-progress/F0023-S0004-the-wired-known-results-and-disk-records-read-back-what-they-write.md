@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 289
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T21:48:00.423269Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T21:47:39.917725Z'
   stage: docs
   run: d6cfb63be49b49e9a79b363a8fe7bdb5
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:48:00.423269Z'
+  stage: smoke-test
 ---
 
 # The wired known results and disk records read back what they write
@@ -168,3 +177,4 @@ Expect: a line that starts with `2 passed`
     `check`: check: green (not run again: passed on tree 3523d622cd0b at 2026-10-19T21:45:24Z)
     `secrets`: secrets: green (0.1 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
