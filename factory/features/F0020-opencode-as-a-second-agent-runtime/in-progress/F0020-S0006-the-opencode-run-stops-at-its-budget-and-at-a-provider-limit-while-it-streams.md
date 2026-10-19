@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T10:27:28.760305Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-10-19T10:27:28.760305Z'
   stage: smoke-test
+- number: 32
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T10:28:45.593335Z'
+  stage: smoke-test
+  run: 63f30196c9624328b70dc9f4decc617b
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -649,3 +651,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `documents`: documents ok
 31. factory: started smoke-test as self.
+32. smoke-tester: Smoke test, round 2. I ran the one command under `## Smoke test` from the repository root exactly as written. I took the bash block from the work item into a temporary file in `$TMPDIR` and ran it with `bash`. It exited 0 and its trap removed its temporary directory. I changed nothing.
+
+    Command 1 (the opencode stand-in script plus the `uv run -q python -` driver) printed:
+
+    ```
+    completed 1.3 Stopped at the budget. True
+    True
+    provider_limit 420.0 None ses_smoke True
+    ```
+
+    Expect: three lines, `completed 1.3 Stopped at the budget. True`, `True`, `provider_limit 420.0 None ses_smoke True`. **Met**: all three lines match exactly.
+
+    Checked against the acceptance criteria:
+    - **Budget stop and resume (criteria 1 and 2):** the first call went over the budget of 1 at 0.6 + 0.6 and was stopped well inside 20 seconds, although the stand-in then sleeps for 30. The run was resumed once with `--session ses_smoke` and the finish message as the prompt. It ended `completed` with the resume's entry and the summed cost 1.3.
+    - **Provider limit (criteria 6 and 7):** an `error` event with status 428 and no step before it ended `provider_limit` at once, with `limit_wait` 420 s, no measures (`cost_usd` None) and the event's session, after one call and without a resume.
+
+    Nothing in the output contradicts any criterion, including the ones the command does not target.
+
+    Findings: none.
