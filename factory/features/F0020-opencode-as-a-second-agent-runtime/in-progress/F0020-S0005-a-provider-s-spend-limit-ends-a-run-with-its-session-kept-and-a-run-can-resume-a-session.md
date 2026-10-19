@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T07:52:08.033603Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-19T07:52:08.033603Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-19T07:53:56.728122Z'
+  stage: doing
+  run: cc4340d90fef477695b4d716df41b1a4
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -459,3 +461,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (39.5 s)
 20. factory: started doing as self.
+21. coder: Round 1, after the tester's changes in entry 19. The tester settled both of the reviewer's findings from entry 15 by changing the tests, as I asked in entry 17. The first adds the six-digit rows `in 999999` and `retry-after 999999` to `tests/domain/test_provider_limits.py`. The second makes the budget stop that names 428 a row (`budget-stop-naming-428`) of the provider-limit table in `tests/adapters/test_claude_runtime_provider_limit.py`. Both pass against the code from entry 13, so I changed nothing under `src/` this round. I ran `make check` myself and it is green (`check: green`, coverage 99.05 %).
+
+    What I built is unchanged from entry 13:
+    - `src/factory/domain/provider_limits.py`
+    - `src/factory/domain/agent_runs.py`
+    - `src/factory/domain/settings.py`
+    - `src/factory/domain/journal.py`
+    - `src/factory/domain/post_texts.py`
+    - `src/factory/domain/contract.py` with the schemas under `src/factory/contract/`, regenerated at 1.2
+    - `src/factory/adapters/claude_runtime.py`
+    - `src/factory/adapters/opencode_runtime.py`
+    - `src/factory/entry/wiring.py`
+
+    The main design choice is still the one from entry 13. The Claude runtime's `_result` takes the session as a parameter, and the resume call gets `first.session`. I rejected reading the session back from the argument list.
+
+    Refactor pass: there is no new diff this round, so nothing needed changing. The journal did not change what the task means, so `## Description` stays as it is.
+
+    Seen but not touched: the 5 new `make duplicates` findings from entry 13. They are code shared between the two runtimes and two vulture reports in opencode_runtime.py, and none of them comes from this story's diff. The docs criterion is the docs stage's work.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 1 gone
