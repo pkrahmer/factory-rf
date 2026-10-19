@@ -1,17 +1,13 @@
 ---
 stage: smoke-test
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T20:25:08.457788Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,13 @@ journal:
   kind: started
   at: '2026-10-19T20:25:08.457788Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: question
+  at: '2026-10-19T20:25:54.956094Z'
+  stage: smoke-test
+  run: 723eeaae3f9a4d349a98123b8b7a4eb8
+  blocked: question
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -329,3 +332,40 @@ Expect: `1`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: I ran the three smoke test commands from the repository root, exactly as written. The first two met their `Expect:` lines. The third did not, but the tests themselves pass: the command can't produce `1` on this repository. That command is in `## Smoke test`, which is the human's section, so neither the coder nor I can change it. I'm asking rather than ending with `doing`, because a `doing` round would leave the coder with nothing it may change.
+
+    Command 1: `grep -rlF 'ENVIRONMENT = {"PATH": "/opt/factory/bin:/usr/bin"' tests | wc -l`
+    ```
+    1
+    ```
+    Met (`Expect: 1`).
+
+    Command 2: `grep -rlF 'PROJECT_CODER = AGENT_FILE.replace(' tests | wc -l; grep -rlF 'Layout(tmp_path)' tests | wc -l`
+    ```
+    1
+    1
+    ```
+    Met (`Expect: 1, then 1`).
+
+    Command 3: `uv run pytest -q <the nine modules> 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '`
+    ```
+    0
+    ```
+    Not met (`Expect: 1`). Without the final `grep -c`, the last line of the run is:
+    ```
+    ...................................................................      [100%]
+    ```
+    pytest's exit status is 0, and all 67 dots are passes. No summary line is printed because `pyproject.toml` (`[tool.pytest.ini_options]`, `addopts = "-q --strict-markers"`) already passes `-q`. Together with the command's own `-q` that makes `-qq`, and at that level pytest leaves out the `N passed in` line. `git diff main --stat -- pyproject.toml src` is empty, so this branch did not cause it. With the configured options cleared (`-o addopts=""`), the same run ends with:
+    ```
+    67 passed in 1.44s
+    ```
+
+    Findings:
+    1. Command 3. Expected `1`. Observed `0`: all 67 tests pass with exit status 0, but under `-qq` (`addopts` plus the command's `-q`) pytest prints no `N passed in` line for the `grep` to count. Criterion: none is contradicted. Criterion 1 (the same test ids, 67, matching the tester's entry 5) and criterion 2 (each text is written in one module, commands 1 and 2) hold. Criterion 3 was not run by me; the factory's check was green (entry 19).
+
+    Question: command 3 in `## Smoke test` can't meet its `Expect:` line with this repository's `addopts`. How should it be handled?
+    - (a) Change command 3 to drop its own `-q`, for example `uv run pytest <the nine modules> 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '`, and run the smoke test again. This is the option I would choose.
+    - (b) Accept the smoke test as passed, based on the evidence above (exit 0, 67 dots, `67 passed` with `-o addopts=""`), and approve.
+    - (c) Send it to `doing`. I don't recommend this: the fix is in the human's section, not in code or tests.
+
+    Open: only this question. Nothing was fixed or changed in the working tree.
