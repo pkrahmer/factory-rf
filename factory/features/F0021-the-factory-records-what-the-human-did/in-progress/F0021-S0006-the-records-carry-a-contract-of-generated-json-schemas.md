@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 240
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T00:01:10.034029Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T00:01:10.034029Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T00:01:24.892340Z'
+  stage: intake
+  run: 7442cdcf4b0b410cb4a79ed7022ab9e4
 ---
 
 # The records carry a contract of generated JSON Schemas
@@ -144,3 +146,9 @@ Expect: `1.0 ['at', 'event', 'reason', 'scope']`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: `factory.domain.contract` (constants, `ContractEntry`, `CONTRACT`, `schema_file_name`, `contract_schema`) and `factory.entry.contract` (`CONTRACT_FOLDER`, `write_contract`, `main`) are concrete, with signatures and exact output formulas (the `json.dumps` call, the usage and result lines, exit codes 0 and 2). Every comment behaviour has a criterion: the schema text format (2), modes per entry (2), folder creation, replacement and leaving other files alone (4), the default folder and the argument count (6).
+   Criteria: each one is testable by one parametrized test function. Rules have both sides: one argument and none succeed and two arguments fail (6); a missing folder, an unrelated file and a stale schema (4); the committed files match and no extra file exists (5); required and not-required fields (3, 7).
+   Smoke test: both commands are runnable with `uv run`. Each `Expect:` line is checkable: seven exact lines, and `1.0 ['at', 'event', 'reason', 'scope']`.
+   Architecture: the pure `ContractEntry` and the schema text sit in `domain`; the file writing and the command sit in `entry`; the dependency direction is respected. The dataclass is explained, and no new dependency is added (decision 16).
+   Scope: it matches the feature's S0006 bullets and decision 15. It names no stage, role or reader, and it changes no earlier test. The docs criterion covers the operator guide, the project guide and the decisions entry.
