@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 275
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T17:39:46.689564Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T17:39:46.689564Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T17:40:02.255072Z'
+  stage: intake
+  run: 1d0368e5687b46c991e7c32e181c83c3
 ---
 
 # The claim service's refusals name their cause
@@ -107,3 +109,9 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: no src change; the seven refusal texts are stated exactly and match the f-strings in `src/factory/application/claims.py` (lines 43, 91, 95, 98, 103, 106, 131). The new test module and its fixtures (`boundaries`, `definition`) are named.
+   Criteria: each is testable by one parametrized test function; every refusal text has a row, and criterion 1 covers the accepted side (`factory-1`) as well as both refused names; each claim row also checks that the remote and working tree are unchanged. Interface texts without a failing side: none.
+   Smoke test: runnable as a heredoc with real wiring and a fake hosting service; the Expect line lists seven checkable lines, in the order of the script's calls.
+   Architecture: tests only, in the application test folder; no layer is touched, and no earlier test changes.
+   Scope: inside F0026's goal of killing the survived mutants in claims.py; no listed out-of-scope item is touched. Note: feature.md's Scope and Stories list only S0001, while this story was proposed by the feature acceptance. This is the human's to start, so I did not question it.
