@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T20:23:47.999988Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-19T20:23:47.999988Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T20:24:13.341413Z'
+  stage: review
+  run: 7f4b55bc7db14a69b5e5548f397f92e6
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -261,3 +263,36 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 16. factory: started review as self.
+17. reviewer: no findings
+
+    I read the full diff, `git diff main...HEAD -- . ':!factory'`, and checked it against the work item. Round 0's only finding is fixed: the module docstring of `tests/test_entrypoint.py` matches `main` again ("... in a temporary layout."), and that file's diff now holds only the fixture removal and the `layout` → `image_layout` renames.
+
+    What I checked:
+    - Criterion 1: no `def test_...` name and no `parametrize` line changes in the nine modules the story names. Only fixture parameters are renamed. The tester's entry 5 compared the collected ids before and after.
+    - None of the three entrypoint modules still takes a `layout` parameter. Such a parameter would now quietly receive the conftest's confinement `layout` fixture.
+    - Criterion 2 is pinned by `tests/test_shared_test_helpers.py::test_each_shared_helper_is_written_in_one_module` (rows `environment`, `completed`, `project-coder`, `image-layout`) and `test_the_image_layout_fixture_returns_the_entrypoints_layout`. The `completed` regex's `[^)]*` reaches `entry="probe"` before the first `)`, so it matches the text it should.
+    - The shared helpers are copied unchanged:
+      - `probe_settings` has the body of the three removed `settings` fixtures.
+      - `ENVIRONMENT` and `COMPLETED` in `tests/probe_support.py` are exactly as they were.
+      - `PROJECT_CODER` in `tests/git_support.py` is exactly as it was.
+    - The `settings` fixture of `test_agent_run_probe_opencode.py` and the `PROJECT_CODER` of `tests/application/test_project_agents.py` stay where they were, as the Description says.
+    - Nothing under `src/factory/` changes, so items 2–4 (architecture, security, quality) have no source to judge, and there is no mutation report line to read. The diff adds no marker that silences a check.
+    - The factory's `make check` after the coder was green: entry 15 ends with `check: green`.
+    - Work item hygiene: the Description matches what was built, and criterion 4 (docs: none) still holds.
+
+    Earlier tests (item 6). Each file was changed under the standing leave to move a shared test helper (`CLAUDE.md`, *Tests*), and the story names each one:
+    - `tests/application/test_agent_run_probe.py`: standing leave
+    - `tests/application/test_agent_run_probe_api_login.py`: standing leave
+    - `tests/application/test_agent_run_probe_login.py`: standing leave
+    - `tests/application/test_agent_run_probe_opencode.py`: standing leave
+    - `tests/application/test_agent_run_probe_project_agent.py`: standing leave
+    - `tests/conftest.py`: standing leave
+    - `tests/git_support.py`: standing leave
+    - `tests/entry/test_wiring_project_agents.py`: standing leave
+    - `tests/test_agent_home_ownership.py`: standing leave
+    - `tests/test_entrypoint.py`: standing leave (the docstring is back to `main`'s text)
+    - `tests/test_entrypoint_skills.py`: standing leave
+
+    Notes:
+    - `tests/conftest.py:46`: the conftest imports `Layout` from the test module `test_entrypoint`, as the Interface asks. A later story could move `Layout` to a support module so the conftest no longer depends on a test module (entries 7 and 15 note this too).
+    - Entry 15 reports `duplicates: 5 new`. This diff changes nothing under `src/factory`, so those findings do not come from this story. The feature's acceptance may want to look at the baseline.
