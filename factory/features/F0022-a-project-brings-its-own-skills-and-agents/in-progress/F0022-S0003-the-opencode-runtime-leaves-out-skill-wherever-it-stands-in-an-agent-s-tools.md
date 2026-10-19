@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 282
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T20:01:14.832998Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T20:00:54.381978Z'
   stage: intake
   run: 701a7f5b432245e79369f604e8fad06e
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:01:14.832998Z'
+  stage: tests
 ---
 
 # The opencode runtime leaves out Skill wherever it stands in an agent's tools
@@ -96,3 +105,4 @@ Expect: two lines, `completed question`, `['grep', 'read']`
    Architecture: no change. The adapter layer is untouched and the tests sit in `tests/adapters/`.
    Scope: within F0022 (decisions 11 and 14). It is not in Out of scope, and it adds no new behaviour.
    Open note, not a question: `feature.md` lists only S0001 and S0002 under Stories, but its decision 14 already names S0003, so I take that as the human's intent.
+4. factory: started tests as self.
