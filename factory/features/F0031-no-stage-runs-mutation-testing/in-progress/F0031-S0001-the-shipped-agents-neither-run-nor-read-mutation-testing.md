@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T20:53:45.980015Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T20:53:45.980015Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T20:56:13.755388Z'
+  stage: doing
+  run: 31ef9302986d4f93a6e31131d13aaf75
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -148,3 +150,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text
 6. factory: started doing as self.
+7. coder: Replaced the mutation-testing texts in the four shipped files named by the Interface. Each replacement is the exact old/new pair from the Interface, and nothing else in those files changed.
+   - `claude/agents/acceptance-reviewer.md`: in *Role*, check 3 is now *Mutation testing* ("By sweep, not run here."). Check 7 now starts "beyond `make check` (...), but not `make mutants` (check 3)", and the rest of that line is unchanged. The recommendation no longer names survivors, and the proposals no longer say "one per mutant". In *Stage*, step 1 no longer runs `make mutants`, and step 3's entry no longer has the `make mutants <killed>/<total>` part.
+   - `claude/agents/reviewer.md`: removed the mutation-report paragraph together with one of its blank lines. Item 6 is now followed by one blank line and then the findings paragraph.
+   - `template/CLAUDE.md`: the `make mutants` sentence now says "for a sweep by hand, never run by a stage and never part of `make check`".
+   - `template/Makefile`: the comment above `FEATURE ?=` now says "a sweep by hand runs it, never a stage,". The next comment line and the recipe are unchanged.
+
+   Main choice: I made the replacements with a throwaway script that asserts each old text occurs exactly once before it replaces it. That way no partial or doubled edit could slip through. I rejected hand-editing the very long lines with Edit, because exact matching on them is fragile.
+
+   Refactor: nothing to change. The diff only swaps text.
+
+   Checks: `make check` is green (coverage 99.12 %). All three smoke-test blocks print what they expect: `4`; `0`, `0`, `template/CLAUDE.md:0`, `template/Makefile:0`; and `1`.
+
+   Seen but not touched: line 4 of `template/Makefile` still calls `duplicates` and `mutants` "reports outside `check`". The Interface keeps that line, and it is still true, but the word "reports" reads more like a stage report than a sweep. That could be a later wording story. The docs criterion (7) is the documenter's.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
