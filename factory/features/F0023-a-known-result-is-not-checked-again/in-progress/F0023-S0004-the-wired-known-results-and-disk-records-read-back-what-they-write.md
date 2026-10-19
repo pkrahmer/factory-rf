@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 289
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T21:44:23.800167Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T21:44:23.800167Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T21:46:20.348776Z'
+  stage: doing
+  run: 436fb0f0e12e4c8ba23858e51c5fab5f
 ---
 
 # The wired known results and disk records read back what they write
@@ -104,3 +106,15 @@ Expect: a line that starts with `2 passed`
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.5 s)
 6. factory: started doing as self.
+7. coder: I didn't change any code, which is what the story expected. I ran `make check` before doing anything and it was already green (`check: green`, test 39.0 s, coverage 99.12 %). The tester's test `tests/entry/test_wiring_record_logs.py` passes against `build_boundaries` in `src/factory/entry/wiring.py` as it stands. That module already builds `result_records` with `JsonLinesRecordLog(..., ResultRecord)` and `disk_records` with `JsonLinesRecordLog(..., DiskRecord)`.
+
+   Paths built: none. My diff outside `factory/` and `tests/` is empty, so the refactor step had nothing to change.
+
+   Main choice: I left `src/factory/` untouched. The alternative I rejected was adding something to the wiring so this story has a code change of its own. The interface says no module under `src/factory/` changes, and the test only pins behaviour that already exists.
+
+   What the journal changed: nothing in the meaning of the task, so I did not rewrite `## Description`.
+
+   Noticed but not touched: the log of the command records under `RecordingProjectCommands` is still not read back through the wiring by any test. The description leaves that out because reaching the log would change code. `feature.md` does not list this story; intake already pointed that out to the human.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
