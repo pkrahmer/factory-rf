@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T04:31:23.359998Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-19T04:31:02.769747Z'
   stage: tests
   run: 3a87dab5e1da4296bf4f32d1d2c74d50
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:31:23.359998Z'
+  stage: doing
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -280,3 +289,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (37.5 s)
+17. factory: started doing as self.
