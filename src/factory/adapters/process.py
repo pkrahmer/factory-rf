@@ -2,15 +2,20 @@
 
 import contextlib
 import os
+import selectors
 import signal
 import subprocess  # noqa: S404  # nosec B404
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from datetime import timedelta
 from pathlib import Path
-from typing import Annotated, NoReturn
+from typing import IO, Annotated, Literal, NoReturn
 
 from pydantic import BaseModel, ConfigDict, Field
+
+Stream = Literal["stdout", "stderr"]
+
+_READ_SIZE = 65536
 
 
 class ProcessRequest(BaseModel):
@@ -35,6 +40,7 @@ class ProcessResult(BaseModel):
     stderr: str
     timed_out: bool
     duration: timedelta
+    stopped: bool = False
 
 
 def _decode(output: bytes | None) -> str:
@@ -51,14 +57,9 @@ def _kill_group(process: subprocess.Popen[bytes]) -> None:
         os.killpg(process.pid, signal.SIGKILL)
 
 
-def run_process(request: ProcessRequest) -> ProcessResult:
-    """Run `request.argv` without a shell and kill its whole process group at the time limit.
-
-    A failure to start the program, such as `FileNotFoundError`, is raised to the caller.
-    """
+def _start(request: ProcessRequest) -> subprocess.Popen[bytes]:
     stderr = subprocess.STDOUT if request.merge_stderr else subprocess.PIPE
-    start = time.monotonic()
-    process = subprocess.Popen(  # noqa: S603  # nosec B603
+    return subprocess.Popen(  # noqa: S603  # nosec B603
         request.argv,
         cwd=request.cwd,
         env=request.env,
@@ -67,6 +68,15 @@ def run_process(request: ProcessRequest) -> ProcessResult:
         stderr=stderr,
         start_new_session=True,
     )
+
+
+def run_process(request: ProcessRequest) -> ProcessResult:
+    """Run `request.argv` without a shell and kill its whole process group at the time limit.
+
+    A failure to start the program, such as `FileNotFoundError`, is raised to the caller.
+    """
+    start = time.monotonic()
+    process = _start(request)
     with process:
         timed_out = False
         try:
@@ -81,6 +91,114 @@ def run_process(request: ProcessRequest) -> ProcessResult:
         stdout=_decode(out),
         stderr=_decode(err),
         timed_out=timed_out,
+        duration=timedelta(seconds=time.monotonic() - start),
+    )
+
+
+class _LineReader:
+    """Reads the open streams of a process and hands each complete line to the callback."""
+
+    def __init__(
+        self, process: subprocess.Popen[bytes], on_line: Callable[[Stream, str], bool]
+    ) -> None:
+        self._on_line = on_line
+        self._selector = selectors.DefaultSelector()
+        self._pending: dict[Stream, bytes] = {}
+        self.read_bytes: dict[Stream, bytes] = {"stdout": b"", "stderr": b""}
+        self._register("stdout", process.stdout)
+        self._register("stderr", process.stderr)
+
+    def _register(self, stream: Stream, pipe: IO[bytes] | None) -> None:
+        if pipe is not None:
+            self._pending[stream] = b""
+            self._selector.register(pipe, selectors.EVENT_READ, stream)
+
+    def has_open_stream(self) -> bool:
+        """Whether a stream is still open."""
+        return bool(self._selector.get_map())
+
+    def read_ready(self, timeout: float | None) -> bool:
+        """Read what the streams hold within `timeout` and pass its lines; True means stop."""
+        for key, _ in self._selector.select(timeout):
+            stream: Stream = key.data
+            chunk = os.read(key.fd, _READ_SIZE)
+            if chunk:
+                self.read_bytes[stream] += chunk
+                self._pending[stream] += chunk
+                if self._pass_complete_lines(stream):
+                    return True
+            else:
+                self._selector.unregister(key.fileobj)
+                if self._pass_last_line(stream):
+                    return True
+        return False
+
+    def _pass_complete_lines(self, stream: Stream) -> bool:
+        *lines, self._pending[stream] = self._pending[stream].split(b"\n")
+        return any(self._on_line(stream, _decode(line)) for line in lines)
+
+    def _pass_last_line(self, stream: Stream) -> bool:
+        last = self._pending.pop(stream)
+        return bool(last) and self._on_line(stream, _decode(last))
+
+    def close(self) -> None:
+        """Release the selector; the pipes are closed with the process."""
+        self._selector.close()
+
+
+def _remaining(deadline: float | None) -> float | None:
+    return None if deadline is None else max(deadline - time.monotonic(), 0.0)
+
+
+def _read_until_end(reader: _LineReader, deadline: float | None) -> tuple[bool, bool]:
+    """Pass every line until the streams end; returns (stopped, timed_out)."""
+    while reader.has_open_stream():
+        remaining = _remaining(deadline)
+        if remaining == 0.0:
+            return False, True
+        if reader.read_ready(remaining):
+            return True, False
+    return False, False
+
+
+def _wait_for_exit(process: subprocess.Popen[bytes], deadline: float | None) -> bool:
+    """Wait for a process whose streams have ended; True when the time limit passed first."""
+    try:
+        process.wait(timeout=_remaining(deadline))
+    except subprocess.TimeoutExpired:
+        return True
+    return False
+
+
+def run_streaming(request: ProcessRequest, on_line: Callable[[Stream, str], bool]) -> ProcessResult:
+    """Run `request.argv` as `run_process` does and hand `on_line` each line as it arrives.
+
+    `on_line` returning True kills the process group at once and passes no further line; so
+    does the time limit. An exception from `on_line` kills the group and propagates.
+    """
+    start = time.monotonic()
+    time_limit = _seconds(request.time_limit)
+    deadline = None if time_limit is None else start + time_limit
+    process = _start(request)
+    with process:
+        reader = _LineReader(process, on_line)
+        try:
+            stopped, timed_out = _read_until_end(reader, deadline)
+            if not (stopped or timed_out):
+                timed_out = _wait_for_exit(process, deadline)
+        except BaseException:
+            _kill_group(process)
+            raise
+        finally:
+            reader.close()
+        if stopped or timed_out:
+            _kill_group(process)
+    return ProcessResult(
+        exit_status=None if stopped or timed_out else process.returncode,
+        stdout=_decode(reader.read_bytes["stdout"]),
+        stderr=_decode(reader.read_bytes["stderr"]),
+        timed_out=timed_out,
+        stopped=stopped,
         duration=timedelta(seconds=time.monotonic() - start),
     )
 

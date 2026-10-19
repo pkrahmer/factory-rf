@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T04:23:02.110011Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-19T04:23:02.110011Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-19T04:26:27.764390Z'
+  stage: doing
+  run: 3f5c5d10c2e94a6788311ce0dc131014
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -186,3 +188,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/adapters/test_process_streaming.py - ImportError while importing ...
 9. factory: started doing as self.
+10. coder: Added `run_streaming` and `ProcessResult.stopped` in `src/factory/adapters/process.py`. `make check` is green.
+
+    **What I built** (all in `src/factory/adapters/process.py`):
+    - `Stream = Literal["stdout", "stderr"]`.
+    - `ProcessResult.stopped: bool = False`, added as the last field.
+    - `_start(request)` holds the module's one `subprocess.Popen(` line, with its two suppression markers, and both `run_process` and `run_streaming` call it. Apart from that, `run_process` is unchanged.
+    - `_LineReader` reads both pipes through `selectors.DefaultSelector`, using `os.read` chunks of 64 KiB. It keeps each stream's bytes and splits off complete lines on `\n` before decoding them, so a UTF-8 character split across two chunks stays whole. It passes a last line with no line feed when its stream reaches end of file. It stops at the first line for which the callback returns `True` (the `any(...)` short-circuits), so a later line in the same chunk is never passed.
+    - `_read_until_end` loops until every stream has ended, the deadline passes, or the callback says stop. `_wait_for_exit` then waits for the exit status within the remaining time.
+    - `run_streaming` kills the process group on a stop or a timeout, and on any exception from the callback, which it then re-raises.
+
+    **Main choice:** a selector loop on the calling thread. That satisfies "the calls come one at a time from the calling thread" directly, and a stop takes effect between two lines. I rejected two reader threads feeding a queue: it needs thread handoff and cleanup and gains nothing here. Once a stop or a timeout kills the group, the reader stops reading. So `stdout` and `stderr` hold only what was read before that, as the Interface says. `run_process`, by contrast, collects output after the kill.
+
+    **Refactor pass:** renamed the reader's `open`/`read` to `has_open_stream`/`read_bytes`. Nothing else needed changing.
+
+    **Noticed, not touched:**
+    - `make duplicates` shows 1 new finding: vulture marks `run_streaming` as unused (60% confidence). That is expected, because nothing calls it until S0004.
+    - It also lists a "gone" dead-code entry for `src/factory/application/hosting.py` `close`, which this story did not touch.
+    - `ProcessResult` is not in the records contract, so there was no schema to regenerate.
+    - No change to the description was needed: the human's answer was already worked into it at intake.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 35 known, 4 gone
