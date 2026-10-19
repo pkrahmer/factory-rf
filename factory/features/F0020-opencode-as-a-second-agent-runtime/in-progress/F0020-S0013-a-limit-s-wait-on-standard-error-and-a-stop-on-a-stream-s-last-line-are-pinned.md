@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T23:05:29.350450Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-19T23:05:08.982221Z'
   stage: docs
   run: 231bb062cde649b79841de6e060db752
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:05:29.350450Z'
+  stage: smoke-test
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -351,3 +360,4 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
     `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok
+23. factory: started smoke-test as self.
