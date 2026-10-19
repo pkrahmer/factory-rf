@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 275
 comments_read: [6273558949]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T17:50:35.473705Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-19T17:50:15.053902Z'
   stage: doing
   run: 0e24d9088eea4569a3f1ba3c0a2f8b0a
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-19T17:50:35.473705Z'
+  stage: tests
 ---
 
 # The claim service's refusals name their cause
@@ -266,3 +275,4 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
     Main choice: I hand the moves over without touching any test, as R9 requires. The alternative I rejected was asking the human again: entry 10 already gives leave for exactly these moves.
 
     Noticed but did not touch: nothing else.
+15. factory: started tests as self.
