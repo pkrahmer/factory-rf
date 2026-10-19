@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T22:57:48.225681Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-19T22:57:48.225681Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T22:58:33.421672Z'
+  stage: review
+  run: 8f538ac2678e45048955757479851abd
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -206,3 +208,14 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 11. factory: started review as self.
+12. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`, which adds two test modules, against the work item. I read the tests against criteria 1 and 2 and checked the shared helpers they import (`tests/adapters/opencode_stand_in.py`, `tests/adapters/claude_stand_in.py`, `tests/process_support.py`). Group 1 holds:
+    - Criterion 1 has all five rows, and each row checks `end_reason`, `limit_wait` and `BOUND_SECONDS`. The `seconds` and `minutes` rows would catch the `_stop_at_limit(None)` mutant.
+    - Criterion 2 has the rows `stdout`, `stderr` and `no-stop`, with the exact calls and the stop fields. In the stop rows the other stream stays open while the child sleeps for 60 s, so the `return False` mutant would hit the 30 s limit and fail the 10 s bound.
+    - The "whole number" rule has its failing side in the `4281` row.
+    - The coder's `make check` was green (journal entry 10).
+
+    Groups 2 and 3 hold: the change is test-only, it has no secrets, and the `# noqa: FBT001` it carries is a lint marker, not one of the security markers that need asking. Group 4 fails:
+
+    1. `tests/adapters/test_opencode_limit_wait_on_stderr.py:24`: `REPLYING = Step(stdout=stdout(step_start(), text(result_text()), step_finish()))` is another copy of the reply constant that earlier modules already hold. It matches `REPLY` in `tests/adapters/test_opencode_resumed_words.py:38` exactly, and its `stdout(...)` part is `REPLY` in `tests/adapters/test_opencode_provider_limit.py:33` and six more modules. Fix (tester, under the standing leave): define the reply once in `tests/adapters/opencode_stand_in.py` and import it in the new module. The story says no earlier test changes, so the earlier modules can keep their copies for now.
+
+    Earlier tests: none. Both test files in the diff are new (status `A`), and no file that `main` already holds was changed, renamed or deleted.
