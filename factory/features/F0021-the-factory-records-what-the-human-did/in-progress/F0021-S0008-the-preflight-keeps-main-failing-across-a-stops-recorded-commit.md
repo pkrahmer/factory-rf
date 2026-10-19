@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 243
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T01:19:27.191498Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-19T01:19:27.191498Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T01:21:28.504290Z'
+  stage: docs
+  run: 1bf7504188b54a5888b4cea781a55e81
 ---
 
 # The preflight keeps main failing across a stops recorded commit
@@ -311,3 +313,18 @@ Expect: `0`
     - tests/conftest.py: standing leave. It only gains the shared `records` fixture.
     - tests/human_clone.py: standing leave. The new module's commit helper moved here as `push_files`. `push_file` delegates to it with the same steps and the same commit message.
 18. factory: started docs as self.
+19. documenter: Docs round 1. No findings; the code matches the Interface and the criteria.
+
+    Files changed (documents only, so I did not run `make check`; the factory's run after this stage decides):
+    - `docs/operator-guide.md`, preflight bullets: "A failed machine clears a stale stop" now names the exception (a `main` that differs from the failing commit only in `factory/stops.jsonl`) and says a git error while comparing clears the stop. "A `stops recorded` commit is a new `main`" now says the stop is kept across such a commit with no `cleared` record, that the probe still runs once when the machine's items pass, and that a commit with another file clears as before. The sentence "the rule does not yet ignore a commit that changes only..." is gone.
+    - `docs/project-guide.md`, after the preflight paragraph: new paragraph on `Preflight._clear_stale_failing_stop`, `changes_only_stop_records` (`factory.domain.preflight`), the `GitError` branch, and that `changed_paths` compares with the work tree, which the tick's restore leaves at `origin/main`.
+    - `docs/decisions.md`, "The stops reach main as raised and cleared records": the "Accepted effect" line now says F0021-S0008 removed it and why (a `cleared` for a `main` nobody fixed misleads the viewer of `factory/stops.jsonl`). It also says skipping the probe is left to a later story.
+
+    Ran the story's smoke test: the Python snippet printed `False`, `True`, `False`, and the `grep -c` printed `0`.
+
+    Cross-read and found current: `README.md`, and the rest of `docs/operator-guide.md` (the stop records section, line ~514) and `docs/project-guide.md` (stop records, tick step 3a/4).
+
+    Stale text noticed, not touched: none. The tests' duplicate `records` fixture in `tests/application/test_stop_publisher.py` (coder's entry 15) is a test matter, not a doc matter.
+
+    `check`: check: green
+    `documents`: documents ok

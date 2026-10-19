@@ -788,6 +788,8 @@ The agent run's environment is made by `agent_environment(scripts, home)`: exact
 
 The preflight probes the `PATH` for the tools in `REQUIRED_TOOLS`, and `build_boundaries` builds every adapter from the instance settings.
 
+`Preflight._clear_stale_failing_stop` clears a `main_branch_failing` stop when the stamp's `main_failed` is no longer `origin/main`, unless `changes_only_stop_records(paths)` (`factory.domain.preflight`) holds for `git.changed_paths(stamp.main_failed)`: true when the list is not empty and every `ChangedPath` is `STOP_RECORDS_FILE`, whatever its change. Then the stop stays and no `cleared` record or log line is written. A `GitError` from `changed_paths` (the commit is not in the clone) counts as a change and clears the stop. `changed_paths` compares with the work tree, which the tick's restore leaves at `origin/main`.
+
 ## Reading and writing a work item file
 
 Every file format the factory owns has one reader class and one writer class in `factory.adapters`, behind an interface in `factory.application`, and validates into Pydantic DTOs; no other module parses or renders that format. For the work item file the interfaces are `WorkItemReader` and `WorkItemWriter` (`factory.application.files`) and the classes are `FrontmatterWorkItemReader` and `FrontmatterWorkItemWriter` (`factory.adapters.work_item_markdown`). That module is the only one that imports `frontmatter` (python-frontmatter) or `ruamel.yaml`. Wiring builds both: `factory.entry.wiring.build_work_item_reader` returns `FrontmatterWorkItemReader` for the check command, and `build_boundaries` builds `FrontmatterWorkItemWriter` as `work_item_writer`.
