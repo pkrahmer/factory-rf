@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 302
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T23:40:14.734792Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T23:39:53.147377Z'
   stage: doing
   run: ca01e392c260448794586ac83e3d688d
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:40:14.734792Z'
+  stage: review
 ---
 
 # The documents record the proof run of a project's skill and coder
@@ -131,3 +140,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
