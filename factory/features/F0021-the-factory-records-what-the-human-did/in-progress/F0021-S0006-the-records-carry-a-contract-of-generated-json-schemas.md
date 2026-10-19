@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T00:01:10.034029Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T00:01:10.028656Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:01:10.034029Z'
+  stage: intake
+---
+
 # The records carry a contract of generated JSON Schemas
 
 ## Description
@@ -114,3 +141,6 @@ print(schema["x-records-contract"], sorted(schema["required"]))
 Expect: `1.0 ['at', 'event', 'reason', 'scope']`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
