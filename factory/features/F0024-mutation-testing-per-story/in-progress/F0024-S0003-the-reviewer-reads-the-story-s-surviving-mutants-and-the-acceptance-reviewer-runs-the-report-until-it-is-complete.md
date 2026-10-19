@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 272
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T16:36:21.320217Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T16:36:00.543746Z'
   stage: intake
   run: 4b5ee6a1361b49d38646f03253a710da
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:36:21.320217Z'
+  stage: tests
 ---
 
 # The reviewer reads the story's surviving mutants, and the acceptance reviewer runs the report until it is complete
@@ -88,3 +97,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: five grep commands, runnable from the repo root, each with a `Expect:` of five lines of `1`. Two use `.` for an apostrophe, which matches. They are checkable against the files.
    - Architecture: the change touches only the shipped agent texts (coder write path `claude/*`) and a new test at the `tests/` root, which is right for a module outside the layers. It adds no source module and no layer change.
    - Scope: it matches the feature's Scope (S0003: the two agent files, a test module, docs) and decisions 6 and 11. Nothing in "Out of scope" is touched, and no earlier test changes. The Makefile and CLAUDE.md lines it relies on are the human's change 1.
+4. factory: started tests as self.
