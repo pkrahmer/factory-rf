@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T02:09:01.700025Z'
   stage: acceptance
   run: 43083d8ac1c84b93bfa86b581048bab4
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T02:10:19.751152Z'
+  stage: done
 stories: [F0021-S0001, F0021-S0002, F0021-S0003, F0021-S0004, F0021-S0005, F0021-S0006, F0021-S0007, F0021-S0008, F0021-S0009]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The factory records what the human did
@@ -332,3 +337,4 @@ Human interventions: 7 questions answered (question 7), 0.2 h waited. All seven 
    6 Decisions: feature decisions 1 to 16 were listed in A0001, which the human merged. New since then: S0008 clears the stop on a git error while comparing. A stops-only commit is still probed once when the machine passes (I would keep that and propose no story). Decision 10's round-0 send-backs cost S0008 and S0009 four runs each. Decision 6 still counts 7 of the 8 answers. Every earlier test S0008 and S0009 changed falls under the standing helper-move leave the reviewers name, and none changed without a leave.
    7 Slow checks: nothing beyond make check and make mutants. Disk unchanged (0.5 GB used at start and now). make test took 40.6 s for 5177 tests; the slowest, the time-limited resume, took 5.0 s. make mutants still cannot finish the feature's 30 modules within its limit.
    8 Cost: 92 runs, 95.9 min, $25.26. S0001 still stands out ($6.04, 15 runs; round cap). The follow-ups: S0007 $0.77 (6 runs), S0008 $2.47 and S0009 $1.39 (10 runs each, 4 of them a round-0 send-back for copied test helpers). 7 questions answered, 0.2 h waited, all in S0002 to S0004, and S0005 to S0009 needed the human not once. The story that needed the human most is still S0001, whose uncounted round-cap answer predates the field.
+3. factory: done (pull request merged); cost: 1 runs, 27.3 min, 47 turns, 126096 tokens in (3942027 more from cache), 32617 out, $2.45
