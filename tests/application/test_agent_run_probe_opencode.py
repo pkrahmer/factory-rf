@@ -1,0 +1,70 @@
+"""A failed probe under opencode names opencode's own command and the login it lacks."""
+
+from datetime import timedelta
+from pathlib import Path
+
+import pytest
+
+from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.application.boundaries import Boundaries
+from factory.application.preflight import agent_run_probe_item
+from factory.domain.agent_runs import AgentRunResult, Login
+from factory.domain.settings import InstanceSettings
+from git_support import install_agents
+
+ENVIRONMENT = {"PATH": "/opt/factory/bin:/usr/bin", "HOME": "/home/agent", "LANG": "C.UTF-8"}
+DIED = "the probe run ended died; run opencode run by hand as agent to see why"
+API_HINT = (
+    "; the agent's API key is read from /home/agent/.anthropic-api-key: "
+    "check that it is valid and that its account has credit"
+)
+SSO_HINT = (
+    "; the agent runs get no API key: log in once as agent with the opencode build's own "
+    "login, or put a key in the file FACTORY_API_LOGIN_FILE names"
+)
+
+
+@pytest.fixture
+def settings(agent_home: Path, tmp_path: Path) -> InstanceSettings:
+    """Return opencode settings with both login files and an agent user."""
+    install_agents(agent_home, ["coder"])
+    return InstanceSettings(
+        repository_url="/srv/project.git",
+        instance="factory-1",
+        state_directory=tmp_path / "state",
+        agent_home=agent_home,
+        agent_user="agent",
+        claude_login_file=Path("/home/agent/.claude-token"),
+        api_login_file=Path("/home/agent/.anthropic-api-key"),
+        agent_runtime="opencode",
+        pinned_opencode_version="1.19.3",
+    )
+
+
+@pytest.mark.parametrize(
+    ("login", "detail"),
+    [
+        pytest.param(None, DIED, id="no-login"),
+        pytest.param("api_key", DIED + API_HINT, id="api-key"),
+        pytest.param("none", DIED + SSO_HINT, id="none"),
+    ],
+)
+def test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint(
+    boundaries: Boundaries,
+    settings: InstanceSettings,
+    agent_runtime: FakeAgentRuntime,
+    *,
+    login: Login | None,
+    detail: str,
+) -> None:
+    agent_runtime.queue(
+        ScriptedRun(
+            result=AgentRunResult(end_reason="died", duration=timedelta(seconds=5), login=login)
+        )
+    )
+
+    item = agent_run_probe_item(boundaries, settings, ENVIRONMENT)
+
+    assert item.name == "agent-run-probe"
+    assert not item.passed
+    assert item.detail == detail
