@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 271
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T16:33:07.592279Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T16:32:47.224336Z'
   stage: docs
   run: da76bd34d0834bb1a8f3ac583457f6ae
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:33:07.592279Z'
+  stage: smoke-test
 ---
 
 # A report stopped at its time limit says so in its journal line
@@ -175,3 +184,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 981e00c0d960 at 2026-10-19T16:30:25Z)
     `secrets`: secrets: green (1.6 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
