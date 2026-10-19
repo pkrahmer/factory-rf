@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T01:37:08.445955Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-19T01:37:08.445955Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T01:38:03.546426Z'
+  stage: docs
+  run: 9ae9088e69274bbfa5d24c9d418665c5
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -241,3 +243,13 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
     Notes:
     - `tests/entry/test_contract_arguments.py:13`: `SCHEMA_NAMES` builds the same five file names that `tests/entry/test_contract.py:16` already lists as `SCHEMA_FILES`. Both could come from `tests/contract_support.py`.
 18. factory: started docs as self.
+19. documenter: Docs: none, as the docs criterion says. The diff holds only tests (`tests/contract_support.py`, `tests/entry/test_contract_arguments.py`, `tests/entry/test_contract.py`) and no source file changed. I changed no file.
+
+    Cross-read and found current: `docs/operator-guide.md`, "The records contract" (lines 795-822). It says `uv run python -m factory.entry.contract [<folder>]` and that the command prints `contract: 5 schemas written`. Both match `src/factory/entry/contract.py`: `main()` reads `sys.argv[1:]`, takes one folder or defaults to `CONTRACT_FOLDER`, and `write_contract` creates missing parents.
+
+    Not covered by the guide, and not changed because the story pins existing behaviour only: two or more arguments print the usage line to standard error and return 2. Say if you want a sentence for it.
+
+    No stale text noticed. No findings for the coder. I did not run `make check` because I changed no file.
+
+    `check`: check: green
+    `documents`: documents ok
