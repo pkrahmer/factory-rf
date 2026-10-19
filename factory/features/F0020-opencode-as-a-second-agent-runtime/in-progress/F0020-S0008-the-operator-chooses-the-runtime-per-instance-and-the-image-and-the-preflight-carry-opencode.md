@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 260
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T11:01:42.428672Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T11:01:42.428672Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T11:02:10.349477Z'
+  stage: intake
+  run: 2374b9efe1e6470aae7e6cdb6c6633d4
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -139,3 +141,9 @@ Expect: four lines, `OpencodeRuntime {'sonnet': 'anthropic/claude-sonnet-5-5'}`,
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: concrete modules and signatures throughout (`factory.domain.settings`, `factory.entry.wiring`, `OpencodeRuntime.__init__`, `opencode_item`, `installed_models`, Dockerfile and compose lines), with exact error texts.
+   - Criteria: each can be tested by one parametrized test function. Every rule has a criterion for its failing side. Blank and invalid runtime values are in 1. Each malformed model entry and the duplicate alias are in 3. Each bad folder entry is in 13. A missing PATH, an unmapped alias and the order of the joined faults are in 6. The unreadable agents folder is in 8. A missing pin is in 9. Both login hints are in 10. Folder order with and without `runtime_folders` is in 14. The one gap is the comment line above each `ENV` in the Dockerfile, which no criterion covers. I did not raise it because it only documents the line and changes no behaviour.
+   - Smoke test: runnable as written. I traced the output against the Interface and the four Expect values match: `OpencodeRuntime {...}`, `False`, the PATH fault joined with the missing `opus` model, and `1`.
+   - Architecture: the settings and DTO changes sit in domain, the item and checks in application, the runtime folders in adapters, and the runtime choice and extras in entry wiring. This respects the layer order. No new dependency or package.
+   - Scope: within F0020's scope for S0008. It touches no item in Out of scope, and it names no earlier test change beyond the standing leave.
