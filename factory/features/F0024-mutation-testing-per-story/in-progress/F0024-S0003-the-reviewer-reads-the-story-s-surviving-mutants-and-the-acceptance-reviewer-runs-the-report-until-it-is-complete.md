@@ -2,16 +2,12 @@
 stage: docs
 blocked: null
 round: 0
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 272
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T16:41:50.714028Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,19 @@ journal:
   kind: started
   at: '2026-10-19T16:41:50.714028Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T16:42:54.656436Z'
+  stage: docs
+  run: bc21f9430fe24ac1b5a6068635d85a26
+- number: 12
+  speaker: factory
+  kind: stall
+  at: '2026-10-19T16:42:54.683251Z'
+  stage: docs
+  run: bc21f9430fe24ac1b5a6068635d85a26
+  reason: check_red
 ---
 
 # The reviewer reads the story's surviving mutants, and the acceptance reviewer runs the report until it is complete
@@ -180,3 +189,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Earlier tests: none. The diff only adds `tests/test_claude_agent_texts_mutants.py` (status `A`).
 10. factory: started docs as self.
+11. documenter: I wrote the three documents the docs criterion asks for and found no finding for the coder. Only documents changed, so I did not run `make check`; the factory's check after this stage decides. I ran no example. The `make mutants MUTANTS_SECONDS=1500` and `docker exec` commands are repair commands for an operator and are not run here.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`, *Mutation testing*: rewritten for the human's recipe.
+      - It covers the two forms (a story's branch takes all mutants by pattern; `FEATURE` or an acceptance's branch takes by name only the mutants that are not killed) and why mutmut 3.8 needs them.
+      - It covers the 540 s stop inside the report's 10 minutes, the `EXIT` trap with `chmod -R g+w mutants`, the last line's exit statuses, and how to list and show the survivors of one module.
+      - In *The report of a mutation run* I changed one sentence. It said the recipe would call `check_mutants` "after the story"; it now says the recipe calls it, for the report and for `--names`.
+    - `docs/operator-guide.md`:
+      - *What a stage run shows*, point 3: added the coder's `mutants` line with a complete and a partial example, and that a partial report is a failed report that never stalls the stage.
+      - New `### The mutation report of a story` in *The project's make targets*: the time it takes, what the reviewer does, what the acceptance re-runs, the stats case with the repair by hand, and the `Permission denied` repair for Docker and Podman.
+    - `docs/decisions.md`:
+      - New entry *Mutation testing per story*, with feature decisions 1, 2, 4 to 7 and 13 and the rejected alternatives.
+      - I added "Superseded by *Mutation testing per story*." to the date line of the older entry *Mutation testing is limited to one feature's modules*.
+
+    Checked against the diff and found current: `claude/agents/reviewer.md` and `claude/agents/acceptance-reviewer.md` match the Interface text. The smoke-test greps for the docs file and the agent files should each print 1. Also found current: `CLAUDE.md`'s *Checks* paragraph on `make mutants`, `README.md`, and the other project-guide files, which mention mutants only in passing.
+
+    Stale text noticed and left alone: none.
+
+    Not mine: the work item's `.costs.jsonl` shows as modified in the work tree; that is the factory's file.
+
+    `check`: check: green (not run again: passed on tree 3cf1f2b13373 at 2026-10-19T16:39:50Z)
+    `secrets`: secrets: green (1.7 s)
+12. factory: Stage docs stalled (attempt 1 of 2): a check is red after the stage: `documents`
+    docs/project-guide/processes-and-checks.md: uses the v1 word 'ticket'
+    make: *** [Makefile:93: documents] Error 1

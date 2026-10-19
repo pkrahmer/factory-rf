@@ -77,6 +77,30 @@ The factory runs a project's build through make and calls three targets: `check`
 
 A project whose `check` scans for secrets, with the template's `make secrets` or a scanner of its own, must leave out the factory's cost records (`*.costs.jsonl`, beside each work item), or the first agent run of every work item makes `check` red.
 
+### The mutation report of a story
+
+factory-rf's pipeline runs `make mutants` as a report after the coder, with a time limit of 10 minutes. On the story's branch the target mutates every module under `src/factory` that the branch changes against `origin/main`, and the coder's entry ends with its last line (see *What a stage run shows*). The survivors stay in `mutants/` in the checkout. A project whose `mutants` target is still the feature-level one (the template's and the demos') has no such report; the reviewer and the acceptance reviewer work with either.
+
+**How long it takes.** A run costs a fixed 165 s (28 s listing the tests, 131 s of mutmut's clean test run, 5 s generating) plus 0.13 to 0.25 s per mutant on 20 cores. Measured on 2026-10-19 on the 12 stories of F0019 and F0021 that changed a module, that is 3 to 11.5 minutes of mutmut. The recipe stops mutmut after 540 s (`MUTANTS_SECONDS`), so the largest stories end `partial`: about four in twelve. A partial line is a failed report and never stalls the stage; the reviewer takes it as a note, and the acceptance runs what is left.
+
+**What the reviewer does.** It reads the survived and timed-out mutants of the modules the diff changed, with `uv run mutmut results` and `uv run mutmut show <name>`, and never runs the report itself. A survivor in a line the diff added or changed, whose change breaks a rule the work item states, is a finding, so the tester adds the test while the story is open. A survivor that changes no behaviour, only a message text, or a line the diff did not change is a note for the feature's acceptance, and so is a `partial` line.
+
+**What the acceptance does.** It runs `make mutants` again while the last line says `partial`, at most three runs in all. Each run takes only the mutants that are not killed, so the list shortens by what the run kills. It reports the score of the last line and whether it is partial, and says which survivor groups the stories' reviews passed on as notes and which are new. A feature whose survivors alone take more than about 375 s of a run (540 s less the fixed 165 s) stays partial after three runs.
+
+**A run that never gets past mutmut's stats.** After a change of `[tool.mutmut]`'s test arguments in `pyproject.toml`, or with a fresh `mutants/`, mutmut resets every result and first runs its stats over the whole suite in one process, and keeps them only when that run ends. If the stats alone near 540 s, every stopped run starts them again and checks no mutant. One run by hand with a larger `MUTANTS_SECONDS` while the factory is idle repairs it:
+
+```
+make mutants MUTANTS_SECONDS=1500
+```
+
+**`Permission denied`.** `mutants/` belongs to two users of one group: the factory runs the report as `factory`, the reviewers' runs are `agent`, both in `factory-work`. The recipe's `EXIT` trap makes what it wrote group-writable. A run that the factory killed at its time limit skips the trap, and the next run by the other user then ends with `Permission denied` in its last line. Repair it as root in the container:
+
+```
+docker exec -u root <container> chmod -R g+w /work/checkout/mutants
+```
+
+Under Podman, `podman exec` takes the place of `docker exec`.
+
 ## The agent runtime
 
 The factory runs each agent as a `claude -p` call: it needs the `claude` program and the agent's login (an API key file, the token file, or a session logged in by hand when neither holds one). The factory itself holds no key or token: the call's own shell reads them. With `FACTORY_AGENT_USER` set (the image sets it) the call runs under that user's `claude` login (see "The agent runs as a second user"); only without it does it run under the factory user's own login. The call gets only the environment the run's request gives, with no variable inherited from the factory. The flags are those of v1; the preflight's item `agent-run-probe` makes one call with them once for each image build, so a flag the pinned `claude` rejects stops the machine before any claim. If a call fails at once, see "The probe of the agent run". The factory asks `claude --version` and takes the first word of its output (for example `2.1.289`). The pinned version is the one the flags were written for; the preflight compares it with `FACTORY_CLAUDE_VERSION` (see "The preflight's items").
@@ -687,6 +711,7 @@ One stage run leaves these traces on the remote and the pull request, in this or
 1. **The draft pull request.** The first stage of a work item opens it, titled `<id>: <title>`, with the work item's text as the description. Only an open pull request is reused; a closed or merged one never is, and a new draft is opened instead.
 2. **The stage-start commit.** It is pushed before any agent runs. It holds the claim and one journal entry, speaker `factory`, kind `started`, with the text `factory: started <stage> as <instance>.` (for example `factory: started doing as factory-1.`). If this push fails, no agent runs.
 3. **The agent's entry.** The speaker is the agent's role and the kind is `result`, or `question` when the agent asked; code writes both, the agent writes the words. For each green check and each report the entry ends with one line `` `<command>`: <last line of its output> ``, for example `` `check`: 12 passed ``. A result the factory took instead of running the command names the run it took and says that the command did not run: `` `check`: check: green (not run again: passed on tree 0123456789ab at 2026-10-18T15:20:01Z) `` (the first 12 characters of the tree, and the start of that run in UTC). See "The known results". A report stopped at its time limit gets ` (stopped at its time limit after <seconds> s)` at the end of its line, for example `` `mutants`: 1718/1858 mutants (stopped at its time limit after 600 s) ``. Its last line is then only what it printed last, and the records hold `time_limit`.
+   The `mutants` report of a story ends with the last line of `check_mutants`. Complete: `` `mutants`: mutants: 1653 killed, 65 survived, 0 timed out, 0 without tests, 0 not checked, 0 other of 1718 mutant(s) in 7 module(s) ``. Partial, because the recipe stopped mutmut: `` `mutants`: mutants: partial, 1210 killed, 40 survived, 0 timed out, 0 without tests, 468 not checked, 0 other of 1718 mutant(s) in 7 module(s) (stopped after 540 s) ``. A partial report exits 1, so it is a failed report; it never stalls the stage. See *The mutation report of a story*.
 4. **One commit by the factory**, directly above the stage-start commit: the result commit, or the stall commit after a stall. The agent cannot commit, because the checkout's `.git` is the factory's alone (see the decision log's "The factory alone writes the checkout's `.git`"). It holds the whole work tree.
    A stage that moves the work item to an approval also writes the pull request's description after the result commit and before its push, so the description is complete when the board first shows the approval. If that push fails, the description may already show the reports while the work item stays at its stage.
 5. **The label** `stage:<stage>` (written so, for example `stage:review`) on the pull request. It is written after the result commit is pushed, and after a stall's note is posted. It is a projection of the stage and is never read back.
