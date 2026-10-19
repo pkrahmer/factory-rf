@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T16:10:26.639579Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T16:10:26.639579Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T16:11:19.938508Z'
+  stage: review
+  run: d1547e556c6d41189df56d4e7351ab13
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -155,8 +157,9 @@ Tests (the tester writes them): `tests/domain/test_mutants.py`, `tests/entry/tes
 9. `check_mutants --names` prints exactly the names of criterion 6's first row, one per line, and returns 0, also when the results hold a `not checked` mutant.
 10. The faults of `check_mutants` (rows of one parametrized test): a results path that does not exist returns 2, prints nothing to standard output, and prints one line to standard error that starts `check-mutants: cannot read `. A results file holding `garbage` returns 2 and prints `check-mutants: not a result line of mutmut: 'garbage'` to standard error. `--names` with a results path that does not exist also returns 2 and prints one line to standard error that starts `check-mutants: cannot read `, and nothing to standard output. No module, `--stopped-after 0`, `--stopped-after soon`, and `--names --stopped-after 540` each end with `SystemExit` with code 2.
 11. `check_duplicates` still reads its files and reports an unreadable one as before: every test of `tests/entry/test_check_duplicates.py` passes unchanged, and `factory.entry.check_duplicates` no longer defines `_read`.
-12. `make check` stays green.
-13. docs: `docs/project-guide/processes-and-checks.md`, *Mutation testing*: a new subsection *The report of a mutation run* for `factory.domain.mutants` and `python -m factory.entry.check_mutants`. It gives the input (what `mutmut results --all true` prints), the module of a mutant, the lines and the last line with an example, when a report is partial and its exit statuses 0, 1 and 2, what `--names` prints and why a module without a mutant gives a pattern, and that the recipe of `make mutants` calls it (the human's change after this story). *The duplicates report* (same file): one sentence that `check_duplicates` reads its files through `factory.entry.inputs.read_input`. `docs/decisions.md`: an entry *A mutation run's report is a line of its own, and a partial run is never complete*, dated with the story, with the feature's decisions 2, 3 and 8 and the rejected alternatives: a fourth check status, mutmut's own listing as the last line, and the survivors of every module in the report.
+12. `read_input`'s `UnreadableInput` is chained from the error it reports (rows of one parametrized test): for a missing file its `__cause__` is a `FileNotFoundError`, and for a file holding `b"\xff\xfe"` its `__cause__` is a `UnicodeDecodeError`.
+13. `make check` stays green.
+14. docs: `docs/project-guide/processes-and-checks.md`, *Mutation testing*: a new subsection *The report of a mutation run* for `factory.domain.mutants` and `python -m factory.entry.check_mutants`. It gives the input (what `mutmut results --all true` prints), the module of a mutant, the lines and the last line with an example, when a report is partial and its exit statuses 0, 1 and 2, what `--names` prints and why a module without a mutant gives a pattern, and that the recipe of `make mutants` calls it (the human's change after this story). *The duplicates report* (same file): one sentence that `check_duplicates` reads its files through `factory.entry.inputs.read_input`. `docs/decisions.md`: an entry *A mutation run's report is a line of its own, and a partial run is never complete*, dated with the story, with the feature's decisions 2, 3 and 8 and the rejected alternatives: a fourth check status, mutmut's own listing as the last line, and the survivors of every module in the report.
 
 ## Smoke test
 
@@ -240,3 +243,11 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (src/factory/domain/mutants.py, src/factory/entry/inputs.py, src/factory/entry/check_mutants.py, src/factory/entry/check_duplicates.py and the three new test files) against the work item. Group 1 (acceptance criteria) fails, so I stopped there. The code itself matches the Interface: the domain has no I/O, `_chosen` compares whole module names, and `--stopped-after` is refused through argparse. The coder's journal entry records `make check` green.
+
+   1. tests/domain/test_mutants.py `test_result_lines_are_read_in_their_order` and `test_a_line_that_is_no_result_is_refused`: criterion 1 asks for "rows of one parametrized test", but the accepted lines and the refused lines of `parse_results` are two separate test functions. Fix: merge them into one parametrized test where each row expects either the results or the `ValueError` message.
+   2. criterion 12 added: it needs its test. The Interface says `read_input` raises `UnreadableInput` "chained from" the `OSError` or `UnicodeDecodeError`, and no criterion or test checked that (intake noted the gap). The new criterion 12 says that `__cause__` is a `FileNotFoundError` for a missing file and a `UnicodeDecodeError` for `b"\xff\xfe"`. Pinning it needs no change under `src/` (src/factory/entry/inputs.py already chains with `from error`). The two closing criteria are now 13 (`make check`) and 14 (docs).
+
+   Rejected as findings: the stopped-after 1 and 0 sides in tests/entry/test_check_mutants.py are in two functions. I left that out because criteria 8 and 10 group the command's rows by outcome, and the domain test checks both sides in one parametrized test. The missing `--names` row for a parse fault runs the same `try` in `main` as the row without `--names`. I found no copied test helper.
+
+   Earlier tests: none. Every test file the diff touches has status `A`, and tests/entry/test_check_duplicates.py is unchanged.
