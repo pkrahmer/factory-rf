@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-19T09:30:19.397597Z'
   stage: smoke-test
   run: ef7c3b781f374d1d81d08829edfa2759
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-19T09:31:38.019935Z'
+  stage: approval
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -299,3 +304,4 @@ Expect: `documents ok`
     - Criterion 5 (docs: none): command 3 reports `documents ok`.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 5.9 min, 49 turns, 134887 tokens in (637367 more from cache), 12282 out, $1.30
