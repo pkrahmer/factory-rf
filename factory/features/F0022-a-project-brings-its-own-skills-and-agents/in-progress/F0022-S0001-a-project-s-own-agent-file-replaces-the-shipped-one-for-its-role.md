@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 264
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T13:20:07.125169Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T13:19:45.998145Z'
   stage: tests
   run: a1d79c3efdca49b5942c40a11c16166a
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T13:20:07.125169Z'
+  stage: doing
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -222,3 +231,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_wiring_project_agents.py - ImportError while importing...
+6. factory: started doing as self.
