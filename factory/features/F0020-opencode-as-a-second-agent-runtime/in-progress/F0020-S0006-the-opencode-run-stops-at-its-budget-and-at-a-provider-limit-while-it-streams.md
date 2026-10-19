@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T10:24:20.996399Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-10-19T10:24:20.996399Z'
   stage: review
+- number: 28
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T10:25:21.910518Z'
+  stage: review
+  run: 1fd5867f3c2449118407b8ef0b5ba8e7
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -575,3 +577,34 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 35 known, 1 gone
 27. factory: started review as self.
+28. reviewer: no findings
+
+    Checked and sound:
+    - `src/factory/adapters/opencode_runtime.py`:
+      - `_Watch.on_line` adds up the `step_finish` costs as `Decimal` and stops only when the sum is strictly greater than the call's budget.
+      - It reads a limit only from `error` events (`_limit_message`: `statusCode` equals the limit's status, or `limit_in_text` on the message) and from lines of standard error.
+      - `_end_reason` puts `time_limit` first, then the stop the watch recorded.
+      - `_limit_wait` is `named_wait` of the recorded text, and only for `provider_limit`.
+      - `run` resumes once, and only on `budget` with a known session.
+      - `_resume` matches `ClaudeCodeRuntime._resume`: what is left of the time limit, `FINISH_MESSAGE` and `resume_session` through `model_copy`, `resume_budget` and `resumed_result`.
+      - `files.remove()` runs in `finally` after the resume, and `finished_run` reaches `AGENT_RUN` once.
+      - The new keyword `provider_limit` comes last and defaults to `ProviderLimit()`.
+    - Criteria 1 to 15 each have a test in `tests/adapters/test_opencode_budget.py` or `tests/adapters/test_opencode_provider_limit.py` that pins them, both sides of each rule as rows of one parametrized test:
+      - at the budget and past it (1);
+      - a status that is no limit and a limit's status (8);
+      - a message limit and the default limit (9);
+      - a stderr limit line and the lines `500` and `1428` (10 and 14);
+      - `text` and `tool_use` (11).
+    - The round-1 findings are resolved:
+      - The earlier test name in `tests/adapters/test_opencode_runtime.py` is restored. That file now differs from `main` only by the helper move.
+      - Criterion 15 is pinned by `test_the_resume_runs_with_the_first_call_s_run_files_which_are_removed_after_it`. It checks the same `OPENCODE_CONFIG` file, that the resume saw that file's text, and that the state directory is empty afterwards.
+    - Layers hold. The diff adds no security marker. The journal (entry 26) has `make check` green after the coder. `make duplicates` reports the same 5 new findings as before, none of them added by this diff.
+    - The Description and the docs criterion (17) match what was built.
+
+    Earlier tests:
+    - `tests/adapters/test_opencode_runtime.py`: changed under the standing leave to move a shared test helper. Its `_runtime` moved to `stand_in_runtime` in `tests/adapters/opencode_stand_in.py`, and every test keeps its name and what it checks.
+    - `tests/adapters/test_opencode_resume_session.py`: changed under the standing leave to move a shared test helper. It imports `stand_in_runtime` instead of `_runtime` from `test_opencode_runtime.py`.
+    - `tests/adapters/opencode_stand_in.py`: the shared helper module. No leave was needed: it only adds the moved helpers and constants and leaves what it held as it was.
+
+    Notes:
+    - `tests/adapters/test_opencode_provider_limit.py:310`: the rows `500` and `1428` check `len(read_calls(...)) <= 1`, which is weaker than "after one call". It holds only because a `completed` end implies the stand-in ran. An expected call count per row would state it directly.
