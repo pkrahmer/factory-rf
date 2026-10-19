@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T10:52:18.126772Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-10-19T10:52:18.126772Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-19T10:54:03.259301Z'
+  stage: doing
+  run: f557cc852f274181893aadc009ca517c
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -514,3 +516,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (37.3 s)
 24. factory: started doing as self.
+25. coder: Round 1. The reviewer's only finding (entry 19) was criterion 18, and it needed just its test. The tester added that test in entry 23: the `one-and-one` and `ceiling-equals-cooldown` rows in `tests/domain/test_settings_provider_limit_wait.py::test_the_cooldown_and_ceiling_are_read_in_minutes`. I changed no code and no test in this run. `make check` is green and ends with `check: green`, with coverage at 99.05 %.
+
+    What I built is unchanged from entries 10 and 17:
+    - `src/factory/application/machine.py` (`Waiter`)
+    - `src/factory/adapters/clock.py` (`SleepingWaiter`, `ManualWaiter`)
+    - `src/factory/application/boundaries.py` (`waiter`)
+    - `src/factory/domain/provider_limits.py` (`cooldown`, `ceiling`)
+    - `src/factory/domain/settings.py` (the two `..._MINUTES` variables, through the shared `_whole_number`)
+    - `src/factory/application/provider_limits.py` (`CONTINUE_PROMPT`, `PatientRuns`)
+    - `src/factory/application/sealed_runs.py` (`run=`)
+    - `src/factory/application/stage.py` (`launch` goes through `PatientRuns`)
+    - `src/factory/entry/wiring.py` (`SleepingWaiter()`)
+
+    Main choice: `PatientRuns.run` is a single loop that keeps the joined result and the total waited so far. I rejected a recursive resume.
+
+    Refactor pass: there was no new diff in this round, so nothing needed changing.
+
+    Description: criterion 18 adds the accepting side of limits the Interface already states. The meaning of the task did not change, so I did not rewrite the Description.
+
+    Noticed, not touched: only the work item's `.costs.jsonl` sidecar shows as modified, and the factory writes that file.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 33 known, 3 gone
