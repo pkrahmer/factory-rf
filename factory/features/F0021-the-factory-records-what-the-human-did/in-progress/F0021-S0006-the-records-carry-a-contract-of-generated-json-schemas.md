@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 240
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T00:08:51.803056Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T00:08:31.947288Z'
   stage: review
   run: 87f6f4890d274f169723b368fa8727a9
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T00:08:51.803056Z'
+  stage: docs
 ---
 
 # The records carry a contract of generated JSON Schemas
@@ -237,3 +246,4 @@ Expect: `1.0 ['at', 'event', 'reason', 'scope']`
    Considered and not raised: criterion 2 compares the rest of the schema as a dict, so a change that reorders only the model's own keys would not be caught. Any reorder that touches the first two keys, `sort_keys=True` among them, fails the test. The Interface's "nothing reordered" is therefore covered well enough.
 
    Earlier tests: none. Every test file in the diff is new (status `A`).
+10. factory: started docs as self.
