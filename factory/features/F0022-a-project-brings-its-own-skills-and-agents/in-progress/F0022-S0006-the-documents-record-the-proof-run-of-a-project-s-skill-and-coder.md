@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 302
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T23:36:02.215410Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:36:02.221021Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T23:36:21.450502Z'
+  stage: intake
+  run: 5922b8a2708f479d9b0c3295cb9c9d78
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:36:41.771479Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T23:38:24.619435Z'
+  stage: tests
+  run: b14725f670f44e75b10950c951cfc57f
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:38:45.610400Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T23:39:53.147377Z'
+  stage: doing
+  run: ca01e392c260448794586ac83e3d688d
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:40:14.734792Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T23:40:33.345402Z'
+  stage: review
+  run: a51f67ea404e43ed81c32e855257410d
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:40:54.042215Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T23:41:13.681451Z'
+  stage: docs
+  run: d4a9fbb9b57e465fb6d2553a01de5962
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:41:34.122229Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T23:41:54.921421Z'
+  stage: smoke-test
+  run: 090bbd9461964d59bc9c718cd8c54e34
+---
+
 # The documents record the proof run of a project's skill and coder
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -50,3 +134,92 @@ uv run python -m factory.entry.check_documents
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is right for a documents-only story. It names no module or signature, and it states no behaviour that needs a criterion. The documenter's two files, `docs/operator-guide.md` and `docs/decisions.md`, are named.
+   - Criteria: all three are checkable. Criterion 1 is a negative, "nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes", and the entries of the tester and the coder state it. Criterion 3 names exact strings to remove or replace, plus the content of the new `- Proven:` bullet and the `Open:` change. I confirmed that the old strings exist: `docs/operator-guide.md:989` holds both "(the feature's proof run looks)" and "A run reads them from its checkout". `docs/decisions.md:757` holds the entry, with an `Open:` bullet at line 767. The story states no limit, validation or rejected input, so there is no failing side to cover.
+   - Smoke test: the four commands are runnable, and each `Expect:` line is a literal output (`0`, `0`, `1`, `documents ok`). The `sed` range in the third command starts at the exact heading at line 757 of `docs/decisions.md`. It stops at the next `## `, and the new bullet falls inside that range.
+   - Architecture: no layer is touched, and the change is limited to documents, which fits the documenter's write paths (`README.md` and `docs/*`).
+   - Scope: the story belongs to F0022 and records the proof run (the feature's change 2, decision 15). It leaves the nested `.claude/skills/` open, as decision 12 does, and touches nothing the feature puts out of scope. The story's description of the proof run's evidence is the human's account, and I did not verify it.
+4. factory: started tests as self.
+5. tester: No tests written. This story changes documents only, and its Interface says no test changes.
+   - criterion 1 (nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes): no test function. I made no change under any of those paths. `git status` shows only the factory's own `.costs.jsonl` sidecar.
+   - criterion 2 (`make check` stays green): no test function. It is the factory's check. `make test` is green now (coverage 99.13 %) and `make lint` is green.
+   - criterion 3 (docs): no test function. The documenter writes it, and the smoke test and `make documents` cover it.
+   Files created: none. Every test module imported: since there are no new tests, nothing is red on purpose, and the coder has no test specification for this story.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (40.4 s)
+6. factory: started doing as self.
+7. coder: No code written. This story changes documents only. Its Interface is "None" and the tester wrote no tests, so the coder has nothing to make pass.
+   - Criterion 1: I changed nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. `git status --short` shows only the factory's own `.costs.jsonl` sidecar.
+   - Criterion 2: `make check` is green on the branch as it stands (`test: green (44.3 s)`, coverage 99.13 %, `check: green`).
+   - Criterion 3: the docs stage writes this, not the coder. The two passages in `docs/operator-guide.md` and the new `- Proven:` bullet in `docs/decisions.md` are still to be written there.
+   - Main choice: I left `docs/` alone. CLAUDE.md gives the documents to the documenter, and the coder does not write them. The alternative I rejected was to make the doc edits here to get ahead. That would be outside the coder's role.
+   - Refactor: there is no diff, so there was nothing to refactor.
+   - Description: no journal entry changed the meaning of the task, so I left the Description as it is.
+   - Noticed but not touched: nothing.
+
+   `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar (`git diff --name-status main...HEAD`: `M` the `.md`, `A` the `.costs.jsonl`).
+   - Criterion 1 (nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes): it holds, because the diff is empty. The tester's entry (5) and the coder's entry (7) both say so.
+   - Criterion 2 (`make check` green): the coder's entry 7 records `check: green` on the unchanged tree. The `duplicates: 5 new` that entry 7 records cannot come from this branch, since it changes no code, so it is not under review here.
+   - Criterion 3 (docs): the documenter writes it next. I checked it against the current text. `docs/operator-guide.md:989` still holds both "(the feature's proof run looks)" and "A run reads them from its checkout". In `docs/decisions.md`, the entry *The agents load a project's skills, and the agent's home gets none* has an `Open:` bullet and no `Proven:` bullet. The criterion names each change exactly, the smoke test's `sed` range covers the new bullet, and "No other passage changes" keeps the scope tight.
+   - Work item: the Description matches what was built (nothing yet, documents only). The tester's and the coder's entries say why they wrote nothing: the documents belong to the docs stage.
+   - Not checked: the proof run's evidence (instance `skills-demo`, the `project coder:` and `skill: journal-marker` lines, the refused `mkdir`) is the human's account. Only the night log shows it, and the log is outside the review's scope, as the intake also noted.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
+11. documenter: Documents only, so I did not run `make check`. I ran `python -m factory.entry.check_documents`, which printed `documents ok`.
+
+    Files changed:
+    - `docs/operator-guide.md`, *A project's own skills*: "(the feature's proof run looks)" is now "was not checked", and "A run reads them" is now "A run reads the root `.claude/skills/`".
+    - `docs/decisions.md`, *The agents load a project's skills, and the agent's home gets none*: a new `- Proven:` bullet before `Open:`, as the criterion words it. The `Open:` bullet now says the proof run did not check the nested `.claude/skills/`.
+
+    Cross-read and found current: the story's diff holds no code, so no name or behaviour moved. The rest of the entry in `docs/decisions.md` and the rest of the *A project's own skills* section match the story.
+
+    Stale text noticed but not touched: none.
+
+    The proof run's evidence (`skills-demo`, the `project coder:` and `skill: journal-marker` lines, the refused `mkdir`) is the human's account. I did not check it against the night log.
+
+    `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: all four commands met their `Expect:` lines, and the smoke test contradicts no criterion. No findings.
+
+    1. `grep -c "the feature's proof run looks" docs/operator-guide.md`. **Met** (Expect: `0`). The exit code is 1, which is how grep reports a count of 0 matches; it is not an error.
+    ```
+    0
+    ```
+
+    2. `grep -c 'A run reads them from its checkout' docs/operator-guide.md`. **Met** (Expect: `0`). The exit code is 1 here too, again because the count is 0.
+    ```
+    0
+    ```
+
+    3. `sed -n "/^## The agents load a project's skills/,/^## /p" docs/decisions.md | grep -c 'skill: journal-marker'`. **Met** (Expect: `1`).
+    ```
+    1
+    ```
+
+    4. `uv run python -m factory.entry.check_documents`. **Met** (Expect: `documents ok`).
+    ```
+    documents ok
+    ```
+
+    Criteria, checked against `git diff main...HEAD`:
+    - Criterion 1: the branch changes only `docs/decisions.md`, `docs/operator-guide.md`, the work item and its `.costs.jsonl` sidecar. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed. The tester's entry (5) and the coder's entry (7) both say so.
+    - Criterion 2: I did not run `make check` in this stage. The documenter's entry (11) records `check: green`, reused from tree 5006d1b6db9a, and the branch changes no code since then.
+    - Criterion 3:
+      - `docs/operator-guide.md:989`: "(the feature's proof run looks)" is gone. The sentence now says the nested folder "was not checked, so the review and your merge see it in the diff". "A run reads them" now reads "A run reads the root `.claude/skills/` from its checkout, the work item's branch."
+      - `docs/decisions.md`: a new `- Proven:` bullet comes before `Open:`. It names `skills-demo`, `project coder:`, `skill: journal-marker` for the intake, tester and coder, the shipped coder given again after the project's coder was removed from `main`, and the refused folder in the home's `skills/` (`self`). It is three sentences, one more than the criterion's "one or two sentences", which I count as wording, not a finding. The `Open:` bullet keeps the nested `.claude/skills/` and adds "the proof run did not check it".
+      - Only these two passages changed in the diff.
+
+    Not checked: the proof run's evidence itself is the human's account, as the earlier stages also noted.
