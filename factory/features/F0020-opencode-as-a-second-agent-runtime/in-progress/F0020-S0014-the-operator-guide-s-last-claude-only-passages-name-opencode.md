@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 299
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T23:16:15.921191Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T23:15:55.673183Z'
   stage: doing
   run: 0f7bfd1e3f9f41d99e1731c51f115065
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:16:15.921191Z'
+  stage: review
 ---
 
 # The operator guide's last Claude-only passages name opencode
@@ -124,3 +133,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
