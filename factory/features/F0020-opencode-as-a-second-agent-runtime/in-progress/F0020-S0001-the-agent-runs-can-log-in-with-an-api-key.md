@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T03:49:25.909205Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-19T03:49:05.941138Z'
   stage: review
   run: 5ca70f34faa84acb81f758c7b8e3b379
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:49:25.909205Z'
+  stage: docs
 ---
 
 # The agent runs can log in with an API key
@@ -505,3 +514,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - `tests/adapters/test_claude_runtime_api_login.py:52` and `:76`: criterion 8 is tested by two functions. The first is a sequence on one runtime (key, then the emptied file), so it does not fit as a row beside the other two cases; I left it.
     - `tests/adapters/test_claude_runtime_api_login.py:39`: `_runtime` leaves out the `api_login_file` keyword when it is `None`, so the "built without `api_login_file`" rows use the constructor's default. That is deliberate and correct, but there is no comment saying why.
+18. factory: started docs as self.
