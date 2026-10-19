@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 294
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T22:27:58.433108Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T22:27:37.523959Z'
   stage: intake
   run: 4ee8082d05cc4e27b5384b24ca7ecf92
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:27:58.433108Z'
+  stage: tests
 ---
 
 # The template's Makefile header calls mutants a sweep by hand
@@ -88,3 +97,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: all three commands (`grep -c -F`, with `|| true` for the 0 case, and `sed -n '4,5p'`) run as written, and each `Expect:` line is checkable against the output.
    Architecture: the change is to a template file in the coder's write path (`template/*`). The new test module goes under `tests/` and reads the file through `ROOT` of `tests/shipped_agents.py`. It is at the `tests/` root, which fits a module outside the layers. No dependency is added.
    Scope: the change is in F0031's goal (the template's words on `make mutants`). The story leaves out the other lines, the `mutants` recipe, `template/CLAUDE.md`, `template/factory/pipeline.yml` and the todo demo. No earlier test is changed.
+4. factory: started tests as self.
