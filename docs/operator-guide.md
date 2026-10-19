@@ -542,6 +542,47 @@ python3 -c "import json,collections as c; print(c.Counter(r['commit'] for r in m
 
 A commit that appears more than once was checked more than once.
 
+#### The known results
+
+`records/known-results.jsonl` in the state directory holds one JSON line for each run of a stage's check or report and for each time the factory took an earlier result instead of running it. After an agent the factory runs every check and report of the stage; when the last run under the same key passed, it does not run the command again. The preflight's probe and `project-commands.jsonl` are not part of this: the probe still runs, and `project-commands.jsonl` still holds every real run and no reuse. A line has these fields:
+
+| Field | Meaning |
+|---|---|
+| `key` | What the result depends on: `command`, `tree`, `definition` and `image`. |
+| `at` | When the factory started the run or took the result, UTC. |
+| `status` | `passed`, `failed` or `time_limit`. |
+| `last_line` | The last line of the command's output. |
+| `duration_seconds` | How long the command ran; 0 for a reuse. |
+| `reused` | `null` for a real run; for a reuse, the `at` of the run it took. |
+
+The key has four parts:
+
+- `command`: the make target.
+- `tree`: the tree the command reads, as `Git.work_tree_id` names it for the command's `not_read` (see "The pipeline definition").
+- `definition`: the SHA-256, in hex, of the whole pipeline definition.
+- `image`: the machine's image (see "The image on the cost records"), `null` without one.
+
+A known result is invalidated by a change in any part: a changed file the command reads, a merge of `main` that brings one, any change of the pipeline definition (a time limit, a stage, any value), or a new image. A change only in left-out files keeps the key.
+
+- A failed or timed-out result is never reused. The last real run of a key decides: a pass, then a failure of the same key, ends the reuse of the pass until a new run passes.
+- A reuse is a record too, with the time of the run it took, so no check is silenced and the runs of a tree can be counted.
+- Only the factory's own runs are known. What an agent ran itself is not.
+- Deleting the file forgets every known result: the next run of each command runs it.
+
+When something goes wrong the command runs as it did before, and the factory log says why, in one line:
+
+| Line | Meaning |
+|---|---|
+| `known results: no key for <command>: <error>` | The tree could not be named; the command ran and nothing was recorded. |
+| `known results: cannot read the records: <error>` | The file could not be read; the command ran. |
+| `known results: cannot write the record of <command>: <error>` | The line could not be written; the result is still used. |
+
+To count the `check` runs of each tree, the most-run first (a reuse is not counted):
+
+```bash
+python3 -c "import json,collections as c; print(c.Counter(r['key']['tree'] for r in map(json.loads, open('/state/records/known-results.jsonl')) if r['key']['command']=='check' and r['reused'] is None).most_common())"
+```
+
 #### The stop records
 
 `records/stops.jsonl` in the state directory holds one JSON line for each event of a stop of the repository or the machine. A line has these fields, in this order: `event` (`raised` or `cleared`), `scope` (`machine` for `preflight_failed` and `disk_low`, `repository` for the rest), `reason`, `at` (UTC, ending in `Z`) and `instance` (the instance's name, `null` without settings). It never holds the stop's detail:
@@ -645,7 +686,7 @@ One stage run leaves these traces on the remote and the pull request, in this or
 
 1. **The draft pull request.** The first stage of a work item opens it, titled `<id>: <title>`, with the work item's text as the description. Only an open pull request is reused; a closed or merged one never is, and a new draft is opened instead.
 2. **The stage-start commit.** It is pushed before any agent runs. It holds the claim and one journal entry, speaker `factory`, kind `started`, with the text `factory: started <stage> as <instance>.` (for example `factory: started doing as factory-1.`). If this push fails, no agent runs.
-3. **The agent's entry.** The speaker is the agent's role and the kind is `result`, or `question` when the agent asked; code writes both, the agent writes the words. For each green check and each report the entry ends with one line `` `<command>`: <last line of its output> ``, for example `` `check`: 12 passed ``.
+3. **The agent's entry.** The speaker is the agent's role and the kind is `result`, or `question` when the agent asked; code writes both, the agent writes the words. For each green check and each report the entry ends with one line `` `<command>`: <last line of its output> ``, for example `` `check`: 12 passed ``. A result the factory took instead of running the command names the run it took and says that the command did not run: `` `check`: check: green (not run again: passed on tree 0123456789ab at 2026-10-18T15:20:01Z) `` (the first 12 characters of the tree, and the start of that run in UTC). See "The known results".
 4. **One commit by the factory**, directly above the stage-start commit: the result commit, or the stall commit after a stall. The agent cannot commit, because the checkout's `.git` is the factory's alone (see the decision log's "The factory alone writes the checkout's `.git`"). It holds the whole work tree.
    A stage that moves the work item to an approval also writes the pull request's description after the result commit and before its push, so the description is complete when the board first shows the approval. If that push fails, the description may already show the reports while the work item stays at its stage.
 5. **The label** `stage:<stage>` (written so, for example `stage:review`) on the pull request. It is written after the result commit is pushed, and after a stall's note is posted. It is a projection of the stage and is never read back.
@@ -845,7 +886,19 @@ project_commands:
   lint: {time_limit: 10, not_read: ["factory/*", "docs/*"]}
 ```
 
-A pattern that cannot name a path inside the checkout (empty, starting with `/` or `~`, holding a `..` segment, or holding `{` or `}`) stops the definition from loading: `project command lint: not_read /etc/* must be a path pattern inside the checkout`. The key does nothing yet: a later story of the feature "a known result is not checked again" uses it to decide that a changed file the command does not read is no reason to run it again.
+A pattern that cannot name a path inside the checkout (empty, starting with `/` or `~`, holding a `..` segment, or holding `{` or `}`) stops the definition from loading: `project command lint: not_read /etc/* must be a path pattern inside the checkout`. `not_read` is what lets a known result survive a change: the paths it names are left out of the tree that the key holds (see "The known results"), so a change only there is no reason to run the command again. List only what the command does not read at all. A forgotten path costs one run; a path listed by mistake can let a reused `check` pass a fault.
+
+factory-rf's own definition takes this after the story that built the key, and only Markdown and JSON Lines files, because `make lint` reads every Python file of the tree, wherever it lies:
+
+```yaml
+project_commands:
+  check: {time_limit: 15, not_read: ["README.md", "docs/*.md", "factory/features/*.md", "factory/features/*.jsonl", "factory/stops.jsonl", "planning/*", "session-logs/*"]}
+```
+
+Two warnings:
+
+- A project whose `check` scans changed files for secrets keeps a scan of the left-out files only if something else runs it. factory-rf's docs stage will run `secrets` as a check of its own, with nothing left out.
+- A command whose result depends on anything outside the tree and the image, such as dependencies fetched at run time with unpinned versions, is reused safely only when those versions are pinned in the tree (for example by a lockfile). Otherwise leave `not_read` empty and do not rely on reuse for it.
 
 A project made from `template/`, and the todo demo, do not run under the guard as they are. Their `Makefile`'s `licenses` recipe writes `.licenses-requirements.txt`, and coverage writes `.coverage`, both at the checkout's root, where the kernel allows no write. Move both into a tool path folder, as this repository did into `.reports/` (`data_file` under `[tool.coverage.run]` in `pyproject.toml`, and the `licenses` recipe), and name the project's `tool_paths` in its pipeline definition. Until then its `make check` ends with `Permission denied`.
 

@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T15:18:36.193377Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,12 @@ journal:
   kind: started
   at: '2026-10-19T15:18:36.193377Z'
   stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T15:20:45.402060Z'
+  stage: docs
+  run: bfabba745f594896ab17bf901452931b
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -551,3 +553,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/domain/test_checks.py` (M): human's leave. The Interface names the rename `test_fields_are_exactly_the_generic_seven` → `test_fields_are_exactly_the_generic_eight` and the added `"reused"`, under the feature's decision 15. The diff makes only that change.
     - `tests/application/test_recording_project_commands.py` (M): standing leave to move a shared test helper. The only change is that the local `_raising` is removed and `raising` is imported from `tests/project_command_support.py`. Every test keeps its name and still checks the same thing.
 25. factory: started docs as self.
+26. documenter: No findings. The code matches the Interface and the criteria. I read `src/factory/domain/known_results.py`, `src/factory/application/known_results.py`, and the diffs of `domain/checks.py`, `application/stage.py`, `application/boundaries.py` and `entry/wiring.py`. I wrote the documentation the docs criterion asks for. I did not run `make check`, because I changed only documents. `make documents` reports `documents ok`. I did not run the counting one-liner.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - *What a stage run shows*, point 3: the line of a reused result, with an example, and that the command did not run.
+      - *The records*: a new subsection *The known results*. It covers the fields, the four parts of the key, what invalidates a result, that a failed result is never reused and the last run of a key decides, that deleting the file forgets every result, the three factory-log lines, and the command that counts `check` runs per tree.
+      - *The pipeline definition*: the note that `not_read` "does nothing yet" is replaced by what it is for. It adds factory-rf's example, why only Markdown and JSON Lines files, the warning about secrets scans, and the warning about dependencies fetched at run time.
+    - `docs/project-guide/processes-and-checks.md`:
+      - *Project commands*: `CheckResult` gains `reused`.
+      - A new *Known results* part for `KnownResults`, `ResultKey`, `ResultRecord`, `definition_digest`, `known_result`, `ReusedRun`, `command_line` and `Boundaries.result_records`.
+    - `docs/project-guide/stages.md`: the finisher's rule 6 and entry lines go through `KnownResults` and `command_line`. The sentence "Nothing reads `not_read` yet" is replaced by what now happens.
+    - `docs/project-guide/watching.md`: `Boundaries` names the optional `result_records`.
+    - `docs/project-guide/README.md`: `processes-and-checks.md` also names `factory.application.known_results` and `factory.domain.known_results`.
+    - `docs/decisions.md`: a new entry, *A known result is not checked again*. It gives the decisions, the reasons and the alternatives rejected, as the criterion lists them.
+
+    Cross-read and found current: `README.md`, and the rest of `docs/project-guide/` (`agents.md`, `costs.md`, `git-and-hosting.md`, `work-items.md`, `write-guard.md`). In the operator guide: *The records contract* (the `not_read` version note, 1.3) and *A stall by a red check*.
+
+    Stale text I noticed and did not touch: the sentence in *The records* of the operator guide that the project-commands records are telemetry which "nothing reads … to decide anything" is still true of that file. The known results are the file that decides, and I said so in the new subsection.
+
+    Also not mine: the sidecar `.costs.jsonl` of this story shows as modified in the working tree. That is the factory's file.
+
+    `check`: check: green
+    `documents`: documents ok
