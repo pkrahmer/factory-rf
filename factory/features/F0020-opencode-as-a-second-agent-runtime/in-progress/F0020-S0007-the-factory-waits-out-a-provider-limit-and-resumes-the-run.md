@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T10:43:50.332898Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-10-19T10:43:29.881559Z'
   stage: doing
   run: 929ed80a18a84b8f954271f9ba989fd8
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:43:50.332898Z'
+  stage: tests
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -363,3 +372,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The code for this story was built and committed in the previous doing run (entry 10). It lives in `src/factory/application/{machine,provider_limits,sealed_runs,stage,boundaries}.py`, `src/factory/adapters/clock.py`, `src/factory/domain/{provider_limits,settings}.py` and `src/factory/entry/wiring.py`. With the code as it is, this row produces exactly the waits the answer names, so no code change is expected.
 
     The answer does not change the meaning of the task. The Interface stays as it is, so the Description is not rewritten.
+14. factory: started tests as self.
