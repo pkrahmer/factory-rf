@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 290
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T21:57:58.586597Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T21:57:58.586597Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T21:58:16.966835Z'
+  stage: review
+  run: d80dab0ffaff4cfaa853cec7574bf512
 ---
 
 # The operator guide's not_read example leaves out only what lint does not read
@@ -135,3 +137,10 @@ Expect: `documents ok`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Diff: `git diff main...HEAD -- . ':!factory'` is empty. Only the work item and its `.costs.jsonl` sidecar changed, so criterion 1 holds: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed. The tester's entry (5) and the coder's entry (7) both say so, as the criterion asks.
+   - 1. Acceptance criteria: the story is documentation only and its Interface states no rule, so no test is owed. The journal reports that the factory's `make check` after the coder was green (`check: green`). The `duplicates: 5 new` that the coder recorded cannot come from this branch, because it changes nothing under `src/factory`, so it is not under review.
+   - 2 to 4. Architecture, security and quality: nothing to judge on an empty code diff.
+   - 5. Work item hygiene: the coder's entry gives the main decision (leave `docs/operator-guide.md` to the documenter) and what it rejected. The Description matches what was built, which is nothing outside the docs. The docs criterion is still accurate. Every passage it names is still on the branch: `docs/operator-guide.md:900` (`lint: {time_limit: 10, not_read: ["factory/*", "docs/*"]}`), `:903` ("List only what the command does not read at all"), `:905` ("after the story that built the key"), `:909` (`check: {time_limit: 15, ...}`) and `:914` ("will run `secrets`"). `factory/pipeline.yml:10` holds `check: {time_limit: 8, not_read: [...]}` with the same `not_read` list. The documenter copies that line.
+   - 6. Earlier tests: no test file is changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the two files under `factory/`).
