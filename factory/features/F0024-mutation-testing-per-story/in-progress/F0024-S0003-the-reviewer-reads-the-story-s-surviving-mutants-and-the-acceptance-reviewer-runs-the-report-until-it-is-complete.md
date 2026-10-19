@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 272
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T16:40:59.688554Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T16:40:39.182990Z'
   stage: doing
   run: 1e40c42d66bd4a0d989673bd01590c10
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:40:59.688554Z'
+  stage: review
 ---
 
 # The reviewer reads the story's surviving mutants, and the acceptance reviewer runs the report until it is complete
@@ -147,3 +156,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
