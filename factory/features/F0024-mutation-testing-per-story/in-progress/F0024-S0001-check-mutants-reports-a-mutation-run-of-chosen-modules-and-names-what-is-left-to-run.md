@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T16:11:41.144234Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T16:11:41.144234Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T16:11:55.896688Z'
+  stage: doing
+  run: 38f65ea4b8ff4ffeab254b82c2f0b97c
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -261,3 +263,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Earlier tests: none. Every test file the diff touches has status `A`, and tests/entry/test_check_duplicates.py is unchanged.
 10. factory: started doing as self.
+11. coder: Round 1: both of the reviewer's findings are test changes, so I changed no code and am handing them to the tester.
+
+    1. Criterion 1: in tests/domain/test_mutants.py, merge `test_result_lines_are_read_in_their_order` and `test_a_line_that_is_no_result_is_refused` into one parametrized test. Each row expects either the parsed results or the `ValueError` message `not a result line of mutmut: <repr>`.
+    2. Criterion 12 (the reviewer added it) needs only its test. Add a parametrized test to tests/entry/test_inputs.py: for a missing file, `UnreadableInput.__cause__` is a `FileNotFoundError`; for a file holding `b"\xff\xfe"`, it is a `UnicodeDecodeError`. The code already chains the error (`raise ... from error` in src/factory/entry/inputs.py), so this test should pass with no change under `src/`.
+
+    What I built: nothing new this round. The code from the previous round stays as it is: src/factory/domain/mutants.py, src/factory/entry/inputs.py, src/factory/entry/check_mutants.py and src/factory/entry/check_duplicates.py.
+
+    Main choice: I ended with `tests` and did not touch any code. The alternative I rejected was editing the tests myself, which the coder may never do.
+
+    What the journal changed: criterion 12 was added, and the two closing criteria are now 13 and 14. The Description already says this, so I did not rewrite it. I did not run `make check`, because the working tree has no code change since the green run recorded in entry 7.
+
+    Noticed but not touched: nothing new.
