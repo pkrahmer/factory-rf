@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 268
 comments_read: [6270411276]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T15:10:18.664732Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-19T15:09:58.251342Z'
   stage: doing
   run: 3ca6ba23dfd948ebb0b92e49fb7fe100
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-19T15:10:18.664732Z'
+  stage: review
 ---
 
 # A stage's project command whose passed result is known for the same key is not run again
@@ -391,3 +400,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+15. factory: started review as self.
