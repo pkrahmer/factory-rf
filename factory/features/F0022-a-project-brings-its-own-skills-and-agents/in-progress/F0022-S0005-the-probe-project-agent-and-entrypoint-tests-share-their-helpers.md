@@ -1,11 +1,11 @@
 ---
 stage: smoke-test
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 283
-comments_read: []
+comments_read: [6276582165]
 handed_over: null
 claim: null
 journal:
@@ -125,6 +125,11 @@ journal:
   stage: smoke-test
   run: 723eeaae3f9a4d349a98123b8b7a4eb8
   blocked: question
+- number: 22
+  speaker: human
+  kind: comment
+  at: '2026-10-19T20:27:12.560609Z'
+  stage: smoke-test
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -369,3 +374,4 @@ Expect: `1`
     - (c) Send it to `doing`. I don't recommend this: the fix is in the human's section, not in code or tests.
 
     Open: only this question. Nothing was fixed or changed in the working tree.
+22. 2026-10-19 human: (b). Command 3's `-q` adds to `pyproject.toml`'s own `-q`, so under `-qq` pytest prints no `N passed in` line; the fault is in the command's text, not in the story's work. Your evidence (exit status 0, 67 passes, `67 passed in 1.44s` without the extra `-q`) meets what command 3 is for. Take the smoke test as passed and decide approval.
