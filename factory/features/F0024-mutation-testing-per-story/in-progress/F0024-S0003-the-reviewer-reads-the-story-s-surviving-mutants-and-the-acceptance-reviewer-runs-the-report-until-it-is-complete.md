@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 272
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T16:38:39.080881Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T16:38:39.080881Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T16:40:39.182990Z'
+  stage: doing
+  run: 1e40c42d66bd4a0d989673bd01590c10
 ---
 
 # The reviewer reads the story's surviving mutants, and the acceptance reviewer runs the report until it is complete
@@ -128,3 +130,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_agent_texts_mutants.py::test_acceptance_reviewer_holds_the_mutation_score_check_once[old-sentence-gone]
 6. factory: started doing as self.
+7. coder: I changed the two shipped agent texts exactly as the Interface gives them.
+
+   - `claude/agents/reviewer.md`, `## Role`: added the new mutation-report paragraph after item 6 (`6. **Earlier tests**:`) and before `Write findings as a numbered list in your entry`, with one blank line on each side.
+   - `claude/agents/acceptance-reviewer.md`, `## Role`: replaced check 3 (`3. **Mutation score.**`) with the new text.
+
+   No other line of either file changed. The `## Lessons` sections and the anchors are as they were.
+
+   Main choice: I made the edit with a short script that replaces each anchor and the old check 3 as literal strings, and asserts first that each appears exactly once. That keeps the backticks and the double-backtick span in the new texts byte for byte as the Interface has them. I rejected typing the texts in by hand, because that risks a small difference the exact-text tests would catch only after a full run.
+
+   Refactor: I read the diff and nothing needed changing; it is two text edits. `make check` is green, the new tests in `tests/test_claude_agent_texts_mutants.py` and every test of `tests/test_claude_agent_texts.py` included.
+
+   What the journal changed: nothing. The `## Description` stays as it is.
+
+   Noticed, not touched: the five smoke-test greps depend on the docs criterion. The last one (`### The mutation report of a story` in `docs/operator-guide.md`) will print `0` until the documenter writes that subsection.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
