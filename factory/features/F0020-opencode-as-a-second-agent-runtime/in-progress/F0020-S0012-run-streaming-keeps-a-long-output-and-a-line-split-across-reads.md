@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 278
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T18:50:32.763454Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T18:50:12.135031Z'
   stage: docs
   run: 60e523348b744e36bdcdefd22125c7c0
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:50:32.763454Z'
+  stage: smoke-test
 ---
 
 # run_streaming keeps a long output and a line split across reads
@@ -173,3 +182,4 @@ Expect: two lines, `[('stdout', 200000)] 200001` and `[('stderr', 'hello'), ('st
     `check`: check: green (not run again: passed on tree c16507d52c1f at 2026-10-19T18:47:44Z)
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
