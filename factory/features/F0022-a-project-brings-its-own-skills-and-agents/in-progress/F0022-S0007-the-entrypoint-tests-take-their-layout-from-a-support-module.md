@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T23:54:42.605637Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T23:54:42.605637Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T23:54:56.737608Z'
+  stage: doing
+  run: 48c3dc4f5be848bbbe1db70d5b025e69
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -185,3 +187,10 @@ Expect: `exit 0`
    - `tests/test_entrypoint_skills.py`: standing leave to move a shared test helper (import and `_texts`→`texts` calls).
    - `tests/test_shared_test_helpers.py`: the human's leave, the S0007 bullet in decision 14 of `feature.md`. Only the one expected line changed.
 10. factory: started doing as self.
+11. coder: Round 1: the reviewer's only finding (entry 9) is about test code. I changed no file, because the coder never edits tests (R9). The fix is a test-helper move under the standing leave in `CLAUDE.md` (*Tests*), so the tester makes it.
+
+    Move for the tester: `_containing` in `tests/test_entrypoint_support.py:9` duplicates `_writing` in `tests/test_shared_test_helpers.py:13`, along with their `TESTS`/`THIS` constants. Both functions rglob `*.py` under `tests`, leave out the calling module, and return the sorted relative paths of the files that match. Move that search to one shared module at the `tests/` root, for example `tests/search_support.py`. The shared function takes the module to leave out as an argument and a regex pattern. `tests/test_entrypoint_support.py` then calls it with `re.escape` of its three split texts. `tests/test_shared_test_helpers.py` uses it in place of `_writing`. `test_each_shared_helper_is_written_in_one_module` and `test_the_entrypoint_layout_lives_in_its_support_module_alone` keep their names, their ids and what they check. The new support module's own source must not hold the searched texts unsplit.
+
+    Main choice: I hand back with `tests` and leave the code unchanged. The alternative I rejected was making the move myself: the coder never changes a test, even under the standing leave, which belongs to the tester.
+
+    Noticed, not touched: nothing else. Nothing under `src/` changes in this story, and `make check` was green after round 0 (entry 7).
