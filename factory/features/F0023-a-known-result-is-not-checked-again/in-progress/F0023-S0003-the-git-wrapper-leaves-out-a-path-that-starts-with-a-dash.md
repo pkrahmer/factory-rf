@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 288
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T21:28:09.390325Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T21:28:09.390325Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T21:28:34.001214Z'
+  stage: review
+  run: 9eda14e9c0e14ebdaabb97d50a48e2b1
 ---
 
 # The git wrapper leaves out a path that starts with a dash
@@ -146,3 +148,14 @@ Expect: `True`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'`. It adds one file, `tests/adapters/test_git_cli_work_tree_dash.py`, and changes nothing under `src/`. I read it against the work item and against `GitCli.work_tree_id` (`src/factory/adapters/git_cli.py:412-427`).
+
+   1. Acceptance criteria: criterion 1 is `test_a_left_out_path_that_starts_with_a_dash_is_removed_as_a_literal_path`, one parametrized test with four rows: both dash files, `-x.md` alone, the `-*` pattern, and `a.md` alone. Each row writes `a.md`, `-x.md` and `--y.md` into the checkout. It takes `work_tree_id(left_out)`, deletes only the files that row expects to be left out, and asserts the result equals `work_tree_id()`. Because the two ids must be equal, every file that is not left out has to still count, so `--y.md` counts in the second row and `a.md` in the third. The `a.md` row fails if `left_out` is ignored altogether. The rule's failing side, `--` missing, would make git read `-x.md` as an option and raise. The coder reports that the three dash rows fail when `--` is replaced, and that matches how `update-index` handles its arguments. The rule states no limit with two sides. The factory's `make check` after the coder was green (entry 7).
+   2. Architecture: only a test was added. It is under `tests/adapters/`, uses the shared `checkout` fixture plus `CHECKOUT` and `write_files` from `tests/git_support.py`, and fakes no git.
+   3. Security: nothing silences a check, and there are no secrets.
+   4. Quality: the test copies no helper, the four cases are rows of one parametrized test, and the module has its docstring.
+   5. Work item hygiene: the journal explains that no code changed and why, and names the alternative the coder rejected (`--stdin -z`). The Description matches what was built: tests only. The docs criterion ("none") holds, because `docs/project-guide/git-and-hosting.md:124` already says the left-out paths are removed with `update-index --force-remove --` as literal paths.
+
+   Earlier tests: none. The diff only adds a test file (status `A`), and no file that `main` already holds under `tests/` changed.
