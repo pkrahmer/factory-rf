@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T23:04:49.871271Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-19T23:04:29.342232Z'
   stage: review
   run: bd6b9162314c4c2da29486a1ae11811a
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:04:49.871271Z'
+  stage: docs
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -325,3 +334,4 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
     Notes:
     1. `tests/adapters/test_opencode_limit_wait_on_stderr.py:21`: `WAITING` is written inline the same way in `tests/adapters/test_opencode_provider_limit.py:132` and `tests/adapters/test_opencode_confinement.py:60`. It could become a shared constant in `tests/adapters/opencode_stand_in.py` in a later story.
     2. `tests/adapters/test_process_streaming_last_line.py:57`: under `if stopped:`, the `timed_out` check and the 10 s bound run only in the stop rows. That matches criterion 2, but a `no-stop` row that timed out would go unnoticed.
+21. factory: started docs as self.
