@@ -493,7 +493,7 @@ print(entry_text(doc, 2))
 "
 ```
 
-prints the body (`# T`, an empty line, `## Journal`, an empty line, `1. 2026-10-12 human: created.`, `2. intake: accepted`, `   Every criterion is testable.`), then `number=2 speaker='intake' kind='result' at=None stage=None run=None`, then `accepted` and `Every criterion is testable.`.
+prints the body (`# T`, an empty line, `## Journal`, an empty line, `1. 2026-10-12 human: created.`, `2. intake: accepted`, `   Every criterion is testable.`), then `number=2 speaker='intake' kind='result' at=None stage=None run=None blocked=None reason=None`, then `accepted` and `Every criterion is testable.`.
 
 ### The feature acceptance
 
@@ -1081,7 +1081,7 @@ After rule 1 passes, rules 2 to 5 are independent and reported in that order. `l
 
 ### Boundaries
 
-`Boundaries` (`factory.application.boundaries`) is the frozen dataclass of the interfaces that wiring hands to services: `git`, `hosting`, `agent_runtime`, `project_commands`, `work_item_reader`, `work_item_writer`, `cost_reader`, `cost_writer`, `pipeline_reader`, `agent_definitions`, `clock`, `log`, `health`, `checkout` (the checkout root, a `Path`) and `settings` (below). It is not a DTO. It takes keyword arguments only, so a positional call is a `TypeError`, and assigning to a field raises `FrozenInstanceError`. A later story that needs another interface adds a field. `factory.entry.wiring.build_boundaries` builds the concrete adapters.
+`Boundaries` (`factory.application.boundaries`) is the frozen dataclass of the interfaces that wiring hands to services: `git`, `hosting`, `agent_runtime`, `project_commands`, `work_item_reader`, `work_item_writer`, `cost_reader`, `cost_writer`, `pipeline_reader`, `agent_definitions`, `clock`, `log`, `health`, `checkout` (the checkout root, a `Path`), `settings` (below) and the optional `disk` (the `DiskSpace` of the disk check, see the tick's step 0), `disk_records` (the log of the disk records, see the paragraph on `DiskRecord` after `RecordLog`) and `stop_records` (the log of the stop records, see "Stop records" under "Stops, the clock and the factory log"). It is not a DTO. It takes keyword arguments only, so a positional call is a `TypeError`, and assigning to a field raises `FrozenInstanceError`. A later story that needs another interface adds a field. `factory.entry.wiring.build_boundaries` builds the concrete adapters.
 
 `Boundaries` also has the optional last field `settings: InstanceSettings | None = None`, the one place the services read the instance's settings from (the image identity, the agent user); `build_boundaries` fills it, and a `Boundaries` built by hand holds `None`.
 
