@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T10:01:12.394716Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T10:00:51.424988Z'
   stage: tests
   run: 3241096e02644d168513d42fdf220417
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:01:12.394716Z'
+  stage: doing
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -189,3 +198,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/adapters/test_opencode_budget.py::test_the_kill_point_is_reached_once_for_a_resumed_run
+6. factory: started doing as self.
