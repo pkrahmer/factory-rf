@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T12:31:51.835974Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T12:31:31.557576Z'
   stage: intake
   run: 84ef30c790f64bcd8e0f7badc61a6271
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T12:31:51.835974Z'
+  stage: tests
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -181,3 +190,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: both blocks are runnable as written, using the project's own adapters and fakes with no network or paid call. Each Expect line states exact lines that can be checked against the output.
    Architecture: the lease rule sits in domain and is pure. The service wraps it in application and `Watcher` chooses the status function. Only `entry` changes the wiring, and the layer order is kept. The only test change to another story's module is `tests/test_claim_ownership.py`, and the human gave it in decision 5.
    Scope: it matches feature.md's Scope list. The tick, `RecoveryHandler`, `CLAIM_EVENTS`, the board and `claim_status` stay unchanged, as Out of scope requires. Decision 4's precondition (F0020-S0007 archived) is the human's to keep, and they started this story.
+4. factory: started tests as self.
