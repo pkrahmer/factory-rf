@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 276
 comments_read: [6274062567]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T18:18:13.343815Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -118,6 +122,11 @@ journal:
   at: '2026-10-19T18:17:52.970261Z'
   stage: docs
   run: 35efba75d6e54b268cb5b4b97daf7e6f
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:18:13.343815Z'
+  stage: smoke-test
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -362,3 +371,4 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
     `check`: check: green (not run again: passed on tree e7b6aec770f3 at 2026-10-19T18:09:19Z)
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
+21. factory: started smoke-test as self.
