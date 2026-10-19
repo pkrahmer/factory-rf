@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T14:54:30.797525Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T14:54:30.790338Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:54:30.797525Z'
+  stage: intake
+---
+
 # A stage's project command whose passed result is known for the same key is not run again
 
 ## Description
@@ -169,3 +196,5 @@ Expect: four lines, `check: green True`, `check: green True`, `True True`, `2 [T
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
