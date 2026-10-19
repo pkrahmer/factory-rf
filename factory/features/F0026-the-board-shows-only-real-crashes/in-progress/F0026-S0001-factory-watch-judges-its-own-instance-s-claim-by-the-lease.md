@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T12:52:25.046449Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-19T12:52:03.691734Z'
   stage: docs
   run: cf5877328f8a4e63b231934537da4633
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T12:52:25.046449Z'
+  stage: smoke-test
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -458,3 +467,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `documents`: documents ok
+20. factory: started smoke-test as self.
