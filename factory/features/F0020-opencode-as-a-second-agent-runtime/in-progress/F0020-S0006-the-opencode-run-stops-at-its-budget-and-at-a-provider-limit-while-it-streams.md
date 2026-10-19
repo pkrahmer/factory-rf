@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T10:25:42.695976Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-10-19T10:25:42.695976Z'
   stage: docs
+- number: 30
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T10:27:08.032031Z'
+  stage: docs
+  run: 08583d77426a43dfaa0a9780408fe2cb
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -618,3 +620,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - `tests/adapters/test_opencode_provider_limit.py:310`: the rows `500` and `1428` check `len(read_calls(...)) <= 1`, which is weaker than "after one call". It holds only because a `completed` end implies the stand-in ran. An expected call count per row would state it directly.
 29. factory: started docs as self.
+30. documenter: Docs round 2. I wrote the three documents the docs criterion (17) names, changed no code, and found nothing for the coder. The diff matches the Interface and criteria 1 to 15. I ran `make documents` (ok). I did not run `make check`, because I changed only documents. I did not run the smoke-test script either.
+
+    Files changed:
+    - `docs/project-guide/agents.md`, section *The opencode runtime*:
+      - The intro no longer says the callback never stops the run, or that the budget stop and the provider limit are still to come.
+      - The *session* paragraph no longer says the runtime ends no run `provider_limit`.
+      - New paragraphs: *The budget* (summed per `step_finish`, strictly greater than the budget, one step of overshoot), *The budget resume* (`--session` before the prompt, `FINISH_MESSAGE`, `resume_budget`, what is left of the time limit, same run files, `resumed_result`, no third call, no resume without a session, `AGENT_RUN` once) and *The provider limit* (an `error` event's status or message, or a line of standard error; never `text` or `tool_use`; session kept; `limit_wait`; waiting is S0007's).
+      - *The end reason* names the callback's two stops.
+    - `docs/operator-guide.md`:
+      - *A provider's spend limit* now says the opencode runtime looks for the limit while it streams.
+      - New subsection *An opencode run's budget*: the factory keeps the budget, resumes once with a quarter (at least 0.50 USD), and a run may pass its budget by the cost of one step.
+    - `docs/decisions.md`: new entry *opencode's budget is kept by the factory while the run streams*, dated 2026-10-19 (F0020-S0006, decision 11), with decision, reasons, cost and rejected options.
+
+    Cross-read and found current: `README.md` (no opencode text), the rest of `docs/project-guide/agents.md` (Claude Code budget resume, the `ProviderLimit` paragraph, `resume_budget`), the operator guide's *The agent runtime* budget paragraph, and the earlier decisions entries on the provider limit and the generated agent.
+
+    Stale text, not mine to fix: the operator guide's *A provider's spend limit* still says a limit run is only a stall "for now" and that waiting is a later story. That stays true until S0007. The reviewer's note still stands: the `500` and `1428` rows in `tests/adapters/test_opencode_provider_limit.py` assert `<= 1` call. The coder's note also stands: `_Watch.stopped_by` is typed `EndReason | None`.
+
+    `check`: check: green
+    `documents`: documents ok

@@ -700,3 +700,13 @@ Date: 2026-10-19 (F0020-S0005; F0020 decisions 12 and 13). At the human's work t
 - Decision: every result keeps the `session` of the run, and a request can name a `resume_session`: `claude -p --resume <session>`, `opencode run --session <session>`. The records contract's minor version rises to 1.2 for the added values.
 - Reasons: the gateway's exact text is not known here, so the operator sets a pattern rather than the code guessing; the status alone is not enough proof to read from the agent's text, which could mention any number; a limit is not a death of the run, so it needs its own reason for the application layer to wait and continue the same session (a later story) instead of burning an attempt; the session is what makes continuing possible, and both runtimes already hold one.
 - Rejected: matching the agent's own output (an agent writing "428" would end its run); treating the limit as `budget` (the budget resume would call the limited gateway at once); a fixed gateway message in the code.
+
+## opencode's budget is kept by the factory while the run streams
+
+Date: 2026-10-19 (F0020-S0006; F0020 decision 11). `claude -p` stops itself at `--max-budget-usd`; `opencode run` has no such flag, and behind the human's gateway a call past the spend limit returns HTTP 428 and plain opencode then waits for someone to type "continue", so a run would spend past its budget or hang until the stage's `time_limit`.
+
+- Decision: the callback of `run_streaming` sums the `cost` of each `step_finish` as it arrives and stops the call when the sum is strictly greater than the call's budget. A budget stop with a known session is resumed once by `--session <id>` with `FINISH_MESSAGE` and `resume_budget` (a quarter, at least $0.50), within what is left of the time limit, as the Claude Code runtime does; the run files live until after the resume.
+- Decision: the same callback recognizes the provider limit in an `error` event or a line of standard error and stops the call at once with `provider_limit`; it never reads a limit from `text` or `tool_use` events.
+- Reasons: the cost is known only from the events, and only while they stream can the run be stopped before it spends more; reading the end reason from what stopped the call, not again from the output, keeps one rule; the Claude Code runtime's resume gives the agent room to finish with a decision.
+- Cost: a run may pass its budget by the cost of one step, since a step is counted when it ends. Only a real run shows how far a real step overshoots.
+- Rejected: a budget read after the run (it would spend all of it first), and a wrapper around opencode's own cost report (none is given before the step ends).
