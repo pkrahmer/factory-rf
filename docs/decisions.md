@@ -660,3 +660,13 @@ Date: 2026-10-19 (F0020-S0002; F0020 decision 4). The opencode runtime starts it
 - Decision: `agent_launch` builds words and texts and imports no process module; each runtime keeps its own process calls. The names earlier tests import from or set on `claude_runtime` stay names of that module, read at the call.
 - Reasons: one copy means a change of the start reaches both runtimes; `resumed_result` is a rule on data, so it belongs where the rules are; keeping the process calls in the runtimes leaves `process` the one module that starts processes (R5), and the unchanged tests of the Claude Code runtime prove that it behaves as before.
 - Rejected: a base class for the runtimes (they differ in arguments, reply and files, and share only functions); copying the helpers into the opencode runtime (two copies drift).
+
+## A run's output can be streamed by the one process module
+
+Date: 2026-10-19 (F0020-S0003; F0020 decision 5). `run_process` hands a caller the output only when the process has ended. The opencode runtime has no budget flag, so it must add up the cost of each step as the events arrive and stop the run when it passes the budget, and a provider's spend limit may leave a run waiting for input until the stage's `time_limit`.
+
+- Decision: `factory.adapters.process` gains `run_streaming(request, on_line)`. It starts the process as `run_process` does, passes every line of both streams to the callback while the process runs, and kills the process group when the callback returns `True`. `ProcessResult.stopped` says that the callback stopped the run.
+- Decision: both functions start the child through one private `_start`, so the module keeps its one `subprocess.Popen(` line, its markers and the searches over the package. `run_process` is unchanged.
+- Decision: the lines are read in a selector loop on the calling thread. After a stop or a timeout nothing more is read or passed.
+- Reasons: the runtime acts on its output at once, which only a stream allows; one start keeps the isolation (own session, no shell, stdin from `/dev/null`) in one place; a single thread makes "one call at a time" and "no line after a stop" hold without locks.
+- Rejected: a separate process module for streaming (a second `Popen` and new markers); reader threads feeding a queue (thread handoff and cleanup for no gain); having the runtime read the pipes itself (it would start processes outside R5).

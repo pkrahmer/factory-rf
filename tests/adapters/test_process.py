@@ -1,6 +1,5 @@
 """The process wrapper, against real Python child processes."""
 
-import sys
 import time
 from datetime import timedelta
 from pathlib import Path
@@ -9,17 +8,13 @@ import pytest
 from pydantic import ValidationError
 
 from factory.adapters.process import ProcessRequest, run_process
-from process_support import is_gone
-
-
-def _python(code: str, *args: str) -> list[str]:
-    return [sys.executable, "-c", code, *args]
+from process_support import is_gone, python_argv
 
 
 def test_output_and_exit_status_come_back(tmp_path: Path) -> None:
     code = "import sys; print('out'); print('err', file=sys.stderr)"
 
-    result = run_process(ProcessRequest(argv=_python(code), cwd=tmp_path))
+    result = run_process(ProcessRequest(argv=python_argv(code), cwd=tmp_path))
 
     assert result.stdout == "out\n"
     assert result.stderr == "err\n"
@@ -31,13 +26,13 @@ def test_output_and_exit_status_come_back(tmp_path: Path) -> None:
 def test_child_runs_in_the_given_working_directory(tmp_path: Path) -> None:
     code = "import os; print(os.getcwd())"
 
-    result = run_process(ProcessRequest(argv=_python(code), cwd=tmp_path))
+    result = run_process(ProcessRequest(argv=python_argv(code), cwd=tmp_path))
 
     assert Path(result.stdout.strip()) == tmp_path.resolve()
 
 
 def test_non_zero_exit_status_is_returned_not_raised(tmp_path: Path) -> None:
-    result = run_process(ProcessRequest(argv=_python("import sys; sys.exit(3)"), cwd=tmp_path))
+    result = run_process(ProcessRequest(argv=python_argv("import sys; sys.exit(3)"), cwd=tmp_path))
 
     assert result.exit_status == 3
 
@@ -50,7 +45,7 @@ def test_merged_stderr_keeps_the_order_written(tmp_path: Path) -> None:
         "print('c', flush=True)"
     )
 
-    result = run_process(ProcessRequest(argv=_python(code), cwd=tmp_path, merge_stderr=True))
+    result = run_process(ProcessRequest(argv=python_argv(code), cwd=tmp_path, merge_stderr=True))
 
     assert result.stdout == "a\nb\nc\n"
     assert result.stderr == ""
@@ -67,9 +62,9 @@ def test_given_env_is_the_whole_environment(
     )
 
     given = run_process(
-        ProcessRequest(argv=_python(code), cwd=tmp_path, env={"FACTORY_TEST_GIVEN": "given"})
+        ProcessRequest(argv=python_argv(code), cwd=tmp_path, env={"FACTORY_TEST_GIVEN": "given"})
     )
-    inherited = run_process(ProcessRequest(argv=_python(code), cwd=tmp_path, env=None))
+    inherited = run_process(ProcessRequest(argv=python_argv(code), cwd=tmp_path, env=None))
 
     assert given.stdout == "None\ngiven\n"
     assert inherited.stdout == "parent\nNone\n"
@@ -80,7 +75,7 @@ def test_child_is_killed_at_the_time_limit(tmp_path: Path) -> None:
     start = time.monotonic()
 
     result = run_process(
-        ProcessRequest(argv=_python(code), cwd=tmp_path, time_limit=timedelta(seconds=1))
+        ProcessRequest(argv=python_argv(code), cwd=tmp_path, time_limit=timedelta(seconds=1))
     )
 
     assert time.monotonic() - start < 6
@@ -103,7 +98,7 @@ def test_grandchild_is_killed_with_the_child_at_the_time_limit(tmp_path: Path) -
     # second to start its grandchild and write the pid file, and a kill before that leaves no pid.
     run_process(
         ProcessRequest(
-            argv=_python(code, str(pid_file)), cwd=tmp_path, time_limit=timedelta(seconds=3)
+            argv=python_argv(code, str(pid_file)), cwd=tmp_path, time_limit=timedelta(seconds=3)
         )
     )
 
@@ -113,7 +108,7 @@ def test_grandchild_is_killed_with_the_child_at_the_time_limit(tmp_path: Path) -
 def test_child_within_the_time_limit_keeps_its_exit_status(tmp_path: Path) -> None:
     result = run_process(
         ProcessRequest(
-            argv=_python("import sys; sys.exit(4)"),
+            argv=python_argv("import sys; sys.exit(4)"),
             cwd=tmp_path,
             time_limit=timedelta(seconds=30),
         )
@@ -155,7 +150,7 @@ def test_request_accepts_positive_or_no_time_limit(
 def test_undecodable_output_bytes_are_replaced(tmp_path: Path) -> None:
     code = "import sys; sys.stdout.buffer.write(b'\\xff ok\\n')"
 
-    result = run_process(ProcessRequest(argv=_python(code), cwd=tmp_path))
+    result = run_process(ProcessRequest(argv=python_argv(code), cwd=tmp_path))
 
     assert result.stdout == "� ok\n"
 
@@ -164,7 +159,7 @@ def test_shell_characters_reach_the_child_as_written(tmp_path: Path) -> None:
     argument = "$HOME; echo x"
 
     result = run_process(
-        ProcessRequest(argv=_python("import sys; print(sys.argv[1])", argument), cwd=tmp_path)
+        ProcessRequest(argv=python_argv("import sys; print(sys.argv[1])", argument), cwd=tmp_path)
     )
 
     assert result.stdout == f"{argument}\n"
