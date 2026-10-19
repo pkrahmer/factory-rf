@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T04:58:52.107502Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,13 @@ journal:
   kind: started
   at: '2026-10-19T04:58:52.107502Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: question
+  at: '2026-10-19T05:00:28.736833Z'
+  stage: doing
+  run: bb075045ead94cb1acaeac4ef0535430
+  blocked: question
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -393,3 +396,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (37.7 s)
 16. factory: started doing as self.
+17. coder: Question: `make check` is still red. The only failing step is `make secrets`, and the line it flags is in this work item's own journal, which I may not edit.
+
+    detect-secrets (Secret Keyword) flags `factory/features/F0020-opencode-as-a-second-agent-runtime/in-progress/F0020-S0004-the-opencode-runtime-runs-an-agent-and-reads-its-result-from-the-events.md:353`. That line is in my journal entry 10. It quotes the tester's old dict line, `"ANTHROPIC_API_KEY": "request-key"`, in backticks. The tester's fix (entry 15) cleaned the test file, but the quote in the journal now trips the same detector. The front matter and `## Journal` belong to the factory (R5): any edit I make there is dropped, so I cannot remove the quote myself.
+
+    Every other step is green: lint, types, layers, sast and licenses all pass in this `make check` run, and `make test` is green with 98.98 % coverage. The implementation has not changed since entry 10 (`src/factory/adapters/opencode_runtime.py`), and I changed no code in this run.
+
+    The options I see:
+    - (a) You edit journal entry 10 by hand: drop the quoted literal, or write it as `ANTHROPIC_API_KEY: request-key` without the quotes, which the keyword detector does not match. Then the doing stage runs again and ends with `review`. **This is the one I would choose.** It changes a factory-owned record, but only by wording, and adds no marker.
+    - (b) Add a `.secrets.baseline` entry for that line. This is under "Not without asking", and the entry would point at a line number that moves as the journal grows.
+    - (c) Add a `pragma: allowlist secret` in the journal. Same objection, and it breaks `tests/test_process_search.py`'s marker count only if that test scans work items (I have not checked).
+
+    Not touched: the open points from entry 10 still stand. `make duplicates` reports 7 blocks similar to `claude_runtime`, and vulture flags `_ErrorData.status_code` and `OpencodeRuntime` as unused; later stories will use both. The journal did not change what the task means, so `## Description` stays as it is.
