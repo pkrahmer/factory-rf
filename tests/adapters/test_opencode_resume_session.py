@@ -1,5 +1,6 @@
 """The opencode runtime resumes the session a request names and reports the session it used."""
 
+from datetime import timedelta
 from pathlib import Path
 
 import pytest
@@ -23,22 +24,45 @@ EVENTS = stdout(
     text(result_text()),
     step_finish(),
 )
+DEFAULT_LIMIT = timedelta(seconds=30)
+SHORT_LIMIT = timedelta(seconds=3)
+WAIT_SECONDS = 30
 
 
 @pytest.mark.parametrize(
-    ("resume_session", "events", "session"),
+    ("resume_session", "step", "time_limit", "session"),
     [
-        pytest.param("ses_a", EVENTS, OTHER_SESSION, id="resumed-with-events"),
-        pytest.param("ses_a", "", "ses_a", id="resumed-without-events"),
-        pytest.param(None, EVENTS, OTHER_SESSION, id="new-with-events"),
-        pytest.param(None, "", None, id="new-without-events"),
+        pytest.param(
+            "ses_a", Step(stdout=EVENTS), DEFAULT_LIMIT, OTHER_SESSION, id="resumed-with-events"
+        ),
+        pytest.param("ses_a", Step(), DEFAULT_LIMIT, "ses_a", id="resumed-without-events"),
+        pytest.param(None, Step(stdout=EVENTS), DEFAULT_LIMIT, OTHER_SESSION, id="new-with-events"),
+        pytest.param(None, Step(), DEFAULT_LIMIT, None, id="new-without-events"),
+        pytest.param(
+            None,
+            Step(stdout_before_wait=EVENTS, wait_seconds=WAIT_SECONDS),
+            SHORT_LIMIT,
+            OTHER_SESSION,
+            id="timed-out-with-events",
+        ),
+        pytest.param(
+            "ses_a",
+            Step(wait_seconds=WAIT_SECONDS),
+            SHORT_LIMIT,
+            "ses_a",
+            id="timed-out-resumed-without-events",
+        ),
     ],
 )
 def test_a_run_resumes_the_named_session_and_reports_the_first_session_of_its_events(
-    tmp_path: Path, resume_session: str | None, events: str, session: str | None
+    tmp_path: Path,
+    resume_session: str | None,
+    step: Step,
+    time_limit: timedelta,
+    session: str | None,
 ) -> None:
-    runtime = _runtime(tmp_path, [Step(stdout=events)])
-    request = opencode_request(tmp_path / "work").model_copy(
+    runtime = _runtime(tmp_path, [step])
+    request = opencode_request(tmp_path / "work", time_limit=time_limit).model_copy(
         update={"resume_session": resume_session}
     )
 
@@ -50,3 +74,4 @@ def test_a_run_resumes_the_named_session_and_reports_the_first_session_of_its_ev
     else:
         assert call.arguments[-3:] == ["--session", resume_session, request.prompt]
     assert result.session == session
+    assert (result.end_reason == "time_limit") == (time_limit == SHORT_LIMIT)

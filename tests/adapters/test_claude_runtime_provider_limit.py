@@ -140,11 +140,15 @@ def test_a_call_the_limit_refused_ends_provider_limit_with_its_wait_and_session(
         assert (result.cost_usd, result.turns) == measures
 
 
-# Prints the limit's status on standard error at once, then outlasts any time limit.
+# Records its arguments, prints the limit's status on standard error at once, then outlasts any
+# time limit.
 SLOW_LIMIT_SCRIPT = """
+import json
 import sys
 import time
+from pathlib import Path
 
+(Path(__file__).resolve().parent / "arguments.json").write_text(json.dumps(sys.argv[1:]))
 sys.stderr.write("API Error: 428\\n")
 sys.stderr.flush()
 time.sleep(60)
@@ -165,8 +169,10 @@ def test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit(
     result = runtime.run(request)
     elapsed = time.monotonic() - started
 
+    arguments = json.loads((executable.parent / "arguments.json").read_text(encoding="utf-8"))
     assert result.end_reason == "time_limit"
     assert result.limit_wait is None
+    assert result.session == _after(arguments, "--session-id")
     assert elapsed < 20
 
 

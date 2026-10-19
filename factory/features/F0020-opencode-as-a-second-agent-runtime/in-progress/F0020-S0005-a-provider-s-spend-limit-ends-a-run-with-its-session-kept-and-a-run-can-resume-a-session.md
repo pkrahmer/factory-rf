@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853, 6262583574]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T08:06:46.084002Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -223,6 +219,12 @@ journal:
   kind: started
   at: '2026-10-19T08:06:46.084002Z'
   stage: tests
+- number: 39
+  speaker: tester
+  kind: result
+  at: '2026-10-19T08:09:05.949302Z'
+  stage: tests
+  run: 39a790af50fd422892642bb7e0f24cc6
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -723,3 +725,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The journal (entry 31) added criterion 19, and the reviewer already wrote it into `## Acceptance criteria`. I did not touch `## Description`.
 38. factory: started tests as self.
+39. tester: Round 1: the test change the human approved. Entry 33 limits this round to criterion 19, and entry 37 names the change. I changed nothing under `src/`.
+
+    Criterion 19 (a run that outlasts its time limit keeps its `session`):
+    - Claude, in tests/adapters/test_claude_runtime_provider_limit.py::test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit. This test runs its own script (`SLOW_LIMIT_SCRIPT`), not the recording stand-in. The stand-in prints standard error only after its wait, so it can't play this case. To give the test the arguments, the script now writes them to `arguments.json` beside itself before it sleeps. The test now also asserts that `result.session` equals the `--session-id` argument (read with `_after`). Its other checks are unchanged.
+    - opencode, in tests/adapters/test_opencode_resume_session.py::test_a_run_resumes_the_named_session_and_reports_the_first_session_of_its_events. The table's rows now hold a `Step` and a `time_limit` instead of an events string. The four existing rows play `Step(stdout=...)` under the default 30 s limit, so they check the same thing as before. I added two rows with a 3 s limit and a 30 s wait:
+      - `timed-out-with-events`: events with `sessionID` `ses_b` are printed before the wait. No resume. Expects `ses_b`.
+      - `timed-out-resumed-without-events`: no events, `resume_session` `ses_a`. Expects `ses_a`.
+      
+      One new assertion pins `end_reason`: it is `time_limit` exactly on the time-limited rows. I did not assert the existing rows' own end reason, because the criteria leave it to other tests.
+
+    Rejected: a separate test function for the time-limited opencode runs. Entry 37 asks for rows in the existing table, and both sides of the rule belong in one table.
+
+    Files changed: tests/adapters/test_claude_runtime_provider_limit.py and tests/adapters/test_opencode_resume_session.py. Both were written by this story. No files created. Every module imported.
+
+    `make test`: test: green (36.5 s). As entry 37 expected, all three new checks pass against the current code. `make lint`: lint: green.
+
+    Notes carried forward, not acted on (per entry 33): the error reply is written out twice (`_error_reply` and `ERROR_REPLY`), and the `zero-wait` row's refusal fragment is `""`.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (49.1 s)
