@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T22:19:41.340215Z'
   stage: smoke-test
   run: 3bf7d0dca1be49ec8a4fdc5347024a28
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T22:21:01.537695Z'
+  stage: approval
 ---
 
 # The guide's index names the modules its files describe by class
@@ -228,3 +233,4 @@ Expect: `documents ok`
     - Criterion 3: `git diff origin/main --stat` lists only `docs/decisions.md` (1 line), `docs/project-guide/README.md` (1 line), and the work item with its sidecar. I compared the `watching.md` line with `origin/main` item by item. The only difference is the three added names, each in backticks and each right after its anchor: `factory.adapters.preflight_stamp_file` after `factory.adapters.health_file`, `factory.application.dispatcher` after `factory.application.boundaries`, and `factory.domain.tick_status` after `factory.domain.stop_table`. No other line of the index changed. In `docs/decisions.md` only the last sentence of the paragraph changed, and it now reads exactly as the criterion requires. The first sentence is unchanged. Every guide file is at most 600 lines and `documents ok` prints.
 
     Nothing contradicts any criterion. Nothing open.
+14. factory: done (pull request merged); cost: 6 runs, 3.4 min, 29 turns, 90014 tokens in (410474 more from cache), 6523 out, $0.76
