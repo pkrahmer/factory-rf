@@ -25,27 +25,27 @@ from pydantic import (
 
 from factory.adapters.agent_launch import (
     CLEANUP_TIME_LIMIT,
-    CONFINE_PREFIX,
     ENTRY_DESCRIPTION,
     RUN_FILE_MODE,
     SHELL_EXECUTABLE,
     SUDO_EXECUTABLE,
-    SUDO_PREFIX,
     VERSION_TIME_LIMIT,
+    Launch,
     LoginFiles,
-    cleanup_argv,
+    Starters,
+    call_refusal,
+    cleanup_launch,
     confined_argv,
+    denied_path,
     existing_devices,
-    first_word,
+    finished_run,
     killed_at_limit,
-    launch,
-    line_starting,
     login_argv,
-    login_refusal,
     login_used,
     run_confinement,
+    run_launch,
     temporary_folder,
-    without_login,
+    version_printed,
 )
 from factory.adapters.process import (
     ProcessRequest,
@@ -65,7 +65,7 @@ from factory.domain.agent_runs import (
 )
 from factory.domain.confinement import DEVICE_FILES, DEVICE_FOLDERS, Confinement
 from factory.domain.errors import AgentRuntimeError
-from factory.domain.kill_points import KillPoint, KillPoints
+from factory.domain.kill_points import KillPoints
 
 CONFIG_VARIABLE = "OPENCODE_CONFIG"
 AGENT_PREFIX = "factory-"
@@ -105,7 +105,7 @@ DENIAL_PATTERN = re.compile(r"permission|denied", re.IGNORECASE)
 _DECISION_LABEL = "decision:"
 _ENTRY_LABEL = "entry:"
 # opencode's own file tools name their file by this key.
-_PATH_KEY = "filePath"
+_PATH_KEYS = ("filePath",)
 _BASH_DENIAL = re.compile(r"Bash\((?P<pattern>.*)\)")
 _ZERO = timedelta(0)
 _JSON = TypeAdapter[JsonValue](JsonValue)
@@ -226,7 +226,6 @@ class _Event(BaseModel):
 class _Step(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    timestamp: int
     cost: float
     tokens: _Tokens
 
@@ -249,10 +248,6 @@ class _RunFiles(BaseModel):
     def remove(self) -> None:
         for path in (self.config, self.rules):
             path.unlink(missing_ok=True)
-
-
-def _since(started: float) -> timedelta:
-    return timedelta(seconds=time.monotonic() - started)
 
 
 def _never_stop(_stream: Stream, _line: str) -> bool:
@@ -339,7 +334,7 @@ def _events(stdout: str) -> list[_Event]:
 
 def _steps(events: Sequence[_Event]) -> list[_Step]:
     return [
-        _Step(timestamp=event.timestamp, cost=event.part.cost, tokens=event.part.tokens)
+        _Step(cost=event.part.cost, tokens=event.part.tokens)
         for event in events
         if event.type == "step_finish"
         and event.part is not None
@@ -377,13 +372,6 @@ def _model_ms(events: Sequence[_Event]) -> int:
     return total
 
 
-def _denied_path(tool_input: JsonValue) -> str | None:
-    if not isinstance(tool_input, dict):
-        return None
-    value = tool_input.get(_PATH_KEY)
-    return value if isinstance(value, str) else None
-
-
 def _denials(events: Sequence[_Event]) -> list[PermissionDenial]:
     denials = []
     for event in events:
@@ -397,7 +385,7 @@ def _denials(events: Sequence[_Event]) -> list[PermissionDenial]:
             PermissionDenial(
                 tool=part.tool,
                 detail=json.dumps(state.input, sort_keys=True),
-                path=_denied_path(state.input),
+                path=denied_path(state.input, _PATH_KEYS),
             )
         )
     return denials
@@ -449,25 +437,15 @@ def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
     )
 
 
-def _has_usable_events(process: ProcessResult) -> bool:
-    return bool(_events(process.stdout)) and not process.timed_out
-
-
-def _sudo_refusal(request: AgentRunRequest, process: ProcessResult) -> str | None:
-    if request.os_user is None or _has_usable_events(process):
-        return None
-    return line_starting(process.stderr, SUDO_PREFIX)
-
-
-def _confine_refusal(process: ProcessResult) -> str | None:
-    if _has_usable_events(process):
-        return None
-    return line_starting(process.stderr, CONFINE_PREFIX)
-
-
 def _confinement(request: AgentRunRequest, temporary: Path) -> Confinement:
     devices = existing_devices(DEVICE_FOLDERS, DEVICE_FILES)
     return run_confinement(request, temporary, runtime_folders=RUNTIME_FOLDERS, devices=devices)
+
+
+def _request_of(started: Launch, cwd: Path) -> ProcessRequest:
+    return ProcessRequest(
+        argv=started.argv, cwd=cwd, env=started.env, time_limit=started.time_limit
+    )
 
 
 class OpencodeRuntime(AgentRuntime):
@@ -502,9 +480,11 @@ class OpencodeRuntime(AgentRuntime):
         self._models = {} if models is None else dict(models)
         self._settings_file = settings_file
         self._version_time_limit = version_time_limit
-        self._sudo_executable = sudo_executable
-        self._login_files = LoginFiles(api=api_login_file)
-        self._confine_executable = confine_executable
+        self._starters = Starters(
+            sudo_executable=sudo_executable,
+            confine_executable=confine_executable,
+            login_files=LoginFiles(api=api_login_file),
+        )
         self._temporary_root = (
             Path(tempfile.gettempdir()) if temporary_root is None else temporary_root
         )
@@ -522,10 +502,7 @@ class OpencodeRuntime(AgentRuntime):
         try:
             self._write_files(request, files, configuration)
             result = _result(request, self._call(request, files, model))
-            result = result.model_copy(update={"duration": _since(started)})
-            if self._kill_points is not None:
-                self._kill_points.reach(KillPoint.AGENT_RUN)
-            return result
+            return finished_run(result, started, self._kill_points)
         finally:
             files.remove()
 
@@ -542,16 +519,16 @@ class OpencodeRuntime(AgentRuntime):
                 time_limit=self._version_time_limit,
             )
         )
-        if process.timed_out or process.exit_status != 0:
-            raise AgentRuntimeError(f"{self._executable} --version failed: {process.stderr}")
-        version = first_word(process.stdout)
-        if version is None:
-            raise AgentRuntimeError(f"{self._executable} --version printed nothing")
-        return version
+        return version_printed(
+            self._executable,
+            failed=process.timed_out or process.exit_status != 0,
+            stdout=process.stdout,
+            stderr=process.stderr,
+        )
 
     def _write_files(self, request: AgentRunRequest, files: _RunFiles, configuration: str) -> None:
         written = {files.config: configuration}
-        if self._confine_executable is not None:
+        if self._starters.confine_executable is not None:
             written[files.rules] = _confinement(request, files.temporary).model_dump_json()
         try:
             for path, text in written.items():
@@ -565,7 +542,7 @@ class OpencodeRuntime(AgentRuntime):
     def _call(self, request: AgentRunRequest, files: _RunFiles, model: str) -> ProcessResult:
         process_request = self._process_request(request, files, model)
         process = self._start(process_request, streaming=True)
-        if self._confine_executable is not None:
+        if self._starters.confine_executable is not None:
             self._remove_temporary_folder(request, files.temporary)
         killed = killed_at_limit(
             os_user=request.os_user,
@@ -576,72 +553,52 @@ class OpencodeRuntime(AgentRuntime):
         if killed:
             # The inner kill ends the call as the factory's own would: read as its time limit.
             process = process.model_copy(update={"timed_out": True})
-        refusal = _sudo_refusal(request, process)
-        if refusal is not None:
-            # A refused `sudo` is a misconfiguration of the machine, not a stalled agent.
-            raise AgentRuntimeError(f"{self._sudo_executable} refused the agent run: {refusal}")
-        self._check_confinement(process)
-        self._check_login(process)
-        return process
-
-    def _check_confinement(self, process: ProcessResult) -> None:
-        if self._confine_executable is None:
-            return
-        refusal = _confine_refusal(process)
-        if refusal is not None:
-            raise AgentRuntimeError(f"{self._confine_executable} refused the agent run: {refusal}")
-
-    def _check_login(self, process: ProcessResult) -> None:
-        if _events(process.stdout):
-            return
-        refusal = login_refusal(process.stderr, self._login_files)
+        printed = bool(_events(process.stdout))
+        refusal = call_refusal(
+            process.stderr,
+            printed=printed,
+            timed_out=process.timed_out,
+            os_user=request.os_user,
+            starters=self._starters,
+        )
         if refusal is not None:
             raise AgentRuntimeError(refusal)
+        return process
 
     def _remove_temporary_folder(self, request: AgentRunRequest, temporary: Path) -> None:
         # Its status is not read: a folder left behind changes no run's result.
-        removal = cleanup_argv(
+        removal = cleanup_launch(
             SHELL_EXECUTABLE,
             temporary,
             os_user=request.os_user,
-            sudo_executable=self._sudo_executable,
+            sudo_executable=self._starters.sudo_executable,
+            time_limit=CLEANUP_TIME_LIMIT,
         )
-        self._start(
-            ProcessRequest(
-                argv=removal,
-                cwd=request.working_directory,
-                env={},
-                time_limit=CLEANUP_TIME_LIMIT,
-            )
-        )
+        self._start(_request_of(removal, request.working_directory))
 
     def _opencode_argv(self, request: AgentRunRequest, model: str) -> list[str]:
         agent = f"{AGENT_PREFIX}{request.agent.name}"
         arguments = ["run", "--format", "json", "--auto", "--model", model, "--agent", agent]
-        return [*login_argv(self._login_files), self._executable, *arguments, request.prompt]
+        return [
+            *login_argv(self._starters.login_files),
+            self._executable,
+            *arguments,
+            request.prompt,
+        ]
 
     def _process_request(
         self, request: AgentRunRequest, files: _RunFiles, model: str
     ) -> ProcessRequest:
-        # The login comes from the file or not at all, never from the request.
-        given = without_login(request.environment)
-        environment = {**given, CONFIG_VARIABLE: str(files.config), **SWITCHES}
-        argv = confined_argv(
-            self._opencode_argv(request, model), self._confine_executable, files.rules
-        )
-        started = launch(
-            argv,
-            environment,
-            os_user=request.os_user,
-            sudo_executable=self._sudo_executable,
+        started = run_launch(
+            request,
+            confined_argv(
+                self._opencode_argv(request, model), self._starters.confine_executable, files.rules
+            ),
+            {CONFIG_VARIABLE: str(files.config), **SWITCHES},
+            sudo_executable=self._starters.sudo_executable,
             time_limit=request.time_limit,
         )
-        return ProcessRequest(
-            argv=started.argv,
-            cwd=request.working_directory,
-            env=started.env,
-            time_limit=started.time_limit,
-        )
+        return _request_of(started, request.working_directory)
 
     def _start(self, process_request: ProcessRequest, *, streaming: bool = False) -> ProcessResult:
         try:

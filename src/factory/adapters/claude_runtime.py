@@ -22,7 +22,6 @@ from pydantic import (
 from factory.adapters.agent_launch import (
     CLEANUP_SCRIPT,
     CLEANUP_TIME_LIMIT,
-    CONFINE_PREFIX,
     ENTRY_DESCRIPTION,
     FINISH_MESSAGE,
     LOGIN_PREFIX,
@@ -31,24 +30,26 @@ from factory.adapters.agent_launch import (
     RUN_FILE_MODE,
     SHELL_EXECUTABLE,
     SUDO_EXECUTABLE,
-    SUDO_PREFIX,
     VERSION_TIME_LIMIT,
+    Launch,
     LoginFiles,
-    cleanup_argv,
+    Starters,
+    call_refusal,
+    cleanup_launch,
     confined_argv,
+    denied_path,
     existing_devices,
-    first_word,
+    finished_run,
     killed_at_limit,
-    launch,
-    line_starting,
     login_argv,
-    login_refusal,
     login_used,
     request_home,
     resume_budget,
     run_confinement,
+    run_launch,
+    since,
     temporary_folder,
-    without_login,
+    version_printed,
 )
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.application.agent_runtime import AgentRuntime
@@ -64,7 +65,7 @@ from factory.domain.agent_runs import (
 )
 from factory.domain.confinement import DEVICE_FILES, DEVICE_FOLDERS, Confinement
 from factory.domain.errors import AgentRuntimeError
-from factory.domain.kill_points import KillPoint, KillPoints
+from factory.domain.kill_points import KillPoints
 
 # These names moved to the shared launch module; earlier callers still import them here.
 __all__ = [
@@ -95,6 +96,7 @@ BUDGET_SUBTYPE = "error_max_budget_usd"
 # confined run keeps it inside the runtime's own folder, which the rules allow.
 CONFIG_VARIABLE = "CLAUDE_CONFIG_DIR"
 RUNTIME_FOLDER = ".claude"
+_PATH_KEYS = ("file_path", "notebook_path")
 
 
 # A negative count or cost is no measure: such a reply does not parse, so the call is `died`.
@@ -160,10 +162,6 @@ class _RunFiles(BaseModel):
 
 
 _ZERO = timedelta(0)
-
-
-def _since(started: float) -> timedelta:
-    return timedelta(seconds=time.monotonic() - started)
 
 
 def _parse_reply(stdout: str) -> _Reply | None:
@@ -254,22 +252,12 @@ def _tokens(usage: _Usage | None) -> TokenCounts | None:
     )
 
 
-def _denied_path(tool_input: JsonValue) -> str | None:
-    if not isinstance(tool_input, dict):
-        return None
-    for key in ("file_path", "notebook_path"):
-        value = tool_input.get(key)
-        if isinstance(value, str):
-            return value
-    return None
-
-
 def _denials(reply: _Reply) -> list[PermissionDenial]:
     return [
         PermissionDenial(
             tool=denial.tool_name,
             detail=json.dumps(denial.tool_input, sort_keys=True),
-            path=_denied_path(denial.tool_input),
+            path=denied_path(denial.tool_input, _PATH_KEYS),
         )
         for denial in reply.permission_denials
     ]
@@ -302,25 +290,15 @@ def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
     )
 
 
-def _has_usable_reply(process: ProcessResult) -> bool:
-    return _parse_reply(process.stdout) is not None and not process.timed_out
-
-
-def _sudo_refusal(request: AgentRunRequest, process: ProcessResult) -> str | None:
-    if request.os_user is None or _has_usable_reply(process):
-        return None
-    return line_starting(process.stderr, SUDO_PREFIX)
-
-
-def _confine_refusal(process: ProcessResult) -> str | None:
-    if _has_usable_reply(process):
-        return None
-    return line_starting(process.stderr, CONFINE_PREFIX)
-
-
 def _confinement(request: AgentRunRequest, temporary: Path) -> Confinement:
     devices = existing_devices(DEVICE_FOLDERS, DEVICE_FILES)
     return run_confinement(request, temporary, runtime_folders=[RUNTIME_FOLDER], devices=devices)
+
+
+def _request_of(started: Launch, cwd: Path) -> ProcessRequest:
+    return ProcessRequest(
+        argv=started.argv, cwd=cwd, env=started.env, time_limit=started.time_limit
+    )
 
 
 class ClaudeCodeRuntime(AgentRuntime):
@@ -351,12 +329,14 @@ class ClaudeCodeRuntime(AgentRuntime):
         its own temporary folder under `temporary_root`, the system's by default.
         """
         self._executable = executable
-        self._confine_executable = confine_executable
+        self._starters = Starters(
+            sudo_executable=sudo_executable,
+            confine_executable=confine_executable,
+            login_files=LoginFiles(subscription=login_file, api=api_login_file),
+        )
         self._temporary_root = (
             Path(tempfile.gettempdir()) if temporary_root is None else temporary_root
         )
-        self._login_files = LoginFiles(subscription=login_file, api=api_login_file)
-        self._sudo_executable = sudo_executable
         self._state_directory = state_directory
         self._kill_points = kill_points
         self._version_time_limit = version_time_limit
@@ -364,12 +344,12 @@ class ClaudeCodeRuntime(AgentRuntime):
     @property
     def sudo_executable(self) -> str:
         """The executable that starts a request as its operating-system user."""
-        return self._sudo_executable
+        return self._starters.sudo_executable
 
     @property
     def confine_executable(self) -> str | None:
         """The wrapper every call starts through, or `None` when calls are not confined."""
-        return self._confine_executable
+        return self._starters.confine_executable
 
     def run(self, request: AgentRunRequest) -> AgentRunResult:
         """Run the agent of `request` and turn the JSON it prints into a result.
@@ -387,10 +367,7 @@ class ClaudeCodeRuntime(AgentRuntime):
             result = _result(request, self._call(request, files, arguments, request.time_limit))
             if result.end_reason == "budget":
                 result = self._resume(request, files, arguments, result, started)
-            result = result.model_copy(update={"duration": _since(started)})
-            if self._kill_points is not None:
-                self._kill_points.reach(KillPoint.AGENT_RUN)
-            return result
+            return finished_run(result, started, self._kill_points)
         finally:
             files.remove()
 
@@ -405,16 +382,13 @@ class ClaudeCodeRuntime(AgentRuntime):
             cwd=Path.cwd(),
             time_limit=self._version_time_limit,
         )
-        try:
-            process = run_process(process_request)
-        except OSError as exc:
-            raise AgentRuntimeError(f"cannot start {self._executable}: {exc}") from exc
-        if process.timed_out or process.exit_status != 0:
-            raise AgentRuntimeError(f"{self._executable} --version failed: {process.stderr}")
-        version = first_word(process.stdout)
-        if version is None:
-            raise AgentRuntimeError(f"{self._executable} --version printed nothing")
-        return version
+        process = self._start(process_request)
+        return version_printed(
+            self._executable,
+            failed=process.timed_out or process.exit_status != 0,
+            stdout=process.stdout,
+            stderr=process.stderr,
+        )
 
     def _resume(
         self,
@@ -424,7 +398,7 @@ class ClaudeCodeRuntime(AgentRuntime):
         first: AgentRunResult,
         started: float,
     ) -> AgentRunResult:
-        left = request.time_limit - _since(started)
+        left = request.time_limit - since(started)
         if left <= _ZERO:
             second = AgentRunResult(end_reason="time_limit", duration=_ZERO)
         else:
@@ -447,7 +421,7 @@ class ClaudeCodeRuntime(AgentRuntime):
             if request.guard is not None:
                 written[files.guard] = self._guard_settings(request.guard, files).model_dump_json()
                 written[files.hooks] = _hook_settings(files.guard)
-            if self._confine_executable is not None:
+            if self._starters.confine_executable is not None:
                 written[files.rules] = _confinement(request, files.temporary).model_dump_json()
             for path, text in written.items():
                 path.write_text(text, encoding="utf-8")
@@ -457,7 +431,7 @@ class ClaudeCodeRuntime(AgentRuntime):
 
     def _guard_settings(self, guard: GuardSettings, files: _RunFiles) -> GuardSettings:
         # Only a confined run has a temporary folder of its own for the hook to allow.
-        temporary = files.temporary if self._confine_executable is not None else None
+        temporary = files.temporary if self._starters.confine_executable is not None else None
         return guard.model_copy(update={"temporary_directory": temporary})
 
     def _call(
@@ -468,7 +442,7 @@ class ClaudeCodeRuntime(AgentRuntime):
         time_limit: timedelta,
     ) -> ProcessResult:
         process = self._start(self._process_request(request, files, arguments, time_limit))
-        if self._confine_executable is not None:
+        if self._starters.confine_executable is not None:
             self._remove_temporary_folder(request, files.temporary)
         killed = killed_at_limit(
             os_user=request.os_user,
@@ -479,51 +453,35 @@ class ClaudeCodeRuntime(AgentRuntime):
         if killed:
             # The inner kill ends the call as the factory's own would: read as its time limit.
             process = process.model_copy(update={"timed_out": True})
-        refusal = _sudo_refusal(request, process)
+        printed = _parse_reply(process.stdout) is not None
+        refusal = call_refusal(
+            process.stderr,
+            printed=printed,
+            timed_out=process.timed_out,
+            os_user=request.os_user,
+            starters=self._starters,
+        )
         if refusal is not None:
-            # A refused `sudo` is a misconfiguration of the machine, not a stalled agent.
-            raise AgentRuntimeError(f"{self._sudo_executable} refused the agent run: {refusal}")
-        self._check_confinement(process)
-        self._check_login(process)
+            raise AgentRuntimeError(refusal)
         return process
-
-    def _check_confinement(self, process: ProcessResult) -> None:
-        if self._confine_executable is None:
-            return
-        refusal = _confine_refusal(process)
-        if refusal is not None:
-            raise AgentRuntimeError(f"{self._confine_executable} refused the agent run: {refusal}")
 
     def _remove_temporary_folder(self, request: AgentRunRequest, temporary: Path) -> None:
         # Its status is not read: a folder left behind changes no run's result.
-        removal = cleanup_argv(
+        removal = cleanup_launch(
             SHELL_EXECUTABLE,
             temporary,
             os_user=request.os_user,
-            sudo_executable=self._sudo_executable,
+            sudo_executable=self._starters.sudo_executable,
+            time_limit=CLEANUP_TIME_LIMIT,
         )
-        self._start(
-            ProcessRequest(
-                argv=removal,
-                cwd=request.working_directory,
-                env={},
-                time_limit=CLEANUP_TIME_LIMIT,
-            )
-        )
-
-    def _check_login(self, process: ProcessResult) -> None:
-        if _parse_reply(process.stdout) is not None:
-            return
-        refusal = login_refusal(process.stderr, self._login_files)
-        if refusal is not None:
-            raise AgentRuntimeError(refusal)
+        self._start(_request_of(removal, request.working_directory))
 
     def _claude_argv(self, arguments: list[str]) -> list[str]:
-        return [*login_argv(self._login_files), self._executable, *arguments]
+        return [*login_argv(self._starters.login_files), self._executable, *arguments]
 
     def _config_folder(self, request: AgentRunRequest) -> dict[str, str]:
         home = request_home(request)
-        if self._confine_executable is None or home is None:
+        if self._starters.confine_executable is None or home is None:
             return {}
         return {CONFIG_VARIABLE: str(home / RUNTIME_FOLDER)}
 
@@ -534,23 +492,16 @@ class ClaudeCodeRuntime(AgentRuntime):
         arguments: list[str],
         time_limit: timedelta,
     ) -> ProcessRequest:
-        # The login comes from the files or not at all, never from the request.
-        given = without_login(request.environment)
-        environment = {**given, **self._config_folder(request), **SWITCHES}
-        argv = confined_argv(self._claude_argv(arguments), self._confine_executable, files.rules)
-        started = launch(
-            argv,
-            environment,
-            os_user=request.os_user,
-            sudo_executable=self._sudo_executable,
+        started = run_launch(
+            request,
+            confined_argv(
+                self._claude_argv(arguments), self._starters.confine_executable, files.rules
+            ),
+            {**self._config_folder(request), **SWITCHES},
+            sudo_executable=self._starters.sudo_executable,
             time_limit=time_limit,
         )
-        return ProcessRequest(
-            argv=started.argv,
-            cwd=request.working_directory,
-            env=started.env,
-            time_limit=started.time_limit,
-        )
+        return _request_of(started, request.working_directory)
 
     def _start(self, process_request: ProcessRequest) -> ProcessResult:
         try:

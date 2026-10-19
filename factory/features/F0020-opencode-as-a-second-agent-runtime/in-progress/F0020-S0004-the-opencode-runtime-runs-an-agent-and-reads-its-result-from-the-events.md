@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T05:10:01.637468Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-10-19T05:10:01.637468Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-10-19T05:17:28.244557Z'
+  stage: doing
+  run: dc6e66f97146489eaa37833f837d2826
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -489,3 +491,34 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/test_model_configuration.py`: the story names it under the feature's decision 19. The change only adds the eight `opencode_runtime` models to `EXCEPTIONS`, which is within that leave.
     - `tests/test_wrapper_search.py`: the story names it under the feature's decision 19. The change only adds `factory.adapters.opencode_runtime` to the expected importers, which is within that leave.
 23. factory: started doing as self.
+24. coder: Round 1. I fixed the reviewer's code findings 1 to 5. Findings 6 and 7 add criteria 18 and 19, which need only their tests, so this goes to the tester: **criterion 18** (the error texts of `version()`, of a run whose executable does not exist, and of a missing state directory) and **criterion 19** (a `step_finish` with cost 0, `input` 0 and timestamp 0, after a `step_start` at 0, is a valid step: one turn, `cost_usd` `Decimal("0")`, tokens input 0, model time 0 s). Neither needs any change under `src/`. `make check` is green (`check: green`).
+
+    What I built:
+    - **`src/factory/adapters/agent_launch.py`**: the logic both runtimes shared now lives here. It takes plain values, so the module still never imports the process module.
+      - `since` (finding 1).
+      - `denied_path(tool_input, keys)` (finding 2). The Claude runtime passes `("file_path", "notebook_path")`, opencode passes `("filePath",)`.
+      - `call_refusal(stderr, *, printed, timed_out, os_user, starters)` (finding 3). It replaces each runtime's `_has_usable_*`, `_sudo_refusal`, `_confine_refusal`, `_check_confinement` and `_check_login`, with the same order and the same texts.
+      - For finding 4:
+        - `version_printed`, which reads the version from the exit status, stdout and stderr.
+        - `run_launch`, which does `without_login`, merges the runtime's environment and calls `launch`.
+        - `cleanup_launch`, the removal call as a `Launch`.
+        - `finished_run`, which sets the duration and reaches the `AGENT_RUN` kill point.
+      - `Starters`, a new frozen model holding the sudo executable, the confine executable and the login files.
+    - **`src/factory/adapters/claude_runtime.py`** and **`src/factory/adapters/opencode_runtime.py`**:
+      - Both now use the shared functions and keep a `Starters` in `self._starters` instead of three attributes. `ClaudeCodeRuntime`'s `sudo_executable` and `confine_executable` properties read from it.
+      - Each keeps a small `_request_of(Launch, cwd) -> ProcessRequest`, its `_start`, and the `killed_at_limit` model copy. Those touch `ProcessRequest` or `ProcessResult`, which `agent_launch` may not import.
+      - The opencode runtime's `_Step.timestamp` is removed (finding 5).
+
+    Main choice: I grouped the start settings in the small `Starters` model. Without it, `call_refusal` would take seven arguments, and ruff's PLR0913 allows five. I rejected a `# noqa`, which `test_process_search` counts as a forbidden marker. I also rejected moving the shared code into a module that imports the process module: that would change `tests/test_wrapper_search.py`, and the reviewer said that needs a question.
+
+    Two constraints from the existing tests:
+    - `tests/adapters/test_claude_runtime_confinement.py` monkeypatches `claude_runtime.SHELL_EXECUTABLE` and `CLEANUP_TIME_LIMIT`. So `cleanup_launch` takes the shell and the time limit as arguments, and each runtime passes its own module's names.
+    - In `run_launch`, the caller wraps the words in `confined_argv` itself, to keep the function within five arguments.
+
+    Refactor: I read my diff once and changed `agent_launch`'s module docstring to cover the new end-of-run helpers. Nothing else needed changing.
+
+    Description: the journal added criteria 18 and 19 and changed nothing else in the meaning of the task, so `## Description` stays as it is.
+
+    Noticed but not touched:
+    - `make duplicates` now reports 3 new similar blocks, down from 7. They are only matching call sites of the shared helpers (the `call_refusal` call, the `version_printed` call, the temporary-folder removal), each with the same keyword arguments. `_request_of` is the same 4 lines in both runtimes, because `agent_launch` may not build a `ProcessRequest`.
+    - Vulture still flags `_ErrorData.status_code` (S0006 reads it) and `OpencodeRuntime` (S0008 wires it in) as unused.
