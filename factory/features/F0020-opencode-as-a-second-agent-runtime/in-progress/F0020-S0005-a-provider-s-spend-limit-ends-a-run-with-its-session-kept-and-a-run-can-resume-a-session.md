@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853, 6262583574]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T08:09:26.508209Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -225,6 +229,11 @@ journal:
   at: '2026-10-19T08:09:05.949302Z'
   stage: tests
   run: 39a790af50fd422892642bb7e0f24cc6
+- number: 40
+  speaker: factory
+  kind: started
+  at: '2026-10-19T08:09:26.508209Z'
+  stage: doing
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -745,3 +754,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (49.1 s)
+40. factory: started doing as self.
