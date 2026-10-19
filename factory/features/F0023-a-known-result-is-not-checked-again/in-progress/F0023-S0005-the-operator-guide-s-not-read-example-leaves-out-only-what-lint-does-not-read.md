@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 290
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T21:53:37.383297Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T21:53:37.383297Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T21:54:06.126508Z'
+  stage: intake
+  run: c4366d1b426f4c47b3948a9ee9ae396d
 ---
 
 # The operator guide's not_read example leaves out only what lint does not read
@@ -75,3 +77,9 @@ Expect: `documents ok`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is right for a documentation-only story. Nothing under `src/`, tests, image, template, demo or agent files changes. Only `docs/operator-guide.md` changes, and that is the documenter's write path.
+   - Criteria: criterion 1 (nothing outside the docs changes) and criterion 2 (`make check` green) are checkable. Criterion 3 lists each passage change exactly, so each can be checked by grep or by reading the passage. Its failing side is covered: `documents ok` from the document check, and the smoke test greps for the old text being gone (`0`). Criterion 3 reads "the `check` line is the line `factory/pipeline.yml` holds on `main` when the story starts". That is deterministic. `factory/pipeline.yml` currently holds `time_limit: 8`, and the guide's line 909 has 15.
+   - Smoke test: the four commands are runnable. Each `Expect:` line is a checkable value (`0`, `0`, `1`, `documents ok`). I confirmed in the guide that the old text exists: line 900 has `not_read: ["factory/*", "docs/*"]`, line 914 has "will run `secrets`", and line 905 has "after the story that built the key".
+   - Architecture: not applicable beyond the write paths. The change is documentation in the operator guide, which the documenter stage keeps.
+   - Scope: it stays within F0023, which covers the operator guide's `not_read` documentation and the feature's decisions 2 and 12. Nothing in "Out of scope" is touched.
