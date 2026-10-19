@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T13:49:32.525009Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-19T13:49:11.904549Z'
   stage: review
   run: 68de848d0e0244308cadd1f0c10e43e9
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T13:49:32.525009Z'
+  stage: docs
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -360,3 +369,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Notes:
     - `tests/test_entrypoint_skills.py:13-16`: the `layout` fixture is a copy of the one in `tests/test_agent_home_ownership.py:15-17`. The story's Interface asks for it, and under the standing leave it could move to `tests/conftest.py`.
+18. factory: started docs as self.
