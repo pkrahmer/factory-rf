@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 271
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T16:31:34.354556Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T16:31:13.590887Z'
   stage: doing
   run: a1dace531ebc4bd5a9b51d8ae44c3d91
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:31:34.354556Z'
+  stage: review
 ---
 
 # A report stopped at its time limit says so in its journal line
@@ -126,3 +135,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
