@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 301
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T23:29:54.255632Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T23:29:33.865711Z'
   stage: intake
   run: 33125197a51c45ea8df2a14394ff5f88
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:29:54.255632Z'
+  stage: tests
 ---
 
 # The operator guide's stopped-report example is a report a stage runs
@@ -78,3 +87,4 @@ Expect: `documents ok`
    Smoke test: three runnable commands (two greps, one `uv run`), each with an `Expect:` line checkable against the output (`0`, `1`, `documents ok`).
    Architecture: documentation only, no layer touched; consistent with CLAUDE.md, where the documenter owns `docs/`.
    Scope: within F0031's goal (documents say no stage runs mutation testing). The tests that use `mutants` as sample data stay, as feature decision 7 says. Nothing is in its "Out of scope".
+4. factory: started tests as self.
