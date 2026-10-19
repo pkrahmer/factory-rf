@@ -1,4 +1,4 @@
-"""The image's entrypoint, run with `sh` against stub executables in a temporary image_layout."""
+"""The image's entrypoint, run with `sh` against stub executables in a temporary layout."""
 
 import re
 import shutil

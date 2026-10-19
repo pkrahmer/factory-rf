@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T20:19:21.332672Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T20:19:21.332672Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T20:21:09.660825Z'
+  stage: tests
+  run: 869ebbcaad2c43e693e9bf52b41e7f97
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -209,3 +211,19 @@ Expect: `1`
 
     Noticed but did not touch: nothing new beyond entry 7 (the conftest imports `Layout` from the `test_entrypoint` test module). There is still no change under `src/factory/`. The Description is unchanged, because the finding does not change what the task means.
 12. factory: started tests as self.
+13. tester: Made the one test change that the reviewer's finding 1 and the coder's entry 11 asked for. The module docstring in `tests/test_entrypoint.py:1` is back to what `main` has: `"""The image's entrypoint, run with `sh` against stub executables in a temporary layout."""`. The fixture rename had also changed that prose to "temporary image_layout".
+
+    `git diff main -- tests/test_entrypoint.py` no longer shows the docstring line. Only the fixture move and the parameter renames are left in that file. No other test changed.
+
+    Criterion → test mapping is unchanged from entry 5:
+    - criterion 1: checked by comparing collected ids, no test function
+    - criterion 2: tests/test_shared_test_helpers.py::test_each_shared_helper_is_written_in_one_module and tests/test_shared_test_helpers.py::test_the_image_layout_fixture_returns_the_entrypoints_layout
+    - criterion 3: the `make check` gate
+    - criterion 4: nothing to test
+
+    Files created in this run: none. Earlier test file changed: `tests/test_entrypoint.py` (docstring only, as the reviewer asked; the standing leave covers the move in that file). Modules the test run could not import: none.
+
+    `make test` passed once: `test: green (44.8 s)`, coverage 99.12 %.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (45.7 s)
