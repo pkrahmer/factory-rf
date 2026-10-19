@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 289
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T21:46:41.010850Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T21:46:41.010850Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T21:47:04.105539Z'
+  stage: review
+  run: 12f5154a06224fc3a00bbcd85231ca0d
 ---
 
 # The wired known results and disk records read back what they write
@@ -128,3 +130,18 @@ Expect: a line that starts with `2 passed`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the work item and `git diff main...HEAD -- . ':!factory'`. The only change is one added file, `tests/entry/test_wiring_record_logs.py`. Nothing under `src/` changed, which is what the Interface says.
+
+   1. Acceptance criteria:
+      - Criterion 1 is tested by `test_a_wired_record_log_reads_back_what_was_appended_through_it`. It is one parametrized test with a row each for `result_records` and `disk_records`, and both records are exactly the ones the criterion gives.
+      - In each row, `_read_back` calls `read()`, `append(record)` and `read()` again on the same wired object. The test checks `[]` before the append and `[record]` after it.
+      - I checked this against `JsonLinesRecordLog` in `src/factory/adapters/record_log_jsonl.py` and against `build_boundaries` in `src/factory/entry/wiring.py`, lines 282 and 285. A log built with no model gives `[]` before the append, because the file does not exist yet, and then raises `AttributeError` on the second read. A log built with the other record model drops each line as a `ValidationError` and gives `[]`. The test catches both mutants.
+      - The Interface states no other limit or rejected input.
+      - The factory's `make check` after the coder was green (journal entry 7).
+   2. Architecture: the test sits in `tests/entry/`, which mirrors `factory.entry`. Only the hosting service is faked, and git is not faked.
+   3. Security: the change is a test only. It adds no markers, and its hex values are low-entropy (`"a" * 40`, `"b" * 64`).
+   4. Quality: the names say what they are. `_read_back` is generic over the record model and copies no existing helper; I searched `tests/` for one.
+   5. Work item hygiene: the journal records the main choice (no code change, and the rejected idea of adding code for its own sake) and what is still open (the log of `RecordingProjectCommands`). The Description matches what was built, and `docs: none` still holds.
+   6. Earlier tests: the diff changes no file that `main` already holds under `tests/`. The only test file in the diff has status `A`, so no leave was needed.
