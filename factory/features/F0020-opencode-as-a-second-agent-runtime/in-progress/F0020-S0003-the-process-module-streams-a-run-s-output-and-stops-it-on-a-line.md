@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T04:26:47.845595Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-19T04:26:47.845595Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T04:28:18.534197Z'
+  stage: review
+  run: 415d1faa2d38438ca1d19f23dc4d0eb6
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -120,8 +122,9 @@ Tests (the tester writes them): `tests/adapters/test_process_streaming.py`, with
 10. `run_streaming` starts the child as `run_process` does (rows): a child that prints its working directory gives `request.cwd`; a child that prints one variable of `request.env` gives its value; a child that reads standard input gets end of file at once.
 11. `duration` of the result is at least the child's known run time (a child that prints a line and exits after a short wait) and below an upper bound with room above it.
 12. `run_process` and every test of `tests/adapters/test_process.py` behave as before, and the module holds one `subprocess.Popen(` line.
-13. `make check` stays green.
-14. docs: `docs/project-guide.md`, the process module: `run_streaming` hands each line to a callback while the process runs and kills the process group when the callback says stop, for a runtime that must act on its output as it comes (the opencode runtime's budget and provider limit); `ProcessResult.stopped`. `docs/decisions.md`: an entry *A run's output can be streamed by the one process module*, dated with the story, with the reasons of the feature's decision 5.
+13. A child that closes its standard output and standard error and then sleeps 60 seconds, under a time limit of 3 seconds: the call returns within 20 seconds with `timed_out` true, `stopped` false and `exit_status` `None`, and the child is gone (`is_gone`).
+14. `make check` stays green.
+15. docs: `docs/project-guide.md`, the process module: `run_streaming` hands each line to a callback while the process runs and kills the process group when the callback says stop, for a runtime that must act on its output as it comes (the opencode runtime's budget and provider limit); `ProcessResult.stopped`. `docs/decisions.md`: an entry *A run's output can be streamed by the one process module*, dated with the story, with the reasons of the feature's decision 5.
 
 ## Smoke test
 
@@ -220,3 +223,10 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 35 known, 4 gone
 11. factory: started review as self.
+12. reviewer: 1. Criterion 13 added: it needs its test. Location: `src/factory/adapters/process.py`, `_wait_for_exit` and its `subprocess.TimeoutExpired` branch, which `run_streaming` reaches when a child has closed both of its streams but keeps running. This is one path of the Interface's time-limit rule, and no criterion or test reaches it. Criterion 5 only covers a child whose streams stay open. If that branch waited without a timeout, or did not kill the group, every test would still pass, and `run_streaming` would run past `time_limit`. The fix needs no change under `src/`. The tester adds a test in `tests/adapters/test_process_streaming.py`. The child closes fd 1 and fd 2 (`os.close`) and sleeps 60 s under a 3 s limit. The test asserts that the call returns within 20 s with `timed_out` true, `stopped` false and `exit_status` `None`, and that `is_gone` holds for the child's pid, which the child writes to a file before it closes its streams. The closing criteria are renumbered: `make check` is now 14 and `docs:` is 15.
+
+    Read and found sound: every other criterion (1–12) has a test that checks what it names. This includes the same-chunk row of 3, which writes `go\nlater\n` in one write, and the standard-input row of 10, which would hang until its limit if stdin were not `/dev/null`. The coder's entry 10 reports `make check` green. On architecture and security (groups 2 and 3), the single `subprocess.Popen(` line and its markers moved unchanged into `_start`, and no new suppression marker was added. Groups 4 and 5 were not judged this round: group 1 failed first, and the checklist stops at the first failing group.
+
+    Earlier tests:
+    - tests/adapters/test_process.py: changed under the standing leave to move a shared test helper (CLAUDE.md, *Tests*). The only change moves `_python` to `process_support.python_argv` and drops the now-unused `import sys`. Every test keeps its name and checks the same thing.
+    - tests/process_support.py: none needed. The file only gains `python_argv`, and its existing `is_gone` and `GONE_WITHIN_SECONDS` are unchanged.
