@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T23:55:17.498618Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T23:54:56.737608Z'
   stage: doing
   run: 48c3dc4f5be848bbbe1db70d5b025e69
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:55:17.498618Z'
+  stage: tests
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -194,3 +203,4 @@ Expect: `exit 0`
     Main choice: I hand back with `tests` and leave the code unchanged. The alternative I rejected was making the move myself: the coder never changes a test, even under the standing leave, which belongs to the tester.
 
     Noticed, not touched: nothing else. Nothing under `src/` changes in this story, and `make check` was green after round 0 (entry 7).
+12. factory: started tests as self.
