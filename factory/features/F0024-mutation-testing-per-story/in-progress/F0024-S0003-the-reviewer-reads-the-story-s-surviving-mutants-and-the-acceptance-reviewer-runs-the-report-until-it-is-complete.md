@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 272
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T16:36:21.320217Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T16:36:21.320217Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T16:38:18.286387Z'
+  stage: tests
+  run: 1e49b017accd4bbeac1aa4412eeb5a29
 ---
 
 # The reviewer reads the story's surviving mutants, and the acceptance reviewer runs the report until it is complete
@@ -98,3 +100,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the change touches only the shipped agent texts (coder write path `claude/*`) and a new test at the `tests/` root, which is right for a module outside the layers. It adds no source module and no layer change.
    - Scope: it matches the feature's Scope (S0003: the two agent files, a test module, docs) and decisions 6 and 11. Nothing in "Out of scope" is touched, and no earlier test changes. The Makefile and CLAUDE.md lines it relies on are the human's change 1.
 4. factory: started tests as self.
+5. tester: I wrote the tests for criteria 1 to 3 in one new module. Criterion 4 is covered by the existing tests, which I left unchanged.
+
+   - criterion 1: tests/test_claude_agent_texts_mutants.py::test_agent_role_holds_the_mutation_report_text (rows `reviewer-mutants` and `acceptance-score`: each is the exact Interface text, checked inside `section_text(agent_body(name), "Role")`)
+   - criterion 2: tests/test_claude_agent_texts_mutants.py::test_reviewer_mutants_paragraph_sits_between_item_6_and_the_findings_paragraph (it takes the line indices in the reviewer body of `6. **Earlier tests**:`, of the new paragraph and of `Write findings as a numbered list in your entry`, and checks they come in that order)
+   - criterion 3: tests/test_claude_agent_texts_mutants.py::test_acceptance_reviewer_holds_the_mutation_score_check_once (rows `old-sentence-gone`, a count of 0 for ``Run `make mutants` if the project has the target; read the survivors``, and `heading-once`, a count of 1 for `3. **Mutation score.**`)
+   - criterion 4: every test of tests/test_claude_agent_texts.py, unchanged; it gets no new test.
+   - criteria 5 and 6: `make check` is the factory's gate and the docs are the documenter's, so they get no test.
+
+   File created: tests/test_claude_agent_texts_mutants.py. I changed no earlier test file.
+
+   Modules the test run could not import: none. The module is plain text checks on the shipped agent files, so it imports fine.
+
+   One run of `make test`: 4 tests fail for the right reason, because the new texts are not in `claude/agents/reviewer.md` and `claude/agents/acceptance-reviewer.md` yet. The positions test fails at `lines.index` because the paragraph is missing. The `heading-once` row passes already, because the current check 3 has that heading once; the row stays to pin that the rewrite keeps it once. `make lint` is green. I skipped the type check, as the stage says.
+
+   Open: nothing. I interpreted no criterion.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/test_claude_agent_texts_mutants.py::test_acceptance_reviewer_holds_the_mutation_score_check_once[old-sentence-gone]
