@@ -398,7 +398,7 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 16. factory: started doing as self.
 17. coder: Question: `make check` is still red. The only failing step is `make secrets`, and the line it flags is in this work item's own journal, which I may not edit.
 
-    detect-secrets (Secret Keyword) flags `factory/features/F0020-opencode-as-a-second-agent-runtime/in-progress/F0020-S0004-the-opencode-runtime-runs-an-agent-and-reads-its-result-from-the-events.md:353`. That line is in my journal entry 10. It quotes the tester's old dict line, `"ANTHROPIC_API_KEY": "request-key"`, in backticks. The tester's fix (entry 15) cleaned the test file, but the quote in the journal now trips the same detector. The front matter and `## Journal` belong to the factory (R5): any edit I make there is dropped, so I cannot remove the quote myself.
+    detect-secrets (Secret Keyword) flags `factory/features/F0020-opencode-as-a-second-agent-runtime/in-progress/F0020-S0004-the-opencode-runtime-runs-an-agent-and-reads-its-result-from-the-events.md:353`. That line is in my journal entry 10. It quotes the tester's old dict line in backticks (the quote is reworded by the human). The tester's fix (entry 15) cleaned the test file, but the quote in the journal now trips the same detector. The front matter and `## Journal` belong to the factory (R5): any edit I make there is dropped, so I cannot remove the quote myself.
 
     Every other step is green: lint, types, layers, sast and licenses all pass in this `make check` run, and `make test` is green with 98.98 % coverage. The implementation has not changed since entry 10 (`src/factory/adapters/opencode_runtime.py`), and I changed no code in this run.
 
