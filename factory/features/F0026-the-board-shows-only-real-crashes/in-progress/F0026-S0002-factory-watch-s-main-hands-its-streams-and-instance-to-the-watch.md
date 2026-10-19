@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 276
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T18:12:01.772253Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -68,6 +72,11 @@ journal:
   at: '2026-10-19T18:11:40.909102Z'
   stage: review
   run: 101e64f39884474e91e8f68bf2c99147
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:12:01.772253Z'
+  stage: doing
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -244,3 +253,4 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
     1. The work item's `## Description` says lines 82-83 and 87 of `src/factory/entry/watch.py` were uncovered and that "This story pins all of that". Line 87, `raise SystemExit(main())` under `if __name__ == "__main__":`, is still uncovered, as the coder's entry 9 says, and no criterion asks for it. So the Description does not match what was built (item 5). Fix: the coder rewrites the Description to say that line 87 stays uncovered, because only running the module as a program reaches it. Alternatively, end with `question` if the human wants a criterion that runs the module in a subprocess.
 
     Earlier tests: none. `git diff --name-status main...HEAD` shows only added test files, so no earlier test file changed.
+12. factory: started doing as self.
