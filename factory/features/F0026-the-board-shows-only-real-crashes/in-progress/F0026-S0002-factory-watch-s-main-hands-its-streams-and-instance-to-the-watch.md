@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 276
 comments_read: [6274062567]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T18:17:33.462235Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -116,6 +112,12 @@ journal:
   kind: started
   at: '2026-10-19T18:17:33.462235Z'
   stage: docs
+- number: 20
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T18:17:52.970261Z'
+  stage: docs
+  run: 35efba75d6e54b268cb5b4b97daf7e6f
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -344,3 +346,19 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
     - `tests/entry/test_watch_main.py:108-111`: the stand-in names its keyword `_hosting`, but `boundaries_from_environment` (`src/factory/entry/wiring.py:205-207`) calls it `hosting`. `main` passes no hosting, so nothing breaks, but `hosting` would match the real function.
     - `tests/entry/test_watch_main.py:65-91`: the criterion 3 test does not assert `main`'s return status. The criterion does not ask for it, and criteria 1 and 2 already pin it.
 19. factory: started docs as self.
+20. documenter: I changed no file. The docs criterion says `none`, and the diff (`git diff main...HEAD -- . ':!factory' ':!docs' ':!README.md'`) adds only two test files, `tests/entry/test_watch_main.py` and `tests/application/test_watcher_main_ref.py`. Nothing under `src/` changes, so no documented behaviour moved. I did not run `make check`, because I changed no file. The factory's checks after this stage decide.
+
+    Cross-read and found current:
+    - `docs/project-guide/watching.md`, *The watcher's command line*. It says `main` takes both boundaries and instance from `boundaries_from_environment(os.environ)` when either is left out, runs as the settings' instance, and returns 2 on `SettingsInvalid`. It also says `run_watch` returns 1 with `factory-watch: <fault>` on `err` for an invalid definition. This matches what the new tests pin (criteria 1 to 4).
+    - `docs/project-guide/watching.md`, the `Watcher` paragraph. It says `GitError` passes through when `origin/main` does not resolve, with a message that names `origin/main`. The new test pins the exact text `resolve origin/main failed (no exit status): origin/main does not resolve`, and the doc agrees with it.
+    - The `factory-watch` section of the operator guide. I did not re-read it line by line. The reviewer found it consistent, and the story changes no behaviour.
+
+    No findings for the coder. The code matches the Interface, and line 87 of `watch.py` staying uncovered is settled by the human's answer in entry 14.
+
+    Stale text I noticed and did not touch:
+    - The story's `## Description` still says "This story pins all of that". Entry 14 records the exception for line 87, and the work item is not mine to edit.
+    - `watching.md` does not state that `main` falls back to `sys.stdout` and `sys.stderr` when `out` or `err` is left out. The docs criterion calls this already documented. It is a small gap, not a contradiction. I left it, since the criterion says `none` and the omission is not wrong.
+
+    `check`: check: green (not run again: passed on tree e7b6aec770f3 at 2026-10-19T18:09:19Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
