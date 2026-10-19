@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T05:20:51.457424Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-10-19T05:20:51.457424Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-10-19T05:23:02.283973Z'
+  stage: doing
+  run: a216550f445e4052997444c907468a80
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -558,3 +560,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (40.3 s)
 27. factory: started doing as self.
+28. coder: Round 1, after the tester's entry 26. The tester added tests for criteria 18 and 19, and they pass against the code as it stands. I changed no code in this run. `make check` is green: coverage is 99.03 % and the last line is `check: green`.
+
+    What I built: nothing new since entry 24. The implementation is still:
+    - `src/factory/adapters/opencode_runtime.py` (new).
+    - `src/factory/adapters/agent_launch.py`, which now holds the helpers both runtimes shared: `since`, `denied_path`, `call_refusal`, `version_printed`, `run_launch`, `cleanup_launch`, `finished_run` and `Starters`.
+    - `src/factory/adapters/claude_runtime.py`, changed to use those shared helpers.
+
+    Main choice (from entry 24, unchanged): the shared logic sits in `agent_launch` and takes plain values. Each runtime keeps its own `_start` and `_request_of`, the only parts that touch the process module. I rejected a shared module that imports the process module, because that would change `tests/test_wrapper_search.py` and needs the human's word.
+
+    Refactor: I read the diff against `main` again (three files under `src/factory/adapters/`). Nothing needed changing.
+
+    Description: the journal added criteria 18 and 19 and changed nothing else in what the task means, so `## Description` stays as it is.
+
+    Noticed but not touched:
+    - `make duplicates` reports `5 new, 35 known, 4 gone`. Three of the new findings are similar code: matching call sites of the shared helpers in both runtimes (the `call_refusal` call, the `version_printed` call, and the confine-executable check before the temporary-folder removal).
+    - The other two are vulture's dead-code flags on `_ErrorData.status_code` (S0006 reads it) and `OpencodeRuntime` (S0008 wires it in).
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 4 gone
