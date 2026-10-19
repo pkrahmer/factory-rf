@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T03:45:32.118987Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-19T03:45:11.849601Z'
   stage: tests
   run: 7d8e592116184907b05661142bfa48ec
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:45:32.118987Z'
+  stage: doing
 ---
 
 # The agent runs can log in with an API key
@@ -425,3 +434,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (38.4 s)
+14. factory: started doing as self.
