@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T06:39:30.567675Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T06:39:10.442767Z'
   stage: doing
   run: 906839de2dcf4132982085d058614d44
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:39:30.567675Z'
+  stage: tests
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -295,3 +304,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The tester adds that row and changes nothing else in the module.
 
     The journal changed nothing in the Description: the reviewer already wrote the new row into criterion 2.
+12. factory: started tests as self.
