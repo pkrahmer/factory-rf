@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T04:23:02.110011Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-19T04:22:41.833023Z'
   stage: tests
   run: 4f3ad73be4904dbe9135b7d731828d31
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:23:02.110011Z'
+  stage: doing
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -176,3 +185,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/adapters/test_process_streaming.py - ImportError while importing ...
+9. factory: started doing as self.
