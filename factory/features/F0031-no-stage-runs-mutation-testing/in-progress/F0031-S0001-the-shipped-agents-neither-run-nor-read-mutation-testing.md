@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T20:57:58.897017Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T20:57:38.230068Z'
   stage: doing
   run: 3ffd636478c14af4b2e9487a1d9744fd
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:57:58.897017Z'
+  stage: tests
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -209,3 +218,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Code: the four files under `claude/` and `template/` stay as they were in entry 7. The reviewer found that they match the Interface exactly. No refactor was needed, and no other file changed.
     - Choice: I'm handing the change on with `tests` rather than raising a question. The reviewer's finding names decision 7's exact text, so nothing is left to decide unless the human prefers the tester's wording. The reviewer left that call to the human, and I have no reason to ask for it.
     - Noticed, not touched: what I reported in entry 7 still holds. Line 4 of `template/Makefile` calls `duplicates` and `mutants` "reports outside `check`", which could be a later wording story.
+12. factory: started tests as self.
