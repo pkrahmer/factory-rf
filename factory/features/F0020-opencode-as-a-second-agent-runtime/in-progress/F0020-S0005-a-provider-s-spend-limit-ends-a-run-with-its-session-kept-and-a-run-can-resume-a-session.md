@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 254
 comments_read: [6261999766, 6262128853]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T07:35:46.155444Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-10-19T07:35:46.155444Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-19T07:38:44.180897Z'
+  stage: tests
+  run: c1602f4e806d46c2b262a998d9b08212
 ---
 
 # A provider's spend limit ends a run with its session kept, and a run can resume a session
@@ -287,3 +289,35 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Module the test run could not import: `factory.domain.provider_limits`. It causes collection errors in test_provider_limits.py, test_claude_runtime_provider_limit.py and test_wiring_provider_limit.py. The other new tests fail because the new fields and `provider_limit` don't exist yet, or the runtime doesn't use `--resume` yet. `make lint` is green.
 9. 2026-10-19 human: (a): leave, in the form of decision 19: in `tests/domain/test_contract_login.py`, remove the two version assertions of `test_the_committed_cost_record_schema_lists_the_optional_login_at_version_1_1`, keep its login checks, and rename it `test_the_committed_cost_record_schema_lists_the_optional_login`; nothing else in that module. The version is pinned by your new `tests/domain/test_contract_provider_limit.py`.
 10. factory: started tests as self.
+11. tester: I made the change the human approved in entry 9 (option a). In `tests/domain/test_contract_login.py` I renamed `test_the_committed_cost_record_schema_lists_the_optional_login_at_version_1_1` to `test_the_committed_cost_record_schema_lists_the_optional_login`. I removed its two version assertions: `RECORDS_CONTRACT == "1.1"` and the check that all five schemas carry "1.1". Its login checks are unchanged. The only other edit in that module is the import of `CONTRACT, RECORDS_CONTRACT, schema_file_name`, which I removed because nothing used it once the assertions were gone and lint would otherwise fail. The module's docstring is unchanged. `tests/domain/test_contract_provider_limit.py` now pins the version at 1.2.
+
+    Criterion → test (the tests written in entry 8 are unchanged):
+    - criterion 1: tests/domain/test_agent_runs.py::test_question_and_the_six_end_reasons, tests/domain/test_agent_runs_session.py::test_a_limit_wait_is_positive_and_only_on_a_provider_limit
+    - criterion 2: tests/domain/test_agent_runs_session.py::test_a_session_to_resume_is_not_blank
+    - criterion 3: tests/domain/test_agent_runs_session.py::test_a_resumed_result_takes_the_second_session_else_the_first_and_the_second_wait
+    - criterion 4: tests/domain/test_provider_limits.py::test_the_limit_is_in_a_text_by_its_whole_status_or_its_message
+    - criterion 5: tests/domain/test_provider_limits.py::test_a_limit_needs_an_http_status_and_a_message_that_compiles
+    - criterion 6: tests/domain/test_provider_limits.py::test_the_named_wait_is_the_first_one_the_text_names
+    - criterion 7: tests/domain/test_settings_provider_limit.py::test_the_limit_status_is_read_or_refused, ::test_the_limit_message_is_read_or_refused
+    - criterion 8: tests/domain/test_provider_limit_stall_text.py::test_the_provider_limit_stall_has_its_sentence_and_note
+    - criterion 9: tests/adapters/test_claude_runtime_provider_limit.py::test_a_call_the_limit_refused_ends_provider_limit_with_its_wait_and_session
+    - criterion 10: tests/adapters/test_claude_runtime_provider_limit.py::test_a_call_the_limit_refused_ends_provider_limit_with_its_wait_and_session (rows), ::test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit, ::test_a_budget_stop_that_names_the_status_ends_budget_and_is_resumed
+    - criterion 11: tests/adapters/test_claude_runtime_provider_limit.py::test_a_resume_the_limit_refused_ends_provider_limit_with_both_calls_measures
+    - criterion 12: tests/adapters/test_claude_runtime_resume_session.py::test_a_run_starts_a_new_session_or_resumes_the_named_one_and_keeps_it
+    - criterion 13: tests/adapters/test_claude_runtime_resume_session.py::test_a_resumed_session_stopped_by_its_budget_is_resumed_once_with_the_finish_message
+    - criterion 14: tests/adapters/test_opencode_resume_session.py::test_a_run_resumes_the_named_session_and_reports_the_first_session_of_its_events
+    - criterion 15: tests/entry/test_wiring_provider_limit.py::test_the_built_runtime_recognizes_the_configured_limit_status
+    - criterion 16: tests/application/test_costs_provider_limit.py::test_a_provider_limit_record_counts_its_denials_and_keeps_its_end_reason
+    - criterion 17: tests/domain/test_provider_limit_stall_text.py::test_a_provider_limit_stall_record_round_trips_through_the_work_item_state, ::test_the_decisions_stall_reason_is_the_journals_type (the existing rows over every `StallReason` value in tests/domain/test_journal_causes.py also cover it)
+    - criterion 18: tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version (expects "1.2"), tests/domain/test_contract_provider_limit.py::test_the_committed_schemas_list_provider_limit_at_version_1_2, and the existing comparison of generated and committed schemas
+
+    Files created (entry 8): tests/domain/test_provider_limits.py, tests/domain/test_agent_runs_session.py, tests/domain/test_settings_provider_limit.py, tests/domain/test_provider_limit_stall_text.py, tests/domain/test_contract_provider_limit.py, tests/adapters/test_claude_runtime_provider_limit.py, tests/adapters/test_claude_runtime_resume_session.py, tests/adapters/test_opencode_resume_session.py, tests/entry/test_wiring_provider_limit.py, tests/application/test_costs_provider_limit.py.
+
+    Earlier test files changed:
+    - tests/domain/test_agent_runs.py and tests/domain/test_contract.py, under decision 19.
+    - tests/domain/test_contract_login.py, with the human's leave in entry 9.
+
+    Module the test run could not import: `factory.domain.provider_limits`. This causes collection errors in test_provider_limits.py, test_claude_runtime_provider_limit.py and test_wiring_provider_limit.py. The other new tests fail because the new fields and the `provider_limit` behaviour do not exist yet. `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: ERROR tests/entry/test_wiring_provider_limit.py - ImportError while importing...
