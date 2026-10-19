@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T09:23:06.962341Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T09:23:06.962341Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T09:23:17.386896Z'
+  stage: doing
+  run: 684a48ea4a404e5e83a0369fcd78d4c3
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -166,3 +168,8 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff only adds test files (`A`). No test file that `main` already holds was changed, renamed or deleted.
 10. factory: started doing as self.
+11. coder: The reviewer added criterion 3. It needs only its test, so I changed no code and nothing under `src/factory/`.
+    - Change for the tester: add one row to `tests/domain/test_documents_line_edges.py::test_a_v1_word_is_found_at_a_line_edge_and_a_longer_word_is_not`. The row adds `docs/project-guide/agents.md` with the text `"# Agents\n\nThe last ticketed"` to `clean_texts()` and expects `[]`.
+    - Main choice: I passed the criterion to the tester (decision `tests`) and did not touch the code. The alternative was to change the code, which I rejected because nothing there needs to change. The current wording check already passes this case: the word-edge rule does not match `ticketed`, and the end of the text is not a special case.
+    - Description: the reviewer's entry added criterion 3 and renumbered the closing criteria to 4 and 5. The Description already shows that, so I did not rewrite it.
+    - Noticed but did not touch: nothing new.
