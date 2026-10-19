@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T12:46:26.511546Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-19T12:46:26.511546Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T12:48:33.373150Z'
+  stage: doing
+  run: 7419d7b79f3e4f2a9ae79ff5504421aa
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -360,3 +362,30 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (46.5 s)
 14. factory: started doing as self.
+15. coder: Round 1, after the tester's move (entry 13). I made no code changes in this run. All five review findings are now dealt with:
+    - Findings 1 to 4: the tester moved the shared test helpers to `tests/watch_support.py` and the `definition` fixture to `tests/conftest.py`.
+    - Finding 5: I fixed it in entry 11. `src/factory/entry/watch.py` now has a one-line module docstring.
+
+    I ran `make check` against the working tree with the tester's move in it, and it is green.
+
+    What the story built:
+    - `src/factory/domain/lease.py`: `observed_claim_status`.
+    - `src/factory/application/claims.py`: `ClaimService.observed_status`.
+    - `src/factory/application/watcher.py`: `Watcher(..., *, observer=False)`, which chooses `observed_status` or `status`.
+    - `src/factory/entry/watch.py`: `run_watch` evaluates with `observer=True`, and its docstring is the one-line version.
+
+    Main choice: `observed_claim_status` handles only the case that differs, an own claim still within its lease, and passes everything else to `claim_status`. I rejected writing all the branches out again, because that would make a second copy of the none, held and expired rules.
+
+    Refactor: I read the `src` diff again and found nothing to change.
+
+    Description: no journal entry changed what the task means, so it is unchanged.
+
+    Noticed, not touched:
+    - Entry 13 says other acceptance test modules still hold their own copies of `definition` and of the complete-feature push, for example `test_acceptance_service.py` and `test_acceptance_reading.py`. Those are for the tester, and no finding names them.
+    - The criterion 8 docs are the documenter's.
+    - `src/factory/entry/watch.py` lines 82-83 and 87 were uncovered before this story and still are; coverage is 99.06 %.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
