@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T20:10:46.284107Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T20:10:25.801506Z'
   stage: intake
   run: c94bfdc941c44d6591ff0f5f6a55030f
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:10:46.284107Z'
+  stage: tests
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -81,3 +90,4 @@ Expect: `1`
    Smoke test: three runnable commands (grep counts and a pytest run). Each `Expect:` line is a checkable value.
    Architecture: tests-only; shared helpers go to modules at the `tests/` root and conftest, as CLAUDE.md's standing leave allows. No `src/` change.
    Scope: within F0022's stated reach (the feature's test-helper follow-up from the acceptance), no item in "Out of scope"; the `PROJECT_CODER` of `test_project_agents.py` is rightly left alone.
+4. factory: started tests as self.
