@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 299
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T23:13:40.263542Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T23:13:40.263542Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T23:14:32.037768Z'
+  stage: tests
+  run: a1cace4b738347cfbb35d180c1715571
 ---
 
 # The operator guide's last Claude-only passages name opencode
@@ -92,3 +94,11 @@ Expect: `documents ok`
    Architecture: only `docs/operator-guide.md` changes, and it is the documenter's write path. No layer is touched.
    Scope: it is within feature F0020's documentation scope (`docs/operator-guide.md`, from a story's docs criterion). It touches nothing in the feature's Out of scope and changes no test another story wrote.
 4. factory: started tests as self.
+5. tester: No tests written: this is a docs-only story, its Interface is "None", and criterion 1 forbids any change under `tests/`.
+   criterion 1: no test. It is checked by the diff, and this stage changed nothing under src/, tests/, image/, template/, demo/ or claude/.
+   criterion 2: no test. It is `make check`, which the factory runs.
+   criterion 3: no test. It is the docs criterion for `docs/operator-guide.md`. The smoke test and `check_documents` (the document check) cover it.
+   Files created: none. Modules the test run could not import: none, because no new test exists. So the branch has no red tests, and the coder has nothing to implement under `src/`. `make lint` is green. I did not run `make test`, because no test changed.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (38.7 s)
