@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T10:19:42.677829Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-10-19T10:19:22.319085Z'
   stage: doing
   run: f60af536e3f74677874fbc092fe37358
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:19:42.677829Z'
+  stage: tests
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -497,3 +506,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_make_commands.py::test_output_tail_keeps_the_last_thirty_lines[30-1]` may be flaky.
 
     The journal did not change the meaning of the task. The reviewer already added criterion 15 and renumbered the closing criteria.
+23. factory: started tests as self.
