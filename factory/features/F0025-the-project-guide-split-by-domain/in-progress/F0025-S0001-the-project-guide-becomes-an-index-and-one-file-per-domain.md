@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 252
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T06:34:35.068775Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T06:34:14.769702Z'
   stage: tests
   run: dd2eafa2281143ffa67b66532b8cc304
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T06:34:35.068775Z'
+  stage: doing
 ---
 
 # The project guide becomes an index and one file per domain, and the document check reads them all
@@ -211,3 +220,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_documents_guide_files.py - ImportError while importin...
+6. factory: started doing as self.
