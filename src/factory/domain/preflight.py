@@ -10,7 +10,7 @@ from factory.domain.stops import RepositoryStop
 
 
 class PreflightItem(BaseModel):
-    """One check of the machine: its name, whether it passed and, if not, what to fix."""
+    """One check of the machine: its name, whether it passed, and what to fix or what it found."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 

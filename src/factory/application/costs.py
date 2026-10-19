@@ -100,6 +100,7 @@ def _completed(record: CostRecord, result: AgentRunResult) -> CostRecord:
             "cost_usd": result.cost_usd,
             "denials": None if no_reply else len(result.permission_denials),
             "denied_paths": None if no_reply else _denied_paths(result),
+            "login": result.login,
         }
     )
 

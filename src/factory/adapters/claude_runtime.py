@@ -20,6 +20,18 @@ from pydantic import (
     ValidationError,
 )
 
+from factory.adapters.agent_launch import (
+    LOGIN_PREFIX,
+    LOGIN_SCRIPT,
+    LOGIN_VARIABLE,
+    SHELL_EXECUTABLE,
+    LoginFiles,
+    line_starting,
+    login_argv,
+    login_refusal,
+    login_used,
+    without_login,
+)
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.application.agent_runtime import AgentRuntime
 from factory.domain.agent_runs import (
@@ -41,6 +53,16 @@ from factory.domain.confinement import (
 )
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoint, KillPoints
+
+# The login names moved to the shared launch module; earlier callers still import them here.
+__all__ = [
+    "LOGIN_PREFIX",
+    "LOGIN_SCRIPT",
+    "LOGIN_VARIABLE",
+    "SHELL_EXECUTABLE",
+    "ClaudeCodeRuntime",
+    "resume_budget",
+]
 
 ENTRY_DESCRIPTION = (
     "your journal entry, without its number or your name: "
@@ -70,37 +92,6 @@ KILL_STATUSES = frozenset({137, -9})
 # The agent reads a run's files through its group and must not rewrite its own guard.
 RUN_FILE_MODE = 0o640
 CENT = Decimal("0.01")
-# Claude Code's name for a token made by `claude setup-token`.
-LOGIN_VARIABLE = "CLAUDE_CODE_OAUTH_TOKEN"
-SHELL_EXECUTABLE = "/bin/sh"
-LOGIN_PREFIX = "factory-login:"
-# Run by the call's own shell, as the user the call runs as, so the factory never holds the
-# token and it stands in no process's arguments. A shell variable cannot hold a zero byte, so
-# the ASCII check counts the bytes left once the allowed ones are deleted.
-LOGIN_SCRIPT = f"""\
-login_file=$1
-shift
-if [ ! -e "$login_file" ]; then
-    unset {LOGIN_VARIABLE}
-    exec "$@"
-fi
-if [ ! -f "$login_file" ] || ! cat -- "$login_file" >/dev/null 2>&1; then
-    printf '%s\\n' '{LOGIN_PREFIX} cannot be read' >&2
-    exit 1
-fi
-other_bytes=$(LC_ALL=C tr -d '!-~ \\t\\r\\n' <"$login_file" 2>/dev/null | wc -c)
-if [ $other_bytes -ne 0 ]; then
-    printf '%s\\n' '{LOGIN_PREFIX} not ASCII text' >&2
-    exit 1
-fi
-login=$(LC_ALL=C tr -d ' \\t\\r\\n' <"$login_file" 2>/dev/null)
-if [ -z "$login" ]; then
-    unset {LOGIN_VARIABLE}
-    exec "$@"
-fi
-export {LOGIN_VARIABLE}="$login"
-exec "$@"
-"""
 # Claude Code keeps its `.claude.json` in this folder rather than in the home's root, so a
 # confined run keeps it inside the runtime's own folder, which the rules allow.
 CONFIG_VARIABLE = "CLAUDE_CONFIG_DIR"
@@ -301,9 +292,10 @@ def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
     duration = _ZERO
     reply = _parse_reply(process.stdout)
     end_reason = _end_reason(request, process, reply)
+    login = login_used(process.stderr)
     # A killed call's output is cut short, so whatever it printed is not its measure.
     if reply is None or process.timed_out:
-        return AgentRunResult(end_reason=end_reason, duration=duration)
+        return AgentRunResult(end_reason=end_reason, duration=duration, login=login)
     output = reply.structured_output if end_reason == "completed" else None
     cost = None if reply.total_cost_usd is None else Decimal(str(reply.total_cost_usd))
     api_ms = reply.duration_api_ms
@@ -318,6 +310,7 @@ def _result(request: AgentRunRequest, process: ProcessResult) -> AgentRunResult:
         tokens=_tokens(reply.usage),
         cost_usd=cost,
         permission_denials=_denials(reply),
+        login=login,
     )
 
 
@@ -358,22 +351,6 @@ def _resumed_result(first: AgentRunResult, second: AgentRunResult) -> AgentRunRe
     )
 
 
-def _line_starting(stderr: str, prefix: str) -> str | None:
-    for line in stderr.splitlines():
-        if line.startswith(prefix):
-            return line
-    return None
-
-
-def _login_refusal(process: ProcessResult) -> str | None:
-    if _parse_reply(process.stdout) is not None:
-        return None
-    line = _line_starting(process.stderr, LOGIN_PREFIX)
-    if line is None:
-        return None
-    return line.removeprefix(LOGIN_PREFIX).strip()
-
-
 def _has_usable_reply(process: ProcessResult) -> bool:
     return _parse_reply(process.stdout) is not None and not process.timed_out
 
@@ -381,13 +358,13 @@ def _has_usable_reply(process: ProcessResult) -> bool:
 def _sudo_refusal(request: AgentRunRequest, process: ProcessResult) -> str | None:
     if request.os_user is None or _has_usable_reply(process):
         return None
-    return _line_starting(process.stderr, SUDO_PREFIX)
+    return line_starting(process.stderr, SUDO_PREFIX)
 
 
 def _confine_refusal(process: ProcessResult) -> str | None:
     if _has_usable_reply(process):
         return None
-    return _line_starting(process.stderr, CONFINE_PREFIX)
+    return line_starting(process.stderr, CONFINE_PREFIX)
 
 
 def _killed_at_limit(
@@ -465,11 +442,13 @@ class ClaudeCodeRuntime(AgentRuntime):
         login_file: Path | None = None,
         confine_executable: str | None = None,
         temporary_root: Path | None = None,
+        api_login_file: Path | None = None,
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
 
         A request with an operating-system user is started through `sudo_executable`.
-        A run's calls get the token held in `login_file`, read by the call's own shell.
+        A run's calls get the key held in `api_login_file`, or else the token held in
+        `login_file`, read by the call's own shell.
         With `confine_executable`, every call starts through it with the run's rules and
         its own temporary folder under `temporary_root`, the system's by default.
         """
@@ -478,7 +457,7 @@ class ClaudeCodeRuntime(AgentRuntime):
         self._temporary_root = (
             Path(tempfile.gettempdir()) if temporary_root is None else temporary_root
         )
-        self._login_file = login_file
+        self._login_files = LoginFiles(subscription=login_file, api=api_login_file)
         self._sudo_executable = sudo_executable
         self._state_directory = state_directory
         self._kill_points = kill_points
@@ -629,20 +608,14 @@ class ClaudeCodeRuntime(AgentRuntime):
         return [self._sudo_executable, "-n", "-u", os_user, "--"]
 
     def _check_login(self, process: ProcessResult) -> None:
-        if self._login_file is None:
+        if _parse_reply(process.stdout) is not None:
             return
-        reason = _login_refusal(process)
-        if reason is not None:
-            raise AgentRuntimeError(
-                f"cannot read the agent's login file {self._login_file}: {reason}"
-            )
+        refusal = login_refusal(process.stderr, self._login_files)
+        if refusal is not None:
+            raise AgentRuntimeError(refusal)
 
     def _claude_argv(self, arguments: list[str]) -> list[str]:
-        claude = [self._executable, *arguments]
-        if self._login_file is None:
-            return claude
-        login = [SHELL_EXECUTABLE, "-c", LOGIN_SCRIPT, "factory-login", str(self._login_file)]
-        return [*login, *claude]
+        return [*login_argv(self._login_files), self._executable, *arguments]
 
     def _confined_argv(self, argv: list[str], files: _RunFiles) -> list[str]:
         if self._confine_executable is None:
@@ -662,10 +635,8 @@ class ClaudeCodeRuntime(AgentRuntime):
         arguments: list[str],
         time_limit: timedelta,
     ) -> ProcessRequest:
-        # The login comes from the file or not at all, never from the request.
-        given = {
-            name: value for name, value in request.environment.items() if name != LOGIN_VARIABLE
-        }
+        # The login comes from the files or not at all, never from the request.
+        given = without_login(request.environment)
         environment = {**given, **self._config_folder(request), **SWITCHES}
         argv = self._confined_argv(self._claude_argv(arguments), files)
         if request.os_user is None:

@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T03:35:54.189174Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T03:35:54.189174Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T03:40:37.334360Z'
+  stage: doing
+  run: e85762e79ebd44d99777aa0b80aae03b
 ---
 
 # The agent runs can log in with an API key
@@ -305,3 +307,40 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/test_api_login_mount.py - ImportError while importing test module...
 6. factory: started doing as self.
+7. coder: Implemented the API-key login as the Interface describes. `make check` is green: lint, types, layers, sast, secrets, licenses and test, with 99.09 % coverage.
+
+   Built:
+   - `src/factory/adapters/agent_launch.py` (new). It holds the moved `SHELL_EXECUTABLE`, `LOGIN_VARIABLE`, `LOGIN_PREFIX` and `LOGIN_SCRIPT`, plus `API_LOGIN_VARIABLE`, `API_LOGIN_PREFIX`, `LOGIN_USED_PREFIX`, `API_LOGIN_OPTION`, `LoginFiles`, `login_argv`, `login_used`, `login_refusal` and `without_login`. It also holds `line_starting`, which moved here from `claude_runtime` so the two modules do not each keep a copy. It does not import `factory.adapters.process`.
+   - The extended `LOGIN_SCRIPT` uses two shell functions, `check_text` (the "cannot be read" and "not ASCII text" refusals, parameterised by prefix) and `stripped`. The API file and the token file share them instead of repeating the checks. When the API file holds a key, the script exports it, unsets the token, reports `api_key` and execs without reading the token file. Otherwise it unsets `ANTHROPIC_API_KEY` and goes on with today's token logic, reporting `subscription` or `none`. An empty token-file argument counts as missing.
+   - `src/factory/adapters/claude_runtime.py`:
+     - New `api_login_file` keyword. The runtime keeps a `LoginFiles` instead of `_login_file`.
+     - The call's words come from `login_argv` and the environment from `without_login`.
+     - `_result` sets `login` from `login_used(stderr)` on every path, so a resumed run carries the login of its last call.
+     - `_check_login` raises `login_refusal`'s text when there is no usable reply.
+     - The moved names are re-exported through `__all__`. `SHELL_EXECUTABLE` is still read from this module's namespace for the temporary folder's removal.
+   - `src/factory/domain/agent_runs.py`: `Login` and `AgentRunResult.login`.
+   - `src/factory/domain/cost_records.py`: `CostRecord.login`, described in the docstring and refused on a started record.
+   - `src/factory/application/costs.py`: `complete` copies the login.
+   - `src/factory/adapters/cost_records_jsonl.py`: `login` is left out of a line when `None`.
+   - `src/factory/domain/settings.py`: `API_LOGIN_FILE_VARIABLE` and `api_login_file`.
+   - `src/factory/entry/wiring.py`: passes `api_login_file` to the runtime.
+   - `src/factory/application/preflight.py`:
+     - `_login_hint` and `_login_detail` give the failed and passed probe details.
+     - `Preflight._log_passed_details` writes `preflight: <name>: <detail>` for each passed item with a detail, only when the machine's items actually run (not when the stamp skips them).
+   - `src/factory/domain/preflight.py`: the `PreflightItem` docstring now allows a detail on a passed item.
+   - `src/factory/domain/contract.py`: `RECORDS_CONTRACT` is "1.1". All five `src/factory/contract/*.schema.json` files were regenerated with `uv run python -m factory.entry.contract`.
+   - `image/Dockerfile` and `image/compose.yml`: the `ENV` line and the fifth bind, as specified.
+
+   Main choice: the runtime holds one `LoginFiles` and hands it to the shared functions, so `ClaudeCodeRuntime` has no login logic of its own. That is the shape an opencode runtime can reuse. I rejected keeping a `_login_file`/`_api_login_file` pair with per-runtime branching. I also rejected writing the API branch as a second copy of the token file's readable and ASCII checks; the shared shell function replaces that.
+
+   Noticed, not touched:
+   - I could not run the story's smoke test: the shell refused the command (a permission denial, not a test failure). It is still untested end to end; the smoke-test stage runs it.
+   - `claude_runtime.__all__` lists only the re-exported names plus `ClaudeCodeRuntime` and `resume_budget`, following the partial `__all__` in `factory.domain.settings`. Its other public constants (e.g. `SUDO_EXECUTABLE`) are still importable as module-level definitions.
+   - The host file `image/secrets/anthropic-api-key` is the operator's to create; nothing in the repository creates it.
+   - Docs are left to the documenter.
+   - The work item's `.costs.jsonl` shows as modified in the working tree; that is the factory's own record.
+
+   Description unchanged: no journal entry changed the task.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
