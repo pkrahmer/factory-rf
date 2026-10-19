@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 270
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T16:03:19.217267Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T16:03:19.217267Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T16:03:49.285388Z'
+  stage: intake
+  run: f37bae43a31f443c92a9422bc7018bf2
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -155,3 +157,9 @@ Expect: four lines, `mutants: partial, 1 killed, 0 survived, 0 timed out, 0 with
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures (`factory.domain.mutants`, `factory.entry.inputs`, `factory.entry.check_mutants`, the `check_duplicates` change). The Pydantic models, the ten statuses, the name pattern and every message text are spelled out. Nothing is left for the coder to choose.
+   Criteria: each can be tested by one test function. Every rule has its failing side: the name and status refusals and the `ValueError` message (1), `stopped_after` 0 and 1 (5), a missing file, bad bytes and `garbage` (7, 10), the argparse refusals (10), and an unreadable file with `--names` (10). Every Interface comment on behaviour has a criterion: the module of a mutant (2), the line order and the counts (3), partial, stop suffix and distinct modules (4), the prefix match against `factory.domain.ab` (4), and the rerun order, the pattern and a pattern given twice (6). Two small gaps are not worth a question. `UnreadableInput` being chained from the `OSError` has no assertion. A parse fault with `--names` has no row, but it runs the same code path as the row without `--names`.
+   Smoke test: three runnable blocks that use only `mktemp` and `uv run -q python -m`. Each `Expect:` names exact lines and exit codes. I counted `cut -c1-26` and it yields `check-mutants: cannot read`.
+   Architecture: the pure rules are in `domain`, with no I/O. The file reading and the argument parsing are in `entry`. `check_duplicates` and the new command share one reader, as `CLAUDE.md` asks (no second copy). The story adds no dependency and no wrapper.
+   Scope: it matches the feature's S0001 scope exactly. The `Makefile`, `CLAUDE.md` and the pipeline definition are left to the human. No earlier test changes (`test_check_duplicates.py` passes unchanged), and the docs criterion covers the feature's decisions 2, 3 and 8.
