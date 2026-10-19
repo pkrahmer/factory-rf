@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T23:05:29.350450Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-19T23:05:29.350450Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T23:05:53.154506Z'
+  stage: smoke-test
+  run: 91b3d4d1304245ed817aeca28db8e2ce
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -361,3 +363,24 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok
 23. factory: started smoke-test as self.
+24. smoke-tester: I ran the smoke test once from the repository root, exactly as written, as one shell script. It exited 0 and fixed nothing.
+
+    Command 1 is the whole `## Smoke test` block. It writes the opencode stand-in, then runs one Python script that calls `OpencodeRuntime.run` with the stand-in and then `run_streaming` with a last line that has no newline:
+
+    ```
+    provider_limit 0:02:00 ses_s True
+    [('stdout', 'go')] True None False True
+    ```
+
+    Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] True None False True`. **Met:** both lines match exactly.
+    - A limit line on standard error ended the run `provider_limit`. Its `limit_wait` was the 120 s the line names, the session was kept, and the run ended within 10 s even though the stand-in sleeps 30 s.
+    - A stop on stdout's last line without a newline stopped the call within 10 s. `stopped` was True, `exit_status` None and `timed_out` False, while stderr was still open and the child was asleep for 60 s.
+
+    Acceptance criteria read again against the output:
+    - Criterion 1: the output agrees with its `seconds` row.
+    - Criterion 2: the output agrees with its `stdout` row.
+    - Criteria 3 (`make check` stays green) and 4 (docs): the smoke test says nothing about them, and nothing in it contradicts them.
+
+    The other rows of criteria 1 and 2 are covered by the tester's parametrized tests, not by this smoke test.
+
+    Findings: none.
