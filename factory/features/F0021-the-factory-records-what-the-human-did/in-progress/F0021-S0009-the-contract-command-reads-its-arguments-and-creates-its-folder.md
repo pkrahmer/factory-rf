@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 244
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T01:24:43.429631Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T01:24:43.429631Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T01:24:58.116177Z'
+  stage: intake
+  run: 1802a9d117d044308a864cb8b6177189
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -76,3 +78,9 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names `factory.entry.contract.write_contract(folder: Path) -> list[Path]` and `main(argv: Sequence[str] | None = None) -> int`. Both match the code (`src/factory/entry/contract.py`). No source change is planned, and each stated behaviour is pinned by a criterion: `sys.argv[1:]` by criterion 1, `mkdir(parents=True)` by criterion 2.
+   Criteria: each is testable by one parametrized test function. Criterion 1 covers one argument, none, and two or more, which is the failing side with usage on stderr and status 2. Criterion 2 covers both parent-missing cases and the result order. Criteria 3 and 4 are the closing ones.
+   Smoke test: both blocks are runnable `uv run -q python -m factory.entry.contract` commands. Each `Expect:` line is checkable: the output line plus `5`, and the usage line plus `status 2`.
+   Architecture: tests only, under `tests/entry/`, in the layer that mirrors `factory.entry`. No module under `src/` changes.
+   Scope: it fits F0021's contract command (S0006). It is a pin proposed by the acceptance's mutants run and is not in "Out of scope". It adds a new test module and changes no earlier test.
