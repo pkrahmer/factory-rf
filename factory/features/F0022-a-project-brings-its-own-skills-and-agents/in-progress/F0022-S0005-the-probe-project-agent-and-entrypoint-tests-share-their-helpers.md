@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T20:15:22.868290Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T20:15:22.868290Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T20:17:15.323801Z'
+  stage: doing
+  run: dfa7691c53fc41f1878cbab8315f6fcc
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -132,3 +134,15 @@ Expect: `1`
    `lint`: lint: green (0.0 s)
    `test`: test: green (43.2 s)
 6. factory: started doing as self.
+7. coder: Built nothing, as the story intends. It moves test helpers only, and under the standing leave in CLAUDE.md the tester made every move in its own run (see the tester's entry for the paths: `tests/probe_support.py`, `tests/conftest.py`, `tests/git_support.py`, the nine changed modules and `tests/test_shared_test_helpers.py`). `git diff main --stat -- src` is empty, and the Interface's "No module under `src/factory/` changes" holds.
+
+   Main choice: I touched no file, the tests included. The alternative was to tidy the moved helpers further (for example, to put `probe_settings` in a support module instead of the conftest). I rejected it because the Interface fixes where each helper goes, and the coder never edits tests. Refactor step: there was no diff of mine to read, so nothing to change.
+
+   Checked: `make check` ends with `check: green` (lint, types, layers, sast, secrets, licenses all green; test: green, 41.7 s).
+
+   Noticed but did not touch: `tests/conftest.py` now imports `Layout as ImageLayout` from the `test_entrypoint` test module. A conftest that depends on a test module works, but if that `Layout` ever moved to a support module, the import would have to follow it. That would be a later story, not this one.
+
+   Description: unchanged. No journal entry changed the meaning of the task.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
