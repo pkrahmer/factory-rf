@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 251
 comments_read: [6259811093, 6259973629, 6260061257]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T05:17:48.908099Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-10-19T05:17:48.908099Z'
   stage: tests
+- number: 26
+  speaker: tester
+  kind: result
+  at: '2026-10-19T05:20:31.438504Z'
+  stage: tests
+  run: 3a34411588de4dd68bb1ef8ff67962b6
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -532,3 +534,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `make duplicates` now reports 3 new similar blocks, down from 7. They are only matching call sites of the shared helpers (the `call_refusal` call, the `version_printed` call, the temporary-folder removal), each with the same keyword arguments. `_request_of` is the same 4 lines in both runtimes, because `agent_launch` may not build a `ProcessRequest`.
     - Vulture still flags `_ErrorData.status_code` (S0006 reads it) and `OpencodeRuntime` (S0008 wires it in) as unused.
 25. factory: started tests as self.
+26. tester: Round 1. The coder's entry 24 said criteria 18 and 19, which the reviewer added, need only their tests. I wrote those two tests and changed no existing test.
+
+    - criterion 18: `tests/adapters/test_opencode_runtime.py::test_a_version_that_cannot_be_read_names_the_reason` has three rows. The first is exit 1 with stderr: the detail is exactly `<executable> --version failed: <stderr>`. The second prints nothing: exactly `<executable> --version printed nothing`. The third is a missing executable: the detail starts with `cannot start <executable>: ` and an error text follows.
+    - criterion 18: `tests/adapters/test_opencode_runtime.py::test_a_run_that_cannot_start_names_the_reason` has two rows. The first is a missing executable: `cannot start <executable>: <error>`, and the state directory holds no file afterwards. The second is a missing state directory: `cannot write the state directory <path>: <error>`, and the stand-in is never called.
+    - criterion 19: `tests/adapters/test_opencode_events.py::test_a_step_with_zero_values_is_a_valid_step` checks that each step counts as one turn with the expected `cost_usd`, `tokens.input` and model time. It has four rows. Three set one value to zero each: cost 0, `input` 0, and a timestamp of 0 for both `step_start` and `step_finish`. The fourth is the criterion's combined case: cost 0, input 0 and timestamp 0, giving `Decimal("0")`, input 0 and 0 s. These rows are the accepted side of the limits whose refused side is in criterion 11's `test_a_line_that_does_not_validate_is_skipped`. I kept that existing test as it is rather than merging the two, because its rows check that a line is skipped, not that it is a valid step.
+
+    `<error>` is the operating system's text, so those rows check the fixed prefix and that some text follows it. They do not check the exact OS message.
+
+    Files changed: `tests/adapters/test_opencode_runtime.py` and `tests/adapters/test_opencode_events.py`, both written by this story; I only added tests to them. I created no new files.
+
+    `make test` is green: the code is already built, so the new tests pass rather than fail. Every module imported. `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (40.3 s)

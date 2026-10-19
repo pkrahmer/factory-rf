@@ -241,6 +241,51 @@ def test_a_line_that_does_not_validate_is_skipped(tmp_path: Path, skipped: str) 
 
 
 @pytest.mark.parametrize(
+    ("lines", "cost", "input_tokens", "model_seconds"),
+    [
+        pytest.param(
+            [step_start(1000), ANSWER, step_finish(2000, cost=0)],
+            Decimal("0"),
+            10,
+            1,
+            id="zero-cost",
+        ),
+        pytest.param(
+            [step_start(1000), ANSWER, step_finish(2000, tokens={**FIRST_TOKENS, "input": 0})],
+            Decimal("0.012"),
+            0,
+            1,
+            id="zero-input",
+        ),
+        pytest.param(
+            [step_start(0), ANSWER, step_finish(0)], Decimal("0.012"), 10, 0, id="zero-timestamp"
+        ),
+        pytest.param(
+            [
+                step_start(0),
+                ANSWER,
+                step_finish(0, cost=0, tokens={**FIRST_TOKENS, "input": 0}),
+            ],
+            Decimal("0"),
+            0,
+            0,
+            id="all-zero",
+        ),
+    ],
+)
+def test_a_step_with_zero_values_is_a_valid_step(
+    tmp_path: Path, lines: list[str], cost: Decimal, input_tokens: int, model_seconds: float
+) -> None:
+    result = _run(tmp_path, lines)
+
+    assert result.turns == 1
+    assert result.cost_usd == cost
+    assert result.tokens is not None
+    assert result.tokens.input == input_tokens
+    assert result.model_duration == timedelta(seconds=model_seconds)
+
+
+@pytest.mark.parametrize(
     ("lines", "exit_status", "end_reason", "answer", "measured"),
     [
         pytest.param(

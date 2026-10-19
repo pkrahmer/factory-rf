@@ -265,3 +265,64 @@ def test_the_kill_point_is_reached_once_after_a_run_and_the_runtime_is_an_agent_
 
     assert kill_points.reached(KillPoint.AGENT_RUN) == 1
     assert isinstance(runtime, AgentRuntime)
+
+
+@pytest.mark.parametrize(
+    ("step", "exists", "detail"),
+    [
+        pytest.param(
+            Step(stdout="1.19.3\n", stderr="no version here", exit_status=1),
+            True,
+            "{executable} --version failed: no version here",
+            id="exit-1",
+        ),
+        pytest.param(Step(stdout=""), True, "{executable} --version printed nothing", id="nothing"),
+        pytest.param(Step(stdout="1.19.3\n"), False, "cannot start {executable}: ", id="missing"),
+    ],
+)
+def test_a_version_that_cannot_be_read_names_the_reason(
+    tmp_path: Path, step: Step, *, exists: bool, detail: str
+) -> None:
+    executable = write_opencode(tmp_path / "bin", [step])
+    if not exists:
+        executable = tmp_path / "bin" / "missing-opencode"
+    runtime = OpencodeRuntime(str(executable), tmp_path, models=MODELS)
+
+    with pytest.raises(AgentRuntimeError) as raised:
+        runtime.version()
+
+    expected = detail.format(executable=executable)
+    if exists:
+        assert raised.value.detail == expected
+    else:
+        assert raised.value.detail.startswith(expected)
+        assert len(raised.value.detail) > len(expected)
+
+
+@pytest.mark.parametrize(
+    ("executable_exists", "state_exists", "detail"),
+    [
+        pytest.param(False, True, "cannot start {executable}: ", id="executable-missing"),
+        pytest.param(True, False, "cannot write the state directory {state}: ", id="state-missing"),
+    ],
+)
+def test_a_run_that_cannot_start_names_the_reason(
+    tmp_path: Path, *, executable_exists: bool, state_exists: bool, detail: str
+) -> None:
+    executable = write_opencode(tmp_path / "bin", [Step(stdout=REPLY)])
+    if not executable_exists:
+        executable = tmp_path / "bin" / "missing-opencode"
+    state = tmp_path / "state"
+    if state_exists:
+        state.mkdir()
+    runtime = OpencodeRuntime(str(executable), state, models=MODELS)
+
+    with pytest.raises(AgentRuntimeError) as raised:
+        runtime.run(opencode_request(tmp_path / "work"))
+
+    expected = detail.format(executable=executable, state=state)
+    assert raised.value.detail.startswith(expected)
+    assert len(raised.value.detail) > len(expected)
+    assert read_calls(tmp_path / "bin") == []
+    if state_exists:
+        assert list(state.iterdir()) == []
