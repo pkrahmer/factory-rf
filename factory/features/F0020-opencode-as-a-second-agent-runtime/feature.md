@@ -49,7 +49,7 @@ The build order; start one at a time, the next when the one before is archived i
 - S0006: The opencode run stops at its budget and at a provider limit while it streams
 - S0007: The factory waits out a provider limit and resumes the run
 - S0008: The operator chooses the runtime per instance, and the image and the preflight carry opencode
-- S0009: The factory keeps its spend within a window before each run (deferred, decision 15: its file lies in `deferred/` beside `backlog/`, so the factory does not start it, until a later run at the human's work shows that the waits matter; F0020's acceptance does not wait for it)
+- S0009: The factory keeps its spend within a window before each run: dropped by the human on 2026-10-19 (the cleanup; its draft is kept at the tag `planning-history-2026-10-19`, `planning/overnight/stories/F0020-opencode-as-a-second-agent-runtime/deferred/`).
 
 ## The human's changes
 
