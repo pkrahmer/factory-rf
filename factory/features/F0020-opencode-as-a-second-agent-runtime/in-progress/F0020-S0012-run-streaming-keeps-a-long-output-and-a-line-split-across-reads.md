@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 278
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T18:46:34.953495Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-19T18:46:34.953495Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T18:48:44.717775Z'
+  stage: doing
+  run: cbcead40275c4aebb5a5b3e8d6c7efc2
 ---
 
 # run_streaming keeps a long output and a line split across reads
@@ -119,3 +121,9 @@ Expect: two lines, `[('stdout', 200000)] 200001` and `[('stderr', 'hello'), ('st
    `lint`: lint: green (0.0 s)
    `test`: test: green (45.8 s)
 6. factory: started doing as self.
+7. coder: No code change. The story pins behaviour `run_streaming` already has, and its Interface says no module under `src/factory/` changes. I ran `make check` on the committed state with the tester's tests in `tests/adapters/test_process_streaming_reads.py`, and every target passed (`test: green (47.2 s)`, `check: green`). There is no diff of mine to refactor.
+   Main choice: leave `src/factory/adapters/process.py` (`_LineReader.read_ready`) as it is. I rejected restructuring the reader so that the two surviving mutants (`+=` → `=`) could be killed some other way, because the story is tests only (R13).
+   Noticed, not touched: nothing. The journal did not change the meaning of the task, so the Description is as it was. Criterion 4 (the `run_streaming` sentence in `docs/project-guide/processes-and-checks.md`) is the documenter's.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
