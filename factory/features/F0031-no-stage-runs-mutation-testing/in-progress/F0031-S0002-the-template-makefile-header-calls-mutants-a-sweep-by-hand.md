@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 294
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T22:32:36.600915Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T22:32:36.600915Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T22:32:58.994034Z'
+  stage: review
+  run: 1314d728adeb4b4f9b0995b2dc8a9c3b
 ---
 
 # The template's Makefile header calls mutants a sweep by hand
@@ -144,3 +146,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   I reviewed `git diff main...HEAD -- . ':!factory'`, which touches `template/Makefile` and `tests/test_template_makefile_header.py`, against the work item.
+   - Acceptance criteria: criterion 1 is tested by `tests/test_template_makefile_header.py::test_template_makefile_header_calls_mutants_a_sweep_by_hand`, one parametrized test with three rows. `new-line-4` checks that the new line occurs exactly once and is line 4. `old-phrase` checks that the old phrase occurs 0 times. `line-5` checks that line 5 is `# A Python example with a src layout.`. Each row checks what the criterion says. Criterion 2: the diff does not touch the three named tests, and the coder's entry 7 reports them passing with `check: green`. The Interface states no limit and no refused input, so there is no failing side to test.
+   - Architecture and security: nothing under `src/` changed. There are no markers that silence a check and no secrets. The test reads the file through `ROOT` of `tests/shipped_agents.py`, as the Interface asks and as the earlier tests do.
+   - Quality: the only change to `template/Makefile` is that line 4 became the two lines the Interface gives. Lines 1 to 3 and everything below them are as they were. The test module has a module docstring and copies no helper.
+   - Work item hygiene: entry 7 gives the main choice (the Interface's exact text) and the alternative it rejected (shortening the header to one line). The Description matches what was built, and `docs: none` still holds.
+   - Duplicates: entry 7 reports `5 new` from `make duplicates`. That target looks only at `src/factory`, which this diff does not touch, so none of those findings come from this story.
+
+   Earlier tests: none. The diff only adds `tests/test_template_makefile_header.py`. No test file on `main` is changed, renamed or deleted.
+
+   Open: the todo demo's `Makefile:4` still has the old line. That file is outside every write path, and changing it is the human's call, as the Description says.
