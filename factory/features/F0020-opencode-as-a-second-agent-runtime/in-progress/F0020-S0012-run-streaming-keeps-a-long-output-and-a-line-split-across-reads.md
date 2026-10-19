@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 278
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T18:49:06.060475Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T18:49:06.060475Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T18:49:30.077850Z'
+  stage: review
+  run: bf0a515435d44a0b8bb444d152e9644d
 ---
 
 # run_streaming keeps a long output and a line split across reads
@@ -137,3 +139,13 @@ Expect: two lines, `[('stdout', 200000)] 200001` and `[('stderr', 'hello'), ('st
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the diff (`tests/adapters/test_process_streaming_reads.py` new, `tests/process_support.py` and `tests/adapters/test_process_streaming.py` changed, nothing under `src/`) against the work item and against `_LineReader.read_ready` in `src/factory/adapters/process.py`.
+   - Criterion 1: `test_line_longer_than_one_read_reaches_the_callback_and_the_result_whole` has one row per stream. A 200001-byte write needs several reads of at most 64 KiB. The test asserts `recorder.calls == [(stream, "x" * 200000)]`, which means exactly one call and none on the other stream, and that the result's text has length 200001. Under `read_bytes[stream] = chunk` the length check fails. Under `_pending[stream] = chunk` the line reaches the callback cut short.
+   - Criterion 2: `test_line_split_across_two_writes_reaches_the_callback_once_and_whole` has one row per stream. The child writes `{"a":`, flushes, waits 0.5 s, then writes `1}\n`. The test asserts that the callback got exactly `['{"a":1}']` for that stream and that the stream's text is `{"a":1}\n`. That kills both surviving mutants the story names (the callback would get `1}`, and the text would be `1}\n`).
+   - The coder's entry 7 says `make check` was green. No code change, so there is no mutation line to read. The story states no limit or refusal, so there is no failing side to cover. The architecture and security checks do not apply to a test-only diff. The `_text` helper is not a copy of an existing one: I searched `tests/` and found none with the same use. The Description matches what was built. Criterion 4 still names the `run_streaming` paragraph the documenter has to update.
+
+   Earlier tests:
+   - tests/process_support.py: changed under the standing leave to move a shared test helper. `Recorder` moved here unchanged, with its `threading` and `Stream` imports and a wider module docstring. The story's Interface names this file too.
+   - tests/adapters/test_process_streaming.py: changed under the standing leave to move a shared test helper. Its own copy of `Recorder` was removed and it now imports `Recorder` from `process_support`. Every test keeps its name and what it checks. The story's Interface names this file too.
