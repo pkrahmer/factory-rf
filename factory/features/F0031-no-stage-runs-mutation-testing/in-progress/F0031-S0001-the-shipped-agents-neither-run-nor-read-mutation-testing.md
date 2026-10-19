@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 286
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T20:57:58.897017Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T20:57:58.897017Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T20:59:59.343504Z'
+  stage: tests
+  run: 30993873f9b648aab5f3122338dd9c25
 ---
 
 # The shipped agents neither run nor read mutation testing
@@ -219,3 +221,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Choice: I'm handing the change on with `tests` rather than raising a question. The reviewer's finding names decision 7's exact text, so nothing is left to decide unless the human prefers the tester's wording. The reviewer left that call to the human, and I have no reason to ask for it.
     - Noticed, not touched: what I reported in entry 7 still holds. Line 4 of `template/Makefile` calls `duplicates` and `mutants` "reports outside `check`", which could be a later wording story.
 12. factory: started tests as self.
+13. tester: Made the approved test change from coder entry 11 (reviewer finding 1, decision 7 of the feature). I changed only the module docstring of `tests/test_claude_agent_texts_mutants.py`.
+    - Old: `"""No shipped agent runs or reads mutation testing; the template leaves it to a sweep by hand."""`
+    - New: `"""No shipped agent runs or reads mutation testing; the acceptance's check 3 says it is done by sweep."""`
+
+    On one line, the exact text is 105 characters, and `make lint` failed with E501 (line limit 100). So I split the source line inside the docstring with a backslash line continuation after `testing; `. The docstring's value is still decision 7's exact text on one line; I checked it with `ast.get_docstring`. I rejected two other fixes:
+    - a `# noqa: E501` marker, because it would be a suppression;
+    - a summary line plus a body, because it would change the text.
+
+    Nothing else in the file changed. No other test file changed.
+
+    Criterion mapping is unchanged from entry 5:
+    - criterion 1: tests/test_claude_agent_texts_mutants.py::test_acceptance_reviewer_leaves_mutation_testing_to_sweeps
+    - criterion 2: tests/test_claude_agent_texts_mutants.py::test_acceptance_reviewer_holds_no_old_mutation_text and ::test_acceptance_reviewer_mutation_testing_is_the_third_check
+    - criterion 3: tests/test_claude_agent_texts_mutants.py::test_reviewer_names_no_mutation_testing and ::test_reviewer_item_6_is_followed_by_the_findings_paragraph
+    - criterion 4: tests/test_claude_files.py::test_template_rules_file_is_the_python_project_text and tests/test_claude_agent_texts_mutants.py::test_template_makefile_leaves_mutants_to_a_sweep_by_hand
+    - criterion 5: the unchanged earlier tests
+
+    Files created: none. Earlier file changed: tests/test_claude_agent_texts_mutants.py, under decision 7's leave as the coder's entry passed it on. Import failures: none.
+
+    Checks:
+    - `make test`, run once before the line split: test: green (45.5 s), coverage 99.12 %.
+    - `make lint` after the split: green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (44.2 s)

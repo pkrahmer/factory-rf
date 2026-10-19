@@ -1,4 +1,5 @@
-"""No shipped agent runs or reads mutation testing; the template leaves it to a sweep by hand."""
+"""No shipped agent runs or reads mutation testing; \
+the acceptance's check 3 says it is done by sweep."""
 
 import pytest
 
