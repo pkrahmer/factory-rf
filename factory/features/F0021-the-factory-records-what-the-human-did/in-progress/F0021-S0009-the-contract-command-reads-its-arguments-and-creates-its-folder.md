@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 244
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T01:38:23.816163Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-19T01:38:23.816163Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T01:38:43.141305Z'
+  stage: smoke-test
+  run: 4b4edacf16884dfd83aa14df4d2a0d36
 ---
 
 # The contract command reads its arguments and creates its folder
@@ -263,3 +265,37 @@ Expect: `usage: python -m factory.entry.contract [<folder>]` on standard error, 
     `check`: check: green
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Ran the two `## Smoke test` blocks from the repository root, as written and in order. Both met their `Expect:` lines. No findings.
+
+    Command 1:
+    ```bash
+    d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
+    uv run -q python -m factory.entry.contract "$d/a/b" && ls "$d/a/b" | wc -l
+    ```
+    Output:
+    ```
+    contract: 5 schemas written
+    5
+    ```
+    Met: the two expected lines, `contract: 5 schemas written` and `5`. Neither `a` nor `b` existed before the run, so the command created the folder and its missing parent.
+
+    Command 2:
+    ```bash
+    uv run -q python -m factory.entry.contract one two; echo "status $?"
+    ```
+    Output on standard output:
+    ```
+    status 2
+    ```
+    Output on standard error (from a second run with only stderr shown):
+    ```
+    usage: python -m factory.entry.contract [<folder>]
+    ```
+    Met: the usage line went to standard error and the status was 2. Afterwards neither `one` nor `two` existed, so the run wrote nothing, as criterion 1's third row asks.
+
+    Acceptance criteria checked against the smoke test:
+    - Criterion 1: the `python -m` runs read `sys.argv[1:]`. One argument is used as the folder. Two arguments print the usage line and return 2.
+    - Criterion 2: missing parents are created.
+    - Criteria 3 and 4: the smoke test does not touch them. The factory runs `make check` as its gate.
+
+    The smoke test contradicts no criterion. `git status` afterwards showed only the work item's `.costs.jsonl` sidecar as changed, which is the factory's file. I fixed nothing.
