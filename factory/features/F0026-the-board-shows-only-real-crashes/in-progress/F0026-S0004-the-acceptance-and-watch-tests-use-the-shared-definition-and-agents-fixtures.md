@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 274
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T17:37:35.084294Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T17:37:14.313026Z'
   stage: docs
   run: b0206ba3c4ce4d4b9e919b4cec48cf83
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T17:37:35.084294Z'
+  stage: smoke-test
 ---
 
 # The acceptance and watch tests use the shared definition and agents fixtures
@@ -216,3 +225,4 @@ Expect: three lines, `tests/conftest.py`, `tests/conftest.py` and `pytest exit 0
     `check`: check: green
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
