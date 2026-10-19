@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-19T16:26:16.051646Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T16:26:16.045793Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:26:16.051646Z'
+  stage: intake
+---
+
 # A report stopped at its time limit says so in its journal line
 
 ## Description
@@ -48,3 +75,5 @@ Expect: three lines, `` `mutants`: 1718/1858 mutants (stopped at its time limit 
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
