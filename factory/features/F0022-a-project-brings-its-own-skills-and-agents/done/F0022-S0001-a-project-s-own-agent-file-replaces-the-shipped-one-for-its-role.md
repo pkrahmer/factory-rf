@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -102,6 +102,11 @@ journal:
   at: '2026-10-19T13:31:53.031987Z'
   stage: smoke-test
   run: 92bac92515fb4812bb3cbfeb2e0b8b77
+- number: 18
+  speaker: factory
+  kind: done
+  at: '2026-10-19T13:34:16.771430Z'
+  stage: approval
 ---
 
 # A project's own agent file replaces the shipped one for its role
@@ -427,3 +432,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Findings: none.
 
     Open: nothing.
+18. factory: done (pull request merged); cost: 8 runs, 10.7 min, 79 turns, 302734 tokens in (2392222 more from cache), 47519 out, $3.44
