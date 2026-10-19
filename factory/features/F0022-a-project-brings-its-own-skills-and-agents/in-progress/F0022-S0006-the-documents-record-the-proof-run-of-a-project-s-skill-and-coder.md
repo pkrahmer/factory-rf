@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 302
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T23:36:41.771479Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T23:36:21.450502Z'
   stage: intake
   run: 5922b8a2708f479d9b0c3295cb9c9d78
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:36:41.771479Z'
+  stage: tests
 ---
 
 # The documents record the proof run of a project's skill and coder
@@ -88,3 +97,4 @@ Expect: `documents ok`
    - Smoke test: the four commands are runnable, and each `Expect:` line is a literal output (`0`, `0`, `1`, `documents ok`). The `sed` range in the third command starts at the exact heading at line 757 of `docs/decisions.md`. It stops at the next `## `, and the new bullet falls inside that range.
    - Architecture: no layer is touched, and the change is limited to documents, which fits the documenter's write paths (`README.md` and `docs/*`).
    - Scope: the story belongs to F0022 and records the proof run (the feature's change 2, decision 15). It leaves the nested `.claude/skills/` open, as decision 12 does, and touches nothing the feature puts out of scope. The story's description of the proof run's evidence is the human's account, and I did not verify it.
+4. factory: started tests as self.
