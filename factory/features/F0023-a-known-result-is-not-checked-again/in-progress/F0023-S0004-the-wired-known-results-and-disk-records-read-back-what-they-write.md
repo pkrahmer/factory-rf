@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 289
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T21:48:00.423269Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T21:48:00.423269Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T21:48:16.249238Z'
+  stage: smoke-test
+  run: e9f6d3f04be948978f6385002f398440
 ---
 
 # The wired known results and disk records read back what they write
@@ -178,3 +180,19 @@ Expect: a line that starts with `2 passed`
     `secrets`: secrets: green (0.1 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: no findings.
+
+    I ran the one command under `## Smoke test` from the repository root, exactly as written.
+
+    1. `uv run pytest --no-header -p no:cacheprovider tests/entry/test_wiring_record_logs.py 2>&1 | tail -n 1`
+    ```
+    2 passed in 0.02s
+    ```
+    Expect: a line that starts with `2 passed`. Met.
+
+    Judged against the acceptance criteria:
+    - Criterion 1: the two passing tests are the two rows of the parametrized test, one for `result_records` and one for `disk_records`. That matches "one row per log". Nothing in the output contradicts it.
+    - Criterion 2: the smoke test does not cover `make check`, and nothing in it contradicts the criterion. The factory's own checks gate it, and the coder's run was green (journal entry 7).
+    - Criterion 3 (docs: none): the smoke test does not contradict it.
+
+    I changed no files. Open from earlier entries, not a finding: no test reads the `RecordingProjectCommands` log back through the wiring. The description leaves that out on purpose. `feature.md` does not list this story, and that edit is the human's.
