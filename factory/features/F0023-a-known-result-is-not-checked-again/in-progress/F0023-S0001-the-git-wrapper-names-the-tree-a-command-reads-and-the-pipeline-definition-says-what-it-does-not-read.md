@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T14:25:26.681339Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T14:25:06.019383Z'
   stage: intake
   run: 3e4cc65b172b460691dec86d99fb6a73
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T14:25:26.681339Z'
+  stage: tests
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -173,3 +182,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: matches CLAUDE.md. `TreeId` lives in domain; `Git` is the abstract class, `GitCli` its only implementation and the only git caller; DTOs are Pydantic; the layer direction holds (`write_paths` and `confinement` import from `pipeline_definition`).
    Scope: inside F0023's scope list (S0001 items) and not in its Out of scope; nothing uses `not_read` or `work_tree_id` yet, which is S0002's.
    Open: none. One note, not a question: criterion 8 pins the contract version only through `x-records-contract` equal to `RECORDS_CONTRACT`; the `"1.3"` literal itself is pinned by the changed existing tests.
+4. factory: started tests as self.
