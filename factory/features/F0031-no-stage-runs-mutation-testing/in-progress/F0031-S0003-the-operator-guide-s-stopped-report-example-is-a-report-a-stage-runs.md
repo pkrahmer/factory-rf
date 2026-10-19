@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 301
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T23:32:31.146184Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T23:32:31.146184Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T23:32:50.551621Z'
+  stage: review
+  run: 1ffb8c4a37484ea984f5791cc2265db8
 ---
 
 # The operator guide's stopped-report example is a report a stage runs
@@ -130,3 +132,10 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 5006d1b6db9a at 2026-10-19T23:02:45Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I read: the work item and `git diff main...HEAD -- . ':!factory'`. The diff is empty: the branch changes only this work item's `.md` file and adds its `.costs.jsonl` sidecar under `factory/`.
+   1. Acceptance criteria: criterion 1 holds, because nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changed, and both the tester (entry 5) and the coder (entry 7) say so. Criterion 2: the coder's entry records `check: green` (coverage 99.13 %). Criterion 3 is the docs criterion and is still open for the documenter. The story states no rule with a failing side, so no test is missing.
+   2–4. Architecture, security and quality: there is no code to check. The `duplicates: 5 new` in entry 7 cannot come from this branch, because the branch changes no code.
+   5. Work item hygiene: the docs criterion still matches the guide. `docs/operator-guide.md:703` (*What a stage run shows*, point 3) holds the old example `` `mutants`: 1718/1858 mutants (stopped at its time limit after 600 s) ``, and it is the only `` `mutants`: `` in the guide. The new example is accurate: `factory/pipeline.yml` lists `test` among the tests stage's `reports`, with `time_limit: 10`, which is 600 s.
+   6. Earlier tests: none changed. The diff changes, renames or deletes no test file.
