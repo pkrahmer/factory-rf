@@ -28,9 +28,10 @@ from factory.application.boundaries import Boundaries
 from factory.domain.git import GitOptions
 from factory.domain.identifiers import WorkItemId
 from factory.domain.kill_points import KillPoints
+from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.settings import InstanceSettings
 from factory.domain.stops import StopRecord
-from git_support import CHECKOUT, TEST_IDENTITY, clone, copy_remote, make_remote
+from git_support import CHECKOUT, PIPELINE_YAML, TEST_IDENTITY, clone, copy_remote, make_remote
 from human_clone import HumanClone
 from proof_support import World, build_world, start_story
 from run_process_recorder import Recorder
@@ -180,6 +181,12 @@ def boundaries(
         health=JsonHealthStatusFile(state / "health.json"),
         checkout=tmp_path / CHECKOUT,
     )
+
+
+@pytest.fixture
+def definition(boundaries: Boundaries) -> PipelineDefinition:
+    """Return the test remote's pipeline definition, with the acceptance stage `acceptance`."""
+    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
 
 
 @pytest.fixture

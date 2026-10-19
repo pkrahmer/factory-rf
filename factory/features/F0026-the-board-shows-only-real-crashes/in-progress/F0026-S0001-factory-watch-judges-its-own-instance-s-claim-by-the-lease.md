@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 262
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T12:43:08.557633Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T12:43:08.557633Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T12:46:06.226271Z'
+  stage: tests
+  run: d4ec544a69694771be47df22e7d9d714
 ---
 
 # factory-watch judges its own instance's claim by the lease
@@ -316,3 +318,35 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Not touched: the docs for criterion 8 are the documenter's.
 12. factory: started tests as self.
+13. tester: Moved the shared test helpers that review findings 1 to 4 name, as coder entry 11 asked, under the standing leave in `CLAUDE.md`. Every earlier test keeps its name and still checks the same thing. No test now holds a copy of these helpers.
+
+    New file: `tests/watch_support.py`, one shared place at the root of `tests/`. It holds:
+    - The constants `FEATURES`, `STORY`, `STORY_BRANCH`, `STORY_FEATURE`, `BACKLOG_PATH`, `STORY_PATH`, `ACCEPTANCE`, `ACCEPTANCE_BRANCH`, `TODO` and `REPORT` (finding 3).
+    - `aged_claim(clock, instance, stage, age)` (finding 3).
+    - `push_story_claim`, which replaces the story push that the two new files each held.
+    - `push_complete(human, directory="F0002-todo")` (finding 1).
+    - `open_acceptance`, `acceptance_branch_state`, `push_acceptance_state`, and `push_acceptance_claim`, which is built from those three (finding 2).
+
+    `tests/conftest.py`: the `definition` fixture now lives here, docstring included (finding 4). Test modules that define their own `definition` fixture still shadow it; I left them unchanged, because the findings do not name them.
+
+    Earlier test files changed under the standing leave:
+    - `tests/application/test_watcher_acceptance.py`: its `definition` fixture, `_push_complete`, `_open`, `_branch_state`, `_push_state` and the constants `FEATURES`, `ACCEPTANCE`, `BRANCH`, `TODO` and `REPORT` are removed. It now imports the shared ones; `BRANCH` became `ACCEPTANCE_BRANCH`.
+    - `tests/entry/test_watch_acceptance.py`: the `todo` fixture keeps its name and docstring and now calls `push_complete(human)`. Its `TODO` constant is removed.
+
+    This story's own tests:
+    - `tests/application/test_watcher_observer.py` and `tests/entry/test_watch_own_claim.py` now use the shared helpers and the `definition` fixture from conftest. `test_watch_own_claim.py` takes `definition` as a new parameter.
+    - Criterion mapping is unchanged:
+      - criterion 3: `tests/application/test_watcher_observer.py::test_a_story_claim_is_judged_from_outside_by_its_lease`
+      - criterion 4: `tests/application/test_watcher_observer.py::test_an_acceptance_claim_is_judged_from_outside_by_its_lease`
+      - criterion 5: `tests/entry/test_watch_own_claim.py::test_the_watch_judges_its_own_instances_claim_by_the_lease`
+      - criteria 1, 2 and 6 keep their tests from entry 5.
+
+    Not done: the copied `definition` fixture and push of the complete feature in other acceptance test modules, such as `test_acceptance_service.py` and `test_acceptance_reading.py`. Neither review nor coder named them.
+
+    Checks:
+    - `make lint` is green.
+    - I ran `make test` once: test: green, total coverage 99.06 %. The test runner could import every module.
+    - I did not run the type check, as the stage says; the factory's `make check` covers it.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (46.5 s)

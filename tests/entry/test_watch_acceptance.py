@@ -10,9 +10,9 @@ from factory.application.boundaries import Boundaries
 from factory.entry.watch import run_watch
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
+from watch_support import push_complete
 
 INSTANCE = "factory-1"
-TODO = "factory/features/F0002-todo"
 
 
 @pytest.fixture(autouse=True)
@@ -23,9 +23,7 @@ def _agents(agent_home: Path, boundaries: Boundaries) -> None:
 @pytest.fixture
 def todo(human: HumanClone) -> None:
     """Push the due feature `F0002-todo`: its feature file and two archived stories."""
-    human.push_file("main", f"{TODO}/feature.md", "# Todo service\n")
-    human.push_file("main", f"{TODO}/done/F0002-S0001-a.md", "# A\n")
-    human.push_file("main", f"{TODO}/done/F0002-S0002-b.md", "# B\n")
+    push_complete(human)
 
 
 def _watch(boundaries: Boundaries) -> str:
