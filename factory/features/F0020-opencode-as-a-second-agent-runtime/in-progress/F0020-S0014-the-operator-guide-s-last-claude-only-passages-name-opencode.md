@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 299
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T23:17:45.125062Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T23:17:45.125062Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T23:18:05.351944Z'
+  stage: smoke-test
+  run: f3bd92afdafb4baab17c1614a1c99376
 ---
 
 # The operator guide's last Claude-only passages name opencode
@@ -186,3 +188,32 @@ Expect: `documents ok`
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings. I ran the three commands under `## Smoke test` from the repository root, as written and in order. Then I checked the acceptance criteria against `git diff main...HEAD`.
+
+    Command 1: met its Expect (`0`, then a number of at least `1`).
+    ```
+    0
+    1
+    ```
+
+    Command 2: met its Expect (a number of at least `1`).
+    ```
+    1
+    ```
+
+    Command 3: met its Expect (`documents ok`).
+    ```
+    documents ok
+    ```
+
+    Acceptance criteria against the branch diff:
+    - Criterion 1 holds. The branch changes `docs/operator-guide.md` and, apart from that, only the work item and its `.costs.jsonl` sidecar. Nothing changed under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The tester's entry (5) and the coder's entry (7) each say they changed nothing.
+    - Criterion 2: I did not run `make check` in this stage. The factory's recorded result is `check: green` on tree 5006d1b6db9a (entries 7 and 11), and the branch has changed no file outside documents since.
+    - Criterion 3 holds:
+      - The opening paragraph now names "the `claude -p` and `opencode run` runtimes".
+      - *The agent runs as a second user* has one new sentence saying that under opencode the same chain starts the opencode executable (`FACTORY_OPENCODE`) with `run` and its arguments in place of `claude` (see "Running on opencode").
+      - The `~/.claude` login sentence now says it concerns Claude Code.
+      - *`factory-guard` on the agent run's `PATH`* has one new sentence: an opencode run registers no hook (see "What differs from Claude Code"), and `agent-environment` checks the command on the `PATH` under either runtime. The hook sentence was reworded to "The Claude Code runtime registers it as a hook", which is inside the named passage.
+      - No other passage changed (the diff has exactly three hunks of changes, one per named section), and `check_documents` prints `documents ok`.
+
+    Open: the documenter noted that the second-user section describes the login shell only for the Claude login. That passage is outside this story's three, so it is not a finding here.
