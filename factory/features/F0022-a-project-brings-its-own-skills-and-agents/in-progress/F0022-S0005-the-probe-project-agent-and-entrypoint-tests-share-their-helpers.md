@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T20:18:46.703804Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T20:18:46.703804Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T20:19:00.793806Z'
+  stage: doing
+  run: 05ac47803e69479ebe13fc10a4ece436
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -190,3 +192,10 @@ Expect: `1`
    - `tests/conftest.py:46`: the conftest imports `Layout` from the test module `test_entrypoint`, as the Interface asks. A later move of `Layout` to a support module would remove that dependency (the coder noticed this too, in entry 7).
    - entry 7, `duplicates: 5 new`: this diff changes nothing under `src/factory`, so the new findings cannot come from this story; the feature's acceptance may want to look at the baseline.
 10. factory: started doing as self.
+11. coder: Round 1 hands the reviewer's finding to the tester. I changed no code and no test. The finding is a test change, and the coder never edits tests.
+
+    Test change for the tester: the module docstring at `tests/test_entrypoint.py:1` should go back to what `main` has, `"""The image's entrypoint, run with `sh` against stub executables in a temporary layout."""`. Right now it says "temporary image_layout", which looks like the fixture rename's find-and-replace also hit the prose. I checked it with `git diff main -- tests/test_entrypoint.py`: that docstring line is the only change in the module apart from the fixture move and the parameter renames.
+
+    Main choice: I end with `tests` and not `review`, because the fix sits in a test file (R9). The alternative was to edit the docstring myself, which I rejected because that file belongs to the tester.
+
+    Noticed but did not touch: nothing new beyond entry 7 (the conftest imports `Layout` from the `test_entrypoint` test module). There is still no change under `src/factory/`. The Description is unchanged, because the finding does not change what the task means.
