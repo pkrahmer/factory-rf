@@ -34,6 +34,7 @@ from git_support import (
     write_agent,
 )
 from human_clone import HumanClone
+from log_support import log_lines
 
 INSTANCE = "factory-1"
 MIN_FREE_GB = 2
@@ -83,20 +84,9 @@ def _remote_pairs(remote: Path) -> list[tuple[str, str]]:
     return [(record.event, record.reason) for record in parse_stop_records(text)]
 
 
-def _log_lines(tmp_path: Path) -> list[str]:
-    log = tmp_path / "state" / "factory.log"
-    return log.read_text(encoding="utf-8").splitlines() if log.exists() else []
-
-
 @pytest.fixture(autouse=True)
 def _agents(agent_home: Path, boundaries: Boundaries) -> None:
     install_agents(agent_home, boundaries.pipeline_reader.parse(PIPELINE_YAML).roles)
-
-
-@pytest.fixture
-def records(tmp_path: Path) -> JsonLinesRecordLog[StopRecord]:
-    """The stop records in the test's state directory."""
-    return JsonLinesRecordLog(tmp_path / "state" / "records" / "stops.jsonl", StopRecord)
 
 
 @pytest.fixture
@@ -292,7 +282,7 @@ def test_a_failed_publish_is_logged_and_the_tick_goes_on(
 
     outcome = Tick(wired, INSTANCE, _handlers).run()
 
-    lines = [line.split(" ", 1)[1] for line in _log_lines(tmp_path)]
+    lines = [line.split(" ", 1)[1] for line in log_lines(tmp_path)]
     assert any(line.startswith("cannot publish the stop records: ") for line in lines)
     assert context.records.read() == [LOCAL]
     assert outcome.stopped is None

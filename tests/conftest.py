@@ -19,12 +19,14 @@ from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
 from factory.domain.git import GitOptions
 from factory.domain.identifiers import WorkItemId
 from factory.domain.kill_points import KillPoints
 from factory.domain.settings import InstanceSettings
+from factory.domain.stops import StopRecord
 from git_support import CHECKOUT, TEST_IDENTITY, clone, copy_remote, make_remote
 from human_clone import HumanClone
 from proof_support import World, build_world, start_story
@@ -196,3 +198,9 @@ def work_item(world: World) -> WorkItemId:
 def layout(tmp_path: Path) -> Layout:
     """A checkout with `src` and `other`, a home and a temporary root under `tmp_path`."""
     return build_layout(tmp_path)
+
+
+@pytest.fixture
+def records(tmp_path: Path) -> JsonLinesRecordLog[StopRecord]:
+    """The stop records in the test's state directory."""
+    return JsonLinesRecordLog(tmp_path / "state" / "records" / "stops.jsonl", StopRecord)

@@ -16,6 +16,7 @@ from factory.application.disk_records import DiskRecorder
 from factory.domain.disk import DiskOccasion, DiskRecord, DiskUse, disk_line
 from factory.domain.settings import InstanceSettings
 from git_support import CHECKOUT
+from log_support import log_lines
 from record_support import UnwritableRecordLog
 
 STAMP = r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ "
@@ -72,11 +73,6 @@ def recorded(
     return replace(boundaries, disk=disk, disk_records=records, settings=settings)
 
 
-def _log_lines(tmp_path: Path) -> list[str]:
-    log = tmp_path / "state" / "factory.log"
-    return log.read_text(encoding="utf-8").splitlines() if log.exists() else []
-
-
 def _use(path: Path, free: int | None, used: int | None) -> DiskUse:
     return DiskUse(path=str(path), free_bytes=free, used_bytes=used)
 
@@ -99,7 +95,7 @@ def test_a_start_record_holds_the_work_and_the_state_directory_and_is_kept_and_l
         ],
     )
     assert records.read() == [record]
-    [line] = _log_lines(tmp_path)
+    [line] = log_lines(tmp_path)
     assert line.endswith(disk_line(record))
 
 
@@ -149,7 +145,7 @@ def test_a_record_that_cannot_be_appended_is_logged_with_the_error_and_still_ret
     record = DiskRecorder(replace(recorded, disk_records=unwritable)).record("start")
 
     assert record is not None
-    first, second = _log_lines(tmp_path)
+    first, second = log_lines(tmp_path)
     assert first.endswith(disk_line(record))
     assert re.fullmatch(STAMP + "cannot write the disk record: disk full", second)
 
@@ -174,7 +170,7 @@ def test_boundaries_without_disk_records_or_settings_record_nothing(
 
     assert record is None
     assert records.read() == []
-    assert _log_lines(tmp_path) == []
+    assert log_lines(tmp_path) == []
 
 
 def _at(clock: ManualClock, hours: int, occasion: DiskOccasion) -> DiskRecord:

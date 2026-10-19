@@ -11,6 +11,7 @@ from factory.application.recovery import delete_stale_branches
 from factory.domain.identifiers import branch_name
 from git_support import CHECKOUT, remote_commit, run_git
 from human_clone import HumanClone
+from log_support import log_lines
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
@@ -21,11 +22,6 @@ BACKLOG_PATH = f"{FEATURE}/backlog/F0001-S0001-first.md"
 IN_PROGRESS_PATH = f"{FEATURE}/in-progress/F0001-S0001-first.md"
 SECOND_BACKLOG_PATH = f"{FEATURE}/backlog/F0001-S0002-second.md"
 SECOND_DONE_PATH = f"{FEATURE}/done/F0001-S0002-second.md"
-
-
-def _log_lines(tmp_path: Path) -> list[str]:
-    log = tmp_path / "state" / "factory.log"
-    return log.read_text(encoding="utf-8").splitlines() if log.exists() else []
 
 
 def _push_branch(human: HumanClone, checkout: GitCli, branch: str) -> None:
@@ -82,7 +78,7 @@ def test_a_backlog_story_without_a_branch_changes_nothing(
     deleted = delete_stale_branches(boundaries)
 
     assert deleted == []
-    assert _log_lines(tmp_path) == []
+    assert log_lines(tmp_path) == []
     assert remote_commit(remote, "main") == main_before
     checkout.fetch()
     assert checkout.remote_branches() == branches_before
@@ -154,7 +150,7 @@ def test_a_deleted_branch_is_named_in_one_log_line(
     delete_stale_branches(boundaries)
 
     expected = f"deleted stale branch {BRANCH}: its story is back in the backlog"
-    assert len([line for line in _log_lines(tmp_path) if line.endswith(expected)]) == 1
+    assert len([line for line in log_lines(tmp_path) if line.endswith(expected)]) == 1
 
 
 def test_a_refused_deletion_is_logged_and_tried_again_on_the_next_call(
@@ -175,7 +171,7 @@ def test_a_refused_deletion_is_logged_and_tried_again_on_the_next_call(
     assert before is not None
     assert remote_commit(remote, BRANCH) == before
     expected = f"could not delete stale branch {BRANCH}: rejected"
-    assert any(line.endswith(expected) for line in _log_lines(tmp_path))
+    assert any(line.endswith(expected) for line in log_lines(tmp_path))
 
     run_git(remote, "config", "--unset", "receive.denyDeletes")
 
@@ -223,7 +219,7 @@ def test_the_branch_of_a_done_story_is_deleted(
     assert deleted == [SECOND_BRANCH]
     assert remote_commit(remote, SECOND_BRANCH) is None
     expected = f"deleted stale branch {SECOND_BRANCH}: its story is done"
-    assert len([line for line in _log_lines(tmp_path) if line.endswith(expected)]) == 1
+    assert len([line for line in log_lines(tmp_path) if line.endswith(expected)]) == 1
 
 
 def test_an_id_in_the_backlog_and_done_is_logged_as_done(
@@ -242,7 +238,7 @@ def test_an_id_in_the_backlog_and_done_is_logged_as_done(
 
     assert deleted == [SECOND_BRANCH]
     assert remote_commit(remote, SECOND_BRANCH) is None
-    named = [line for line in _log_lines(tmp_path) if SECOND_BRANCH in line]
+    named = [line for line in log_lines(tmp_path) if SECOND_BRANCH in line]
     assert len(named) == 1
     assert named[0].endswith(f"deleted stale branch {SECOND_BRANCH}: its story is done")
 
@@ -262,12 +258,12 @@ def test_an_unreachable_deletion_is_logged_and_tried_again_on_the_next_call(
     first = delete_stale_branches(boundaries)
 
     assert first == []
-    assert len([line for line in _log_lines(tmp_path) if line.endswith(expected)]) == 1
+    assert len([line for line in log_lines(tmp_path) if line.endswith(expected)]) == 1
 
     second = delete_stale_branches(boundaries)
 
     assert second == []
-    assert len([line for line in _log_lines(tmp_path) if line.endswith(expected)]) == 2
+    assert len([line for line in log_lines(tmp_path) if line.endswith(expected)]) == 2
 
     away.rename(remote)
 

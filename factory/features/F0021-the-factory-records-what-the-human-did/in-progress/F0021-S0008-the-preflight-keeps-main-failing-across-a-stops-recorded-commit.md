@@ -1,3 +1,131 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 243
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T01:03:27.835216Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:03:27.841706Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T01:03:43.258715Z'
+  stage: intake
+  run: 6b424916888c4fd19914b75b84f9e288
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:04:03.849629Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T01:06:51.375124Z'
+  stage: tests
+  run: efe185d0f7ce45588091db9c02369c14
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:07:11.762646Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T01:09:12.619941Z'
+  stage: doing
+  run: b1dd6c008bf34208822ef8d894a6eab0
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:09:33.117637Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T01:10:49.028949Z'
+  stage: review
+  run: 48340b1330eb463e9c6e45a9c88766f5
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:11:09.485931Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T01:11:24.050324Z'
+  stage: doing
+  run: a0f57d8bebda4eeb917b1997291e426c
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:11:44.171802Z'
+  stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T01:14:35.249729Z'
+  stage: tests
+  run: 87678f39cc634ffda0f6e20ceb773eb9
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:14:55.661810Z'
+  stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T01:18:03.045864Z'
+  stage: doing
+  run: 2eecade3647247ac9c39f29e8abb5dce
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:18:23.176071Z'
+  stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T01:19:06.505874Z'
+  stage: review
+  run: cbd75f0eecbb4478adae2b428899864a
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:19:27.191498Z'
+  stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T01:21:28.504290Z'
+  stage: docs
+  run: 1bf7504188b54a5888b4cea781a55e81
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T01:21:48.955295Z'
+  stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T01:22:15.903767Z'
+  stage: smoke-test
+  run: da6b21106e1f4891bb3adf80e4ef94ee
+---
+
 # The preflight keeps main failing across a stops recorded commit
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -68,3 +196,171 @@ grep -c "the rule does not yet ignore a commit that changes only" docs/operator-
 Expect: `0`
 
 ## Journal
+
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: `changes_only_stop_records(paths: Sequence[ChangedPath]) -> bool` in `factory.domain.preflight` and the change to `Preflight._clear_stale_failing_stop` are concrete. `ChangedPath` (`factory.domain.git`), `Git.changed_paths(since)`, `STOP_RECORDS_FILE` (`factory.domain.paths`) and the method itself exist. The domain function sits in the domain layer, the use of `git.changed_paths` in the application layer.
+   Criteria: each is testable by one parametrized test. Criterion 1 covers every Interface clause: empty, each change kind, mixed paths, a similar name and another path. Criterion 2 covers the keep (one commit, two commits) and the clear (mixed, other file). Criterion 3 covers the `cleared` record on both sides. Criterion 4 covers the `GitError` side. The no-stamp, no-`main_failed`, `resolve` error and equal-main branches are stated unchanged, so they need no new criterion.
+   Smoke test: both commands are runnable. The Python snippet prints three lines, and the `grep -c` prints a count. Each `Expect:` line can be checked against the output.
+   Architecture: the layering follows CLAUDE.md. There is no new dependency, and the test modules mirror the package and reuse existing fixtures. Docs go to the three named files.
+   Scope: the work is within feature decision 1, which left this change to a later story. The probe of a new `main`, the stamp and the other preflight rules stay as they are. The existing sentence in `docs/operator-guide.md` line 348 is what the docs criterion replaces.
+4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 4. Each one is a parametrized test where the criterion lists rows.
+   criterion 1: tests/domain/test_preflight_stop_records_paths.py::test_only_the_stop_records_file_is_a_change_of_stop_records_only (rows: empty, modified, added, deleted, mixed, other, similar-name, other-jsonl)
+   criterion 2: tests/application/test_preflight_stops_commit.py::test_a_failed_machine_keeps_the_failing_stop_only_across_stop_records_commits (rows: one-stops-commit, two-stops-commits, stops-and-other-file, other-file-only)
+   criterion 3: tests/application/test_preflight_stops_commit.py::test_a_kept_failing_stop_appends_no_cleared_record (rows: one-stops-commit gives 0 `cleared` records for main_branch_failing, stops-and-other-file gives 1)
+   criterion 4: tests/application/test_preflight_stops_commit.py::test_a_failed_machine_clears_the_stop_when_the_remembered_commit_is_not_in_the_clone
+   criteria 5 and 6: no test (`make check` and the docs).
+
+   Files created: tests/domain/test_preflight_stop_records_paths.py, tests/application/test_preflight_stops_commit.py. No earlier test file changed. The application module reuses the `rig` and `red_main` fixtures of tests/application/test_preflight_run.py, as test_preflight_stale_main_stop.py does.
+
+   How the tests move main: the human clone makes the commits, then the checkout fetches and goes to main at `origin/main` (`checkout` plus `reset_to`). That is where the tick's restore leaves the checkout before the preflight runs. It matters because `Git.changed_paths(since)` compares `since` with the work tree, not with `origin/main`. Without that step the probe leaves the checkout on the old failing commit, and the diff would come back empty. The stops file the tests commit holds valid `StopRecord` lines.
+
+   Run of `make test`: the domain module could not be imported (`changes_only_stop_records` is missing from factory.domain.preflight). In the application module, these rows fail because the stop is still cleared: the one-stops-commit and two-stops-commits rows of the criterion 2 test, and the one-stops-commit row of the criterion 3 test. The clear rows and criterion 4 already pass. That is expected: they describe what the code does today. `make lint` is green.
+
+   Open: nothing.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/domain/test_preflight_stop_records_paths.py - ImportError while i...
+6. factory: started doing as self.
+7. coder: I added the rule so the preflight keeps `main_branch_failing` standing across a commit that changes only the stop records file. `make check` is green: it ran after my last edit, and there was nothing to refactor after that.
+
+   What I built:
+   - `src/factory/domain/preflight.py`: a new function, `changes_only_stop_records(paths)`. It returns true when `paths` is not empty and every path in it is `STOP_RECORDS_FILE` (from `factory.domain.paths`), whatever kind of change it is.
+   - `src/factory/application/preflight.py`: `_clear_stale_failing_stop` now clears the stop only when `main` differs from `stamp.main_failed` and the paths changed since `main_failed` are not the stop records file alone. A new private method, `_changes_only_stop_records(since)`, asks `git.changed_paths(since)` for those paths. If git raises `GitError`, the method returns false, so the stop is cleared as it is today.
+
+   Main choice: I put the `GitError` handling in a small private method that returns false, and kept the `if` in `_clear_stale_failing_stop` as one condition. I rejected nesting the try/except inside `_clear_stale_failing_stop`, which already holds one try/except for `resolve`. A second one would have given it two error paths and an extra branch that both clear the stop. Inside the method, the comment explains why a commit the clone cannot compare counts as a fix: that way a stop never outlasts a `main` the clone cannot check.
+
+   Noticed but did not touch:
+   - `changed_paths` compares against the work tree, not `origin/main`, as the tester's entry says. The rule therefore relies on the tick's restore leaving the checkout on `origin/main` before the preflight runs. That is the behaviour today, and I did not change it.
+   - The journal did not change what the task means, so I left the Description as it is.
+   - The docs for this story belong to the documenter.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (src/factory/domain/preflight.py, src/factory/application/preflight.py, two new test modules) against the work item.
+
+   Acceptance criteria: criteria 1 to 4 each have one parametrized test that checks what the criterion says. The Interface's failing sides are covered: other paths in criterion 1 and rows 3 and 4 of criterion 2, `GitError` in criterion 4, the empty list in criterion 1. Journal entry 7 records `make check` green. Architecture: the domain function imports only `factory.domain`, and the application method reaches git through `Boundaries.git`. I also checked that `changed_paths` compares against the work tree, not `origin/main`, and that this is safe: the tick's `_restore_checkout` calls `checkout(main, start_point=origin/main)`, a `switch --force-create`, before the stops are published and the preflight runs. So the work tree never lags `origin/main`, and an extra path in the work tree only makes the rule clear the stop. Security: nothing to report. Quality fails in the new test module, on helpers copied from other modules:
+
+   1. tests/application/test_preflight_stops_commit.py:29 `_log_lines` is a copy of `_log_lines` in tests/application/test_preflight_stale_main_stop.py:23 (also held in test_tick_stop_records.py:86, test_stale_branches.py:26, test_tick.py:183, test_disk_recorder.py:75). Fix: under the standing leave, move it to one shared place under `tests/` and use it from there.
+   2. tests/application/test_preflight_stops_commit.py:21 and :80-89 `CLEARED_LINE` and the `failed_once` fixture (body in `_failed_once`) copy `CLEARED_LINE` and `failed_once` in tests/application/test_preflight_stale_main_stop.py:20 and :46. Fix: move both to a shared place (the fixture to `tests/conftest.py` or beside `rig`/`red_main`) and use them from there; the recording variant can build on the shared fixture.
+   3. tests/application/test_preflight_stops_commit.py:73 the `records` fixture copies `records` in tests/application/test_tick_stop_records.py:97, word for word. Fix: move it to `tests/conftest.py` under the standing leave and use it from both modules.
+   4. tests/application/test_preflight_stops_commit.py:38 `_commit_on_main` is a second implementation, in raw git calls, of `HumanClone.push_file` (tests/human_clone.py:29): fetch, switch to `origin/main`, write, commit, push. Fix: use `rig.human.push_file("main", ...)` for the one-file rows. For the two-file row, reuse the shared helper rather than another raw-git copy.
+
+   Earlier tests: none. Every test file in the diff has status `A`.
+10. factory: started doing as self.
+11. coder: Round 1. The reviewer's four findings (entry 9) all concern copied helpers in the new test module, tests/application/test_preflight_stops_commit.py. The code in src/factory/domain/preflight.py and src/factory/application/preflight.py does not change. Under the standing leave in CLAUDE.md (*Tests*), the tester moves the helpers, not the coder. These are the moves I am asking the tester to make:
+    1. `_log_lines`: move it to one shared module at the root of `tests/`. Use it there from test_preflight_stops_commit.py and the earlier copies: tests/application/test_preflight_stale_main_stop.py, test_tick_stop_records.py, test_stale_branches.py, test_tick.py and test_disk_recorder.py.
+    2. `CLEARED_LINE` and the `failed_once` fixture (body `_failed_once`): move them out of tests/application/test_preflight_stale_main_stop.py to a shared place. The constant goes in a shared module and the fixture in `tests/conftest.py` or beside `rig`/`red_main`. test_preflight_stops_commit.py then builds its recording variant on the shared fixture.
+    3. The `records` fixture: move it from tests/application/test_tick_stop_records.py to `tests/conftest.py`, and use it from both modules.
+    4. `_commit_on_main` in test_preflight_stops_commit.py: replace it with `rig.human.push_file("main", ...)` (tests/human_clone.py) for the one-file rows. For the two-file row, reuse that shared helper (or extend HumanClone in tests/human_clone.py) instead of writing raw git calls again.
+    Every earlier test keeps its name and checks the same thing. I did not touch any test. The journal did not change what the task means, so the Description is unchanged. Not touched: the reliance of `changed_paths` on the tick's restore leaving the work tree at `origin/main`. The reviewer confirmed it is safe.
+12. factory: started tests as self.
+13. tester: Round 1, a test change. I made the four helper moves the coder named in entry 11, from the reviewer's findings in entry 9. They fall under the standing leave in CLAUDE.md (*Tests*) to move a shared test helper. Every earlier test keeps its name and checks the same thing. No source file changed.
+
+    The criterion → test mapping is the same as in entry 5:
+    criterion 1: tests/domain/test_preflight_stop_records_paths.py::test_only_the_stop_records_file_is_a_change_of_stop_records_only
+    criterion 2: tests/application/test_preflight_stops_commit.py::test_a_failed_machine_keeps_the_failing_stop_only_across_stop_records_commits
+    criterion 3: tests/application/test_preflight_stops_commit.py::test_a_kept_failing_stop_appends_no_cleared_record
+    criterion 4: tests/application/test_preflight_stops_commit.py::test_a_failed_machine_clears_the_stop_when_the_remembered_commit_is_not_in_the_clone
+    criteria 5 and 6: no test (`make check` and the docs).
+
+    The moves:
+    1. `_log_lines` is now `log_lines` in a new module, tests/log_support.py. These files use it from there instead of their own copy: tests/application/test_preflight_stops_commit.py, test_preflight_stale_main_stop.py, test_tick_stop_records.py, test_stale_branches.py, test_tick.py and test_disk_recorder.py.
+    2. `CLEARED_LINE`, the probe-once helper `fail_once` and the `failed_once` fixture are in a new module, tests/preflight_support.py. The fixture depends on `red_main`, which lives in tests/application/test_preflight_run.py, so it cannot go in conftest.py. Both test_preflight_stale_main_stop.py and test_preflight_stops_commit.py bind it with `failed_once = preflight_support.failed_once`, the same way they already bind `rig`. `failed_once_recording` builds on `fail_once`.
+    3. The `records` fixture (stop records) moved from tests/application/test_tick_stop_records.py to tests/conftest.py. The new module uses it from there too. Modules that define their own `records` override it as before. test_stop_publisher.py still holds an identical copy; entry 11 did not name it, so I left it.
+    4. `_commit_on_main` is gone. The one-file rows use `Rig.push_main`, which calls `HumanClone.push_file`. For the two-file row I added `HumanClone.push_files(branch, files)` in tests/human_clone.py, and `push_file` now delegates to it with the same commit message.
+
+    Files created: tests/log_support.py, tests/preflight_support.py.
+    Earlier test files changed: test_preflight_stale_main_stop.py, test_tick_stop_records.py, test_stale_branches.py, test_tick.py and test_disk_recorder.py (all in tests/application/), plus tests/conftest.py and tests/human_clone.py.
+    Modules the test run could not import: none.
+
+    `make lint` and `make test` are both green; total coverage is 99.06 %.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (48.5 s)
+14. factory: started doing as self.
+15. coder: Round 1. All four findings in entry 9 were about copied test helpers. The tester resolved them in entry 13 under the standing leave: tests/log_support.py, tests/preflight_support.py, the shared `records` fixture in tests/conftest.py, and `HumanClone.push_files` in tests/human_clone.py. None of the findings concerned code, so I changed no source this round. src/factory/domain/preflight.py (`changes_only_stop_records`) and src/factory/application/preflight.py (`_clear_stale_failing_stop` and the private `_changes_only_stop_records`) are as entry 7 describes. I ran `make check` on the committed state with the tester's moves in place and it is green (coverage 99.06 %).
+
+    Main choice: same as entry 7. I kept the `GitError` handling in a small private method that returns false, so the stop is cleared. The rejected alternative was a second try/except nested in `_clear_stale_failing_stop`. Refactor: no diff this round, so nothing to change.
+
+    Noticed but did not touch:
+    - tests/application/test_stop_publisher.py still holds its own identical copy of the `records` fixture, as the tester noted in entry 13. Removing it is a test change for the tester, and no finding names it.
+    - The journal did not change what the task means, so the Description stays as it is.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+16. factory: started review as self.
+17. reviewer: no findings
+
+    Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item. I read the code itself, not the journal's account of it.
+
+    - Acceptance criteria: criteria 1 to 4 each have one parametrized test, and each test checks what its criterion says.
+      - Criterion 1 (tests/domain/test_preflight_stop_records_paths.py) has all eight rows. Both sides of the "not empty" limit are tested: `[]` and a single path.
+      - Criterion 2 has four rows. Each checks `preflight_failed`, the stop's presence and the log line.
+      - Criterion 3 (`stop_records` wired in) expects 0 `cleared` records on one row and 1 on the other.
+      - Criterion 4 covers the `GitError` side with `"a" * 40`.
+      - Entry 15 records `make check` green after the tester's moves.
+    - Architecture:
+      - `changes_only_stop_records` (src/factory/domain/preflight.py) is pure and imports only `factory.domain`.
+      - `_changes_only_stop_records` (src/factory/application/preflight.py) reaches git only through `Boundaries.git`, and turns `GitError` into a clear, as the Interface says.
+      - The other branches of `_clear_stale_failing_stop` are unchanged.
+    - Security: nothing to report. No markers, no new baseline entries, no strings built into commands.
+    - Quality:
+      - The round-0 findings (entry 9) are resolved. The new module now uses `log_lines` (tests/log_support.py), `CLEARED_LINE`/`fail_once`/`failed_once` (tests/preflight_support.py), the shared `records` fixture (tests/conftest.py) and `Rig.push_main`/`HumanClone.push_files` (tests/human_clone.py) in place of its own copies.
+      - The comment in `_changes_only_stop_records` explains why.
+    - Hygiene: the Description and the docs criterion match what was built.
+
+    Earlier tests:
+    - tests/application/test_disk_recorder.py: standing leave. Only `_log_lines` was replaced by the shared `log_lines`.
+    - tests/application/test_preflight_stale_main_stop.py: standing leave. `CLEARED_LINE`, the `failed_once` fixture and `_log_lines` moved to tests/preflight_support.py and tests/log_support.py; the tests keep their names and checks.
+    - tests/application/test_stale_branches.py: standing leave (`_log_lines` → `log_lines`).
+    - tests/application/test_tick.py: standing leave (`_log_lines` → `log_lines`).
+    - tests/application/test_tick_stop_records.py: standing leave. The `records` fixture moved to tests/conftest.py, and `_log_lines` became `log_lines`.
+    - tests/conftest.py: standing leave. It only gains the shared `records` fixture.
+    - tests/human_clone.py: standing leave. The new module's commit helper moved here as `push_files`. `push_file` delegates to it with the same steps and the same commit message.
+18. factory: started docs as self.
+19. documenter: Docs round 1. No findings; the code matches the Interface and the criteria.
+
+    Files changed (documents only, so I did not run `make check`; the factory's run after this stage decides):
+    - `docs/operator-guide.md`, preflight bullets: "A failed machine clears a stale stop" now names the exception (a `main` that differs from the failing commit only in `factory/stops.jsonl`) and says a git error while comparing clears the stop. "A `stops recorded` commit is a new `main`" now says the stop is kept across such a commit with no `cleared` record, that the probe still runs once when the machine's items pass, and that a commit with another file clears as before. The sentence "the rule does not yet ignore a commit that changes only..." is gone.
+    - `docs/project-guide.md`, after the preflight paragraph: new paragraph on `Preflight._clear_stale_failing_stop`, `changes_only_stop_records` (`factory.domain.preflight`), the `GitError` branch, and that `changed_paths` compares with the work tree, which the tick's restore leaves at `origin/main`.
+    - `docs/decisions.md`, "The stops reach main as raised and cleared records": the "Accepted effect" line now says F0021-S0008 removed it and why (a `cleared` for a `main` nobody fixed misleads the viewer of `factory/stops.jsonl`). It also says skipping the probe is left to a later story.
+
+    Ran the story's smoke test: the Python snippet printed `False`, `True`, `False`, and the `grep -c` printed `0`.
+
+    Cross-read and found current: `README.md`, and the rest of `docs/operator-guide.md` (the stop records section, line ~514) and `docs/project-guide.md` (stop records, tick step 3a/4).
+
+    Stale text noticed, not touched: none. The tests' duplicate `records` fixture in `tests/application/test_stop_publisher.py` (coder's entry 15) is a test matter, not a doc matter.
+
+    `check`: check: green
+    `documents`: documents ok
+20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test round 1. I ran both commands from the repository root exactly as written and changed nothing.
+
+    Command 1 (the `changes_only_stop_records` snippet):
+    ```
+    False
+    True
+    False
+    ```
+    Exit status 0. It meets its `Expect:` line: three lines, `False`, `True`, `False`.
+
+    Command 2 (`grep -c "the rule does not yet ignore a commit that changes only" docs/operator-guide.md`):
+    ```
+    0
+    ```
+    It meets its `Expect:` line (`0`). The exit status is 1, which is what `grep -c` returns when nothing matches. It is not an error.
+
+    Against the acceptance criteria: neither command contradicts any criterion. For criterion 1, the three outputs agree with the `[]`, `[stops.jsonl modified]` and `[stops.jsonl modified, src/a.py modified]` rows. The smoke test does not exercise criteria 2 to 4 (the preflight runs) or criterion 5 (`make check`); journal entry 15 records `make check` green and the factory runs it as a check. For criterion 6, I also read the docs text that the second command targets:
+    - `docs/operator-guide.md:347-348`: the stale-stop bullet names the exception. The `stops recorded` bullet says the stop is kept across a commit that changes only `factory/stops.jsonl`, and that the probe still runs once when the machine's items pass.
+    - `docs/project-guide.md:791`: describes `changes_only_stop_records` and how `_clear_stale_failing_stop` uses it.
+    - `docs/decisions.md:626`: the "Accepted effect" line says this story removed the effect, and why.
+
+    Findings: none.
+
+    Open: nothing.
