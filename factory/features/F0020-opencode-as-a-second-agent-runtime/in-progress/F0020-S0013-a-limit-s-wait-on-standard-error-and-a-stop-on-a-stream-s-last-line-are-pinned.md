@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 297
 comments_read: [6279096558]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T22:58:53.693593Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-19T22:58:33.421672Z'
   stage: review
   run: 8f538ac2678e45048955757479851abd
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:58:53.693593Z'
+  stage: doing
 ---
 
 # A limit's wait on standard error and a stop on a stream's last line are pinned
@@ -219,3 +228,4 @@ Expect: two lines, `provider_limit 0:02:00 ses_s True` and `[('stdout', 'go')] T
     1. `tests/adapters/test_opencode_limit_wait_on_stderr.py:24`: `REPLYING = Step(stdout=stdout(step_start(), text(result_text()), step_finish()))` is another copy of the reply constant that earlier modules already hold. It matches `REPLY` in `tests/adapters/test_opencode_resumed_words.py:38` exactly, and its `stdout(...)` part is `REPLY` in `tests/adapters/test_opencode_provider_limit.py:33` and six more modules. Fix (tester, under the standing leave): define the reply once in `tests/adapters/opencode_stand_in.py` and import it in the new module. The story says no earlier test changes, so the earlier modules can keep their copies for now.
 
     Earlier tests: none. Both test files in the diff are new (status `A`), and no file that `main` already holds was changed, renamed or deleted.
+13. factory: started doing as self.
