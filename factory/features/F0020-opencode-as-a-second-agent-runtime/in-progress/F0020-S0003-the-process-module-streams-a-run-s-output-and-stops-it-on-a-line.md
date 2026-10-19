@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 250
 comments_read: [6259541572]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T04:31:23.359998Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-19T04:31:23.359998Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-19T04:33:11.687891Z'
+  stage: doing
+  run: 2fca8ecc14b54f2d9f8b11552c757140
 ---
 
 # The process module streams a run's output and stops it on a line
@@ -290,3 +292,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (37.5 s)
 17. factory: started doing as self.
+18. coder: Round 1 changes no code. In entry 16 the tester added tests/adapters/test_process_streaming.py::test_child_that_closed_its_streams_is_killed_at_the_time_limit for the criterion 13 the reviewer added. It passes against the existing `run_streaming` in `src/factory/adapters/process.py`, as entry 14 expected. That path goes through `_wait_for_exit`: `subprocess.TimeoutExpired` gives `timed_out=True`, then `_kill_group` runs and `exit_status` is `None`. `make check`: check: green.
+
+    What I built is unchanged from entry 10, all in `src/factory/adapters/process.py`:
+    - `Stream` and `ProcessResult.stopped`.
+    - `_start`, which holds the module's one `Popen` line and serves both functions.
+    - `_LineReader`, a selector loop.
+    - `_read_until_end`, `_wait_for_exit` and `run_streaming`.
+
+    The main choice also stands from entry 10: a selector loop on the calling thread. I rejected reader threads feeding a queue.
+
+    Refactor pass: nothing to change, because this round has no diff of its own.
+
+    Journal: the description already holds criterion 13 and the renumbered 14 and 15, so I did not rewrite it.
+
+    Noticed, not touched: `make duplicates` still reports `run_streaming` as unused (vulture). That is expected until S0004 calls it.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 35 known, 4 gone
