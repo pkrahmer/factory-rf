@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 246
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T02:12:36.275618Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T02:12:16.168276Z'
   stage: tests
   run: 9b127a4d5be04df49fb0816313ff0c3f
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T02:12:36.275618Z'
+  stage: doing
 ---
 
 # The README names what the feature built and counts its commands right
@@ -111,3 +120,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (40.0 s)
+6. factory: started doing as self.
