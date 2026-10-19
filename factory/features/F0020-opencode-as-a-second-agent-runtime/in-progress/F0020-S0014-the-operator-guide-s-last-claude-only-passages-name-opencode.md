@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 299
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T23:17:04.740268Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-19T23:16:44.546546Z'
   stage: review
   run: 4c322100d23f46d3a011b2d91d1c7077
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T23:17:04.740268Z'
+  stage: docs
 ---
 
 # The operator guide's last Claude-only passages name opencode
@@ -148,3 +157,4 @@ Expect: `documents ok`
       - The target passages exist: line 3 of `docs/operator-guide.md` names "the `claude -p` runtime", line 117 says "does not start `claude` itself", line 137 covers the `claude` login in `~/.claude`, and line 218 says the guard is registered as a Claude Code hook. The anchors "Running on opencode" (260) and "What differs from Claude Code" (281) also exist.
 
    Earlier tests: none. The diff changes no test file.
+10. factory: started docs as self.
