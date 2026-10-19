@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T03:43:29.068626Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T03:43:09.260855Z'
   stage: doing
   run: fb8f61893d9947efa2d3f0af11ef579e
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:43:29.068626Z'
+  stage: tests
 ---
 
 # The agent runs can log in with an API key
@@ -399,3 +408,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Noticed, not touched: none beyond entry 7's list.
 
     The description is unchanged; no journal entry changed the task.
+12. factory: started tests as self.
