@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 275
 comments_read: [6273558949]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T17:57:27.083942Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-19T17:57:06.349235Z'
   stage: review
   run: bcca8fb9e5854a84bb272b63a3fc42bc
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-19T17:57:27.083942Z'
+  stage: docs
 ---
 
 # The claim service's refusals name their cause
@@ -384,3 +393,4 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
     - tests/application/test_undo.py:62-70: `_start` still repeats `put_work_item`'s checkout, write, commit and push, because it writes `BASE_FILES` in between. `put_work_item(..., committed=False)` followed by `write_files` and the commit would remove most of that repetition.
     - tests/application/test_claims_refusals.py:19: `BODY` is the same text as `BODY` in `tests/application/test_undo.py:37` and in `tests/application/test_claims.py:34`. It could join `tests/work_item_support.py`.
     - tests/application/test_claims_refusals.py:28: `_snapshot` is a four-field variant of `_snapshot` in `tests/application/test_claims.py:85`.
+21. factory: started docs as self.
