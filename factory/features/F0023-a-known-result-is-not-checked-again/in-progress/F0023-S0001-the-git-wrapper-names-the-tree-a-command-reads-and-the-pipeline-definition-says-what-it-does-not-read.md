@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 267
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T14:48:18.083189Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -155,6 +151,12 @@ journal:
   kind: started
   at: '2026-10-19T14:48:18.083189Z'
   stage: docs
+- number: 27
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T14:50:07.765607Z'
+  stage: docs
+  run: db32725ca0c5441a9d4a57de20cbf125
 ---
 
 # The git wrapper names the tree a command reads, and the pipeline definition says what it does not read
@@ -568,3 +570,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_pipeline_strict_values.py`: the standing leave (`_outcome` replaced). Within it.
     - `tests/adapters/test_pipeline_stage_moves.py`: the standing leave (`_outcome` replaced). Within it.
 26. factory: started docs as self.
+27. documenter: Docs round 2. Only documents changed, so I did not run `make check`; the factory's check after this stage decides. I ran no example. I took the fault text and the accepted and refused patterns from `tests/domain/test_pipeline_not_read.py` and from the diff.
+
+    Files changed:
+    - `docs/project-guide/git-and-hosting.md`: "The git wrapper" now says twenty-four operations. It has a row for `work_tree_id(left_out)`: what counts in the tree, the temporary copy of the index set through `GIT_INDEX_FILE`, literal removal with `update-index --force-remove --`, and that the checkout's index, `HEAD`, refs and work tree stay as they are. "Which feature uses which operation" gets `work_tree_id` for F0023.
+    - `docs/project-guide/stages.md`, "The pipeline definition": `ProjectCommandDefinition.not_read`, its default `[]`, the refused forms and the fault text. It also says that `is_inside_checkout` moved into `pipeline_definition` and that nothing reads `not_read` yet.
+    - `docs/operator-guide.md`: the `project_commands` row, a paragraph and a YAML example for `not_read` (patterns as in `write_paths`, `*` crosses `/`, the refused forms and the fault, and that it does nothing yet). The records contract version is now 1.3, with what 1.3 added.
+    - `docs/project-guide/work-items.md`: `RECORDS_CONTRACT` in the contract paragraph went from `1.2` to `1.3`. That sentence was stale because of this story.
+
+    Cross-read and current against the diff: `README.md`, `docs/project-guide/README.md`, `docs/project-guide/write-guard.md` (`matches_any` and `*` crossing `/`; it does not name `is_inside_checkout`), `docs/decisions.md` (criterion 11 says no entry until S0002).
+
+    No findings: the code agrees with the Interface and the criteria.
+
+    Stale text I noticed and did not touch: nothing unrelated to this story.
+
+    `check`: check: green
+    `documents`: documents ok
