@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T10:15:26.712569Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-10-19T10:15:26.712569Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-19T10:17:19.478784Z'
+  stage: doing
+  run: 315429a1dff044458a200e7d896c904a
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -415,3 +417,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (38.5 s)
 17. factory: started doing as self.
+18. coder: Round 1: every finding in the reviewer's entry 12 was a test change, and the tester made them in entry 16. So I changed no code: `src/factory/adapters/opencode_runtime.py` is the same as in entries 7 and 10. With the tester's moved helpers in `tests/adapters/opencode_stand_in.py`, the reworked tests in `tests/adapters/test_opencode_budget.py` and `tests/adapters/test_opencode_provider_limit.py` (including criterion 14's rows `500` and `1428`, and criterion 5's two-call check), and the changed `tests/adapters/test_opencode_runtime.py` and `tests/adapters/test_opencode_resume_session.py`, a fresh `make check` is green (`test: green (39.6 s)`, `check: green`).
+
+    What I built (unchanged since entry 7): in `src/factory/adapters/opencode_runtime.py`, a `_Watch` object for each call is the `run_streaming` callback. It adds up the cost of each `step_finish` and stops the call when the total is greater than the budget. It stops the call on a limit found only in `error` events and in lines of standard error. A budget stop with a known session is resumed once through `_resume`, using `resume_budget` and `resumed_result`. The run files are removed after both calls, and `AGENT_RUN` is reached once. The new keyword is `provider_limit`, and `None` means `ProviderLimit()`.
+
+    Main choice (unchanged): `_Watch` keeps a record of why it stopped the call, and the result reads that record. I rejected working the reason out again from the collected output after the kill: that would repeat the budget and limit rules, and it could disagree with what actually stopped the call.
+
+    Refactor: I read the diff against `main` again and nothing needed changing; only the one source file differs.
+
+    Noticed, not touched:
+    - `_Watch.stopped_by` is typed `EndReason | None`, although it only ever holds `budget` or `provider_limit`.
+    - `tests/adapters/test_make_commands.py::test_output_tail_keeps_the_last_thirty_lines[30-1]` failed once in entry 8 and passed in this run; it may be flaky under the parallel workers.
+
+    The journal did not change the meaning of the task. The reviewer added criterion 14, which is already in the Description.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 1 gone
