@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 282
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T20:07:32.527804Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T20:07:12.025881Z'
   stage: docs
   run: 20c263aa8bf2412e8247e78837f951a0
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:07:32.527804Z'
+  stage: smoke-test
 ---
 
 # The opencode runtime leaves out Skill wherever it stands in an agent's tools
@@ -192,3 +201,4 @@ Expect: two lines, `completed question`, `['grep', 'read']`
     `check`: check: green (not run again: passed on tree 820a60a55ae9 at 2026-10-19T20:05:00Z)
     `secrets`: secrets: green (0.1 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
