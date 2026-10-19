@@ -164,3 +164,43 @@ class AgentRunResult(BaseModel):
     def ok(self) -> bool:
         """Whether the run completed with a decision and an entry."""
         return self.end_reason == "completed"
+
+
+def _add[T: (int, Decimal, timedelta)](first: T | None, second: T | None) -> T | None:
+    if first is None:
+        return second
+    if second is None:
+        return first
+    return first + second
+
+
+def _add_tokens(first: TokenCounts | None, second: TokenCounts | None) -> TokenCounts | None:
+    if first is None:
+        return second
+    if second is None:
+        return first
+    return TokenCounts(
+        input=first.input + second.input,
+        output=first.output + second.output,
+        cache_read=first.cache_read + second.cache_read,
+        cache_creation=first.cache_creation + second.cache_creation,
+    )
+
+
+def resumed_result(first: AgentRunResult, second: AgentRunResult) -> AgentRunResult:
+    """The result of a run whose `first` call the `second` resumed: its answer, both calls' sums."""
+    denials = [*first.permission_denials, *second.permission_denials]
+    duration = first.duration + second.duration
+    # R24: a resume the time limit ended has no measures, and the first call's alone are partial.
+    if second.end_reason == "time_limit":
+        return second.model_copy(update={"permission_denials": denials, "duration": duration})
+    return second.model_copy(
+        update={
+            "duration": duration,
+            "model_duration": _add(first.model_duration, second.model_duration),
+            "turns": _add(first.turns, second.turns),
+            "cost_usd": _add(first.cost_usd, second.cost_usd),
+            "tokens": _add_tokens(first.tokens, second.tokens),
+            "permission_denials": denials,
+        }
+    )

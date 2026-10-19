@@ -1,3 +1,131 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 249
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-19T03:56:42.671140Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:56:42.677214Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T03:57:00.929721Z'
+  stage: intake
+  run: 6ebfa4a4bf58433fb7d71a07b44cdc98
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T03:57:21.211835Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T04:00:40.266751Z'
+  stage: tests
+  run: acb506809d8c4fe8b583a9868a1e3efe
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:01:00.646410Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-19T04:04:38.394953Z'
+  stage: doing
+  run: b3138f20daee49bbbb0a15745034f460
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:04:58.562641Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T04:05:38.312620Z'
+  stage: review
+  run: 57f38ba25d9d45199405860f2576848d
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:05:58.380319Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-19T04:06:16.462657Z'
+  stage: doing
+  run: 5650a9458e854e949f2332360bb907c2
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:06:36.635107Z'
+  stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-19T04:08:20.926528Z'
+  stage: tests
+  run: 34aaa8e5b37043c580bdb480910bb946
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:08:41.216278Z'
+  stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T04:10:29.309757Z'
+  stage: doing
+  run: 1f834a06c7984e2ea583152472cc1fc4
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:10:49.532573Z'
+  stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T04:11:29.997381Z'
+  stage: review
+  run: 5d20ccacacf546b6a9ccb015c8382f4b
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:11:50.382898Z'
+  stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T04:13:11.214318Z'
+  stage: docs
+  run: 4cb881dc38cc4d1fb3920176b5dffe5d
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:13:31.114909Z'
+  stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T04:14:16.143187Z'
+  stage: smoke-test
+  run: 288f1ddd92cd4568ba2c877f7e6592dc
+---
+
 # What every agent runtime shares moves into one module
 
 ## Description
@@ -124,3 +252,200 @@ Expect: four lines, `/usr/bin/sudo -n -u agent -- timeout --signal=KILL 10s env 
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-19 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules (`factory.domain.agent_runs`, `factory.adapters.agent_launch`, `factory.adapters.claude_runtime`) with full signatures, the moved constants and the exact argv words of `launch`, `sudo_prefix`, `confined_argv` and `cleanup_argv`.
+   Criteria: 1 to 10 each map to one parametrized test over the Interface's rules, both sides included (with and without a user or wrapper, match and no match, below and at the limit, a measure from one call, from both, from neither, and `time_limit` for the second call); 11 and 12 are source searches and the unchanged earlier tests; 13 and 14 are the closing ones. One small note, not a blocker: `run_confinement`'s devices and temporary folder are covered only through the unchanged Claude Code runtime tests (criterion 12), as "today's `_confinement`".
+   Smoke test: runnable with `uv run -q python -` and a temporary folder; each of the four expected output lines is exact and checkable (sudo words and 40.0 s, the confine words, 1.00, `completed 4 1.25 3.0`).
+   Architecture: shared words and texts go in the adapters layer, the pure summing of a resumed run goes in the domain, and `agent_launch` imports no process module, so R5's one-wrapper rule and the layer order hold.
+   Scope: inside the feature's scope for S0002 (`agent_launch`, `resumed_result`, `claude_runtime`) and nothing from its Out of scope. No earlier test changes.
+4. factory: started tests as self.
+5. tester: Wrote one test per acceptance criterion from the Interface. The launch and resume tests are red because the names they import don't exist yet. The source-search tests are green already, because they guard behaviour that holds today.
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_agent_launch.py::test_launch_runs_the_call_as_the_user_under_a_kill_timeout_with_its_environment_alone (rows: without a user; with a user at 29.2 s → `30s`, 59.2 s; with a user at 30 s → `30s`, 60 s, which checks both sides of the rounding up)
+   - criterion 2: tests/adapters/test_agent_launch.py::test_confined_argv_puts_the_wrapper_and_its_rules_before_the_call
+   - criterion 3: tests/adapters/test_agent_launch.py::test_cleanup_argv_removes_the_temporary_folder_as_the_runs_user and ::test_temporary_folder_is_named_after_the_run_under_the_root
+   - criterion 4: tests/adapters/test_agent_launch.py::test_existing_devices_holds_the_existing_folders_then_the_existing_files
+   - criterion 5: tests/adapters/test_agent_launch.py::test_run_confinement_allows_the_runtime_folders_under_home_and_the_guarded_checkout (uses `build_layout` and `run_request` imported from tests/confine_support.py; the request without guard settings is `run_request(...).model_copy(update={"guard": None})`; `devices=[]`)
+   - criterion 6: tests/adapters/test_agent_launch.py::test_line_starting_finds_the_first_line_that_starts_with_the_prefix
+   - criterion 7: tests/adapters/test_agent_launch.py::test_killed_at_limit_needs_a_user_a_kill_status_and_the_limit_reached (adds a row above the limit, because the Interface says "at or above")
+   - criterion 8: tests/adapters/test_agent_launch.py::test_first_word_is_the_first_word_of_the_first_non_blank_line
+   - criterion 9: tests/adapters/test_agent_launch.py::test_resume_budget_is_a_quarter_at_least_fifty_cents (adds the row `2` → `0.50`, the edge of the 0.50 minimum)
+   - criterion 10: tests/domain/test_resumed_result.py::test_resumed_result_takes_the_second_answer_and_adds_up_both_calls (rows: every measure summed, a measure from one call only, from neither, and a second call ended by `time_limit`. The `time_limit` row expects the summed duration as the Interface says; today's `_resumed_result` keeps only the second call's duration there)
+   - criterion 11: tests/test_agent_launch_search.py::test_neither_runtime_module_reads_os_environ (also shows the search finds `os.environ` in a snippet) and ::test_the_launch_module_does_not_import_the_process_module. tests/test_wrapper_search.py and tests/test_process_search.py are unchanged.
+   - criterion 12: no new test. The earlier tests of the Claude Code runtime stay as they are and are the proof.
+   - criteria 13 and 14: closing criteria, no test.
+
+   Files created: tests/adapters/test_agent_launch.py, tests/domain/test_resumed_result.py, tests/test_agent_launch_search.py. No earlier test file changed.
+
+   `make test`: two collection errors, which is the expected failure. tests/adapters/test_agent_launch.py cannot import the new names from `factory.adapters.agent_launch` (`Launch`, `launch`, `CLEANUP_SCRIPT` and the rest). tests/domain/test_resumed_result.py cannot import `resumed_result` from `factory.domain.agent_runs`. The two search tests pass already. `make lint` is green.
+
+   Choice I made: ruff's S108 refused the `/tmp` path literal in tests/adapters/test_agent_launch.py, so the test builds it as `Path("/", "tmp")` instead of adding a `noqa` marker. The value is the same, and no file is made there.
+
+   Open: tests/test_agent_launch_search.py reads the source, like the other structural tests. I could not add it to mutmut's list of left-out structural tests in `pyproject.toml`, because that file is outside the tester's write paths. If mutmut runs it, it may need to go on that list.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/domain/test_resumed_result.py - ImportError while importing test ...
+6. factory: started doing as self.
+7. coder: I moved the parts every agent runtime shares out of `claude_runtime` and kept the Claude Code runtime's behaviour as it was. `make check` is green and `make duplicates` reports 0 new, 36 known, 3 gone.
+
+   What I built:
+   - `src/factory/domain/agent_runs.py`: `resumed_result` plus its private `_add` and `_add_tokens`, moved from `claude_runtime`. One change follows the Interface and the tester's `time_limit` row: `duration` is now the sum of both calls in every case. Before, a `time_limit` resume kept only the second call's duration. Runs are not affected, because `ClaudeCodeRuntime.run` still sets the duration afterwards from the whole run's clock.
+   - `src/factory/adapters/agent_launch.py`:
+     - The moved constants: `ENTRY_DESCRIPTION`, `FINISH_MESSAGE`, `MINIMUM_RESUME_BUDGET`, `CENT`, `VERSION_TIME_LIMIT`, the sudo, timeout and kill constants, `RUN_FILE_MODE`, `TEMPORARY_PREFIX`, `CLEANUP_SCRIPT`, `CLEANUP_TIME_LIMIT`, `CONFINE_PREFIX`.
+     - `Launch`, frozen and with `extra="forbid"`.
+     - The functions `resume_budget`, `sudo_prefix`, `launch`, `confined_argv`, `cleanup_argv`, `temporary_folder`, `existing_devices`, `run_confinement`, `killed_at_limit` and `first_word`. `line_starting` was already there from S0001.
+     - Nothing in the module starts a process or reads `os.environ`.
+   - `src/factory/adapters/claude_runtime.py`: its private copies are gone and it calls the shared functions instead.
+     - Its `__all__` re-exports the moved names that earlier tests import: `CLEANUP_SCRIPT`, `CLEANUP_TIME_LIMIT`, `ENTRY_DESCRIPTION`, `FINISH_MESSAGE`, `SUDO_EXECUTABLE`, `VERSION_TIME_LIMIT`, `resume_budget`.
+     - `SWITCHES`, `CONFIG_VARIABLE` and `RUNTIME_FOLDER` are still defined here.
+     - The values tests set on the module are still read from its namespace when a run calls them: `SHELL_EXECUTABLE` and `CLEANUP_TIME_LIMIT` for the removal, `DEVICE_FOLDERS` and `DEVICE_FILES` through a small `_confinement` wrapper, and `run_process`.
+
+   Main choice: I made one extra public helper, `request_home(request)` in `agent_launch`, which is not in the Interface. Both `run_confinement` and Claude Code's `_config_folder` need the request's `HOME`, so sharing it avoids a second copy of the private `_home`. The alternative I rejected was keeping a private `_home` in each module: that is a duplicated helper, which the reviewer would flag.
+
+   Refactor pass: I read the whole diff and nothing needed changing.
+
+   Not run: the story's smoke test. The shell tool refused the heredoc script, so I left it to the smoke-test stage. The tests that cover the same calls pass.
+
+   Noticed but not touched:
+   - The tester's open point still stands: `tests/test_agent_launch_search.py` reads the source, so mutmut may need it on the list of left-out structural tests in `pyproject.toml`. That file is outside my write paths.
+   - `make duplicates` reports 3 findings as gone, the unused `close` methods of the hosting service. That comes from `main`, not from this work.
+   - The docs criterion is the documenter's.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 36 known, 3 gone
+8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. Groups 1 to 3 hold. Every criterion from 1 to 12 has a parametrized test that checks what the criterion says, with both sides of each limit: `killed_at_limit` is tested below, at and above the limit, `resume_budget` at the 0.50 minimum, and `launch` with a whole and a fractional second. The coder's `make check` was green (entry 7). The layers hold. `agent_launch` imports no process module and reads no `os.environ`. `claude_runtime` still reads `SHELL_EXECUTABLE`, `CLEANUP_TIME_LIMIT`, `DEVICE_FOLDERS`, `DEVICE_FILES` and `run_process` from its own namespace at the call. There are no new silencing markers. `make duplicates` has 0 new findings. The review stops at group 4.
+
+   1. `tests/test_agent_launch_search.py:11` `reads_os_environ`: this copies the existing helper `_reads_os_environ` in `tests/test_agent_run_request_search.py:22`, which finds `os.environ` as an attribute or an import. The fix: under the standing leave, the tester moves the helper into `tests/source_search.py` as a public `reads_os_environ` that covers both forms (the attribute, `import os.environ` through `imported_modules`, and `from os import environ`). Both test modules then use it from there, and every earlier test keeps its name and what it checks.
+
+   Earlier tests: none changed. All three test files in the diff are new (`A`), and the diff changes, renames or deletes no file that `main` already holds under `tests/`.
+
+   Open, not a finding: `request_home` in `src/factory/adapters/agent_launch.py:255` is a public function that the Interface does not list. The coder made it so that a second private copy of `_home` was not needed. The `run_confinement` rows with and without `HOME` already cover it. When the work item goes back, the Interface could name it beside the other shared functions.
+10. factory: started doing as self.
+11. coder: Round 1. The reviewer's only finding (entry 9, item 1) is a test helper copied from another test file. I'm sending it to the tests stage and changed no code.
+
+    The test change, under `CLAUDE.md`'s standing leave to move a shared test helper:
+    - Move `reads_os_environ` from `tests/test_agent_launch_search.py:11` and the private `_reads_os_environ` from `tests/test_agent_run_request_search.py:22` into `tests/source_search.py` as one public `reads_os_environ(tree: ast.Module) -> bool`.
+    - It must find all three forms: the attribute `os.environ`, `import os.environ` through `imported_modules`, and `from os import environ`.
+    - Change both test modules to import it from there. Each earlier test in `tests/test_agent_run_request_search.py` keeps its name and checks the same thing.
+
+    What I built in round 0 (entry 7) is unchanged:
+    - `src/factory/domain/agent_runs.py` (`resumed_result`)
+    - `src/factory/adapters/agent_launch.py` (the shared words, rules, refusals and resume share)
+    - `src/factory/adapters/claude_runtime.py` (uses the shared functions, re-exports the moved names through `__all__`, and reads the values tests set on it at the call)
+
+    Main choice: I did not edit either test file myself. The coder never changes a test, and the move is the tester's job under the standing leave. The alternative I rejected was to ask the human. That isn't needed, because the leave covers moving a copied helper to `tests/source_search.py`.
+
+    Noticed but not touched:
+    - The reviewer's open note: the Interface could name `request_home` in `src/factory/adapters/agent_launch.py`. It was not a finding, so I left `## Description` as it is.
+    - Still open from entries 5 and 7: `tests/test_agent_launch_search.py` may need to go on mutmut's list of left-out structural tests in `pyproject.toml`, which is outside my write paths.
+    - No journal entry changed the meaning of the task, so I did not rewrite the Description.
+12. factory: started tests as self.
+13. tester: Round 1, test change only. This is the move the coder named in entry 11 for the reviewer's finding in entry 9, item 1, made under CLAUDE.md's standing leave to move a shared test helper.
+
+    What I changed:
+    - tests/source_search.py: added a public `reads_os_environ(tree: ast.Module) -> bool`. It finds the attribute `os.environ`, and it finds `import os.environ` and `from os import environ` through `imported_modules`, which records `from os import environ` as `os.environ`. Its body is the earlier test's `_reads_os_environ`, which already covered all three forms.
+    - tests/test_agent_launch_search.py: the local copy of `reads_os_environ` is gone and the module imports it from `source_search`. Test names and what they check are unchanged.
+    - tests/test_agent_run_request_search.py (an earlier story's test file, changed under the standing leave): the private `_reads_os_environ` is gone and the module imports `reads_os_environ` from `source_search` instead. It no longer imports `imported_modules`. Both tests keep their names and check the same thing.
+
+    Criterion → test is unchanged from entry 5. Criterion 11 is still tests/test_agent_launch_search.py::test_neither_runtime_module_reads_os_environ and ::test_the_launch_module_does_not_import_the_process_module.
+
+    Files created: none. Files changed: tests/source_search.py, tests/test_agent_launch_search.py, tests/test_agent_run_request_search.py.
+    Modules the test run could not import: none. `make test` is green, since the code exists from round 0, and `make lint` is green.
+
+    Still open from entries 5, 7 and 9:
+    - tests/test_agent_launch_search.py may belong on mutmut's list of left-out structural tests in `pyproject.toml`, which is outside my write paths.
+    - The Interface could name `request_home`.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (36.5 s)
+14. factory: started doing as self.
+15. coder: Round 1, back from the tests stage. The reviewer's only finding (entry 9, item 1, the copied `reads_os_environ`) is fixed. In entry 13 the tester moved the helper into `tests/source_search.py` and made both search modules use it from there. That fix was a test change only, so this round needs no code change, and I made none: the working tree holds no change from me. `make check` is green on the committed state.
+
+    What I built is unchanged from round 0 (entry 7):
+    - `src/factory/domain/agent_runs.py`: `resumed_result`.
+    - `src/factory/adapters/agent_launch.py`: the shared words, rules, removal, refusals and resume share, plus `Launch`.
+    - `src/factory/adapters/claude_runtime.py`: calls the shared functions. It lists the moved names in `__all__` and reads the values tests set on it (`SHELL_EXECUTABLE`, `CLEANUP_TIME_LIMIT`, `DEVICE_FOLDERS`, `DEVICE_FILES`, `run_process`) from its own namespace at the call.
+
+    Main choice this round: I handed forward without touching the code. The other option was to also add the reviewer's open note to the Interface (naming `request_home`). I didn't, because the round covers exactly the findings and that note was not a finding.
+
+    Refactor: nothing to change, since the round left no diff of mine.
+
+    Description: unchanged. No journal entry changed what the task means.
+
+    Noticed but not touched:
+    - Still open from entries 5, 7 and 13: `tests/test_agent_launch_search.py` reads the source, so it may belong on mutmut's list of left-out structural tests in `pyproject.toml`. That file is outside my write paths.
+    - The Interface could name `request_home` in `src/factory/adapters/agent_launch.py`.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 36 known, 3 gone
+16. factory: started review as self.
+17. reviewer: Round 1 review. I read `git diff main...HEAD -- . ':!factory'` against the work item. I did not run `make check`: the coder's run in entry 15 was green.
+
+    no findings
+
+    Last round's one finding (entry 9, item 1) is fixed. `reads_os_environ` now has one copy, in `tests/source_search.py:48`. Both `tests/test_agent_launch_search.py` and `tests/test_agent_run_request_search.py` import it from there, and neither keeps its own copy.
+
+    Groups 1 to 5 hold:
+    - **Criteria 1 to 11:** each has a parametrized test that checks what its criterion says.
+      - Each stated limit is tested on both sides: `launch` at 29.2 s and at 30 s, `killed_at_limit` below, at and above the limit, `resume_budget` below, at and above the 0.50 minimum, and `line_starting` with a match that is not at a line's start.
+      - `resumed_result`'s rows cover a measure from both calls, from one, from neither, and a second call ended by `time_limit`.
+    - **Criterion 12:** no test of the Claude Code runtime changed.
+      - The run still reads `SHELL_EXECUTABLE`, `CLEANUP_TIME_LIMIT`, `DEVICE_FOLDERS`, `DEVICE_FILES` and `run_process` from `claude_runtime`'s own namespace at the call (`src/factory/adapters/claude_runtime.py:321`, `_remove_temporary_folder`, `_start`).
+      - The moved names are listed in `__all__`.
+    - **The one change in behaviour:** `resumed_result` now sums the duration even when the second call hit its `time_limit`. This changes no run, because `run` sets the whole run's duration afterwards (`claude_runtime.py:390`).
+    - **Layers:** `resumed_result` is in the domain and imports nothing new. `agent_launch` imports no process module and reads no `os.environ`.
+    - **Markers:** the diff adds no silencing markers.
+    - **Hygiene:** the journal explains the main choice and what was rejected. The Description matches what was built, and criterion 14 still says what the documenter must write. `request_home` (`src/factory/adapters/agent_launch.py:255`) is a public function the Interface does not name. It replaces the private `_home` so there is no second copy, and the journal (entry 7) records why. I do not count it as a finding.
+
+    Earlier tests:
+    - `tests/test_agent_run_request_search.py`: changed under the standing leave to move a shared test helper (entry 13). The private `_reads_os_environ` moved to `tests/source_search.py`, and both tests keep their names and what they check.
+    - `tests/source_search.py`: none needed. The diff only adds `reads_os_environ` and leaves the rest of the file as it was.
+
+    Open, from entries 5, 7 and 13: `tests/test_agent_launch_search.py` reads the source, so it may need to join mutmut's list of left-out structural tests in `pyproject.toml`. That file is outside this story's write paths, so the human decides.
+18. factory: started docs as self.
+19. documenter: Docs, round 1. I read the story, the diff outside `factory/` and `docs/`, and the two documents I changed. I made no finding for the coder. The code matches the Interface.
+
+    Files changed:
+    - `docs/project-guide.md`, "The shared launch module": it now says what `agent_launch` holds beyond the login. That is the words of a run's start (`launch`, `sudo_prefix`, `confined_argv`), the run's folder and its removal (`temporary_folder`, `cleanup_argv`), the rules (`run_confinement`, `existing_devices`, `request_home`), the refusal and kill readers (`line_starting`, `killed_at_limit`, `first_word`) and the resume share. It states that the module imports no process module and does not read `os.environ`. It names the `claude_runtime` names that stay readable at the call. It describes `resumed_result` in the domain.
+    - `docs/project-guide.md`, the confinement and `sudo` paragraphs of the Claude Code runtime section: I replaced the private names that no longer exist. `_confinement` is now `run_confinement`, and "marked `timed_out` in `_call`" now points to `killed_at_limit`.
+    - `docs/decisions.md`: I added the entry "What the agent runtimes share lies in one module", dated 2026-10-19 with F0020-S0002. I could not read `feature.md` (R3), so the reasons come from the story's Description rather than the feature's decision 4 itself. Please check them against it.
+
+    Cross-read and found current: the "Measures of a resumed run" and budget-resume paragraphs (the sums and the time-limit rule match `resumed_result`), the login-shell paragraphs, and the project guide's note that `process` is imported by three modules. `README.md` and `docs/operator-guide.md` do not mention the moved names.
+
+    I did not run the examples in the docs; I added none. I did not run `make check`, because I changed only documents; the factory's check after this stage decides.
+
+    Stale text I noticed and did not touch:
+    - `docs/decisions.md` has older entries that name `_resumed_result` or the old private helpers (I did not search them all). They are history of earlier decisions, so I left them.
+    - Still open from the coder's and reviewer's entries: `tests/test_agent_launch_search.py` may need to join mutmut's left-out list in `pyproject.toml`. That file is outside my write paths, so the human decides.
+
+    `check`: check: green
+    `documents`: documents ok
+20. factory: started smoke-test as self.
+21. smoke-tester: Ran the one command under `## Smoke test` from the repository root, exactly as written, in a bash shell. It created its temporary directory with `mktemp -d` and removed it through its own `trap`.
+
+    Command 1 (the `uv run -q python - "$d"` heredoc), output (exit 0):
+
+    ```
+    /usr/bin/sudo -n -u agent -- timeout --signal=KILL 10s env -i HOME=/home/agent claude 40.0
+    factory-confine --rules D/rules.json -- claude
+    1.00
+    completed 4 1.25 3.0
+    ```
+
+    Met its `Expect:` line: yes. All four lines match the expected text exactly.
+
+    Checked against the acceptance criteria:
+    - The `launch` line has the words of criterion 1 in the Interface's order. The time limit is the given 10 s plus `SUDO_GRACE`, which makes 40.0.
+    - The `confined_argv` line has the shape criterion 2 gives.
+    - `resume_budget(4)` is `1.00`, as criterion 9 says.
+    - `resumed_result` takes the second call's `end_reason`. It sums `turns` (3+1), `cost_usd` (1.00+0.25) and `duration` (1+2 s), as the Interface and criterion 10 say.
+
+    The output contradicts no criterion. The commands did not exercise criteria 3–8 and 11–14; the factory's checks gate `make check`. I did not run `make check` myself, because this stage only runs the smoke test.
+
+    Findings: none.

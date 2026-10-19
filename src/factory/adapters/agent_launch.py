@@ -1,11 +1,40 @@
-"""What every agent runtime shares to start its calls: the shell that hands a call its login."""
+"""What every agent runtime shares to start its calls: their words, rules, refusals and login."""
 
-from collections.abc import Mapping
+import math
+from collections.abc import Mapping, Sequence
+from datetime import timedelta
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
-from factory.domain.agent_runs import Login
+from factory.domain.agent_runs import AgentRunRequest, GuardSettings, Login
+from factory.domain.confinement import Confinement, WriteTarget, confinement_of, write_targets
+
+ENTRY_DESCRIPTION = (
+    "your journal entry, without its number or your name: "
+    "everything your instructions say the entry contains"
+)
+FINISH_MESSAGE = "Finish now: give your decision (question if the work is not done) and your entry."
+MINIMUM_RESUME_BUDGET = Decimal("0.50")
+CENT = Decimal("0.01")
+VERSION_TIME_LIMIT = timedelta(seconds=30)
+SUDO_EXECUTABLE = "/usr/bin/sudo"
+SUDO_PREFIX = "sudo:"
+TIMEOUT_EXECUTABLE = "timeout"
+# The factory may not signal root's `sudo`, so the agent's own `timeout` kills at the limit;
+# the factory's kill waits this much longer and fires only when the inner one did not.
+SUDO_GRACE = timedelta(seconds=30)
+# `timeout --signal=KILL` exits 128 + 9; `subprocess` reports a death by SIGKILL as -9.
+KILL_STATUSES = frozenset({137, -9})
+# The agent reads a run's files through its group and must not rewrite its own guard.
+RUN_FILE_MODE = 0o640
+TEMPORARY_PREFIX = "factory-run-"
+# Run as the run's user, who made the folder; whatever the agent locked inside is opened first.
+CLEANUP_SCRIPT = 'chmod -R u+rwX -- "$1" 2>/dev/null; rm -rf -- "$1"'
+_CLEANUP_NAME = "factory-cleanup"
+CLEANUP_TIME_LIMIT = timedelta(seconds=60)
+CONFINE_PREFIX = "factory-confine:"
 
 SHELL_EXECUTABLE = "/bin/sh"
 # Claude Code's name for a token made by `claude setup-token`.
@@ -142,3 +171,139 @@ def without_login(environment: Mapping[str, str]) -> dict[str, str]:
         for name, value in environment.items()
         if name not in (LOGIN_VARIABLE, API_LOGIN_VARIABLE)
     }
+
+
+class Launch(BaseModel):
+    """The words, environment and time limit of one call, before the process module starts it."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    argv: list[str]
+    env: dict[str, str]
+    time_limit: timedelta
+
+
+def resume_budget(budget: Decimal) -> Decimal:
+    """The budget of a call that resumes a session its budget stopped: a quarter, at least 0.50."""
+    quarter = (budget / 4).quantize(CENT, rounding=ROUND_HALF_UP)
+    return max(quarter, MINIMUM_RESUME_BUDGET)
+
+
+def sudo_prefix(sudo_executable: str, os_user: str) -> list[str]:
+    """The words that start what follows them as `os_user`, failing rather than asking."""
+    return [sudo_executable, "-n", "-u", os_user, "--"]
+
+
+def _limit_argument(time_limit: timedelta) -> str:
+    return f"{math.ceil(time_limit.total_seconds())}s"
+
+
+def launch(
+    argv: Sequence[str],
+    environment: Mapping[str, str],
+    *,
+    os_user: str | None,
+    sudo_executable: str,
+    time_limit: timedelta,
+) -> Launch:
+    """The call of `argv` with `environment`, as `os_user` under its own kill when one is set."""
+    if os_user is None:
+        return Launch(argv=list(argv), env=dict(environment), time_limit=time_limit)
+    # `env -i` drops whatever `sudo` keeps, so the agent sees the given environment alone.
+    assignments = [f"{name}={value}" for name, value in environment.items()]
+    timeout = [TIMEOUT_EXECUTABLE, "--signal=KILL", _limit_argument(time_limit)]
+    return Launch(
+        argv=[*sudo_prefix(sudo_executable, os_user), *timeout, "env", "-i", *assignments, *argv],
+        env={},
+        time_limit=time_limit + SUDO_GRACE,
+    )
+
+
+def confined_argv(argv: Sequence[str], confine_executable: str | None, rules: Path) -> list[str]:
+    """The words that start `argv` through the write guard's wrapper with `rules`, if one is set."""
+    if confine_executable is None:
+        return list(argv)
+    return [confine_executable, "--rules", str(rules), "--", *argv]
+
+
+def cleanup_argv(
+    shell: str, temporary: Path, *, os_user: str | None, sudo_executable: str
+) -> list[str]:
+    """The words that remove a run's `temporary` folder, as `os_user` when one is set."""
+    removal = [shell, "-c", CLEANUP_SCRIPT, _CLEANUP_NAME, str(temporary)]
+    if os_user is None:
+        return removal
+    return [*sudo_prefix(sudo_executable, os_user), *removal]
+
+
+def temporary_folder(root: Path, run: str) -> Path:
+    """The temporary folder of the run `run` under `root`."""
+    return root / f"{TEMPORARY_PREFIX}{run}"
+
+
+def existing_devices(folders: Sequence[str], files: Sequence[str]) -> list[WriteTarget]:
+    """A target for each of the device `folders`, then `files`, that exists on this machine."""
+    existing_folders = [
+        WriteTarget(path=Path(folder), kind="folder") for folder in folders if Path(folder).exists()
+    ]
+    existing_files = [
+        WriteTarget(path=Path(file), kind="file") for file in files if Path(file).exists()
+    ]
+    return [*existing_folders, *existing_files]
+
+
+def request_home(request: AgentRunRequest) -> Path | None:
+    """The home folder the request's environment names, or `None` without `HOME`."""
+    home = request.environment.get("HOME")
+    return None if home is None else Path(home)
+
+
+def run_confinement(
+    request: AgentRunRequest,
+    temporary: Path,
+    *,
+    runtime_folders: Sequence[str],
+    devices: Sequence[WriteTarget],
+) -> Confinement:
+    """The rules of a run: its write paths, the runtime's `runtime_folders` under `HOME`, devices.
+
+    A request without `HOME` gets none of the runtime's folders.
+    """
+    # Without guard settings the run may write nothing of the checkout.
+    guard = request.guard or GuardSettings(
+        root=request.working_directory, write_paths=[], protected_paths=[]
+    )
+    home = request_home(request)
+    targets = write_targets(guard, home=home)
+    existing_files = [
+        target.path for target in targets if target.kind == "file" and target.path.is_file()
+    ]
+    folders = (
+        []
+        if home is None
+        else [WriteTarget(path=home / folder, kind="folder") for folder in runtime_folders]
+    )
+    return confinement_of(
+        targets,
+        root=guard.root,
+        existing_files=existing_files,
+        extras=[*folders, *devices],
+        temporary_directory=temporary,
+    )
+
+
+def killed_at_limit(
+    *, os_user: str | None, exit_status: int | None, duration: timedelta, time_limit: timedelta
+) -> bool:
+    """Whether a call run as `os_user` was ended by its own `timeout` at `time_limit`."""
+    if os_user is None or exit_status not in KILL_STATUSES:
+        return False
+    return duration >= time_limit
+
+
+def first_word(output: str) -> str | None:
+    """The first word of the first non-blank line of `output`, or `None`."""
+    for line in output.splitlines():
+        if line.strip():
+            return line.split()[0]
+    return None

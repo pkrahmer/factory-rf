@@ -43,3 +43,16 @@ def string_literals(tree: ast.Module) -> list[str]:
         for node in ast.walk(tree)
         if isinstance(node, ast.Constant) and isinstance(node.value, str)
     ]
+
+
+def reads_os_environ(tree: ast.Module) -> bool:
+    """Whether `tree` reads `os.environ` as an attribute or imports it in either form."""
+    if "os.environ" in imported_modules(tree):
+        return True
+    return any(
+        isinstance(node, ast.Attribute)
+        and node.attr == "environ"
+        and isinstance(node.value, ast.Name)
+        and node.value.id == "os"
+        for node in ast.walk(tree)
+    )
