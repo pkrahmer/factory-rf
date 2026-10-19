@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 294
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T22:33:53.217465Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T22:33:53.217465Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T22:34:08.479108Z'
+  stage: smoke-test
+  run: dd9ad715bbed4bf4a7a9c86fb241956d
 ---
 
 # The template's Makefile header calls mutants a sweep by hand
@@ -193,3 +195,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (0.1 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings. I ran the three commands under `## Smoke test` from the repository root, as written and in order.
+
+    1. `grep -c -F '`duplicates` is a report outside `check`; `mutants` is for a sweep by hand, never a stage.' template/Makefile`
+    ```
+    1
+    ```
+    Met `Expect: 1`.
+
+    2. `grep -c -F '`duplicates` and `mutants` are reports' template/Makefile || true`
+    ```
+    0
+    ```
+    Met `Expect: 0`.
+
+    3. `sed -n '4,5p' template/Makefile`
+    ```
+    # `duplicates` is a report outside `check`; `mutants` is for a sweep by hand, never a stage.
+    # A Python example with a src layout.
+    ```
+    Met `Expect:`: these are the two lines it names, in that order.
+
+    Checked against the acceptance criteria:
+    - Criterion 1: the new sentence occurs once and is line 4. The old phrase occurs 0 times. Line 5 is `# A Python example with a src layout.`.
+    - Criterion 2: lines 1 to 3 are unchanged; I printed lines 1 to 6 to check. `git diff main...HEAD --stat` shows `template/Makefile` with 3 lines changed (2 added, 1 removed), plus the new test module and this story's work item files. No other template file and no earlier test is in the diff.
+    - Criteria 3 and 4: the smoke test contradicts neither. I did not run `make check` again; the factory's checks gate it.
+
+    Findings: none.
+
+    Open, not a finding: the todo demo's `Makefile:4` still has the old line. The Description leaves that change to the human.
