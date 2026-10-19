@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 278
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T18:46:34.953495Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T18:46:14.324213Z'
   stage: tests
   run: 8eb2b246c32a4a8b8db6912d1d022b6b
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:46:34.953495Z'
+  stage: doing
 ---
 
 # run_streaming keeps a long output and a line split across reads
@@ -109,3 +118,4 @@ Expect: two lines, `[('stdout', 200000)] 200001` and `[('stderr', 'hello'), ('st
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (45.8 s)
+6. factory: started doing as self.
