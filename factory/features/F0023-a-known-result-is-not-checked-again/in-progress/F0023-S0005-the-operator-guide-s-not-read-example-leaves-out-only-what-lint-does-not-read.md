@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 290
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T21:57:58.586597Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-19T21:57:37.405541Z'
   stage: doing
   run: 12c3d3f6e8e54776b7a48da2318cb3d3
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-19T21:57:58.586597Z'
+  stage: review
 ---
 
 # The operator guide's not_read example leaves out only what lint does not read
@@ -125,3 +134,4 @@ Expect: `documents ok`
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
