@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -129,6 +129,11 @@ journal:
   at: '2026-10-19T18:18:29.502624Z'
   stage: smoke-test
   run: b24658746df443bd93ccc4fc9ef1cbee
+- number: 23
+  speaker: factory
+  kind: done
+  at: '2026-10-19T18:31:08.866799Z'
+  stage: approval
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -392,3 +397,4 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
     I read `## Acceptance criteria` again and found nothing the smoke test contradicts. The smoke test does not exercise the environment fallback in criterion 4; the tests cover it. The smoke test does not touch line 87 of `watch.py`, which entry 14 settled.
 
     Findings: none.
+23. factory: done (pull request merged); cost: 9 runs, 7.2 min, 50 turns, 177147 tokens in (927857 more from cache), 19934 out, $1.81
