@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -241,6 +241,11 @@ journal:
   at: '2026-10-19T05:36:56.888035Z'
   stage: smoke-test
   run: 12ab485eaa904c338b357e6c19109171
+- number: 43
+  speaker: factory
+  kind: done
+  at: '2026-10-19T05:38:15.187013Z'
+  stage: approval
 ---
 
 # The opencode runtime runs an agent and reads its result from the events
@@ -804,3 +809,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The smoke test contradicts no criterion. It does not cover the criteria for sudo, the wrapper, login, the version call and the error paths (13–20). Their tests cover them.
 
     Findings: none. I fixed nothing, and I did not run `make check` myself: the stage does not ask for it.
+43. factory: done (pull request merged); cost: 19 runs, 37.5 min, 224 turns, 775892 tokens in (7895805 more from cache), 137525 out, $10.01
