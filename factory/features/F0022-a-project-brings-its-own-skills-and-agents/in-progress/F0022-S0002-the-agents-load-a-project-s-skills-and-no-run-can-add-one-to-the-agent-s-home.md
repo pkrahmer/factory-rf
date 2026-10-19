@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T13:46:11.092030Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-19T13:46:11.092030Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-19T13:48:21.123544Z'
+  stage: doing
+  run: e7a5a4b9aacf49818e3ac046049832e7
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -306,3 +308,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (45.1 s)
 14. factory: started doing as self.
+15. coder: Round 1, after the tester's change: I changed no code. The reviewer's one finding was about the tests only. The tester settled it in entry 13 by merging the two tests of criterion 5 into `tests/adapters/test_opencode_left_out_tools.py::test_skill_is_left_out_and_every_other_tool_without_an_opencode_name_is_refused`. The code from round 0 already passes that test.
+
+    What was built in round 0 stays as it is:
+    - `claude/agents/*.md`: `Skill` is the last tool, and R15 follows R14.
+    - `claude/settings.json`: `"Skill"` comes after `"Grep"`.
+    - `image/entrypoint.sh`: the `skills`/`commands` loop.
+    - `src/factory/adapters/opencode_runtime.py`: `LEFT_OUT_TOOLS`, which `_tools` skips.
+
+    Main choice, unchanged from round 0: a separate left-out set rather than a sentinel value in `TOOL_NAMES`. A sentinel would mix up two kinds of tool, one that has an opencode name and one that is left out, and it would change the type of `TOOL_NAMES`.
+
+    Refactor: nothing to change, because there is no new diff in this round.
+
+    Description: the journal did not change the meaning of the task, so `## Description` stays as it is.
+
+    Noticed but not touched: the docs criterion is the documenter's.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
