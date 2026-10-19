@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 283
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T20:21:30.711930Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-19T20:21:09.660825Z'
   stage: tests
   run: 869ebbcaad2c43e693e9bf52b41e7f97
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:21:30.711930Z'
+  stage: doing
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -227,3 +236,4 @@ Expect: `1`
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (45.7 s)
+14. factory: started doing as self.
