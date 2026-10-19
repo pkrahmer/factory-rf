@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 280
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T19:14:42.602822Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-19T19:14:42.602822Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T19:15:03.629878Z'
+  stage: smoke-test
+  run: 32d404772e59488d989c5b29c4332a26
 ---
 
 # The operator guide names opencode wherever it names the runtime
@@ -190,3 +192,36 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: I ran the three smoke test commands as written, in order, from the repository root. All three met their `Expect:` lines. I found nothing to report.
+
+    1. Stale label gone, opencode pin added:
+    ```
+    0
+    1
+    ```
+    Met. `Expect: 0, then a number of at least 1`.
+
+    2. Stale folder wording gone, opencode state folder named twice:
+    ```
+    0
+    2
+    ```
+    Met. `Expect: 0, then a number of at least 2`.
+
+    3. `uv run python -m factory.entry.check_documents`:
+    ```
+    documents ok
+    ```
+    Met. `Expect: documents ok`.
+
+    Checking against the acceptance criteria: I read `git diff main -- . ':!factory'`. It changes only `docs/operator-guide.md` (8 insertions, 6 deletions), so criterion 1 holds: nothing changed under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The diff covers every bullet of criterion 3, and nothing else in the guide changed:
+    - *The agent runtime* now opens with `claude -p` under Claude Code or `opencode run` under opencode. The rest of that passage stays about Claude Code and says so.
+    - The configuration table has the new text for `FACTORY_CLAUDE` and `FACTORY_CLAUDE_VERSION`.
+    - The `~/.claude` bullet now calls it Claude Code's own folder, and a new bullet beside it names opencode's three folders and `FACTORY_OPENCODE_FOLDERS`.
+    - *The machine's image* now lists opencode among the pinned tools.
+    - *Update the pins* has a new opencode bullet with everything the criterion asks for.
+    - The preflight's closing paragraph now names the three `FACTORY_OPENCODE*` variables.
+
+    I did not run `make check` (criterion 2). This stage does not run it, and the smoke test does not contradict it.
+
+    Open: the documenter's entry lists some stale Claude-only wording that this story does not cover: the guide's intro line, *The agent runs as a second user*, the `claude-home` volume text, and *`factory-guard` on the agent run's `PATH`*. That is a candidate for a later story; it is not a finding here.
