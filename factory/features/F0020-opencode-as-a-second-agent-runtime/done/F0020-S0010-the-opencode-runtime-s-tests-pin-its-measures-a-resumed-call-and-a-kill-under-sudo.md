@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-10-19T19:05:55.828305Z'
   stage: smoke-test
   run: 846c6b424a8947fab9c679a07793fef2
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-19T19:08:18.953614Z'
+  stage: approval
 ---
 
 # The opencode runtime's tests pin its measures, a resumed call and a kill under sudo
@@ -318,3 +323,4 @@ Expect: two lines, `completed 'First line.\n\nThird line.' 0.8 ['{"command": "gi
     - Criterion 8 (docs) was handled by the documenter (journal 14).
 
     Open: none.
+17. factory: done (pull request merged); cost: 7 runs, 7.8 min, 56 turns, 226171 tokens in (1536617 more from cache), 30547 out, $2.33
