@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 256
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T09:23:38.396884Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T09:23:17.386896Z'
   stage: doing
   run: 684a48ea4a404e5e83a0369fcd78d4c3
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T09:23:38.396884Z'
+  stage: tests
 ---
 
 # The document check finds a v1 word at a line's edge and names itself in its usage
@@ -173,3 +182,4 @@ Expect: `documents ok`
     - Main choice: I passed the criterion to the tester (decision `tests`) and did not touch the code. The alternative was to change the code, which I rejected because nothing there needs to change. The current wording check already passes this case: the word-edge rule does not match `ticketed`, and the end of the text is not a special case.
     - Description: the reviewer's entry added criterion 3 and renumbered the closing criteria to 4 and 5. The Description already shows that, so I did not rewrite it.
     - Noticed but did not touch: nothing new.
+12. factory: started tests as self.
