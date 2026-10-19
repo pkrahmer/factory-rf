@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T16:04:09.532042Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T16:03:49.285388Z'
   stage: intake
   run: f37bae43a31f443c92a9422bc7018bf2
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:04:09.532042Z'
+  stage: tests
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -163,3 +172,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: three runnable blocks that use only `mktemp` and `uv run -q python -m`. Each `Expect:` names exact lines and exit codes. I counted `cut -c1-26` and it yields `check-mutants: cannot read`.
    Architecture: the pure rules are in `domain`, with no I/O. The file reading and the argument parsing are in `entry`. `check_duplicates` and the new command share one reader, as `CLAUDE.md` asks (no second copy). The story adds no dependency and no wrapper.
    Scope: it matches the feature's S0001 scope exactly. The `Makefile`, `CLAUDE.md` and the pipeline definition are left to the human. No earlier test changes (`test_check_duplicates.py` passes unchanged), and the docs criterion covers the feature's decisions 2, 3 and 8.
+4. factory: started tests as self.
