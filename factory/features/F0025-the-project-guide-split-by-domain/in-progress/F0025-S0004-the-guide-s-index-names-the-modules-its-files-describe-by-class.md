@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 292
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T22:19:09.272227Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-19T22:18:48.396239Z'
   stage: docs
   run: ce6bb58845ce459cb0a96849dd206546
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-19T22:19:09.272227Z'
+  stage: smoke-test
 ---
 
 # The guide's index names the modules its files describe by class
@@ -181,3 +190,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 3523d622cd0b at 2026-10-19T21:56:48Z)
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
