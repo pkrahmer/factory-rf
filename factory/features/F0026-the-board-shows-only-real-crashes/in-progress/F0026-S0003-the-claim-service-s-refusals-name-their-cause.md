@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 275
 comments_read: [6273558949]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T17:49:48.556980Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-19T17:49:28.161281Z'
   stage: review
   run: cfeadf54b7744f6a9c8a4476d8d693f3
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-19T17:49:48.556980Z'
+  stage: doing
 ---
 
 # The claim service's refusals name their cause
@@ -237,3 +246,4 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
     The coder can hand findings 1 and 2 to the tester with `tests`, since entry 10 is the human's word for these test changes.
 
     Earlier tests: none. `git diff --name-status main...HEAD` shows `A` for every test file.
+13. factory: started doing as self.
