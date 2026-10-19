@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 280
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-19T19:09:22.418535Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-19T19:09:22.418535Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-19T19:11:14.011588Z'
+  stage: tests
+  run: 001ce14c6be444bfa9860773496b90c6
 ---
 
 # The operator guide names opencode wherever it names the runtime
@@ -98,3 +100,11 @@ Expect: `documents ok`
    - Architecture: the story changes only `docs/operator-guide.md`, which is the documenter's write path. It touches no layer, no code and no test. It names `tests/test_opencode_image.py` and `image/` only as text for the guide to cite.
    - Scope: F0020's scope lists `docs/operator-guide.md` under each story's docs criterion. The story adds no new section and does not touch Out of scope items. It corrects older passages that S0008's `Running on opencode` section left inconsistent.
 4. factory: started tests as self.
+5. tester: No tests written: this story is docs-only. Its Interface is "None", and criterion 1 says no test changes.
+   - criterion 1 (nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes): I created and changed no file under any of those folders. `git status` shows only the work item's `.costs.jsonl` sidecar, which the factory writes.
+   - criterion 2 (`make check` stays green): this is the stage gate, not a test. I ran `make test` once and it passed with no new tests (`test: green`, coverage 99.12 %). `make lint` passed as well.
+   - criterion 3 (docs, `docs/operator-guide.md`): the documenter owns this criterion. The smoke test and `uv run python -m factory.entry.check_documents` check it. There is no test, because writing one would break criterion 1.
+   Files created: none. Modules the test runner could not import: none. Since nothing new is red, the coder has no tests to turn green; the remaining work is the documenter's edit of `docs/operator-guide.md`.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (47.8 s)
