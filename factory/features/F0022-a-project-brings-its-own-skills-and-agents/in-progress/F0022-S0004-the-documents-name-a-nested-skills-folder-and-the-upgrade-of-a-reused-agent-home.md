@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 284
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T20:29:37.317717Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T20:29:37.317717Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T20:29:59.286344Z'
+  stage: intake
+  run: 79a9706a59a0431ebe70eaa12858e59b
 ---
 
 # The documents name a nested skills folder and the upgrade of a reused agent home
@@ -74,3 +76,9 @@ Expect: `documents ok`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: states "None" and names the three documents the documenter changes (`docs/operator-guide.md`, `docs/decisions.md`, `docs/project-guide/agents.md`). No module or signature exists to check, and no `# comment` states a behaviour.
+   Criteria: criterion 1 (nothing outside the docs changes) can be checked by one diff check and has a failing side, since any change under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` breaks it. Criterion 2 is `make check` and criterion 3 is the docs criterion. Each document change in criterion 3 names its section and its exact wording. `check_documents` must print `documents ok`. I found no Interface rule that lacks a criterion.
+   Smoke test: all five commands are runnable. I confirmed that the sections they read exist: `### A project's own skills` (operator-guide.md:998), `## The agents load a project's skills...` (decisions.md:757) and the sentence "there is no other copy" (project-guide/agents.md:254). Each `Expect:` is a count or a fixed string. The first four counts are 0 today, so they fail now and pass after the documenter's edit. The documenter must put `src/.claude/skills` on exactly one line in each of those two sections, and `rm: cannot remove` on exactly one line in the guide.
+   Architecture: documents only, so no layer is touched. The wording follows the glossary and the guide's section names. The `*The agent runs as a second user*` section exists (operator-guide.md:125).
+   Scope: the story is within F0022. It carries in decision 12's open point and the human's change 1, and it adds no behaviour. It stays inside the documenter's write paths (`docs/*`). It does not touch `feature.md`, `factory/`, `planning/` or `docs/runs/`.
