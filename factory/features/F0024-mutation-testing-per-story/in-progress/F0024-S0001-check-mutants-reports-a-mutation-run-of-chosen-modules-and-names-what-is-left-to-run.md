@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 270
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-19T16:07:34.441159Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-19T16:07:13.717187Z'
   stage: tests
   run: f4f21d4b5bf445efa9acafec9ec94443
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-19T16:07:34.441159Z'
+  stage: doing
 ---
 
 # `check_mutants` reports a mutation run of chosen modules and names what is left to run
@@ -197,3 +206,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_inputs.py - ImportError while importing test module '/...
+6. factory: started doing as self.
