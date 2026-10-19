@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-19T16:01:42.952731Z'
   stage: acceptance
   run: 9a0ab49b8d8b4d7296bd2c6789d7296e
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-19T16:02:29.658784Z'
+  stage: done
 stories: [F0023-S0001, F0023-S0002]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of A known result is not checked again
@@ -237,3 +242,4 @@ Not part of the stories' cost: none of F0023's own docs stages reused anything, 
    6. Decisions: the 18 from `feature.md`, the human's answer (a) in S0002, and the coders' and testers' defaults are listed in the report. Ten earlier test files were changed, each under decision 15 or the standing leave. None was changed without a leave.
    7. Slow checks: nothing beyond `make check` and `make mutants`. `make check` is green (test 47.3 s). The slowest tests take 5.0 s, and F0023's 133 tests take 6.9 s together. Disk did not change since the start record.
    8. Cost: 27 runs, 31.6 min, $9.78, split evenly ($4.91 and $4.87). The rework rounds changed only tests; three of each story's five coder runs changed no code. There was 1 human question (S0002, the stall-note assertion), answered with 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 37.3 min, 67 turns, 174174 tokens in (6923992 more from cache), 44911 out, $3.68
