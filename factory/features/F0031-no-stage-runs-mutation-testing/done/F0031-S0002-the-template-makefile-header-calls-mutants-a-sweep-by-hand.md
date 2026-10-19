@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T22:34:08.479108Z'
   stage: smoke-test
   run: dd9ad715bbed4bf4a7a9c86fb241956d
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T22:36:29.855903Z'
+  stage: approval
 ---
 
 # The template's Makefile header calls mutants a sweep by hand
@@ -224,3 +229,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Findings: none.
 
     Open, not a finding: the todo demo's `Makefile:4` still has the old line. The Description leaves that change to the human.
+14. factory: done (pull request merged); cost: 6 runs, 3.3 min, 28 turns, 91387 tokens in (360776 more from cache), 6360 out, $0.77
