@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 248
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-19T03:53:02.022177Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-10-19T03:53:02.022177Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-19T03:53:28.526246Z'
+  stage: smoke-test
+  run: 1fc38dbd2b0c419794fc715da1024aff
 ---
 
 # The agent runs can log in with an API key
@@ -599,3 +601,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `documents`: documents ok
 23. factory: started smoke-test as self.
+24. smoke-tester: Ran the `## Smoke test` block as written, as one bash script from the repository root. The script exited 0.
+
+    Command (the whole block: stand-in `claude`, a subscription file and an API login file in a `mktemp -d` folder, two `ClaudeCodeRuntime.run` calls with the API file emptied between them, then `cat "$d/seen"`):
+
+    ```
+    api_key
+    subscription
+    stand-in-api-login unset
+    unset stand-in-subscription
+    ```
+
+    Expect: four lines, `api_key`, `subscription`, `stand-in-api-login unset`, `unset stand-in-subscription`. Met: the output is exactly those four lines, in that order.
+
+    Checked against the acceptance criteria: the result agrees with criterion 8. With a key in the API file the stand-in got `ANTHROPIC_API_KEY` and no token, and `login` was `api_key`. Once the file was emptied, the next run got the token and its `login` was `subscription`. It also agrees with criterion 9: the request's environment held only `PATH`, and the stand-in got only the login names the files supplied. No criterion is contradicted.
+
+    Findings: none.
