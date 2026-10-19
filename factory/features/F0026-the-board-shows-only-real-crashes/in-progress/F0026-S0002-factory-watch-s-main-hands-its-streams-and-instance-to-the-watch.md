@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 276
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-19T18:01:31.655014Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-19T18:01:10.708776Z'
   stage: intake
   run: f315cee09690418c8aef836fdb35d7a2
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-19T18:01:31.655014Z'
+  stage: tests
 ---
 
 # factory-watch's main hands its streams and its instance to the watch
@@ -154,3 +163,4 @@ Expect: three lines, `resolve origin/main failed (no exit status): origin/main d
    Smoke test: runnable. Each `Expect:` value is a checkable string, namely the three printed lines. I did not run it.
    Architecture: tests only, in `tests/entry/` and `tests/application/`, mirroring the package. The stand-in replaces `boundaries_from_environment`, not the code under test. No earlier test changes.
    Scope: the story is not in `feature.md`'s Stories list because the feature acceptance proposed it. It sits inside the feature's goal, touches nothing in "Out of scope" (not `test_watcher_move_rule.py`, not the tick's judgement), and changes no code.
+4. factory: started tests as self.
