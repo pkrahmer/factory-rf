@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 275
 comments_read: [6273558949]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-19T17:48:51.911308Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -63,6 +67,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-19T17:48:33.946652Z'
+  stage: review
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-19T17:48:51.911308Z'
   stage: review
 ---
 
@@ -216,3 +225,4 @@ Expect: seven lines, `not an instance name: 'Factory-1'`, `the work item is in s
 
    Earlier tests: none. The diff only adds files: `git diff --name-status main...HEAD` shows `A` for every test file, and only the work item is `M`.
 10. 2026-10-19 human: (b). The tester moves `_file_text` (with `test_undo.py`'s `_text` merged into it) and the work-item preparation into one shared module under `tests/` (for example `tests/git_support.py`), under the standing leave in `CLAUDE.md`; `test_claims.py`, `test_undo.py` and the new module import them, and every earlier test keeps its name and what it checks. The Description's sentence becomes "the tests in `tests/application/test_claims.py` keep their names and what they check".
+11. factory: started review as self.
