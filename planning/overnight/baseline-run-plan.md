@@ -1,5 +1,13 @@
 # The baseline todo run (step 10): the plan
 
+## Decided by the human (2026-10-19 morning)
+
+- Q1: the 25 % band is an upper limit only: each compared story's cost and agent minutes at most 125 % of run 4's; cheaper or faster is recorded, never a failure.
+- Q2: first-pass means all six stages ran exactly once, with no question, send-back or retry, in both run 4 and the baseline.
+- Q3: a separate clone `C:/Dev/Projects/factory-baseline` at a tag, with its own token for `pkrahmer/factory-baseline-todo` only (the human creates both).
+- Q4 to Q7 as recommended: the disk bounds as given; `self` stopped for the whole run; the repository `pkrahmer/factory-baseline-todo`; F0023's and F0024's opt-ins off for the demo.
+
+
 Step 10 of "The order of the work after F0011" (`planning/overnight/restructure-after-f0011.md`): v1.1, as it stands after every step before, builds `demo/todo-service` into a new empty repository under the strict rules, while a Claude Code session plays the human. Disk records are taken at the start and at the end. The run passes when:
 
 1. every story and acceptance is accepted;
