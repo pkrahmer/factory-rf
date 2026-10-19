@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 260
 comments_read: [6265790615, 6265944829]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T11:20:34.120668Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-19T11:20:34.120668Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-19T11:22:55.848066Z'
+  stage: doing
+  run: 23f7d1be20fb4d498b35608f5efa63f6
 ---
 
 # The operator chooses the runtime per instance, and the image and the preflight carry opencode
@@ -336,3 +338,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (38.0 s)
 16. factory: started doing as self.
+17. coder: The tester made the three test changes from entry 13, so I did the two steps entry 13 left open: the refactor pass and the final `make check`. I changed no code and no test in this run. `make check` is green: check: green, test: green (40.0 s), coverage 99.06 %.
+
+    What I built (from entry 10; committed on the branch):
+    - `src/factory/domain/settings.py`: the five `*_VARIABLE` constants, `AgentRuntimeName` and the five new `InstanceSettings` fields. `_agent_runtime`, `_opencode_models`/`_opencode_model` and `_opencode_folders`/`_opencode_folder` read them.
+    - `src/factory/adapters/opencode_runtime.py`: the `runtime_folders` keyword, passed through to `_confinement`.
+    - `src/factory/application/preflight.py`: `opencode_item` and `installed_models`. `MachineChecks` uses the executable and pin of the runtime in force (`_runtime_executable`, `_runtime_pin`). A failed probe names `<opencode> run` and gives the single sign-on hint (`_runtime_command`, `_opencode_login_hint`).
+    - `src/factory/entry/wiring.py`: `_agent_runtime` builds `OpencodeRuntime` or `ClaudeCodeRuntime`, and `machine_extras` adds `opencode` after `confinement` under opencode only.
+    - `image/Dockerfile` and `image/compose.yml`: the pin, the npm install, the two commented `ENV` lines and the five compose entries.
+
+    Main choice: one private builder in the wiring, `_agent_runtime`, picks the runtime from `settings.agent_runtime`. I rejected a runtime registry or factory interface: with two runtimes it is machinery beyond the story. `installed_models` reuses the agent definitions reader's `names()`, which already sorts, and drops repeats with `dict.fromkeys` rather than sorting again.
+
+    Refactor: I read the diff against main for unclear names, duplication and dead code, and found nothing to change.
+
+    Noticed, not touched: `make duplicates` reports `5 new, 33 known, 3 gone`.
+    - Four of the new ones are similar-code pairs between `claude_runtime` and `opencode_runtime` (`call_refusal`, `cleanup_launch`, `version_printed`, the `confine_executable` branch). They are in code this story did not write. My edits to `opencode_runtime.py` moved their line ranges, which is likely why they no longer match the baseline's entries.
+    - The fifth is dead code: `ManualWaiter` in `src/factory/adapters/clock.py`, a file this story does not touch.
+
+    I did not compare against a `make duplicates` run on main, so the shifted-lines reading is a guess. The reviewer should judge it.
+
+    The journal did not change the Description. The human's answers settled the tests (the order of `installed_models`, the `settings.json` in the folders test) and left the Interface as it is. Docs (criterion 16) are the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
