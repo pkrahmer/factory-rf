@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 249
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T04:11:50.382898Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-19T04:11:29.997381Z'
   stage: review
   run: 5d20ccacacf546b6a9ccb015c8382f4b
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-19T04:11:50.382898Z'
+  stage: docs
 ---
 
 # What every agent runtime shares moves into one module
@@ -386,3 +395,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/source_search.py`: none needed. The diff only adds `reads_os_environ` and leaves the rest of the file as it was.
 
     Open, from entries 5, 7 and 13: `tests/test_agent_launch_search.py` reads the source, so it may need to join mutmut's list of left-out structural tests in `pyproject.toml`. That file is outside this story's write paths, so the human decides.
+18. factory: started docs as self.
