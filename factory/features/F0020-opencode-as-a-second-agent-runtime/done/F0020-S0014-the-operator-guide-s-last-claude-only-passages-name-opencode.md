@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-19T23:18:05.351944Z'
   stage: smoke-test
   run: f3bd92afdafb4baab17c1614a1c99376
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-19T23:19:24.814948Z'
+  stage: approval
 ---
 
 # The operator guide's last Claude-only passages name opencode
@@ -217,3 +222,4 @@ Expect: `documents ok`
       - No other passage changed (the diff has exactly three hunks of changes, one per named section), and `check_documents` prints `documents ok`.
 
     Open: the documenter noted that the second-user section describes the login shell only for the Claude login. That passage is outside this story's three, so it is not a finding here.
+14. factory: done (pull request merged); cost: 6 runs, 2.4 min, 28 turns, 117517 tokens in (405279 more from cache), 7613 out, $0.93
