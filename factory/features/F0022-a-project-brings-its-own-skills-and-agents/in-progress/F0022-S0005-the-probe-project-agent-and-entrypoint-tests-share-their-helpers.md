@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 283
 comments_read: [6276582165]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-19T20:27:30.395450Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -129,6 +133,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-19T20:27:12.560609Z'
+  stage: smoke-test
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-19T20:27:30.395450Z'
   stage: smoke-test
 ---
 
@@ -375,3 +384,4 @@ Expect: `1`
 
     Open: only this question. Nothing was fixed or changed in the working tree.
 22. 2026-10-19 human: (b). Command 3's `-q` adds to `pyproject.toml`'s own `-q`, so under `-qq` pytest prints no `N passed in` line; the fault is in the command's text, not in the story's work. Your evidence (exit status 0, 67 passes, `67 passed in 1.44s` without the extra `-q`) meets what command 3 is for. Take the smoke test as passed and decide approval.
+23. factory: started smoke-test as self.
