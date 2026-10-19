@@ -14,11 +14,11 @@ No module under `src/factory/` changes.
 TESTS_UMASK = 0o022
 
 
-def pytest_configure(config: pytest.Config) -> None:
+def pytest_configure() -> None:
     """Run every test under the umask `0o022`, whatever umask pytest was started under."""
 ```
 
-- `pytest_configure` calls `os.umask(TESTS_UMASK)` and nothing else. It restores no earlier umask: the run's process ends with the run.
+- `pytest_configure` takes no parameter: pluggy calls a hook implementation with only the arguments it names, and an unused `config` is ruff's `ARG001`. It calls `os.umask(TESTS_UMASK)` and nothing else. It restores no earlier umask: the run's process ends with the run.
 - It runs in every pytest process, the main process and each pytest-xdist worker alike, because each of them loads `tests/conftest.py`.
 - The fixtures `group_umask` (`tests/conftest.py`) and `open_umask` (`tests/adapters/test_claude_runtime_file_modes.py`) stay as they are. They set their own umask for one test and restore the one before, which is then `0o022`.
 

@@ -57,7 +57,7 @@ Tests (the tester writes them): `tests/time_limits.py`, `tests/test_time_limits.
 ```bash
 d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
 umask 022
-TMPDIR="$d" uv run pytest -q --no-header --tb=short -p no:cacheprovider -n 64 tests/test_time_limits.py tests/adapters/test_claude_runtime_confinement.py tests/adapters/test_claude_runtime_provider_limit.py tests/adapters/test_claude_runtime_resume.py tests/adapters/test_opencode_budget.py tests/adapters/test_opencode_resume_session.py tests/adapters/test_opencode_events.py tests/adapters/test_process.py tests/adapters/test_process_streaming.py tests/adapters/test_make_commands.py > "$d/out" 2>&1
+TMPDIR="$d" uv run pytest --no-header --tb=short -p no:cacheprovider -n 64 tests/test_time_limits.py tests/adapters/test_claude_runtime_confinement.py tests/adapters/test_claude_runtime_provider_limit.py tests/adapters/test_claude_runtime_resume.py tests/adapters/test_opencode_budget.py tests/adapters/test_opencode_resume_session.py tests/adapters/test_opencode_events.py tests/adapters/test_process.py tests/adapters/test_process_streaming.py tests/adapters/test_make_commands.py > "$d/out" 2>&1
 echo "exit $?"
 grep -c -E '^(FAILED|ERROR) ' "$d/out"
 ```
