@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 265
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T13:41:51.608202Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T13:41:51.608202Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T13:42:55.086290Z'
+  stage: review
+  run: f9e34cd5c02b4a1baf8371efb03584f2
 ---
 
 # The agents load a project's skills, and no run can add one to the agent's home
@@ -230,3 +232,10 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: 1. `tests/adapters/test_opencode_left_out_tools.py:42-70` (criterion 5): the two sides of the one `LEFT_OUT_TOOLS` rule are split across two test functions. `test_skill_turns_on_no_opencode_tool_and_is_not_refused` holds the left-out side and `test_another_tool_without_an_opencode_name_is_still_refused_before_anything_starts` holds the refused side. Criterion 5 says "(rows)", and `CLAUDE.md` *Tests* says the sides of one rule are rows of one parametrized test. Fix: the tester merges them into one parametrized test with three rows, `["Read","Skill"]` → `{"read"}`, `["Skill"]` → `set()`, `["Read","NotebookEdit"]` → the error text `the opencode runtime has no tool for NotebookEdit`. Each row asserts either the configuration's `tools` or the raised detail with no call to the stand-in, the way `test_a_request_the_runtime_cannot_configure_fails_before_anything_starts` in `tests/adapters/test_opencode_runtime.py` branches on its expected value.
+
+   Checked and sound: criteria 1 and 2 through the changed `_ALL_TOOLS`, `_TOOLS_WITHOUT_WRITE` and `SETTINGS`, with `test_front_matter_holds_the_four_applied_keys_with_their_values` checking the order and `test_call_passes_exactly_the_agent_tools` checking what follows `--tools`. Criterion 3 (exactly once, whole line, first non-empty line after R14). Criterion 4 (the three rows; folder, empty, uid, mode `0755`, exit 0, the three log lines). Criterion 6 (one row per shipped agent). The seven `tools` lines, the R15 text, the settings entry, the entrypoint loop and its position, and `LEFT_OUT_TOOLS` with the skip in `_tools` all match the Interface. The layers hold; there is no new marker, secret or string-built command (`rm -rf "${home:?}/$folder"` is guarded). The coder's journal entry reports `make check` green.
+
+   Earlier tests:
+   - `tests/shipped_agents.py`: the human's leave, the feature's decision 14 as the story's Interface names it (`_ALL_TOOLS` and `_TOOLS_WITHOUT_WRITE` gain `"Skill"` last, nothing else changed).
+   - `tests/test_claude_files.py`: the human's leave, the feature's decision 14 as the story's Interface names it (`SETTINGS` `allow` gains `"Skill"` after `"Grep"`, nothing else changed).
