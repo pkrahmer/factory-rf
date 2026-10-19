@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 259
 comments_read: [6265170554, 6265355420]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-19T10:55:45.466993Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-10-19T10:55:24.897109Z'
   stage: review
   run: 908e8a4cda3e4a2abf62c926a9414b93
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-19T10:55:45.466993Z'
+  stage: docs
 ---
 
 # The factory waits out a provider limit and resumes the run
@@ -589,3 +598,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_waiters.py:486`: `match=r"."` accepts any `ValueError` message; matching `negative` would pin the refusal.
     - `tests/domain/test_provider_limit_wait.py:1076` (the `cooldown-59-seconds` row): the fault `""` matches any `ValidationError` text.
     - `tests/application/test_sealed_runs_runner.py:849`: it imports the private helpers `_leave`, `_request` and `_swap_for_folder` from `application.test_sealed_runs`. Under the standing leave they would move to a shared module under `tests/` instead.
+28. factory: started docs as self.
