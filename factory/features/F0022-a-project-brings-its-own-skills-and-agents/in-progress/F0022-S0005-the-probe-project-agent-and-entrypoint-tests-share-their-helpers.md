@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 283
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-19T20:10:04.748603Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-19T20:10:04.748603Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-19T20:10:25.801506Z'
+  stage: intake
+  run: c94bfdc941c44d6591ff0f5f6a55030f
 ---
 
 # The probe, project agent and entrypoint tests share their helpers
@@ -73,3 +75,9 @@ Expect: `1`
 
 1. 2026-10-19 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures: `tests/probe_support.py` (`ENVIRONMENT`, `COMPLETED`), conftest fixtures `probe_settings(agent_home, tmp_path)` and `image_layout(tmp_path)`, `PROJECT_CODER` in `tests/git_support.py`. I checked against the tests tree: `ENVIRONMENT` with the `/opt/factory/bin` PATH is in the four probe modules, `PROJECT_CODER` in the two named, and `Layout(tmp_path)` in the three named. The three `settings` fixtures are identical; the `settings` of `test_agent_run_probe_api_login.py` and `test_agent_run_probe_opencode.py` differ (login files), so leaving them is right. No Interface comment states a behaviour that lacks a criterion. The story states no limits or error rules, so there is no failing side to test.
+   Criteria: 1 (same collected test ids before and after) is checkable by comparing `pytest --collect-only -q`; 2 is checkable by grep, and the greps are exact (no other `Layout(tmp_path)` or matching `ENVIRONMENT`/`PROJECT_CODER` text in tests); 3 and 4 are the closing criteria. Each is testable without a further decision.
+   Smoke test: three runnable commands (grep counts and a pytest run). Each `Expect:` line is a checkable value.
+   Architecture: tests-only; shared helpers go to modules at the `tests/` root and conftest, as CLAUDE.md's standing leave allows. No `src/` change.
+   Scope: within F0022's stated reach (the feature's test-helper follow-up from the acceptance), no item in "Out of scope"; the `PROJECT_CODER` of `test_project_agents.py` is rightly left alone.
