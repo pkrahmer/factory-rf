@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 258
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-19T10:21:59.124344Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-10-19T10:21:59.124344Z'
   stage: doing
+- number: 26
+  speaker: coder
+  kind: result
+  at: '2026-10-19T10:24:00.842993Z'
+  stage: doing
+  run: 97298a7489c2426292aa5da2c19de331
 ---
 
 # The opencode run stops at its budget and at a provider limit while it streams
@@ -542,3 +544,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (38.6 s)
 25. factory: started doing as self.
+26. coder: Round 2. The reviewer's two findings in entry 20 were both test changes, and the tester made them in entry 24: the earlier test name in `tests/adapters/test_opencode_runtime.py` is back, and `tests/adapters/test_opencode_budget.py::test_the_resume_runs_with_the_first_call_s_run_files_which_are_removed_after_it` now covers criterion 15. I changed no code. `src/factory/adapters/opencode_runtime.py` is the same as entries 7 and 10 describe. As expected, the new criterion-15 test passes against it, because `OpencodeRuntime.run` removes the run files in its `finally` after `_resume`. A fresh `make check` is green (`test: green (37.2 s)`, `check: green`).
+
+    What I built (unchanged): everything is in `src/factory/adapters/opencode_runtime.py`.
+    - Each call gets a `_Watch`, which is the `run_streaming` callback. It adds up the cost of each `step_finish` and stops the call when the total is strictly greater than the call's budget.
+    - It also stops the call on a provider limit, which it reads only from `error` events (by `statusCode`, or `limit_in_text` on the message) and from lines of standard error.
+    - A budget stop with a known session is resumed once through `_resume`, which uses `resume_budget`, `resumed_result` and what is left of the time limit. The run files are removed after both calls, and `AGENT_RUN` is reached once.
+    - The new keyword `provider_limit` defaults to `ProviderLimit()`.
+
+    Main choice (unchanged): `_Watch` records why it stopped the call, and the result reads that record. I rejected working the reason out again from the collected output after the kill: that would repeat the budget and limit rules, and it could disagree with what actually stopped the call.
+
+    Refactor: no code changed this round, so there was nothing to refactor.
+
+    The journal did not change what the task means. The reviewer already added criterion 15 to the Description.
+
+    Noticed, not touched:
+    - `_Watch.stopped_by` is typed `EndReason | None`, although it only ever holds `budget` or `provider_limit`.
+    - The reviewer's note still stands: the `500` and `1428` rows in `tests/adapters/test_opencode_provider_limit.py` assert `<= 1` call instead of exactly one.
+    - `tests/adapters/test_make_commands.py::test_output_tail_keeps_the_last_thirty_lines[30-1]` may be flaky under the parallel workers; it passed this run.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 35 known, 1 gone
