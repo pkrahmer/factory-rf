@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 255
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-19T09:06:55.019595Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-19T09:06:55.019595Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-19T09:07:13.406629Z'
+  stage: review
+  run: d636b66d75c44b74a30a0095a143543b
 ---
 
 # The guide's index names every module and subsection its files describe
@@ -173,3 +175,13 @@ Expect: `documents ok`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 35 known, 1 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar, both under `factory/`.
+   - Criterion 1 holds: nothing changed under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The tester's entry (5) and the coder's entry (7) both say so, as the criterion asks.
+   - Criterion 2 holds: the factory's `make check` after the coder was green (entry 7, `check: green`). `duplicates: 5 new` cannot come from this branch, which changed nothing under `src/factory`, so it is not part of this review.
+   - Criterion 3 is the documenter's work, written from the docs criterion. It still describes what the reader must know: the module coverage rule for *The files*, the four `### ` subsections and the line each goes on, the `agents.md` and `decisions.md` sentences, the 600-line limit and `documents ok`.
+   - Groups 2 to 4 (architecture, security, quality) have nothing to judge, because the diff is empty.
+   - Group 5: the coder's entry gives the main decision, to leave the guide's edits to the documenter as the Interface says, and the rejected option of making them in the doing stage. The Description still says "Three smaller passages" above a list of two. Intake and the coder both noted this. I do not count it as a finding, because the docs criterion the documenter works from names the same two passages correctly.
+
+   Earlier tests: none. No test file that `main` holds is changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the work item and its sidecar).
