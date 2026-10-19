@@ -20,8 +20,8 @@ One factory instance runs one project (R2) and is told what it needs through env
 | `GIT_USER_EMAIL` | no | Email of the factory's commits. Default `factory@noreply.invalid`. |
 | `FACTORY_IMAGE_ID_FILE` | no | The file that holds the identity of the image the instance runs on. Default `/opt/factory/image-id`. |
 | `FACTORY_CLAUDE_HOME` | no | The directory where the agents are installed (`<it>/agents/<role>.md`). Default `$HOME/.claude`, or `/home/agent/.claude` when `HOME` is unset or blank. |
-| `FACTORY_CLAUDE` | no | The agent runtime's executable. Default `claude`. |
-| `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it | The version of the agent runtime the image pins (`2.1.296`). The image sets it; a missing or blank value is read as not pinned. |
+| `FACTORY_CLAUDE` | no | Claude Code's executable, used when the runtime is `claude`. Default `claude`. |
+| `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it under Claude Code | The version of Claude Code the image pins (`2.1.296`). The image sets it; a missing or blank value is read as not pinned. |
 | `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default; the image sets it to `/home/factory/.secrets/hosting-token`. |
 | `FACTORY_CLAUDE_LOGIN_FILE` | no | The file that holds the agent's login token, made with `claude setup-token`, as plain ASCII text. A blank value counts as unset. No default; the image sets it to `/home/agent/.claude-token`. See "The agent runtime" and "The agent's login token". |
 | `FACTORY_API_LOGIN_FILE` | no | The file that holds the agent's Anthropic API key, as plain ASCII text. A blank value counts as unset. No default; the image sets it to `/home/agent/.anthropic-api-key`. A key in it wins over the token. See "The agent's API key". |
@@ -103,7 +103,7 @@ Under Podman, `podman exec` takes the place of `docker exec`.
 
 ## The agent runtime
 
-The factory runs each agent as a `claude -p` call: it needs the `claude` program and the agent's login (an API key file, the token file, or a session logged in by hand when neither holds one). The factory itself holds no key or token: the call's own shell reads them. With `FACTORY_AGENT_USER` set (the image sets it) the call runs under that user's `claude` login (see "The agent runs as a second user"); only without it does it run under the factory user's own login. The call gets only the environment the run's request gives, with no variable inherited from the factory. The flags are those of v1; the preflight's item `agent-run-probe` makes one call with them once for each image build, so a flag the pinned `claude` rejects stops the machine before any claim. If a call fails at once, see "The probe of the agent run". The factory asks `claude --version` and takes the first word of its output (for example `2.1.289`). The pinned version is the one the flags were written for; the preflight compares it with `FACTORY_CLAUDE_VERSION` (see "The preflight's items").
+The factory runs each agent as a `claude -p` call under Claude Code, or as an `opencode run` call under opencode (see "Running on opencode"). The rest of this passage is about Claude Code. It needs the `claude` program and the agent's login (an API key file, the token file, or a session logged in by hand when neither holds one). The factory itself holds no key or token: the call's own shell reads them. With `FACTORY_AGENT_USER` set (the image sets it) the call runs under that user's `claude` login (see "The agent runs as a second user"); only without it does it run under the factory user's own login. The call gets only the environment the run's request gives, with no variable inherited from the factory. The flags are those of v1; the preflight's item `agent-run-probe` makes one call with them once for each image build, so a flag the pinned `claude` rejects stops the machine before any claim. If a call fails at once, see "The probe of the agent run". The factory asks `claude --version` and takes the first word of its output (for example `2.1.289`). The pinned version is the one the flags were written for; the preflight compares it with `FACTORY_CLAUDE_VERSION` (see "The preflight's items").
 
 The login of the call is, in this order:
 
@@ -158,7 +158,8 @@ Before the runtime starts, `factory-confine` asks the kernel (Landlock, ABI 3 or
 
 - The write paths of the stage, as the nearest folder or file the kernel can name: `src/*` is the folder `src`, a file that exists is that file, and a file still to be made is its folder. A path at the checkout's root has no target, and the checkout's root is never allowed whole. The hook and the undo after the run still judge the exact write paths, so a wider target lets nothing into the work item.
 - The tool paths of the pipeline definition (`tool_paths`): `<folder>/*` in the checkout (for example `.venv/*`) and `~/<folder>/*` in the agent's home (for example `~/.cache/*`).
-- `~/.claude`, the runtime's own folder. The runtime sets `CLAUDE_CONFIG_DIR` to it, so `claude` keeps its `.claude.json`, its backups and its state there. Claude Code saves `.claude.json` by replacing it, which a rule for one file refuses and only the whole home would allow. The home's root, `.bashrc` and `.profile` stay refused, so an agent cannot change the environment of later runs. Inside `~/.claude` the factory's agents and `settings.json` stay read-only by their file permissions, since the kernel cannot exclude a file beneath an allowed folder.
+- `~/.claude`, Claude Code's own folder. The runtime sets `CLAUDE_CONFIG_DIR` to it, so `claude` keeps its `.claude.json`, its backups and its state there. Claude Code saves `.claude.json` by replacing it, which a rule for one file refuses and only the whole home would allow. The home's root, `.bashrc` and `.profile` stay refused, so an agent cannot change the environment of later runs. Inside `~/.claude` the factory's agents and `settings.json` stay read-only by their file permissions, since the kernel cannot exclude a file beneath an allowed folder.
+- Under opencode, its three folders in the agent's home, `.local/share/opencode`, `.local/state/opencode` and `.cache/opencode`, and the folders of `FACTORY_OPENCODE_FOLDERS`, instead of `~/.claude` (see "Running on opencode").
 - The device files `/dev/null`, `/dev/zero`, `/dev/full`, `/dev/random`, `/dev/urandom` and `/dev/tty`, and the folder `/dev/shm`, each when it exists.
 - The run's own temporary folder, `/tmp/factory-run-<session>`, which is `TMPDIR`.
 
@@ -297,7 +298,7 @@ The preflight asks for neither: the probe of the agent run shows whether a run c
 
 ## The machine's image
 
-`image/Dockerfile` builds the machine the factory runs on. Nothing in it floats (R29): the base image is named with its digest, Claude Code, `uv` and the eight Debian tools have exact versions, and the factory's own dependencies are installed by `uv sync --frozen --no-dev` from `uv.lock` alone (the build backend, `hatchling`, is pinned in `pyproject.toml`). `tests/test_image.py` checks this statically; it reports any reference that floats, such as a `FROM` without a digest, an `apt-get install` package without `=version`, `latest`, or a download piped into a shell.
+`image/Dockerfile` builds the machine the factory runs on. Nothing in it floats (R29): the base image is named with its digest, Claude Code, opencode, `uv` and the eight Debian tools have exact versions, and the factory's own dependencies are installed by `uv sync --frozen --no-dev` from `uv.lock` alone (the build backend, `hatchling`, is pinned in `pyproject.toml`). `tests/test_image.py` checks this statically; it reports any reference that floats, such as a `FROM` without a digest, an `apt-get install` package without `=version`, `latest`, or a download piped into a shell.
 
 ### What the container cannot see
 
@@ -326,6 +327,7 @@ To update any pin, edit its line and run `uv run pytest tests/test_image.py`:
 - Base image: `docker pull python:3.12-slim-bookworm`, then take the digest from `docker inspect --format '{{index .RepoDigests 0}}'` and put it after `@sha256:` in the `BASE_IMAGE` default.
 - Debian package: in the base image, `apt-cache policy <package>` shows the version; write it as `name=version`.
 - `uv`: the `UV_VERSION` default. Claude Code: the `CLAUDE_CODE_VERSION` default (three numbers).
+- opencode: the `OPENCODE_VERSION` default and the `FACTORY_OPENCODE_MODELS` value in `image/Dockerfile`, and the defaults of `FACTORY_OPENCODE_VERSION` and `FACTORY_OPENCODE_MODELS` in `image/compose.yml`; they change with it. Check the model ids with `opencode models anthropic`. `tests/test_opencode_image.py` pins the version and the model ids as well, so it changes with them; run it with `tests/test_image.py`.
 
 ### Claude Code
 
@@ -464,7 +466,7 @@ Under opencode a failed probe whose login was `none` ends with `; the agent runs
 
 When the probe completes, the item passes and the factory log gets one line with its detail, which names the login in force: `the agent runs log in with the API key from <file>`, `the agent runs log in with the subscription token from <file>`, or `the agent runs get no login from a file; the runtime uses the login kept in its home`.
 
-The items read the instance's settings, so the three variables `FACTORY_CLAUDE_HOME`, `FACTORY_CLAUDE` and `FACTORY_CLAUDE_VERSION` are the ones to check first. The commit identity is not an item.
+The items read the instance's settings, so the three variables `FACTORY_CLAUDE_HOME`, `FACTORY_CLAUDE` and `FACTORY_CLAUDE_VERSION` are the ones to check first; under opencode, `FACTORY_OPENCODE`, `FACTORY_OPENCODE_VERSION` and `FACTORY_OPENCODE_MODELS`. The commit identity is not an item.
 
 ### The stamp and the probe of the main branch
 

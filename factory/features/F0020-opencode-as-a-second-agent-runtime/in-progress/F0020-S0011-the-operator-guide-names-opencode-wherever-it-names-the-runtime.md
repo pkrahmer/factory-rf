@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 280
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-19T19:13:49.750625Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-19T19:13:49.750625Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-19T19:14:21.703504Z'
+  stage: docs
+  run: 3b6072a462e043dbb6266cf6753e44c7
 ---
 
 # The operator guide names opencode wherever it names the runtime
@@ -157,3 +159,24 @@ Expect: `documents ok`
    - Item 5 (work item hygiene): the coder's entry gives the main choice (hand forward with no change) and what was rejected (editing `docs/operator-guide.md` from the doing stage). The Description still matches the work. The docs criterion names each passage and the exact wording the documenter must write.
    - Item 6 (earlier tests): no test file that `main` holds is changed, renamed or deleted.
 10. factory: started docs as self.
+11. documenter: Changed `docs/operator-guide.md` only, in the six passages the docs criterion lists:
+    - Configuration table: `FACTORY_CLAUDE` is now "Claude Code's executable, used when the runtime is `claude`". `FACTORY_CLAUDE_VERSION` is "the version of Claude Code the image pins", and the preflight fails without it only under Claude Code.
+    - *The agent runtime*: the opening sentence now says `claude -p` under Claude Code or `opencode run` under opencode (see "Running on opencode"), and that the rest of the passage is about Claude Code.
+    - *The kernel refuses every other write*: the `~/.claude` bullet says it is Claude Code's own folder. A new bullet beside it names opencode's three folders and the folders of `FACTORY_OPENCODE_FOLDERS`, which an opencode run may write instead.
+    - *The machine's image*: the opening paragraph lists opencode among the pinned tools.
+    - *Update the pins*: a new opencode bullet. It names the `OPENCODE_VERSION` default and the `FACTORY_OPENCODE_MODELS` value in `image/Dockerfile`, and the defaults of `FACTORY_OPENCODE_VERSION` and `FACTORY_OPENCODE_MODELS` in `image/compose.yml`. It says to check the model ids with `opencode models anthropic`, and that `tests/test_opencode_image.py` pins the version and model ids too, so it changes with them and runs with `tests/test_image.py`.
+    - The preflight's closing paragraph names `FACTORY_OPENCODE`, `FACTORY_OPENCODE_VERSION` and `FACTORY_OPENCODE_MODELS` as the variables to check first under opencode.
+
+    I checked the new text against `image/Dockerfile` and `image/compose.yml`: the variable names and defaults match. `uv run python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because only a document changed; the factory's check runs after this stage.
+
+    Cross-read and found current: *Running on opencode* (including its "Update the pins" reference), the preflight items table, and *What opencode keeps in the agent's home*.
+
+    Stale text I saw and left, because this story does not cover it:
+    - Line 3 (the guide's intro) still describes the built parts as "the `claude -p` runtime".
+    - Several passages are written only for Claude Code: *The agent runs as a second user*, the `claude-home` volume text, and *`factory-guard` on the agent run's `PATH`*, which calls the guard "a Claude Code hook".
+
+    No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 5e9e997b80f0 at 2026-10-19T19:01:37Z)
+    `secrets`: secrets: green (1.0 s)
+    `documents`: documents ok
