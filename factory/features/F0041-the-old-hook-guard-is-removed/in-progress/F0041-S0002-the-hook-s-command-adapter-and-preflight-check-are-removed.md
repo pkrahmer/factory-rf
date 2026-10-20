@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T10:52:01.792838Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T10:51:41.180416Z'
   stage: intake
   run: 8731112fc6e74ab386f965206a1c2aed
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:52:01.792838Z'
+  stage: tests
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -132,3 +141,4 @@ Expect: `5`
    - Smoke test: the Python heredoc and the `ls | grep -c` line are runnable without a paid call and never run pytest, so the `-q` rule does not apply. The `Expect:` lines name exact output: four lines in the first block and `5` in the second.
    - Architecture: the changes stay in their layers. The domain loses a constant, an error and a field. The application item narrows to `HOME`. The entry wiring drops the re-exports. The adapter and the entry module are deleted. No layer import is reversed, and `GuardSettings`, `AgentRunRequest.guard`, `refusal` and `WritePathService` are kept as decision 4 says.
    - Scope: within the feature's S0002 scope list (decisions 2, 3, 4, 5, 8, 10). The human's leave in decision 10 names every changed or deleted test of other stories. The console script line, the documents and the kernel's guard are left out, as the feature's out-of-scope list requires.
+4. factory: started tests as self.
