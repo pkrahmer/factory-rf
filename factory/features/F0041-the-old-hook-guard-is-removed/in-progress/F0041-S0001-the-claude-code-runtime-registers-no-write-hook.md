@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T10:31:08.699012Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-20T10:31:08.699012Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T10:31:39.390415Z'
+  stage: review
+  run: 8a0cf9d0cc0245d2a9980cb544aa0e4f
 ---
 
 # The Claude Code runtime registers no write hook
@@ -324,3 +326,35 @@ Expect: `7`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 16. factory: started review as self.
+17. reviewer: no findings
+
+    What I checked, reading the diff rather than the earlier entries:
+    - `src/factory/adapters/claude_runtime.py`: every symbol the Interface lists is removed: `GUARDED_TOOLS`, `_hook_settings`, `_RunFiles.guard`/`hooks` and their paths in `of` and `remove`, `_guard_settings`, and the `GUARD_COMMAND` import. The imports `shlex` and `GuardSettings`, which nothing used any more, are removed too.
+      - `_arguments` no longer adds `--settings`, and every other flag keeps its order.
+      - `_write_files` writes the instructions file always and the confine rules only when `confine_executable` is set.
+      - `_confinement(request, ...)` still takes `request.guard` unchanged.
+      - The `SWITCHES` comment no longer names a hook, and `__all__` is unchanged.
+      - No `grep` hit for `guard-`, `hooks-`, `_hook_settings` or `GUARDED_TOOLS` is left in `src/`.
+    - `claude/agents/*.md`: all seven R14 lines lose exactly the clause `a hook also refuses an edit outside the write paths, `, and nothing else changes. `hook` now occurs 0 times in each file.
+    - Criteria:
+      - 1: `tests/adapters/test_claude_runtime_no_hook.py::test_no_run_registers_a_hook` has the three rows the criterion names. Each asserts no `--settings`, no `guard-`/`hooks-` file and the end `completed`.
+      - 2: `test_call_passes_every_flag_in_order` drops the two words.
+      - 3: `test_call_sees_the_instructions_file_and_no_guard_or_hooks_file` has the rows `state` and `state dir`.
+      - 4: the file-modes row `with-guard` expects `["instructions-"]`.
+      - 5: the first half is `tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line`, over `SHIPPED_NAMES` in the `Rules` section; its `_WRITE_PATHS_RULE` now holds the kernel-only sentence word for word. The second half is `tests/test_claude_agent_no_hook.py::test_no_shipped_agent_names_a_hook`.
+      - 6: the coder's `make check` was green (journal entry 15).
+    - Both round-0 findings are resolved: `import shlex` is gone from `SCRIPT` in `tests/adapters/claude_stand_in.py`, and the duplicate test with `_KERNEL_ONLY` is removed.
+    - The Description still matches what was built, and the docs criterion (none, S0003) still holds.
+    - `make duplicates` reports 5 new findings. Four are claude/opencode similar-code pairs that were already there and moved lines. The fifth is `ManualWaiter`, which this diff does not touch. None is new code.
+
+    Notes:
+    - `tests/test_claude_agent_no_hook.py:1`: the module docstring says "The rule on write paths of every shipped agent names no hook", but the test checks the whole agent body. "No shipped agent names a hook" would say what it tests.
+
+    Earlier tests:
+    - tests/adapters/claude_stand_in.py: human's leave, the feature's decision 9 (the `--settings` block and its `shlex` import).
+    - tests/adapters/test_claude_runtime.py: human's leave, the feature's decision 9.
+    - tests/adapters/test_claude_runtime_file_modes.py: human's leave, the feature's decision 9 (row `with-guard`).
+    - tests/adapters/test_claude_runtime_guard_temporary.py (deleted): human's leave, the feature's decision 9.
+    - tests/adapters/test_claude_runtime_login.py: human's leave, the feature's decision 9, extended by the human's answer of 2026-10-20 (pre-check `F0041-S0001-1.md`).
+    - tests/adapters/test_claude_runtime_resume.py: human's leave, the feature's decision 9, extended by the human's answer of 2026-10-20 (pre-check `F0041-S0001-1.md`).
+    - tests/test_claude_agent_refusal.py: human's leave, the feature's decision 9. Only `_WRITE_PATHS_RULE` changed (its text rewrapped), and every test keeps its name.
