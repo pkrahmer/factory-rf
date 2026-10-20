@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T20:46:30.195974Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-20T20:46:09.647182Z'
   stage: intake
   run: c88ed764cf694fb3b4e077be7113d898
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:46:30.195974Z'
+  stage: tests
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -181,3 +190,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: the commands are runnable and use no pytest. The `Expect:` list matches the `LC_ALL=C` sort order and the two statuses (0 and 2) can be checked.
    - Architecture: the pure rule is in the domain, the walk in an adapter, and the command line in the entry. The `test_wiring` leave is granted by the feature's decision 14. `settings` reuses `inside_home` downward, which the layers allow.
    - Scope: within F0040's Scope (S0003 lines) and not in its Out of scope. No `pyproject.toml`, dependency or `factory/` change.
+7. factory: started tests as self.
