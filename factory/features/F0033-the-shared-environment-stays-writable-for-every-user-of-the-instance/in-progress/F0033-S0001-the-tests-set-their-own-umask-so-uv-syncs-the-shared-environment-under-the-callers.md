@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 322
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T03:07:40.825004Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T03:07:20.335856Z'
   stage: intake
   run: 86a602382667462689d7937fa3fd09d7
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:07:40.825004Z'
+  stage: tests
 ---
 
 # The tests set their own umask, so uv syncs the shared environment under the caller's
@@ -83,3 +92,4 @@ Expect: `1`
    - Smoke test: both commands are runnable. The first expects `5 passed in `, which is 1 test plus 4 rows. The second expects a count of 1 for `os.umask(TESTS_UMASK)`. Both `Expect:` lines can be checked against the output.
    - Architecture: the hook is in `tests/conftest.py`, the shared fixtures file, and the child process starts through the process wrapper, not a direct subprocess. Nothing is added to `src/`, so the layers are untouched.
    - Scope: this matches the feature's Scope, S0001 and decisions 4 and 5. The `Makefile`, the `mutants` recipe and the other items in Out of scope are not touched. Decision 5 gives the leave to change `tests/conftest.py`.
+4. factory: started tests as self.
