@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 340
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T06:57:57.825993Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T06:57:57.825993Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T06:58:16.758120Z'
+  stage: docs
+  run: 750024268d8d459fb715560b3ba8527f
 ---
 
 # The opencode tests take their reply and waiting steps from the stand-in module
@@ -204,3 +206,16 @@ Expect: a line that starts `2 passed`
    - tests/adapters/test_opencode_runtime_launch.py: standing leave (reply copy).
    - tests/entry/test_wiring_opencode.py: standing leave (reply copy).
 10. factory: started docs as self.
+11. documenter: I changed no files. The docs criterion says `none`, and the diff (11 files, all under `tests/`) changes test helpers only. It adds no behaviour, name or interface that a reader of the docs would need.
+
+    Cross-read: I grepped `README.md` and `docs/` for `REPLY`, `WAITING`, `WAIT_SECONDS` and `opencode_stand_in`. The only live hit is `docs/project-guide/agents.md:138`, which says tests use `tests/adapters/opencode_stand_in.py` in `tmp_path` and never run the real `opencode`. That is still true after the move, so I found it current. The other hit is a historical line in `docs/runs/2026-10-12-overnight/night-log.md`. That folder belongs to the human, so I left it alone.
+
+    Findings against the code: none. The diff matches the Interface, since nothing under `src/factory/` changed.
+
+    Stale text I noticed that is not mine to fix: nothing related to this story. Both the tester and the reviewer note that `tests/adapters/test_opencode_runtime.py` keeps an inline waiting step with a literal `wait_seconds=30`. It is not the searched text and the Interface does not name it.
+
+    I did not run `make check`, as the stage says when only documents change, and I changed none.
+
+    `check`: check: green (not run again: passed on tree 1dd3e18ccca0 at 2026-10-20T06:55:35Z)
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok
