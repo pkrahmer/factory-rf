@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T01:18:48.363491Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-20T01:18:27.941458Z'
   stage: tests
   run: 275b27715ce7411a94af41504626122b
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:18:48.363491Z'
+  stage: doing
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -197,3 +206,4 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (40.1 s)
+14. factory: started doing as self.
