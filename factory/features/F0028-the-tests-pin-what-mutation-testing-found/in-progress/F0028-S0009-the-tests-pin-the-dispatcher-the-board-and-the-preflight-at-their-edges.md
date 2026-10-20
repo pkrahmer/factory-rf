@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T02:40:24.203732Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T02:40:24.198129Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:40:24.203732Z'
+  stage: intake
+---
+
 # The tests pin the dispatcher, the board and the preflight at their edges
 
 ## Description
@@ -45,3 +72,6 @@ EOF
 Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlog=1, in_progress=1, done=1, acceptance=None)]` and ``The factory failed 3 times on `run:F0001-S0001` and has stopped retrying it. Last error: ValueError: boom. A new commit on the work item's branch (now at aaaaaaaaaaaa) makes the factory try again.``
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
