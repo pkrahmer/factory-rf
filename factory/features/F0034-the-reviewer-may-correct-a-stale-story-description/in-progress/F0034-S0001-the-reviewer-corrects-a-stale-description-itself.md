@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 328
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T04:01:39.588563Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T04:01:39.588563Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T04:02:01.913174Z'
+  stage: smoke-test
+  run: f722a0e106ec48aab13e9279724a3af1
 ---
 
 # The reviewer corrects a stale Description itself
@@ -188,3 +190,32 @@ Expect: `1`
     `secrets`: secrets: green (1.6 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: both commands met their Expect lines. No findings.
+
+    I ran the two commands under `## Smoke test` from the repository root, as written and in order. Then I read the acceptance criteria again against the output.
+
+    Command 1: `grep -c -F 'description corrected:' claude/agents/*.md`
+    ```
+    claude/agents/acceptance-reviewer.md:0
+    claude/agents/coder.md:0
+    claude/agents/documenter.md:0
+    claude/agents/intake.md:0
+    claude/agents/reviewer.md:1
+    claude/agents/smoke-tester.md:0
+    claude/agents/tester.md:0
+    ```
+    Met: there are seven lines, the reviewer has 1 and the other six have 0, as expected.
+
+    Command 2: `grep -c -F '5. **Work item hygiene**: the journal explains the main decision and what was rejected; the `## Description` matches what was built;' claude/agents/reviewer.md`
+    ```
+    1
+    ```
+    Met: the output is `1`, as expected.
+
+    Criteria: the smoke test contradicts none of them.
+    - Criterion 3: command 1 gives the same counts the criterion asks for, one per agent.
+    - Criterion 4: command 2 finds checklist item 5 exactly once.
+    - Criteria 1 and 2: I also looked at `claude/agents/reviewer.md:68-72`. The new paragraph is at line 70, after the added-criterion paragraph (line 68), with one blank line on each side and `## Stage` at line 72. This matches where criterion 2 puts it.
+    - Criteria 5 and 6 (`make check` and docs) are not what the smoke test checks. The journal records `check: green` and the docs stage's checks as green.
+
+    Nothing is open.
