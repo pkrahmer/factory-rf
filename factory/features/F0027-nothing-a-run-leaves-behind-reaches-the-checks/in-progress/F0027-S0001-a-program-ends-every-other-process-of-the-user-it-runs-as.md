@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T12:18:40.888632Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-20T12:18:40.888632Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-10-20T12:22:19.374744Z'
+  stage: tests
+  run: 72ebf515e8044bc996070e3b034ef5f5
 ---
 
 # A program ends every other process of the user it runs as
@@ -326,3 +328,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed but not touched: both test names no longer match their sets ("three wrappers", "the four in the process wrapper"). The human decided in entry 8 that the names stay.
 11. factory: started tests as self.
+12. tester: I made the two test changes the human approved in entry 8, as the coder named them in entry 10. No other line changed.
+
+    1. `tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module`: I added `"factory.entry.leftovers"` to the expected set of importers. The test name and every other line are unchanged.
+    2. `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`: I added `"entry/leftovers.py": {32: {"noqa: PLR0913"}}` to the expected markers. Line 32 is `main`'s def line in `src/factory/entry/leftovers.py`. I wrote it as the literal line number the coder named, rather than finding the line by searching as the test does for its other entries, to keep the change exactly as approved. This means a later edit that moves `def main(` must also update this number. The test name and every other line are unchanged.
+
+    I created no new files. Every module imports now, so none failed to import.
+
+    I ran `make test` once: it passed, every test green, with 99.16 % coverage (`test: green (98.0 s)`). `make lint` is green.
+
+    Per the human's decision, the test names stay as they are even though they no longer match their sets.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (97.0 s)

@@ -97,4 +97,5 @@ def test_the_only_suppression_markers_are_the_four_in_the_process_wrapper() -> N
             exec_line: {"noqa: S606", "nosec B606"},
         },
         "domain/confinement.py": {shm_line: {"noqa: S108", "nosec B108"}},
+        "entry/leftovers.py": {32: {"noqa: PLR0913"}},
     }
