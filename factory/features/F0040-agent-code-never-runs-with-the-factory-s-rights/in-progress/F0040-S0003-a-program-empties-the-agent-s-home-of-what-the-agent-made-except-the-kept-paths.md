@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T20:54:39.935250Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-20T20:54:18.147666Z'
   stage: doing
   run: fc4d4f4e52e9432ea7c9cb897a1483cc
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:54:39.935250Z'
+  stage: review
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -260,3 +269,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 7 new, 33 known, 3 gone
+11. factory: started review as self.
