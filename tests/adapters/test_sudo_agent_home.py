@@ -204,16 +204,22 @@ def test_a_reset_that_reaches_its_time_limit_raises(
     assert 3 <= elapsed < 25
 
 
+@pytest.fixture
+def recorder(monkeypatch: pytest.MonkeyPatch) -> Recorder:
+    """Return a `run_process` stand-in put in place of the one `reset` calls."""
+    stand_in = Recorder()
+    monkeypatch.setattr(agent_home, "run_process", stand_in)
+    return stand_in
+
+
 def test_the_reset_call_has_no_environment_and_the_limit_plus_the_sudo_grace(
-    home: Path, monkeypatch: pytest.MonkeyPatch
+    home: Path, recorder: Recorder
 ) -> None:
-    recorder = Recorder()
     recorder.results = [
         ProcessResult(
             exit_status=0, stdout="", stderr="", timed_out=False, duration=timedelta(seconds=1)
         )
     ]
-    monkeypatch.setattr(agent_home, "run_process", recorder)
     agent = SudoAgentHome(home, KEPT, os_user="agent", sudo_executable="sudo", program=PROGRAM)
 
     agent.reset()
@@ -223,3 +229,21 @@ def test_the_reset_call_has_no_environment_and_the_limit_plus_the_sudo_grace(
     assert request.time_limit == agent_home.FRESH_HOME_TIME_LIMIT + SUDO_GRACE
     assert request.time_limit == timedelta(seconds=90)
     assert request.cwd == Path("/")
+
+
+def test_a_reset_the_factory_ended_at_its_limit_raises(home: Path, recorder: Recorder) -> None:
+    recorder.results = [
+        ProcessResult(
+            exit_status=None,
+            stdout="",
+            stderr="",
+            timed_out=True,
+            duration=timedelta(seconds=90),
+        )
+    ]
+    agent = SudoAgentHome(home, KEPT, os_user="agent", sudo_executable="sudo", program=PROGRAM)
+
+    with pytest.raises(AgentRuntimeError) as raised:
+        agent.reset()
+
+    assert raised.value.detail == f"cannot reset the agent's home {home}: no end within 60 s"

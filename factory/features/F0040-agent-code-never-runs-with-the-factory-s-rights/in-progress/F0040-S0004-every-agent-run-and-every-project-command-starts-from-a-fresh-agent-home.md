@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T22:19:43.795650Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -153,6 +149,12 @@ journal:
   kind: started
   at: '2026-10-20T22:19:43.795650Z'
   stage: tests
+- number: 27
+  speaker: tester
+  kind: result
+  at: '2026-10-20T22:22:22.141635Z'
+  stage: tests
+  run: 55288076fd7148dba4a4c7a715bd3f17
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -479,3 +481,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     **Noticed, not touched:** `leftovers_command()` in `src/factory/entry/wiring.py` still starts its program with `-I` and no `-B`. That is outside this story.
 26. factory: started tests as self.
+27. tester: Test change the human approved (coder's entry 25): I wrote the test for criterion 12, which the reviewer added in entry 23. It needed only a test, no code change.
+
+    - criterion 12: `tests/adapters/test_sudo_agent_home.py::test_a_reset_the_factory_ended_at_its_limit_raises`. It replaces `factory.adapters.agent_home.run_process` with the shared `Recorder`, which returns `timed_out` true, `exit_status` `None` and empty standard error. It expects `AgentRuntimeError` with the detail `cannot reset the agent's home <home>: no end within 60 s`.
+
+    The criterion-11 test (`test_the_reset_call_has_no_environment_and_the_limit_plus_the_sudo_grace`) set up the same seam, so I moved that setup into a new fixture, `recorder`, in the same file. That test keeps its name and still checks the same thing. This story's tests stage wrote that file, so no other story's test was touched.
+
+    `make test` is green: the test passes as soon as it is written, because `src/factory/adapters/agent_home.py:80` already handles `result.timed_out`. Coverage is 99.14 %. `make lint` is green.
+
+    Files changed: `tests/adapters/test_sudo_agent_home.py`. No files created. Every module imported in the test run.
+
+    Still open (reviewer's finding 2): the work item still says `-I` without `-B` in five places: the `## Interface` (`fresh_home_command()`), criteria 5 and 10, docs criterion 14, and the first smoke test's `program`. This mode lets me make only the named test change, so I left them as they are. The next review round or the human should correct them.
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (62.2 s)
