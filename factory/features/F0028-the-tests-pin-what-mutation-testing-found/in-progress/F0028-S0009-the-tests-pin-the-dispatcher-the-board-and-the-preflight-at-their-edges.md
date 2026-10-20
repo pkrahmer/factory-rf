@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T02:50:21.037561Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-20T02:50:21.037561Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-20T02:52:16.936068Z'
+  stage: doing
+  run: d3b9d3ee326949c1addcf29f3b75b245
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -223,3 +225,14 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
     `lint`: lint: green (0.0 s)
     `test`: test: green (38.2 s)
 14. factory: started doing as self.
+15. coder: Round 1, after the tester's move. I built nothing. The Interface says no module under `src/factory/` changes. In entry 13 the tester moved the opencode login-hint text, the reviewer's only finding, into `tests/probe_support.py` as `opencode_died(user)` and `opencode_sso_hint(user)`. `tests/application/test_agent_run_probe_opencode.py` and `tests/application/test_agent_run_probe_factory_user.py` now both use them. The tester skipped the type check, so I ran `make check`; it is green, which covers the moved helpers under `mypy --strict` (`test: green (44.7 s)`, coverage 99.14 %).
+
+    - Main choice: send the work item on to review without touching anything. I rejected changing any code: nothing is failing, and a change would go beyond the description (R13).
+    - Refactor: there was nothing to change. `git diff main -- . ':!factory' ':!tests'` is empty, so the whole diff is the tester's.
+    - Description: no journal entry changed what the task means.
+    - Noticed but not touched: nothing new. As entry 11 says, `tests/application/test_agent_run_probe_api_login.py:22` keeps its own `DIED` text for `claude -p`. That text is different from the opencode one.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
