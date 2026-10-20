@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658, 6303178244]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T22:31:23.877025Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -214,6 +210,12 @@ journal:
   kind: started
   at: '2026-10-20T22:31:23.877025Z'
   stage: smoke-test
+- number: 38
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T22:31:54.141922Z'
+  stage: smoke-test
+  run: 275148937f9949e5bba2540db9b707c6
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -665,3 +667,38 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.8 s)
     `documents`: documents ok
 37. factory: started smoke-test as self.
+38. smoke-tester: Ran both commands under `## Smoke test` from the repository root, exactly as written, in order. I changed nothing. The first command's temporary folder (`mktemp -d`, with its `trap`) removed itself when it ended. Its `--home` lay inside that folder, as `CLAUDE.md` allows.
+
+    Command 1 (SudoAgentHome.reset over a home under a temporary folder, through a stand-in `sudo`; then a relative home). Exit status 0. uv first created `.venv` in the fresh checkout; those lines are uv's setup, not the command's output:
+
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 84ms
+    Bytecode compiled 4164 files in 343ms
+    ['.claude-token']
+    cannot reset the agent's home relative: factory-fresh-home: --home relative is not an absolute folder other than /
+    ```
+
+    Met its `Expect:` line. The two lines are exactly `['.claude-token']` and `cannot reset the agent's home relative: factory-fresh-home: --home relative is not an absolute folder other than /`.
+
+    Command 2 (`agent_home_of` with an agent user, both login files inside the home, and one opencode folder). Exit status 0:
+
+    ```
+    Bytecode compiled 4164 files in 84ms
+    /home/agent ['.claude-token', '.anthropic-api-key', '.claude/.credentials.json', '.local/share/opencode/auth.json', '.cache/uv', '.config/sso']
+    ```
+
+    Met its `Expect:` line, which matches it exactly.
+
+    Acceptance criteria read once more against what I saw. Nothing contradicts them:
+    - Command 1 agrees with criterion 5: the planted `.claude/CLAUDE.md` and the transcript under `.claude/projects/` were removed, the kept `.claude-token` stayed, and `reset` returned.
+    - The second call in command 1 agrees with criterion 6: when the program fails, the detail is `cannot reset the agent's home <home>: <the line that starts with FRESH_HOME_PREFIX>`.
+    - Command 2 agrees with criterion 9's first row: the `home` and the `kept` list and its order are as stated. It also agrees with criterion 8's `LOGIN_STATE_FILE` values.
+
+    The smoke test does not exercise the other criteria (the time limit, `run_sealed`, `SealedProjectCommands`, `build_boundaries`, docs, `make check`), so it neither confirms nor contradicts them. The factory's checks cover `make check`.
+
+    No findings.
