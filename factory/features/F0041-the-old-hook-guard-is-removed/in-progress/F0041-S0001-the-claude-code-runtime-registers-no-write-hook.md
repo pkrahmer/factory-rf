@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T10:02:54.035685Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T10:02:54.030477Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:02:54.035685Z'
+  stage: intake
+---
+
 # The Claude Code runtime registers no write hook
 
 ## Description
@@ -82,3 +109,6 @@ grep -c -F 'a hook also refuses' claude/agents/*.md | grep -c ':0$'
 Expect: `7`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
