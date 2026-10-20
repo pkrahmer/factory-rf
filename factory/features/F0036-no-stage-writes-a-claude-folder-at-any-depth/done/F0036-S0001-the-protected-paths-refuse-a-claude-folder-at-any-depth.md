@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T03:32:31.685469Z'
   stage: smoke-test
   run: f6f0e08c2bd646bab03bb8d7d95010c0
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T03:34:53.115808Z'
+  stage: approval
 ---
 
 # The protected paths refuse a .claude folder at any depth
@@ -229,3 +234,4 @@ Expect: four lines, `.claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is o
     - Not exercised here: criterion 4 (the undo) and criteria 5 and 6. The smoke test does not target them. Criterion 4 has its own test, and the earlier stages recorded `check: green` and the docs.
 
     Findings: none. Nothing was changed.
+14. factory: done (pull request merged); cost: 6 runs, 5.2 min, 41 turns, 134562 tokens in (820600 more from cache), 15773 out, $1.34
