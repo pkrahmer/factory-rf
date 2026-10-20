@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368, 6300375333]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T20:18:33.364905Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-10-20T20:18:11.474951Z'
   stage: review
   run: 71dfafd65081477390c8257e2cd979bd
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:18:33.364905Z'
+  stage: docs
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -462,3 +471,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Notes:
     - `tests/application/test_sealed_project_commands.py:12`: imports `RecordingLog` from another test module (`application.test_checkout_preparer_seal`) rather than from a shared place under `tests/`. `test_nested_repositories.py` already does the same; it is a candidate for the standing leave to move a shared helper.
+28. factory: started docs as self.
