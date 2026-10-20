@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 363
 comments_read: [6300695093]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T20:40:21.864061Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-20T20:40:21.864061Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T20:41:02.170083Z'
+  stage: smoke-test
+  run: ec5698707ca74e499e4c54fd9dd759bd
 ---
 
 # A call no longer waits for a process that keeps its output open after the call's own process ended
@@ -321,3 +323,31 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
 15. factory: started smoke-test as self.
+16. smoke-tester: No findings. I ran the smoke test once, exactly as written, from the repository root. It met its `Expect:` line, and nothing it showed contradicts an acceptance criterion. I fixed nothing.
+
+    Command 1 (the `mktemp`/`trap` line, then the `uv run python - "$d"` heredoc). Its output, including uv's lines from first creating the venv:
+
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 82ms
+    Bytecode compiled 4164 files in 353ms
+    0 False True ['done'] True
+    None True True ['started'] True
+    ```
+
+    Expect: two lines, `0 False True ['done'] True`, then `None True True ['started'] True`. **Met.** The two result lines match exactly. The lines above them are uv setting up `.venv`, not output of the script.
+
+    What this shows against the criteria:
+    - **Child that ends on its own (criteria 1 and 5):** a child that exits 0 beside a holder in its own session keeps its exit status 0. `timed_out` is false, `output_abandoned` is true and `done` is in the output. The call returned after at least `PIPE_DRAIN` (5 s by default, which the script did not change) and before 80 s.
+    - **Kill at the time limit (criterion 3):** with a 3 s limit, the child with a holder gives `exit_status` None, `timed_out` true, `output_abandoned` true and `started` in the output. The call returned after at least 5 s and before 23 s, so the read after the kill was bounded and did not wait for the 60 s holder.
+    - **Other criteria:** no contradiction of criteria 2, 4, 6 or 7, which the smoke test does not exercise. I did not run `make check` (criterion 8) or review the docs (criterion 9); neither is part of this stage's commands.
+
+    Cleanup: after the run, `ps` shows no `sleep 60` holder left. The trap killed both holders and removed the temporary directory.
+
+    Note: entries 10 and 14 say the shell refused this command for its `kill` cleanup. In this run it was not refused and ran to the end.
+
+    Open: nothing.
