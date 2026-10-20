@@ -14,7 +14,6 @@ dependencies = [
 [project.scripts]
 # The commands v1.1 installs. Each module's entry function is `main() -> int` (factory.entry).
 factory-check-story = "factory.entry.check_story:main"
-factory-guard = "factory.entry.guard:main"
 factory-confine = "factory.entry.confine:main"
 factory-bill = "factory.entry.bill:main"
 factory-watch = "factory.entry.watch:main"
@@ -125,7 +124,6 @@ pytest_add_cli_args = [
     "-p", "no:cov",
     "--deselect", "tests/domain/test_hosting.py::test_domain_modules_import_only_stdlib_pydantic_and_domain",
     "--deselect", "tests/domain/test_hosting.py::test_application_hosting_imports_only_stdlib_and_domain",
-    "--deselect", "tests/entry/test_guard.py::test_the_module_runs_as_the_guard_command",
     "--deselect", "tests/test_agent_home_wiring.py::test_the_agent_definition_reader_is_built_once_from_the_settings_agent_home",
     "--deselect", "tests/test_atomic_replace_search.py::test_exactly_one_call_of_os_replace_exists_in_the_package",
     "--deselect", "tests/test_no_state_copies.py::test_no_function_but_the_allowed_two_checks_a_state_itself",
