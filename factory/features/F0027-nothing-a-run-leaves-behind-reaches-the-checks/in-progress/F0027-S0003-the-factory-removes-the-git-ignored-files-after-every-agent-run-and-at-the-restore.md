@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T15:24:08.644965Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-20T15:24:08.644965Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-20T15:24:39.772178Z'
+  stage: doing
+  run: f708083c97184684ab55288949752246
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -389,3 +391,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/application/test_interfaces.py`: changed under the same leave (the Git test renamed to twenty-five). The change is within that leave.
     - `tests/application/test_tick.py`: changed under the same leave (`test_the_restore_discards_changes_and_names_them_in_one_line`, the `ignored.log` assertion inverted). The change is within that leave.
 20. factory: started doing as self.
+21. coder: Round 1: the reviewer's findings in entry 19 are all test helpers copied from other stories' tests. So no code changes this round, and I did not run `make check`. `CLAUDE.md` gives a standing leave to move a shared test helper. Under it, the tester moves these helpers, keeps the name of every earlier test, and checks the same things. Any helper this story's new tests still copy goes too.
+
+    1. `COMPLETED` and `_request(checkout)`: the copies in `tests/application/test_sealed_runs_ignored.py` move to one shared module at the `tests/` root. The originals are at `tests/application/test_sealed_runs.py:32` and `:137`. Both modules then import them from there. Note: `tests/probe_support.py` already has a `COMPLETED`. It has the same fields except `entry="probe"` instead of `"done"`, so it cannot be reused as is unless the shared constant takes the place of both.
+    2. `_head(directory)`: the copies in `tests/adapters/test_git_cli_ignored.py` and `tests/adapters/test_git_cli_restoring.py:12` move to `tests/git_support.py`, and both modules use it from there.
+    3. `AS_ROOT`: the copies become one shared mark in a module at the `tests/` root. They are in `tests/adapters/test_git_cli_ignored.py`, `tests/application/test_sealed_runs_ignored.py`, `tests/application/test_tick_ignored.py`, `tests/adapters/test_git_cli_nested.py:13` and `tests/application/test_nested_repositories.py:39`. All five modules use the shared mark.
+
+    The tester's entry names each earlier test file it changes.
+
+    What is already built (no change this round): `Git.remove_ignored()` in `src/factory/application/git.py` and `GitCli.remove_ignored()` in `src/factory/adapters/git_cli.py`. `run_sealed` (`src/factory/application/sealed_runs.py`) calls it after the `try`/`finally`, and `Tick._restore_checkout` (`src/factory/application/tick.py`) between `reset_to("HEAD")` and the switch to `main`.
+
+    Main choice: I pass the findings to the tester and leave the code alone. I rejected touching the tests myself, because the coder never edits tests. The journal did not change what the task means, so the Description stays.
+
+    Noticed but not touched: `_head` has more near-copies with other signatures in `tests/adapters/test_git_cli_branches.py`, `test_git_cli_writing.py`, `tests/application/test_costs.py`, `test_after_agent.py`, `test_stalls.py` and `test_stage_finish.py`. They are outside these findings. The flaky `test_git_cli_work_tree.py` row from entry 17 is still open.
