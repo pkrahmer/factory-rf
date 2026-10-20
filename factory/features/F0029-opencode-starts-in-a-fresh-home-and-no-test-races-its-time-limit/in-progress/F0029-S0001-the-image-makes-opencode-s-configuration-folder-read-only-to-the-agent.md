@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 309
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T00:35:41.461005Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T00:35:41.461005Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T00:37:35.112441Z'
+  stage: doing
+  run: 0c46743232bb424ea87995dc14b668b4
 ---
 
 # The image makes opencode's configuration folder, read-only to the agent
@@ -130,3 +132,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_opencode_config_folder.py::test_the_image_makes_the_configuration_folder_read_only_and_leaves_its_parent_the_agents[configuration]
 6. factory: started doing as self.
+7. coder: Built: `image/Dockerfile`. Added the Interface's `RUN` with its comment as a separate instruction. It sits right after the `RUN` that adds the users (`useradd ... agent`) and before `WORKDIR /opt/factory`. It makes `/home/agent/.config/opencode` owned by `factory:factory-work` and `/home/agent/.config` owned by `agent:factory-work`, both with mode `0755`. Each `chown` names one owner and has no `-R`. No module under `src/` changed.
+
+   Main choice: a new `RUN` of its own, as the Interface and criterion 2 require. I rejected putting the lines into the existing user-adding `RUN`, next to the `.claude` folder. That would keep the image one layer smaller, but the test needs the mkdir to be a separate instruction right after the `useradd` one.
+
+   Checks: `make check` is green (`check: green`). The first smoke-test grep prints `3`. I did not run the second smoke-test block (`factory-confine` with opencode); it tests the image the smoke test runs in.
+
+   Refactor: the diff is the Interface's text exactly, so nothing needed changing. The journal did not change the meaning of the task.
+
+   Noticed but not touched: the docs criterion (operator guide, `agents.md`, `decisions.md`) belongs to the docs stage.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
