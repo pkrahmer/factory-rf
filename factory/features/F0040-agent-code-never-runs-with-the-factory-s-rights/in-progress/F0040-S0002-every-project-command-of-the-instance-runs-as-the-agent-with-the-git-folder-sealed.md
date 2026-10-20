@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368, 6300375333]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T20:19:56.904290Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-10-20T20:19:35.733156Z'
   stage: docs
   run: 7e5b81a172334eb7a56c9f6a694b677a
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:19:56.904290Z'
+  stage: smoke-test
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -491,3 +500,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 183a97b9b171 at 2026-10-20T20:15:57Z)
     `secrets`: secrets: green (2.5 s)
     `documents`: documents ok
+30. factory: started smoke-test as self.
