@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 372
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T23:38:23.378274Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T23:38:02.768961Z'
   stage: review
   run: 66e624c22b3a4ce7b27fd3f087d9e892
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:38:23.378274Z'
+  stage: docs
 ---
 
 # The operator guide's records section names its four files
@@ -143,3 +152,4 @@ Expect: `documents ok`
      - All four files sit under `records/` (`src/factory/entry/wiring.py:138-141`).
    - The Description matches the plan: the code and tests are unchanged and the change is left to the documenter.
    - Earlier tests: the diff changes, renames or deletes no test file.
+10. factory: started docs as self.
