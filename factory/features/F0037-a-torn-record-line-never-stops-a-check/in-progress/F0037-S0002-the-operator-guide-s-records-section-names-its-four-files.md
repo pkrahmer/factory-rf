@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 372
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T23:32:58.242964Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T23:32:37.728009Z'
   stage: intake
   run: 56c1476914aa4b158a160f3f76abdfc5
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:32:58.242964Z'
+  stage: tests
 ---
 
 # The operator guide's records section names its four files
@@ -76,3 +85,4 @@ Expect: `documents ok`
    - Smoke test: all three commands are runnable. I checked the guide: the telemetry sentence and "Like the other records" each occur once now (lines 592 and 662), so `0`, `0` is a real change. The `sed` range ends at the first `| Field` line (582) and needs the new paragraph to hold at least one of the three file names, as the `Expect:` says. No pytest command is involved.
    - Architecture: this is a docs change that touches no layer. The documenter owns `docs/*`.
    - Scope: the story is within F0037's goal of the four record files, and its docs are not in "Out of scope". It is not in the feature's Stories list, but it was proposed by acceptance. Not verified: the claims about `KnownResults`, `StopPublisher.publish` and the disk record's "last record that reads whole" are taken from the story, not read in the code.
+4. factory: started tests as self.
