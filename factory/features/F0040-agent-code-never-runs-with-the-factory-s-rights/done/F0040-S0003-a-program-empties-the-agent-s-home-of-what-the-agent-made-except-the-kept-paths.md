@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -219,6 +219,11 @@ journal:
   at: '2026-10-20T21:22:57.012890Z'
   stage: smoke-test
   run: ca47b4f3583c41d8bd4691054548102b
+- number: 39
+  speaker: factory
+  kind: done
+  at: '2026-10-20T21:25:20.744527Z'
+  stage: approval
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -678,3 +683,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     No findings.
 
     Open for the acceptance (from the human's note in entry 36): the last line of `## Smoke test` should no longer ask for a real run of the program on `/`, because criterion 10's tests cover that refusal. `## Smoke test` is the human's, so I left it unchanged.
+39. factory: done (pull request merged); cost: 17 runs, 22.9 min, 140 turns, 474171 tokens in (3222522 more from cache), 67708 out, $5.38
