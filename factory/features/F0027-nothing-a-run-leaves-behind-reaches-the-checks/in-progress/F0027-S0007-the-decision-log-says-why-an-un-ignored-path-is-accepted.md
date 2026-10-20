@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 373
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T23:47:54.042361Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T23:47:54.042361Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T23:48:12.349041Z'
+  stage: smoke-test
+  run: aede2ccc653d4b29ad8bc5db1b622c2f
 ---
 
 # The decision log says why an un-ignored path is accepted
@@ -160,3 +162,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: I ran both commands from the repository root, as written. Both met their `Expect:` line. No findings.
+
+    1. `grep -c "Accepted: an agent can un-ignore a path" docs/decisions.md`
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    2. `git diff --name-only origin/main -- src tests | wc -l`
+    ```
+    0
+    ```
+    Expect `0`: met.
+
+    Criteria check: I read the new bullet at `docs/decisions.md:941`. Nothing in it contradicts any criterion.
+    - Criterion 1: nothing under `src/` or `tests/` changed (command 2). The tester (entry 5) and the coder (entry 7) each said so.
+    - Criterion 2: I did not run `make check` again. Entries 7 and 11 record `check: green`, and the factory runs its own checks after this stage.
+    - Criterion 3: the bullet starts `Accepted: an agent can un-ignore a path`. It sits directly after the `Rejected:` bullet (line 940) and before `Test children (F0027-S0004)` (line 942). It names the nested `.gitignore` with `!__pycache__/`, the path left untracked and not ignored, and that `remove_ignored()` keeps it. It gives all four reasons: the path shows in the pull request's diff; the undo removes it outside the write paths; no `.gitignore` takes effect inside an ignored tool path, because git does not read an ignored folder's rules; and an agent cannot write the root `.gitignore` or `.git/info/exclude`. It also says nothing is hidden and that no rule is added (F0027 decision 7).
+
+    The extra last sentence, which tells a later story to ask before adding a rule, contradicts nothing.
+
+    Findings: none.
