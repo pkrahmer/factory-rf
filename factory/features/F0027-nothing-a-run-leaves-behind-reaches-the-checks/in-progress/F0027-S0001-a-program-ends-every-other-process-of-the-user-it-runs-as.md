@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T12:29:07.535916Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-20T12:28:46.707781Z'
   stage: doing
   run: a046c0aa3adf4e0d9ab673afbcde3da9
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:29:07.535916Z'
+  stage: tests
 ---
 
 # A program ends every other process of the user it runs as
@@ -427,3 +436,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Description: the journal did not change what the task means.
 
     Noticed but not touched: `tests/test_process_search.py` expects `noqa: PLR0913` at the fixed line 32 of `src/factory/entry/leftovers.py`. Merging the tests in finding 1 does not move that line. Any later code edit above `def main(` will.
+19. factory: started tests as self.
