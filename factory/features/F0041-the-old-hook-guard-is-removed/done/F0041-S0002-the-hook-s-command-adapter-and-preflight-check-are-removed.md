@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 1
@@ -142,6 +142,11 @@ journal:
   at: '2026-10-20T11:30:58.378273Z'
   stage: smoke-test
   run: b8f0404cbfc84dfba77b72ea16f9aa59
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-20T11:33:21.494458Z'
+  stage: approval
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -514,3 +519,4 @@ Expect: `5`
     The smoke test does not cover criteria 4 to 6 (the wiring's item through `machine_extras`, the undo test, and `make check`). The tests and the factory's checks cover those; the smoke test contradicts none of them.
 
     **Findings:** none.
+25. factory: done (pull request merged); cost: 11 runs, 24.1 min, 86 turns, 296509 tokens in (1990920 more from cache), 38059 out, $3.30
