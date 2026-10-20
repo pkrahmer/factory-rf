@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 315
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T01:57:52.420115Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T01:57:52.420115Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T01:58:04.455303Z'
+  stage: docs
+  run: 7591ef2dbe9f4bf0b7a5cc15e1faba13
 ---
 
 # The tests pin seven small rules on both sides
@@ -202,3 +204,14 @@ Expect: four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`
    Earlier tests:
    - tests/domain/test_evaluation.py: changed under the standing leave in `CLAUDE.md` (*Tests*) to move a shared test helper. The change moves `MAIN`, `BRANCH_COMMIT`, `MERGE_COMMIT`, `PULL_REQUEST`, `OTHER_INSTANCE`, `AT`, `DEFINITION`, `_id`, `_snapshot`, `_journal`, `_blocked`, `_at_approval`, `_claimed`, `_view`, `_factory_comment`, `_Lookup`, `_ClaimStatus`, `_facts` and `_evaluate` unchanged to `tests/evaluation_support.py` and imports them from there. The diff touches only the module's head, so every test there keeps its name and what it checks.
 10. factory: started docs as self.
+11. documenter: no findings, and I changed no file. The docs criterion says `none`, and the diff agrees: it holds only tests (seven new modules under `tests/domain/`, the shared `tests/evaluation_support.py`, and the helper move in `tests/domain/test_evaluation.py`). Nothing under `src/` changed, so no behaviour, name or example in the documentation moved.
+
+    Cross-read: I searched `README.md` and `docs/` (not `docs/runs/`, which is the human's) for `test_evaluation` and `evaluation_support` and found no mention. The rules the story pins are the ones the project guide already describes, so I found those documents current against the diff.
+
+    Stale text noticed but not mine to fix: none.
+
+    I ran no `make check`, because I changed no file; the factory's check after this stage decides.
+
+    `check`: check: green (not run again: passed on tree f5dde544af5c at 2026-10-20T01:55:45Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
