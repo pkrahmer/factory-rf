@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 351
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T12:02:35.836476Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T12:02:35.836476Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T12:08:33.406031Z'
+  stage: tests
+  run: 77a64acd093c49c396bae566a1280561
 ---
 
 # A program ends every other process of the user it runs as
@@ -206,3 +208,36 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: matches CLAUDE.md. The domain modules are pure. `adapters.process` stays the one module that starts processes and reads `/proc`. `entry.leftovers` imports the adapters for its defaults, and the story names the wiring test change (decision 16). It reuses F0030's reader and model, so there is no second helper.
    Scope: within F0027's scope for S0001 (the listed modules and tests). The test changes to other stories' tests are the ones decision 16 names, with the human's leave. Nothing is out of scope: nothing starts the program, since S0002 wires it.
 4. factory: started tests as self.
+5. tester: Wrote the tests for every acceptance criterion. Each one is a single test function. Rules with several cases are rows of one parametrized test.
+
+   - criterion 1: tests/domain/test_leftovers.py::test_leftover_pids_are_the_user_s_other_living_processes
+   - criterion 2: tests/domain/test_leftovers.py::test_root_and_another_user_are_refused
+   - criterion 3: tests/domain/test_leftovers.py::test_model_limits (each model is built through a parameter typed `type[BaseModel]`)
+   - criterion 4: tests/adapters/test_process_table.py::test_process_table_is_read_from_the_folders
+   - criterion 5: tests/adapters/test_process_table.py::test_missing_process_table_raises
+   - criterion 6: tests/adapters/test_process_table.py::test_own_identity_is_the_running_process
+   - criterion 7: tests/entry/test_leftovers.py::test_wrong_arguments_print_the_usage (the six bad argument lists) and tests/entry/test_leftovers.py::test_the_user_s_name_starts_the_rounds (`["--user", "agent"]` with a table that is empty at once)
+   - criterion 8: tests/entry/test_leftovers.py::test_refusals_come_before_the_first_signal
+   - criterion 9: tests/entry/test_leftovers.py::test_rounds_signal_until_none_is_left
+   - criterion 10: tests/entry/test_leftovers.py::test_faults_of_signal_and_listing_end_the_program
+   - criterion 11: tests/entry/test_leftovers.py::test_the_real_module_refuses_in_a_child_process (two rows: another user, which expects the root line when the tests run as uid 0, and no arguments; both run with `-I -B` through `run_process` in `tmp_path`)
+   - criterion 12: the factory's `make check`
+   - criterion 13: the docs stage
+
+   Files created: tests/domain/test_leftovers.py, tests/adapters/test_process_table.py, tests/entry/test_leftovers.py.
+
+   Earlier test files changed, each exactly as the Interface names under the feature's decision 16:
+   - tests/domain/test_sessions.py: every `ProcessEntry(...)` gains `uid=1001`, both `parse_stat` calls gain `uid=1001`, and the `fields` of `test_entry_limits` gain `"uid": 0`. Test names, rows and what each test checks are unchanged.
+   - tests/entry/test_wiring.py: the expected set of test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer gains `"factory.entry.leftovers"`.
+
+   The injected calls of `main` are recorded by one `Recorder` dataclass inside tests/entry/test_leftovers.py. No test calls `signal_every_other`, and none runs the program as the user it names.
+
+   One run of `make test`: it stopped at collection. tests/domain/test_sessions.py fails with a pydantic ValidationError because `ProcessEntry` has no field `uid` yet. The new test modules cannot import modules or names that do not exist yet:
+   - `factory.domain.leftovers`
+   - `factory.entry.leftovers`
+   - `read_process_table` and `own_identity` from `factory.adapters.process`
+
+   These failures are on purpose: they are the coder's specification. `make lint` is green. The type check was skipped, as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/entry/test_leftovers.py - ImportError while importing test module...
