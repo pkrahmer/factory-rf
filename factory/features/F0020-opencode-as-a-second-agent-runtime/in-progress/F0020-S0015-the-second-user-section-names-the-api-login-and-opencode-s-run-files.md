@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 305
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T00:08:13.849524Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T00:08:13.849524Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T00:08:38.155102Z'
+  stage: review
+  run: 7bc3a2e2539449f6bbc632dd8c8c62a1
 ---
 
 # The second-user section names the API login and opencode's run files
@@ -132,3 +134,16 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 7897e571521e at 2026-10-19T23:58:37Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its costs sidecar, both under `factory/`. So criterion 1 holds: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. The tester (entry 5) and the coder (entry 7) each said so.
+   - Criterion 2: the coder's entry 7 records `check: green` (coverage 99.13 %). I did not run `make check` again, as the stage says.
+   - Criterion 3 (docs) is the documenter's work. I checked its claims against the code so the documenter starts from correct facts, and they match:
+     - The opencode runtime's `CONFIG_VARIABLE = "OPENCODE_CONFIG"` and `SWITCHES = {"PYTHONDONTWRITEBYTECODE": "1"}` are at `src/factory/adapters/opencode_runtime.py:74,79`.
+     - Its run file `opencode-{run}.json` is at `:250`, set to `RUN_FILE_MODE` at `:629`.
+     - Claude Code's three `SWITCHES` and `CONFIG_VARIABLE = "CLAUDE_CONFIG_DIR"`, set through `_config_folder`, are at `src/factory/adapters/claude_runtime.py:88-97,537`.
+     - `login_argv` at `src/factory/adapters/agent_launch.py:116` starts the login shell when either login file is set.
+   - Hygiene: the Interface says "None", which fits a docs-only story. Entry 7 states the main choice (hand forward with no change) and what it rejected (editing the guide in the coder stage). The Description matches what was built, which is nothing outside `factory/`.
+   - `duplicates: 5 new` (entry 7) comes from code already on `main`. This branch changes nothing under `src/`, so those findings are outside this review.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
