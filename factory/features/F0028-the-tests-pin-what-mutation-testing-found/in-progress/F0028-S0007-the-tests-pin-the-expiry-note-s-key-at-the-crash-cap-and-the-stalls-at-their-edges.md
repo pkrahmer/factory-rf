@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 318
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T02:27:41.167643Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T02:27:20.954414Z'
   stage: docs
   run: 3752fcd76d2640b2b65e22f9695fea86
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:27:41.167643Z'
+  stage: smoke-test
 ---
 
 # The tests pin the expiry note's key at the crash cap and the stalls at their edges
@@ -189,3 +198,4 @@ Expect: two lines, `Stalled (attempt 1 of 2): merging the main branch conflicts 
     `check`: check: green (not run again: passed on tree c2e932948e4b at 2026-10-20T02:25:04Z)
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
