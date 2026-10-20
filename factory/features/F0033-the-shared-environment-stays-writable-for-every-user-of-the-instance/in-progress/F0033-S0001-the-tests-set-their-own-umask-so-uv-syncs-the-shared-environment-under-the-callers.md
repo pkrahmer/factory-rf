@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 322
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T03:07:40.825004Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T03:07:40.825004Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T03:10:05.320191Z'
+  stage: tests
+  run: 3bd08a1a75524331b7dc53a0d442046c
 ---
 
 # The tests set their own umask, so uv syncs the shared environment under the caller's
@@ -93,3 +95,19 @@ Expect: `1`
    - Architecture: the hook is in `tests/conftest.py`, the shared fixtures file, and the child process starts through the process wrapper, not a direct subprocess. Nothing is added to `src/`, so the layers are untouched.
    - Scope: this matches the feature's Scope, S0001 and decisions 4 and 5. The `Makefile`, the `mutants` recipe and the other items in Out of scope are not touched. Decision 5 gives the leave to change `tests/conftest.py`.
 4. factory: started tests as self.
+5. tester: Wrote the tests and the `tests/conftest.py` hook from the Interface. The story says the coder writes nothing and the hook lives in a test file, which is in my write paths, so I wrote it under the feature's decision 5.
+
+   - criterion 1: tests/test_tests_umask.py::test_a_test_runs_under_the_tests_umask
+   - criterion 2: tests/test_tests_umask.py::test_the_tests_umask_holds_whatever_umask_pytest_was_started_under (rows `000`, `002`, `022`, `077`). Each row starts the child through `factory.adapters.process.run_process` with `sh -c 'umask <row>; exec "$@"' sh <sys.executable> -m pytest -p no:cacheprovider --no-header <criterion 1's test id>`. The child runs in the repository root, with only `PATH`, `HOME` and `TMPDIR` (the row's `tmp_path`) in its environment, a 60 s time limit and `merge_stderr=True`. The test asserts exit status 0 and that the last non-blank line starts with `1 passed in `.
+   - criterion 3 (`make check`) and criterion 4 (docs): no test. They belong to the factory's checks and the docs stage.
+
+   Files: created `tests/test_tests_umask.py`. Changed `tests/conftest.py`: added `TESTS_UMASK = 0o022` and `pytest_configure() -> None`, which calls only `os.umask(TESTS_UMASK)`. No other earlier test file changed.
+
+   Red run: I ran `make test` once before adding the hook. It failed on collection: `ERROR tests/test_tests_umask.py - ImportError`, because `TESTS_UMASK` did not exist in `conftest` yet. Every other test passed, and the coverage gate was reached (99.14 %). That was the only module the runner could not import.
+
+   After adding the hook, I ran the story's smoke-test command once under `umask 002` to check the hook: `5 passed in 2.27s`. That is one run beyond step 2's single `make test`, so the hook I wrote is checked, not assumed. `make lint` is green, after fixing one I001 (a blank line) in conftest. I skipped the type check, as the stage says.
+
+   Open: nothing for the coder to write. The next stage only needs `make check` green and the docs of criterion 4.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (47.0 s)
