@@ -21,9 +21,6 @@ from factory.domain.identifiers import Name, is_name
 
 QUESTION = "question"
 
-# The console script the Claude Code hook starts to judge a write.
-GUARD_COMMAND = "factory-guard"
-
 # The console script that confines a run's writes and then becomes the agent runtime.
 CONFINE_COMMAND = "factory-confine"
 
@@ -78,7 +75,7 @@ class AgentDefinition(BaseModel):
 
 
 class GuardSettings(BaseModel):
-    """Where an agent may write: root, write paths, protected paths, tool and temporary folders."""
+    """Where an agent may write: the root, write paths, protected paths and tool paths."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -86,7 +83,6 @@ class GuardSettings(BaseModel):
     write_paths: list[str]
     protected_paths: list[str]
     tool_paths: list[str] = []
-    temporary_directory: AbsolutePath | None = None
 
 
 class AgentRunRequest(BaseModel):

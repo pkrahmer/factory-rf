@@ -13,7 +13,6 @@ from factory.application.sealed_runs import run_sealed
 from factory.application.stops import StopService
 from factory.domain.agent_runs import (
     CONFINE_COMMAND,
-    GUARD_COMMAND,
     QUESTION,
     AgentDefinition,
     AgentRunRequest,
@@ -151,22 +150,12 @@ def agent_user_item(settings: InstanceSettings, exists: Callable[[Path], bool]) 
 
 def agent_environment_item(
     environment: Mapping[str, str],
-    find: Callable[[str, str], str | None],
     is_directory: Callable[[Path], bool],
 ) -> PreflightItem:
-    """Check that an agent run finds `factory-guard` on its `PATH` and its login in `HOME`."""
-    # Claude Code treats a hook that cannot start as not blocking, so a missing guard
-    # would let every write through.
-    faults = [
-        fault
-        for fault in (
-            _path_fault(environment, find, GUARD_COMMAND),
-            _home_fault(environment, is_directory),
-        )
-        if fault is not None
-    ]
-    if faults:
-        return PreflightItem(name=_AGENT_ENVIRONMENT_ITEM, passed=False, detail="; ".join(faults))
+    """Check that an agent run finds its login in `HOME`."""
+    fault = _home_fault(environment, is_directory)
+    if fault is not None:
+        return PreflightItem(name=_AGENT_ENVIRONMENT_ITEM, passed=False, detail=fault)
     return PreflightItem(name=_AGENT_ENVIRONMENT_ITEM, passed=True)
 
 
@@ -197,7 +186,7 @@ def confinement_item(
 ) -> PreflightItem:
     """Check that the kernel offers the Landlock the write guard needs and runs find the wrapper."""
     # Every agent run starts through the wrapper, which refuses to run unguarded, so
-    # either fault would end every run; the factory does not fall back to the hook.
+    # either fault would end every run; there is no other guard to fall back to.
     faults = [
         fault
         for fault in (_kernel_fault(abi()), _path_fault(environment, find, CONFINE_COMMAND))
@@ -344,7 +333,7 @@ def _probe_request(
         time_limit=PROBE_RUN_TIME_LIMIT,
         working_directory=checkout,
         environment=dict(environment),
-        # A guard like a stage's, so the call carries a stage's flags, but no write path.
+        # A guard like a stage's gives the probe a stage's confinement, but no write path.
         guard=GuardSettings(root=checkout, write_paths=[], protected_paths=[]),
         os_user=settings.agent_user,
     )

@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T10:58:54.071199Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T10:58:54.071199Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T11:04:40.998177Z'
+  stage: doing
+  run: 281a4c80cd414df0b3ede4a899ac56f5
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -186,3 +188,24 @@ Expect: `5`
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/application/test_agent_environment_item.py::test_the_agent_environment_checks_the_home_only[home-not-a-directory]
 6. factory: started doing as self.
+7. coder: Removed the hook guard's code. The kernel's guard is unchanged. `make check` passes.
+
+   What I built:
+   - I deleted `src/factory/adapters/claude_guard.py` and `src/factory/entry/guard.py`. I used plain `rm` because `git rm` was refused (the `.git/index` write guard), so the deletions are left in the working tree.
+   - `src/factory/domain/agent_runs.py`: removed `GUARD_COMMAND` and its comment, and removed `GuardSettings.temporary_directory`. The docstring now names the four fields that remain. `CONFINE_COMMAND` is kept.
+   - `src/factory/domain/errors.py`: removed `GuardSettingsInvalid`.
+   - `src/factory/application/preflight.py`: `agent_environment_item(environment, is_directory)` now checks only `HOME`, using the existing `_home_fault`. Removed the `GUARD_COMMAND` import. `_path_fault` is unchanged and still used by `confinement_item` and `opencode_item`. Rewrote the comments in `confinement_item` (there is no other guard to fall back to) and `_probe_request` (the guard gives the probe a stage's confinement) so they no longer mention the hook or its flags.
+   - `src/factory/entry/wiring.py`: removed the `judge` and `read_guard_settings` import and their `__all__` entries. `machine_extras` now calls `agent_environment_item(environment, Path.is_dir)` in the same place. The comment in `production_environment` now names `factory-confine`.
+
+   Main design decision: with only one possible fault left, `agent_environment_item` returns `_home_fault`'s single result directly. I rejected keeping the list-and-join shape that `confinement_item` uses: with one entry, that is dead structure.
+
+   Refactor: I read the diff and found nothing to change. Code removed: 188 lines; code added: 10.
+
+   Noticed but not touched:
+   - `pyproject.toml:17` still declares `factory-guard = "factory.entry.guard:main"`, which now points to a deleted module. Per the description, removing that line is the human's change 1, after this story.
+   - `InstanceSettings.temporary_directory` (`src/factory/domain/settings.py`, set in `wiring.read_environment_settings`, read in `disk_records._folders`) is a different field from the one removed and stays.
+   - A leftover `mutants/` folder from an earlier mutmut sweep still holds copies of the old guard tests. It does not affect `make check`. Every mutmut run deletes it first.
+   - The documents are S0003's.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
