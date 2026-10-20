@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T21:28:21.937855Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T21:28:03.828993Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-20T21:28:21.937855Z'
   stage: intake
 ---
 
@@ -211,3 +220,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    3. Yes: a row with `FACTORY_AGENT_RUNTIME` set to opencode and the same `kept`.
    4. Yes: a row with no `sudo` on `PATH`, so `SudoAgentHome` is built with `SUDO_EXECUTABLE`. Drop "building starts no process" from the Interface.
    5. Confirmed: GNU `timeout` (coreutils 9.1) is at `/usr/bin/timeout` in the image where `make check` runs.
+5. factory: started intake as self.
