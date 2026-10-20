@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 358
 comments_read: [6299016224]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T19:20:12.822361Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-20T19:20:12.822361Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T19:20:31.312024Z'
+  stage: smoke-test
+  run: d1c2ca8adca04748be0782e8d1d4a3be
 ---
 
 # The tests start their own Python children without bytecode
@@ -258,3 +260,34 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok
 15. factory: started smoke-test as self.
+16. smoke-tester: no findings
+
+    I ran the three commands under `## Smoke test` from the repository root, as written and in order. I fixed nothing.
+
+    1. `python_argv` puts `-B` in front of `-c`:
+    ```
+    True
+    ```
+    Met `Expect: True`. The command exited with 0.
+
+    2. A `write_script` child runs with `env={}` and imports `standin`:
+    ```
+    False
+    ```
+    Met `Expect: False`. The command exited with 0, and the temporary directory removed itself through its `trap`.
+
+    3. `grep -rnF '#!{sys.executable}\n' tests | wc -l`:
+    ```
+    0
+    ```
+    Met `Expect: 0`.
+
+    Acceptance criteria compared with the smoke test:
+    - Criterion 1: the `write-script` side holds. Command 1 confirms the `python_argv` output, and command 2 shows that a `write_script` child with an empty environment writes no `__pycache__`.
+    - Criterion 3: holds. No file under `tests/` has the bare shebang.
+    - Criteria 2 and 4: the smoke test does not target them, and nothing in its output contradicts them.
+    - Criterion 5: the smoke test does not touch it.
+
+    None of the outputs contradicts a criterion.
+
+    Open: nothing.
