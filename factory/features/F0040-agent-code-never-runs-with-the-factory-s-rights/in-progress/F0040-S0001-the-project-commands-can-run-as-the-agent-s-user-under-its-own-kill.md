@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 357
-comments_read: [6297503471]
+comments_read: [6297503471, 6297615750]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: 1341da8ddf744e1db88bcfd600b6e72b
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-10-20T18:00:54.894419Z'
+  stage: tests
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -219,3 +224,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    The stand-in `sudo` is local to the module: it records its arguments, environment and working directory, then plays a warning and either exits as planned or runs what follows `--`. It always runs the leftovers program. That program is `write_program` from `tests/leftovers_runtime_support.py`. I changed no earlier test file.
 
    `make test`: the module could not be imported, an ImportError for `factory.adapters.make_commands.CommandUser`, which is the failure to expect before the code exists. `make lint` is green.
+9. 2026-10-20 human: Answer (2026-10-20): (a). The row means "the leftovers call cannot be started": the `check` recipe removes the stand-in `sudo` before the leftovers call, and the expected detail stays `cannot end the agent's processes: [Errno 2] No such file or directory`. Change the criterion's words to say so. My earlier answer 2 was imprecise; this replaces it.
