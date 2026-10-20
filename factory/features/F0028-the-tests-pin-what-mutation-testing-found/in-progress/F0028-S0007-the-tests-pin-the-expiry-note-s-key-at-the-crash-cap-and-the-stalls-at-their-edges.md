@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 318
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T02:26:14.246239Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T02:25:53.629479Z'
   stage: doing
   run: 8eeec9d0b76848b48257dd3b12599725
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:26:14.246239Z'
+  stage: review
 ---
 
 # The tests pin the expiry note's key at the crash cap and the stalls at their edges
@@ -137,3 +146,4 @@ Expect: two lines, `Stalled (attempt 1 of 2): merging the main branch conflicts 
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
