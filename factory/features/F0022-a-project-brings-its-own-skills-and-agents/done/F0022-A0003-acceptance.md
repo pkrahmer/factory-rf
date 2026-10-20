@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T00:15:20.950473Z'
   stage: acceptance
   run: 26c6170c18a348c8a21b21ee2b55e726
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T00:16:39.851917Z'
+  stage: done
 stories: [F0022-S0001, F0022-S0002, F0022-S0003, F0022-S0004, F0022-S0005, F0022-S0006, F0022-S0007]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of A project brings its own skills and agents
@@ -236,3 +241,4 @@ None. No finding of weight is left in F0022. The remaining items are the human's
       Earlier tests: S0007 changed five under the standing leave, plus one expected line under decision 14's S0007 leave. The reviewer named all of them, and none was changed without a leave.
    7. Slow checks: there is nothing beyond `make check`. The slowest tests are F0020's (5.0 s); S0007's modules each take under 0.2 s. Disk is unchanged from the previous record.
    8. Cost: 57 runs, 47.0 min, $12.87 in total. S0006 cost $0.75. S0007 cost $1.93, because one review round (four more runs) removed a copied search helper. Human interventions: 1 question (S0005's smoke `-q`, as before), 0.0 h waited. S0005 is still the story that needed the human most.
+3. factory: done (pull request merged); cost: 1 runs, 3.6 min, 26 turns, 78801 tokens in (1497627 more from cache), 16089 out, $1.25
