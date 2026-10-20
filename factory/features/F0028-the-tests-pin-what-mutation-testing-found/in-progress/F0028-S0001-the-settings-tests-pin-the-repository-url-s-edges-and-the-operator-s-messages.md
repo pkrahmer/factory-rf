@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T01:10:30.772873Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T01:10:10.298044Z'
   stage: intake
   run: e6b1c5d5b85943d1991c3f4b66816da6
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:10:30.772873Z'
+  stage: tests
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -88,3 +97,4 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
    Smoke test: the command is runnable (inline Python via `uv run`). The Expect line gives three checkable lines (`True`, `True`, and the exact refusal text).
    Architecture: the story touches only `tests/domain/`, which mirrors the package layout. It reads `BASE` from `tests/settings_support.py`, and credential-like URLs are built by concatenation to keep `make secrets` quiet.
    Scope: it matches S0001 in feature.md's Scope, and nothing in Out of scope is touched (internal-guard messages and the equivalent `split("/", 2)` variant are excluded). The story changes no earlier test.
+4. factory: started tests as self.
