@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 317
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T02:15:35.471015Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T02:15:35.471015Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T02:16:17.167380Z'
+  stage: review
+  run: ae0ee1f9fd39409c906eee616796ff62
 ---
 
 # The tests pin the subjects of a story's recovery and handler commits
@@ -143,3 +145,16 @@ Expect: two lines, `work item F0001-S0001: crash of stage doing recorded` and `w
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   Reviewed `git diff main...HEAD -- . ':!factory'`: two new test modules, no change under `src/`. The six tests in those two modules pass when run on their own (pytest, run by itself).
+   - Criterion 1: `tests/application/test_recovery_subjects.py::test_the_recovery_commits_name_the_work_item_and_what_it_recorded`. Its rows are `crash`, `expiry` and `expiry-opening-a-pull-request`, and each compares the exact, ordered list of subjects since `claimed.start.commit`. That covers both sides of "when the expiry note opens a draft pull request".
+   - Criteria 2 to 4: `tests/application/handlers/test_handler_subjects.py` has one test each. Each compares the exact subject list since the `branch_commit` the criterion names: the work item's own for the comments, and the snapshot re-read after the human's push to `approval` for the send-back and the move-back. The move-back's `remote_state` is origin/main's commit, as the criterion says.
+   - Exact equality pins the work item's id and the stage words in every subject, which is what the mutants changed.
+   - The Interface states no limit and no rejected input.
+   - The tests use real git and the fake hosting service, and mock none of the code under test.
+   - The helpers `_subjects` and `_push_at_approval` look like the private helpers in `tests/application/handlers/test_reject.py`. They are not copies of an existing shared helper.
+   - The coder's `make check` was green (entry 7).
+   - The description matches what was built: no source change. The docs criterion "none" holds.
+
+   Earlier tests: none. `git diff --name-status main...HEAD` shows only added test files (status `A`).
