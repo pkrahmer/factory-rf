@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 352
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T12:49:13.402531Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T12:49:13.402531Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T12:53:09.895537Z'
+  stage: doing
+  run: 2c56e76e13f44482a0e965fb95133dac
 ---
 
 # The follow-mode test reads only the Python sources
@@ -138,3 +140,15 @@ Expect: `1`
    `lint`: lint: green (0.0 s)
    `test`: test: green (97.2 s)
 6. factory: started doing as self.
+7. coder: Nothing built. The Interface says no module under `src/factory/` changes, and the tester's changes (`tests/entry/test_watch.py` and `tests/test_tests_umask.py`, the only files in `git diff main` outside `factory/`) already cover all three criteria. The tests were green when I started, so there was nothing to implement. I ran `make check` in the foreground and it was green: `test: green (96.7 s)`, then `check: green`, with total coverage at 99.16 %.
+
+   Main choice: I left `src/` untouched, as the Interface says. The alternative I rejected was adding anything under `src/` to "fix" the bytecode permissions. That would go beyond the description, and the cause is in the tests (the umask child writing bytecode), not in the source.
+
+   Refactor: there is no code diff of mine to read again, so nothing changed. The tests are the tester's and I left them alone.
+
+   Journal: no entry changed the meaning of the task, so `## Description` stays as it is.
+
+   Noticed but not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
