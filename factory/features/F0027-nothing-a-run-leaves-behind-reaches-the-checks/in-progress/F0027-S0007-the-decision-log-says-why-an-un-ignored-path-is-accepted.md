@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 373
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T23:47:15.032762Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T23:46:54.179360Z'
   stage: review
   run: 30abd1fe4c804bcdb33771de684e3dd3
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:47:15.032762Z'
+  stage: docs
 ---
 
 # The decision log says why an un-ignored path is accepted
@@ -127,3 +136,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Work item hygiene: the Description matches what was built (nothing yet; the bullet comes in the docs stage). The coder's journal gives the main choice, leaving `docs/decisions.md` to the documenter, and what was rejected. The docs criterion still holds against `docs/decisions.md`: the entry *The factory removes the git-ignored paths after every agent run and at the restore* is at line 934, and its `Rejected:` bullet is followed directly by the `Test children (F0027-S0004)` bullet. So the place the criterion names for the new `Accepted: an agent can un-ignore a path` bullet exists.
 
    Earlier tests: none. No test file on `main` is changed, renamed or deleted.
+10. factory: started docs as self.
