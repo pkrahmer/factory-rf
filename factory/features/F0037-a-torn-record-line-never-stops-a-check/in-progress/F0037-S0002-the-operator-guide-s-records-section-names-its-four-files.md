@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 372
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T23:32:58.242964Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T23:32:58.242964Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T23:35:23.683947Z'
+  stage: tests
+  run: cf89ece99aee4987a94151bd9854ab1f
 ---
 
 # The operator guide's records section names its four files
@@ -86,3 +88,12 @@ Expect: `documents ok`
    - Architecture: this is a docs change that touches no layer. The documenter owns `docs/*`.
    - Scope: the story is within F0037's goal of the four record files, and its docs are not in "Out of scope". It is not in the feature's Stories list, but it was proposed by acceptance. Not verified: the claims about `KnownResults`, `StopPublisher.publish` and the disk record's "last record that reads whole" are taken from the story, not read in the code.
 4. factory: started tests as self.
+5. tester: No tests written. This story only changes the docs, and none of its criteria is a test function.
+   - criterion 1 (nothing under `src/` or `tests/` changes): no test function. I changed nothing under `src/` or `tests/`, and `git status` shows no change there.
+   - criterion 2 (`make check` stays green): no test function. The project command checks it.
+   - criterion 3 (docs, `docs/operator-guide.md` *The records*): no test function. The smoke test and `uv run python -m factory.entry.check_documents` check it in the docs stage.
+   Files created: none. Modules the test run could not import: none.
+   Because there is no new test, nothing is red on purpose: `make test` passed once (`test: green`, 99.14 % coverage) and `make lint` passed. There was nothing to interpret and nothing is open. For the coder: there is no code to write. The documenter makes the change.
+
+   `lint`: lint: green (0.5 s)
+   `test`: test: green (63.3 s)
