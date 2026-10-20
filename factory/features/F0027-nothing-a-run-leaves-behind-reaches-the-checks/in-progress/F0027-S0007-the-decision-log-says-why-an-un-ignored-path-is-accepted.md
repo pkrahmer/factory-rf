@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 373
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T23:44:30.499994Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T23:44:10.032417Z'
   stage: tests
   run: 573ba301d3be46e5810fd5d81a1dea81
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:44:30.499994Z'
+  stage: doing
 ---
 
 # The decision log says why an un-ignored path is accepted
@@ -88,3 +97,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.5 s)
    `test`: test: green (63.5 s)
+6. factory: started doing as self.
