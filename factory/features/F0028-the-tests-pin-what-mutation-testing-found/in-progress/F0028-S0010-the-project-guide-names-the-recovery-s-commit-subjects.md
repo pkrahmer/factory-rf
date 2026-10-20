@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 332
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T04:22:05.939226Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T04:21:45.655458Z'
   stage: review
   run: 289e7ee2ba8a4cf0bc4a0d90eb7b393f
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:22:05.939226Z'
+  stage: docs
 ---
 
 # The project guide names the recovery's commit subjects
@@ -131,3 +140,4 @@ Expect: `work item F0001-S0001: crash of stage doing recorded` (the form the gui
    2. to 4. Architecture, security, quality: no code changed, so there is nothing to judge. The `duplicates: 5 new` record in entry 7 cannot come from this branch because it changes nothing under `src/factory`.
    5. Work item hygiene: the coder's entry explains the empty diff and the rejected alternative, which was editing `watching.md` in the doing stage. The Description and criterion 2 still describe what the documenter must write in `docs/project-guide/watching.md` step 4: both recovery subjects, with step 4b and the `pull request opened` bullet left as they are, and `none` for `README.md`, `docs/operator-guide.md` and `docs/decisions.md`.
    6. Earlier tests: the branch changes, renames or deletes no test file on `main` (`git diff --name-status main...HEAD` lists only the work item `M` and its sidecar `A`).
+10. factory: started docs as self.
