@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 363
 comments_read: [6300695093]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T20:26:48.795037Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-20T20:26:48.795037Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-20T20:30:38.346446Z'
+  stage: tests
+  run: 10078964ed704f87964d2e57d9be6693
 ---
 
 # A call no longer waits for a process that keeps its output open after the call's own process ended
@@ -171,3 +173,30 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: accepted. The change sits in `factory.adapters.process`, the one module that starts processes. No layer, interface or caller changes.
    - Scope: accepted. It matches the feature's S0005 scope line and decision 17, and no earlier test changes.
 7. factory: started tests as self.
+8. tester: Wrote the tests for the drain bound in one new file, `tests/adapters/test_process_drain.py`. One `make test` run shows them red for the right reason: `factory.adapters.process` has no `PIPE_DRAIN` yet. The `short_drain` fixture's `monkeypatch.setattr` fails with `AttributeError`, and so do the reads of `process.PIPE_DRAIN` and `output_abandoned`. `make lint` is green.
+
+   Mapping:
+   - criterion 1: tests/adapters/test_process_drain.py::test_a_child_that_ended_beside_a_holder_returns_after_the_drain (rows: run_process-stdout, run_process-stderr, run_streaming-stdout, run_process-no-limit, run_streaming-no-limit)
+   - criterion 2: tests/adapters/test_process_drain.py::test_pipes_that_close_within_the_drain_give_the_whole_output (rows: no-descendant, late-1s and late-1.5s, each for run_process and run_streaming)
+   - criterion 3: tests/adapters/test_process_drain.py::test_the_read_after_the_kill_is_bounded_by_the_drain (rows: holder, no-holder)
+   - criterion 4: tests/adapters/test_process_drain.py::test_streaming_ended_by_a_kill_does_not_abandon_output (rows: time-limit, stop, raise)
+   - criterion 5: tests/adapters/test_process_drain.py::test_drain_is_five_seconds_and_output_is_not_abandoned_by_default
+   - criterion 6: tests/adapters/test_process_drain.py::test_a_limit_during_the_drain_times_the_call_out (rows: run_process, run_streaming)
+   - criterion 7: tests/adapters/test_process_drain.py::test_the_last_line_without_a_line_feed_is_not_passed_after_the_drain
+   - criteria 8 and 9: no test (`make check` and docs).
+
+   How the tests are built:
+   - **Holder:** a Python grandchild started with `start_new_session=True`. It inherits the child's standard output or standard error, and its other streams go to /dev/null. It writes its pid to `tmp_path/holder.pid` and sleeps 60 seconds.
+   - **Child's wait:** the child waits until that pid file holds the pid before it goes on, so the test can always find the holder. The `holder_file` fixture kills the holder after each test.
+   - **Drain:** every test except criterion 5's sets `PIPE_DRAIN` to 2 seconds through the `short_drain` fixture.
+   - **Criterion 2's grandchild:** it runs in a session of its own and writes `late` to the inherited standard output after 1 or 1.5 seconds.
+   - **Exception row of criterion 4:** it only checks that the error propagates, because no result comes back to read `output_abandoned` from.
+
+   Import checks:
+   - Modules the test run could not import: none. The test file imports `factory.adapters.process` as a module, so only the missing names fail, test by test.
+   - `make types` was not run (skipped in this stage). It will flag `process.PIPE_DRAIN` and `output_abandoned` until the coder adds them.
+
+   Files created: `tests/adapters/test_process_drain.py`. No earlier test file was changed.
+
+   `lint`: lint: green (0.5 s)
+   `test`: ERROR tests/adapters/test_process_drain.py::test_pipes_that_close_within_the_drain_give_the_whole_output[no-descendant-run_streaming] - AttributeError: <module 'factory.adapters.process' from '/wor...
