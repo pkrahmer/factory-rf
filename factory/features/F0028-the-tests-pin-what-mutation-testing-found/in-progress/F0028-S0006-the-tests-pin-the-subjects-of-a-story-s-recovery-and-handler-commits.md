@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 317
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T02:15:35.471015Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T02:15:15.168113Z'
   stage: doing
   run: 8163a3393c0b4eaf935b093f987eddc3
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:15:35.471015Z'
+  stage: review
 ---
 
 # The tests pin the subjects of a story's recovery and handler commits
@@ -133,3 +142,4 @@ Expect: two lines, `work item F0001-S0001: crash of stage doing recorded` and `w
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
