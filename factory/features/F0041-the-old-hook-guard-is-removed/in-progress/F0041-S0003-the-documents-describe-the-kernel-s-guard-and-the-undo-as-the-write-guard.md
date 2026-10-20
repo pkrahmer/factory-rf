@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 349
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T11:40:38.700979Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T11:40:17.333198Z'
   stage: tests
   run: ecc7c5e076cf4d5c91c4c30f9d59e97d
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T11:40:38.700979Z'
+  stage: doing
 ---
 
 # The documents describe the kernel's guard and the undo as the write guard
@@ -109,3 +118,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (134.8 s)
+6. factory: started doing as self.
