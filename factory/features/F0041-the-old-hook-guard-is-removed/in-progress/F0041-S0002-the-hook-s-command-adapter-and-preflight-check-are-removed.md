@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T11:22:39.882138Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-10-20T11:22:39.882138Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-20T11:28:13.392349Z'
+  stage: doing
+  run: 499b5c91135f4eb59e51b9dd78e1199f
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -366,3 +368,30 @@ Expect: `5`
     FAILED tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode[factory-last-line]
     make: *** [Makefile:75: test] Error 1
 17. factory: started doing as self.
+18. coder: Round 1, after the stall in entry 16: I changed no code. The code is still what entry 7 built:
+    - deleted: `src/factory/adapters/claude_guard.py` and `src/factory/entry/guard.py`
+    - `src/factory/domain/agent_runs.py`: `GUARD_COMMAND` and `GuardSettings.temporary_directory` removed
+    - `src/factory/domain/errors.py`: `GuardSettingsInvalid` removed
+    - `src/factory/application/preflight.py`: `agent_environment_item(environment, is_directory)` checks `HOME` only, through `_home_fault`
+    - `src/factory/entry/wiring.py`: the re-exports are removed and `machine_extras` uses the new signature
+
+    Main choice (unchanged): `agent_environment_item` returns `_home_fault`'s one result directly. I rejected the list-and-join shape that `confinement_item` uses, because with a single fault it is dead structure. Refactor: nothing more to change.
+
+    The stall: the factory's `make check` failed on `tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode[--follow]` and `[factory-last-line]`. This is the same pair entry 15 saw once. The story does not touch that test or what it reads.
+    - I re-ran `make check` in the foreground and it was green (`test: green (135.0 s)`, `check: green`).
+    - `grep -rla` over `src/` finds the two phrases only in `src/factory/domain/documents.py`, which the test leaves out on purpose.
+    - The factory's output kept only the FAILED lines and the coverage table, not the `E` lines or the failing `file:line`. Neither failed run printed its traceback where I can see it, so I cannot quote the cause.
+
+    My guess, not checked: the test reads every file under `src/` with `rglob` while other xdist workers run. It can pick up a file that something writes there during the run whose bytes hold `--follow` or `factory-last-line`. Its exception for `documents.py` covers only `domain/documents.py` and `domain/__pycache__/documents.*`.
+
+    This test is flaky, outside this story, and still open. I did not touch it, because it is another story's test. If the factory's check goes red on it again, the human should decide on a separate story to make it deterministic.
+
+    Noticed but not touched:
+    - `pyproject.toml:17` still declares `factory-guard`. Removing it is the human's change 1, after this story.
+    - A stale, git-ignored `src/factory/adapters/__pycache__/claude_guard.cpython-312.pyc` is left over from the deleted module. It contains neither phrase.
+    - The leftover `mutants/` folder still holds copies of the old guard tests. Every mutmut run deletes it first.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
