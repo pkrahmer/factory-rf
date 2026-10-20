@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 315
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T01:54:45.980303Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T01:54:45.980303Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T01:56:33.296079Z'
+  stage: doing
+  run: 3748915cd3034ea7b0781de24f164234
 ---
 
 # The tests pin seven small rules on both sides
@@ -150,3 +152,11 @@ Expect: four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.5 s)
 6. factory: started doing as self.
+7. coder: Built nothing: no path under `src/` changed, as the Interface says ("No module under `src/factory/` changes"). The tester's seven test modules and `tests/evaluation_support.py` already pass against the existing code. I ran `make check` once in the foreground and it ended `test: green (40.3 s)` and `check: green`, with total coverage at 99.14 %.
+   - Main choice: hand forward with no code change. The alternative I rejected was touching the code that the new tests pin, such as removing guards the mutation sweep called dead. The story pins that behaviour as it is, and decision 4 of the feature keeps those guards.
+   - Refactor: there was no diff of mine to refactor.
+   - Description: the journal did not change the meaning of the task, so I did not rewrite it.
+   - Noticed but did not touch: the tester's note on criterion 6. In the row with a `result` record after the comment, the test checks only `reason_given`, because the criterion names nothing else for that row. That is a question for the review to weigh, not something for me to change.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
