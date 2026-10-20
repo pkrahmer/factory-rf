@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-10-20T20:41:02.170083Z'
   stage: smoke-test
   run: ec5698707ca74e499e4c54fd9dd759bd
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-20T20:42:22.865746Z'
+  stage: approval
 ---
 
 # A call no longer waits for a process that keeps its output open after the call's own process ended
@@ -351,3 +356,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Note: entries 10 and 14 say the shell refused this command for its `kill` cleanup. In this run it was not refused and ran to the end.
 
     Open: nothing.
+17. factory: done (pull request merged); cost: 7 runs, 11.1 min, 56 turns, 211418 tokens in (1385128 more from cache), 37563 out, $2.28
