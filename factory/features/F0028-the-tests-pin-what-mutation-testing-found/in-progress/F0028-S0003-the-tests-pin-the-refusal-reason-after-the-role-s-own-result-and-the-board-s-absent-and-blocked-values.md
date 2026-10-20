@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T01:42:04.775662Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T01:42:04.769232Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:42:04.775662Z'
+  stage: intake
+---
+
 # The tests pin the refusal reason after the role's own result, and the board's absent and blocked values
 
 ## Description
@@ -66,3 +93,6 @@ EOF
 Expect: four lines, `Too wide. Cut the second story.`, `features`, `work items` and `F0001-S0001  Domain model  backlog  stage=-  blocked=-  claim=-  running_since=-  pull_request=-`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
