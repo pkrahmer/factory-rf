@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 324
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T03:27:27.006774Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T03:27:06.720805Z'
   stage: tests
   run: 6e1303b306d44e72b4e112e92d60f1fd
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:27:27.006774Z'
+  stage: doing
 ---
 
 # The protected paths refuse a .claude folder at any depth
@@ -119,3 +128,4 @@ Expect: four lines, `.claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is o
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/domain/test_nested_claude_paths.py::test_a_claude_folder_is_protected_at_any_depth_and_only_as_a_whole_segment[a/b/c/.claude/d-True]
+6. factory: started doing as self.
