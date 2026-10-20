@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 328
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T04:01:39.588563Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T04:01:18.980441Z'
   stage: docs
   run: 07e05329e5fa45c29fee503924c4af36
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:01:39.588563Z'
+  stage: smoke-test
 ---
 
 # The reviewer corrects a stale Description itself
@@ -178,3 +187,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T03:58:49Z)
     `secrets`: secrets: green (1.6 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
