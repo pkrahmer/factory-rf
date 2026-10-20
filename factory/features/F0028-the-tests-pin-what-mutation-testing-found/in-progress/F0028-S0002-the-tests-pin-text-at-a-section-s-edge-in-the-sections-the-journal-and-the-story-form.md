@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T01:37:51.807075Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-20T01:37:51.807075Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T01:38:14.394750Z'
+  stage: review
+  run: 292b8bc234d8468ebeb884430258792c
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -240,3 +242,18 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 16. factory: started review as self.
+17. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`. The diff adds two test files, `tests/domain/test_section_edges.py` and `tests/domain/test_story_form_edges.py`, and changes nothing under `src/`.
+
+    no findings
+
+    - **Group 1, the criteria:** each of criteria 1 to 4 has one parametrized test, and the rows use the criteria's literal inputs and outputs.
+      - Criterion 1 has rows with and without blank lines.
+      - Criterion 2 has two rows: the empty block alone, and the empty block followed by an open block.
+      - Criterion 3 has two rows: entry 1 right under `## Journal`, and a numbered line right above it. The second row also tests the failing side: `entry_text(document, 2)` raises `WorkItemFormatError` with the fault `no journal entry 2`.
+      - Criterion 4 has five rows. They include the backlog row, which gives exactly `FormFinding(line=25, ...)`.
+      - These rows would fail a reader that starts one line late or one line early. Entry 15 records the factory's `make check` as green after the coder.
+    - **Groups 2 and 3:** nothing under `src/` changes, so no architecture or security point arises. No marker silences a check.
+    - **Group 4, quality:** the three findings from round 0 (entry 9) are fixed. `FORM`, `SMOKE` and `_state` are now imported from `domain.test_story_form`, and `TICKS` from `domain.test_sections`. That is the same import pattern as `tests/domain/test_contract_provider_limit.py:3`. The imports bring in no test functions, so pytest collects nothing twice. The module's own `CRITERIA` differs from the earlier one ("3. docs: none."), so keeping it is not a copy.
+    - **Group 5, hygiene:** the Description and Interface match what was built (tests only, no source change). The journal records the main choice and what was rejected. The docs criterion ("docs: none") still holds, because no reader's behaviour changes.
+
+    Earlier tests: none changed. Both files in the diff are new (status `A`).
