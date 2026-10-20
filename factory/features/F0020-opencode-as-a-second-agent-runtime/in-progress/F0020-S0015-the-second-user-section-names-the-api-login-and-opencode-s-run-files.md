@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 305
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T00:09:00.189530Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T00:09:00.189530Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T00:09:20.774278Z'
+  stage: docs
+  run: 253f6f41c9694f37b468beb6ed98133c
 ---
 
 # The second-user section names the API login and opencode's run files
@@ -157,3 +159,25 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: Changed `docs/operator-guide.md` only, section *The agent runs as a second user*, in two places:
+    - The `env -i` / login-shell passage now says:
+      - The agent sees the runtime's own switches and, from the login shell, `CLAUDE_CODE_OAUTH_TOKEN`, or `ANTHROPIC_API_KEY` when an API key is in force.
+      - The switches are Claude Code's three with `CLAUDE_CONFIG_DIR`, or, under opencode, `PYTHONDONTWRITEBYTECODE` with `OPENCODE_CONFIG`.
+      - The login shell is there when `FACTORY_CLAUDE_LOGIN_FILE` or `FACTORY_API_LOGIN_FILE` is set (under opencode, only the API login file counts), and it `exec`s the runtime's executable.
+    - The paragraph on a run's files now says an opencode run writes `opencode-<run>.json` (its per-run configuration) in place of the instructions, guard and hooks files, and points to "Running on opencode". I did not put mode `0640` in this sentence, because the paragraph already says the runtime sets each file to `0640`.
+
+    Checked against the code:
+    - Claude Code's `SWITCHES` and `CONFIG_VARIABLE` in `claude_runtime.py`.
+    - `login_argv` in `agent_launch.py`.
+    - The reviewer's entry 9 already confirmed opencode's `SWITCHES`, `CONFIG_VARIABLE` and `opencode-{run}.json`, and I did not re-read them.
+    - I did not re-read `docs/project-guide/agents.md`; I relied on the story's description and the reviewer's checks. The code and docs agree, so there are no findings for the coder.
+
+    Ran `uv run python -m factory.entry.check_documents`: `documents ok`. I did not run `make check`, because I changed only a document.
+
+    Cross-read and found current: the neighbouring passages of the same section (the sudoers rule, the `agent-user` item, the kernel write guard list).
+
+    Stale text I noticed and left alone: none.
+
+    `check`: check: green (not run again: passed on tree 7897e571521e at 2026-10-19T23:58:37Z)
+    `secrets`: secrets: green (0.8 s)
+    `documents`: documents ok
