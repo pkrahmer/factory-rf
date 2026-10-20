@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 359
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T19:26:07.043117Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T19:25:45.153723Z'
   stage: tests
   run: 0446e2f5433f418b8e017213cc9a4b04
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:26:07.043117Z'
+  stage: doing
 ---
 
 # The documents say what an ignored path the factory cannot remove does
@@ -104,3 +113,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.8 s)
    `test`: test: green (70.4 s)
+6. factory: started doing as self.
