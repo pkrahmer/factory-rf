@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 314
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T01:42:40.007053Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T01:42:40.007053Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T01:44:39.925146Z'
+  stage: tests
+  run: a649c5fdcddc48eb8445d70a43d0e745
 ---
 
 # The tests pin the refusal reason after the role's own result, and the board's absent and blocked values
@@ -114,3 +116,21 @@ Expect: four lines, `Too wide. Cut the second story.`, `features`, `work items` 
    Architecture: the tests sit in `tests/domain/` and test `factory.domain` only; the shared helper moves to a module at the `tests/` root under the standing leave in CLAUDE.md, which keeps the earlier tests' names and checks.
    Scope: inside F0028's Scope (S0003 line) and not in its Out of scope; the dead guard at `acceptance.py:332` stays (decision 4).
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 5. The code already behaves the way the story describes, so `make test` is green on purpose and the tests are not red. The coder has nothing to change in `src/`.
+
+   - criterion 1: tests/domain/test_acceptance_refusal_edges.py::test_the_refusal_reason_starts_after_the_roles_own_last_result (rows `other-role-result`, `role-question`, `role-result`)
+   - criterion 2: tests/domain/test_acceptance_refusal_edges.py::test_a_refusal_books_the_reason_after_the_roles_own_last_result
+   - criterion 3: tests/domain/test_acceptance_refusal_edges.py::test_a_refusal_writes_the_whole_body_with_the_recommendation_before_the_journal
+   - criterion 4: tests/domain/test_board_absent_values.py::test_a_work_item_without_a_state_shows_every_state_value_as_absent
+   - criterion 5: tests/domain/test_board_absent_values.py::test_a_board_line_writes_an_absent_value_as_a_dash_and_a_blocked_row_with_its_reason (rows `absent`, `blocked`). Each row checks the whole `render_board([], [row])` output, not just the line.
+   - criterion 6: the factory's `make check`.
+   - criterion 7: there are no docs to change.
+
+   Files created: tests/acceptance_support.py, tests/domain/test_acceptance_refusal_edges.py, tests/domain/test_board_absent_values.py.
+
+   Earlier test file changed under the standing leave in CLAUDE.md (*Tests*): tests/domain/test_acceptance_booking.py. I moved its `_document` helper to tests/acceptance_support.py, where it is named `report_of` because it is now imported from another module. The booking tests import it from there and call `report_of` where they called `_document`. Every test keeps its name and checks the same thing.
+
+   Run: `make test` was green ("test: green") and `make lint` was green. The test run could import every module. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (38.0 s)
