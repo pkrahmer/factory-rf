@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T19:52:55.086528Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-20T19:52:55.086528Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-20T19:53:18.907924Z'
+  stage: intake
+  run: a949583acd0d4c26ba59460043635f01
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -63,7 +65,7 @@ class SealedProjectCommands(ProjectCommands):
 ```
 
 - `run` calls `git.seal()`, then `inner.run(command, time_limit=time_limit)`, then, also when the run raised, `git.check_seal()` and `git.remove_nested_repositories()`, in that order, and returns the inner result unchanged.
-- When `git.seal()` raises `RepositoryUnsealed`, nothing runs and it propagates. When `git.check_seal()` or the removal raises `RepositoryUnsealed`, that error propagates, also over an error of the inner run, which becomes its context (as in `run_sealed`). A `ProjectCommandError` or `ValueError` of the inner run propagates when the seal holds.
+- When `git.seal()` raises `RepositoryUnsealed`, nothing runs and it propagates. When `git.check_seal()` raises `RepositoryUnsealed` (the removal raises none), that error propagates, also over an error of the inner run, which becomes its context (as in `run_sealed`). A `ProjectCommandError` or `ValueError` of the inner run propagates when the seal holds.
 - The nested repositories removed are written to the factory log in one line, `removed nested repositories after <command>: <path>, <path>`, the paths as `remove_nested_repositories` gave them (`a/.git`), in its order; no line when there is none. The result is unchanged either way.
 
 `factory.entry.wiring` (`entry`):
@@ -87,8 +89,8 @@ Tests (the tester writes them): `tests/application/test_sealed_project_commands.
 ## Acceptance criteria
 
 1. `SealedProjectCommands(inner, git, log).run("check", time_limit=30 s)` over a real clone whose `.git` was made group-writable before the call: during the inner run `.git` is not group-writable (the inner command checks it), the inner run gets `check` and 30 seconds, and the result is the inner one unchanged.
-2. After the run (rows of one parametrized test): an inner run that returns, and one that raises `ProjectCommandError`, are each followed by `check_seal` and `remove_nested_repositories`: the `.git` of a nested repository the inner run made under the checkout (`git init` in a sub-folder) is gone afterwards, and the `ProjectCommandError` propagates in the second row.
-3. The seal (rows of one parametrized test): when the inner run replaces `.git` with a group-writable copy, `run` raises `RepositoryUnsealed`; when the inner run also raised `ProjectCommandError`, `RepositoryUnsealed` is raised with that error as its `__context__`. When `.git` is missing before the call, `RepositoryUnsealed` is raised and the inner command was never called.
+2. After the run (rows of one parametrized test): an inner run that returns, one that raises `ProjectCommandError` and one that raises `ValueError` are each followed by `check_seal` and `remove_nested_repositories`: the `.git` of a nested repository the inner run made under the checkout (`git init` in a sub-folder) is gone afterwards, and the `ProjectCommandError` and the `ValueError` propagate in their rows.
+3. The seal (rows of one parametrized test): when the inner run replaces `.git` with a group-writable copy, `run` raises `RepositoryUnsealed`; when the inner run also raised `ProjectCommandError`, `RepositoryUnsealed` is raised with that error as its `__context__`; in both rows the nested repository the inner run made is still there, because `check_seal` comes first and a failed seal removes nothing. When `.git` is missing before the call, `RepositoryUnsealed` is raised and the inner command was never called.
 4. The factory log (rows of one parametrized test): after an inner run that made nested repositories in `a` and `b/c`, the log holds the one line `removed nested repositories after check: a/.git, b/c/.git`; after one that made none, it holds no line from the run.
 5. `project_command_environment(settings, {"PATH": "/p", "HOME": "/home/factory", "LANG": "C.UTF-8"})` with `agent_user` `agent` and `agent_home` `/home/agent/.claude` gives `{"PATH": "/p", "HOME": "/home/agent", "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1", "UV_LINK_MODE": "copy"}`; without `agent_user` it gives the same with `HOME` `/home/factory`.
 6. The wiring (rows of one parametrized test, `build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())`, `which` answering `/usr/bin/sudo` for `sudo`): with `agent_user="agent"`, `boundaries.project_commands` is a `RecordingProjectCommands` around a `SealedProjectCommands` around a `MakeProjectCommands` whose `user` is `CommandUser(os_user="agent", sudo_executable="/usr/bin/sudo", environment=project_command_environment(settings, production_environment()), leftovers=leftovers_command())`. With `end_leftovers=False`, the user's `leftovers` is `None`. Without `agent_user`, it is a `RecordingProjectCommands` around a `MakeProjectCommands` whose `user` is `None`. With `which` finding no `sudo`, the user's `sudo_executable` is `SUDO_EXECUTABLE`.
@@ -155,3 +157,12 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    2. Drop "or the removal" from the Interface: `GitCli.remove_nested_repositories` raises no `RepositoryUnsealed`, so only `check_seal` can.
    3. The order is `check_seal` first, as in `run_sealed`'s `finally`: a failed seal removes nothing. Criterion 3's row (the inner run replaces `.git`) also asserts that the nested repository is still there.
 5. factory: started intake as self.
+6. intake: accepted. I carried the human's answers (journal entry 4) into the story and changed nothing else.
+   - Interface: `SealedProjectCommands.run` and `project_command_environment` name concrete modules and signatures. By answer 2, the rule now reads "When `git.check_seal()` raises `RepositoryUnsealed` (the removal raises none), that error propagates". Every rule has a criterion on both sides: seal at the start (3), seal after the run, over an inner error (3), the inner errors propagating (2), the log line and no line (4), the environment with and without `agent_user` (5), and the wiring with and without `agent_user`, `end_leftovers` and `which` (6).
+   - Criteria: each fits one test function.
+     - Per answer 1, criterion 2 gained a `ValueError` row that propagates after `check_seal` and the removal.
+     - Per answer 3, criterion 3's replaced-`.git` rows also assert the nested repository is still there, since `check_seal` comes first and a failed seal removes nothing.
+     - Criterion 7 covers the inheritance.
+   - Smoke test: it is runnable and calls no pytest, so the `-q` rule does not apply. Its `Expect:` line is checkable: the log line, then `passed [False] False True`.
+   - Architecture: `SealedProjectCommands` sits in `factory.application`, which knows only the `ProjectCommands`, `Git` and `FactoryLog` interfaces. The wiring stays in `factory.entry.wiring`, which is the only place that wires.
+   - Scope: the story is within F0040's scope, which lists `sealed_runs.py` and `wiring.py` for S0002. It touches none of the out-of-scope items and changes no test another story wrote.
