@@ -4,11 +4,30 @@ This file covers processes, project commands and this repository's checks; read 
 
 ## Project commands
 
-The factory reaches a project's build only through the `ProjectCommands` interface (an abstract base class, `factory.application.project_commands`). It has one operation, `run(command, *, time_limit) -> CheckResult`. `MakeProjectCommands(directory, kill_points=None, *, executable="make")` (`factory.adapters.make_commands`) is the first implementation. It inherits `ProjectCommands`. The string `"make"` appears in this module and in `factory.application.preflight` (its `REQUIRED_TOOLS`); `tests/test_make_search.py` allows exactly those two. The pipeline uses the results, and so does the preflight's probe.
+The factory reaches a project's build only through the `ProjectCommands` interface (an abstract base class, `factory.application.project_commands`). It has one operation, `run(command, *, time_limit) -> CheckResult`. `MakeProjectCommands(directory, kill_points=None, *, executable="make", user=None)` (`factory.adapters.make_commands`) is the first implementation. It inherits `ProjectCommands`. The string `"make"` appears in this module and in `factory.application.preflight` (its `REQUIRED_TOOLS`); `tests/test_make_search.py` allows exactly those two. The pipeline uses the results, and so does the preflight's probe.
 
 `run` starts `<executable> --no-print-directory <command>` in `directory` through `run_process`, with stderr merged into stdout. The environment is the current one less `MAKELEVEL`, `MAKEFLAGS` and `MFLAGS`. Without that, a run inside `make check` (where `MAKELEVEL` is set) would print `make[N]: Entering directory` lines that a run on its own does not. `directory` is where make finds the project's Makefile.
 
-Rules of `run`:
+### Running as another user
+
+`user` is an optional `CommandUser` (`factory.adapters.make_commands`; frozen, no unknown keys): `os_user`, `sudo_executable`, `environment` (a `dict[str, str]`) and `leftovers` (words, `None` by default). `MakeProjectCommands.user` returns what the constructor was given. Without `user` nothing above or below changes: the factory's own environment, no `sudo`, the factory's own kill at `time_limit`. The wiring that hands the instance's agent user to the class is a later story's (F0040-S0002).
+
+With `user`, `run` starts the same chain as an agent run, built by `launch` of `factory.adapters.agent_launch` (`agents.md`, *The shared launch module*):
+
+```text
+<sudo> -n -u <os_user> -- timeout --signal=KILL <limit>s env -i NAME=value ... make --no-print-directory <command>
+```
+
+- **Environment.** The command sees only `CommandUser.environment`, less `MAKELEVEL`, `MAKEFLAGS` and `MFLAGS`; nothing of the factory's reaches it, `sudo` included (the process request's `env` is `{}`). So the hosting token's path is not there.
+- **The kill.** The factory may not signal root's `sudo`, so the user's own `timeout` kills the command at the limit (whole seconds, rounded up), and the factory's own kill waits `SUDO_GRACE` (30 s) longer. A command killed so (status 137 or -9 after at least `time_limit`, `killed_at_limit`) is `time_limit` with `exit_status` `None`, as one the factory killed itself. Status 137 before the limit is `failed` with `exit_status` 137.
+- **The refusal.** A command that is not judged `time_limit`, whose status is not 0 and whose output holds at least one non-blank line, every one starting with `sudo:`, never ran: `run` raises `ProjectCommandError(command, "<sudo_executable> refused the command: <last such line>")`, not a red check. A `sudo:` line beside other output is output like any other, and a status of 0 is never a refusal. The kill is judged first, so a `sudo:` warning before a kill at the limit is `time_limit`.
+- **The leftovers.** `timeout` kills only its own process group, and the factory cannot signal the user's processes, so a process that left the group (a test's child in a session of its own) would outlive the command. With `leftovers` set and `os_user` not the factory's own user (`own_identity().user`; the program would end the factory itself), every command that started is followed, whatever its result, by `leftovers_launch(...)`, run as that user with working directory `/` (the program described in `agents.md`, *Ending the agent's leftover processes*). A fault (`leftovers_fault`) raises `ProjectCommandError(command, <fault>)`; a program that cannot be started raises it with `cannot end the agent's processes: <the operating system's message>`. A refusal of the command wins over a leftovers fault. Without `leftovers`, or for the own user, no second call is made.
+- The checks of `time_limit` and of the command's name, and an `executable` or `sudo_executable` that cannot be started, are the same as below and come before anything starts.
+
+Tests: `tests/adapters/test_make_commands_user.py` (a real `Makefile`, a stand-in `sudo` that records its arguments, environment and working directory, and a stand-in leftovers program; never the real command).
+
+### Rules of `run`
+
 
 - `time_limit` of zero or less raises `ValueError`.
 - `command` must match `^[a-z][a-z0-9-]*$`, checked with a full match. Otherwise `ProjectCommandError` is raised before anything is started. So is an `executable` that cannot be started; the detail is the operating system's message.
