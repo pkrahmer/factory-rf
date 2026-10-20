@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 316
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T02:07:25.837003Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T02:07:05.105989Z'
   stage: review
   run: 33e7bfc014004ab690cd2a8d803997c6
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:07:25.837003Z'
+  stage: docs
 ---
 
 # The acceptance tests pin the reviewer's role and the close's commit subjects
@@ -179,3 +188,4 @@ Expect: three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: clo
    - `duplicates: 5 new` (entry 7) cannot come from this diff, because `make duplicates` reads only `src/factory`, which this diff leaves alone.
 
    Earlier tests: none. `git diff --name-status main...HEAD` shows only `A` for `tests/application/test_acceptance_reviewer_role.py`, and the other entries are the work item's own files under `factory/`.
+10. factory: started docs as self.
