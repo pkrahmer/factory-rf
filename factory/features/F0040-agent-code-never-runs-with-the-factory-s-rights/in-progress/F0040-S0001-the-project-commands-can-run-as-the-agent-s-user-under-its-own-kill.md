@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T18:44:44.115305Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -172,6 +168,12 @@ journal:
   kind: started
   at: '2026-10-20T18:44:44.115305Z'
   stage: doing
+- number: 30
+  speaker: coder
+  kind: result
+  at: '2026-10-20T18:47:27.643974Z'
+  stage: doing
+  run: f926058fec4b4e858b04c90915c412ad
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -500,3 +502,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (1.2 s)
     `test`: test: green (59.1 s)
 29. factory: started doing as self.
+30. coder: Round 1: the reviewer's findings in entry 24 were two new criteria, and both needed only their tests. The tester added them in entry 28, so this run changed no code.
+    - Criterion 10: `test_the_command_runs_through_sudo_timeout_and_env_with_only_the_user_s_environment` now checks that the environment the stand-in `sudo` records holds no `FACTORY_TOKEN_FILE`.
+    - Criterion 11: `test_only_sudo_lines_and_a_failing_status_are_a_refusal` has a new row, `no-output`.
+
+    Both pass against the implementation already in `src/factory/adapters/make_commands.py`. That code is described in entry 22:
+    - `CommandUser`, and the `user` keyword and property of `MakeProjectCommands`.
+    - `_run_as_own_user` and `_run_as`. `_run_as` builds its call with `launch`, judges `killed_at_limit` once, then judges the refusal on the merged output, then runs the leftovers program through `leftovers_launch` and `leftovers_fault`. A refusal wins over a leftovers fault.
+    - The shared `_start` helper.
+
+    Main choice (unchanged): the refusal is judged on the command's merged output and names the last `sudo:` line, as the Interface words it. I rejected reusing the runtimes' `call_refusal`, because it takes the first `sudo:` line and needs `Starters`.
+
+    Refactor: nothing to change this round, since I made no code change. The refactor pass of entry 22 still holds.
+
+    Description: no journal entry since the reviewer's rewording of criteria 1 and 9 changed what the task means, so I did not rewrite it.
+
+    Noticed, not touched: nothing new.
+
+    `make check`: check: green (coverage 99.17 %).
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
