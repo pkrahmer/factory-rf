@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 309
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T00:37:55.917014Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T00:37:35.112441Z'
   stage: doing
   run: 0c46743232bb424ea87995dc14b668b4
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:37:55.917014Z'
+  stage: review
 ---
 
 # The image makes opencode's configuration folder, read-only to the agent
@@ -144,3 +153,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
