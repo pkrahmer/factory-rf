@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 317
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T02:17:12.972474Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T02:16:52.696254Z'
   stage: docs
   run: 41a9decde5744b27a7f087d35d540cd9
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:17:12.972474Z'
+  stage: smoke-test
 ---
 
 # The tests pin the subjects of a story's recovery and handler commits
@@ -181,3 +190,4 @@ Expect: two lines, `work item F0001-S0001: crash of stage doing recorded` and `w
     `check`: check: green (not run again: passed on tree 562b1eb11f1c at 2026-10-20T02:14:27Z)
     `secrets`: secrets: green (0.1 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
