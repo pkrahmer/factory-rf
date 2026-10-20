@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 319
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T02:38:29.813542Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T02:38:29.813542Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T02:38:45.680076Z'
+  stage: smoke-test
+  run: 484dd0a90dbb4b328f174e3e5502cd4d
 ---
 
 # The tests pin the stage's aftermath, the opening and the tick at their edges
@@ -232,3 +234,24 @@ Expect: four lines, `None`, `Stalled (attempt 1 of 2): the agent gave no valid d
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: no findings.
+
+    I ran the one command under `## Smoke test` from the repository root, exactly as written. It exited 0.
+
+    ```
+    None
+    Stalled (attempt 1 of 2): the agent gave no valid decision and entry: the entry is empty. Retrying on the next tick.
+    git fetch failed (exit 128): fatal: the remote end hung up
+    idle:-
+    ```
+
+    It met its `Expect:` line. It printed four lines, each the one expected and in the expected order: `None`, the stall note, the `FetchFailed` text, and `idle:-`.
+
+    The acceptance criteria compared with this output:
+    - Criterion 1: the stall note's text is exactly the first line criterion 1 expects. `agent_entry` returns `None` for an entry that is only `tester:`, which agrees with the `no_result` stall that criterion pins.
+    - Criterion 4: `str(FetchFailed(...))` is exactly the `fetch_failed` detail that criterion 4 expects. `GitError` has the same form, so the `git reset failed (exit 128): ...` detail fits too.
+    - Criterion 5: an event without a work item has the key `idle:-`, which agrees with the log line `error cap reached on idle:-: RuntimeError: handler failed`.
+    - Criteria 2 and 3 are not touched by the smoke test, and nothing in its output contradicts them.
+    - Criteria 6 and 7: the earlier entries record `make check` as green and docs as none. The smoke test gives nothing against them.
+
+    Nothing was changed. Open: nothing.
