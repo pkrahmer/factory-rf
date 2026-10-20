@@ -58,7 +58,7 @@ Since F0026 (the board shows only real crashes), the board shows a stage of its 
 
 **At approval** (`stage=approval`, the pull request no longer a draft). The description is written before the push, so wait for the draft flag to clear. Then `git fetch` and make six checks:
 1. **Files in scope.** `git diff --stat origin/main...origin/work-item/<id> -- . ':!factory'`: only files the story names, plus `README.md` and `docs/` from its docs criterion.
-2. **The reviewer.** Its last entry has no findings, or only ones the human accepted. Read its `Notes:` (they no longer send the story back) and any `criterion <n> added`.
+2. **The reviewer.** Its last entry has no findings, or only ones the human accepted. Read its `Notes:` (they no longer send the story back) and any `criterion <n> added` and any `description corrected:`.
 3. **The smoke test.** The smoke tester's entry meets every `Expect:`.
 4. **Earlier tests.** Every earlier test that changed names its leave: the standing leave to move a shared helper, or a numbered decision of the feature. A change without one is not merged.
 5. **Write paths.** `git diff --stat origin/main...origin/work-item/<id> -- factory`: only the work item and its `.costs.jsonl`. And none of `Makefile`, `pyproject.toml`, `uv.lock`, `CLAUDE.md`, `.secrets.baseline` or `security/` in the first list. (The kernel and the undo already revert such writes; this is a second line.)

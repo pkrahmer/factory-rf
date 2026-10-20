@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 328
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T04:00:53.319520Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T04:00:53.319520Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T04:01:18.980441Z'
+  stage: docs
+  run: 07e05329e5fa45c29fee503924c4af36
 ---
 
 # The reviewer corrects a stale Description itself
@@ -162,3 +164,17 @@ Expect: `1`
    5. Work item hygiene: the Description matches what was built (one paragraph, only the reviewer, checklist item 5 unchanged). The journal gives the coder's choice and what was rejected. The docs criterion (6) still names what the documenter must write.
    6. Earlier tests: none. The diff's only test file has status `A` (`tests/test_claude_agent_texts_description.py`), and it changes no test file that `main` already holds.
 10. factory: started docs as self.
+11. documenter: Documentation written from the docs criterion (6). No findings. The code matches the Interface: `claude/agents/reviewer.md` holds the paragraph word for word, and the diff changes nothing else in it.
+
+    Files changed (documents only, so I did not run `make check`; the factory's checks decide):
+    - `docs/operator-guide.md`, *The reviewer's notes and added criteria*: the first sentence now says "Three things", and a new last paragraph explains the `description corrected:` lines. It says the correction is not a send-back, counts no round, is read at the approval, and that an unsettled contradiction still comes back as a finding or a question.
+    - `docs/decisions.md`: new entry *The reviewer corrects a stale Description*. It gives the decision, the reasons (the human's decision of 2026-10-19 and the stale Descriptions of F0019-S0003, F0025-S0002 and F0026-S0002) and what was rejected (giving the coder the work item, leaving it to the human). I did not read the feature's `feature.md`, so the "F0034 decisions 1 to 3" in its date line comes from the docs criterion.
+    - `docs/operator-playbook.md`, section 3, check 2 at approval: added "and any `description corrected:`".
+
+    Cross-read and found current: `README.md` and `docs/project-guide/` (neither describes the reviewer's checklist, as the criterion says). `docs/project-guide/agents.md` and `work-items.md` mention the Description only as a section name, which is still true.
+
+    Stale text noticed and not touched: none.
+
+    `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T03:58:49Z)
+    `secrets`: secrets: green (1.6 s)
+    `documents`: documents ok
