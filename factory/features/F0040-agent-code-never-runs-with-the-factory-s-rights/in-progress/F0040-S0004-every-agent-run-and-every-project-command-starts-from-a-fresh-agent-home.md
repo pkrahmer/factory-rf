@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T22:07:11.304125Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -98,6 +94,12 @@ journal:
   kind: started
   at: '2026-10-20T22:07:11.304125Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-20T22:10:28.938261Z'
+  stage: doing
+  run: af9ef3a9390e4522a3f5c82248ed0379
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -333,3 +335,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 14. 2026-10-20 human: Note from the human's side (2026-10-21), for the coder and the reviewer: at 21:36 UTC this stage's tests left `src/factory/{,entry,domain,adapters}/__pycache__` at mode 755 (owner `agent`), and the factory's `git clean -X` after the run failed with `checkout_restore_failed` (repaired by hand). The cause is a child started as `[sys.executable, "-I", "-m", "factory.entry.fresh_home"]`: in the tests `sys.executable` is the checkout's Python, and `-I` ignores `PYTHONDONTWRITEBYTECODE`, so under the tests' umask 022 it writes bytecode into `src/`. Start the program with `-I -B` (the command this story builds, and any test that starts it), as F0027-S0004 did for the test helpers.
 15. 2026-10-20 human: Rerun (2026-10-21). Both crashes were the restore's `git clean -X` failing on `src/**/__pycache__` written at mode 755 by a test child started with `-I` and no `-B`, which also discarded the run's uncommitted work. The checkout's folders now carry a default ACL that keeps new entries group-writable, so the restore no longer fails. Still start the program with `-I -B` (the command this story builds and any test that starts it), as the earlier note says.
 16. factory: started doing as self.
+17. coder: I built everything in the Interface, and `make check` is green against the tests as they stand now. But the human's notes (entries 14 and 15) ask that the fresh-home program start with `-I -B`, and two tests pin `-I` without `-B`. So I am sending the work item to the tests stage for one test change.
+
+    **The test change:** in `tests/adapters/test_sudo_agent_home.py` and `tests/entry/test_wiring_agent_home.py`, add `"-B"` after `"-I"` wherever the fresh-home command is spelled out. That is three places: `PROGRAM`, the expected arguments in `test_reset_runs_the_fresh_home_program_through_sudo_from_the_root_and_keeps_the_kept`, and the expected `fresh_home_command()` in `test_the_fresh_home_program_runs_with_this_interpreter_isolated_and_uv_s_cache_is_named`. Nothing else changes.
+
+    **What the journal changes:** the notes change the task's meaning. `fresh_home_command()` becomes `[sys.executable, "-I", "-B", "-m", "factory.entry.fresh_home"]`, and the same `-B` goes into the sudo command line in the Description, criteria 5, 10 and 13, and the smoke test's `program`. I tried to rewrite `## Description` to say so, but the work item is outside my write paths (`Permission denied`), so I left it alone; the next stage should carry this change into the Description. `fresh_home_command()` still builds `-I` only so that `make check` stays green. When the work item comes back, the change in the code is one word in `src/factory/entry/wiring.py`.
+
+    **What I built:**
+    - `src/factory/application/agent_home.py`: the `AgentHome` interface.
+    - `src/factory/adapters/agent_home.py`:
+      - `SudoAgentHome` and `FRESH_HOME_TIME_LIMIT`.
+      - `reset` builds the call through `launch`, starts it through the module-level `run_process` from `/`, and reads the limit at each call.
+      - Faults: the `FRESH_HOME_PREFIX` line, else the last non-blank line, else `exit status <n>`. A kill at the limit (`timed_out` or `killed_at_limit`) gives `no end within <s> s`. An `OSError` gives its `strerror`.
+    - `LOGIN_STATE_FILE` in `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`.
+    - `Boundaries.agent_home`, last, in `src/factory/application/boundaries.py`.
+    - In `src/factory/application/sealed_runs.py`:
+      - `run_sealed` resets after `git.seal()` and before the `try`, so a failed reset neither starts the run nor checks the seal.
+      - `SealedProjectCommands` takes `home` and turns an `AgentRuntimeError` into `ProjectCommandError(command, detail)` before the command runs.
+    - In `src/factory/entry/wiring.py`: `FRESH_HOME_MODULE`, `UV_CACHE_FOLDER`, `fresh_home_command`, and `agent_home_of`, which uses the existing `kept_paths` from `factory.domain.agent_home`. `build_boundaries` builds the home once and gives the same object to `Boundaries` and to `SealedProjectCommands`. `_project_commands` takes it as a keyword-only argument (ruff's PLR0917).
+
+    **Main choice:** the reset in `run_sealed` and in `SealedProjectCommands.run` comes before the `try`/`finally`, not inside it. A failed reset ran nothing, so there is no seal to check and nothing to clean up afterwards, which is what the Interface says. I rejected putting it inside the `try`: in the test where the home opens `.git` before it raises, the seal check would then raise `RepositoryUnsealed` and hide the reset's error. For the error line I wrote a small `_failure_line`. I did not reuse `make_commands._last_line`, because it filters out make's own messages, which this rule must not do.
+
+    **Refactor:** I read my diff once and found nothing to change.
+
+    **Noticed, not touched:** the tests' `PROGRAM` currently starts the real program with `-I` and no `-B`. Until the test change lands, `make test` can still write `__pycache__` into `src/`. The checkout's new default ACL keeps that from breaking the restore.

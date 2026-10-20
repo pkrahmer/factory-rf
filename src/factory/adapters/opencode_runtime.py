@@ -79,6 +79,8 @@ AGENT_PREFIX = "factory-"
 # Where opencode keeps its sessions, logs and caches; its own configuration folder stays
 # outside the rules, so an agent cannot rewrite what the next run is told.
 RUNTIME_FOLDERS = (".local/share/opencode", ".local/state/opencode", ".cache/opencode")
+# Where opencode keeps a login made by hand in the agent's home.
+LOGIN_STATE_FILE = ".local/share/opencode/auth.json"
 SWITCHES = {"PYTHONDONTWRITEBYTECODE": "1"}
 OPENCODE_TOOLS = (
     "bash",
