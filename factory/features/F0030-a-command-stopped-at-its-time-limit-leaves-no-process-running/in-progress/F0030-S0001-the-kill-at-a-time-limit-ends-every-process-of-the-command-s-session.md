@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T08:33:16.751420Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T08:32:55.098749Z'
   stage: intake
   run: 666dcf1c80fe48529683aa97ad662cf0
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T08:33:16.751420Z'
+  stage: tests
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -127,3 +136,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: the commands are runnable. Neither block runs pytest, so the `-q` in `addopts` does not matter. Each `Expect:` is checkable against the output (`time_limit gone` and `0`; `pid=77 session=70 ended=True`).
    - Architecture: the pure parsing and selection sit in the domain with no I/O. The `/proc` reading and the signals sit in the adapter, which is the only module that starts processes, and no new wrapper, dependency or suppression marker is added.
    - Scope: within F0030's Scope. It touches none of the Out-of-scope items (the `Makefile` recipe, the TERM before the KILL, `setsid` processes, other users' processes, the pipeline file). It changes no earlier test.
+4. factory: started tests as self.
