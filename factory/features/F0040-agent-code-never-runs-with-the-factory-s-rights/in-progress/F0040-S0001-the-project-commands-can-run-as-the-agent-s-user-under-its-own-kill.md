@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T18:49:41.283056Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -185,6 +189,11 @@ journal:
   at: '2026-10-20T18:49:19.656560Z'
   stage: review
   run: 5c44d24e543b4b2592596ca8384bbc98
+- number: 33
+  speaker: factory
+  kind: started
+  at: '2026-10-20T18:49:41.283056Z'
+  stage: doing
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -549,3 +558,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Notes:
     - `tests/adapters/test_make_commands_user.py:33` (`SUDO_SCRIPT`, `_write_sudo`) is a third local stand-in `sudo`, beside `write_sudo` in `tests/leftovers_runtime_support.py` and the one in `tests/adapters/test_claude_runtime_os_user.py`. It is not a plain copy: it also records the environment and working directory and plays a plan.
+33. factory: started doing as self.
