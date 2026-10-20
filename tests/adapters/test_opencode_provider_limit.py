@@ -11,9 +11,11 @@ import pytest
 from adapters.claude_stand_in import Step, read_calls
 from adapters.opencode_stand_in import (
     BOUND_SECONDS,
+    REPLY,
     RESUME_REPLY,
     SESSION,
     WAIT_SECONDS,
+    WAITING,
     error,
     opencode_request,
     over_budget,
@@ -30,7 +32,6 @@ from factory.domain.provider_limits import ProviderLimit
 LIMIT_MESSAGE = "spend limit reached, try again in 7 minutes"
 LIMIT_ERROR = error(LIMIT_MESSAGE, status_code=428, timestamp=3000)
 LIMIT_LINE = "HTTP 428 Precondition Required"
-REPLY = stdout(step_start(), text(result_text()), step_finish())
 
 
 def _without_status(line: str) -> str:
@@ -129,12 +130,12 @@ def test_an_error_without_a_status_is_a_limit_when_its_message_holds_the_pattern
     [
         pytest.param(
             LIMIT_LINE,
-            Step(stdout_before_wait=stdout(step_start()), wait_seconds=WAIT_SECONDS),
+            WAITING,
             "provider_limit",
             id="limit-line",
         ),
-        pytest.param("HTTP 500 Internal Server Error", Step(stdout=REPLY), "completed", id="500"),
-        pytest.param("error 1428", Step(stdout=REPLY), "completed", id="1428"),
+        pytest.param("HTTP 500 Internal Server Error", REPLY, "completed", id="500"),
+        pytest.param("error 1428", REPLY, "completed", id="1428"),
     ],
 )
 def test_a_limit_line_on_standard_error_ends_the_run_at_once_without_a_wait(

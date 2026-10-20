@@ -10,12 +10,8 @@ from adapters.claude_stand_in import Step, read_calls
 from adapters.opencode_stand_in import (
     BOUND_SECONDS,
     MODELS,
-    WAIT_SECONDS,
-    result_text,
-    stdout,
-    step_finish,
-    step_start,
-    text,
+    REPLY,
+    WAITING,
     write_opencode,
 )
 from adapters.test_claude_runtime_os_user import _sudo_calls, _write_sudo
@@ -23,7 +19,6 @@ from confine_support import CONFINE, LIMIT, Layout, run_request, write_confine
 from factory.adapters.agent_launch import CLEANUP_SCRIPT
 from factory.adapters.opencode_runtime import CONFIG_VARIABLE, OpencodeRuntime
 
-REPLY = stdout(step_start(), text(result_text()), step_finish())
 # A few seconds, so the child has room to start; the stand-in waits far longer.
 SHORT_LIMIT = timedelta(seconds=3)
 
@@ -54,10 +49,10 @@ def _runtime(
 @pytest.mark.parametrize(
     ("step", "time_limit", "end_reason"),
     [
-        pytest.param(Step(stdout=REPLY), LIMIT, "completed", id="completed"),
+        pytest.param(REPLY, LIMIT, "completed", id="completed"),
         pytest.param(Step(exit_status=1), LIMIT, "died", id="died"),
         pytest.param(
-            Step(stdout_before_wait=stdout(step_start()), wait_seconds=WAIT_SECONDS),
+            WAITING,
             SHORT_LIMIT,
             "time_limit",
             id="time-limit",
@@ -81,7 +76,7 @@ def test_through_the_wrapper_the_temporary_root_is_empty_after_the_run(
 def test_with_an_agent_user_the_temporary_folder_is_removed_through_sudo(layout: Layout) -> None:
     confine = write_confine(layout)
     sudo = _write_sudo(layout.sudo_bin)
-    runtime = _runtime(layout, [Step(stdout=REPLY)], str(confine), sudo)
+    runtime = _runtime(layout, [REPLY], str(confine), sudo)
 
     runtime.run(run_request(layout, os_user="agent"))
 

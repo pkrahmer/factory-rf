@@ -10,12 +10,8 @@ import pytest
 from adapters.claude_stand_in import Step, read_calls
 from adapters.opencode_stand_in import (
     MODELS,
+    REPLY_EVENTS,
     opencode_request,
-    result_text,
-    stdout,
-    step_finish,
-    step_start,
-    text,
     write_opencode,
 )
 from adapters.test_agent_launch_login import API_LOGIN
@@ -35,7 +31,6 @@ from factory.domain.agent_runs import AgentRunRequest
 from factory.domain.confinement import Confinement
 from factory.domain.errors import AgentRuntimeError
 
-REPLY = stdout(step_start(), text(result_text()), step_finish())
 GIVEN = {"HOME": "/home/agent", "LANG": "C.UTF-8"}
 SUDO_HEAD = ["-n", "-u", "agent", "--", "timeout", "--signal=KILL", "30s", "env", "-i"]
 SUDO_LINE = "sudo: a password is required"
@@ -84,7 +79,7 @@ def test_with_an_agent_user_sudo_starts_the_call_after_env_i_and_its_environment
     tmp_path: Path, *, refused: bool
 ) -> None:
     sudo = _write_sudo(tmp_path / "sudo-bin", (f"{SUDO_LINE}\n", 1) if refused else None)
-    runtime = _runtime(tmp_path, [Step(stdout=REPLY)], sudo=sudo)
+    runtime = _runtime(tmp_path, [Step(stdout=REPLY_EVENTS)], sudo=sudo)
     request = opencode_request(tmp_path / "work", environment=GIVEN, os_user="agent")
 
     if refused:
@@ -121,7 +116,7 @@ def test_through_the_wrapper_the_call_gets_its_rules_with_opencode_s_folders(
     layout: Layout,
 ) -> None:
     confine = write_confine(layout)
-    runtime = _confined_runtime(layout, [Step(stdout=REPLY)], confine)
+    runtime = _confined_runtime(layout, [Step(stdout=REPLY_EVENTS)], confine)
 
     result = runtime.run(run_request(layout))
 
@@ -149,7 +144,7 @@ def test_through_the_wrapper_the_call_gets_its_rules_with_opencode_s_folders(
 
 def test_a_wrapper_line_without_events_is_a_runtime_error_naming_it(layout: Layout) -> None:
     confine = write_confine(layout, Played())
-    runtime = _confined_runtime(layout, [Step(stdout=REPLY)], confine)
+    runtime = _confined_runtime(layout, [Step(stdout=REPLY_EVENTS)], confine)
 
     with pytest.raises(AgentRuntimeError) as raised:
         runtime.run(run_request(layout))
@@ -159,13 +154,13 @@ def test_a_wrapper_line_without_events_is_a_runtime_error_naming_it(layout: Layo
 
 def _warned_by_sudo(tmp_path: Path, _: Layout) -> tuple[OpencodeRuntime, AgentRunRequest]:
     sudo = _write_sudo(tmp_path / "sudo-bin", warning=f"{SUDO_LINE}\n")
-    runtime = _runtime(tmp_path, [Step(stdout=REPLY)], sudo=sudo)
+    runtime = _runtime(tmp_path, [Step(stdout=REPLY_EVENTS)], sudo=sudo)
     return runtime, opencode_request(tmp_path / "work", environment=GIVEN, os_user="agent")
 
 
 def _warned_by_wrapper(_: Path, layout: Layout) -> tuple[OpencodeRuntime, AgentRunRequest]:
-    confine = write_confine(layout, Played(stdout=REPLY, exit_status=0))
-    return _confined_runtime(layout, [Step(stdout=REPLY)], confine), run_request(layout)
+    confine = write_confine(layout, Played(stdout=REPLY_EVENTS, exit_status=0))
+    return _confined_runtime(layout, [Step(stdout=REPLY_EVENTS)], confine), run_request(layout)
 
 
 @pytest.mark.parametrize(
@@ -211,7 +206,7 @@ def test_the_call_gets_the_api_file_s_key_and_the_result_names_the_login(
 ) -> None:
     sudo = _write_sudo(tmp_path / "sudo-bin")
     api = _api_file(tmp_path, content)
-    runtime = _runtime(tmp_path, [Step(stdout=REPLY)], sudo=sudo, api_login_file=api)
+    runtime = _runtime(tmp_path, [Step(stdout=REPLY_EVENTS)], sudo=sudo, api_login_file=api)
 
     result = runtime.run(opencode_request(tmp_path / "work", environment=GIVEN, os_user="agent"))
 
@@ -230,7 +225,7 @@ def test_the_call_gets_the_api_file_s_key_and_the_result_names_the_login(
 def test_an_api_file_that_is_a_folder_stops_the_run_naming_it(tmp_path: Path) -> None:
     api = tmp_path / "login" / "api-login"
     api.mkdir(parents=True)
-    runtime = _runtime(tmp_path, [Step(stdout=REPLY)], api_login_file=api)
+    runtime = _runtime(tmp_path, [Step(stdout=REPLY_EVENTS)], api_login_file=api)
 
     with pytest.raises(AgentRuntimeError) as raised:
         runtime.run(opencode_request(tmp_path / "work"))

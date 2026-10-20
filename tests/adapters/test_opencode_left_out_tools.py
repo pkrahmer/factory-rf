@@ -6,16 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import StandInCall, Step, read_calls
+from adapters.claude_stand_in import StandInCall, read_calls
 from adapters.opencode_stand_in import (
     MODELS,
+    REPLY,
     opencode_request,
-    result_text,
     stand_in_runtime,
-    stdout,
-    step_finish,
-    step_start,
-    text,
     write_opencode,
 )
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
@@ -29,7 +25,6 @@ from factory.domain.agent_runs import AgentRunRequest
 from factory.domain.errors import AgentRuntimeError
 from shipped_agents import AGENT_HOME, SHIPPED_AGENTS, SHIPPED_NAMES, ShippedAgent
 
-REPLY = stdout(step_start(), text(result_text()), step_finish())
 SHIPPED_MODELS = {**MODELS, "opus": "anthropic/claude-opus-5-5"}
 
 
@@ -62,7 +57,7 @@ def _tools_of(call: StandInCall, agent: str) -> dict[str, bool]:
 def test_skill_is_left_out_and_every_other_tool_without_an_opencode_name_is_refused(
     tmp_path: Path, tools: tuple[str, ...], expected: set[str] | str
 ) -> None:
-    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)])
+    runtime = stand_in_runtime(tmp_path, [REPLY])
     request = opencode_request(tmp_path / "work", tools=tools)
 
     if isinstance(expected, str):
@@ -81,7 +76,7 @@ def test_skill_is_left_out_and_every_other_tool_without_an_opencode_name_is_refu
 def test_each_shipped_agent_runs_with_its_tools_but_skill(
     tmp_path: Path, agent: ShippedAgent
 ) -> None:
-    executable = write_opencode(tmp_path / "bin", [Step(stdout=REPLY)])
+    executable = write_opencode(tmp_path / "bin", [REPLY])
     state = tmp_path / "state"
     state.mkdir()
     runtime = OpencodeRuntime(str(executable), state, models=SHIPPED_MODELS)

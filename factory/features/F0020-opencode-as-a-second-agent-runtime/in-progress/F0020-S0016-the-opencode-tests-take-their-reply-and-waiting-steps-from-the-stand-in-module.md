@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 340
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T06:51:09.726987Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T06:51:09.726987Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T06:54:00.969251Z'
+  stage: tests
+  run: 017dbe23c36140e587951ca6d78a8e38
 ---
 
 # The opencode tests take their reply and waiting steps from the stand-in module
@@ -97,3 +99,38 @@ Expect: a line that starts `2 passed`
    Architecture: this is test helpers only, within `tests/adapters/`, `tests/entry/` and the `tests/` root. It follows the pattern of `tests/test_shared_test_helpers.py` (`modules_matching`, split texts). It uses the standing leave of `CLAUDE.md` (*Tests*) for the reply. Decision 19 of the feature gives the human's leave for the waiting step.
    Scope: within F0020 (the decision 19 entry for S0016 exists) and outside "Out of scope". No test changes name or meaning.
 4. factory: started tests as self.
+5. tester: I wrote the structural test and made the move myself. This story changes test helpers only, and under the standing leave of `CLAUDE.md` (*Tests*) only the tester may move them. So the branch is not left red: `make test` is green (49.1 s) and `make lint` is green. The coder has no code to write. What's left for them is `make check` (criterion 3), which also covers `mypy --strict` on the changed tests; I did not run the type check, as this stage says.
+
+   Criteria to tests:
+   - criterion 1: tests/test_opencode_shared_steps.py::test_each_opencode_step_is_written_in_the_stand_in_module_alone (rows `reply`, `waiting`). It uses `search_support.modules_matching` and leaves out its own module, and its search texts are split. Before the move a grep found the reply text in 9 modules and the waiting step in 3, so both rows would have failed. I did not run the test before the move. After the move, both smoke-test greps print only `tests/adapters/opencode_stand_in.py`.
+   - criterion 2: no new test. The existing tests of the 9 modules keep their names, and `make test` is green. Test ids collected per module, the same before and after the move: confinement 4, left_out_tools 14, limit_wait_on_stderr 5, provider_limit 12, resumed_words 2, runtime 23, runtime_folders 2, runtime_launch 14, wiring_opencode 10. That is 86 in all. The two sorted lists of ids (from `pytest --collect-only`) are identical (`diff` printed nothing).
+   - criterion 3: `make check`, for the coder and the factory.
+   - criterion 4: docs: none.
+
+   Files created: tests/test_opencode_shared_steps.py.
+
+   Files changed:
+   - tests/adapters/opencode_stand_in.py: adds `REPLY_EVENTS` and `WAITING`, and `REPLY` is now `Step(stdout=REPLY_EVENTS)`.
+   - These modules drop their own `REPLY` and use the shared one. Each `Step(stdout=REPLY)` became `REPLY`:
+     - tests/adapters/test_opencode_confinement.py
+     - tests/adapters/test_opencode_left_out_tools.py
+     - tests/adapters/test_opencode_provider_limit.py
+     - tests/adapters/test_opencode_runtime_folders.py
+     - tests/adapters/test_opencode_resumed_words.py (its copy was already a `Step`)
+   - These modules use the reply text itself (a `Step` with `exit_status`, `Played`, a test parameter), so they now import `REPLY_EVENTS`:
+     - tests/adapters/test_opencode_runtime.py
+     - tests/adapters/test_opencode_runtime_launch.py
+     - tests/entry/test_wiring_opencode.py
+   - These modules import `WAITING` in place of their inline waiting step:
+     - tests/adapters/test_opencode_confinement.py
+     - tests/adapters/test_opencode_provider_limit.py
+     - tests/adapters/test_opencode_limit_wait_on_stderr.py
+
+   Imports that were no longer needed were removed. The leave for the reply is the standing leave of `CLAUDE.md` (*Tests*). The leave for the waiting step is the feature's decision 19, which the Interface cites.
+
+   Left alone on purpose: `test_opencode_runtime.py` has a waiting step with a literal `wait_seconds=30`. It is not the searched text and not named in the Interface, so I did not change it.
+
+   No module failed to import. No `src/` change.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (45.5 s)

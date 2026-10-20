@@ -306,4 +306,6 @@ RESUME_REPLY = Step(
     )
 )
 
-REPLY = Step(stdout=stdout(step_start(), text(result_text()), step_finish()))
+REPLY_EVENTS = stdout(step_start(), text(result_text()), step_finish())
+REPLY = Step(stdout=REPLY_EVENTS)
+WAITING = Step(stdout_before_wait=stdout(step_start()), wait_seconds=WAIT_SECONDS)

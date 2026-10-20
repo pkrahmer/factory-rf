@@ -7,13 +7,11 @@ import pytest
 
 from adapters.claude_stand_in import Step, read_calls
 from adapters.opencode_stand_in import (
+    REPLY_EVENTS,
     error,
     opencode_request,
-    result_text,
     stdout,
-    step_finish,
     step_start,
-    text,
     write_agent_settings,
     write_opencode,
 )
@@ -30,7 +28,6 @@ from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries, machine_extras
 from wiring_support import CREDENTIAL, every_tool
 
-REPLY = stdout(step_start(), text(result_text()), step_finish())
 LIMIT_REPLY = stdout(step_start(), error("limit reached", status_code=429))
 DENY_PUSH = json.dumps({"permissions": {"allow": [], "deny": ["Bash(git push*)"]}})
 OPENCODE_THREE = [".local/share/opencode", ".local/state/opencode", ".cache/opencode"]
@@ -59,7 +56,7 @@ def test_the_built_runtime_is_the_one_the_instance_names(
 @pytest.mark.parametrize(
     ("reply", "end_reason"),
     [
-        pytest.param(REPLY, "completed", id="reply"),
+        pytest.param(REPLY_EVENTS, "completed", id="reply"),
         pytest.param(LIMIT_REPLY, "provider_limit", id="limit-status"),
     ],
 )
@@ -109,7 +106,7 @@ def test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode
     local_settings: InstanceSettings, layout: Layout, folders: list[str], expected: list[str]
 ) -> None:
     confine = write_confine(layout)
-    executable = write_opencode(layout.stand_in, [Step(stdout=REPLY)])
+    executable = write_opencode(layout.stand_in, [Step(stdout=REPLY_EVENTS)])
     settings = local_settings.model_copy(
         update={
             "checkout": layout.checkout,

@@ -10,14 +10,12 @@ import pytest
 from adapters.claude_stand_in import Step, read_calls
 from adapters.opencode_stand_in import (
     MODELS,
+    REPLY_EVENTS,
     opencode_request,
     read_config_modes,
-    result_text,
     stand_in_runtime,
     stdout,
-    step_finish,
     step_start,
-    text,
     write_agent_settings,
     write_opencode,
 )
@@ -37,7 +35,6 @@ from factory.domain.kill_points import KillPoint, KillPoints
 LIMIT = timedelta(seconds=30)
 # A few seconds, so the child has room to start; the stand-in waits far longer.
 SHORT_LIMIT = timedelta(seconds=3)
-REPLY = stdout(step_start(), text(result_text()), step_finish())
 CONFIG_NAME = re.compile(
     r"opencode-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.json"
 )
@@ -53,7 +50,7 @@ CONFIG_NAME = re.compile(
 def test_a_run_calls_opencode_run_with_its_words_in_the_working_directory(
     tmp_path: Path, model: str, passed: str
 ) -> None:
-    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)])
+    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY_EVENTS)])
     request = opencode_request(tmp_path / "work", model=model)
 
     runtime.run(request)
@@ -125,7 +122,7 @@ def test_a_request_the_runtime_cannot_configure_fails_before_anything_starts(
         settings_file = tmp_path / "missing.json"
     elif settings is not None:
         settings_file = write_agent_settings(tmp_path, settings)
-    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)], settings_file=settings_file)
+    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY_EVENTS)], settings_file=settings_file)
 
     with pytest.raises(AgentRuntimeError) as raised:
         runtime.run(opencode_request(tmp_path / "work", model=model, tools=tools))
@@ -162,7 +159,7 @@ def test_the_configuration_defines_the_agent_from_its_definition_and_the_setting
         if with_settings
         else None
     )
-    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)], settings_file=settings_file)
+    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY_EVENTS)], settings_file=settings_file)
     request = opencode_request(tmp_path / "work", tools=("Read", "Bash"))
 
     runtime.run(request)
@@ -195,7 +192,7 @@ def test_the_call_sees_its_configuration_file_and_only_the_request_s_environment
         API_LOGIN_VARIABLE: "request-key",
         LOGIN_VARIABLE: "request-token",
     }
-    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)])
+    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY_EVENTS)])
 
     runtime.run(opencode_request(tmp_path / "work", environment=given))
 
@@ -215,8 +212,8 @@ def test_the_call_sees_its_configuration_file_and_only_the_request_s_environment
 @pytest.mark.parametrize(
     ("step", "time_limit", "end_reason"),
     [
-        pytest.param(Step(stdout=REPLY), LIMIT, "completed", id="completed"),
-        pytest.param(Step(stdout=REPLY, exit_status=1), LIMIT, "died", id="died"),
+        pytest.param(Step(stdout=REPLY_EVENTS), LIMIT, "completed", id="completed"),
+        pytest.param(Step(stdout=REPLY_EVENTS, exit_status=1), LIMIT, "died", id="died"),
         pytest.param(
             Step(stdout_before_wait=stdout(step_start()), wait_seconds=30),
             SHORT_LIMIT,
@@ -240,7 +237,7 @@ def test_the_state_directory_holds_no_file_after_a_run(
 def test_the_kill_point_is_reached_once_after_a_run_and_the_runtime_is_an_agent_runtime(
     tmp_path: Path, kill_points: KillPoints
 ) -> None:
-    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY)], kill_points=kill_points)
+    runtime = stand_in_runtime(tmp_path, [Step(stdout=REPLY_EVENTS)], kill_points=kill_points)
 
     runtime.run(opencode_request(tmp_path / "work"))
 
@@ -290,7 +287,7 @@ def test_a_version_that_cannot_be_read_names_the_reason(
 def test_a_run_that_cannot_start_names_the_reason(
     tmp_path: Path, *, executable_exists: bool, state_exists: bool, detail: str
 ) -> None:
-    executable = write_opencode(tmp_path / "bin", [Step(stdout=REPLY)])
+    executable = write_opencode(tmp_path / "bin", [Step(stdout=REPLY_EVENTS)])
     if not executable_exists:
         executable = tmp_path / "bin" / "missing-opencode"
     state = tmp_path / "state"
