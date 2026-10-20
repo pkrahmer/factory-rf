@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 314
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T01:42:04.775662Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T01:42:04.775662Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T01:42:19.956328Z'
+  stage: intake
+  run: 468894a97ae0416ba39133122923cb6d
 ---
 
 # The tests pin the refusal reason after the role's own result, and the board's absent and blocked values
@@ -96,3 +98,9 @@ Expect: four lines, `Too wide. Cut the second story.`, `features`, `work items` 
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete functions (`refusal_reason`, `book_refusal`, `work_item_row`, `render_board`) with the behaviour pinned, the two test modules and the shared `tests/acceptance_support.py`; no `src/` change, as the feature's decision 1 says.
+   Criteria: each is testable by one test function or one parametrized test with exact expected values. Every Interface rule has one: the three rows of criterion 1 cover "after the role's own last result" with a later result of another role, a later question of the role and a later result of the role itself; criteria 2 and 3 cover the whole body, both with and without a `## Recommendation`; criteria 4 and 5 cover the absent values and the `-` and `blocked=<reason>` rendering. The failing side of each rule is a row.
+   Smoke test: a runnable `uv run -q python` heredoc that uses only the domain imports. Its `Expect:` line gives the four output lines, which can be checked.
+   Architecture: the tests sit in `tests/domain/` and test `factory.domain` only; the shared helper moves to a module at the `tests/` root under the standing leave in CLAUDE.md, which keeps the earlier tests' names and checks.
+   Scope: inside F0028's Scope (S0003 line) and not in its Out of scope; the dead guard at `acceptance.py:332` stays (decision 4).
