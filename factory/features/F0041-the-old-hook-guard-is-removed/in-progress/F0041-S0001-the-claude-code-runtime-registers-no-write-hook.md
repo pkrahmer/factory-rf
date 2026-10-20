@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T10:19:15.641081Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T10:19:15.641081Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-20T10:24:47.078402Z'
+  stage: tests
+  run: c4049a4943874ceca6245b25ff1185f6
 ---
 
 # The Claude Code runtime registers no write hook
@@ -260,3 +262,21 @@ Expect: `7`
 
     No source file changed in this round: `src/factory/adapters/claude_runtime.py` and the seven agent files stay as in the coder's entry 7. Nothing else is open.
 12. factory: started tests as self.
+13. tester: I made the two test changes named in the coder's entry 11, which come from the reviewer's entry 9. They fall under the leave the human gave in the feature's decision 9.
+
+    1. `tests/adapters/claude_stand_in.py`: I deleted the `import shlex` line from `SCRIPT`. Its only user was the `--settings` block, which was already removed.
+    2. `tests/test_claude_agent_no_hook.py`: I deleted `test_the_write_paths_rule_says_only_the_kernel_refuses`, `_KERNEL_ONLY`, and the two imports only they used (`section_text`, and `_WRITE_PATHS_RULE` from `test_claude_agent_refusal`). The file now keeps only `test_no_shipped_agent_names_a_hook`.
+
+    Criteria and their tests after this change:
+    - criterion 1: tests/adapters/test_claude_runtime_no_hook.py::test_no_run_registers_a_hook
+    - criterion 2: tests/adapters/test_claude_runtime.py::test_call_passes_every_flag_in_order
+    - criterion 3: tests/adapters/test_claude_runtime.py::test_call_sees_the_instructions_file_and_no_guard_or_hooks_file
+    - criterion 4: tests/adapters/test_claude_runtime_file_modes.py::test_the_files_of_a_run_are_0640_when_the_agent_starts
+    - criterion 5, first half: tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line (its `_WRITE_PATHS_RULE` holds the sentence that only the kernel refuses writes, word for word)
+    - criterion 5, second half: tests/test_claude_agent_no_hook.py::test_no_shipped_agent_names_a_hook
+    - criteria 6 and 7: `make check` and docs, not tests.
+
+    I created no new files in this round. Every module imported. `make test` is green (99.17 % coverage) and `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (154.7 s)

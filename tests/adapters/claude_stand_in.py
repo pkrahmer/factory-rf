@@ -12,7 +12,6 @@ STEPS = "steps.json"
 SCRIPT = r"""
 import json
 import os
-import shlex
 import sys
 import time
 from pathlib import Path
