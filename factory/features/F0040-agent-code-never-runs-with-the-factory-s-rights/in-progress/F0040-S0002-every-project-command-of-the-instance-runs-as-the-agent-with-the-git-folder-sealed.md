@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368, 6300375333]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T20:09:53.580798Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-20T20:09:53.580798Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-10-20T20:12:37.408829Z'
+  stage: tests
+  run: 26cbc40f015b48d3bc49b824a1df01d6
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -386,3 +388,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Description: the journal changed no meaning of the task beyond criterion 8, which entry 12 already added, so I rewrote nothing. Noticed but did not touch: the `make duplicates` findings that entry 10 recorded.
 22. factory: started tests as self.
+23. tester: I made the test change that the human approved in entry 19 and the coder named in entry 21. I changed no code.
+
+    - criterion 8: `tests/entry/test_wiring_project_command_user.py::test_the_built_project_commands_run_as_the_agent_user_inside_a_seal`. Its two identity checks now look up the concrete classes the wiring builds: `_held(sealed, GitCli) is boundaries.git` and `_held(sealed, TimestampedFactoryLog) is boundaries.log`. Before, they looked up the abstract `Git` and `FactoryLog`, which `mypy --strict` refused with `type-abstract`.
+    - Imports: I added `GitCli` from `factory.adapters.git_cli` and `TimestampedFactoryLog` from `factory.adapters.factory_log`. I removed the imports of `Git` and `FactoryLog`, because nothing else in the file used them.
+    - Criteria 1 to 7 keep the tests that entry 8 mapped.
+
+    Files changed: `tests/entry/test_wiring_project_command_user.py` (imports and two assertions). I created no files. The test run imported every module.
+
+    As entry 19 asked, I ran `make check` and not only `make lint` and `make test`: check: green (test: green (64.4 s), coverage 99.18 %). The test passes now because the code was already right; this change only fixes the type error.
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (64.3 s)
