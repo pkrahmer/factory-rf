@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 340
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T06:56:57.703171Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T06:56:57.703171Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T06:57:36.764380Z'
+  stage: review
+  run: 8cb2159dd2e148b7be694d3336358a3c
 ---
 
 # The opencode tests take their reply and waiting steps from the stand-in module
@@ -171,3 +173,24 @@ Expect: a line that starts `2 passed`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I checked:
+   - Scope: only test files changed, 11 under `tests/`. Nothing under `src/` changed, and the diff adds no silencing marker.
+   - Criterion 1: `tests/test_opencode_shared_steps.py::test_each_opencode_step_is_written_in_the_stand_in_module_alone` is one parametrized test with the rows `reply` and `waiting`. It uses the shared `search_support.modules_matching`, leaves out its own module, splits its search texts and expects exactly `["adapters/opencode_stand_in.py"]`. A row that finds more than one module is the failing side, and the grep counts in the tester's entry and the intake's entry (nine and three before the move) show that side. I ran a grep after the move: each text is written in full only in `tests/adapters/opencode_stand_in.py`.
+   - Criterion 2: the tester's entry (journal 5) gives the test-id count of each module, 86 in all, the same before and after, and says the two sorted id lists are identical. Each replacement checks the same thing as before. `REPLY` is `Step(stdout=REPLY_EVENTS)` with the same event text, and `WAITING` is the same step that each copy wrote.
+   - The Interface's choice between `REPLY` and `REPLY_EVENTS` is kept. `test_opencode_runtime.py`, `test_opencode_runtime_launch.py` and `test_wiring_opencode.py` use the text in a `Step` with other fields, in `Played` or as a parameter, so they import `REPLY_EVENTS`. Their remaining plain `Step(stdout=REPLY_EVENTS)` uses are allowed by the Interface's "may".
+   - Criterion 3: the coder's entry (journal 7) records `check: green`.
+   - Description, Interface and the docs criterion match what was built. A pre-existing literal `wait_seconds=30` step in `tests/adapters/test_opencode_runtime.py:218` was left out on purpose: it is not the searched text and the Interface does not name it.
+
+   Earlier tests:
+   - tests/adapters/opencode_stand_in.py: standing leave to move a shared test helper (`REPLY` now built from `REPLY_EVENTS`), and the feature's decision 19 (S0016, the human, 2026-10-20) for `WAITING`.
+   - tests/adapters/test_opencode_confinement.py: standing leave (reply copy) and feature decision 19 (waiting step, row `time-limit`).
+   - tests/adapters/test_opencode_left_out_tools.py: standing leave (reply copy).
+   - tests/adapters/test_opencode_limit_wait_on_stderr.py: feature decision 19 (module constant `WAITING` removed).
+   - tests/adapters/test_opencode_provider_limit.py: standing leave (reply copy) and feature decision 19 (row `limit-line`).
+   - tests/adapters/test_opencode_resumed_words.py: standing leave (reply copy).
+   - tests/adapters/test_opencode_runtime.py: standing leave (reply copy).
+   - tests/adapters/test_opencode_runtime_folders.py: standing leave (reply copy).
+   - tests/adapters/test_opencode_runtime_launch.py: standing leave (reply copy).
+   - tests/entry/test_wiring_opencode.py: standing leave (reply copy).
