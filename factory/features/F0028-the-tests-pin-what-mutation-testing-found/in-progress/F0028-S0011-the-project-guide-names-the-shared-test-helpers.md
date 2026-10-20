@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 333
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T04:30:41.009703Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T04:30:41.009703Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T04:31:00.107042Z'
+  stage: smoke-test
+  run: 1d7ed6474c8642618647c9316f8718e0
 ---
 
 # The project guide names the shared test helpers
@@ -177,3 +179,22 @@ Expect: `1`
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings. I ran both commands from the repository root exactly as written, in order.
+
+    Command 1 (counts the shared helper modules at the root of `tests/` that the guide's index does not name):
+    ```
+    0
+    ```
+    It met its `Expect:` line (`0`). No `missing:` line was printed.
+
+    Command 2 (`grep -c -F '## Shared test helpers' docs/project-guide/README.md`):
+    ```
+    1
+    ```
+    It met its `Expect:` line (`1`).
+
+    Read against the acceptance criteria:
+    - Criterion 2 (docs): nothing in the smoke test contradicts it. Line 11 of `docs/project-guide/README.md`, the *The files* line for `README.md`, lists *Shared test helpers*. The section is at line 21. Its leading paragraph says three things: helpers live at the root of `tests/`, with fixtures in `conftest.py`; a test module imports them from there, as `CLAUDE.md`'s standing leave intends; and a story that adds such a module names it in the list through its docs criterion. There are 37 modules `tests/*.py` whose name does not start with `test_`, and the section has 37 list lines, one per module, `conftest.py` included.
+    - Criterion 1 (`make check` stays green): the commands do not exercise it, and nothing I ran contradicts it. The factory runs the check itself.
+
+    Findings: none. I changed nothing.
