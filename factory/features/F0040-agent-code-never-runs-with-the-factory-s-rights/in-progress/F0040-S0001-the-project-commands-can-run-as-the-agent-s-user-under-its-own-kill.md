@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T18:53:18.054653Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -216,6 +212,12 @@ journal:
   kind: started
   at: '2026-10-20T18:53:18.054653Z'
   stage: doing
+- number: 38
+  speaker: coder
+  kind: result
+  at: '2026-10-20T18:55:55.124941Z'
+  stage: doing
+  run: 32275a819d71414eba4fec3769ce0fc3
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -608,3 +610,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.5 s)
     `test`: test: green (58.2 s)
 37. factory: started doing as self.
+38. coder: Round 2: the reviewer's only finding (entry 32) was a new criterion 12 that needed only its test. The tester added it in entry 36 (`tests/adapters/test_make_commands_user.py::test_the_factory_s_own_kill_waits_the_grace_beyond_the_limit`). It passes against the code that was already there, so this run changed no code.
+
+    What was built (unchanged since entry 22), in `src/factory/adapters/make_commands.py`:
+    - `CommandUser`, and the `user` keyword and property of `MakeProjectCommands`.
+    - `_run_as_own_user` keeps the old behaviour.
+    - `_run_as` builds its call with `launch` and judges `killed_at_limit` once. It then judges the refusal on the merged output, and after that runs the leftovers program through `leftovers_launch` and `leftovers_fault`. A refusal wins over a leftovers fault.
+    - The shared `_start` helper passes `started.time_limit` on to the process request. That limit includes `SUDO_GRACE`, which is the rule the new test checks.
+
+    Main choice (unchanged): the refusal is judged on the command's merged output and names the last `sudo:` line, as the Interface words it. I rejected reusing the runtimes' `call_refusal`, because it takes the first `sudo:` line and needs `Starters`.
+
+    Refactor: nothing to change, since there was no code change. The refactor pass of entry 22 still holds.
+
+    Description: no journal entry changed what the task means. The reviewer wrote criterion 12 into the work item, so I rewrote nothing.
+
+    Noticed, not touched: the reviewer's note that `_write_sudo` in the test module is a third local stand-in `sudo`. The tester judged in entry 36 that it is not a plain copy, so the standing leave to move a shared test helper does not apply.
+
+    `make check`: check: green (coverage 99.17 %).
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
