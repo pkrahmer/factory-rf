@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 326
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T03:41:47.853792Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T03:41:47.853792Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T03:43:24.492806Z'
+  stage: tests
+  run: 1695214151c543319459aac599d4010f
 ---
 
 # The decision log gives the feature's reasons for the rejected umask fixes
@@ -77,3 +79,10 @@ Expect: `0`
    - Architecture: nothing under `src/` or the layers is touched. Only the decision log changes, which is the documenter's file under CLAUDE.md's Docs section.
    - Scope: within F0033. The reasons come from the feature's decisions 1 and 2 and its Goal. The story touches no *Out of scope* item, no code, no `Makefile` and no earlier story's test.
 4. factory: started tests as self.
+5. tester: No tests written. The story only changes the docs, and its Interface says the tester writes no test module.
+   - criterion 1 (`make check` stays green): no test function. The check itself covers it.
+   - criterion 2 (docs: the entry in `docs/decisions.md`): no test function. The documenter checks it, and so do the smoke test's `grep` blocks.
+   Files created: none. Modules the test runner could not import: none. No module under `src/factory/` changes, so there are no red tests on this branch on purpose. `make test` ran once and passed: `test: green (41.6 s)`, total coverage 99.14 %. `make lint` passed: `lint: green`. No criterion needed interpreting.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (40.3 s)
