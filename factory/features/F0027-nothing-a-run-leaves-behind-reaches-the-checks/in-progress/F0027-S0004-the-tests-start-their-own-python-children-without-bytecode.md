@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 358
 comments_read: [6299016224]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T19:14:53.176077Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-20T19:14:53.176077Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-20T19:17:52.832511Z'
+  stage: doing
+  run: 268f99553c7d4967abc86d15d32e2589
 ---
 
 # The tests start their own Python children without bytecode
@@ -177,3 +179,14 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.8 s)
    `test`: test: green (68.3 s)
 9. factory: started doing as self.
+10. coder: I built nothing new and wrote no code. This story's changes are all test changes. The tester made them under decision 16's leave: the helpers `tests/confine_support.py` and `tests/process_support.py`, `_write_sudo` in `tests/adapters/test_claude_runtime_os_user.py`, the eight shebang writers, and the new `tests/test_test_children.py`. Nothing under `src/` changes.
+
+    I ran `make check` on the committed branch and it passed, ending with `check: green` (test: green (69.0 s), coverage 99.17 %). `git diff --stat main` shows only the 11 files under `tests/`. The third smoke test's grep (`grep -rnF '#!{sys.executable}\n' tests | wc -l`) gives `0`.
+
+    - **Main choice:** leave the working tree as it is. I rejected touching any test or helper, since the coder never edits tests (R9), and there was no code to implement.
+    - **Refactor:** there was no diff of mine to refactor.
+    - **Description:** the journal did not change its meaning. Answer 1 from the human (option a) is already in criterion 3.
+    - **Noticed but did not touch:** nothing. The `docs:` criterion (`docs/decisions.md`) is the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
