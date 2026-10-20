@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T20:06:34.374879Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-20T20:06:13.559567Z'
   stage: tests
   run: a11c111508e046f0bf6097eb6e0860ec
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:06:34.374879Z'
+  stage: doing
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -316,3 +325,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.6 s)
     `test`: test: green (60.6 s)
+17. factory: started doing as self.
