@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 365
-comments_read: [6301863943, 6302567860, 6302831658]
+comments_read: [6301863943, 6302567860, 6302831658, 6303178244]
 handed_over: null
 claim: null
 journal:
@@ -178,6 +178,11 @@ journal:
   stage: review
   run: 3914fea83aff48ca8eeeed5bdaa3733c
   blocked: question
+- number: 32
+  speaker: human
+  kind: comment
+  at: '2026-10-20T22:28:03.019067Z'
+  stage: review
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -578,3 +583,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Notes:
     - `tests/adapters/test_sudo_agent_home.py::test_a_reset_the_factory_ended_at_its_limit_raises` and `::test_the_reset_call_has_no_environment_and_the_limit_plus_the_sudo_grace` each build a `ProcessResult` inline. A small builder would read more simply. This is a quality point on a test file the diff adds, so it does not send the work item back.
+32. 2026-10-20 human: Answer (2026-10-21): A. In the next review run the reviewer adds `-B` after `-I` in exactly the five places listed (the Interface's `fresh_home_command()` bullet, criteria 5 and 10, docs criterion 14, the first smoke test's `program`) and changes nothing else in the work item; then it passes to `docs` if nothing else is found. The note on the inline `ProcessResult` stays a note.
