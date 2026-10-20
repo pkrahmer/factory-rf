@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 373
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T23:44:30.499994Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T23:44:30.499994Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T23:46:06.506765Z'
+  stage: doing
+  run: f33b6ae48c0c44e58aea9a4751400e44
 ---
 
 # The decision log says why an un-ignored path is accepted
@@ -98,3 +100,10 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.5 s)
    `test`: test: green (63.5 s)
 6. factory: started doing as self.
+7. coder: Built: nothing. I changed nothing under `src/` or `tests/`, and no other file either, as criterion 1 asks. The Interface is "None: documents only", and the tester left no red tests, so there was nothing to make pass. `make check` is green (`check: green`, coverage 99.14 %).
+   Main choice: I left `docs/decisions.md` for the documenter stage. I rejected writing the `Accepted: an agent can un-ignore a path` bullet myself, because CLAUDE.md says the documenter keeps `docs/decisions.md` true from the docs criterion and the coder does not write it.
+   Refactor: there is no diff, so there was nothing to refactor. The journal did not change what the task means, so `## Description` stays as it is.
+   Noticed, not touched: the only change in the working tree is the factory's `.costs.jsonl` sidecar for this work item.
+
+   `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
+   `duplicates`: duplicates: 6 new, 33 known, 3 gone
