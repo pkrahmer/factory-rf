@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T08:46:12.632571Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -54,6 +58,11 @@ journal:
   stage: doing
   run: ec48030279c84c5197d76126431f0ba0
   reason: check_red
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-20T08:46:12.632571Z'
+  stage: doing
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -218,3 +227,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    =========================== short test summary info ============================
    FAILED tests/adapters/test_git_cli_work_tree.py::test_the_work_tree_id_is_the_tree_a_commit_records[tracked-ignored-file]
    make: *** [Makefile:75: test] Error 1
+9. factory: started doing as self.
