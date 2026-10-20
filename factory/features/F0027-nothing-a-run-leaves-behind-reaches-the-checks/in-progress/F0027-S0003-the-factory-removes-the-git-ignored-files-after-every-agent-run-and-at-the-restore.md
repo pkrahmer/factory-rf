@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T15:15:27.003923Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-20T15:15:27.003923Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-20T15:22:02.311331Z'
+  stage: doing
+  run: 871b8fd7eec1418ab1d359390dfd9de9
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -334,3 +336,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: FAILED tests/adapters/test_git_cli_work_tree.py::test_the_work_tree_id_is_the_tree_a_commit_records[edited-untracked-deleted] - AssertionError: assert '78031b56ee55...d6f3e7b31b1dc' == 'c044850cabf...
 16. factory: started doing as self.
+17. coder: The code was already on the branch from the earlier doing round (commit 05aa6710). The tester has made the one test change the human approved in entry 11. I made no code change this round. In this run `make check` was green: `check: green`, coverage 99.17 %.
+
+    What I built:
+    - `src/factory/application/git.py`: the abstract `Git.remove_ignored()`, with the docstring from the Interface.
+    - `src/factory/adapters/git_cli.py`: `GitCli.remove_ignored()` runs `clean --quiet --force --force -d -X` through `_run`, so a non-zero exit is a `GitError` with that command. A comment says why there is a second `--force`.
+    - `src/factory/application/sealed_runs.py`: `run_sealed` calls `git.remove_ignored()` after the `try`/`finally`. So it runs only when the run returned and the seal check and the nested removal both passed.
+    - `src/factory/application/tick.py`: `_restore_checkout` calls `remove_ignored()` between `reset_to("HEAD")` and the switch to `main`. Its `GitError` reaches the existing `checkout_restore_failed` stop.
+
+    Main choice: the removal sits after the `finally` block, not inside it. Inside, it would also run after a raised run, which the Interface leaves to the next restore, and a second git error in `finally` would hide the run's own error. I rejected removing the paths from Python, as `remove_nested_repositories` does, because the Interface asks for git's own rules: every nested `.gitignore` and `.git/info/exclude`.
+
+    Refactor: I read the whole diff again and found nothing to change.
+
+    The journal did not change what the task means: `AgentRuntimeError` keeps its text, so the Description stays.
+
+    Noticed but not touched: the factory's `make test` after the tester failed once in `tests/adapters/test_git_cli_work_tree.py::test_the_work_tree_id_is_the_tree_a_commit_records[edited-untracked-deleted]`. That test calls no code this story changed. It passed in my `make check` and in five runs of its module alone.
+    - What I can quote: only the factory's one-line summary in entry 15, not the `E` lines or the failing `file:line` of that run: `AssertionError: assert '78031b56ee55...d6f3e7b31b1dc' == 'c044850cabf...`.
+    - My guess at the cause (not verified): git's racy timestamp check. `_changed` rewrites `tracked.txt` from `one\n` to `two\n`, the same size, right after the `base` commit. If both fall in the same timestamp tick, a temporary index that copies the real index's file stats can treat the file as unchanged, and `work_tree_id` hashes the old content.
+    - If so, it is an existing problem in `GitCli.work_tree_id`, outside this story, and a fix would be a story of its own.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
