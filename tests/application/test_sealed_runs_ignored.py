@@ -151,7 +151,8 @@ def test_a_returned_run_leaves_no_ignored_path_and_a_raised_one_leaves_them(
             if isinstance(error.value, GitError):
                 assert error.value.command == CLEAN
             else:
-                assert str(error.value) == "boom"
+                assert isinstance(error.value, AgentRuntimeError)
+                assert error.value.detail == "boom"
     finally:
         locked = checkout / ".venv" / "locked"
         if locked.exists():
