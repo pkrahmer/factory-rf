@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 369
 comments_read: [6303767591]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T23:14:29.714199Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-20T23:14:08.976290Z'
   stage: docs
   run: dc9d476c997e491491492e859fd89bdd
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:14:29.714199Z'
+  stage: smoke-test
 ---
 
 # The work tree's id sees a change made in the tick of the last index write
@@ -214,3 +223,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:11:32Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+15. factory: started smoke-test as self.
