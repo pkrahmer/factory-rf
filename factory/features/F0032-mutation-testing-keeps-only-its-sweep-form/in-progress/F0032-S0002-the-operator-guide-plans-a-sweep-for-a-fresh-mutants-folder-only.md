@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 310
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T00:45:41.555771Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T00:45:41.555771Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T00:47:18.993393Z'
+  stage: tests
+  run: 51429150e793416ab9f001636ba38e8e
 ---
 
 # The operator guide plans a sweep for a fresh `mutants/` folder only
@@ -80,3 +82,10 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: documents only, with no layer or code touched. It stays within the documenter's write paths (`docs/*`).
    - Scope: it fits F0032's goal, the documents describing the sweep form. It touches only the operator guide's two paragraphs, which F0032-S0001 left stale. Nothing from the feature's "Out of scope" is changed. It is a follow-up to S0001, proposed by the acceptance, and the human started it.
 4. factory: started tests as self.
+5. tester: No tests written, as the story asks. The Interface says no module under `src/factory/` changes and the tester writes no test module. The story has only the two closing criteria, and neither one calls for a new test.
+   - criterion 1 (`make check` stays green): no new test. The existing suite covers it, and the factory's checks confirm it.
+   - criterion 2 (docs, `docs/operator-guide.md` *Mutation testing by sweep*): no test. The documenter writes it, the smoke test's grep commands check it, and `make documents` gates it.
+   Files created: none. Modules the test run could not import: none. `make test` passed at 99.14 % coverage and `make lint` passed, both on the unchanged branch. There are no red tests on purpose this time, because there is no code to write. Nothing is open.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (40.4 s)
