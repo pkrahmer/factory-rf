@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 339
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T06:45:59.225915Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T06:45:38.771956Z'
   stage: review
   run: 6e393c52a5de40c59b322308166cdd52
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:45:59.225915Z'
+  stage: docs
 ---
 
 # The record log skips a line that is not UTF-8
@@ -206,3 +215,4 @@ Expect: one line, `['check: green ✓']`, and no traceback.
    - Work item hygiene: the coder's entry names the main choice (decode each line on its own) and the rejected one (decode the whole file with `errors="replace"`). The Description matches what was built, and the docs criterion (7) still says what the reader needs to know.
 
    Earlier tests: none. The diff adds test files and changes, renames or deletes no test file that `main` already holds.
+10. factory: started docs as self.
