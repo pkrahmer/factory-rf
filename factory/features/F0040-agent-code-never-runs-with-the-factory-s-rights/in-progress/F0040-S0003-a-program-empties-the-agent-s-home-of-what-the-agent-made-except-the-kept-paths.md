@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T20:50:34.610462Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-20T20:50:34.610462Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-20T20:54:18.147666Z'
+  stage: doing
+  run: fc4d4f4e52e9432ea7c9cb897a1483cc
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -233,3 +235,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/entry/test_fresh_home.py - ImportError while importing test module '/work/checkout/tests/entry/test_fresh_home.py'.
 9. factory: started doing as self.
+10. coder: Implemented the fresh home in three layers. `make check` is green (`check: green`, coverage 99.12 %).
+
+    Built:
+    - `src/factory/domain/agent_home.py` (new):
+      - `FRESH_HOME_PREFIX` and `HomeFate`.
+      - `inside_home` and `kept_paths`. `kept_paths` keeps the logins inside the home, then the state files, then the folders, drops repeats with `dict.fromkeys`, and raises `ValueError` naming a path outside the home.
+      - `fate` and `removed_when_empty`, which share one private `_beneath_or_at` test (equal, or starts with `<above>/`).
+    - `src/factory/domain/settings.py`: `_opencode_folder` now calls `inside_home` instead of its own segment check. The refusal text is unchanged.
+    - `src/factory/adapters/home_files.py` (new):
+      - `own_entry` compares `lstat().st_uid` with `os.geteuid()`.
+      - `clear_home` runs a private `_Walk`. It lists each folder in name order and decides "real folder" with `stat.S_ISDIR(lstat())`, so it never follows a link. On `remove` it unlinks the entry. On `descend` it first adds `S_IRWXU` to an owned folder and never changes the mode of a foreign one. After the walk it removes the folder when `removed_when_empty` holds and the folder is empty.
+      - An `OSError` at an entry, or when listing a folder, is recorded as `<relative>: <strerror>` and the walk goes on.
+    - `src/factory/entry/fresh_home.py` (new): `main` parses exactly `--home <folder>` followed by pairs of `--keep <path>`. It refuses before removing anything, with exit 2 and the three lines the Interface gives. Otherwise it writes one line per fault and returns 1, or returns 0 and writes nothing. `python -m factory.entry.fresh_home` exits with the status of `main()`. It imports its adapter directly, as `confine` and `leftovers` do, which the updated wiring test expects.
+
+    Main choice: the walk is a small private class that holds `home`, `kept`, `owned` and the fault list. I rejected a recursive free function that passes all four down on every call: the class keeps each method short and has one place to record faults. In the entry I parse the arguments by hand (fixed positions, then pairs) as `factory.entry.leftovers` does. I rejected argparse because its own usage and error output would not match the exact lines the Interface demands.
+
+    Refactor pass: two over-long docstring lines were shortened for lint. Nothing else needed changing.
+
+    Noticed but not touched:
+    - I did not run the story's smoke test. The tool permission layer refused the command, probably because it includes `--home /` (the program refuses that call, but CLAUDE.md is strict about running `fresh_home` by hand). The smoke-test stage will run it.
+    - If listing the home itself fails, the fault is recorded under the relative name `.`. No criterion covers that case.
+    - The journal changed nothing in the Description beyond the criteria the intake already wrote in.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 33 known, 3 gone
