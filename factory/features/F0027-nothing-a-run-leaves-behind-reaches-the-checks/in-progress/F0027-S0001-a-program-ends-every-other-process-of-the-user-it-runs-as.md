@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T12:37:47.122471Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-20T12:37:47.122471Z'
   stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T12:38:36.920945Z'
+  stage: review
+  run: 0baa1133ec314d56bcf5647138349400
 ---
 
 # A program ends every other process of the user it runs as
@@ -502,3 +504,35 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 23. factory: started review as self.
+24. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item. I read the four changed modules under `src/` and every test file the diff adds or changes.
+
+    Both findings from entry 16 are fixed:
+    - Criterion 7 is now one parametrized test, `tests/entry/test_leftovers.py::test_only_a_user_s_name_starts_the_rounds`. It has six rejected rows and the accepted `["--user", "agent"]` row. Each row checks the status, what is written, the number of `identity` calls and the `kill` calls.
+    - `AGENT` and `process_entry` now live in one place, `tests/leftovers_support.py`. All three new modules import them from there.
+
+    Checklist:
+    - **Criteria 1 to 11:** each has a test that checks what the criterion says. The stated limits are tested on both sides:
+      - `uid` at -1 and 0, on both models.
+      - `user` at `""` and `"a"`.
+      - `pid` at 0 and 1.
+      - The 50-round limit: none left after round 50 returns 0, some left after round 50 returns 1.
+    - **Interface:** the code matches it. The arguments are checked before `identity` is called, and the refusal comes before the first `kill`. Each round has one `kill` and one listing, and 50 rounds have 49 pauses. Every fault line is as specified. The reader takes the owner from the folder and sorts by `pid`.
+    - **Untested by design:** `signal_every_other`'s `ProcessLookupError` and an unreadable folder owner have no tests. Intake noted this in entry 3, and the feature decides that no test calls `signal_every_other`.
+    - **Checks:** the factory's `make check` after the coder was green (entry 22).
+    - **Architecture:** the layers hold and the domain does no I/O. `factory.entry.leftovers` imports `factory.adapters.process` for its defaults, under the human's leave (feature decision 16, entry 8).
+    - **Security:** the one `# noqa: PLR0913` has its reason beside it, at `src/factory/entry/leftovers.py:31-32`, and the human allowed it in entry 8.
+    - **Quality:** no dead code, and every comment says why. The docstrings are as `CLAUDE.md` asks.
+    - **`make duplicates`:** it reports 5 new findings. Per entry 16, they are in modules this diff does not touch.
+    - **Description and docs criterion:** both match what was built.
+
+    no findings
+
+    Earlier tests changed (status M):
+    - `tests/domain/test_sessions.py`: the human's leave, in the story's Interface (feature decision 16). It only adds the named `uid=1001` and `"uid": 0`, plus the reformatting they caused. Every test keeps its name and its rows.
+    - `tests/entry/test_wiring.py`: the human's leave, in the story's Interface (feature decision 16). The expected set gains `"factory.entry.leftovers"`.
+    - `tests/test_wrapper_search.py`: the human's answer, journal entry 8. The expected set gains `"factory.entry.leftovers"`.
+    - `tests/test_process_search.py`: the human's answer, journal entry 8. The expected markers gain `"entry/leftovers.py": {32: {"noqa: PLR0913"}}`, and line 32 is `main`'s def line.
+
+    Notes:
+    - `tests/domain/test_leftovers.py:45,48` and `tests/entry/test_leftovers.py:96`: each builds `Identity(uid=0, user="root", pid=11)` on its own. It could be a shared constant beside `AGENT` in `tests/leftovers_support.py`.
+    - `tests/test_process_search.py:100`: the line number is the literal 32. The other entries in that test find their line by searching for it. A later edit above `def main(` in `src/factory/entry/leftovers.py` must update this number.
