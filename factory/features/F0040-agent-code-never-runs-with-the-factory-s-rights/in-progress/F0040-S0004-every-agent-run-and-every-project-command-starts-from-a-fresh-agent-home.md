@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T22:07:11.304125Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -88,6 +92,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T22:06:53.134612Z'
+  stage: doing
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:07:11.304125Z'
   stage: doing
 ---
 
@@ -323,3 +332,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 13. factory: Stage doing crashed 2 times, which is the crash cap of 2. The factory has not rerun it. Write a comment here and the stage reruns with the crash counter reset to 0 (your comment is copied into the journal). Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
 14. 2026-10-20 human: Note from the human's side (2026-10-21), for the coder and the reviewer: at 21:36 UTC this stage's tests left `src/factory/{,entry,domain,adapters}/__pycache__` at mode 755 (owner `agent`), and the factory's `git clean -X` after the run failed with `checkout_restore_failed` (repaired by hand). The cause is a child started as `[sys.executable, "-I", "-m", "factory.entry.fresh_home"]`: in the tests `sys.executable` is the checkout's Python, and `-I` ignores `PYTHONDONTWRITEBYTECODE`, so under the tests' umask 022 it writes bytecode into `src/`. Start the program with `-I -B` (the command this story builds, and any test that starts it), as F0027-S0004 did for the test helpers.
 15. 2026-10-20 human: Rerun (2026-10-21). Both crashes were the restore's `git clean -X` failing on `src/**/__pycache__` written at mode 755 by a test child started with `-I` and no `-B`, which also discarded the run's uncommitted work. The checkout's folders now carry a default ACL that keeps new entries group-writable, so the restore no longer fails. Still start the program with `-I -B` (the command this story builds and any test that starts it), as the earlier note says.
+16. factory: started doing as self.
