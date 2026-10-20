@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 319
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T02:34:29.411930Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T02:34:09.004690Z'
   stage: tests
   run: 7c2013ef472c400b98ddde529d926ffa
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:34:29.411930Z'
+  stage: doing
 ---
 
 # The tests pin the stage's aftermath, the opening and the tick at their edges
@@ -140,3 +149,4 @@ Expect: four lines, `None`, `Stalled (attempt 1 of 2): the agent gave no valid d
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (46.3 s)
+6. factory: started doing as self.
