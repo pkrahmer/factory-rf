@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T03:53:04.506285Z'
   stage: acceptance
   run: 8bfb64ea8e944afc9c5e29b08c27a8ee
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T03:54:23.790734Z'
+  stage: done
 stories: [F0033-S0001, F0033-S0002]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The shared environment stays writable for every user of the instance
@@ -136,3 +141,4 @@ None. No finding calls for a change.
    6. Decisions: the feature's decisions 1 to 5 are listed for the human. No question was asked and no default was taken. `tests/conftest.py` is the only earlier test changed, under decision 5.
    7. Slow checks: there is nothing beyond `make check`. The slowest tests are the 5.01 s time-limit tests, and the feature's rows take 0.63 to 0.75 s. Disk is unchanged.
    8. Cost: 12 runs, 7.0 min, $1.77 in all: S0001 $1.05, S0002 $0.72. In S0002, a docs-only story, the tester, coder and reviewer had nothing to do and still cost $0.37; that is the pipeline's shape, not the story's fault. 0 questions, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 3.6 min, 24 turns, 56958 tokens in (961351 more from cache), 14186 out, $0.93
