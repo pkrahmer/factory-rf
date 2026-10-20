@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T02:00:54.361146Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T02:00:54.354020Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:00:54.361146Z'
+  stage: intake
+---
+
 # The acceptance tests pin the reviewer's role and the close's commit subjects
 
 ## Description
@@ -58,3 +85,6 @@ EOF
 Expect: three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: closed, refused`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
