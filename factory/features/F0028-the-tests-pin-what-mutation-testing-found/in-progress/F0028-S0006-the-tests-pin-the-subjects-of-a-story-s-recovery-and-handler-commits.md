@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 317
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T02:17:12.972474Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T02:17:12.972474Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T02:17:29.332154Z'
+  stage: smoke-test
+  run: 603bea80c28a4e199b9fcea79b7a43ff
 ---
 
 # The tests pin the subjects of a story's recovery and handler commits
@@ -191,3 +193,19 @@ Expect: two lines, `work item F0001-S0001: crash of stage doing recorded` and `w
     `secrets`: secrets: green (0.1 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings. I ran the one command under `## Smoke test` exactly as written, from the repository root. It did not start a server.
+
+    Command 1 (`uv run -q python -` with the heredoc that prints two `commit_subject` results):
+
+    ```
+    work item F0001-S0001: crash of stage doing recorded
+    work item F0001-S0001: stage approval -> doing, moved back
+    ```
+
+    The exit status was 0.
+
+    Met its `Expect:` line: yes. The command printed exactly two lines, and they are the two lines the `Expect:` line gives, in the same order.
+
+    Against the acceptance criteria: the output contradicts none of them. Both lines have the form that criteria 1 and 4 pin: the crash subject, and the move-back subject with the illegal stage first and then the stage before it. The command does not exercise criteria 2 and 3 (the comments subject and the close and send-back subjects), but nothing in its output contradicts them. Criteria 5 and 6 (`make check` and docs: none) are not things a smoke test can contradict. I fixed nothing and changed no file.
+
+    Findings: none.
