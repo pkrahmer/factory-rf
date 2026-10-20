@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 312
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T01:09:54.214909Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T01:09:54.214909Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T01:10:10.298044Z'
+  stage: intake
+  run: e6b1c5d5b85943d1991c3f4b66816da6
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -80,3 +82,9 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names no change under src/factory/ and pins `factory.domain.settings.read_settings(environ, read_file)` (domain) in test file `tests/domain/test_settings_url_edges.py`. The password rule's clauses are concrete: authority after the first `://` up to the next `/`, user information before the last `@`, refused on a `:`. The error shape is `SettingsInvalid` with `variable`, `fault` and `str()` as `<variable>: <fault>`.
+   Criteria: each is testable by one parametrized test function. Criterion 1 covers every clause of the rule on both sides. Accepted rows: `:` and `@` in the path, a second `://` in the path, and an `@` in the user name with no password. The refused row is `u@x:y@`. Criterion 2 gives the exact fault text for every message (multiple repositories, password, the two "not a name" cases, ceiling shorter than cool-down, unreadable image-id file, empty image-id file), and each row also checks `str()`. Criterion 3 is `make check`; criterion 4 is `docs: none`, which is justified because no message or behaviour changes.
+   Smoke test: the command is runnable (inline Python via `uv run`). The Expect line gives three checkable lines (`True`, `True`, and the exact refusal text).
+   Architecture: the story touches only `tests/domain/`, which mirrors the package layout. It reads `BASE` from `tests/settings_support.py`, and credential-like URLs are built by concatenation to keep `make secrets` quiet.
+   Scope: it matches S0001 in feature.md's Scope, and nothing in Out of scope is touched (internal-guard messages and the equivalent `split("/", 2)` variant are excluded). The story changes no earlier test.
