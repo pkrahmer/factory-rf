@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T14:31:44.364216Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-20T14:31:44.364216Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-20T14:37:40.671153Z'
+  stage: doing
+  run: 90391088889b4238bbe9e59c242ffee2
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -400,3 +402,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (157.0 s)
 17. factory: started doing as self.
+18. coder: The tester added the test for criterion 11 in entry 16 (`tests/adapters/test_opencode_runtime_leftovers.py::test_a_call_refused_by_sudo_or_the_wrapper_keeps_its_own_error_and_still_starts_the_program`). It passes against the code as it already was, so I changed no code this round. `make check` is green: `check: green`, test coverage 99.17 %.
+
+    What I built (unchanged since entry 10):
+    - `src/factory/adapters/agent_launch.py`:
+      - The names the Interface asks for: `LEFTOVERS_TIME_LIMIT`, `Starters.leftovers`, `leftovers_due`, `leftovers_launch` and `leftovers_fault`.
+      - Two additions: the constant `LEFTOVERS_FAULT`, and `due_leftovers_launch`, a helper both runtimes share that returns `Launch | None`.
+      - The module still does not import `process`.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`:
+      - A `leftovers` keyword and property.
+      - `_end_leftovers`, which reads `own_identity().user` once per call and starts the program from `/` through `_start`.
+      - The order in `_call`: the call, the program, the removal, the call's refusal (the call's own error wins), then the program's fault.
+    - `src/factory/entry/wiring.py`: `LEFTOVERS_MODULE`, `leftovers_command()`, and `build_boundaries(..., end_leftovers=True)`. It passes the command to both runtimes through `_agent_runtime`.
+
+    Main choice: the program's fault is worked out right after the program ends, but raised only after the refusal check. I rejected keeping the whole `ProcessResult` in `_call` until after that check.
+
+    Refactor: no code changed this round, so there was nothing new to refactor. The diff is the same one I reviewed in entry 10.
+
+    Description: entry 16 changed nothing in the task's meaning, and criterion 11 is already in the description.
+
+    Noticed, not touched: `_end_leftovers`, `_remove_temporary_folder` and `_request_of` are near-copies in the two runtimes. Merging them would be a restructuring beyond this story.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
