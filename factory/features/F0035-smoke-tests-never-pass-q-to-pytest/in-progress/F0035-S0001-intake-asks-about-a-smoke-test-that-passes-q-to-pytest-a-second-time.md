@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 330
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T05:05:56.256239Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T05:05:35.497120Z'
   stage: review
   run: c9e525608282449d9c48812a56c01e8c
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T05:05:56.256239Z'
+  stage: docs
 ---
 
 # Intake asks about a smoke test that passes -q to pytest a second time
@@ -147,3 +156,4 @@ Expect: `1` (the human's change 1 is on `main`)
    - Quality: the names say what they hold, the module has a docstring, and there is no dead code.
    - Work item hygiene: the Description matches what was built, and the coder's journal entry names the main choice (on the same line) and what was rejected (a separate line or sub-bullet). Criterion 5 (docs) still describes what the documenter needs: one sentence in `docs/project-guide/agents.md` and an entry in `docs/decisions.md`.
    - Earlier tests: none. The diff only adds `tests/test_claude_agent_texts_smoke_pytest.py` (status A), and no test file on `main` is changed, renamed or deleted.
+10. factory: started docs as self.
