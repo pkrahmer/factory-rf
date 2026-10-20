@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 1
 pull_request: 357
 comments_read: [6297503471, 6297615750]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T18:27:16.964607Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,13 @@ journal:
   kind: started
   at: '2026-10-20T18:27:16.964607Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: question
+  at: '2026-10-20T18:29:17.507038Z'
+  stage: doing
+  run: 5e98650ff66a4116b559cf7bc1ffb85c
+  blocked: question
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -281,3 +284,33 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 12. factory: started doing as self.
 13. factory: crash 1: the run of stage doing ended without a result. Its work is discarded back to commit 2a269f88a37eed2ae92923253c2460275795a257.
 14. factory: started doing as self.
+15. coder: I stopped after implementing the code: 19 of the 27 tests in `tests/adapters/test_make_commands_user.py` pass, and 8 fail. The cause is in the tests, not the code, and I may not edit tests. There are two questions.
+
+    What I built, in `src/factory/adapters/make_commands.py`, left in the working tree:
+    - `CommandUser` and the `user` keyword and property.
+    - `run` splits into `_run_as_own_user`, which works exactly as before, and `_run_as`. `_run_as` builds the call with `launch` from `factory.adapters.agent_launch`, giving it `user.environment` less the three make variables.
+    - At the limit, the result is `time_limit` when `killed_at_limit` says so. A command refused by `sudo` (failing status, every non-blank line starting with `sudo:`, not killed at the limit) raises `<sudo> refused the command: <last line>`.
+    - After every started command, the leftovers program runs through `leftovers_launch`, then its result goes to `leftovers_fault`. It runs with `cwd` `/`, and its standard error is kept separate so that `leftovers_fault` can read it. If it cannot start, the error is `cannot end the agent's processes: <OS message>`. A refusal of the command wins over a leftovers fault.
+    - Nothing from `agent_launch` is copied.
+    - `ruff`, `mypy --strict` on the file and import-linter are green. I did not run `make check`, because it is red on these tests. The refactor pass and the full `make check` are still to do.
+
+    Main choice: I judge the refusal on the merged output, because `merge_stderr` is true for the command. That is how the Interface words it ("whose output holds..."). The alternative I rejected was reusing `call_refusal`: it takes the first `sudo:` line, not the last, and it needs `Starters`.
+
+    Question 1: the leftovers rows fail on this machine (7 rows of `test_a_command_run_as_another_user_is_followed_by_the_leftovers_program`: passed, time-limit, program-fault, leftovers-cannot-start, failed, refused, refusal-wins-over-the-fault).
+    - The test uses `os_user="agent"` as the "other" user, but this stage runs as the OS user `agent` (`whoami` prints `agent`). The Interface says no leftovers call is made when `os_user` is `own_identity().user`, so the second `sudo` call never happens (`assert 1 == 2` at `tests/adapters/test_make_commands_user.py:399`).
+    - In a scratch copy in `$TMPDIR` where I changed `"agent"` to `"factory-test-other"` (the `OTHER_USER` of `tests/leftovers_runtime_support.py`), all of those rows pass.
+    - Options:
+      - (a) The tester uses `OTHER_USER` instead of `"agent"` as the other user in the leftovers rows and their expected `sudo` arguments. Criterion 9's words change from `agent` to a user no test runs as.
+      - (b) The code ignores the own-user rule. That breaks the Interface and F0027's reason for the rule.
+    - I would choose (a).
+
+    Question 2: criterion 1's recipe cannot produce a target.
+    - The recipe prints `check: green`, and the criterion expects `targets` to hold `check`. But `target_times` (`factory.domain.checks`) reads only `<target>: green (<seconds> s)` lines, as `make check` prints them.
+    - `test_the_command_runs_through_sudo_timeout_and_env_with_only_the_user_s_environment` therefore fails at `tests/adapters/test_make_commands_user.py:162` (`assert [] == ['check']`).
+    - Options:
+      - (a) The tester changes the recipe's last line to `@echo "check: green (0.1 s)"`, and criterion 1 changes the same way.
+      - (b) Drop the `targets` assertion.
+      - (c) Widen `target_times` to accept a line without seconds. That changes a domain rule outside this story.
+    - I would choose (a).
+
+    Noticed, not touched: criterion 9's words still say "a `leftovers` program that does not exist". The human's answer in entry 9 rewords that. The work item is outside my write paths, so I did not change it.
