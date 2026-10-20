@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 322
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T03:12:46.483254Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T03:12:46.483254Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T03:13:21.394593Z'
+  stage: review
+  run: d5fd15dba9b14ca0b5f77090360134fe
 ---
 
 # The tests set their own umask, so uv syncs the shared environment under the caller's
@@ -150,3 +152,19 @@ Expect: `1`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the work item and `git diff main...HEAD -- . ':!factory'`, which touches two files: `tests/conftest.py` (changed) and `tests/test_tests_umask.py` (new). Nothing under `src/` changes.
+
+   - Acceptance criteria:
+     - Criterion 1 is tested by `tests/test_tests_umask.py::test_a_test_runs_under_the_tests_umask`. It reads the umask with `os.umask(0)` and sets it back, then asserts the umask is `0o022` and equals `TESTS_UMASK`. It also asserts a file made with `write_text` has mode `0o644` and a folder made with `mkdir` has `0o755`.
+     - Criterion 2 is tested by `test_the_tests_umask_holds_whatever_umask_pytest_was_started_under`, one parametrized test with rows `000`, `002`, `022` and `077`. That covers starting umasks the hook must change and one that is already right. Each row starts the child through `run_process` with the `sh -c 'umask <row>; exec "$@"'` command the criterion gives. It runs in the repository root, with only `PATH`, `HOME` and `TMPDIR=tmp_path` in its environment, a 60 s time limit and `merge_stderr=True`. It asserts exit status 0 and a last non-blank line that starts with `1 passed in `.
+     - The hook itself has no rejected input.
+     - The coder's journal entry 7 records `check: green`.
+   - Architecture: the child process starts through the process wrapper `factory.adapters.process.run_process`, as `tests/test_entrypoint_umask.py` does. No subprocess is started directly.
+   - Security: no suppression markers and no secrets. The command is an argv list, not a string handed to a shell.
+   - Quality: the `pytest_configure` hook matches the Interface. It takes no parameter, calls only `os.umask(TESTS_UMASK)` and has a docstring. `TESTS_UMASK` is imported from `conftest`, which is where the Interface puts it, so no helper was copied.
+   - Work item hygiene: the Description matches what was built. Journal entries 5 and 7 explain why the tester wrote the hook and the coder wrote nothing (the feature's decisions 4 and 5). Criterion 4, the docs criterion, still names every file and section the documenter must write.
+
+   Earlier tests:
+   - `tests/conftest.py`: changed under the human's leave in the feature's decision 5 (add `TESTS_UMASK` and `pytest_configure`, change nothing else). The diff only adds those two and keeps every existing fixture as it was.
