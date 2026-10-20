@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 310
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T00:50:37.353096Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T00:50:37.353096Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T00:50:58.252619Z'
+  stage: docs
+  run: fd5660baab9641c5a94f605c7ee6ea89
 ---
 
 # The operator guide plans a sweep for a fresh `mutants/` folder only
@@ -139,3 +141,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - 5, work item hygiene: the journal gives the main choice and what was rejected (entry 7: the coder left `docs/operator-guide.md` to the documenter). The Description matches what was built, which is nothing yet. The docs criterion still says what the reader must know. I checked it against the guide as it stands. *How long it takes* (`docs/operator-guide.md:90`) still gives the 165 s twice, the per-story minutes of F0019 and F0021, and the `mutants/mutmut-stats.json` measurement. The guide does not yet contain the stop line `mutants: stopped after`. The example `make mutants MODULES=<module> MUTANTS_SECONDS=1500` is at line 95. So the criterion names the right removals and additions for the documenter.
    - 6, earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: Documentation done; no findings. I did not run `make check`, because I changed only a document and the factory's checks run right after this stage.
+
+    Files changed:
+    - `docs/operator-guide.md`, *Mutation testing by sweep*: I rewrote the two paragraphs the docs criterion names.
+      - *How long it takes* now gives the cost of one run once. The stats take 165 s on 20 cores (28 s listing, 131 s clean run, 5 s generating) or 4.5 to 19 minutes on two cores, plus 0.13 to 0.25 s per mutant on 20 cores. It states that no stop is set unless `MUTANTS_SECONDS` is given, and that every run removes `mutants/` first. The `mutmut-stats.json` measurement, the per-story minutes of F0019 and F0021 and the second 165 s are gone.
+      - *A run that never gets past mutmut's stats* now says that every run starts with the stats over the whole suite in one process. It says a `MUTANTS_SECONDS` below the stats checks no mutant and the run fails with `mutants: stopped after <n> s, so the mutants it did not reach are not checked`. It says the value must cover the stats plus the mutants' time. The example `make mutants MODULES=<module> MUTANTS_SECONDS=1500` is kept. "Repairs it" and "keeps them only when that run ends" are gone.
+
+    Checks:
+    - The first smoke-test block gives `0` then `1`. For the second block I confirmed by hand that the example, the stop line and the sweep command are all in the guide. The stop line also matches the `Makefile`, line 125.
+    - Cross-read and found current: `README.md`, `docs/decisions.md` (the sweep-form entry), `docs/project-guide/processes-and-checks.md` line 157, and `docs/operator-playbook.md` lines 103 to 123. All of them already describe the fresh `mutants/`.
+
+    Stale text noticed, not mine to fix:
+    - The `Makefile`'s `mutants` recipe still accepts `FEATURE=<id>`. I did not check the `Makefile` against `CLAUDE.md` for this. `CLAUDE.md` *Checks* still describes `FEATURE=` and a "mutmut's own listing" ending, while the decision log says the sweep form keeps `MODULES` only. That is F0032's concern, and `CLAUDE.md` is the human's file.
+
+    `check`: check: green (not run again: passed on tree e77b3d64b793 at 2026-10-20T00:48:45Z)
+    `secrets`: secrets: green (0.8 s)
+    `documents`: documents ok
