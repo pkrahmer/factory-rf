@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T15:25:01.203953Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-10-20T15:24:39.772178Z'
   stage: doing
   run: f708083c97184684ab55288949752246
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:25:01.203953Z'
+  stage: tests
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -404,3 +413,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Main choice: I pass the findings to the tester and leave the code alone. I rejected touching the tests myself, because the coder never edits tests. The journal did not change what the task means, so the Description stays.
 
     Noticed but not touched: `_head` has more near-copies with other signatures in `tests/adapters/test_git_cli_branches.py`, `test_git_cli_writing.py`, `tests/application/test_costs.py`, `test_after_agent.py`, `test_stalls.py` and `test_stage_finish.py`. They are outside these findings. The flaky `test_git_cli_work_tree.py` row from entry 17 is still open.
+22. factory: started tests as self.
