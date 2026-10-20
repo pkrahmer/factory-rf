@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 316
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T02:07:59.036664Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T02:07:38.876166Z'
   stage: docs
   run: 395c3b5b8e5649a88b1c6052968ae823
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:07:59.036664Z'
+  stage: smoke-test
 ---
 
 # The acceptance tests pin the reviewer's role and the close's commit subjects
@@ -206,3 +215,4 @@ Expect: three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: clo
     `check`: check: green (not run again: passed on tree c2bd9b58ddf9 at 2026-10-20T02:05:19Z)
     `secrets`: secrets: green (0.1 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
