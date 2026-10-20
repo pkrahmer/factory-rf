@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T04:47:10.527047Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T04:47:10.521431Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:47:10.527047Z'
+  stage: intake
+---
+
 # The guide's list of shared test helpers names every fixture
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -39,3 +66,6 @@ echo "$missing"
 Expect: `0` (every shared helper module at the root of `tests/` is still named, as F0028-S0011 left it)
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
