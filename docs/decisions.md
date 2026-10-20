@@ -143,6 +143,7 @@ Date: 2026-10-14 (F0004-S0003). The protected paths (the project's Claude Code d
 ## The guard reads only the settings file taken at the stage-start commit, and reads the payload as v1 does
 
 Date: 2026-10-14 (F0004-S0004). `factory-guard` reads one file, the `GuardSettings` the runtime wrote from `WritePathService.at` at the stage-start commit, and no pipeline definition, so an agent that rewrites `factory/pipeline.yml` in the work tree changes no verdict (R32). The verdict is the domain's `refusal`, applied to the real path of the file, so the guard and the undo share one rule. A payload the guard cannot read (not JSON, no `tool_input`, no or an empty `file_path`) is allowed: it fails open, as v1 does, because there is no path to judge and a refusal would block tools that write nothing; the handover leaves a stricter reading for v2. A settings file the guard cannot read refuses with status 2, since the guard then has no rules. Alternatives rejected: reading the definition from the work tree (the agent could widen its own paths); failing closed on unreadable payloads (blocks tools without paths, a change of behaviour not asked for); argparse (it exits by itself with its own usage text, against "status 2, never an exception").
+- Superseded in part by "The Claude Code hook is removed; the kernel and the undo are the write guard": the hook `factory-guard` this entry describes is removed.
 
 ## The undo reads the write paths at the stage-start commit, and a work item the agent breaks is restored whole
 
@@ -311,6 +312,7 @@ A missing agent user beside an existing token file is a stop (preflight item `ag
 Date: 2026-10-16 (F0010-S0016; questionnaire 1, Q22; F0001 decisions 17 and 18; WE3.1). The preflight's item `agent-run-probe` makes one `claude -p` call exactly as a stage does (the agent `coder`, a guard, the agent user, the agent run's environment), with a budget of 0.10 dollar, the decision `question` only and a time limit of 2 minutes. A flag the pinned `claude` rejects would otherwise end every real run `died` with no text that says why, and F0001 left that probe to a morning observation. It is a machine item, so the stamp skips it while the image is unchanged: it costs a few cents once for each image build. The item `agent-environment` checks the other half of F0001 decision 17: Claude Code treats a hook that cannot start as not blocking, so a `PATH` without `factory-guard` would let every write through, and `claude -p` finds its login in `HOME`.
 
 A refused `sudo` (the misconfiguration behind WE3.1) surfaces in the probe as the runtime's `AgentRuntimeError`, which fails the item with its message. The probe is the first agent call of an instance, before any claim is pushed; an error after a claim would reach the crash path of F0008. Rejected: leaving the check to the first stage run, and a probe that only runs `claude --version` (it carries none of a stage's flags).
+- Superseded in part by "The Claude Code hook is removed; the kernel and the undo are the write guard": its search for `factory-guard` is removed.
 
 ## The shipped agents carry v1's texts, renamed, and `stuck` does not exist
 
@@ -373,6 +375,7 @@ Date: 2026-10-17 (F0012-S0016). `DiskRecorder` appends one line to `records/disk
 ## One test checks the configuration of every model; six models ignore unknown keys
 
 Date: 2026-10-17 (F0012-S0018; the human, 2026-10-14; F0012 decisions 25 and 39). Every Pydantic model under `src/factory` is frozen and refuses unknown keys, and `tests/test_model_configuration.py` checks that once for all of them, replacing the per-model tests of an assignment and of an unknown key, which tested Pydantic and not the factory. A test that also checks something of the factory's own (a pattern, a `Literal`, a limit, a rule across fields) stays. The six exceptions read a tool's own output and declare `extra="ignore"` on purpose, so that a field the tool adds does not break the factory: `factory.adapters.claude_guard._ToolInput` and `_Payload`, and `factory.adapters.claude_runtime._Usage`, `_Denial`, `_StructuredOutput` and `_Reply`. They are listed by name in the test, which also checks that each still ignores. Rejected: a test per model (it grows with every story and checks the library) and a base class that sets the configuration (the exceptions would have to undo it, and a model could still forget to inherit).
+- Superseded in part by "The Claude Code hook is removed; the kernel and the undo are the write guard": the two models of `factory.adapters.claude_guard` are removed, and the opencode runtime's eight join the list, twelve in all.
 
 ## An answer at the round cap starts the count of rounds over
 
@@ -598,6 +601,7 @@ Date: 2026-10-18 (F0019-S0005). Every run starts through `factory-confine`, so a
 - Decision: the item's failure is the existing machine stop `preflight_failed`, naming `confinement` and each fault, so no agent runs and no new stop reason exists. The factory does not fall back to the hook (feature decision 12).
 - Reasons: the hook covers only `Edit` and `Write`, so a fallback would drop the guard for every other route on exactly the machine that lacks it; the hook is to go after the cross-check, and a fallback would keep it as a second code path; the kernels the factory runs on offer ABI 3 or higher (6.18 offers 7; WSL2 kernels are 6.6 or later, `wsl --update`).
 - Alternative left to the human: an operator setting that falls back to the hook alone, with a warning on every tick.
+- Superseded in part by "The Claude Code hook is removed; the kernel and the undo are the write guard": there is no hook to fall back to.
 
 ## The hook allows the run's temporary folder
 
@@ -606,6 +610,7 @@ Date: 2026-10-18 (F0019-S0011). R14 sends every agent to `$TMPDIR` for temporary
 - Decision: `GuardSettings` carries the run's temporary folder (`temporary_directory`, `None` by default), and `judge` allows a real path strictly beneath it, after the checkout is judged: a link into the checkout, or a checkout beneath the temporary folder, is still decided by the write paths. The runtime sets it only when it confines the run; without it the hook judges as before.
 - Decision: the tool paths stay kernel-only.
 - Rejected: telling the agents to write temporary files through the shell only (it contradicts R14's intent and leaves the hook and the kernel disagreeing); counting these refusals as expected in the cross-check (it hides real disagreements behind a known one).
+- Superseded in part by "The Claude Code hook is removed; the kernel and the undo are the write guard": the hook is removed.
 
 ## A question records the block it opened, a stall its reason
 
@@ -899,3 +904,11 @@ Date: 2026-10-20 (F0030-S0001). This corrects F0024 decision 4 ("the factory wai
 - Decision: at a time limit, at a callback's stop and at a callback's error, `factory.adapters.process._kill_session` kills the child's process group and then, in rounds, every process of the child's session that the factory may signal, and returns only when none is left. The pure rules (reading one `/proc/<pid>/stat` line, choosing what is left) are `factory.domain.sessions`. A process that called `setsid` is outside the rule; another user's process (root's `sudo`, the agent's under `sudo`) is left to the agent's own `timeout` and not waited for.
 - Reasons: `timeout` moves mutmut into a group of its own, and the factory waited only for its child and its pipe; mutmut writes into `tee`'s pipe, not the factory's. A session survives a new group and a dead parent, which a walk of parent ids does not.
 - Rejected: `timeout --foreground` in the recipe alone (it mends one recipe, and every other project command keeps the fault); a cgroup per command (not available to the factory's user under rootless Podman); the factory as subreaper (`PR_SET_CHILD_SUBREAPER`: it would reap every orphan of every run); a time limit of the rounds' own (no process outlives SIGKILL except in the kernel, and that would hold the call already).
+
+## The Claude Code hook is removed; the kernel and the undo are the write guard
+
+Date: 2026-10-20 (F0041-S0003; the feature's decisions 2, 3, 5 and 6 and F0019's decision 16). The Claude Code hook `factory-guard` is no longer registered (S0001), and its command, its adapter, `GUARD_COMMAND`, `GuardSettings.temporary_directory` and the preflight's search for it are removed (S0002). Every agent run, under either runtime, is guarded by the kernel (`factory-confine`, Landlock) during the run and by the undo after it. Nothing judges a tool call.
+
+- Decision: a protected path inside a folder a write path opens is written and then reverted by the undo, since the kernel cannot exclude a path beneath an allowed folder (the feature's decision 6). The undo judges the exact write paths; the tool paths widen what the kernel allows only.
+- Reasons: the cross-check of 2026-10-19 compared 405 transcripts and found no refusal by the hook in the 264 runs after the kernel guard went live; its one disagreement was fixed by F0019-S0011. The hook saw two tools only (`Edit` and `Write`), while the kernel refuses a write by any route. The opencode runs had no hook already, so the hook was a second code path for one runtime.
+- Rejected: a reduced hook for the protected paths only (it keeps the command, its settings file and the `PATH` requirement for a rule the undo already enforces).

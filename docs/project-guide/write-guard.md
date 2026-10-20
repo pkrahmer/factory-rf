@@ -4,7 +4,7 @@ This file covers the write paths, the guard, the undo, the kernel's guard and th
 
 ## The write paths
 
-What an agent may write is decided in one place, for the guard hook and for the undo of a stage alike.
+What an agent may write is decided in one place, for the undo of a stage and, through the kernel's targets, for the kernel.
 
 ### Where they come from
 
@@ -30,15 +30,13 @@ Errors: `ValueError` when `work_item_path` is not `factory/features/<feature dir
 2. `<path> is owned by the human; a change there is a question.` (matches `guard.protected_paths`, even when a write path also matches)
 3. `<path> is outside the write paths of this stage.` (matches no write path)
 
-The guard hook resolves the path it judges to a real path relative to the root (see "The guard command"); the undo takes git's paths as they are.
-
 Tests: `tests/domain/test_write_paths.py`, `tests/application/test_write_paths.py`; a later version of the definition is made with `human.push_file("main", "factory/pipeline.yml", text)` and `checkout.fetch()`.
 
 ### The kernel's targets
 
 The kernel (Landlock, see `factory.adapters.landlock` and the decision log) allows writes beneath a folder and on a file that exists. A write path is an `fnmatch` pattern and a run also writes the project's tool state, so two pure functions in `factory.domain.confinement` turn the settings into what the kernel can name. The agent runtime calls them when it builds a run's rules (see "The `claude -p` runtime").
 
-`GuardSettings.tool_paths` carries the definition's `tool_paths` as `WritePathService.at` reads them at the stage-start commit, unchanged: no placeholder is expanded in them. `refusal`, which the hook and the undo share, ignores them: with write paths `["src/*"]` and tool paths `[".venv/*"]`, `.venv/x` is refused as outside the write paths. The tool paths widen only what the kernel allows, never what the hook or the undo accept.
+`GuardSettings.tool_paths` carries the definition's `tool_paths` as `WritePathService.at` reads them at the stage-start commit, unchanged: no placeholder is expanded in them. `refusal`, which the undo uses, ignores them: with write paths `["src/*"]` and tool paths `[".venv/*"]`, `.venv/x` is refused as outside the write paths. The tool paths widen only what the kernel allows, never what the undo accepts.
 
 `write_targets(guard, *, home)` returns `WriteTarget(path, kind)` values (`kind` is `folder` or `file`), the write paths first and then the tool paths, in order, a repeated target left out. For each write path, relative to `guard.root`:
 
@@ -58,37 +56,9 @@ So a pattern or a missing file is widened to the nearest folder the kernel can n
 
 Tests: `tests/domain/test_tool_paths.py`, `tests/domain/test_write_targets.py`, `tests/domain/test_confinement_of.py`, `tests/application/test_write_paths_tool_paths.py`.
 
-## The guard command
-
-`factory-guard --settings <file>` refuses an agent's `Edit` or `Write` outside its write paths while the agent runs. `pyproject.toml` registers it as `factory-guard = "factory.entry.guard:main"`; `python -m factory.entry.guard` does the same. `ClaudeCodeRuntime` registers it as a `PreToolUse` hook on `Edit|Write` (see "The `claude -p` runtime").
-
-### What it reads
-
-- The settings file named by `--settings`: the stage's `GuardSettings` as JSON, as `GuardSettings.model_dump_json()` wrote it, with an absolute `root`. The runtime writes it from `WritePathService.at`, that is from the definition at the stage-start commit. The guard reads no other file and takes no write path from the pipeline definition in the work tree, so rewriting that file changes no verdict.
-- The hook payload on standard input: the JSON Claude Code sends. Only `tool_input.file_path` is looked at, whatever the tool.
-
-### Verdict and exit status
-
-`factory.adapters.claude_guard.judge(payload, settings)` returns a `GuardVerdict` (`allowed`, `message`) and never raises; `read_guard_settings(path)` returns the settings or raises `GuardSettingsInvalid(path, fault)`. `factory.entry.guard.main(argv, *, stdin, stderr)` returns the status; `None` means `sys.argv[1:]`, `sys.stdin` and `sys.stderr`, read at the call. The entry module reaches the adapter only through `factory.entry.wiring`.
-
-- Exit 0, nothing written: the call is allowed.
-- Exit 2, the message and a newline on standard error: the call is refused. Claude Code blocks the tool call on status 2 and shows standard error to the agent. Status 2 is also the answer when `--settings` is missing or has no value (`usage: factory-guard --settings <file>`) and when the settings file cannot be read (`guard settings <file>: <fault>`), so a broken setup refuses rather than allows. Nothing is written to standard output, and `main` never ends in an exception.
-
-### Which path is judged
-
-A relative `file_path` is taken relative to `root`. The guard takes `os.path.realpath`, so `..` segments and symbolic links are resolved before the verdict: `src/../pyproject.toml` is judged as `pyproject.toml`, and a link inside `src` to a file outside the checkout is outside. Containment is tested on path parts, not on a string prefix (`<root>-x/a.py` is outside `<root>`). A path outside the real root, or one whose real path cannot be computed (a NUL character), is refused with `<file_path as given> is outside the checkout.`. A path inside goes to `refusal` with its POSIX path relative to the real root; its text is the message.
-
-The checkout is judged first. A path outside the real root is then allowed when its real path lies strictly beneath the real `GuardSettings.temporary_directory`, the run's own temporary folder (`$TMPDIR`), which the kernel allows too. "Beneath" is tested on path parts: `<temporary_directory>-x/a.txt` is outside, and the folder itself is not beneath itself. A link in that folder that points into the checkout is judged by its real path, so the write paths decide; a checkout that lies beneath the temporary folder is still judged by `refusal`. Without a `temporary_directory` (`None`, the default, also when the key is missing from an older settings file) the verdict is as before: outside the root is refused. `temporary_directory` is an absolute path, a relative one is `GuardSettingsInvalid`. `ClaudeCodeRuntime` sets it to the run's temporary folder when built with `confine_executable`, and to `None` otherwise. The tool paths stay kernel-only.
-
-### Failing open
-
-A payload that is not JSON, not an object, has no `tool_input` object, no `file_path`, or an empty or non-string `file_path` is allowed, as in v1. The guard cannot judge what it cannot read, and a tool without a path (such as `Bash`) is not its concern. The payload is read through a private Pydantic model, so no `Any` is inspected by hand. A `file_path` that resolves to the root itself (`.`) reaches `refusal` with `.`.
-
-Tests: `tests/adapters/test_claude_guard.py`, `tests/entry/test_guard.py` (the second runs the module in a subprocess).
-
 ## The undo
 
-`UndoService(boundaries).undo(stage_start, work_item_path)` (`factory.application.undo`) puts the work tree back after an agent run. The guard refuses while the agent works; the undo reverts what got through (a tool the guard does not see, such as a shell command). It returns an `UndoReport` (frozen, no unknown fields): `reverted` and `deleted`, sorted ascending without repeats, and `restored_work_item`. `AfterAgent` runs it after every completed agent run (see "After the agent run").
+`UndoService(boundaries).undo(stage_start, work_item_path)` (`factory.application.undo`) puts the work tree back after an agent run. The kernel refuses while the agent works; the undo reverts what the kernel allowed outside the write paths: a protected path inside a folder a write path opens, a file the targets widened to its folder. It returns an `UndoReport` (frozen, no unknown fields): `reverted` and `deleted`, sorted ascending without repeats, and `restored_work_item`. `AfterAgent` runs it after every completed agent run (see "After the agent run").
 
 ### What it undoes
 
@@ -96,8 +66,8 @@ Everything is compared with the stage-start commit, not with the work tree as it
 
 A candidate is refused, and so undone, in two cases:
 
-- `refusal(path, settings)` is not `None`: the path is outside the write paths of the stage or is protected (see "The write paths"). The settings come from `WritePathService.at`, that is from the pipeline definition at the stage-start commit, the same source the guard uses. An agent that rewrites `factory/pipeline.yml` to widen its role widens nothing, and an invalid rewrite does not make the undo raise; the pipeline definition itself is put back.
-- The path lies directly in an `in-progress` folder of a feature (`factory/features/<feature>/in-progress/<file>`) and is not the stage's own work item. This undoes every other work item in progress, every cost-record file (`.costs.jsonl`), the stage's own included, and any other file there, whatever the write paths say. Nested files (`in-progress/sub/x`), other lifecycle folders and an `in-progress` folder outside `factory/features/` follow the write paths. The guard does not know this second rule.
+- `refusal(path, settings)` is not `None`: the path is outside the write paths of the stage or is protected (see "The write paths"). The settings come from `WritePathService.at`, that is from the pipeline definition at the stage-start commit, the same source the kernel's targets use. An agent that rewrites `factory/pipeline.yml` to widen its role widens nothing, and an invalid rewrite does not make the undo raise; the pipeline definition itself is put back.
+- The path lies directly in an `in-progress` folder of a feature (`factory/features/<feature>/in-progress/<file>`) and is not the stage's own work item. This undoes every other work item in progress, every cost-record file (`.costs.jsonl`), the stage's own included, and any other file there, whatever the write paths say. Nested files (`in-progress/sub/x`), other lifecycle folders and an `in-progress` folder outside `factory/features/` follow the write paths. The kernel does not know this second rule.
 
 A refused path that did not exist at the stage-start commit (`added`) is deleted and listed in `deleted`; any other is checked out from that commit with `Git.revert_paths` and listed in `reverted`. Paths allowed by the write paths are not touched.
 
@@ -117,7 +87,7 @@ Tests: `tests/application/test_undo.py`; a fake agent writes into `boundaries.ch
 
 ## The kernel's write guard
 
-`factory.adapters.landlock` lets a process ask the kernel to refuse its own writes and those of every process it starts later. Its user is the wrapper `factory-confine` (see "The start wrapper"); the agent runtime starts every agent run through it. The guard in "The guard command" sees two tools and the undo reverts the rest afterwards; the kernel refuses a write by any route, a shell command included.
+`factory.adapters.landlock` lets a process ask the kernel to refuse its own writes and those of every process it starts later. Its user is the wrapper `factory-confine` (see "The start wrapper"); the agent runtime starts every agent run through it. The kernel refuses a write by any route, a shell command included, during the run; the undo reverts afterwards what the kernel allowed outside the write paths.
 
 ### What Landlock is
 
