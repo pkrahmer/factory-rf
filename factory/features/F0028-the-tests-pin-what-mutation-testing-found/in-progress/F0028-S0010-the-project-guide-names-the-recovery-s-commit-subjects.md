@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T04:18:12.133154Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T04:18:12.127079Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:18:12.133154Z'
+  stage: intake
+---
+
 # The project guide names the recovery's commit subjects
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -32,3 +59,6 @@ EOF
 Expect: `work item F0001-S0001: crash of stage doing recorded` (the form the guide now gives)
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
