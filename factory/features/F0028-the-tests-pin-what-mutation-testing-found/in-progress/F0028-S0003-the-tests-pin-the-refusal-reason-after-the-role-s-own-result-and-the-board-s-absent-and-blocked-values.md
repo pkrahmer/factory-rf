@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 314
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T01:42:40.007053Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T01:42:19.956328Z'
   stage: intake
   run: 468894a97ae0416ba39133122923cb6d
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:42:40.007053Z'
+  stage: tests
 ---
 
 # The tests pin the refusal reason after the role's own result, and the board's absent and blocked values
@@ -104,3 +113,4 @@ Expect: four lines, `Too wide. Cut the second story.`, `features`, `work items` 
    Smoke test: a runnable `uv run -q python` heredoc that uses only the domain imports. Its `Expect:` line gives the four output lines, which can be checked.
    Architecture: the tests sit in `tests/domain/` and test `factory.domain` only; the shared helper moves to a module at the `tests/` root under the standing leave in CLAUDE.md, which keeps the earlier tests' names and checks.
    Scope: inside F0028's Scope (S0003 line) and not in its Out of scope; the dead guard at `acceptance.py:332` stays (decision 4).
+4. factory: started tests as self.
