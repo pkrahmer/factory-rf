@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T19:53:39.833641Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-20T19:53:18.907924Z'
   stage: intake
   run: a949583acd0d4c26ba59460043635f01
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:53:39.833641Z'
+  stage: tests
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -166,3 +175,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: it is runnable and calls no pytest, so the `-q` rule does not apply. Its `Expect:` line is checkable: the log line, then `passed [False] False True`.
    - Architecture: `SealedProjectCommands` sits in `factory.application`, which knows only the `ProjectCommands`, `Git` and `FactoryLog` interfaces. The wiring stays in `factory.entry.wiring`, which is the only place that wires.
    - Scope: the story is within F0040's scope, which lists `sealed_runs.py` and `wiring.py` for S0002. It touches none of the out-of-scope items and changes no test another story wrote.
+7. factory: started tests as self.
