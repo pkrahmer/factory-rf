@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T00:04:19.815448Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T00:04:19.808772Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:04:19.815448Z'
+  stage: intake
+---
+
 # The second-user section names the API login and opencode's run files
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -44,3 +71,6 @@ uv run python -m factory.entry.check_documents
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
