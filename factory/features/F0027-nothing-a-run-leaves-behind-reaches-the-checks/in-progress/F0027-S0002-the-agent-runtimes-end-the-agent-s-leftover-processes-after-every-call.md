@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T14:16:56.429719Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T14:16:37.866619Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-20T14:16:56.429719Z'
   stage: doing
 ---
 
@@ -279,3 +288,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Noticed, not touched: `_end_leftovers`, `_remove_temporary_folder` and `_request_of` are near-copies in the two runtimes. That matches the existing duplication, and merging them is beyond this story.
 8. 2026-10-20 human: The human's answer (2026-10-20): (a). `main` now holds `"src/factory/entry/wiring.py" = ["PLR0913"]` under `[tool.ruff.lint.per-file-ignores]` in `pyproject.toml` (commit 52cfe595), beside the two runtime constructors. No noqa in the source; nothing else changes. Merge `main` and end with `review`.
+9. factory: started doing as self.
