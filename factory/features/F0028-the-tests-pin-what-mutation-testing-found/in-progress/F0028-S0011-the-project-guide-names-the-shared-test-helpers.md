@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 333
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T04:29:51.402537Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T04:29:51.402537Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T04:30:20.192484Z'
+  stage: docs
+  run: fe354c76a80741d6a5b32f13cd3b74cb
 ---
 
 # The project guide names the shared test helpers
@@ -148,3 +150,20 @@ Expect: `1`
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: Changed one file: `docs/project-guide/README.md`. It now has a section *Shared test helpers*, placed before *Errors*, and the *The files* line for `README.md` lists it. The section says that helpers more than one test module uses live at the root of `tests/` (fixtures in `conftest.py`) and are imported from there. It also says a story that adds such a module names it in the list through its docs criterion. Then it gives one line for each of the 37 modules `tests/*.py` whose name does not start with `test_`, `conftest.py` included. I wrote the lines from each module's docstring and public names. For `conftest.py` I also checked that the `world` and `work_item` fixtures exist.
+
+    Both smoke-test commands, run as written:
+    - The missing-module loop prints `0`.
+    - The heading count prints `1`.
+
+    I did not run `make check`. Only a document changed, so the factory's own run after this stage decides.
+
+    Cross-read, found current: `README.md`, `docs/operator-guide.md` and `docs/decisions.md`. The docs criterion says `none` for them, and the diff changes nothing under `src/` or `tests/`. The existing guide text on `proof_support.py` in *Kill points* and *Fault-injection paths* still matches that module, so the new line for it only points there.
+
+    Code findings: none. The diff against `main` has nothing outside `factory/`.
+
+    Stale text I saw and did not touch: none. The Description's helper count is already corrected by review.
+
+    `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
