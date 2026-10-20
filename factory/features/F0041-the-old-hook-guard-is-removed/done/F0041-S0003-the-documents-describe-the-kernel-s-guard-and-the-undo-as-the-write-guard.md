@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T11:48:48.051878Z'
   stage: smoke-test
   run: 1d65135d265943359ee1e243fc44455b
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T11:51:10.188271Z'
+  stage: approval
 ---
 
 # The documents describe the kernel's guard and the undo as the write guard
@@ -251,3 +256,4 @@ Expect: `documents ok`
     - `docs/decisions.md:908` holds the new entry's heading. The five superseded entries each end with one "Superseded in part by …" line naming it (lines 146, 315, 378, 604, 613).
 
     Criterion 1 is covered by block 3. For criterion 2, the factory's `check: green` on this tree is in entry 11; I did not run `make check` again, because this stage does not run it. Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 7.4 min, 40 turns, 140957 tokens in (957994 more from cache), 15337 out, $1.15
