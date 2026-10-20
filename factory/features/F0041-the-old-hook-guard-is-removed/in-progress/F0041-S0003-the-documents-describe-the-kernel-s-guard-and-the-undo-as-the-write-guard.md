@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 349
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T11:48:25.900590Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T11:48:25.900590Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T11:48:48.051878Z'
+  stage: smoke-test
+  run: 1d65135d265943359ee1e243fc44455b
 ---
 
 # The documents describe the kernel's guard and the undo as the write guard
@@ -217,3 +219,35 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test run from the repository root, the four blocks as written and in order. All four met their `Expect:` line. No findings.
+
+    1. Count of hook names in the user-facing documents. Expected `0`; met.
+    ```
+    0
+    ```
+
+    2. Title of the new decision entry in `docs/decisions.md`. Expected `1` and `6`; met.
+    ```
+    1
+    6
+    ```
+
+    3. Paths that must not change, compared with `origin/main`. Expected `0`; met.
+    ```
+    0
+    ```
+
+    4. `make documents 2>&1 | tail -n 1`. Expected `documents ok`; met.
+    ```
+    documents ok
+    ```
+
+    Acceptance criteria re-read against the tree. Spot-checks by grep found nothing that contradicts a criterion:
+    - `README.md:12` says "Six commands exist" and its closing clause names only `factory-confine`.
+    - `docs/operator-guide.md:222` has the section *The agent run's `PATH` and `HOME`*, and the guide no longer contains "the hook".
+    - The files in `docs/project-guide/` hold no *The guard command* and no "the hook". `agents.md` names neither `--settings` nor a hooks file.
+    - `docs/project-guide/README.md:91` says "There are twelve" and lists the twelve models the criterion names.
+    - `docs/project-guide/watching.md` names `agent_environment_item(environment, is_directory)`.
+    - `docs/decisions.md:908` holds the new entry's heading. The five superseded entries each end with one "Superseded in part by …" line naming it (lines 146, 315, 378, 604, 613).
+
+    Criterion 1 is covered by block 3. For criterion 2, the factory's `check: green` on this tree is in entry 11; I did not run `make check` again, because this stage does not run it. Open: nothing.
