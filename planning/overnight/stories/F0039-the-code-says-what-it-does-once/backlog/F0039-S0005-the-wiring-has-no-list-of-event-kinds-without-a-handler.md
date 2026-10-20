@@ -10,7 +10,7 @@
 
 - `NOT_YET_HANDLED`, its comment and its entry in `__all__` are removed. Nothing else in the module changes.
 
-Tests (the tester changes them first, under the feature's decision 7; each test keeps every line not named here):
+Tests (the tester changes them first, under the feature's decision 7; each test keeps every line not named here, and each module drops the imports nothing uses any more, such as `get_args`, `EventKind` and `unhandled_kinds`):
 
 - `tests/entry/test_wiring_acceptance.py::test_every_kind_has_a_handler_and_acceptance_due_opens_the_acceptance`: the line `assert NOT_YET_HANDLED == ()` and the import of `NOT_YET_HANDLED` go; the test keeps its name and its checks that `set(handlers) == set(get_args(EventKind))`, that `unhandled_kinds(handlers) == []` and that `acceptance_due` has an `AcceptanceDueHandler`.
 - `tests/entry/test_wiring_handlers.py::test_the_kinds_without_a_handler_are_exactly_those_not_yet_handled`: removed, with the import of `NOT_YET_HANDLED` (and of `unhandled_kinds` when nothing else in the module uses it).
@@ -21,7 +21,7 @@ Tests (the tester changes them first, under the feature's decision 7; each test 
 
 ## Acceptance criteria
 
-1. `factory.entry.wiring` no longer offers the constant (rows of one parametrized test): `hasattr(factory.entry.wiring, "NOT_YET_HANDLED")` is `False`, and `"NOT_YET_HANDLED"` is not in `factory.entry.wiring.__all__`; every other name of today's `__all__` (`CREDENTIAL_HELPER`, `build_boundaries`, `build_handlers`, `handler_factory`, `production_environment`, `system_clock`) is still in it and an attribute of the module.
+1. `factory.entry.wiring` no longer offers the constant (rows of one parametrized test): `hasattr(factory.entry.wiring, "NOT_YET_HANDLED")` is `False`, and `"NOT_YET_HANDLED"` is not in `factory.entry.wiring.__all__`; each of the 23 other names of today's `__all__` (`CREDENTIAL_HELPER`, `agent_environment`, `agent_run_environment`, `boundaries_from_environment`, `build_bill_service`, `build_boundaries`, `build_handlers`, `build_preflight`, `build_tick`, `build_work_item_reader`, `git_environment`, `git_options`, `handler_factory`, `health_store`, `judge`, `machine_extras`, `machine_log`, `production_environment`, `read_environment_settings`, `read_guard_settings`, `read_hosting_token`, `repository_name`, `system_clock`) is still in it and an attribute of the module.
 2. A kind without a handler is still caught: `test_every_kind_has_a_handler_and_acceptance_due_opens_the_acceptance` passes, and with the `acceptance_due` handler left out of the mapping, the same comparison `set(handlers) == set(get_args(EventKind))` is `False` and `unhandled_kinds(handlers)` is `["acceptance_due"]` (rows of one parametrized test in `tests/entry/test_wiring_constants.py`: the built mapping, and the built mapping without `acceptance_due`).
 3. The changed tests keep what they check: `test_crash_is_handled`, `test_expired_shares_the_crash_handler`, the other tests of the five modules and `tests/application/test_dispatcher.py` pass, and no module under `tests/` names `NOT_YET_HANDLED`.
 4. `make check` stays green.
