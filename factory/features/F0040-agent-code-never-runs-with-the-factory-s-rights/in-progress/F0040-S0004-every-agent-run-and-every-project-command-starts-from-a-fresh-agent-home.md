@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T22:13:46.887984Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -111,6 +115,11 @@ journal:
   at: '2026-10-20T22:13:25.766291Z'
   stage: tests
   run: 5c7fc4a9021b427397103dd8bcacec49
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:13:46.887984Z'
+  stage: doing
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -384,3 +393,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.5 s)
     `test`: FAILED tests/entry/test_wiring_agent_home.py::test_the_fresh_home_program_runs_with_this_interpreter_isolated_and_uv_s_cache_is_named - AssertionError: assert ['/work/check...y.fresh_home'] == ['/w...
+20. factory: started doing as self.
