@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T02:53:23.821855Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-20T02:53:03.161365Z'
   stage: review
   run: efbc83cff0f546aaac1455a843a30015
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:53:23.821855Z'
+  stage: docs
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -263,3 +272,4 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
     Earlier tests:
     - `tests/application/test_agent_run_probe_opencode.py`: changed under the standing leave in `CLAUDE.md` to move a shared test helper. Only `DIED` and `SSO_HINT` now come from `tests/probe_support.py`. They give the same strings as before (I compared them), and every test keeps its name and rows.
     - `tests/probe_support.py`: the shared place the helpers moved to, under the same standing leave. It only adds `opencode_died` and `opencode_sso_hint` and updates the module docstring. `ENVIRONMENT` and `COMPLETED` are unchanged.
+18. factory: started docs as self.
