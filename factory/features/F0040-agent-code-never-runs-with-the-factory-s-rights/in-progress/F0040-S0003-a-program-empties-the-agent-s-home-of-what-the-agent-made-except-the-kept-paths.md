@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T21:08:27.955487Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-20T21:08:27.955487Z'
   stage: review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T21:10:09.072317Z'
+  stage: review
+  run: 78af585e4efe48d390593f4f60d32aef
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -205,7 +207,7 @@ def main(
     """Clear the home named by `--home` of this user's entries but the kept paths; 0 when done."""
 ```
 
-- The arguments are exactly `--home <folder>` followed by any number of `--keep <path>`. Any other shape writes `factory-fresh-home: usage: fresh_home --home <folder> [--keep <path>]...` and returns 2. A `--home` that is not absolute, is `/`, or is not an existing folder writes `factory-fresh-home: --home <folder> is not an absolute folder other than /` and returns 2. A `--keep` that is not `inside_home` writes `factory-fresh-home: --keep <path> is not a path inside the home` and returns 2. In each of these cases nothing is removed.
+- The arguments are exactly `--home <folder>` followed by any number of `--keep <path>`. Any other shape writes `factory-fresh-home: usage: fresh_home --home <folder> [--keep <path>]...` and returns 2. A `--home` that is not absolute, resolves to `/`, or is not an existing folder writes `factory-fresh-home: --home <folder> is not an absolute folder other than /` and returns 2. A `--keep` that is not `inside_home` writes `factory-fresh-home: --keep <path> is not a path inside the home` and returns 2. In each of these cases nothing is removed.
 - Otherwise it calls `clear_home(home, kept, owned=owned or own_entry)`, writes one line `factory-fresh-home: <fault>` per fault and returns 1 when there is one, 0 when there is none. It writes nothing on success.
 - `python -m factory.entry.fresh_home` runs `main()` and exits with its status. No console script is added (`pyproject.toml` stays as it is).
 
@@ -222,14 +224,15 @@ Tests (the tester writes them): `tests/domain/test_agent_home.py`, `tests/adapte
 7. A folder the agent closed: an owned `.claude/projects` with mode `0o000` holding a file is removed whole, and `clear_home` gives `[]`.
 8. Links (rows of one parametrized test): an owned link `.claude/link` to a folder outside the home is removed, and the folder it pointed to and its file stay; a link to a kept path is removed and the kept path stays; with `kept` `[".config/sso"]`, an owned link `.config` to a folder outside the home that holds `sso/login` and `work.py` is removed, and that folder and both its files stay.
 9. A fault: with an `owned` that raises `PermissionError(13, "Permission denied")` for `.cache/a` and answers true otherwise (the tests cannot make an unremovable entry without root), `clear_home` gives `[".cache/a: Permission denied"]`, the walk goes on, and `.cache/b` beside it is removed.
-10. `main` (rows of one parametrized test, `stderr` a `StringIO`): `["--home", <home>]` over a home holding only owned files returns 0, writes nothing, and leaves the home empty. `["--home", <home>, "--keep", "a"]` keeps `a`. `[]` and `["--keep", "a"]` return 2 with the usage line. `["--home", "relative"]`, `["--home", "/"]` and `["--home", <missing folder>]` return 2 with `factory-fresh-home: --home <folder> is not an absolute folder other than /`. `["--home", <home>, "--keep", "../x"]` returns 2 with `factory-fresh-home: --keep ../x is not a path inside the home`. In each row that returns 2, the home's files are all still there.
+10. `main` (rows of one parametrized test, `stderr` a `StringIO`): `["--home", <home>]` over a home holding only owned files returns 0, writes nothing, and leaves the home empty. `["--home", <home>, "--keep", "a"]` keeps `a`. `[]` and `["--keep", "a"]` return 2 with the usage line. `["--home", "relative"]`, `["--home", "/"]`, `["--home", "//"]`, `["--home", "/home/.."]` and `["--home", <missing folder>]` return 2 with `factory-fresh-home: --home <folder> is not an absolute folder other than /`. `["--home", <home>, "--keep", "../x"]` returns 2 with `factory-fresh-home: --keep ../x is not a path inside the home`. In each row that returns 2, the home's files are all still there.
 11. `main` with the `owned` of criterion 9 returns 1 and writes `factory-fresh-home: .cache/a: Permission denied`.
 12. Modes of entries that are not `owned`: a not-owned folder `.claude/agents` at mode `0o500` and a not-owned file `.claude/settings.json` at mode `0o444` keep their modes after `clear_home`.
 13. An owned folder that holds an entry that is not `owned`: an owned `.cache/x/` holding a not-owned file `.cache/x/f`, beside a kept path outside it, stays with its file after `clear_home`, and an owned empty folder `.cache/y` is gone.
 14. The home itself stays: `clear_home` on a home in `tmp_path` that holds only owned files and folders, with `kept` `[]`, gives `[]` and leaves the home an existing, empty folder.
 15. `main` refuses the other shapes of arguments too (rows of the parametrized test of criterion 10): `["--home"]`, `["--home", <home>, "--keep"]` and `["--home", <home>, "--kept", "a"]` return 2 with the usage line, and the home's files are all still there.
-16. `make check` stays green.
-17. docs: `docs/project-guide/agents.md`, a new section *The fresh home* after *The shared launch module*: the program, its arguments and exit statuses, the rule of `fate` and `removed_when_empty` (the user's own entries go, other users' stay, kept paths and what lies beneath them stay), that it never follows a link and has no default home, and that S0004 starts it. `docs/project-guide/README.md`: the index names the new modules under the agents domain. `docs/decisions.md`: none in this story; S0004 writes the entry.
+16. `own_entry` (rows of one parametrized test): a file the test made in `tmp_path` is true; a link the test made in `tmp_path` that points to `/` is true (the link itself is judged, not followed); `/` itself is false (that row skipped when the tests run as root, who owns `/`).
+17. `make check` stays green.
+18. docs: `docs/project-guide/agents.md`, a new section *The fresh home* after *The shared launch module*: the program, its arguments and exit statuses, the rule of `fate` and `removed_when_empty` (the user's own entries go, other users' stay, kept paths and what lies beneath them stay), that it never follows a link and has no default home, and that S0004 starts it. `docs/project-guide/README.md`: the index names the new modules under the agents domain. `docs/decisions.md`: none in this story; S0004 writes the entry.
 
 ## Smoke test
 
@@ -421,3 +424,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 7 new, 33 known, 3 gone
 22. factory: started review as self.
+23. reviewer: Review, round 1. Group 1 (acceptance criteria) fails, so I stopped there. I read the diff against the Interface and the criteria. Criteria 1 to 15 each have a test that checks what the criterion says, including the rows the human added in entry 17 (`root-double-slash`, `root-through-parent`). The coder's `make check` was green (entry 21). Round 0's finding 3 is fixed: `src/factory/entry/fresh_home.py` `_home` now refuses a home that resolves to `/`.
+
+    1. criterion 16 added: it needs its test. `src/factory/adapters/home_files.py` `own_entry` is the one production check of ownership, and the program's safety depends on it. No test reaches it except where it answers true (criteria 7, 8 and 14 use the default on files the test user owns). That means a `return True` mutant survives, and so does `path.stat()` in place of `path.lstat()`, which would break the Interface's "not followed if it is a link". Fix: one parametrized test whose rows are: a file the test made in `tmp_path` is true; a link the test made in `tmp_path` that points to `/` is true; `/` itself is false, that row skipped when the tests run as root. No code change is needed. This is a gap in the story, not in the tester's work: the Interface states the rule, but no criterion named it.
+
+    description corrected: Interface, `main`: "A `--home` that is not absolute, is `/`, or is not an existing folder" -> "A `--home` that is not absolute, resolves to `/`, or is not an existing folder" (the human's answer, entry 17).
+    description corrected: criterion 10: "`["--home", "relative"]`, `["--home", "/"]` and `["--home", <missing folder>]`" -> "`["--home", "relative"]`, `["--home", "/"]`, `["--home", "//"]`, `["--home", "/home/.."]` and `["--home", <missing folder>]`" (the human's answer, entry 17; the tester's rows from entry 19 already test it).
+
+    The closing criteria are renumbered to 17 (`make check`) and 18 (`docs:`).
+
+    Earlier tests:
+    - `tests/entry/test_wiring.py`: changed under the human's leave in the feature's decision 14, which the story's Interface repeats. Only the expected set gains `factory.entry.fresh_home`; nothing else in the test changed.
+
+    Notes:
+    - `tests/adapters/test_home_files.py` and `tests/entry/test_fresh_home.py`: each defines its own `home` fixture that makes `tmp_path / "home"`. The entry one also fills the home. The shared part could be one fixture in `tests/conftest.py`.
+    - `tests/domain/test_agent_home.py` `test_kept_paths_...`: `pytest.raises(..., match=refused)` reads `../x` as a regex, so its dots match any character. `re.escape(refused)` would pin the exact text.
