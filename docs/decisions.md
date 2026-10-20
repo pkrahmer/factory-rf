@@ -843,11 +843,11 @@ Date: 2026-10-20 (F0029-S0001). opencode 1.19.3 makes `~/.config/opencode` on it
 
 ## The tests set their own umask, and uv syncs under the caller's
 
-Date: 2026-10-20 (F0033-S0001; F0033 decisions 1 and 2). On 2026-10-19 an agent's run, as `agent`, left `factory-0.1.0.dist-info` in `.venv` as `drwxr-sr-x` with `-rw-r--r--` files. `make test` ran `umask 022` before `uv run pytest`, and `uv run` syncs `.venv` first, so the reinstall ran under `022` as well. The factory's next `make lint`, as `factory`, could not remove the folder, and the instance stopped with `main_branch_failing`.
+Date: 2026-10-20 (F0033-S0001; F0033 decisions 1 and 2). On 2026-10-19 an agent's run, as `agent`, left `factory-0.1.0.dist-info` in `.venv` as `drwxr-sr-x` with `-rw-r--r--` files. `make test` ran `umask 022` before `uv run pytest`, and `uv run` syncs `.venv` first, so the reinstall ran under `022` as well. The factory's next `make lint`, as `factory`, could not remove the folder, and the instance stopped with `main_branch_failing`. The reverse failed too: the factory's own `make test` left `.venv` with factory-owned `644` files that an agent's `uv run` could not replace.
 
 - Decision: `pytest_configure` in `tests/conftest.py` sets the process umask to `0o022` (`TESTS_UMASK`) for every pytest run, whatever umask it started under. The tests' checkouts stay not group-writable, as the seal requires, and a module run alone with `uv run pytest <module>` gets the same umask as `make test`.
 - Decision: the `Makefile`'s `test` recipe sets no umask, so uv syncs `.venv` under the caller's umask: `002` in the container and under `sudo`. `make mutants` keeps its `umask 022`.
-- Rejected: `UV_NO_SYNC` for agents (an agent would then run against a stale environment after a change to `pyproject.toml`); a repair of modes after every agent call (a second mechanism that must run on every path, including a crash); a shell wrapper in the recipe (it moves the umask but still wraps `uv`, and the fault would come back with the next recipe that calls `uv`).
+- Rejected: `UV_NO_SYNC` for agents (an agent's `make check` after a dependency change would test a stale environment); a repair of modes after every agent call (it fixes the symptom, needs a new step as `agent`, and misses the factory's own `644` files); a shell wrapper in the recipe, `uv run sh -c 'umask 022; exec pytest ...'` (a test module run on its own with `uv run pytest <module>` would not get the tests' umask, and the hook in `tests/conftest.py` makes the `Makefile` simpler).
 
 ## No stage writes a .claude folder at any depth
 

@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 326
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T03:46:27.348948Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T03:46:27.348948Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T03:46:50.056037Z'
+  stage: docs
+  run: f697011ef41c4ad5be10bba6ded9f89f
 ---
 
 # The decision log gives the feature's reasons for the rejected umask fixes
@@ -135,3 +137,22 @@ Expect: `0`
    - 5, work item hygiene: the journal explains why the coder built nothing: the decision log belongs to the documenter. The `## Description` matches what was built, which is nothing yet. Criterion 2 names every edit to the entry *The tests set their own umask, and uv syncs under the caller's*: the reverse direction, the three reasons, the phrase that goes, and what stays. It also names the documents that need no change, so the documenter can work from it.
    - 6, earlier tests: the diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: Files changed: `docs/decisions.md` only, in the entry *The tests set their own umask, and uv syncs under the caller's*.
+    - Opening paragraph: added the reverse direction. The factory's own `make test` left `.venv` with factory-owned `644` files that an agent's `uv run` could not replace.
+    - *Rejected* line: now gives F0033's reasons from decisions 1 and 2.
+      - `UV_NO_SYNC`: an agent's `make check` after a dependency change would test a stale environment.
+      - A repair of modes after every agent call: it fixes the symptom, needs a new step as `agent`, and misses the factory's own `644` files.
+      - The shell wrapper `uv run sh -c 'umask 022; exec pytest ...'`: a test module run on its own with `uv run pytest <module>` would not get the tests' umask, and the hook in `tests/conftest.py` makes the `Makefile` simpler.
+    - The phrase "the fault would come back with the next recipe that calls `uv`" is gone. The date, the title and the two *Decision* lines are unchanged.
+
+    I ran both smoke-test blocks. The three search strings are found in the entry, and the count of the removed phrase is 0. I compared the wording with F0033's `feature.md` (*Goal*, second paragraph; decisions 1 and 2).
+
+    Cross-read and found current: `README.md`, `docs/operator-guide.md` and the project guide. The criterion says none of them change, and the diff changes no behaviour.
+
+    I ran no `make check`, because I changed only a document and the factory runs the checks after this stage.
+
+    Stale text I noticed but did not touch: none. The diff has no code change, so I found nothing for the coder.
+
+    `check`: check: green (not run again: passed on tree b1fcf2631b53 at 2026-10-20T03:44:44Z)
+    `secrets`: secrets: green (0.7 s)
+    `documents`: documents ok
