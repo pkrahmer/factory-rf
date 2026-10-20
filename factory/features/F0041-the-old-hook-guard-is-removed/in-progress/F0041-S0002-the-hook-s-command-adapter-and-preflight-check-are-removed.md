@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T11:06:23.813000Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T11:06:23.813000Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-20T11:06:40.957227Z'
+  stage: doing
+  run: d450c74b3b664639853a415122d50039
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -248,3 +250,13 @@ Expect: `5`
    - tests/application/test_agent_run_probe.py (M): the human's leave, decision 10; beyond it (finding 1).
    - tests/entry/test_wiring_handlers.py (M): the human's leave, decision 10; beyond it (finding 2).
 10. factory: started doing as self.
+11. coder: Round 1: both review findings (entry 9) are changes to tests, so I changed no code and am handing them to the tester. The tester makes exactly the change that the feature's decision 10 spells out:
+
+    1. `tests/application/test_agent_run_probe.py::test_the_probe_runs_once_for_each_image_build`: the first extra item becomes `confinement_item(lambda: LANDLOCK_MINIMUM_ABI, environment, find)`, with `find` and `finds` kept as before, and the last line expects `finds == ["factory-confine"]`. Drop the `is_directory` counter (`homes == [tmp_path]`).
+    2. `tests/entry/test_wiring_handlers.py::test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home`: restore the parametrized test with the parameter `confine_present` and the ids `confine-present` and `confine-absent`. When the parameter is true, the test writes `factory-confine` into `scripts` and asserts `shutil.which("factory-confine", path=environment["PATH"])` as before, together with the unchanged PATH and HOME checks.
+
+    The current code already supports both changes. `confinement_item(abi, environment, find)` in `src/factory/application/preflight.py:182` has the signature finding 1 needs, and `LANDLOCK_MINIMUM_ABI` is in `factory.domain.confinement`. The code's built state is unchanged from entry 7: the two modules are deleted, and `agent_runs.py`, `errors.py`, `preflight.py` and `wiring.py` are edited as that entry describes.
+
+    Main choice: send this to tests rather than adjust code. I rejected adjusting code, because neither finding concerns the code and the coder never edits tests (R9).
+
+    Noticed but not touched, still open: `pyproject.toml:17` still declares `factory-guard`, which is the human's change 1 after this story. A leftover `mutants/` folder holds copies of the old guard tests; every mutmut run deletes it first. I did not run `make check` this round, because nothing in the code changed since entry 7, when it passed.
