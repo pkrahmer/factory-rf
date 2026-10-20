@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T10:03:42.595272Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T10:03:21.172686Z'
   stage: intake
   run: af1895c5d780472585064a41fbbbb25b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:03:42.595272Z'
+  stage: tests
 ---
 
 # The Claude Code runtime registers no write hook
@@ -120,3 +129,4 @@ Expect: `7`
    - Smoke test: both blocks are runnable. The first runs a stand-in `claude` through the real runtime unconfined and confined and prints one line per run. The second counts the agents without the old clause. Each `Expect:` gives exact output to compare against. No pytest command is involved, so there is no `-q` issue.
    - Architecture: the change stays inside `factory.adapters` (the Claude wrapper) plus the shipped agent files under `claude/`. No new dependency, layer or interface. `factory-guard` and `GUARD_COMMAND` stay until S0002, as the Description says.
    - Scope: it is within F0041's S0001 scope, and nothing in "Out of scope" is touched. The test changes are covered by the human's leave in decision 9, including the two tests added in the human's answers of 2026-10-20.
+4. factory: started tests as self.
