@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 314
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T01:47:12.807308Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T01:47:12.807308Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T01:47:42.672299Z'
+  stage: review
+  run: 9fb4b0c9f13a43a8b15b2da9b50b9aa6
 ---
 
 # The tests pin the refusal reason after the role's own result, and the board's absent and blocked values
@@ -170,3 +172,20 @@ Expect: four lines, `Too wide. Cut the second story.`, `features`, `work items` 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the diff, `tests/acceptance_support.py`, `tests/domain/test_acceptance_booking.py`, `tests/domain/test_acceptance_refusal_edges.py` and `tests/domain/test_board_absent_values.py`, and checked them against the work item.
+   - Criterion 1: `test_the_refusal_reason_starts_after_the_roles_own_last_result` has three rows (`other-role-result`, `role-question`, `role-result`). They hold the criterion's exact entries and expected reasons, and they cover the failing side of the Interface rule: a later `result` of another speaker and a later record of the role of another kind leave the reason unchanged.
+   - Criterion 2: `test_a_refusal_books_the_reason_after_the_roles_own_last_result` compares the whole body with the criterion's text, character for character.
+   - Criterion 3: `test_a_refusal_writes_the_whole_body_with_the_recommendation_before_the_journal` has the criterion's state and body, and checks the whole body, ending in one newline.
+   - Criterion 4: `test_a_work_item_without_a_state_shows_every_state_value_as_absent` checks the `BoardRow` for equality and the exact `render_board` output.
+   - Criterion 5: one parametrized test with the rows `absent` and `blocked`; each checks the whole `render_board([], [row])` output.
+   - The Interface states no numeric limits, so there is no boundary to test on both sides.
+   - Coder's entry 7: the factory's `make check` was green.
+   - Architecture and security: nothing under `src/` changes, and the diff adds no suppression marker.
+   - Hygiene: the description and the docs criterion (`none`) match what was built.
+
+   `ROLE` and `ON` repeat the module constants that other acceptance test modules also hold. I did not count that as a copied helper: the project's test modules each declare these constants themselves.
+
+   Earlier tests:
+   - tests/domain/test_acceptance_booking.py: changed under the standing leave to move a shared test helper in `CLAUDE.md` (*Tests*), which the story's Interface also names. Its `_document` moved to `tests/acceptance_support.py` as `report_of`. Its three call sites now use `report_of`, and every test keeps its name and what it checks.
