@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T18:40:57.863065Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,12 @@ journal:
   kind: started
   at: '2026-10-20T18:40:57.863065Z'
   stage: doing
+- number: 26
+  speaker: coder
+  kind: result
+  at: '2026-10-20T18:41:24.344513Z'
+  stage: doing
+  run: fb8132b1e6154639bed1a80031238262
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -452,3 +454,14 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: none. The diff only adds `tests/adapters/test_make_commands_user.py` and changes no test file that `main` already holds.
 25. factory: started doing as self.
+26. coder: Round 1: the reviewer's entry 24 adds two criteria, and each one only needs its test. I changed no code (R9, stage step 2). The tester should add these to `tests/adapters/test_make_commands_user.py`:
+    - Criterion 10: in `test_the_command_runs_through_sudo_timeout_and_env_with_only_the_user_s_environment`, assert that the environment the stand-in `sudo` records for its first call (`SudoCall.environment`) holds no `FACTORY_TOKEN_FILE`.
+    - Criterion 11: add a row to `test_only_sudo_lines_and_a_failing_status_are_a_refusal`. In it the stand-in `sudo` exits 1 with empty standard error and runs nothing, and the expected result is `failed` with `exit_status` 1 and no error raised.
+
+    I checked by reading `src/factory/adapters/make_commands.py` that the code already does both, but I have not run either new test, because they don't exist yet:
+    - The `sudo` request takes its `env` from the `Launch` that `launch` returns (line 167, `env=started.env`). The Interface says that `env` is `{}`.
+    - `_refusal_line` returns `None` when there are no non-blank lines (lines 56–59), so a failing status with no output stays `failed`.
+
+    Nothing else changed. No refactor this round: I made no code change. The Description still matches what was built. The reviewer already reworded criteria 1 and 9 as the human answered in entries 9 and 16.
+
+    Noticed, not touched: nothing new.
