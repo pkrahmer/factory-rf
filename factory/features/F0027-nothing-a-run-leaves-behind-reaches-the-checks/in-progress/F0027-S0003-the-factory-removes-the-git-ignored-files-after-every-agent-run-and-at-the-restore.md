@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T15:15:27.003923Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-10-20T15:15:05.342498Z'
   stage: tests
   run: 904310c40c3f4d17849942efb9a98f53
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:15:27.003923Z'
+  stage: doing
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -324,3 +333,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: FAILED tests/adapters/test_git_cli_work_tree.py::test_the_work_tree_id_is_the_tree_a_commit_records[edited-untracked-deleted] - AssertionError: assert '78031b56ee55...d6f3e7b31b1dc' == 'c044850cabf...
+16. factory: started doing as self.
