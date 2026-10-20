@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T23:30:34.007509Z'
   stage: acceptance
   run: e662c42e2d144e9a83cad24a2b5a2f81
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T23:31:54.908360Z'
+  stage: done
 stories: [F0030-S0001, F0030-S0002, F0030-S0003]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of A command stopped at its time limit leaves no process running
@@ -184,3 +189,4 @@ None. No finding calls for a change. The remarks under 4 and 5 are cosmetic or a
    6. Decisions: the feature's decisions 1 to 11 are listed. Decisions 12 and 15 are moot, 13 stays at KILL only, and 14 was answered by the human. From the journals: S0002's scope question was answered (a), `copy2` was chosen over `copyfile` plus `copystat`, and `read-tree` and `--really-refresh` were rejected. No earlier test was changed.
    7. Slow checks: `make check` green (test 63.2 s, 99.14 % coverage) and `documents ok`. `duplicates` reports 6 new, none of them in F0030's code (`output_abandoned` comes from F0040-S0005). `test_process_session` takes 100.4 s summed by design, about 14 % of the suite. Disk did not grow (/work 0.5 GB used at the start, 0.0 GB now).
    8. Cost: 28 runs, 36.2 min, $6.73. S0001 stands out ($4.94, 15 runs, a stall and two rework rounds). S0002 cost $0.99 and S0003 $0.80; about $0.26 of S0003 went to tester and coder runs that confirmed a no-op. One question was answered (S0002's intake scope question), with 0.0 h waited, so S0002 needed the human most.
+3. factory: done (pull request merged); cost: 1 runs, 4.1 min, 22 turns, 74513 tokens in (1143128 more from cache), 16111 out, $1.15
