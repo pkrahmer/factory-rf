@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 328
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T03:54:43.210047Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:54:43.215728Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T03:54:58.544764Z'
+  stage: intake
+  run: 1b5acae23a004518ba612ac527dedc42
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:55:18.972306Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T03:57:20.291505Z'
+  stage: tests
+  run: a0c12a0503ad410d8ab44a40ea4c705b
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:57:40.847703Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T03:59:43.842106Z'
+  stage: doing
+  run: 7f072df7199f4c4cad8f13aadb147802
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:00:04.353575Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T04:00:32.818794Z'
+  stage: review
+  run: ebe8227366a241c0b854d905185fca22
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:00:53.319520Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T04:01:18.980441Z'
+  stage: docs
+  run: 07e05329e5fa45c29fee503924c4af36
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:01:39.588563Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T04:02:01.913174Z'
+  stage: smoke-test
+  run: f722a0e106ec48aab13e9279724a3af1
+---
+
 # The reviewer corrects a stale Description itself
 
 ## Description
@@ -41,3 +125,97 @@ grep -c -F '5. **Work item hygiene**: the journal explains the main decision and
 Expect: `1`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: one file, `claude/agents/reviewer.md`, section *Role*. The anchor paragraph (line 68, ending `A criterion that needs a code change stays a finding or a question.`) and the `## Stage` heading (line 70) exist as the Interface describes. The new paragraph's text is given in full. The helpers it names exist (`agent_body` in `tests/shipped_agents.py`, and the sibling module `tests/test_claude_agent_texts_review_leave.py`).
+   Criteria: 1 and 2 are the paragraph's text and its place, with exact boundaries. 3 is one parametrized test with a row per agent (reviewer 1, the six others 0). 4 is the unchanged item 5, which occurs once. 5 and 6 are the closing criteria. Each is testable by one test function. Every clause of the paragraph (the correction, the entry format, "not a finding" with `docs`, and the finding-or-question side where nothing settles it) lies inside the exact text that criterion 1 pins. The failing side of "only when settled" is therefore pinned by that text.
+   Smoke test: both greps are runnable. The expected counts (seven lines with 0 or 1, and `1`) can be checked against the output.
+   Architecture: nothing under `src/` changes, so the layers are untouched. The change is an agent file under `claude/`, which the coder writes. The tests are under `tests/` at the root, as for the other agent-text modules.
+   Scope: it matches the feature's Scope and touches nothing in its Out of scope. No other agent changes, and there is no pipeline change. The story edits no test another story wrote, and the new test module is its own.
+4. factory: started tests as self.
+5. tester: Tests written for criteria 1 to 4 in one new module, reading the reviewer's text through `agent_body` (tests/shipped_agents.py) and `section_text` (factory.domain.sections), the same way tests/test_claude_agent_texts_review_leave.py does.
+   criterion 1: tests/test_claude_agent_texts_description.py::test_reviewer_role_holds_the_description_correction
+   criterion 2: tests/test_claude_agent_texts_description.py::test_description_correction_sits_between_added_criterion_and_stage (rows `after-added-criterion`: the added-criterion paragraph's last sentence + "\n\n" + `When the work item's`; `before-stage`: `when no stage can fix it.` + "\n\n## Stage")
+   criterion 3: tests/test_claude_agent_texts_description.py::test_only_the_reviewer_names_a_description_correction (one row per name in `SHIPPED_NAMES`: reviewer 1, the other six 0)
+   criterion 4: tests/test_claude_agent_texts_description.py::test_reviewer_checklist_keeps_its_work_item_hygiene_item
+   criterion 5: `make check` (the coder's gate), no test of its own.
+   criterion 6: docs, no test.
+   File created: tests/test_claude_agent_texts_description.py. No other test file changed.
+   Every module imported; nothing failed to import. `make test` fails as intended. These 4 fail because the paragraph is not in claude/agents/reviewer.md yet: the criterion-1 test, both rows of the criterion-2 test, and the `reviewer` row of the criterion-3 test. The criterion-4 test and the six 0-count rows pass already, because they check text that must stay unchanged. `make lint` is green. The type check was skipped, as this stage says.
+   Rejected: listing the seven agent names by hand in the criterion-3 test. `SHIPPED_NAMES` already holds exactly those seven, and tests/test_claude_agent_refusal.py parametrizes over it the same way.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/test_claude_agent_texts_description.py::test_description_correction_sits_between_added_criterion_and_stage[before-stage]
+6. factory: started doing as self.
+7. coder: Built: `claude/agents/reviewer.md`, section *Role*. I added the Interface's paragraph word for word, after the added-criterion paragraph and before `## Stage`, with one blank line on each side. No other line in the file changed, and nothing under `src/` or `tests/` changed.
+   Main choice: I copied the Interface's text exactly, because criteria 1 and 2 pin it to the character. I rejected rewording it or merging it into checklist item 5, since criterion 4 keeps item 5's exact line.
+   Refactor: I read the diff (2 inserted lines). Nothing needed changing.
+   Checks: `make check` is green (`check: green`), and the four new tests in tests/test_claude_agent_texts_description.py pass. The first smoke-test grep gives the expected seven counts: reviewer 1, the other six 0.
+   The journal does not change what the task means, so the Description stays as it is.
+   Noticed but not touched: the docs criterion (operator guide, decision log, playbook) is for the documenter.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   Read: the work item, and `git diff main...HEAD -- . ':!factory'`, which changes two files: `claude/agents/reviewer.md` (+2 lines) and `tests/test_claude_agent_texts_description.py` (new).
+   1. Acceptance criteria. The paragraph in `claude/agents/reviewer.md:70` matches the Interface's text exactly. It sits after the added-criterion paragraph with one blank line on each side, before `## Stage`, and the diff changes no other line of the file.
+      - Criterion 1: `test_reviewer_role_holds_the_description_correction` checks the whole paragraph inside `section_text(..., "Role")`.
+      - Criterion 2: `test_description_correction_sits_between_added_criterion_and_stage` has two parametrized rows that check the joins. Because each row is a substring check including `"\n\n"`, an extra blank line fails it too.
+      - Criterion 3: `test_only_the_reviewer_names_a_description_correction` has one row per name in `SHIPPED_NAMES`. That list holds exactly the seven files in `claude/agents/`: reviewer 1, the other six 0.
+      - Criterion 4: `test_reviewer_checklist_keeps_its_work_item_hygiene_item` counts item 5's exact line once in *Role*.
+      - The Interface states no limit and no rejected input; the side where nothing settles the Description lies inside the text that criterion 1 pins.
+      - Journal entry 7 records `check: green` after the coder.
+   2. Architecture: nothing under `src/` changes.
+   3. Security: there is no code, no new suppression marker and no secret.
+   4. Quality: the new test module follows the pattern of `tests/test_claude_agent_texts_review_leave.py` and uses `agent_body`, `SHIPPED_NAMES` and `section_text`. It copies no helper. The two sides of criterion 2 are rows of one parametrized test.
+   5. Work item hygiene: the Description matches what was built (one paragraph, only the reviewer, checklist item 5 unchanged). The journal gives the coder's choice and what was rejected. The docs criterion (6) still names what the documenter must write.
+   6. Earlier tests: none. The diff's only test file has status `A` (`tests/test_claude_agent_texts_description.py`), and it changes no test file that `main` already holds.
+10. factory: started docs as self.
+11. documenter: Documentation written from the docs criterion (6). No findings. The code matches the Interface: `claude/agents/reviewer.md` holds the paragraph word for word, and the diff changes nothing else in it.
+
+    Files changed (documents only, so I did not run `make check`; the factory's checks decide):
+    - `docs/operator-guide.md`, *The reviewer's notes and added criteria*: the first sentence now says "Three things", and a new last paragraph explains the `description corrected:` lines. It says the correction is not a send-back, counts no round, is read at the approval, and that an unsettled contradiction still comes back as a finding or a question.
+    - `docs/decisions.md`: new entry *The reviewer corrects a stale Description*. It gives the decision, the reasons (the human's decision of 2026-10-19 and the stale Descriptions of F0019-S0003, F0025-S0002 and F0026-S0002) and what was rejected (giving the coder the work item, leaving it to the human). I did not read the feature's `feature.md`, so the "F0034 decisions 1 to 3" in its date line comes from the docs criterion.
+    - `docs/operator-playbook.md`, section 3, check 2 at approval: added "and any `description corrected:`".
+
+    Cross-read and found current: `README.md` and `docs/project-guide/` (neither describes the reviewer's checklist, as the criterion says). `docs/project-guide/agents.md` and `work-items.md` mention the Description only as a section name, which is still true.
+
+    Stale text noticed and not touched: none.
+
+    `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T03:58:49Z)
+    `secrets`: secrets: green (1.6 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: both commands met their Expect lines. No findings.
+
+    I ran the two commands under `## Smoke test` from the repository root, as written and in order. Then I read the acceptance criteria again against the output.
+
+    Command 1: `grep -c -F 'description corrected:' claude/agents/*.md`
+    ```
+    claude/agents/acceptance-reviewer.md:0
+    claude/agents/coder.md:0
+    claude/agents/documenter.md:0
+    claude/agents/intake.md:0
+    claude/agents/reviewer.md:1
+    claude/agents/smoke-tester.md:0
+    claude/agents/tester.md:0
+    ```
+    Met: there are seven lines, the reviewer has 1 and the other six have 0, as expected.
+
+    Command 2: `grep -c -F '5. **Work item hygiene**: the journal explains the main decision and what was rejected; the `## Description` matches what was built;' claude/agents/reviewer.md`
+    ```
+    1
+    ```
+    Met: the output is `1`, as expected.
+
+    Criteria: the smoke test contradicts none of them.
+    - Criterion 3: command 1 gives the same counts the criterion asks for, one per agent.
+    - Criterion 4: command 2 finds checklist item 5 exactly once.
+    - Criteria 1 and 2: I also looked at `claude/agents/reviewer.md:68-72`. The new paragraph is at line 70, after the added-criterion paragraph (line 68), with one blank line on each side and `## Stage` at line 72. This matches where criterion 2 puts it.
+    - Criteria 5 and 6 (`make check` and docs) are not what the smoke test checks. The journal records `check: green` and the docs stage's checks as green.
+
+    Nothing is open.

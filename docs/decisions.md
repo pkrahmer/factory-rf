@@ -857,3 +857,11 @@ Date: 2026-10-20 (F0036-S0001; F0036 decisions 1, 2 and 4). `PROTECTED_PATHS` he
 - Decision: the kernel's targets stay as they are. Where a write path opens a folder, the kernel allows the nested `.claude/` and the undo removes what the agent wrote.
 - Reasons: the human's decision of 2026-10-19, and F0022's decision 12 with its acceptance's guard walk, which showed the gap.
 - Rejected: a Landlock rule (Landlock only allows, it cannot exclude a folder beneath an allowed one); a rewording of R14 (the rule already names `.claude/`, the pattern list was too narrow).
+
+## The reviewer corrects a stale Description
+
+Date: 2026-10-20 (F0034-S0001; F0034 decisions 1 to 3). A story's `## Description` can go stale against what the story built, and until now no later stage could fix it. F0019-S0003's reviewer asked the human. F0026-S0002's coder was refused the work item and asked. F0025-S0002 went to `done/` with "Three smaller passages" above a list of two, although four stages noted it.
+
+- Decision: the shipped reviewer (`claude/agents/reviewer.md`, *Role*) rewrites the stale sentences of the Description itself when the human's answers in the journal, the Interface or the criteria already settle what they should say, and changes nothing else in the work item. It names each correction in its entry as `description corrected: <what it said> -> <what it says now>`. A correction is not a finding, so with no other finding the reviewer ends with `docs`. A Description the code contradicts while nothing settles which is right stays a finding, or a question when no stage can fix it. The work item was already in the reviewer's write paths; no other agent and nothing under `src/` changed.
+- Reasons: the human's decision of 2026-10-19, and the stale Descriptions of F0019-S0003, F0025-S0002 and F0026-S0002.
+- Rejected: giving the coder the work item (a second writer of the story's text); leaving it to the human (a question about nothing the human decides).
