@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T10:32:00.054665Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-20T10:31:39.390415Z'
   stage: review
   run: 8a0cf9d0cc0245d2a9980cb544aa0e4f
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:32:00.054665Z'
+  stage: docs
 ---
 
 # The Claude Code runtime registers no write hook
@@ -358,3 +367,4 @@ Expect: `7`
     - tests/adapters/test_claude_runtime_login.py: human's leave, the feature's decision 9, extended by the human's answer of 2026-10-20 (pre-check `F0041-S0001-1.md`).
     - tests/adapters/test_claude_runtime_resume.py: human's leave, the feature's decision 9, extended by the human's answer of 2026-10-20 (pre-check `F0041-S0001-1.md`).
     - tests/test_claude_agent_refusal.py: human's leave, the feature's decision 9. Only `_WRITE_PATHS_RULE` changed (its text rewrapped), and every test keeps its name.
+18. factory: started docs as self.
