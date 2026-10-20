@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-20T01:39:23.559590Z'
   stage: smoke-test
   run: d84bbe1a78e14373a90a5927b94b2e5e
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-20T01:41:45.906307Z'
+  stage: approval
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -311,3 +316,4 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
     - Criteria 4 to 6: the smoke test does not exercise them, and nothing it printed goes against them.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 6.0 min, 46 turns, 174823 tokens in (675337 more from cache), 15342 out, $1.66
