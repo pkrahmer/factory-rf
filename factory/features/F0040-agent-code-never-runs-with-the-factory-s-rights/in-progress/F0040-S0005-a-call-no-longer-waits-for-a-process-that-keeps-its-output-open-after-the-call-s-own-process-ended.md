@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 363
 comments_read: [6300695093]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T20:25:59.533786Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T20:25:41.530548Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:25:59.533786Z'
   stage: intake
 ---
 
@@ -134,3 +143,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    5. Add the no-limit row for `run_streaming`.
    Criterion 2's wording: use your checkable form (the call returns after at least 1 and less than 15 seconds, with `late` in the output).
    Keep every new row's limits and waits as short as the rule allows; the suite's slowest tests are already time-limit tests.
+5. factory: started intake as self.
