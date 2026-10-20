@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 369
 comments_read: [6303767591]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T23:06:10.541077Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-20T23:06:10.541077Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-20T23:06:31.331049Z'
+  stage: intake
+  run: bd118f63e5884337bf761844911254ee
 ---
 
 # The work tree's id sees a change made in the tick of the last index write
@@ -108,3 +110,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the change is inside the adapters layer, in the git wrapper, as `CLAUDE.md` requires.
 4. 2026-10-20 human: Answer (2026-10-21): (a), done on `main`: F0030's `feature.md` now lists S0002 and S0003 under *Stories* (proposed by the acceptance) and names S0002's files (`src/factory/adapters/git_cli.py`'s `work_tree_id`, `tests/adapters/test_git_cli_work_tree_tick.py`) and S0003's documents under *Scope*. Accept the story.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete. It names `factory.adapters.git_cli.GitCli.work_tree_id` with an unchanged signature, and one change: `shutil.copy2` instead of `shutil.copyfile`. It also lists what stays as it is.
+   - Criteria: criterion 1 is one parametrized test with rows `same-size` and `other-size`, each checked against `HEAD^{tree}` after `GitCli.commit("edit")`. The copy2 clause is covered by the `same-size` row, which fails before the change. The unchanged rules (no index starts empty, etc.) add no new behaviour. The two closing criteria (`make check`, `docs:`) are present.
+   - Smoke test: runnable. The block builds a throwaway repo and calls the real `GitCli`. Its `Expect:` line is `True`, which the output can be checked against. It runs no pytest, so the `-q` question does not arise.
+   - Architecture: the change is inside `factory.adapters`, in the git wrapper, as `CLAUDE.md` requires. The new test module sits under `tests/adapters/`, mirroring the package.
+   - Scope: journal entry 4 carries the human's answer to my question 1. F0030's `feature.md` now lists S0002 and names its files under *Scope*. The story is in scope. The story changes no earlier test and adds no dependency or suppression marker.
