@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 315
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T01:54:45.980303Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T01:54:25.524657Z'
   stage: tests
   run: a51c56aa11c348bba549e8d58e1a10ad
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:54:45.980303Z'
+  stage: doing
 ---
 
 # The tests pin seven small rules on both sides
@@ -140,3 +149,4 @@ Expect: four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.5 s)
+6. factory: started doing as self.
