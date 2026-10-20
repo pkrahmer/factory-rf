@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 319
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T02:30:09.113580Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T02:29:48.567204Z'
   stage: intake
   run: 6647a6b51df04e93904184cb58c50319
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:30:09.113580Z'
+  stage: tests
 ---
 
 # The tests pin the stage's aftermath, the opening and the tick at their edges
@@ -101,3 +110,4 @@ Expect: four lines, `None`, `Stalled (attempt 1 of 2): the agent gave no valid d
    Smoke test: it is a runnable `uv run -q python` heredoc using existing domain functions, and its `Expect:` line lists four checkable output lines.
    Architecture: tests only, under `tests/` mirroring `application/`, with shared helpers in a root support module as CLAUDE.md allows. Nothing is built in a layer and no code changes.
    Scope: it is within F0028 (S0008 in the feature's scope and stories list) and touches nothing in "Out of scope"; the equivalent mutants (decision 10) are left out as the Description says.
+4. factory: started tests as self.
