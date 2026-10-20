@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T01:37:51.807075Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-20T01:37:31.309603Z'
   stage: doing
   run: 1d901092d1ce49e081837fd6397f1b80
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:37:51.807075Z'
+  stage: review
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -230,3 +239,4 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+16. factory: started review as self.
