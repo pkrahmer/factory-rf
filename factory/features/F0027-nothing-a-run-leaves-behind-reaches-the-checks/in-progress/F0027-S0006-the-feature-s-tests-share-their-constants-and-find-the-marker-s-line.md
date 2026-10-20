@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 360
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T19:32:39.049289Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T19:32:17.437951Z'
   stage: intake
   run: 129a989c94d34fb1b4cb4252bab4011f
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:32:39.049289Z'
+  stage: tests
 ---
 
 # The feature's tests share their constants and find the marker's line
@@ -82,3 +91,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: both commands are runnable grep calls with checkable `Expect:` lines. Neither runs pytest, so the `-q` rule does not apply. The second grep ends in `|| true`, so a count of 0 does not fail it.
    - Architecture: only files under `tests/` change, and they sit in the shared support modules `CLAUDE.md` describes. No layer is touched.
    - Scope: the story stays inside F0027's S0006 line and decision 16. It adds nothing to `feature.md`'s Out of scope.
+4. factory: started tests as self.
