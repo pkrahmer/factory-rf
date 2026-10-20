@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 351
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T12:02:35.836476Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T12:02:14.610052Z'
   stage: intake
   run: 0eb8fd1c544642408534d74d69e21b40
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:02:35.836476Z'
+  stage: tests
 ---
 
 # A program ends every other process of the user it runs as
@@ -196,3 +205,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: three runnable commands, with no pytest and so no `-q` problem. I traced the third by hand: the table gives 7, 8, 10, 11 in order, `[7, 10]` follows, and two rounds give `0 [9, 9] [0.1] ''`. Each Expect line can be checked against the output. The second command's expectation assumes a non-root user, which the story's own criterion 11 also notes.
    Architecture: matches CLAUDE.md. The domain modules are pure. `adapters.process` stays the one module that starts processes and reads `/proc`. `entry.leftovers` imports the adapters for its defaults, and the story names the wiring test change (decision 16). It reuses F0030's reader and model, so there is no second helper.
    Scope: within F0027's scope for S0001 (the listed modules and tests). The test changes to other stories' tests are the ones decision 16 names, with the human's leave. Nothing is out of scope: nothing starts the program, since S0002 wires it.
+4. factory: started tests as self.
