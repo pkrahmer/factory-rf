@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T12:55:11.239208Z'
   stage: smoke-test
   run: 184bf2debdc141f292070d1806b9cecf
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T12:56:32.213884Z'
+  stage: approval
 ---
 
 # The follow-mode test reads only the Python sources
@@ -246,3 +251,4 @@ Expect: `1`
     - Criterion 5 is `docs: none`.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 5.5 min, 29 turns, 105057 tokens in (431548 more from cache), 8394 out, $0.91
