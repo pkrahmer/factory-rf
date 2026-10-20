@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T22:25:46.477210Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -175,6 +171,13 @@ journal:
   kind: started
   at: '2026-10-20T22:25:46.477210Z'
   stage: review
+- number: 31
+  speaker: reviewer
+  kind: question
+  at: '2026-10-20T22:26:44.995456Z'
+  stage: review
+  run: 3914fea83aff48ca8eeeed5bdaa3733c
+  blocked: question
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -542,3 +545,36 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 6 new, 33 known, 3 gone
 30. factory: started review as self.
+31. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`.
+
+    Groups 1 to 4 hold:
+    - **Criteria:** criteria 1 to 12 each have a passing test that checks what the criterion says. Criterion 12 (the factory's kill at the limit, which I added in entry 23) is now covered by `tests/adapters/test_sudo_agent_home.py::test_a_reset_the_factory_ended_at_its_limit_raises`. It reaches the `result.timed_out` side at `src/factory/adapters/agent_home.py:80`. The factory's `make check` after the coder was green (entry 29).
+    - **Architecture:** the layers hold. `AgentHome` is an ABC whose body is its docstring alone, and `SudoAgentHome` inherits it. The process is started only through `launch` and `run_process`.
+    - **Security:** there are no silencing markers.
+    - **Quality:** `_failure_line` copies no existing helper. `fresh_home_command()` at `src/factory/entry/wiring.py` builds `-I -B`, as the human's entries 14 and 15 ask.
+
+    Group 5 still fails, on my round-0 finding 2. No stage the pipeline allows to fix it has fixed it:
+
+    1. Five places in the work item still give the fresh-home command as `-I` without `-B`, against the human's entries 14 and 15 and against the code and tests:
+       - `## Interface`, the `fresh_home_command()` bullet (`[sys.executable, "-I", "-m", FRESH_HOME_MODULE]`)
+       - criterion 5 (`program=[sys.executable, "-I", "-m", ...]` and the expected arguments)
+       - criterion 10 (`fresh_home_command()` is `[sys.executable, "-I", "-m", ...]`)
+       - docs criterion 14 (`... /opt/factory/.venv/bin/python -I -m factory.entry.fresh_home ...`)
+       - the first smoke test's `program`
+
+       The fix is to add `-B` after `-I` in those five places. Unfixed, the documenter would write the wrong command into `docs/operator-guide.md`, and the smoke test would start the program as the tests did before the human's note.
+
+    **Why this is a question and not `doing`:** the coder and the tester cannot write the work item (entries 17, 19, 21, 25, 27, 29). My role lets me correct only the `## Description`, which I did in round 0. Another `doing` would loop without a fix and use up the round cap.
+
+    **Question for the human:** who adds `-B` after `-I` in the five places above? Nothing else changes, and no code or test changes.
+    - A: you allow the reviewer to make exactly that edit in the next review run, then pass to `docs` if nothing else is found.
+    - B: you make the edit yourself with your own commit, then comment so the review reruns.
+    - C: you leave the work item as it is and the documenter writes from the code. I advise against C: the docs criterion would then contradict the code.
+
+    I would choose A.
+
+    Earlier tests:
+    - `tests/test_wrapper_search.py`: changed under the human's leave in the feature's decision 14, named in the story's Interface. The only change adds `factory.adapters.agent_home` to the expected importers, which stays within that leave.
+
+    Notes:
+    - `tests/adapters/test_sudo_agent_home.py::test_a_reset_the_factory_ended_at_its_limit_raises` and `::test_the_reset_call_has_no_environment_and_the_limit_plus_the_sudo_grace` each build a `ProcessResult` inline. A small builder would read more simply. This is a quality point on a test file the diff adds, so it does not send the work item back.
