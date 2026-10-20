@@ -10,6 +10,9 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 .ONESHELL:
+# uv compiles .venv's bytecode at its sync, group-writable: a test child that starts it without
+# PYTHONDONTWRITEBYTECODE then writes nothing the factory's removal of ignored files cannot remove.
+export UV_COMPILE_BYTECODE := 1
 
 # `$(start)` opens a recipe and `$(green)` ends it with "<target>: green (<seconds> s)",
 # the line the factory's records of project commands read.
