@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655, 6298783444]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T19:05:12.489044Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -285,6 +289,11 @@ journal:
   at: '2026-10-20T19:04:51.310008Z'
   stage: docs
   run: 70e9193890814428b50583d95dbe9767
+- number: 51
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:05:12.489044Z'
+  stage: smoke-test
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -809,3 +818,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 3f8b7912b126 at 2026-10-20T19:01:35Z)
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
+51. factory: started smoke-test as self.
