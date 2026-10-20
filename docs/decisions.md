@@ -883,3 +883,11 @@ Date: 2026-10-20 (F0037-S0001; F0037 decisions 1, 2, 3 and 5). A kill during an 
 - Reasons: the fault is in the reader of the file, which serves all four record files, so one fix covers them.
 - Rejected: a wider `except` in `KnownResults._read` (decision 2; it would fix one of the four callers and hide other faults); decoding with replacement (decision 3; a line cut or damaged inside a JSON string could then validate as a record with a wrong text).
 - Open (decision 4): a record appended after a torn line lands on the torn line's line and is skipped with it. A later story may start a new line first.
+
+## A test whose child must act before its time limit gets ten seconds
+
+Date: 2026-10-20 (F0029-S0002). `test_the_temporary_folder_is_empty_at_each_call_and_gone_after_the_run[time-limit]` failed under a loaded `make check` on 2026-10-19: its limit of 3 s killed the probe, which starts through `factory-confine` and then a Python stand-in, before the probe wrote its call record. Seventeen more tests give a child that must act before the kill one to five seconds.
+
+- Decision: `tests/time_limits.py` holds `ROOMY_LIMIT` (ten seconds) and `ROOMY_BOUND_SECONDS` (25, the upper bound on the elapsed time of a run that `ROOMY_LIMIT` ends). Every test whose child must act before its limit (write a record or a pid file, print a line, finish a first call) uses them; a child that need not start to be killed keeps a shorter limit. The bound stays below every wait of the stand-ins the limit must end (30 or 60 s), so a missed kill fails.
+- Reasons: three seconds failed under load; a runtime's kill is measured from its own start, so a killed run still ends near the limit.
+- Rejected: waiting for the child's record before the limit counts (the limit is the runtime's own); five seconds (barely more than the three that failed); changing the shipped tester lesson now (the ten seconds are this repository's measure).

@@ -6,12 +6,16 @@ from pathlib import Path
 
 import pytest
 
+from factory.adapters import make_commands
 from factory.adapters.make_commands import MakeProjectCommands
+from factory.adapters.process import ProcessResult
 from factory.application.project_commands import ProjectCommands
 from factory.domain.checks import TargetTime
 from factory.domain.errors import ProjectCommandError
 from factory.domain.kill_points import KillPoint, KillPoints
 from process_support import is_gone
+from run_process_recorder import Recorder
+from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 LIMIT = timedelta(seconds=30)
 
@@ -57,11 +61,10 @@ def test_command_reaching_its_time_limit_is_killed(tmp_path: Path) -> None:
     commands = _commands(tmp_path, ("slow", f"@sleep 60 & echo $$! > {pid_file}; wait"))
     start = time.monotonic()
 
-    # Three seconds, not one: under `make test`'s parallel workers the shell may need more than a
-    # second to write the pid file, and a kill before that leaves no pid to check.
-    result = commands.run("slow", time_limit=timedelta(seconds=3))
+    # ROOMY_LIMIT: the shell must start its grandchild and write the pid file before the kill.
+    result = commands.run("slow", time_limit=ROOMY_LIMIT)
 
-    assert time.monotonic() - start < 8
+    assert time.monotonic() - start < ROOMY_BOUND_SECONDS
     assert result.status == "time_limit"
     assert result.exit_status is None
     assert is_gone(int(pid_file.read_text(encoding="utf-8")))
@@ -75,10 +78,17 @@ def test_time_limit_of_zero_or_less_is_rejected(tmp_path: Path, time_limit: time
         commands.run("check", time_limit=time_limit)
 
 
-def test_time_limit_of_one_second_runs(tmp_path: Path) -> None:
+def test_time_limit_of_one_second_runs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    recorder = Recorder()
+    recorder.results.append(
+        ProcessResult(exit_status=0, stdout="", stderr="", timed_out=False, duration=timedelta(0))
+    )
+    monkeypatch.setattr(make_commands, "run_process", recorder)
     commands = _commands(tmp_path, ("check", "@true"))
 
     assert commands.run("check", time_limit=timedelta(seconds=1)).passed is True
+    [request] = recorder.requests
+    assert request.time_limit == timedelta(seconds=1)
 
 
 @pytest.mark.parametrize(

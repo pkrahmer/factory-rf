@@ -1,3 +1,131 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 342
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T07:16:15.252042Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:16:15.259764Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T07:16:34.596236Z'
+  stage: intake
+  run: 1d25bb4768c9492b8f507c4ec5c79b15
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:16:55.360492Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T07:21:51.838372Z'
+  stage: tests
+  run: 3c421e11ceea42c0bfe4397e6e13b882
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:22:12.752391Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T07:25:16.374660Z'
+  stage: doing
+  run: 35f308c33d5e4c7f8e0b8296d812455d
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:25:36.981093Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T07:26:46.116735Z'
+  stage: review
+  run: 7a6d3c0b8f4f4975b2a5b8426bd72519
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:27:06.742515Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-20T07:27:18.747206Z'
+  stage: doing
+  run: cb17ffdc4830414e836da4b8289e6059
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:27:39.275045Z'
+  stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-20T07:30:49.231721Z'
+  stage: tests
+  run: 6e6c935b9dfa4b4d9fac6934bed47e11
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:31:10.248415Z'
+  stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-20T07:34:21.800276Z'
+  stage: doing
+  run: 66abd0b70079478fa9b14514e0b3013f
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:34:42.772468Z'
+  stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T07:35:30.090180Z'
+  stage: review
+  run: 026fedc98ef94073b2f632ba5fb1bca2
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:35:50.761829Z'
+  stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T07:36:26.209885Z'
+  stage: docs
+  run: b8551fdf234142d293b6e0dbe035f7be
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:36:47.343824Z'
+  stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T07:37:51.496755Z'
+  stage: smoke-test
+  run: 29f59b278807423f87e3d11eaa583cd2
+---
+
 # Every test whose child must act before its time limit gives it room to start
 
 ## Description
@@ -74,3 +202,185 @@ Expect: four lines, `tests/adapters/test_opencode_resume_session.py:0`, `tests/a
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: no module under `src/factory/` changes, which the story says outright. `tests/time_limits.py` is given in full: `ROOMY_LIMIT` (`timedelta(seconds=10)`) and `ROOMY_BOUND_SECONDS` (25), typed `Final`. Every changed test is named by module and test, and each says which constants go and which stay (`SHORT_LIMIT` for the removal test, `RETURNS_WITHIN_SECONDS` for the streaming tests' other tests).
+   Criteria: all seven are testable. Criterion 1 holds the numeric relations of the Interface and the stand-in waits (30 each) above the bound; `PAST_LIMIT_SECONDS` is checked above the limit and below the bound. Criteria 2 and 3 name for each killed run what the child must still have done before the kill. Criterion 4 gives the numbers for the rewritten resume test (2 s first call, 60 s resume wait, a request limit of at least the limit less the elapsed time and at most the limit less 2 s); the whole 10 s again fails it. Criterion 5 gives the rewritten one-second test, with the refused side kept in `test_time_limit_of_zero_or_less_is_rejected`. The failing side of the limit rule is covered: a missed kill fails because every stand-in waits longer than the bound. Criterion 6 is `make check` and criterion 7 is the docs criterion.
+   Smoke test: the first block runs pytest with `--no-header --tb=short` and no `-q`; its `Expect` counts `FAILED`/`ERROR` lines and the exit status, so it does not rely on a summary line. The second block's `grep -c` over three files and the `python -c` print give four lines whose text can be checked.
+   Architecture: tests only, under `tests/` at the root for the shared module and in the mirrored `tests/adapters/` for the changed ones. This follows CLAUDE.md. Nothing in `src/` or the layers is touched.
+   Scope: within the feature's S0002 scope and decisions 6, 7, 9 and 10. It stays out of the feature's "Out of scope" (shipped tester lesson, `RUNTIME_FOLDERS`, short-limit tests). The leave to change other stories' tests is given by the feature's decision 9. The `CLAUDE.md` rule is the human's change 2, not this story's. No questions.
+4. factory: started tests as self.
+5. tester: Wrote the shared limits module and changed the tests the Interface names. The feature's decision 9 gives the leave to change another story's tests. Each changed test keeps its name and what it checks. No production code changes, so the tests are green rather than red. `make test` passed in one run (coverage 99.16 %). `make lint` and `make types` are green. The coder has nothing to build and can go straight to `make check` and the docs criterion.
+
+   Criterion → test:
+   criterion 1: tests/test_time_limits.py::test_the_roomy_limit_leaves_room_and_stays_below_every_wait (rows: the limit, the bound, the room between them, the four `WAIT_SECONDS` above the bound, and `PAST_LIMIT_SECONDS` above the limit and below the bound)
+   criterion 2: tests/adapters/test_claude_runtime_confinement.py::test_the_temporary_folder_is_empty_at_each_call_and_gone_after_the_run[time-limit], ::test_a_wrapper_line_of_a_call_killed_at_its_time_limit_is_a_runtime_error; tests/adapters/test_claude_runtime_provider_limit.py::test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit; tests/adapters/test_claude_runtime_resume.py::test_first_call_ended_by_the_time_limit_is_not_resumed, ::test_call_killed_by_the_time_limit_has_no_model_duration (both rows), ::test_model_duration_of_a_resumed_run_adds_the_known_calls[resume ended by the time limit]; tests/adapters/test_opencode_budget.py::test_a_resume_past_what_is_left_of_the_time_limit_ends_the_run_by_time_limit; tests/adapters/test_opencode_resume_session.py::test_a_run_resumes_the_named_session_and_reports_the_first_session_of_its_events (rows timed-out-with-events, timed-out-resumed-without-events, last assertion); tests/adapters/test_opencode_events.py::test_a_call_past_its_time_limit_ends_by_time_limit_without_measures; tests/adapters/test_opencode_confinement.py::test_through_the_wrapper_the_temporary_root_is_empty_after_the_run[time-limit]; tests/adapters/test_opencode_sudo_time_limit.py::test_under_sudo_a_kill_at_the_limit_ends_time_limit_and_keeps_session_and_login (all four rows)
+   criterion 3: tests/adapters/test_process.py::test_child_is_killed_at_the_time_limit, ::test_grandchild_is_killed_with_the_child_at_the_time_limit (now also bounds the elapsed time by `ROOMY_BOUND_SECONDS`, as criterion 3 asks); tests/adapters/test_process_streaming.py::test_child_is_killed_at_the_time_limit_and_no_later_line_is_passed, ::test_child_that_closed_its_streams_is_killed_at_the_time_limit; tests/adapters/test_make_commands.py::test_command_reaching_its_time_limit_is_killed
+   criterion 4: tests/adapters/test_claude_runtime_resume.py::test_resume_gets_what_is_left_of_the_time_limit_and_unknown_measures (rewritten with the `recorder` fixture)
+   criterion 5: tests/adapters/test_make_commands.py::test_time_limit_of_one_second_runs (rewritten with `Recorder` through monkeypatch); test_time_limit_of_zero_or_less_is_rejected is unchanged
+   criteria 6, 7: no test (`make check`, docs).
+
+   Files created: tests/time_limits.py (as the Interface gives it), tests/test_time_limits.py.
+   Files changed (earlier stories' tests, under the feature's decision 9): tests/adapters/test_claude_runtime_confinement.py, test_claude_runtime_provider_limit.py, test_claude_runtime_resume.py, test_opencode_budget.py, test_opencode_resume_session.py (`SHORT_LIMIT` removed), test_opencode_events.py (`SHORT_LIMIT`, `ELAPSED_BOUND` and their comment removed), test_opencode_confinement.py (`SHORT_LIMIT`, its comment and the `BOUND_SECONDS` import removed), test_opencode_sudo_time_limit.py (`LIMIT`, its comment and the `BOUND_SECONDS` and `timedelta` imports removed; `PAST_LIMIT_SECONDS = ROOMY_LIMIT.total_seconds() + 1.5`), test_process.py, test_process_streaming.py (`RETURNS_WITHIN_SECONDS` kept for its other tests), test_make_commands.py. In test_claude_runtime_confinement.py, `SHORT_LIMIT` and `ELAPSED_BOUND` are kept for the removal test. `ruff check --fix` also removed the import of `timedelta` that test_opencode_budget.py no longer uses.
+
+   Open: the Interface asks for "the comment the feature gives" in three places (`SHORT_LIMIT` in test_claude_runtime_confinement.py, the grandchild test in test_process.py, and test_command_reaching_its_time_limit_is_killed). This stage may not read `feature.md`, so I wrote those comments myself in the same sense: the roomy limit because the child may need seconds to start, and the short limit kept only for a removal that need not start to be ended. If the feature's exact wording matters, the reviewer can compare them.
+
+   No module failed to import.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (79.3 s)
+6. factory: started doing as self.
+7. coder: I built nothing. The Interface says no module under `src/factory/` changes, and the tester's changes already pass. I ran `make test` and `make check` in the foreground, and `make check` ended `check: green`: `test: green (77.0 s)`, coverage 99.16 %. `git status --short` shows nothing changed by me outside the work item's costs sidecar, so the refactor step has no diff to read and nothing needed changing.
+
+   Main choice: I left the tester's test files and `tests/time_limits.py` exactly as they are. The rejected alternative was adjusting any of them, for example to word the comments that the tester wrote in place of "the comment the feature gives". That is not mine to change (R9), and I may not read `feature.md`.
+
+   Noticed, not touched: the tester's open point still stands. In three places the comment is the tester's own wording, not the feature's: `SHORT_LIMIT` in `tests/adapters/test_claude_runtime_confinement.py`, the grandchild test in `tests/adapters/test_process.py`, and `test_command_reaching_its_time_limit_is_killed` in `tests/adapters/test_make_commands.py`. The reviewer can compare them with the feature. Criterion 7 (`docs/project-guide/processes-and-checks.md`, `docs/decisions.md`) is the documenter's work, and the Description is unchanged because no journal entry changed the task.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: Findings:
+   1. `tests/adapters/test_claude_runtime_confinement.py:41-44`: the comment over `SHORT_LIMIT` is the tester's own wording (`# For a removal that need not start to be ended; ...`). The Interface asks for "the comment the feature gives". That is the feature's decision 9: `# Short: the hanging shell it limits need not start to be killed.` over `SHORT_LIMIT`, and `WAIT_SECONDS` and `ELAPSED_BOUND` below it under their own comment `# The stand-ins wait far longer than any limit here.`, which is missing. Fix: use those two comments word for word.
+   2. `tests/adapters/test_process.py:100-101` (`test_grandchild_is_killed_with_the_child_at_the_time_limit`): the comment is the tester's own wording (`# The roomy limit: under make test's parallel workers ...`). The Interface and decision 9 give `# ROOMY_LIMIT: the child must start its grandchild and write the pid file before the kill.` Fix: use that comment.
+   3. `tests/adapters/test_make_commands.py:64-65` (`test_command_reaching_its_time_limit_is_killed`): the comment is the tester's own wording. Decision 9 gives the grandchild comment with "the shell" in place of "the child": `# ROOMY_LIMIT: the shell must start its grandchild and write the pid file before the kill.` Fix: use that comment.
+   All three changes are to tests other stories wrote. The leave for them (decision 9, which the story's Interface cites) names exact comment texts and lets the tester make "exactly these changes and nothing else". These three go beyond that leave. The coder ends with `tests` and names the three comments; the tester replaces them.
+
+   Checked and fine:
+   - Criteria 1 to 5 each have a test.
+   - Every stand-in a changed test relies on being killed waits longer than `ROOMY_BOUND_SECONDS`: 30 s or 60 s, and the confine stand-in waits 30 s.
+   - `PAST_LIMIT_SECONDS` (11.5) is checked on both sides, above the limit and below the bound, and stays inside `SUDO_GRACE` (30 s).
+   - The resume rewrite reads the second request through the `recorder` fixture, which patches `claude_runtime.run_process`.
+   - The make rewrite asserts the one request's limit. `test_time_limit_of_zero_or_less_is_rejected` is unchanged.
+   - The bound added to the grandchild test in `test_process.py` is what criterion 3 asks for, though decision 9 bounds only the first test.
+   - Nothing changes under `src/`.
+   - After the coder, the factory's `make check` was green (entry 7).
+   - `make duplicates` reported 5 new findings, all in `src/factory`, which this diff does not touch, so none of them comes from this diff.
+
+   Earlier tests (all status M), each changed under the human's leave: the feature's decision 9, which the story's Interface names test by test.
+   - tests/adapters/test_claude_runtime_confinement.py: decision 9 (beyond it in its comment, finding 1)
+   - tests/adapters/test_claude_runtime_provider_limit.py: decision 9
+   - tests/adapters/test_claude_runtime_resume.py: decision 9
+   - tests/adapters/test_make_commands.py: decision 9 (beyond it in its comment, finding 3)
+   - tests/adapters/test_opencode_budget.py: decision 9
+   - tests/adapters/test_opencode_confinement.py: decision 9
+   - tests/adapters/test_opencode_events.py: decision 9
+   - tests/adapters/test_opencode_resume_session.py: decision 9
+   - tests/adapters/test_opencode_sudo_time_limit.py: decision 9
+   - tests/adapters/test_process.py: decision 9 (beyond it in its comment, finding 2)
+   - tests/adapters/test_process_streaming.py: decision 9
+10. factory: started doing as self.
+11. coder: Round 1: all three of the reviewer's findings are comment changes in test files, so I changed no code and nothing under `src/` or `tests/`. The tester should make exactly these three changes, using the feature's decision 9 word for word:
+    1. `tests/adapters/test_claude_runtime_confinement.py`: replace the comment over `SHORT_LIMIT` with `# Short: the hanging shell it limits need not start to be killed.` Then put `WAIT_SECONDS` and `ELAPSED_BOUND` below it under their own comment `# The stand-ins wait far longer than any limit here.`
+    2. `tests/adapters/test_process.py`, `test_grandchild_is_killed_with_the_child_at_the_time_limit`: replace the comment with `# ROOMY_LIMIT: the child must start its grandchild and write the pid file before the kill.`
+    3. `tests/adapters/test_make_commands.py`, `test_command_reaching_its_time_limit_is_killed`: replace the comment with `# ROOMY_LIMIT: the shell must start its grandchild and write the pid file before the kill.`
+
+    Main choice: I hand these to the tester (R9) rather than edit the comments myself, because they are in tests that other stories wrote. The rejected alternative was editing the comments directly, which the coder may never do, not even in comments.
+
+    Noticed, not touched: none of the findings asks for a code change, so I did not run `make check` this round. Criterion 7 (docs) is still the documenter's work. No journal entry changed the meaning of the task, so the Description is unchanged.
+12. factory: started tests as self.
+13. tester: Round 1, a test change the human approved: I made the three comment changes that the coder's entry 11 names (the reviewer's findings 1 to 3), using the feature's decision 9 word for word. No assertion, limit or test name changed, and nothing else changed.
+    1. `tests/adapters/test_claude_runtime_confinement.py`: the comment over `SHORT_LIMIT` is now `# Short: the hanging shell it limits need not start to be killed.` `WAIT_SECONDS` and `ELAPSED_BOUND` now sit below `SHORT_LIMIT` under their own comment, `# The stand-ins wait far longer than any limit here.`
+    2. `tests/adapters/test_process.py`, `test_grandchild_is_killed_with_the_child_at_the_time_limit`: the comment is now `# ROOMY_LIMIT: the child must start its grandchild and write the pid file before the kill.`
+    3. `tests/adapters/test_make_commands.py`, `test_command_reaching_its_time_limit_is_killed`: the comment is now `# ROOMY_LIMIT: the shell must start its grandchild and write the pid file before the kill.`
+
+    Earlier tests changed: the three files above, under the feature's decision 9, which the story's Interface cites. Files created: none. The criterion → test mapping in entry 5 is unchanged: criterion 1 tests/test_time_limits.py::test_the_roomy_limit_leaves_room_and_stays_below_every_wait; criteria 2 to 5 are the tests that entry lists. Every module imported.
+
+    `test`: test: green (80.6 s), coverage 99.16 %
+    `lint`: lint: green (0.0 s)
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (80.6 s)
+14. factory: started doing as self.
+15. coder: Round 1: I built nothing. The Interface says no module under `src/factory/` changes. The reviewer's three findings were comment changes in test files, and the tester made them in entry 13. I checked that each comment now matches decision 9 word for word:
+    - `tests/adapters/test_claude_runtime_confinement.py:41-45`: `# Short: the hanging shell it limits need not start to be killed.` sits over `SHORT_LIMIT`, and `WAIT_SECONDS` and `ELAPSED_BOUND` sit below it under `# The stand-ins wait far longer than any limit here.`
+    - `tests/adapters/test_process.py:100`: `# ROOMY_LIMIT: the child must start its grandchild and write the pid file before the kill.`
+    - `tests/adapters/test_make_commands.py:64`: `# ROOMY_LIMIT: the shell must start its grandchild and write the pid file before the kill.`
+
+    I ran `make check` in the foreground and it ended `check: green` (`test: green (78.8 s)`, coverage 99.16 %).
+
+    Main choice: I left the test files as the tester made them. The rejected alternative was touching anything else in this round, which the findings did not ask for. There is no diff of mine outside the work item's costs sidecar, so the refactor step had nothing to change.
+
+    Noticed, not touched: criterion 7 (`docs/project-guide/processes-and-checks.md`, `docs/decisions.md`) is still the documenter's work. No journal entry changed the meaning of the task, so the Description is unchanged.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+16. factory: started review as self.
+17. reviewer: Round 1 review. I read the work item and `git diff main...HEAD -- . ':!factory'`: 11 test modules changed, plus the new `tests/time_limits.py` and `tests/test_time_limits.py`. Nothing under `src/` changes. I did not run `make check`. After the coder it was green (entry 15: `check: green`, coverage 99.16 %).
+
+    no findings
+
+    Checked:
+    - The three comment findings from round 0 are fixed word for word. `tests/adapters/test_claude_runtime_confinement.py:41-45` has `# Short: ...` over `SHORT_LIMIT` and `# The stand-ins wait far longer than any limit here.` over `WAIT_SECONDS`/`ELAPSED_BOUND`. `tests/adapters/test_process.py:100` and `tests/adapters/test_make_commands.py:64` carry the `# ROOMY_LIMIT: ...` comments.
+    - Criterion 1: `tests/test_time_limits.py` has one parametrized test with rows for the limit, the bound, the room between them, the four `WAIT_SECONDS` (30 each) above the bound, and `PAST_LIMIT_SECONDS` (11.5) on both sides: above the limit and below the bound.
+    - Criteria 2 and 3: every test the Interface names now uses `ROOMY_LIMIT`, and where it bounds the elapsed time it uses `ROOMY_BOUND_SECONDS`. Every child the limit must end waits longer than 25 s, so a missed kill fails:
+      - `time.sleep(60)` in `SLOW_LIMIT_SCRIPT`, `test_process.py` and `test_process_streaming.py`; `sleep 60` in the make test;
+      - the confine stand-in's `Played(wait_seconds=WAIT_SECONDS)` (30);
+      - opencode `WAITING` and the other stand-in steps (30);
+      - the claude resume steps (60).
+      `RETURNS_WITHIN_SECONDS` and `opencode_stand_in.BOUND_SECONDS` stay only for tests the story leaves alone.
+    - Criterion 4: the `recorder` fixture (`tests/conftest.py:273`) patches `claude_runtime.run_process`, which the runtime calls by that name (`src/factory/adapters/claude_runtime.py:563`). With no results it runs both calls for real. The resume's limit is checked to lie between `ROOMY_LIMIT - elapsed` and `ROOMY_LIMIT - 2 s`, so the whole 10 s again fails the test.
+    - Criterion 5: `make_commands` imports `run_process` by name (`src/factory/adapters/make_commands.py:8`), so the monkeypatch takes effect. The test asserts the one request's `timedelta(seconds=1)`. `test_time_limit_of_zero_or_less_is_rejected` is unchanged.
+    - Architecture and security: tests only, and no silencing markers. The `# noqa: PLR2004` in `test_opencode_budget.py` was already there.
+    - Hygiene: the Description, Interface and docs criterion match what was built.
+
+    Earlier tests (all status M, all changed under the human's leave: the feature's decision 9, which the story's Interface names test by test):
+    - tests/adapters/test_claude_runtime_confinement.py: decision 9
+    - tests/adapters/test_claude_runtime_provider_limit.py: decision 9
+    - tests/adapters/test_claude_runtime_resume.py: decision 9
+    - tests/adapters/test_make_commands.py: decision 9
+    - tests/adapters/test_opencode_budget.py: decision 9
+    - tests/adapters/test_opencode_confinement.py: decision 9
+    - tests/adapters/test_opencode_events.py: decision 9
+    - tests/adapters/test_opencode_resume_session.py: decision 9
+    - tests/adapters/test_opencode_sudo_time_limit.py: decision 9
+    - tests/adapters/test_process.py: decision 9
+    - tests/adapters/test_process_streaming.py: decision 9
+
+    Notes:
+    - `tests/test_time_limits.py:15-40`: each row is a `bool` worked out when the tests are collected, so a failing row prints only `assert False`. Rows that carry the two compared values would say which relation broke.
+18. factory: started docs as self.
+19. documenter: Docs for F0029-S0002 (round 1). No findings: the diff is tests only (11 modules changed, `tests/time_limits.py` and `tests/test_time_limits.py` new), matching the Interface and criteria. I ran no `make check`: I changed only documents.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`, *Starting a process*: a paragraph after the line on the tests and their helpers. A test whose child must act before its limit takes `ROOMY_LIMIT` (10 s) and `ROOMY_BOUND_SECONDS` (25) from `tests/time_limits.py`. A child that need not start to be killed may keep a shorter limit.
+    - `docs/decisions.md`: new entry *A test whose child must act before its time limit gets ten seconds*, dated with the story. It gives the decision, the reasons and the three rejected options from the docs criterion.
+
+    Cross-read and found current: `README.md` and `docs/operator-guide.md` (the criterion says none; nothing an operator or newcomer does changes). The rest of `processes-and-checks.md` still matches the unchanged `src/`.
+
+    Stale text not mine to fix: none seen. The docs criterion names no other file, so the human-owned `docs/operator-playbook.md` is untouched.
+
+    Skills: no project skill applied.
+
+    `check`: check: green (not run again: passed on tree c52b3cc6f7ce at 2026-10-20T07:32:51Z)
+    `secrets`: secrets: green (1.2 s)
+    `documents`: documents ok
+20. factory: started smoke-test as self.
+21. smoke-tester: Ran both smoke-test commands from the repository root, exactly as written and in order. This machine has 20 cores, so `-n 64` put the load on that the first command asks for.
+
+    Command 1 (the twelve modules run on 64 pytest-xdist workers, output kept in a self-removing temporary directory):
+    ```
+    exit 0
+    0
+    ```
+    It met its `Expect:` line: two lines, `exit 0` and `0`, so no `FAILED` or `ERROR` lines in the run. The shell's own exit status was 1 because `grep -c` exits 1 when it counts no matches. That status is not part of the expected output.
+
+    Command 2 (`SHORT_LIMIT` count in three modules, and the shared limits read from `tests/time_limits.py`):
+    ```
+    tests/adapters/test_opencode_resume_session.py:0
+    tests/adapters/test_opencode_events.py:0
+    tests/adapters/test_opencode_confinement.py:0
+    10.0 25
+    ```
+    It met its `Expect:` line: four lines, matching exactly.
+
+    I read the acceptance criteria again against these results. Nothing the smoke test showed goes against any of them:
+    - The 64-worker run of every changed module passed, which covers criteria 1–5 under load.
+    - The values `10.0 25` match criterion 1.
+    - `SHORT_LIMIT` is gone from the three modules whose `SHORT_LIMIT` the Interface removes.
+
+    Criteria 6 (`make check`) and 7 (docs) are outside what these commands cover, and the factory's checks gate them.
+
+    Findings: none. I changed nothing. The working tree holds only the factory's `.costs.jsonl` sidecar change.

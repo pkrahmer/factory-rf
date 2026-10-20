@@ -25,15 +25,13 @@ from factory.application.boundaries import Boundaries
 from factory.application.costs import CostRecorder, CostRun
 from factory.domain.agent_runs import AgentRunResult, PermissionDenial, TokenCounts
 from factory.domain.cost_records import CostRecord
+from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 SIDECAR = "F0001-S0001-first.costs.jsonl"
 ANSWER = text(result_text())
 FIRST_TOKENS = {"input": 10, "output": 5, "reasoning": 2, "cache": {"read": 100, "write": 20}}
 SECOND_TOKENS = {"input": 20, "output": 6, "reasoning": 0, "cache": {"read": 0, "write": 5}}
-# A few seconds, so the child has room to start; the stand-in waits far longer.
-SHORT_LIMIT = timedelta(seconds=3)
 WAIT_SECONDS = 30
-ELAPSED_BOUND = 20
 
 
 def _run(tmp_path: Path, lines: list[str], *, exit_status: int = 0) -> AgentRunResult:
@@ -342,12 +340,12 @@ def test_a_call_past_its_time_limit_ends_by_time_limit_without_measures(tmp_path
     state = tmp_path / "state"
     state.mkdir()
     runtime = OpencodeRuntime(str(executable), state, models=MODELS)
-    request = opencode_request(tmp_path / "work", time_limit=SHORT_LIMIT)
+    request = opencode_request(tmp_path / "work", time_limit=ROOMY_LIMIT)
     started = time.monotonic()
 
     result = runtime.run(request)
 
-    assert time.monotonic() - started < ELAPSED_BOUND
+    assert time.monotonic() - started < ROOMY_BOUND_SECONDS
     assert (result.end_reason, result.decision, result.entry) == ("time_limit", None, None)
     assert (result.cost_usd, result.tokens, result.turns, result.model_duration) == (
         None,

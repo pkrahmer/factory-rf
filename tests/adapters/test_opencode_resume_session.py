@@ -16,6 +16,7 @@ from adapters.opencode_stand_in import (
     step_start,
     text,
 )
+from time_limits import ROOMY_LIMIT
 
 OTHER_SESSION = "ses_b"
 # The first event names another session than the later ones, so the first one is told apart.
@@ -25,7 +26,6 @@ EVENTS = stdout(
     step_finish(),
 )
 DEFAULT_LIMIT = timedelta(seconds=30)
-SHORT_LIMIT = timedelta(seconds=3)
 WAIT_SECONDS = 30
 
 
@@ -41,14 +41,14 @@ WAIT_SECONDS = 30
         pytest.param(
             None,
             Step(stdout_before_wait=EVENTS, wait_seconds=WAIT_SECONDS),
-            SHORT_LIMIT,
+            ROOMY_LIMIT,
             OTHER_SESSION,
             id="timed-out-with-events",
         ),
         pytest.param(
             "ses_a",
             Step(wait_seconds=WAIT_SECONDS),
-            SHORT_LIMIT,
+            ROOMY_LIMIT,
             "ses_a",
             id="timed-out-resumed-without-events",
         ),
@@ -74,4 +74,4 @@ def test_a_run_resumes_the_named_session_and_reports_the_first_session_of_its_ev
     else:
         assert call.arguments[-3:] == ["--session", resume_session, request.prompt]
     assert result.session == session
-    assert (result.end_reason == "time_limit") == (time_limit == SHORT_LIMIT)
+    assert (result.end_reason == "time_limit") == (time_limit == ROOMY_LIMIT)

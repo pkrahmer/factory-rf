@@ -14,6 +14,7 @@ from adapters.test_claude_runtime_os_user import _request
 from adapters.test_claude_runtime_resume import _after, _budget_reply
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.domain.provider_limits import ProviderLimit
+from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 LIMIT_RESULT = "API Error: 428 spend limit reached, try again in 7 minutes"
 SEVEN_MINUTES = timedelta(seconds=420)
@@ -163,7 +164,7 @@ def test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit(
     executable.write_text(f"#!{sys.executable}\n{SLOW_LIMIT_SCRIPT}", encoding="utf-8")
     executable.chmod(0o755)
     runtime = ClaudeCodeRuntime(str(executable), tmp_path / "state")
-    request = _request(tmp_path, None).model_copy(update={"time_limit": timedelta(seconds=3)})
+    request = _request(tmp_path, None).model_copy(update={"time_limit": ROOMY_LIMIT})
 
     started = time.monotonic()
     result = runtime.run(request)
@@ -173,7 +174,7 @@ def test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit(
     assert result.end_reason == "time_limit"
     assert result.limit_wait is None
     assert result.session == _after(arguments, "--session-id")
-    assert elapsed < 20
+    assert elapsed < ROOMY_BOUND_SECONDS
 
 
 def test_a_resume_the_limit_refused_ends_provider_limit_with_both_calls_measures(

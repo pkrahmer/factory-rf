@@ -1,7 +1,6 @@
 """The opencode runtime stops a call past its budget while it streams and resumes it once."""
 
 import time
-from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -28,6 +27,7 @@ from factory.adapters.agent_launch import FINISH_MESSAGE
 from factory.adapters.opencode_runtime import CONFIG_VARIABLE
 from factory.domain.agent_runs import TokenCounts
 from factory.domain.kill_points import KillPoint, KillPoints
+from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 # What one `step_finish` of the stand-in's builders counts, as the runtime sums it.
 STEP_TOKENS = TokenCounts(input=10, output=7, cache_read=100, cache_creation=20)
@@ -137,12 +137,12 @@ def test_a_resume_past_what_is_left_of_the_time_limit_ends_the_run_by_time_limit
         wait_seconds=WAIT_SECONDS,
     )
     runtime = stand_in_runtime(tmp_path, [over_budget(), resume])
-    request = opencode_request(tmp_path / "work", time_limit=timedelta(seconds=5))
+    request = opencode_request(tmp_path / "work", time_limit=ROOMY_LIMIT)
 
     started = time.monotonic()
     result = runtime.run(request)
 
-    assert time.monotonic() - started < BOUND_SECONDS
+    assert time.monotonic() - started < ROOMY_BOUND_SECONDS
     assert result.end_reason == "time_limit"
     assert len(read_calls(tmp_path / "bin")) == 2  # noqa: PLR2004 - the call and its resume
 

@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 from factory.adapters.process import ProcessRequest, run_process
 from process_support import is_gone, python_argv
+from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 
 def test_output_and_exit_status_come_back(tmp_path: Path) -> None:
@@ -75,10 +76,10 @@ def test_child_is_killed_at_the_time_limit(tmp_path: Path) -> None:
     start = time.monotonic()
 
     result = run_process(
-        ProcessRequest(argv=python_argv(code), cwd=tmp_path, time_limit=timedelta(seconds=1))
+        ProcessRequest(argv=python_argv(code), cwd=tmp_path, time_limit=ROOMY_LIMIT)
     )
 
-    assert time.monotonic() - start < 6
+    assert time.monotonic() - start < ROOMY_BOUND_SECONDS
     assert result.exit_status is None
     assert result.timed_out is True
     assert "started" in result.stdout
@@ -94,14 +95,14 @@ def test_grandchild_is_killed_with_the_child_at_the_time_limit(tmp_path: Path) -
         "time.sleep(60)"
     )
 
-    # Three seconds, not one: under `make test`'s parallel workers the child may need more than a
-    # second to start its grandchild and write the pid file, and a kill before that leaves no pid.
+    start = time.monotonic()
+
+    # ROOMY_LIMIT: the child must start its grandchild and write the pid file before the kill.
     run_process(
-        ProcessRequest(
-            argv=python_argv(code, str(pid_file)), cwd=tmp_path, time_limit=timedelta(seconds=3)
-        )
+        ProcessRequest(argv=python_argv(code, str(pid_file)), cwd=tmp_path, time_limit=ROOMY_LIMIT)
     )
 
+    assert time.monotonic() - start < ROOMY_BOUND_SECONDS
     assert is_gone(int(pid_file.read_text(encoding="utf-8")))
 
 

@@ -35,10 +35,12 @@ from factory.adapters.claude_runtime import (
 )
 from factory.domain.confinement import DEVICE_FILES, DEVICE_FOLDERS, Confinement
 from factory.domain.errors import AgentRuntimeError
+from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 SUDO_LINE = "sudo: a password is required"
-# A few seconds, so the child has room to start; the stand-ins wait far longer.
+# Short: the hanging shell it limits need not start to be killed.
 SHORT_LIMIT = timedelta(seconds=3)
+# The stand-ins wait far longer than any limit here.
 WAIT_SECONDS = 30
 ELAPSED_BOUND = 20
 
@@ -397,7 +399,7 @@ def test_a_request_without_guard_settings_is_confined_with_no_path_of_the_checko
         ),
         pytest.param(
             [ProbeStep(leave_file=True, wait_seconds=WAIT_SECONDS)],
-            SHORT_LIMIT,
+            ROOMY_LIMIT,
             "time_limit",
             id="time-limit",
         ),
@@ -420,7 +422,7 @@ def test_the_temporary_folder_is_empty_at_each_call_and_gone_after_the_run(
     elapsed = time.monotonic() - started
     calls = read_records(layout.stand_in / "probe-calls.jsonl", ProbeCall)
     assert result.end_reason == end_reason
-    assert elapsed < ELAPSED_BOUND
+    assert elapsed < ROOMY_BOUND_SECONDS
     assert len(calls) == len(steps)
     assert len({call.environment["TMPDIR"] for call in calls}) == 1
     assert all(call.temporary_is_folder and call.temporary_listing == [] for call in calls)
@@ -515,9 +517,9 @@ def test_a_wrapper_line_of_a_call_killed_at_its_time_limit_is_a_runtime_error(
     started = time.monotonic()
 
     with pytest.raises(AgentRuntimeError) as raised:
-        runtime.run(run_request(layout, time_limit=SHORT_LIMIT))
+        runtime.run(run_request(layout, time_limit=ROOMY_LIMIT))
 
-    assert time.monotonic() - started < ELAPSED_BOUND
+    assert time.monotonic() - started < ROOMY_BOUND_SECONDS
     assert raised.value.detail == f"{confine} refused the agent run: {LINE}"
 
 

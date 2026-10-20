@@ -79,6 +79,8 @@ The child runs in its own session, with stdin closed. At the `time_limit` the wh
 
 Tests: `tests/adapters/test_process_streaming.py` and `tests/adapters/test_process_streaming_reads.py` (long and split lines), `tests/adapters/test_process_streaming_last_line.py` (a stop on a last line without a line feed); the helpers `python_argv`, `is_gone` and the callback `Recorder` are in `tests/process_support.py`.
 
+A test whose child must act before its time limit ends it (write a record or a pid file, print a line, finish a first call) takes `ROOMY_LIMIT` (10 s) and `ROOMY_BOUND_SECONDS` (25, for an elapsed-time bound) from `tests/time_limits.py`. The stand-ins the limit must end wait longer than the bound, so a missed kill fails. A child that need not start to be killed may keep a shorter limit.
+
 ```python
 result = run_process(ProcessRequest(argv=["git", "status"], cwd=repo, time_limit=timedelta(seconds=30)))
 ```
