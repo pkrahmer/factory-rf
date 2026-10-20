@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 309
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T00:39:45.100168Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T00:39:24.527507Z'
   stage: docs
   run: 9e1d5df0f5e34ed981cbe50d9d5624e0
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:39:45.100168Z'
+  stage: smoke-test
 ---
 
 # The image makes opencode's configuration folder, read-only to the agent
@@ -202,3 +211,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree e77b3d64b793 at 2026-10-20T00:36:47Z)
     `secrets`: secrets: green (1.6 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
