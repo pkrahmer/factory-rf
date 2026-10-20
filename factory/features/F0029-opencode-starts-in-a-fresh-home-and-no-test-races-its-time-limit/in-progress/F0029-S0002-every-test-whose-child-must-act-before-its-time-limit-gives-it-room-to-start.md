@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T07:27:39.275045Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T07:27:18.747206Z'
   stage: doing
   run: cb17ffdc4830414e836da4b8289e6059
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:27:39.275045Z'
+  stage: tests
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -223,3 +232,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Main choice: I hand these to the tester (R9) rather than edit the comments myself, because they are in tests that other stories wrote. The rejected alternative was editing the comments directly, which the coder may never do, not even in comments.
 
     Noticed, not touched: none of the findings asks for a code change, so I did not run `make check` this round. Criterion 7 (docs) is still the documenter's work. No journal entry changed the meaning of the task, so the Description is unchanged.
+12. factory: started tests as self.
