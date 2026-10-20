@@ -6,3 +6,5 @@
 {"event":"cleared","scope":"repository","reason":"checkout_restore_failed","at":"2026-10-20T17:25:57.148062Z","instance":"self"}
 {"event":"raised","scope":"repository","reason":"checkout_restore_failed","at":"2026-10-20T18:08:04.011190Z","instance":"self"}
 {"event":"cleared","scope":"repository","reason":"checkout_restore_failed","at":"2026-10-20T18:27:11.611080Z","instance":"self"}
+{"event":"raised","scope":"repository","reason":"checkout_restore_failed","at":"2026-10-20T21:39:35.944588Z","instance":"self"}
+{"event":"cleared","scope":"repository","reason":"checkout_restore_failed","at":"2026-10-20T21:56:42.464839Z","instance":"self"}
