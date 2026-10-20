@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 317
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T02:16:37.646478Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T02:16:17.167380Z'
   stage: review
   run: ae0ee1f9fd39409c906eee616796ff62
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:16:37.646478Z'
+  stage: docs
 ---
 
 # The tests pin the subjects of a story's recovery and handler commits
@@ -158,3 +167,4 @@ Expect: two lines, `work item F0001-S0001: crash of stage doing recorded` and `w
    - The description matches what was built: no source change. The docs criterion "none" holds.
 
    Earlier tests: none. `git diff --name-status main...HEAD` shows only added test files (status `A`).
+10. factory: started docs as self.
