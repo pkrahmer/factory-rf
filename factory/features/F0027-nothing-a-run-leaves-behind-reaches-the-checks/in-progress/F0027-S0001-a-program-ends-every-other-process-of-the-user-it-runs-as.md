@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T12:16:12.550051Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T12:15:54.339138Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:16:12.550051Z'
   stage: doing
 ---
 
@@ -285,3 +294,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    2. This one marker is allowed: the code keeps `# noqa: PLR0913` with its reason on `main`'s def line in `src/factory/entry/leftovers.py`, and the tester adds `"entry/leftovers.py": {<the def line>: {"noqa: PLR0913"}}` to the expected markers of `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`; its name and everything else stay.
 
    Both changes are the human's leave, recorded in the feature's decision 16. The test names that no longer match their sets stay as they are.
+9. factory: started doing as self.
