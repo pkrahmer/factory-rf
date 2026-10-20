@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 358
 comments_read: [6299016224]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T19:19:19.130690Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-20T19:19:19.130690Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T19:19:51.449031Z'
+  stage: docs
+  run: a5cf372f56594f6892a93cabb6bd6b39
 ---
 
 # The tests start their own Python children without bytecode
@@ -233,3 +235,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_git_cli_branches.py`: decision 16, S0004 (hook shebang ` -B`).
     - `tests/adapters/test_git_cli_writing.py`: decision 16, S0004 (hook shebang ` -B`).
 13. factory: started docs as self.
+14. documenter: Files changed: `docs/decisions.md`. I added one bullet to the entry "The factory removes the git-ignored paths after every agent run and at the restore", after its Rejected bullet, as the docs criterion asks. It says the tests' shared helpers (`write_script`, `python_argv`) and every script the tests write for their own interpreter start it with `-B`. It says `tests/test_test_children.py` scans `tests/` for a shebang without the flag. It gives the reason: the tests run under umask 022, so a bytecode folder written during an agent's `make check` is one the factory's removal cannot remove, which stopped F0027's acceptance twice on 2026-10-20.
+
+    Cross-read and found current: `README.md`, `docs/operator-guide.md` and `docs/project-guide/`. I searched them for bytecode, `__pycache__` and the helper names. They describe `PYTHONDONTWRITEBYTECODE=1` for agent runs (`docs/project-guide/agents.md`) and `remove_ignored` (`docs/project-guide/git-and-hosting.md`). The diff changes only tests, and nothing under `src/` changed.
+
+    Stale text noticed but not touched: none.
+
+    Findings: none.
+
+    I did not run `make check` because I changed only a document. The factory's checks run right after this stage. I did not run any example, since I wrote none.
+
+    `check`: check: green (not run again: passed on tree 416ad76bbc59 at 2026-10-20T19:16:27Z)
+    `secrets`: secrets: green (1.7 s)
+    `documents`: documents ok
