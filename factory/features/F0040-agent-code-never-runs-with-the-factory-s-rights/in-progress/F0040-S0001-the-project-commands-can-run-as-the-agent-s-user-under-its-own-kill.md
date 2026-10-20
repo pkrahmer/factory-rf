@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655, 6298783444]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T18:59:51.280860Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -261,6 +257,12 @@ journal:
   kind: started
   at: '2026-10-20T18:59:51.280860Z'
   stage: doing
+- number: 46
+  speaker: coder
+  kind: result
+  at: '2026-10-20T19:02:49.857014Z'
+  stage: doing
+  run: 2056a12681094386aa16f3900581ea75
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -727,3 +729,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_make_commands_user.py:22` (`LEFTOVERS_FAULT`): restates `factory.adapters.agent_launch.LEFTOVERS_FAULT` instead of importing it.
     - `tests/adapters/test_make_commands_user.py:305`: criterion 8 says `.user` "is `u`", but the test compares with `==`.
 45. factory: started doing as self.
+46. coder: I fixed the one finding of entries 40 and 44 and nothing else, as the human asked in entry 42. In `src/factory/adapters/make_commands.py` I rewrote the docstring of `MakeProjectCommands.run` to cover both cases:
+    - Without a user, the run is judged by its exit status alone.
+    - With a user, it runs through `sudo` as that user. A kill at the limit is a `time_limit` result, and a refusal by `sudo` or a fault of the leftovers program raises `ProjectCommandError`.
+
+    I changed no code and no test. The main design choice is the same as in entry 22: the refusal is judged on the command's merged output and names the last `sudo:` line. I rejected reusing the runtimes' `call_refusal`, because it takes the first `sudo:` line and needs `Starters`.
+
+    Refactor: I changed nothing else. The only change is the docstring, and the refactor pass of entry 22 still holds.
+
+    Description: no journal entry changed what the task means, so I rewrote nothing.
+
+    Noticed, not touched: the three notes of entries 40 and 44 (the third local stand-in `sudo`, the test module's own copy of `LEFTOVERS_FAULT`, and `==` instead of `is` for `.user`). Entry 42 leaves them to the acceptance.
+
+    `make check`: check: green (test: green, coverage 99.17 %).
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone

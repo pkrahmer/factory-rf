@@ -98,7 +98,12 @@ class MakeProjectCommands(ProjectCommands):
         return self._user
 
     def run(self, command: str, *, time_limit: timedelta) -> CheckResult:
-        """Run `make --no-print-directory <command>` and judge it by its exit status alone."""
+        """Run `make --no-print-directory <command>` and judge its result.
+
+        Without a user the run is judged by its exit status alone. With a user it runs
+        through `sudo` as that user: a kill at the limit is a `time_limit` result, and a
+        refusal by `sudo` or a fault of the leftovers program raises `ProjectCommandError`.
+        """
         if time_limit <= timedelta(0):
             raise ValueError(f"time_limit must be positive, not {time_limit}")
         if not _COMMAND_NAME.fullmatch(command):
