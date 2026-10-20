@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 317
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T02:09:58.782726Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:09:58.788211Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T02:10:13.588548Z'
+  stage: intake
+  run: 6e1a6ed050a241bca744d33090cc35d5
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:10:34.448619Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T02:13:08.763818Z'
+  stage: tests
+  run: f041459261a14168a99fa0c64fc4eb6b
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:13:29.143493Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T02:15:15.168113Z'
+  stage: doing
+  run: 8163a3393c0b4eaf935b093f987eddc3
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:15:35.471015Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T02:16:17.167380Z'
+  stage: review
+  run: ae0ee1f9fd39409c906eee616796ff62
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:16:37.646478Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T02:16:52.696254Z'
+  stage: docs
+  run: 41a9decde5744b27a7f087d35d540cd9
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:17:12.972474Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T02:17:29.332154Z'
+  stage: smoke-test
+  run: 603bea80c28a4e199b9fcea79b7a43ff
+---
+
 # The tests pin the subjects of a story's recovery and handler commits
 
 ## Description
@@ -47,3 +131,81 @@ EOF
 Expect: two lines, `work item F0001-S0001: crash of stage doing recorded` and `work item F0001-S0001: stage approval -> doing, moved back`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete methods (RecoveryHandler.handle, ClosedHandler.handle, CommentCopier.copy, RejectHandler.handle), the exact subject of each, and the two test modules with the existing fixtures and support helpers they build on. No source change.
+   Criteria: each is testable by one test function. Criterion 1 is rows of one parametrized test and covers both sides of "when the expiry note opens a draft pull request", with the extra commit and without it, and the crash and expiry subjects. Criteria 2 to 4 each give the exact expected subject list, in order, and the commit they are read since. Every subject the Interface states has a criterion. The Interface states no limit, validation or rejected input, so there is no failing side to cover. Criteria 5 and 6 are the closing ones.
+   Smoke test: the command is runnable. It uses commit_subject and MOVED_BACK_MARKER, which the Interface's subjects imply. The Expect line gives two exact output lines that can be compared.
+   Architecture: tests only, under tests/application/ as CLAUDE.md prescribes. They use real git and the fake hosting service, with no mocks of the code under test.
+   Scope: within the feature's Scope, which lists these two modules for S0006. The 15 subjects match decision 8. The story is not in Out of scope, and it changes no earlier test.
+4. factory: started tests as self.
+5. tester: Wrote one test per criterion. Each test reads the branch's subjects with `git.log("origin/work-item/F0001-S0001", since=...)` after a fetch, newest first, and compares them with the exact list the criterion gives.
+
+   - criterion 1: tests/application/test_recovery_subjects.py::test_the_recovery_commits_name_the_work_item_and_what_it_recorded (rows `crash`, `expiry`, `expiry-opening-a-pull-request`; each since `claimed.start.commit`)
+   - criterion 2: tests/application/handlers/test_handler_subjects.py::test_the_copied_comments_are_committed_under_the_work_item_s_id
+   - criterion 3: tests/application/handlers/test_handler_subjects.py::test_a_close_at_the_approval_commits_the_close_and_then_the_send_back
+   - criterion 4: tests/application/handlers/test_handler_subjects.py::test_the_move_back_names_the_work_item_and_both_stages
+   - criteria 5 and 6: no test (`make check`; docs: none)
+
+   Files created: tests/application/test_recovery_subjects.py, tests/application/handlers/test_handler_subjects.py. They use `tests/crash_support.py` and the fixtures of `tests/application/handlers/conftest.py` and the root `definition` fixture unchanged. No earlier test changed and no shared helper moved.
+
+   Modules the test run could not import: none. These tests pass now instead of failing first. That is expected: the Description says the code already writes these subjects and the coder has nothing to change. `make test` was green (40.5 s) and `make lint` is green. The type check was skipped, as this stage says.
+
+   In criteria 3 and 4, the human's push is `work_item.document` with its state copied to `stage="approval"`: with `handed_over="approval"` for the close, and with `handed_over` left as `None` for the move-back. The snapshot is re-read from `origin/work-item/F0001-S0001` after that push, and its `branch_commit` is the commit the subjects are read since. In criterion 4, `remote_state` is the commit `origin/main` resolves to. Nothing open.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (38.8 s)
+6. factory: started doing as self.
+7. coder: Built nothing: no path changed. The Description and Interface say no module under `src/factory/` changes, because the code already writes these subjects. The tester's two modules, `tests/application/test_recovery_subjects.py` and `tests/application/handlers/test_handler_subjects.py`, already pass against the code as it is. I did not edit them.
+
+   Main choice: I left the source alone and only confirmed it with `make check`, which ends with `check: green` (`test: green (40.3 s)`, coverage 99.14 %). I rejected touching `recovery.py` or the handlers, for example to pull the subject texts into constants. Nothing failed and nothing asked for it, so that would go beyond the work item's scope. The refactor step found no diff of mine to tidy.
+
+   Noticed but did not touch: nothing new. The journal did not change the meaning of the task, so the Description stays as it is.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   Reviewed `git diff main...HEAD -- . ':!factory'`: two new test modules, no change under `src/`. The six tests in those two modules pass when run on their own (pytest, run by itself).
+   - Criterion 1: `tests/application/test_recovery_subjects.py::test_the_recovery_commits_name_the_work_item_and_what_it_recorded`. Its rows are `crash`, `expiry` and `expiry-opening-a-pull-request`, and each compares the exact, ordered list of subjects since `claimed.start.commit`. That covers both sides of "when the expiry note opens a draft pull request".
+   - Criteria 2 to 4: `tests/application/handlers/test_handler_subjects.py` has one test each. Each compares the exact subject list since the `branch_commit` the criterion names: the work item's own for the comments, and the snapshot re-read after the human's push to `approval` for the send-back and the move-back. The move-back's `remote_state` is origin/main's commit, as the criterion says.
+   - Exact equality pins the work item's id and the stage words in every subject, which is what the mutants changed.
+   - The Interface states no limit and no rejected input.
+   - The tests use real git and the fake hosting service, and mock none of the code under test.
+   - The helpers `_subjects` and `_push_at_approval` look like the private helpers in `tests/application/handlers/test_reject.py`. They are not copies of an existing shared helper.
+   - The coder's `make check` was green (entry 7).
+   - The description matches what was built: no source change. The docs criterion "none" holds.
+
+   Earlier tests: none. `git diff --name-status main...HEAD` shows only added test files (status `A`).
+10. factory: started docs as self.
+11. documenter: Docs criterion is `none`, and the diff matches it: two new test modules (`tests/application/test_recovery_subjects.py`, `tests/application/handlers/test_handler_subjects.py`), no change under `src/`. I changed no file, so there is nothing to run and no `make check` (only documents could change).
+
+    Cross-read against the diff and found current:
+    - `docs/operator-guide.md`: the subjects `work item <id>: close recorded` (line 1311), `work item <id>: sent back` (line 1313) and `work item <id>: stage <to> -> <from>, moved back` (line 1365). In the move-back, `<to>` is the illegal stage and `<from>` the stage before it, which is the order the pinned test uses (`stage approval -> doing, moved back`).
+    - `docs/project-guide/watching.md`: `commit_subject` and the `work item <id>: ` prefix on every handler commit (line 138), the close record (line 177) and the `moved back` marker (line 209).
+
+    Nothing stale noticed that is unrelated. One gap I left alone: no document spells out the crash, expiry or `pull request opened` subjects of the recovery, or the `comments from the pull request` subject. The docs criterion says none, and the pinned tests now hold those subjects. No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 562b1eb11f1c at 2026-10-20T02:14:27Z)
+    `secrets`: secrets: green (0.1 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings. I ran the one command under `## Smoke test` exactly as written, from the repository root. It did not start a server.
+
+    Command 1 (`uv run -q python -` with the heredoc that prints two `commit_subject` results):
+
+    ```
+    work item F0001-S0001: crash of stage doing recorded
+    work item F0001-S0001: stage approval -> doing, moved back
+    ```
+
+    The exit status was 0.
+
+    Met its `Expect:` line: yes. The command printed exactly two lines, and they are the two lines the `Expect:` line gives, in the same order.
+
+    Against the acceptance criteria: the output contradicts none of them. Both lines have the form that criteria 1 and 4 pin: the crash subject, and the move-back subject with the illegal stage first and then the stage before it. The command does not exercise criteria 2 and 3 (the comments subject and the close and send-back subjects), but nothing in its output contradicts them. Criteria 5 and 6 (`make check` and docs: none) are not things a smoke test can contradict. I fixed nothing and changed no file.
+
+    Findings: none.
