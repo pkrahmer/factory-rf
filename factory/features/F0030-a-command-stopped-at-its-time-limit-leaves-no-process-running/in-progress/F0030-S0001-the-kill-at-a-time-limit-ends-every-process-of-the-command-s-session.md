@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T08:52:16.816482Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -74,6 +70,12 @@ journal:
   kind: started
   at: '2026-10-20T08:52:16.816482Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T08:53:55.882229Z'
+  stage: review
+  run: 34c2194e5880482e9707cc99b7e85400
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -134,8 +136,9 @@ Tests (the tester writes them): `tests/domain/test_sessions.py` and `tests/adapt
 5. At a stop and at an error of the callback (rows of one parametrized test over `run_streaming`, with `ROOMY_LIMIT`, and a grandchild that the child starts with `subprocess.Popen(..., process_group=0)`, so that it has a group of its own before the child writes its pid file and prints `started`; a grandchild that called `os.setpgid` itself would still be in the child's group when `started` arrives, and the stop's group kill alone would end it): row `stop`, the callback returns `True` on the line `started`: the result has `stopped=True`. Row `raise`, the callback raises `RuntimeError` on that line: the error propagates. In both rows the grandchild is gone when the call has returned or raised (`is_gone(pid, within=0)`), well before `ROOMY_LIMIT`.
 6. The `mutants` recipe's form (rows of one parametrized test of `MakeProjectCommands.run` on a `Makefile` written in `tmp_path`, with `SHELL := /bin/bash`, `.SHELLFLAGS := -eu -o pipefail -c` and a target `slow` whose one line is `timeout <flag> 60 sh -c 'echo $$$$ > grandchild.pid; exec sleep 60' 2>&1 | tee run.txt`, and `ROOMY_LIMIT`): row `own-group`, without a flag, as the recipe runs mutmut; row `foreground`, with `--foreground`. In both rows the result's status is `time_limit`, the call returns within `ROOMY_BOUND_SECONDS`, and the process whose pid `grandchild.pid` holds is gone when it has returned (`is_gone(pid, within=0)`).
 7. The runs under `sudo` are unchanged: `tests/adapters/test_claude_runtime_sudo_time_limit.py`, `tests/adapters/test_claude_runtime_os_user.py`, `tests/adapters/test_process.py` and `tests/adapters/test_process_streaming.py` pass unchanged.
-8. `make check` stays green.
-9. docs: `docs/project-guide/processes-and-checks.md`. *Starting a process*: at the `time_limit`, at a stop and at an error of the callback, the factory kills the child's process group and then every process of the child's session that it may signal, in rounds, until none is left, and only then returns. The session holds what the command started even when a descendant took a group of its own (as `timeout` without `--foreground` does). A process that called `setsid` is outside it, and another user's process (root's `sudo`, the agent's under `sudo`) is left to the agent's own `timeout`. Name `factory.domain.sessions` and its tests. *Project commands*, the line "the process group is killed": every process of its session is killed. *Mutation testing*, the paragraph on the stop at `MUTANTS_SECONDS`: a `make mutants` run through the factory's project commands (`MakeProjectCommands.run`) and killed at its time limit leaves no mutmut running, as it stays in the session; a caller that kills `make` itself, such as a shell's `timeout`, reaches only `make`'s group. `docs/decisions.md`: an entry *A command stopped at its time limit loses every process of its session*, dated with the story, saying that it corrects F0024 decision 4 ("the factory waits until `timeout` ends it"). Reasons: `timeout` moves mutmut into a group of its own, and the factory waited only for its child and its pipe (F0024's acceptance, section 2); a session survives a new group and a dead parent, which a walk of parent ids does not. Rejected: `timeout --foreground` in the recipe alone (it mends one recipe, and every other project command keeps the fault); a cgroup per command (not available to the factory's user under rootless Podman); the factory as subreaper (`PR_SET_CHILD_SUBREAPER`: it would reap every orphan of every run); a time limit of the rounds' own (no process outlives SIGKILL except in the kernel, and that would hold the call already). The entry *The container runtime's init reaps the processes a killed run leaves* (2026-10-18), whose cause ends with a project command that `run_process` "kills the group and waits only for its child", gets a line naming the new entry; the init still reaps what the kill leaves. `README.md`: none, nothing a newcomer does changes.
+8. A process of the session that the factory may not signal is left, not waited for (one test of `run_process` with criterion 4's child, the grandchild in a group of its own, and `ROOMY_LIMIT`; `os.kill` replaced for the call through `monkeypatch` by a stand-in that raises `PermissionError` for the grandchild's id and calls the real `os.kill` for every other id): the call returns within `ROOMY_BOUND_SECONDS` with `timed_out=True`, and the grandchild is still running when it has returned (`is_gone(pid, within=0)` false); the test undoes the replacement and then kills it itself.
+9. `make check` stays green.
+10. docs: `docs/project-guide/processes-and-checks.md`. *Starting a process*: at the `time_limit`, at a stop and at an error of the callback, the factory kills the child's process group and then every process of the child's session that it may signal, in rounds, until none is left, and only then returns. The session holds what the command started even when a descendant took a group of its own (as `timeout` without `--foreground` does). A process that called `setsid` is outside it, and another user's process (root's `sudo`, the agent's under `sudo`) is left to the agent's own `timeout`. Name `factory.domain.sessions` and its tests. *Project commands*, the line "the process group is killed": every process of its session is killed. *Mutation testing*, the paragraph on the stop at `MUTANTS_SECONDS`: a `make mutants` run through the factory's project commands (`MakeProjectCommands.run`) and killed at its time limit leaves no mutmut running, as it stays in the session; a caller that kills `make` itself, such as a shell's `timeout`, reaches only `make`'s group. `docs/decisions.md`: an entry *A command stopped at its time limit loses every process of its session*, dated with the story, saying that it corrects F0024 decision 4 ("the factory waits until `timeout` ends it"). Reasons: `timeout` moves mutmut into a group of its own, and the factory waited only for its child and its pipe (F0024's acceptance, section 2); a session survives a new group and a dead parent, which a walk of parent ids does not. Rejected: `timeout --foreground` in the recipe alone (it mends one recipe, and every other project command keeps the fault); a cgroup per command (not available to the factory's user under rootless Podman); the factory as subreaper (`PR_SET_CHILD_SUBREAPER`: it would reap every orphan of every run); a time limit of the rounds' own (no process outlives SIGKILL except in the kernel, and that would hold the call already). The entry *The container runtime's init reaps the processes a killed run leaves* (2026-10-18), whose cause ends with a project command that `run_process` "kills the group and waits only for its child", gets a line naming the new entry; the init still reaps what the kill leaves. `README.md`: none, nothing a newcomer does changes.
 
 ## Smoke test
 
@@ -259,3 +262,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 11. factory: started review as self.
+12. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (src/factory/domain/sessions.py, src/factory/adapters/process.py, tests/domain/test_sessions.py, tests/adapters/test_process_session.py) against the work item. The architecture holds: the domain module is pure and the adapter imports it downward. No suppression markers were added, and no secret or string-built command is present. The 5 new findings of `make duplicates` are all in claude_runtime/opencode_runtime/clock.py, outside this diff. Criteria 2 to 7 are met by their tests.
+
+    Findings:
+    1. tests/domain/test_sessions.py::test_status_line_gives_the_entry: the Interface's limit "fewer than four fields after the last `)`" is tested only on the refused side ("5 (x) S 1 5", three fields). Every accepted row has five or more fields, so an off-by-one (`len(fields) <= 4`) would still pass. Fix: add the row "5 (x) S 1 5 5" (exactly four fields), giving `ProcessEntry(pid=5, session=5, ended=False)`.
+    2. tests/domain/test_sessions.py::test_status_line_gives_the_entry and ::test_unreadable_status_line_is_refused: criterion 1 asks for the rules of `parse_stat` as rows of one parametrized test, but the tester split the accepted and refused sides into two functions. Fix: merge them into one parametrized test where each row carries either the expected entry or the expected `ValueError` (e.g. `contextlib.nullcontext()` vs `pytest.raises(ValueError)`).
+    3. criterion 8 added: it needs its test. The Interface's rule "a `PermissionError` adds the id to `refused`" in `_kill_one` (src/factory/adapters/process.py) has no test, and the coder's journal reports those lines uncovered. Without that rule the rounds would never end on a process they cannot signal. Intake accepted it as covered by the end-to-end rows, but those rows do not reach it. It can be pinned without a change under `src/` by replacing `os.kill` through `monkeypatch` for the call, as the new criterion 8 describes. Criteria 8 and 9 (`make check`, docs) are renumbered 9 and 10.
+
+    Earlier tests: none changed. The diff only adds test files (tests/domain/test_sessions.py, tests/adapters/test_process_session.py).
+
+    Not raised: the `ProcessLookupError` branch of `_kill_one` and the skipped unreadable `/proc` folder are race branches. A stand-in that raises `ProcessLookupError` for a live process would make the rounds loop forever, so they stay uncovered, as intake accepted.
