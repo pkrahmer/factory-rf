@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T12:33:36.323101Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-20T12:33:36.323101Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-20T12:37:26.433457Z'
+  stage: doing
+  run: 12a70a7a1156462ca03fcfff2f46dcaa
 ---
 
 # A program ends every other process of the user it runs as
@@ -472,3 +474,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (99.1 s)
 21. factory: started doing as self.
+22. coder: Round 1, after the tester's entry 20. The tester handled both of the reviewer's findings from entry 16. They merged the two argument tests into `tests/entry/test_leftovers.py::test_only_a_user_s_name_starts_the_rounds`. They also moved `AGENT` and `process_entry` into `tests/leftovers_support.py`. Both were test changes, so no code change was needed and I changed no files in this round. I ran `make check` this round and it ended `check: green` (`test: green (96.8 s)`, 99.16 % coverage).
+
+    What is built (unchanged since entry 14):
+    - `src/factory/domain/sessions.py`: `ProcessEntry.uid` and `parse_stat(..., *, uid)`.
+    - `src/factory/domain/leftovers.py` (new): `LEFTOVERS_PREFIX`, `LEFTOVER_ROUNDS`, `LEFTOVER_PAUSE_SECONDS`, `Identity`, `leftover_pids` and `leftovers_refusal`.
+    - `src/factory/adapters/process.py`: the public `read_process_table(proc)`, which reads the owner from each process folder and sorts by pid, plus `own_identity` and `signal_every_other`.
+    - `src/factory/entry/leftovers.py` (new): `main`, plus the private `_parse` and `_end_the_others`.
+
+    Main design choice (unchanged): each fault in `main` raises a private `_Stop` exception that carries its line, which is the pattern `factory.entry.confine` uses. I rejected returning a status from every step, because every caller would then need its own early-return checks.
+
+    Refactor: no code changed this round, so there was nothing new to refactor. The earlier rounds' review of the diff found nothing to change.
+
+    Description: the journal did not change what the task means.
+
+    Noticed but not touched: `tests/test_process_search.py` expects `noqa: PLR0913` at the literal line 32 of `src/factory/entry/leftovers.py`. Any later edit above `def main(` must update that number.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
