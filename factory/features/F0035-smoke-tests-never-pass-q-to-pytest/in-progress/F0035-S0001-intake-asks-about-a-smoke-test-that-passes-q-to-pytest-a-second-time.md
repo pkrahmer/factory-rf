@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 330
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T05:06:42.713224Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T05:06:42.713224Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T05:07:00.501773Z'
+  stage: smoke-test
+  run: 8b2c667b2c864fd3a12fed845c38d03f
 ---
 
 # Intake asks about a smoke test that passes -q to pytest a second time
@@ -182,3 +184,33 @@ Expect: `1` (the human's change 1 is on `main`)
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: I ran both smoke test commands from the repository root, as written and in order. Both met their `Expect:` lines. No findings.
+
+    Command 1:
+    ```bash
+    grep -c -F 'passes no `-q` when the project'"'"'s pytest configuration already sets one' claude/agents/*.md
+    ```
+    ```
+    claude/agents/acceptance-reviewer.md:0
+    claude/agents/coder.md:0
+    claude/agents/documenter.md:0
+    claude/agents/intake.md:1
+    claude/agents/reviewer.md:0
+    claude/agents/smoke-tester.md:0
+    claude/agents/tester.md:0
+    ```
+    Met: seven lines, exactly the ones expected (intake 1, the six others 0). Exit status 0.
+
+    Command 2:
+    ```bash
+    grep -c -F 'A block that runs pytest never passes `-q`' factory/story-form.md
+    ```
+    ```
+    1
+    ```
+    Met: `1`. The human's change 1 is on the branch. Exit status 0.
+
+    Cross-check against the acceptance criteria. Nothing the smoke test showed contradicts any of them.
+    - Criteria 1 to 3: the rule is in `claude/agents/intake.md:53`, the line that starts with `2. The factory has already checked the story's form`. That line ends with `Such a command is a question.`. The rule is in no other agent file (command 1).
+    - Criterion 4: the smoke test does not run `make check`, so it does not show this one. The factory's earlier checks were green (journal entries 7 and 11).
+    - Criterion 5: `docs/decisions.md:869` has the entry *A smoke test passes no -q that the pytest configuration already sets*. `docs/project-guide/agents.md:248` has the sentence about intake.
