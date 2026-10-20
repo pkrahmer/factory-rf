@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 367
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T22:49:01.382584Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T22:48:40.052242Z'
   stage: tests
   run: 86768edae34e4cc28d5ce478dfe7f667
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:49:01.382584Z'
+  stage: doing
 ---
 
 # The shared time limits' test names the values of a relation that broke
@@ -128,3 +137,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.6 s)
    `test`: test: green (63.2 s)
+6. factory: started doing as self.
