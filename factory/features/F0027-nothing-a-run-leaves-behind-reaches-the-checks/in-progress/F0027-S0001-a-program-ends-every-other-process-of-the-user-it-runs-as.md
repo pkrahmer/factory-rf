@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T12:22:40.580471Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-20T12:22:19.374744Z'
   stage: tests
   run: 72ebf515e8044bc996070e3b034ef5f5
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:22:40.580471Z'
+  stage: doing
 ---
 
 # A program ends every other process of the user it runs as
@@ -341,3 +350,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (97.0 s)
+13. factory: started doing as self.
