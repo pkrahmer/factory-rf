@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658, 6303178244]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T22:31:23.877025Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -205,6 +209,11 @@ journal:
   at: '2026-10-20T22:31:03.102640Z'
   stage: docs
   run: 963acb49ddac406e82542b647e7ae572
+- number: 37
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:31:23.877025Z'
+  stage: smoke-test
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -655,3 +664,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 9c97e3563684 at 2026-10-20T22:24:14Z)
     `secrets`: secrets: green (2.8 s)
     `documents`: documents ok
+37. factory: started smoke-test as self.
