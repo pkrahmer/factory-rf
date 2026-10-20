@@ -76,7 +76,7 @@ test:
 	mkdir -p .reports
 	# The tests set their own umask (tests/conftest.py); uv syncs .venv under the caller's.
 	# COLUMNS: each FAILED line keeps its error message, so the tail a stall quotes names it.
-	COLUMNS=200 uv run pytest -q --no-header --tb=short -p no:cacheprovider -n auto --dist load 	  --junit-xml=.reports/junit.xml --cov --cov-report=term-missing:skip-covered
+	COLUMNS=200 uv run pytest -q --no-header --tb=short -p no:cacheprovider -n auto --dist worksteal 	  --junit-xml=.reports/junit.xml --cov --cov-report=term-missing:skip-covered
 	$(green)
 
 # Similar code (pylint's duplicate-code) and dead code (vulture) in src/factory, against the
