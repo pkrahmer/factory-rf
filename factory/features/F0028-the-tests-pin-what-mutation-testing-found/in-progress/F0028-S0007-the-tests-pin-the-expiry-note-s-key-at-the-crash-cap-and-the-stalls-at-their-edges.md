@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 318
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T02:20:44.341832Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T02:20:23.614905Z'
   stage: intake
   run: 25080d7385974d9f8c8adc16e0115f5d
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:20:44.341832Z'
+  stage: tests
 ---
 
 # The tests pin the expiry note's key at the crash cap and the stalls at their edges
@@ -85,3 +94,4 @@ Expect: two lines, `Stalled (attempt 1 of 2): merging the main branch conflicts 
    Smoke test: it is a runnable `stall_note` call. Its Expect line gives the two exact sentences, which can be checked against the output.
    Architecture: the story changes only tests, under `tests/application/` and mirroring the package layers. It reuses the shared support modules and adds no copy of a helper.
    Scope: it matches the feature's scope entry for S0007 and decisions 1, 8, 9 and 13. Nothing falls in the feature's "Out of scope".
+4. factory: started tests as self.
