@@ -8,6 +8,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, PositiveInt, TypeAdapter, ValidationError
 
+from factory.domain.agent_home import inside_home
 from factory.domain.errors import SettingsInvalid
 from factory.domain.git import DEFAULT_GIT_IDENTITY, GitIdentity
 from factory.domain.identifiers import Name
@@ -200,8 +201,7 @@ def _opencode_folders(environ: Mapping[str, str]) -> list[str]:
 
 
 def _opencode_folder(entry: str) -> str:
-    # An absolute path begins with an empty segment; `Path` would fold `a//b` and `./a`.
-    if any(segment in {"", ".", ".."} for segment in entry.split("/")):
+    if not inside_home(entry):
         raise SettingsInvalid(
             OPENCODE_FOLDERS_VARIABLE,
             f"holds {entry}, which is not a folder inside the agent's home",

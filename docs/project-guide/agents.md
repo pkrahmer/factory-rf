@@ -90,6 +90,30 @@ Measures of a resumed run: `turns`, `cost_usd` and each of the four token counts
 
 Tests use a stand-in executable (`tests/adapters/claude_stand_in.py`: `write_stand_in(directory, steps)` and `read_calls(directory)`) written into `tmp_path`; the real `claude` is never run.
 
+### The fresh home
+
+`python -I -m factory.entry.fresh_home --home <folder> [--keep <path>]...` clears an agent's home of what the agent made. The home keeps everything every run left there: the transcripts of earlier runs, opencode's sessions, caches, and any file Claude Code reads on every later run (a user `CLAUDE.md`, a `rules/` folder). The program runs as the user whose files it removes and decides by ownership. It is built in three layers: the rule in `factory.domain.agent_home`, the walk in `factory.adapters.home_files` (`clear_home`, `own_entry`) and the command line in `factory.entry.fresh_home`. S0004 of F0040 starts it as the agent's user before every run and every project command; the program itself starts nothing and has no default home, so no call can clear a home it was not named.
+
+**Arguments and status.** Exactly `--home <folder>` followed by any number of `--keep <path>`; each `--keep` is relative to the home.
+
+| Status | When | Standard error |
+| --- | --- | --- |
+| 0 | the walk is done | nothing |
+| 1 | the walk is done and some entry could not be removed | one line `factory-fresh-home: <relative>: <reason>` per fault |
+| 2 | the arguments are refused; nothing is removed | the usage line `factory-fresh-home: usage: fresh_home --home <folder> [--keep <path>]...`, or `--home <folder> is not an absolute folder other than /` (relative, resolving to `/`, or not an existing folder), or `--keep <path> is not a path inside the home` |
+
+**The rule.** `inside_home(relative)` is false for `""`, an absolute path and any path with an empty, `.` or `..` segment; `factory.domain.settings` uses it for `FACTORY_OPENCODE_FOLDERS` too. `kept_paths(...)` builds the list of kept paths, relative to the home: the login files that lie inside it, then the state files, then the folders, without repeats; a state file or folder that is not `inside_home` raises `ValueError`. For each entry of a folder, in name order, `fate(relative, owned=, folder=, kept=)` says:
+
+- `keep` when the entry is a kept path or lies beneath one;
+- otherwise `descend` when it is a real folder (a link to a folder is not one), also when a kept path lies beneath it;
+- otherwise `remove` when it belongs to the program's user, and `keep` when it belongs to another user (the factory's agents, `settings.json`, `skills/`, `commands/`, the mounted login files).
+
+After the walk of a folder, `removed_when_empty` decides whether the folder is removed: only when the user owns it and no kept path lies beneath it. A folder with a kept path or another user's entry in it stays.
+
+**The walk.** `clear_home` never follows a link: a link is judged and removed as itself, and what it points to stays. An owned folder gets the owner's read, write and search bits before it is walked, so a folder the agent closed to itself is still cleared. The mode of an entry that is not the user's is never changed. The home itself is never removed. An `OSError` at an entry is recorded as `<relative>: <strerror>` and the walk goes on; the faults come back in the order met. `own_entry` compares the owner of the entry itself (`lstat`) with the process's effective user.
+
+Tests: `tests/domain/test_agent_home.py`, `tests/adapters/test_home_files.py`, `tests/entry/test_fresh_home.py`. Every home is a folder under `tmp_path`; the tests cannot `chown`, so an entry of another user is an `owned` that answers false. No test runs the program on a real home. `factory.entry.fresh_home` imports its adapter directly, as `factory.entry.confine` and `factory.entry.leftovers` do, and is in the expected set of `tests/entry/test_wiring.py`.
+
 ### The opencode runtime
 
 `OpencodeRuntime(executable, state_directory, kill_points=None, *, models=None, settings_file=None, version_time_limit=VERSION_TIME_LIMIT, sudo_executable=SUDO_EXECUTABLE, api_login_file=None, confine_executable=None, temporary_root=None, provider_limit=None, runtime_folders=RUNTIME_FOLDERS, leftovers=None)` (`factory.adapters.opencode_runtime`) runs an agent as one `opencode run` call and reads the run's result from the JSON events the call prints. `_agent_runtime` in `factory.entry.wiring`, called by `build_boundaries`, builds it when `settings.agent_runtime` is `opencode` (`FACTORY_AGENT_RUNTIME`; otherwise it builds the Claude Code runtime): with `settings.opencode_executable`, `<state>/runs`, `models=settings.opencode_models`, `settings_file=agent_home / "settings.json"`, `api_login_file`, `provider_limit` and `runtime_folders=(*RUNTIME_FOLDERS, *settings.opencode_folders)`. The budget stop, the provider limit and the resume while the run streams are built in the runtime itself. Its keyword `provider_limit` (last; `None` is `ProviderLimit()`, status 428 and no message) is the limit it recognizes. It reads no `os.environ`; its starts go through `run_process` and `run_streaming`, whose callback (`_Watch`) reads each line as it arrives and may stop the call.
