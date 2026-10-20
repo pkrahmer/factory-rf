@@ -10,6 +10,8 @@ A fault F0024's acceptance found (`factory/features/F0024-mutation-testing-per-s
 - `src/factory/adapters/process.py`: the kill at a time limit, at a callback's stop and at a callback's error ends every process of the child's session that the factory may signal, and returns when none is left (S0001).
 - `tests/domain/test_sessions.py` and `tests/adapters/test_process_session.py` (new) (S0001).
 - `docs/project-guide/processes-and-checks.md` and `docs/decisions.md`, from the story's docs criterion.
+- `src/factory/adapters/git_cli.py`: `work_tree_id` copies the index with `shutil.copy2` instead of `shutil.copyfile`, so a change made in the tick of the last index write is seen; `tests/adapters/test_git_cli_work_tree_tick.py` (new) (S0002, proposed by the acceptance: the flaky row that stalled S0001).
+- The documents on what the factory's kill of `make mutants` leaves (S0003, proposed by the acceptance; documents only).
 
 ## Out of scope
 
@@ -26,6 +28,8 @@ A fault F0024's acceptance found (`factory/features/F0024-mutation-testing-per-s
 The build order; start one at a time, the next when the one before is archived in `done/`. S0001 starts after F0029-S0002 is merged: its tests take `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS` from `tests/time_limits.py`, which that story adds.
 
 - S0001: The kill at a time limit ends every process of the command's session
+- S0002: The work tree's id sees a change made in the tick of the last index write (proposed by the acceptance)
+- S0003: The documents say what the factory's kill of `make mutants` leaves (proposed by the acceptance)
 
 ## The human's changes
 
