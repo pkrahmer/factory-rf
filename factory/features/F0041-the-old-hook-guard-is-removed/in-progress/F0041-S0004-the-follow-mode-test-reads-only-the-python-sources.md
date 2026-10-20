@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 352
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T12:53:30.768414Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T12:53:09.895537Z'
   stage: doing
   run: 2c56e76e13f44482a0e965fb95133dac
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:53:30.768414Z'
+  stage: review
 ---
 
 # The follow-mode test reads only the Python sources
@@ -152,3 +161,4 @@ Expect: `1`
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
