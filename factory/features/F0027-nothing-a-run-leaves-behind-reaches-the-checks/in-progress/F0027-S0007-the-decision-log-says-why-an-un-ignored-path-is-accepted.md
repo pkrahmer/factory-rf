@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 373
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T23:46:27.226146Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T23:46:06.506765Z'
   stage: doing
   run: f33b6ae48c0c44e58aea9a4751400e44
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:46:27.226146Z'
+  stage: review
 ---
 
 # The decision log says why an un-ignored path is accepted
@@ -107,3 +116,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
    `duplicates`: duplicates: 6 new, 33 known, 3 gone
+8. factory: started review as self.
