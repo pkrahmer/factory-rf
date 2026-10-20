@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 349
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T11:48:25.900590Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T11:48:05.328182Z'
   stage: docs
   run: 6750faa06fe2490bb62cb0b038fc6578
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T11:48:25.900590Z'
+  stage: smoke-test
 ---
 
 # The documents describe the kernel's guard and the undo as the write guard
@@ -207,3 +216,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 148931ef7750 at 2026-10-20T11:43:14Z)
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
