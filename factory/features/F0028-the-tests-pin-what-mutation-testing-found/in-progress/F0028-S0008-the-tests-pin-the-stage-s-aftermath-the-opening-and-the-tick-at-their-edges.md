@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 319
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T02:29:31.613661Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T02:29:31.613661Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T02:29:48.567204Z'
+  stage: intake
+  run: 6647a6b51df04e93904184cb58c50319
 ---
 
 # The tests pin the stage's aftermath, the opening and the tick at their edges
@@ -93,3 +95,9 @@ Expect: four lines, `None`, `Stalled (attempt 1 of 2): the agent gave no valid d
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures (`AfterAgent.process`, `WorkItemOpening.prepare(work_item, path)`, `Tick.run()`), states that no module under `src/factory/` changes, and names the test files, the support modules and the shared helper move (`handlers_of`, `Failing` in `tests/tick_support.py`) under the standing leave, with the three earlier test files the tester must name.
+   Criteria: all five behaviour criteria are each testable by one test function with exact expected values. The empty entry has both rows (`""` and `tester:`). The form findings have the old-only side (`TWICE`, no stall, rule 1) and the new-finding side (`THRICE`, `form_invalid`). The opening has the missing-journal case. The tick has both stops with exact details, and the error cap has its log line. Criteria 6 (`make check`) and 7 (`docs: none`) close the list. The Interface states no limit or rejected input without a failing-side criterion. I did not run the numbers (for example "line 27") against the code; the tester will find out if they are wrong.
+   Smoke test: it is a runnable `uv run -q python` heredoc using existing domain functions, and its `Expect:` line lists four checkable output lines.
+   Architecture: tests only, under `tests/` mirroring `application/`, with shared helpers in a root support module as CLAUDE.md allows. Nothing is built in a layer and no code changes.
+   Scope: it is within F0028 (S0008 in the feature's scope and stories list) and touches nothing in "Out of scope"; the equivalent mutants (decision 10) are left out as the Description says.
