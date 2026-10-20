@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 305
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T00:09:40.997923Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T00:09:20.774278Z'
   stage: docs
   run: 253f6f41c9694f37b468beb6ed98133c
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:09:40.997923Z'
+  stage: smoke-test
 ---
 
 # The second-user section names the API login and opencode's run files
@@ -181,3 +190,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 7897e571521e at 2026-10-19T23:58:37Z)
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
