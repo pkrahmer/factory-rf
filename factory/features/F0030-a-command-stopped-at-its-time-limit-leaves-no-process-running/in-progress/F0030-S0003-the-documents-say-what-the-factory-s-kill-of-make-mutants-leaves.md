@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 370
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T23:18:02.794422Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T23:17:41.930418Z'
   stage: intake
   run: d65e6712d1194de1a83ae0e3facf57b7
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:18:02.794422Z'
+  stage: tests
 ---
 
 # The documents say what the factory's kill of make mutants leaves
@@ -68,3 +77,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: both commands are plain `grep -c` calls with no pytest. Today the first prints 0 and the second prints 0, because the exact phrase `since F0030-S0001 the factory's kill reaches mutmut` is absent (line 506 has a different "since F0030-S0001"). So both `Expect: 1` lines can only be met after the edit. Neither `Expect:` line is met yet. One gap: the phrase `runs on until it ends by itself` has no grep of its own. The criterion states it, so the docs check and the reviewer cover it. I did not treat this as a question.
    - Architecture: documents only. The documenter writes `docs/*`, and `README.md` is correctly left alone. No layer is touched, and no `src/` or `tests/` file.
    - Scope: this is S0003 in the feature's Stories and Scope list ("documents only", proposed by the acceptance). It follows the feature's *The human's changes* and decision 14, which the human answered on 2026-10-20. It does not touch the `Makefile`'s `mutants` recipe, `factory/pipeline.yml` or the TERM question, which are in *Out of scope*.
+4. factory: started tests as self.
