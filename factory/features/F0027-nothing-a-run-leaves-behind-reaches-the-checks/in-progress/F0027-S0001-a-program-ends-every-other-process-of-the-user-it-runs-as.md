@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T12:22:40.580471Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-20T12:22:40.580471Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-20T12:26:36.362070Z'
+  stage: doing
+  run: e4fb25198a17492d9139ed8fd68577dd
 ---
 
 # A program ends every other process of the user it runs as
@@ -351,3 +353,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (97.0 s)
 13. factory: started doing as self.
+14. coder: The tester made the two test changes from entry 12 (the human's answer in entry 8). The code from the earlier rounds now passes without any change, so I changed no files in this round. I ran `make check` this round and it ended `check: green`. `make test` reported `test: green (98.9 s)` with 99.16 % coverage.
+
+    What is built, all committed in earlier rounds:
+    - `src/factory/domain/sessions.py`: `ProcessEntry.uid` and `parse_stat(..., *, uid)`.
+    - `src/factory/domain/leftovers.py` (new): `LEFTOVERS_PREFIX`, `LEFTOVER_ROUNDS`, `LEFTOVER_PAUSE_SECONDS`, `Identity`, `leftover_pids` and `leftovers_refusal`.
+    - `src/factory/adapters/process.py`:
+      - `read_process_table(proc)` is now public. It reads the owner from each process's folder, not from a file in it, and sorts the entries by `pid`.
+      - New `own_identity` and `signal_every_other`, which ignores `ProcessLookupError`.
+      - `_kill_session` uses the public reader.
+    - `src/factory/entry/leftovers.py` (new): `main`, plus private `_parse` and `_end_the_others`. `main`'s def line keeps `# noqa: PLR0913` with its reason, as the human allowed in entry 8.
+
+    Main design choice: each fault raises a private `_Stop` exception that carries its line, and `main` writes it once with the prefix and returns 1. `factory.entry.confine` handles faults the same way. I rejected returning a status from each step, because every caller would then need its own early-return checks.
+
+    Refactor: I read `git diff main -- src` the way a reviewer would. Nothing needed changing.
+
+    Description: the journal changed no meaning of the task. Entry 8 only allowed two test changes and the one `noqa` marker.
+
+    Noticed, not touched:
+    - Two test names no longer match their sets: `test_only_the_three_wrappers_import_the_process_module` and `test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`. The human decided they stay.
+    - In `tests/test_process_search.py`, the expected marker for `entry/leftovers.py` is the literal line 32 (entry 12). Any edit that moves `def main(` in `src/factory/entry/leftovers.py` must update that number in the test.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
