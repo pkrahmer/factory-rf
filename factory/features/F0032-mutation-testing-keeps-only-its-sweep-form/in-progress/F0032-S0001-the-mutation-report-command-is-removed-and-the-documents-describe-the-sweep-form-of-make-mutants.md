@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 307
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T00:23:59.472345Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T00:23:59.472345Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T00:24:23.494163Z'
+  stage: smoke-test
+  run: 3f5e3318cedc416c8655be821f523101
 ---
 
 # The mutation report command is removed and the documents describe the sweep form of `make mutants`
@@ -215,3 +217,44 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.6 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: I ran the three blocks from the repository root, exactly as written and in order. All three met their `Expect:` lines, and there are no findings.
+
+    Block 1:
+    ```
+    [True, True, False]
+    ```
+    Met: `[True, True, False]`. Both removed modules are gone and `factory.entry.inputs` is still there.
+
+    Block 2:
+    ```
+    4
+    docs/operator-guide.md:0
+    docs/project-guide/processes-and-checks.md:0
+    docs/project-guide/README.md:0
+    Makefile:0
+    CLAUDE.md:0
+    ```
+    Met: `4`, then the five files, each with a count of `:0`.
+
+    Block 3:
+    ```
+    found
+    found
+    found
+    found
+    found
+    docs/project-guide/processes-and-checks.md:0
+    docs/project-guide/README.md:0
+    ```
+    Met: five `found` lines, then both files at `:0`.
+
+    I compared the output with the acceptance criteria and found nothing that contradicts them:
+    - Criterion 1: matches block 1. The `check_duplicates` row is not in the smoke test; the tester's parametrized test `tests/entry/test_mutation_report_removed.py` covers it.
+    - Criterion 2: the two old test files are gone (block 2's `4`).
+    - Criterion 3: no smoke-test command runs `make check`, and I did not run it either. Entry 7 records `check: green`, and the factory checks it again.
+    - Criterion 4: beyond what the greps check, I looked at a few more of its points:
+      - The index line for `processes-and-checks.md` still names `factory.entry.inputs`.
+      - `docs/decisions.md` has the new entry *The mutants target keeps only its sweep form*, and the three earlier entries each name it.
+      - The operator guide gives 165 s on 20 cores and 4.5 to 19 minutes on two cores, and has the example `make mutants MODULES=<module> MUTANTS_SECONDS=1500`. It no longer mentions a 540 s stop or a `partial` end.
+
+    As the work item says, no command ran `make mutants`. I changed no files.
