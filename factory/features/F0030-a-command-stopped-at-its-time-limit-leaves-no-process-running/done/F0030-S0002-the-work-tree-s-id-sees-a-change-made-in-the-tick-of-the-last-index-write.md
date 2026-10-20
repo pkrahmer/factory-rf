@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-10-20T23:14:52.468677Z'
   stage: smoke-test
   run: 0924069c43d54d2aa75d271ea380de9d
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-20T23:16:13.733571Z'
+  stage: approval
 ---
 
 # The work tree's id sees a change made in the tick of the last index write
@@ -245,3 +250,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     3. docs: `docs/decisions.md:970` has the entry *The work tree's id copies the index with its timestamps*, and `docs/project-guide/git-and-hosting.md` is changed. `README.md` is untouched, as the criterion asks. Nothing contradicts it.
 
     Findings: none. I fixed nothing and changed no file. Skills: none used.
+17. factory: done (pull request merged); cost: 7 runs, 4.7 min, 34 turns, 119540 tokens in (476898 more from cache), 9948 out, $0.99
