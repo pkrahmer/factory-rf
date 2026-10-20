@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 340
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T06:58:37.774868Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T06:58:37.774868Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T06:58:53.796304Z'
+  stage: smoke-test
+  run: 73b6ab34029d498da157358562b75548
 ---
 
 # The opencode tests take their reply and waiting steps from the stand-in module
@@ -229,3 +231,39 @@ Expect: a line that starts `2 passed`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: I ran the three smoke-test commands from the repository root, exactly as written and in order. All three met their `Expect:` line, and I have no findings.
+
+    1. Reply text search:
+    ```bash
+    grep -rlF --include='*.py' 'stdout(step_start(), text(result_text()), step_finish())' tests | sort
+    ```
+    ```
+    tests/adapters/opencode_stand_in.py
+    ```
+    Met. Expected one line, `tests/adapters/opencode_stand_in.py`, and that is the only line printed.
+
+    2. Waiting step search:
+    ```bash
+    grep -rlF --include='*.py' 'Step(stdout_before_wait=stdout(step_start()), wait_seconds=WAIT_SECONDS)' tests | sort
+    ```
+    ```
+    tests/adapters/opencode_stand_in.py
+    ```
+    Met. Expected one line, `tests/adapters/opencode_stand_in.py`, and that is the only line printed.
+
+    3. Structural test:
+    ```bash
+    uv run pytest --no-cov tests/test_opencode_shared_steps.py 2>&1 | tail -1
+    ```
+    ```
+    2 passed in 0.02s
+    ```
+    Met. Expected a line that starts `2 passed`: these are the two rows, `reply` and `waiting`.
+
+    Against the acceptance criteria:
+    - Criterion 1: commands 1 and 2 show that each step's text is now written only in `adapters/opencode_stand_in.py`, and command 3 shows that the two-row test passes.
+    - Criterion 2 is a count of test ids that the tester's entry reports. The smoke test does not touch it and nothing here contradicts it.
+    - Criterion 3 (`make check`) is the factory's gate, not part of the smoke test, so I did not run it.
+    - Criterion 4 (docs: none) is not contradicted.
+
+    Findings: none.
