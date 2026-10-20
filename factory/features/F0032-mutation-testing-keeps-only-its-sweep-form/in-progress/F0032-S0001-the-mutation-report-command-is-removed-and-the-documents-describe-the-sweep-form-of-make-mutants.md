@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 307
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T00:22:04.320707Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T00:22:04.320707Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T00:22:28.028479Z'
+  stage: review
+  run: 03dad3a5ff7a4b03a05b95c3f948c355
 ---
 
 # The mutation report command is removed and the documents describe the sweep form of `make mutants`
@@ -145,3 +147,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` and the work item. The diff removes `src/factory/domain/mutants.py` and `src/factory/entry/check_mutants.py` whole. It removes their two test modules and adds `tests/entry/test_mutation_report_removed.py`. It touches nothing else under `src/`, and `inputs.py` and `check_duplicates.py` are unchanged.
+   - Criterion 1: one parametrized test with four rows over `importlib.util.find_spec`. The two "not found" rows (`check_mutants`, `domain.mutants`) and the two "found" rows (`inputs`, `check_duplicates`) cover both sides of the removal. The test reads no source file, so `[tool.mutmut]` needs no new deselected test.
+   - Criterion 2: the two test files are gone. The six earlier test modules named in the Interface are not in the diff, so they are unchanged. The coder's `make check` (entry 7) ran them green.
+   - Criterion 3: entry 7 records `check: green`.
+   - Leftover references: a search outside `factory/`, `docs/` and `planning/` finds no other mention of `check_mutants` or `factory.domain.mutants`. That covers `src/`, `tests/`, `security/`, `pyproject.toml`, the `Makefile` and `CLAUDE.md`, so no baseline entry or mutmut setting points at a removed file.
+   - Architecture, security, quality: the diff only deletes code, and the one new test module has a module docstring and typed parameters. It adds no markers that silence a check and no new helper. The `duplicates: 5 new` record cannot come from this diff: a deletion adds no similar or dead code.
+   - Work item hygiene: the coder's entry gives the main choice, a plain deletion, and what was rejected, a re-export shim. The Description matches what was built. Criterion 4 still describes the documenter's work on the four documents.
+
+   Earlier tests:
+   - `tests/domain/test_mutants.py` (deleted): the human's leave, decision 9 in the feature's `feature.md`, which the story's Interface names.
+   - `tests/entry/test_check_mutants.py` (deleted): the human's leave, the same decision 9 in the feature's `feature.md`, named in the story's Interface.
