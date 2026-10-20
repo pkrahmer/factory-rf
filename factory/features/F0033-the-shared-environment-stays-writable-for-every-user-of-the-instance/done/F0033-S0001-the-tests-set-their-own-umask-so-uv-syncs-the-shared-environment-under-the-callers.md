@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T03:14:53.247221Z'
   stage: smoke-test
   run: e183c21577f64cc3965fb6bfeefa94c2
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T03:16:11.810599Z'
+  stage: approval
 ---
 
 # The tests set their own umask, so uv syncs the shared environment under the caller's
@@ -239,3 +244,4 @@ Expect: `1`
     Open:
     - The human's change 1, which drops `umask 022` from the `Makefile`'s `test` recipe, is still to come after the merge, as the Description says.
     - The documenter asked in entry 11 for the human to confirm their one-clause reasons for the rejected alternatives in `docs/decisions.md`. That question still stands.
+14. factory: done (pull request merged); cost: 6 runs, 4.2 min, 34 turns, 113045 tokens in (578488 more from cache), 12550 out, $1.05
