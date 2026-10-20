@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 362
-comments_read: [6300047368]
+comments_read: [6300047368, 6300375333]
 handed_over: null
 claim: null
 journal:
@@ -109,6 +109,11 @@ journal:
   stage: doing
   run: 1594f6a87f224e0687cababb8c26fc09
   blocked: question
+- number: 19
+  speaker: human
+  kind: comment
+  at: '2026-10-20T20:08:38.340056Z'
+  stage: doing
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -346,3 +351,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     I would choose (a). If you agree, I will end the next run with `tests`, naming that change, for the tester to make.
 
     Noticed but did not touch: the `make duplicates` findings that entry 10 recorded.
+19. 2026-10-20 human: Answer (2026-10-20): (a). The tester changes lines 96–97 of this story's own `test_the_built_project_commands_run_as_the_agent_user_inside_a_seal` to look up the concrete classes (`_held(sealed, GitCli) is boundaries.git`, `_held(sealed, TimestampedFactoryLog) is boundaries.log`). The tester runs `make check`, not only `make lint` and `make test`, before handing on.
