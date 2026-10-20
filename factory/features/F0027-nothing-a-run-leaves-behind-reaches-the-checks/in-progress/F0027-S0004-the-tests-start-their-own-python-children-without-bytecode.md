@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 358
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T19:08:14.285976Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-20T19:08:14.285976Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-20T19:08:40.932315Z'
+  stage: intake
+  run: 388a832dedee41a0803c6214ee34f9ae
+  blocked: question
 ---
 
 # The tests start their own Python children without bytecode
@@ -99,3 +102,8 @@ Expect: `0`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: 1. Criterion 3 and the smoke test contradict themselves. Criterion 3's matcher rows need the text `f"#!{sys.executable}\n"` as test data, so that the matcher can be shown to find it. If that text sits in `tests/test_test_children.py`, the structural scan reads `tests/**/*.py` and finds the text in that module. The third smoke test (`grep -rnF '#!{sys.executable}\n' tests | wc -l`, expecting `0`) counts it too. Your description says the module's own text does not match the pattern, but that is only true of the pattern's own line, not of the rows. Options: (a) the rows build the text from pieces, for example `"#!" + "{sys." + "executable}\n"` or `"#!{}\n".format("sys.executable")`, so that no source line holds the literal text. The scan and the grep then stay at zero. (b) The scan skips its own module, and the smoke test grep excludes it with `--exclude=test_test_children.py`. I would choose (a), with the criterion saying that no line of the module holds the literal text. Please say which one you want, and I will add it to criterion 3 and the smoke test.
+
+   2. Minor, answer only if you disagree. Criterion 2 checks the stand-in `sudo`'s first line and mode. The Interface says `_write_sudo` returns the same path as before. The criterion does not test the path. I will read "same path" as `directory / "sudo"`, covered by the stand-in's location in the existing tests.
+
+   Everything else holds. Format check passed. The three changed helpers and the eight shebang writers are at the named lines (I checked with grep). `import sys` is used outside `SUDO_SCRIPT` only inside the script text, so dropping it is right. The smoke test commands are runnable and none runs pytest, so no `-q` issue arises. The scope is within F0027's scope, and decision 16 grants the leave for S0004. No `src/` module changes, so the layers are untouched.
