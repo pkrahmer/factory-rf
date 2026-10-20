@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 317
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T02:13:29.143493Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T02:13:08.763818Z'
   stage: tests
   run: f041459261a14168a99fa0c64fc4eb6b
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:13:29.143493Z'
+  stage: doing
 ---
 
 # The tests pin the subjects of a story's recovery and handler commits
@@ -113,3 +122,4 @@ Expect: two lines, `work item F0001-S0001: crash of stage doing recorded` and `w
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.8 s)
+6. factory: started doing as self.
