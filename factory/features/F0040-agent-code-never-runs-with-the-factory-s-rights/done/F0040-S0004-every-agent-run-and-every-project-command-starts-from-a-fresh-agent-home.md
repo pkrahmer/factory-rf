@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -216,6 +216,11 @@ journal:
   at: '2026-10-20T22:31:54.141922Z'
   stage: smoke-test
   run: 275148937f9949e5bba2540db9b707c6
+- number: 39
+  speaker: factory
+  kind: done
+  at: '2026-10-20T22:33:14.319420Z'
+  stage: approval
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -702,3 +707,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The smoke test does not exercise the other criteria (the time limit, `run_sealed`, `SealedProjectCommands`, `build_boundaries`, docs, `make check`), so it neither confirms nor contradicts them. The factory's checks cover `make check`.
 
     No findings.
+39. factory: done (pull request merged); cost: 14 runs, 20.0 min, 149 turns, 548711 tokens in (4542726 more from cache), 73273 out, $6.12
