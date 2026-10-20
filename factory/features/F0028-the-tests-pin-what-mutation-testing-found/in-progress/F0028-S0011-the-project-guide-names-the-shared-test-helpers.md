@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 333
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T04:26:22.853231Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T04:26:22.853231Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T04:27:18.234180Z'
+  stage: tests
+  run: cb8835a79b3d4e8f85f5be0d938cded2
 ---
 
 # The project guide names the shared test helpers
@@ -78,3 +80,15 @@ Expect: `1`
    - Architecture: documentation only, so no layer is touched. It follows `CLAUDE.md`'s standing leave on shared test helpers and its Docs section, where the documenter keeps the guide.
    - Scope: it is within F0028 and not in its "Out of scope". The feature's scope lists `tests/tick_support.py` and the other support modules that this story names in the guide. The feature says the stories' docs criteria are `none`. That sentence is overridden by this proposed story, which the acceptance reviewer proposed and the human started. I did not raise it.
 4. factory: started tests as self.
+5. tester: No tests written, on purpose. The Interface says no module under `src/factory/` changes and the tester writes no test module. Neither criterion describes behaviour a test could check:
+   - criterion 1 (`make check` stays green): no test function. The factory's own checks cover it.
+   - criterion 2 (docs: a *Shared test helpers* section in `docs/project-guide/README.md`): no test function. This is the documenter's work. The documenter checks it against the set `tests/*.py` whose name does not start with `test_`, and the story's smoke test checks it too.
+
+   Files created: none. Modules the test run could not import: none, because no new test refers to a missing module. I did not run `make test`: there is no new red test to confirm, and the factory runs it after this stage. `make lint` is green.
+
+   Rejected: a pytest test that reads the guide's index for the module names. It would duplicate the smoke test and go against the Interface's "the tester writes no test module".
+
+   Open: none. The coder has no code to write. The work is the docs criterion.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (40.6 s)
