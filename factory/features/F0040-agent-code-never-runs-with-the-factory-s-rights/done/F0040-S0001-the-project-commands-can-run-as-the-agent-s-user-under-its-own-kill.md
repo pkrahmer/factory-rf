@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -296,6 +296,11 @@ journal:
   at: '2026-10-20T19:05:40.312524Z'
   stage: smoke-test
   run: d1ecac7bfa034c49a0bc50318e4179b6
+- number: 53
+  speaker: factory
+  kind: done
+  at: '2026-10-20T19:07:01.677604Z'
+  stage: approval
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -854,3 +859,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Not run: I did not run `make check` here. The smoke-test stage does not ask for it, and I changed no files.
 
     Open: nothing.
+53. factory: done (pull request merged); cost: 22 runs, 27.3 min, 182 turns, 720124 tokens in (4450674 more from cache), 81111 out, $7.77
