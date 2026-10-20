@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 359
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T19:23:07.138994Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T19:22:45.277299Z'
   stage: intake
   run: f668b26a4b434b01a304b0dcb5019f2d
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:23:07.138994Z'
+  stage: tests
 ---
 
 # The documents say what an ignored path the factory cannot remove does
@@ -80,3 +89,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: three `grep` commands, each runnable from the repository root with a checkable `Expect:` line (`found`, `found`, `1`). None runs pytest.
    - Architecture: nothing in `src/` changes. The documents are in the documenter's write paths (`docs/*`), and `README.md` is correctly left out. The sections the docs criterion names exist: *The project's make targets* (`docs/operator-guide.md:74`), *Boundaries* (`docs/project-guide/watching.md:260`) and the decision entry *The factory removes the git-ignored paths after every agent run and at the restore* (`docs/decisions.md:934`). The `umask=0002` bullet and the `checkout_restore_failed` row (line 858) are also in the operator guide.
    - Scope: the story is within F0027's scope, since the feature lists `docs/operator-guide.md`, `docs/project-guide/` and `docs/decisions.md` as documentation. The story is proposed by F0027-A0001 (the feature's acceptance), and none of it is in the feature's "Out of scope". The S0004 and S0005 references to the Makefile quick fix match the feature's change 5.
+4. factory: started tests as self.
