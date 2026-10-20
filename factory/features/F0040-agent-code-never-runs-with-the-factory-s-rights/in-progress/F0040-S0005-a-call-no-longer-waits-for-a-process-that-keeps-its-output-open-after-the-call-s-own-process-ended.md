@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 363
 comments_read: [6300695093]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T20:40:21.864061Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-20T20:40:00.937981Z'
   stage: docs
   run: bea50bb2589e48e3915a87dc7356bcca
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:40:21.864061Z'
+  stage: smoke-test
 ---
 
 # A call no longer waits for a process that keeps its output open after the call's own process ended
@@ -311,3 +320,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 5c76883181b4 at 2026-10-20T20:35:46Z)
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
+15. factory: started smoke-test as self.
