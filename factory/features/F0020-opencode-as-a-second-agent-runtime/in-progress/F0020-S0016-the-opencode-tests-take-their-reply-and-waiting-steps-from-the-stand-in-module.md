@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 340
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T06:50:18.121511Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T06:50:18.121511Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T06:50:48.639266Z'
+  stage: intake
+  run: 1ccb9a95cc1c4c2f8b18c2d3576c5ae8
 ---
 
 # The opencode tests take their reply and waiting steps from the stand-in module
@@ -79,3 +81,9 @@ Expect: a line that starts `2 passed`
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: concrete. It names the stand-in module `tests/adapters/opencode_stand_in.py` with `REPLY_EVENTS`, `REPLY` and `WAITING`, the eight modules that drop their copies, and the new `tests/test_opencode_shared_steps.py`. No `src/` change. I checked the current state with grep: the reply text is written in nine modules (the stand-in plus the eight named), and the waiting step in three (`test_opencode_confinement.py`, `test_opencode_limit_wait_on_stderr.py`, `test_opencode_provider_limit.py`), as the story says. The stand-in already holds `REPLY` (line 309) and `WAIT_SECONDS`.
+   Criteria: criterion 1 is one parametrized test with two rows (`reply`, `waiting`), each a search for an exact text with an exact expected module. Both rows fail before the move. Criterion 2 is the tester's entry (id counts and equal sorted lists), a report and not a test function, but the existing tests already cover each behaviour. Criterion 3 is `make check`. Criterion 4 is docs: none. The story adds no rule with a failing side. The only rule is the one-module search, and a row that finds more than one module is the failing side.
+   Smoke test: the greps are runnable and each `Expect:` is checkable. The pytest command passes no `-q`, and `pyproject.toml` sets `addopts = "-q --strict-markers"`. At a single `-q` pytest prints its summary line, so the `2 passed` expectation can be met. A step in the stand-in module differs from the searched text (`over_budget` uses `stdout(*lines)`), so it does not make the stand-in match twice.
+   Architecture: this is test helpers only, within `tests/adapters/`, `tests/entry/` and the `tests/` root. It follows the pattern of `tests/test_shared_test_helpers.py` (`modules_matching`, split texts). It uses the standing leave of `CLAUDE.md` (*Tests*) for the reply. Decision 19 of the feature gives the human's leave for the waiting step.
+   Scope: within F0020 (the decision 19 entry for S0016 exists) and outside "Out of scope". No test changes name or meaning.
