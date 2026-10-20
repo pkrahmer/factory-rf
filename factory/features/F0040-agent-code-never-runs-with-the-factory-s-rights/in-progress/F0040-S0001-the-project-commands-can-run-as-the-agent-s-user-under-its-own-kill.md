@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: round_cap
-round: 3
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 357
-comments_read: [6297503471, 6297615750, 6298194655]
+comments_read: [6297503471, 6297615750, 6298194655, 6298783444]
 handed_over: null
 claim: null
 journal:
@@ -236,6 +236,11 @@ journal:
   stage: review
   run: 5c20d5aaf6c04397b7edc6b98317c736
   blocked: round_cap
+- number: 42
+  speaker: human
+  kind: comment
+  at: '2026-10-20T18:58:41.984106Z'
+  stage: review
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -681,3 +686,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_make_commands_user.py:22` (`LEFTOVERS_FAULT`): this restates `factory.adapters.agent_launch.LEFTOVERS_FAULT` with a trailing space instead of importing it.
     - `tests/adapters/test_make_commands_user.py:305`: criterion 8 says `.user` "is `u`", but the test compares with `==`, not `is`.
 41. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+42. 2026-10-20 human: Go on (2026-10-20). The coder fixes the one finding of entry 40, the docstring of `MakeProjectCommands.run` as the reviewer words it, and nothing else. The next review checks that fix and the groups as before. It adds no new criterion: a further point goes into the notes for the acceptance, not into a round. The three notes of entry 40 (the third stand-in `sudo`, the restated `LEFTOVERS_FAULT`, `==` for `.user`) are left to the acceptance.
