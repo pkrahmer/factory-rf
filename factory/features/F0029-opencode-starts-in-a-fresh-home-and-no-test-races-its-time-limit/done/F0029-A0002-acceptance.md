@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T23:02:34.268125Z'
   stage: acceptance
   run: 1aa79e8273a24204b82152a8c7f56cd0
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T23:03:53.914741Z'
+  stage: done
 stories: [F0029-S0001, F0029-S0002, F0029-S0003]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of opencode starts in a fresh home, and no test races its time limit
@@ -245,3 +250,4 @@ none. Every noticed item is closed (F0029-S0003), is the human's own (change 2, 
    6 Decisions: `feature.md` decisions 1–11, the S0003 leave of 2026-10-20, S0001's answer (a), S0002's extra bound, and S0003's form of the `limit` row. Change 1 is done and change 2 is open. Earlier tests were changed only under decision 9.
    7 Slow checks: there is nothing beyond `make check`, which was green (test 61.6 s, coverage 99.14 %, 6405 tests). The slowest tests are the two `sudo` rows at 11.5 s. Disk used went down (/work 0.5 to 0.0 GB), so there is no growth.
    8 Cost: 23 runs, 21.4 min, $5.14. S0002 ($2.96) stands out, with one review round spent on comments its Interface only referred to. S0003 cost $0.91 and passed first time. The one question (0.0 h waited) was S0001's smoke block, blocked by the safety check.
+3. factory: done (pull request merged); cost: 1 runs, 6.8 min, 20 turns, 68036 tokens in (1012131 more from cache), 15405 out, $1.05
