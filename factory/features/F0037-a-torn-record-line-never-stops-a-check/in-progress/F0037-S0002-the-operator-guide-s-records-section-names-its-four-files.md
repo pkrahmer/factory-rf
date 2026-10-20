@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 372
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T23:39:04.833339Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T23:38:44.367157Z'
   stage: docs
   run: 8630d0bd93934492b26bbb8d430d09d6
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:39:04.833339Z'
+  stage: smoke-test
 ---
 
 # The operator guide's records section names its four files
@@ -167,3 +176,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
