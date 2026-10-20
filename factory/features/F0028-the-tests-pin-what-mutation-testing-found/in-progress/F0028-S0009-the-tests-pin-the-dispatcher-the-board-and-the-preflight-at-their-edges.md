@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T02:47:27.129022Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T02:47:27.129022Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-20T02:47:46.082173Z'
+  stage: doing
+  run: 4effc1f81877459c98846308db848a63
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -170,3 +172,15 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
 
    Earlier tests: none. The diff only adds test files (status `A`), and no test file on `main` is changed, renamed or deleted.
 10. factory: started doing as self.
+11. coder: Round 1: the reviewer's one finding is a copied test helper, so this is a change to tests. I changed no code. Under the standing leave to move a shared test helper in `CLAUDE.md`, the tester makes this move:
+
+    - **The helper:** the opencode login-hint text. It appears twice: as `HINT` in `tests/application/test_agent_run_probe_factory_user.py:16`, and as `DIED` plus `SSO_HINT` in `tests/application/test_agent_run_probe_opencode.py:16-24`.
+    - **The shared place:** `tests/probe_support.py`. It can be a function of the user, such as `opencode_login_hint(user)` returning the full "died" text with both sentences, or a template.
+    - **The earlier test file:** `tests/application/test_agent_run_probe_opencode.py`. It builds its `none` row (`DIED + SSO_HINT`) from the shared helper. Its `API_HINT` and `no-login` rows keep their own text. Every test keeps its name and checks the same thing.
+    - **The new test:** `test_agent_run_probe_factory_user.py` uses the shared helper instead of its own `HINT`.
+
+    What I built: nothing. The Interface says no module under `src/factory/` changes, and this round's finding touches only tests. The main choice was to send the work item to the tester with `tests`. I rejected making the move myself, because the coder never edits tests (R9).
+
+    Refactor: there was nothing to refactor; my diff outside `factory/` and `tests/` is still empty. Description: no journal entry changed what the task means.
+
+    Noticed, not touched: `tests/application/test_agent_run_probe_api_login.py:22` has its own `DIED` for `claude -p`. Its text is different (claude, not opencode), so it is not part of this move.
