@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T10:10:39.673061Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T10:10:18.890686Z'
   stage: tests
   run: 756a8d825aa54820a33adf661ecee2cd
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:10:39.673061Z'
+  stage: doing
 ---
 
 # The Claude Code runtime registers no write hook
@@ -163,3 +172,4 @@ Expect: `7`
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_agent_no_hook.py::test_no_shipped_agent_names_a_hook[intake]
+6. factory: started doing as self.
