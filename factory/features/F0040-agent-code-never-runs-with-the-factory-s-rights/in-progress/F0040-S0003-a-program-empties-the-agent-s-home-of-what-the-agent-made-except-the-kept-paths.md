@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 364
-comments_read: []
+comments_read: [6301083856]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: aededd05a142486587cf5c03dd8750ed
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-20T20:45:31.730167Z'
+  stage: intake
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -152,3 +157,7 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - **Scope:** inside the feature and not in its Out of scope.
 
    My recommendation is to take all three proposals.
+4. 2026-10-20 human: Answers (2026-10-20): take all three proposals.
+   1. Criterion 3 gains the row `state_files=["../x"]`, which raises `ValueError` naming `../x`.
+   2. A new criterion: a not-owned folder (for example `.claude/agents`, mode `0o500`) and a not-owned file (mode `0o444`) keep their modes after `clear_home`.
+   3. A new criterion: an owned `.cache/x/` holding a not-owned file `.cache/x/f`, beside a kept path outside it; afterwards `.cache/x` and its file stay, and an owned empty folder `.cache/y` is gone.
