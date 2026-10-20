@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 307
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T00:17:34.947766Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T00:17:13.968258Z'
   stage: intake
   run: 06a65fe7a7a64ffdbebbe4912565c56b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:17:34.947766Z'
+  stage: tests
 ---
 
 # The mutation report command is removed and the documents describe the sweep form of `make mutants`
@@ -86,3 +95,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: the three blocks are runnable with `uv run`, `ls` and `grep` and make no paid calls. Each `Expect:` line gives exact output to compare. The second block assumes the human's changes 1 and 2 (Makefile, CLAUDE.md) are already in. That is a precondition the feature names, not a gap in the story.
    Architecture: it removes a domain module and an entry module and leaves the layer order alone. It writes no new code under `src/`. `factory.entry.inputs` stays with its one remaining user.
    Scope: it matches the feature's Scope list, including the four documents and the removal of the two test modules. It touches nothing in the feature's Out of scope list (`inputs`, `[tool.mutmut]`, `command_line`'s suffix, the template and the demo recipes, `pipeline.yml`).
+4. factory: started tests as self.
