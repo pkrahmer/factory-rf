@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T15:28:48.290030Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-10-20T15:28:48.290030Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-20T15:31:39.620766Z'
+  stage: doing
+  run: 0400a41f871c4606afc7b96078dac04c
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -458,3 +460,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (59.9 s)
 24. factory: started doing as self.
+25. coder: Round 1. The reviewer's findings in entry 19 were all copied test helpers. The tester has moved them under the standing leave (entry 23). That needed no code change, so I made none this round. `make check` is green on the current tree (`check: green`, coverage 99.17 %, `test: green (64.3 s)`).
+
+    What I built (on the branch since commit 05aa6710, unchanged this round):
+    - `src/factory/application/git.py`: the abstract `Git.remove_ignored()`, with the Interface's docstring.
+    - `src/factory/adapters/git_cli.py`: `GitCli.remove_ignored()` runs `clean --quiet --force --force -d -X` through `_run`, so a non-zero exit is a `GitError` with that command.
+    - `src/factory/application/sealed_runs.py`: `run_sealed` calls `git.remove_ignored()` after the `try`/`finally`. It runs only when the run returned and both the seal check and the nested-repository removal passed.
+    - `src/factory/application/tick.py`: `_restore_checkout` calls `remove_ignored()` between `reset_to("HEAD")` and the switch to `main`. Its `GitError` reaches the existing `checkout_restore_failed` stop.
+
+    Main choice: the removal comes after the `finally` block, not inside it. I rejected putting it inside: there it would also run after a raised run, which the Interface leaves to the next restore, and a second git error in `finally` would hide the run's own error. I also rejected removing the paths from Python, the way `remove_nested_repositories` does. The Interface asks for git's own rules: every nested `.gitignore` and `.git/info/exclude`.
+
+    Refactor: no code changed this round, and I found nothing to change.
+
+    The journal did not change what the task means, so the Description stays.
+
+    Noticed but not touched:
+    - The `_head` near-copies with other signatures (entry 21).
+    - The flaky row `tests/adapters/test_git_cli_work_tree.py::test_the_work_tree_id_is_the_tree_a_commit_records[edited-untracked-deleted]` (entry 17). It did not fail in this run.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
