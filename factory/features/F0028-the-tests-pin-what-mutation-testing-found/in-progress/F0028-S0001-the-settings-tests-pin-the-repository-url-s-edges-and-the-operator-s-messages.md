@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T01:21:55.553230Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-20T01:21:55.553230Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T01:22:08.825789Z'
+  stage: docs
+  run: 3e32001b8c164d65ae6e2658ca282092
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -262,3 +264,16 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
     - `tests/domain/test_settings_url_edges.py:15` `_returning(text)` is a reader that returns the same text for every path. `_reader({DEFAULT_IMAGE_PATH: "  \n"})` in `tests/domain/test_settings.py:19` does the same job but stays private to that module. It is not a copy, so this is not a finding.
     - `tests/settings_support.py:1` the module docstring still names only the environment and not the shared `raising` reader that now sits beside it.
 18. factory: started docs as self.
+19. documenter: Docs round 1. The docs criterion says `none`, so I wrote nothing new and changed no file. The diff (`git diff main...HEAD -- . ':!factory'`) is three test files: `tests/domain/test_settings_url_edges.py` (new), `tests/domain/test_settings.py` and `tests/settings_support.py`. No module under `src/` changes, and no behaviour or message changes.
+
+    Cross-read and found current:
+    - `docs/operator-guide.md:50-52`, the section "A repository URL with a password is refused". It matches the rule the tests now pin: user information with a colon is refused, a user name alone is accepted, and the token file is the fix. The guide does not name the edge cases (the path, a second `://`, an `@` in the user name). They are consistent with its wording, so I did not add them.
+    - `README.md` and `docs/project-guide/agents.md:40`. The naming rule for test constants (nothing named `key`, `token`, `secret` or `password`) matches how the tests are written.
+
+    Stale text I noticed but did not touch: the module docstring at `tests/settings_support.py:1` names only the environment, not the shared `raising` reader that now sits beside it. That is a docstring, so it is the coder's or tester's file, not mine. The reviewer noted it too. It is not a finding that blocks, because nothing in the criteria asks for it.
+
+    I did not run `make check`, because I changed no file. The factory's checks run right after this stage.
+
+    `check`: check: green (not run again: passed on tree 5038ae5c5988 at 2026-10-20T01:19:52Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
