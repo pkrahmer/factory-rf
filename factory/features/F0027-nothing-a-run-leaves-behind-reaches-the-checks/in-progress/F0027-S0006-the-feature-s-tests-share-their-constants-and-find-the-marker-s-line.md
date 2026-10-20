@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 360
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T19:31:48.540844Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T19:31:48.540844Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T19:32:17.437951Z'
+  stage: intake
+  run: 129a989c94d34fb1b4cb4252bab4011f
 ---
 
 # The feature's tests share their constants and find the marker's line
@@ -74,3 +76,9 @@ Expect: `0`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names concrete helpers (`CLEAN_IGNORED` in `tests/git_support.py`, `ROOT` in `tests/leftovers_support.py`), the five test modules that change, and the one `main_line` search in `tests/test_process_search.py`. No `src/` module changes.
+   - Criteria: criteria 1 to 3 each name the exact definition, the users and the unchanged test names, so each can be checked on its own. The Interface states no new rule, validation or error, so no failing side is missing. The only behaviour it states is the `startswith` prefix of `test_tick_ignored.py`, which criterion 1 covers. The leave for the `test_process_search.py` change is the human's, in F0027 `feature.md` decision 16 (S0006 line). The other moves are under the standing leave in `CLAUDE.md`.
+   - Smoke test: both commands are runnable grep calls with checkable `Expect:` lines. Neither runs pytest, so the `-q` rule does not apply. The second grep ends in `|| true`, so a count of 0 does not fail it.
+   - Architecture: only files under `tests/` change, and they sit in the shared support modules `CLAUDE.md` describes. No layer is touched.
+   - Scope: the story stays inside F0027's S0006 line and decision 16. It adds nothing to `feature.md`'s Out of scope.
