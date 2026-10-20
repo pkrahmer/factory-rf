@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T09:06:40.419006Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   at: '2026-10-20T09:06:19.872041Z'
   stage: doing
   run: e12c15da521645ffa40812aff95a462c
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-20T09:06:40.419006Z'
+  stage: review
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -377,3 +386,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+19. factory: started review as self.
