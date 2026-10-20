@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 370
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T23:23:21.309563Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T23:23:21.309563Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T23:23:49.840895Z'
+  stage: docs
+  run: e05f9553ec9140e197e2698f648d55b7
 ---
 
 # The documents say what the factory's kill of make mutants leaves
@@ -143,3 +145,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: Docs written from criterion 3. Only documents changed, so I did not run `make check`; the factory's checks run after this stage.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`, paragraph *The temporary folder*: states that a factory kill at the time limit runs no `EXIT` trap, so `the temporary folder stays` under the caller's `TMPDIR` and the operator removes it by hand. It also states that a process started through `factory.adapters.process` is in a session of its own and `runs on until it ends by itself`, and names the 2026-10-20 case (the fake `claude` of `test_call_over_its_time_limit_is_killed_with_unknown_measures`, up to 60 s). I also marked the existing sentence as covering a stop by `MUTANTS_SECONDS`, to tell it apart from the kill.
+    - `docs/decisions.md`, entry *Mutation testing per story*: decision (4) gains the parenthetical that points to the new entry.
+    - `docs/decisions.md`, entry *A command stopped at its time limit loses every process of its session*: the Decision bullet gains the sentence on tests that mutmut runs, placed after the `setsid` sentence.
+
+    Smoke test, run by hand: the first grep prints `1`, the second prints `1`. The phrase `runs on until it ends by itself` is also in the text. I wrote no code, test, `Makefile` or `README.md` change, as the criterion asks.
+
+    Cross-read: `README.md` and `docs/operator-guide.md` I did not open beyond the story's scope. The criterion says `README.md` needs no change. Nothing in the diff changes any other document's truth, since the branch changes no code.
+
+    Stale text noticed and not touched: none.
+
+    Findings for the coder: none.
+
+    `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
