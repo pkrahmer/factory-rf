@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T15:35:25.293928Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-10-20T15:35:25.293928Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T15:36:03.141967Z'
+  stage: smoke-test
+  run: 90d954a2d35f4d639e9b94b4fe0f2a90
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -574,3 +576,38 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
 30. factory: started smoke-test as self.
+31. smoke-tester: I ran the three commands under `## Smoke test` from the repository root, in order and exactly as written. Each shell block ran in its own `bash` so that its `trap` removed its own temporary folder. I fixed nothing, and the run left nothing in the working tree. The factory's own `.costs.jsonl` sidecar is the only changed file.
+
+    **Command 1** (`GitCli.remove_ignored()` on a repository with `.gitignore` (`.venv/`, `__pycache__/`), stand-ins in `.venv`, `src/__pycache__`, `tests/hidden` (with its own `.gitignore` `*`) and an untracked `src/new.py`). Exit 0.
+
+    ```
+    ['.gitignore', 'src/mod.py', 'src/new.py']
+    ```
+
+    Met its `Expect:` line (`['.gitignore', 'src/mod.py', 'src/new.py']`). The run removed the ignored folders whole, including the folder hidden by the nested `.gitignore`, and kept the tracked files and the untracked `src/new.py`.
+
+    **Command 2** (`run_sealed` with `FakeAgentRuntime`, whose scripted run writes the same stand-ins into a clone of a local bare remote, and returns). Exit 0.
+
+    ```
+    completed [] ['.gitignore', 'src/mod.py', 'src/new.py']
+    ```
+
+    Met its `Expect:` line (`completed [] ['.gitignore', 'src/mod.py', 'src/new.py']`). The result is the run's, `nested_repositories` is empty, and only the untracked `src/new.py` of the run's files is left.
+
+    **Command 3** (`grep -c 'left for v2' docs/project-guide/write-guard.md || true`).
+
+    ```
+    0
+    ```
+
+    Met its `Expect:` line (`0`).
+
+    **Judgement.** All three commands met their `Expect:` lines. I read `## Acceptance criteria` again after the run, and nothing the smoke test showed contradicts any of them:
+    - Criterion 1: command 1 matches its rows for `.venv`, `__pycache__` and the nested `.gitignore`.
+    - Criterion 2: command 1 matches its rows for the tracked files and the untracked new file.
+    - Criterion 4: command 2 matches the row for a run that returns.
+    - Criterion 9: command 3 matches the docs criterion that "(left for v2)" leaves *The undo*, *Limits*.
+
+    The smoke test did not exercise criteria 3, 5, 6 and 7 (the paths that cannot be removed, the stage's checks and the restore). The tests cover them, and the factory's checks judge criterion 8 (`make check`).
+
+    Findings: none.
