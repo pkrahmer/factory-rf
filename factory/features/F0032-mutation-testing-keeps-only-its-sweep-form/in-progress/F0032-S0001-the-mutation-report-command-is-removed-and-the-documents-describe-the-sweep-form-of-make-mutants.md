@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T00:16:58.421375Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T00:16:58.415666Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:16:58.421375Z'
+  stage: intake
+---
+
 # The mutation report command is removed and the documents describe the sweep form of `make mutants`
 
 ## Description
@@ -49,3 +76,5 @@ Expect: five lines `found`, then two lines, `docs/project-guide/processes-and-ch
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
