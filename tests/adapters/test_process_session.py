@@ -146,3 +146,29 @@ def test_time_limit_of_a_make_target_ends_what_timeout_started(
     assert time.monotonic() - start < ROOMY_BOUND_SECONDS
     assert result.status == "time_limit"
     assert is_gone(_grandchild(pid_file), within=0)
+
+
+def test_process_the_factory_may_not_signal_is_left_not_waited_for(
+    tmp_path: Path, pid_file: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    real_kill = os.kill
+
+    def refusing_kill(pid: int, sig: int) -> None:
+        if pid_file.exists() and pid == _grandchild(pid_file):
+            raise PermissionError(pid)
+        real_kill(pid, sig)
+
+    monkeypatch.setattr(os, "kill", refusing_kill)
+    request = ProcessRequest(
+        argv=python_argv(CHILD, str(pid_file), OWN_GROUP), cwd=tmp_path, time_limit=ROOMY_LIMIT
+    )
+    start = time.monotonic()
+
+    result = run_process(request)
+
+    assert time.monotonic() - start < ROOMY_BOUND_SECONDS
+    assert result.timed_out is True
+    grandchild = _grandchild(pid_file)
+    assert not is_gone(grandchild, within=0)
+    monkeypatch.undo()
+    os.kill(grandchild, signal.SIGKILL)

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T08:54:54.206036Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-10-20T08:54:54.206036Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-20T09:00:28.227572Z'
+  stage: tests
+  run: 46fbb358a62c4a6589846ebb159b3210
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -312,3 +314,33 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: the possible racy-index cause of the `tests/adapters/test_git_cli_work_tree.py` flake, described in entry 10, outside this work item.
 15. factory: started tests as self.
+16. tester: Round 1, a test change approved by the human. I made the three changes the coder named in entry 14 from the reviewer's findings in entry 12, and nothing else.
+
+    Changes:
+    1. Criterion 1, the accepted side of the field-count limit: added the row `"5 (x) S 1 5 5"` with pid 5, id `four-fields`. It has exactly four fields after the last `)` and expects `ProcessEntry(pid=5, session=5, ended=False)`.
+    2. Criterion 1 as one parametrized test: merged `test_status_line_gives_the_entry` and `test_unreadable_status_line_is_refused` in `tests/domain/test_sessions.py` into `test_status_line_is_read`.
+       - Each row carries `expected: ProcessEntry | None`, and `None` means `parse_stat` must raise `ValueError`.
+       - The old two tests' rows are all kept, and the four-fields row is added.
+    3. Criterion 8 (new): added `test_process_the_factory_may_not_signal_is_left_not_waited_for` to `tests/adapters/test_process_session.py`.
+       - It runs `run_process` with criterion 4's child, the grandchild in a group of its own, and `ROOMY_LIMIT`.
+       - Through `monkeypatch`, `os.kill` is replaced by a stand-in that raises `PermissionError` for the grandchild's id and calls the real `os.kill` for every other id.
+       - It asserts that the call returns within `ROOMY_BOUND_SECONDS`, that `timed_out` is true, and that `is_gone(grandchild, within=0)` is false.
+       - It then calls `monkeypatch.undo()` and kills the grandchild itself. The `pid_file` fixture would also kill it if an assertion failed first.
+
+    How the criteria map to tests now:
+    - criterion 1: tests/domain/test_sessions.py::test_status_line_is_read
+    - criterion 2: tests/domain/test_sessions.py::test_entry_limits (unchanged)
+    - criterion 3: tests/domain/test_sessions.py::test_what_is_left_to_kill (unchanged)
+    - criterion 4: tests/adapters/test_process_session.py::test_time_limit_ends_every_process_of_the_session (unchanged)
+    - criterion 5: tests/adapters/test_process_session.py::test_stop_and_error_of_the_callback_end_every_process_of_the_session (unchanged)
+    - criterion 6: tests/adapters/test_process_session.py::test_time_limit_of_a_make_target_ends_what_timeout_started (unchanged)
+    - criterion 7: no new test. The existing sudo and process test files cover it, and I did not change them.
+    - criterion 8: tests/adapters/test_process_session.py::test_process_the_factory_may_not_signal_is_left_not_waited_for
+    - criteria 9 (`make check`) and 10 (docs): no test.
+
+    Files changed: tests/domain/test_sessions.py and tests/adapters/test_process_session.py, both written by this story's tests stage. I created no files and changed no earlier test file.
+
+    One run of `make test`: `test: green (147.2 s)`, 99.16 % coverage. The code already exists, so the new and changed tests pass, as the coder expected. No module failed to import. `make lint`: green. I ran it in the foreground with too short a timeout, so the tool moved it to the background; I waited for that one run to finish and did not start it again.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (147.2 s)

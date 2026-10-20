@@ -27,24 +27,21 @@ from factory.domain.sessions import ProcessEntry, left_to_kill, parse_stat
         pytest.param(5, "5 (x) R 1 5 5 0", ProcessEntry(pid=5, session=5, ended=False), id="R"),
         pytest.param(5, "5 (x) D 1 5 5 0", ProcessEntry(pid=5, session=5, ended=False), id="D"),
         pytest.param(5, "5 (x) T 1 5 5 0", ProcessEntry(pid=5, session=5, ended=False), id="T"),
+        pytest.param(
+            5, "5 (x) S 1 5 5", ProcessEntry(pid=5, session=5, ended=False), id="four-fields"
+        ),
+        pytest.param(5, "5 x S 1 5 5 0", None, id="no-closing-parenthesis"),
+        pytest.param(5, "5 (x) S 1 5", None, id="three-fields"),
+        pytest.param(5, "5 (x) S 1 5 x 0", None, id="session-not-a-number"),
+        pytest.param(5, "5 (x) S 1 5 -1 0", None, id="session-negative"),
     ],
 )
-def test_status_line_gives_the_entry(pid: int, stat: str, expected: ProcessEntry) -> None:
-    assert parse_stat(pid, stat) == expected
-
-
-@pytest.mark.parametrize(
-    "stat",
-    [
-        pytest.param("5 x S 1 5 5 0", id="no-closing-parenthesis"),
-        pytest.param("5 (x) S 1 5", id="three-fields"),
-        pytest.param("5 (x) S 1 5 x 0", id="session-not-a-number"),
-        pytest.param("5 (x) S 1 5 -1 0", id="session-negative"),
-    ],
-)
-def test_unreadable_status_line_is_refused(stat: str) -> None:
-    with pytest.raises(ValueError):  # noqa: PT011  # pydantic's ValidationError is one
-        parse_stat(5, stat)
+def test_status_line_is_read(pid: int, stat: str, expected: ProcessEntry | None) -> None:
+    if expected is None:
+        with pytest.raises(ValueError):  # noqa: PT011  # pydantic's ValidationError is one
+            parse_stat(pid, stat)
+    else:
+        assert parse_stat(pid, stat) == expected
 
 
 @pytest.mark.parametrize(
