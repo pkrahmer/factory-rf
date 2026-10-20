@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 331
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T04:12:06.650571Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T04:12:06.650571Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T04:13:58.931557Z'
+  stage: doing
+  run: 5a26f85e1da144969443d3a1b7dfb40f
 ---
 
 # The playbook and the project guide say the reviewer corrects a stale Description
@@ -103,3 +105,12 @@ Expect: two lines, `0` (the count of three is gone) and a number of at least `1`
    `lint`: lint: green (0.0 s)
    `test`: test: green (45.9 s)
 6. factory: started doing as self.
+7. coder: Built nothing. The story only changes documents. The Interface says no module under `src/factory/` changes and that there is no test module. Its one substantive criterion is the docs criterion, covering `docs/operator-playbook.md` sections 3, 5 and 7 and `docs/project-guide/agents.md` *The seven agents*. Under CLAUDE.md *Docs*, the documenter stage writes those files, not the coder, so I left the working tree as it was.
+   Main choice: hand forward with no change. The alternative I rejected was editing the playbook and agents.md here. That would take on the documenter's work, and those files are not mine to write in this stage.
+   Refactor: no diff of mine, so nothing to change.
+   `make check`: green (`test: green (40.4 s)`, `check: green`).
+   Noticed but did not touch: as intake noted, the feature's Scope and Stories lists do not name this story or agents.md. That is the feature's `feature.md`, which is the human's file.
+   Description: no journal entry changed its meaning.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
