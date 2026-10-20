@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T01:33:11.476192Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T01:32:50.900415Z'
   stage: review
   run: 2aace54dd999463a89d244885da995e8
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:33:11.476192Z'
+  stage: doing
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -159,3 +168,4 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
    What I rejected: moving these constants to a shared module under `tests/`. The standing leave would allow it, but the story says "No earlier test changes", and importing them needs no change to an earlier test. These findings are for the tester; the coder hands them on and touches no test (R9).
 
    Earlier tests: none changed. The diff only adds `tests/domain/test_section_edges.py` and `tests/domain/test_story_form_edges.py`, both with status `A`.
+10. factory: started doing as self.
