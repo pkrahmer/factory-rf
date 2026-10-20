@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 349
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T11:40:38.700979Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T11:40:38.700979Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T11:45:36.765264Z'
+  stage: doing
+  run: d26feb45b3294fd4b18607759c89733e
 ---
 
 # The documents describe the kernel's guard and the undo as the write guard
@@ -119,3 +121,12 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (134.8 s)
 6. factory: started doing as self.
+7. coder: No code written. This story only changes documents: its Interface is "None", and criterion 3 gives every document change to the documenter.
+   - criterion 1: the doing stage changed nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. `git diff --name-only origin/main -- src tests image template demo claude | wc -l` prints `0`.
+   - criterion 2: `make check` passed on the unchanged tree (`check: green`, coverage 99.19 %).
+   - Main choice: I left `README.md` and `docs/` alone. The other option was to make the criterion-3 edits here. I rejected it because `CLAUDE.md` gives those four documents to the documenter stage, and the coder does not write them.
+   - Refactor: there is no diff, so there was nothing to refactor.
+   - Noticed but did not touch: nothing. The journal did not change what the task means, so the Description stays as it is.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
