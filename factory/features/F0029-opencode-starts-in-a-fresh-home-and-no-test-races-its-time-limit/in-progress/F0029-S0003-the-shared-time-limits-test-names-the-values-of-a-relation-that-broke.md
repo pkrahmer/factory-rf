@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 367
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T22:45:08.045041Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:45:08.050814Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T22:45:25.711472Z'
+  stage: intake
+  run: 5c182e5ae5d44a1c930d81a82d122eb6
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:45:45.921365Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T22:48:40.052242Z'
+  stage: tests
+  run: 86768edae34e4cc28d5ce478dfe7f667
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:49:01.382584Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T22:51:46.932024Z'
+  stage: doing
+  run: e82aa699027b45be8f0cf59b79c9984e
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:52:07.634926Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T22:52:29.377963Z'
+  stage: review
+  run: 197e98e6e8d64995a6498309ced3184e
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:52:50.030439Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T22:53:03.204061Z'
+  stage: docs
+  run: 6e7720c4b98b43489b77c3f98f0ed8df
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:53:23.829247Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T22:53:40.458817Z'
+  stage: smoke-test
+  run: 845521c8d9d1424e95424e7c1e732ef9
+---
+
 # The shared time limits' test names the values of a relation that broke
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -65,3 +149,93 @@ Expect: `30 gt 30`
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: no `src/` change, which is right for a test-only story. It names the one test (`tests/test_time_limits.py::test_the_roomy_limit_leaves_room_and_stays_below_every_wait`), its `left`/`relation`/`right` signature, the failure message format, the nine row ids, the new test and the dropped `timedelta` import. The leave for changing F0029-S0002's test is stated (feature.md, decision 9, S0003).
+   Criteria: 1 (the nine rows pass) and 2 (message `30 gt 30` for a broken relation, a return for `11.5 lt 25`) are each testable by one test function. The only rule here is the message, and both its failing side and its passing side have a criterion. Criterion 3 is `make check`. Criterion 4 is `docs: none`, with a stated reason.
+   Smoke test: both blocks are runnable. `pyproject.toml` already sets `-q` in `addopts`, and the command does not repeat it, so the last line is `9 passed in ...` and the `cut` gives `9 passed`. The second block prints the first line of the assertion message, `30 gt 30`, and the `Expect:` lines are checkable.
+   Architecture: only `tests/` changes, and the test sits at the `tests/` root because it tests a module outside the layers. `tests/time_limits.py` and `src/` stay as they are.
+   Scope: the change falls inside feature.md's scope (S0003 is named for `tests/test_time_limits.py`, "its failure message") and touches nothing in its Out of scope list.
+4. factory: started tests as self.
+5. tester: Changed `tests/test_time_limits.py` (written by F0029-S0002) under the leave in `feature.md`, decision 9, S0003, and only as far as the Interface says. No other test file changed. No files were created.
+
+   Criteria → tests:
+   - criterion 1: tests/test_time_limits.py::test_the_roomy_limit_leaves_room_and_stays_below_every_wait. It keeps its name and its nine row ids (limit, bound, room, claude-confinement-wait, stand-in-wait, resume-session-wait, events-wait, sudo-past-limit, sudo-within-bound). Each row is now `(left, relation, right)` and states the same relation the row's `bool` stated before, with the same constants from the same modules. The `limit` row is now `ROOMY_LIMIT.total_seconds() eq 10.0`, as the Interface writes it. On failure the test prints `f"{left} {relation.__name__} {right}"`.
+   - criterion 2: tests/test_time_limits.py::test_a_relation_that_breaks_names_its_values. It has two rows, `broken` and `holds`. Each calls the test above directly. `broken` (30 gt 30) expects an `AssertionError` whose message's first line is `30 gt 30`; `holds` (11.5 lt 25) expects no error.
+   - criterion 3: `make check`. The factory and the coder cover it.
+   - criterion 4: docs: none.
+
+   The `timedelta` import is gone; `operator` and `collections.abc.Callable` were added.
+
+   Red/green: these tests are not red. The story changes no module under `src/`, so all 11 tests pass already (`make test`: `test: green (61.6 s)`). The coder has nothing to build. No module failed to import. `make lint` is green. I also ran pytest once on this module alone and mypy --strict on this file: mypy reported nothing in `tests/test_time_limits.py`. Its other errors were import-untyped errors in the modules this file imports, which come from running mypy outside `make types`.
+
+   `lint`: lint: green (0.6 s)
+   `test`: test: green (63.2 s)
+6. factory: started doing as self.
+7. coder: Built nothing. The Interface says no module under `src/factory/` changes, and the tester's change to `tests/test_time_limits.py` already passes against the code as it is. I edited no file.
+
+   Main choice: I handed forward with an empty diff and did not add anything under `src/`. The alternative was to look for production code for this story, and I rejected it because the Interface says "the coder has nothing to build". Anything I added would go beyond the description (R13).
+
+   Refactor: there was no diff of my own to read, so nothing needed changing.
+
+   Description: the journal does not change what the task means, so I did not rewrite it.
+
+   Noticed but did not touch: nothing.
+
+   `make check`: check: green (test: green (61.3 s), total coverage 99.14 %).
+
+   `check`: check: green
+   `duplicates`: duplicates: 6 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` contains one file, `tests/test_time_limits.py`, plus the work item. Nothing under `src/` changed, which matches the Interface.
+
+   - Criterion 1: `test_the_roomy_limit_leaves_room_and_stays_below_every_wait` keeps its name and its nine ids (limit, bound, room, claude-confinement-wait, stand-in-wait, resume-session-wait, events-wait, sudo-past-limit, sudo-within-bound). Each row is now `(left, relation, right)` and states the same relation as the old `bool`, with the same constants from the same modules. The `limit` row changed from `timedelta(seconds=10) == ROOMY_LIMIT` to `ROOMY_LIMIT.total_seconds() eq 10.0`, which means the same thing and is the form the Interface writes. The failure message is `f"{left} {relation.__name__} {right}"`, as the Interface says.
+   - Criterion 2: `test_a_relation_that_breaks_names_its_values` is one parametrized test with two rows. `broken` (30 gt 30) checks that the first line of the `AssertionError` message is `30 gt 30`. `holds` (11.5 lt 25) checks that the call returns without raising. Both sides of the one rule are covered, as rows of the same test.
+   - Criterion 3: the factory's `make check` after the coder was green (entry 7: `check: green`).
+   - Criterion 4: docs: none, with a reason that still holds; `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS` stay as they are.
+   - `timedelta` is no longer imported. `operator` and `collections.abc.Callable` were added and are used. There is no dead code, and no helper is copied.
+   - Architecture and security: the change is test-only, at the `tests/` root, which is right for testing a module outside the layers. It adds no suppression marker.
+   - Work item hygiene: the Description matches what was built. The tester's and the coder's entries explain the empty coder diff and why the tests were green from the start.
+
+   Earlier tests:
+   - `tests/test_time_limits.py` (M, written by F0029-S0002): changed under the human's leave in `feature.md`, decision 9, S0003 (the human, 2026-10-20). The change stays within that leave: same test name, nine row ids and relations, the message, the new test, and the `timedelta` import removed.
+10. factory: started docs as self.
+11. documenter: Docs criterion is `none`, so I wrote nothing new and changed no file. I ran no `make check`, because I changed no file.
+
+    The diff outside `factory/` and `docs/` is one file, `tests/test_time_limits.py`: the nine rows now carry `(left, relation, right)`, plus the new test for the failure message. No module under `src/` changed.
+
+    Cross-read and found current:
+    - `docs/project-guide/processes-and-checks.md` (line 125) names `ROOMY_LIMIT` (10 s) and `ROOMY_BOUND_SECONDS` (25) from `tests/time_limits.py`. Both are unchanged, and the text matches the code.
+    - `docs/decisions.md` (line 896) says the same about those constants and is current.
+    - `README.md` and `docs/operator-guide.md` do not mention the test or its failure message.
+
+    Stale text noticed and not touched: none.
+
+    `check`: check: green (not run again: passed on tree fb0e305c50f3 at 2026-10-20T22:50:35Z)
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: I ran both smoke-test commands from the repository root, exactly as written and in order. Both met their `Expect:` lines. There are no findings.
+
+    Command 1: `uv run pytest --no-header -p no:cacheprovider tests/test_time_limits.py::test_the_roomy_limit_leaves_room_and_stays_below_every_wait 2>&1 | tail -1 | cut -d' ' -f1-2`
+    ```
+    9 passed
+    ```
+    Expect `9 passed`: met.
+
+    Command 2: `uv run -q python - <<'PY' …` (it imports the test from `tests/` and calls it with `left=30, relation=operator.gt, right=30`)
+    ```
+    30 gt 30
+    ```
+    Expect `30 gt 30`: met.
+
+    Judged against the acceptance criteria:
+    - Criterion 1: all nine rows of the test pass. The smoke test does not print the row ids, so it neither confirms nor contradicts them. The reviewer checked the ids in entry 9.
+    - Criterion 2: when the test is called directly with `30 gt 30`, it raises an `AssertionError` whose message is `30 gt 30`. The smoke test does not run the side where the relation holds (`11.5 lt 25`), but nothing it showed contradicts it.
+    - Criterion 3: `make check` was green after the coder (entry 7). The documenter's run reused that passed result (entry 11). I did not run it again: this stage changes no file.
+    - Criterion 4: docs: none. The smoke test does not touch it.
+
+    Nothing is open.
