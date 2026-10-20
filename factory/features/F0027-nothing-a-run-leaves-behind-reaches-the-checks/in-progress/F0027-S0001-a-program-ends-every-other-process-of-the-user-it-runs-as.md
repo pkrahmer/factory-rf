@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T12:18:40.888632Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-20T12:18:19.671421Z'
   stage: doing
   run: 5784a671220d4e67a97ecc319900dea9
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:18:40.888632Z'
+  stage: tests
 ---
 
 # A program ends every other process of the user it runs as
@@ -316,3 +325,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Refactor step: I read my diff against main as a reviewer would and found nothing to change.
 
     Noticed but not touched: both test names no longer match their sets ("three wrappers", "the four in the process wrapper"). The human decided in entry 8 that the names stay.
+11. factory: started tests as self.
