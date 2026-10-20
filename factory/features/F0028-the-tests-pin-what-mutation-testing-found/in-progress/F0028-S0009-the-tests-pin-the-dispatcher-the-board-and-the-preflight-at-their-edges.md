@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T02:53:23.821855Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-20T02:53:23.821855Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T02:53:36.726145Z'
+  stage: docs
+  run: 7ab78e89c6d4450e842fd289d62ea008
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -273,3 +275,19 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
     - `tests/application/test_agent_run_probe_opencode.py`: changed under the standing leave in `CLAUDE.md` to move a shared test helper. Only `DIED` and `SSO_HINT` now come from `tests/probe_support.py`. They give the same strings as before (I compared them), and every test keeps its name and rows.
     - `tests/probe_support.py`: the shared place the helpers moved to, under the same standing leave. It only adds `opencode_died` and `opencode_sso_hint` and updates the module docstring. `ENVIRONMENT` and `COMPLETED` are unchanged.
 18. factory: started docs as self.
+19. documenter: Round 1, docs. The docs criterion is `none`, and the diff is tests only: three new modules under `tests/application/`, the shared opencode hint helpers in `tests/probe_support.py`, and `tests/application/test_agent_run_probe_opencode.py` using them. Nothing under `src/` changed.
+
+    Files changed: none. I wrote no documentation. The criterion asks for none and the code behaves as it did before.
+
+    Cross-read and found current against the diff:
+    - `docs/operator-guide.md`, "The probe of the agent run" (around line 459). It says the detail names the agent user, or `the factory user` without `FACTORY_AGENT_USER`. That matches the behaviour criterion 3 pins. I did not check this passage against the full opencode hint text; I only checked the part about the user's name.
+    - The `grep` of `README.md` and `docs/` for the hint text found no other description of the login hint.
+    - I did not check the operator guide's descriptions of the board's columns and the error cap's report. I took them from the story's docs criterion, and this story does not change those behaviours.
+
+    Stale text I noticed but did not touch: none that relates to this story.
+
+    Findings for the coder: none. I ran no `make check`, because I changed no file; the factory's checks follow this stage.
+
+    `check`: check: green (not run again: passed on tree 75f1d0344314 at 2026-10-20T02:51:24Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
