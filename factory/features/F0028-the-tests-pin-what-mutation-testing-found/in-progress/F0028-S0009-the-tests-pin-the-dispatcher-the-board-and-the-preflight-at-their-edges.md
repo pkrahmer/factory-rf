@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T02:46:21.026330Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T02:46:21.026330Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T02:47:06.435004Z'
+  stage: review
+  run: 6a4615b4541c4864a376b5735c8cfc58
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -142,3 +144,19 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`, which adds three test modules under `tests/application/` and changes nothing under `src/`. I read them against the criteria and against the shared helpers in `tests/`.
+
+   - Criterion 1, `test_dispatcher_without_state.py`, matches the criterion's exact snapshot, event, dispatcher, outcomes, draft and post key.
+   - Criterion 2, `test_board_in_progress.py`, builds on the seed in `tests/git_support.py` (`F0001-example`, `backlog/F0001-S0001-first.md`) and asserts the exact `FeatureRow`.
+   - Criterion 3, `test_agent_run_probe_factory_user.py`, is one parametrized test with the rows `no-user` and `agent`, and it uses `probe_settings`, `ENVIRONMENT` and `install_agents`.
+   - The Interface states no limit or validation, so there is no untested failing side. The coder's `make check` was green (entry 7). Nothing under `src/` changed, so architecture and security are untouched.
+
+   Findings:
+   1. `tests/application/test_agent_run_probe_factory_user.py:16` (`HINT`): this is a second copy of the opencode login-hint text that `tests/application/test_agent_run_probe_opencode.py:16-24` (`DIED`, `SSO_HINT`) already holds. With `agent`, the template is exactly `DIED + SSO_HINT`, so a change to that text in `preflight.py:312` would have to be made in both modules. Fix: the tester moves the text once to `tests/probe_support.py`, under the standing leave to move a shared test helper. That can be a function of the user, e.g. `opencode_login_hint(user)`, or a template. `test_agent_run_probe_opencode.py` then builds `DIED`/`SSO_HINT` from it, with every earlier test keeping its name and what it checks, and the new test uses it instead of `HINT`. The coder hands this to the tester with `tests`.
+
+   Considered and not raised:
+   - The inline `WorkItemSnapshot` in `test_dispatcher_without_state.py:33` looks like `_snapshot` of `tests/application/test_dispatcher.py:66`. It is not a copy: that helper always sets a state and cannot build `state=None`, and criterion 1 spells this snapshot out.
+   - The `agent` row repeats the existing `none` row of `test_agent_run_probe_opencode.py`, but criterion 3 asks for it.
+   - The coder's `duplicates: 5 new` comes from no change in this diff, which touches nothing under `src/`.
+
+   Earlier tests: none. The diff only adds test files (status `A`), and no test file on `main` is changed, renamed or deleted.
