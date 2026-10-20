@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 333
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T04:29:07.104269Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T04:29:07.104269Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T04:29:30.709095Z'
+  stage: review
+  run: 6ad11c4e0f7c4194bf0ca7671d6c9591
 ---
 
 # The project guide names the shared test helpers
@@ -64,7 +66,7 @@ journal:
 
 ## Description
 
-A tester who writes a new test module has to find the helpers the earlier tests share before it writes its own, or the reviewer counts a copy as a finding (`CLAUDE.md`, *Tests*). In F0028 that happened in three of nine stories: S0001 copied `_raising` of `tests/domain/test_settings.py`, S0002 copied `FORM`, `SMOKE` and `TICKS`, and S0009 copied the opencode login hint of `tests/application/test_agent_run_probe_opencode.py`. Each cost a review round and four more runs. The shared helpers live in 35 modules at the root of `tests/` besides `conftest.py` (`acceptance_support.py` to `write_path_support.py`, with `acceptance_walk.py`, `document_texts.py`, `human_clone.py`, `observing_runtime.py`, `run_process_recorder.py`, `shipped_agents.py` and `source_search.py`), and F0028 added three of them (`acceptance_support.py`, `evaluation_support.py`, `tick_support.py`) and grew two (`settings_support.py`, `probe_support.py`). The project guide names eleven of them, each where its domain needs it, and has no list a tester can read first. This story is for the tester and the reviewer: it adds that list to the guide. The code, the tests and the other documents stay as they are. It changes no behaviour, so it has no criterion of its own beyond the two closing ones; keeping the list current as modules are added is left to the documenter of each later story.
+A tester who writes a new test module has to find the helpers the earlier tests share before it writes its own, or the reviewer counts a copy as a finding (`CLAUDE.md`, *Tests*). In F0028 that happened in three of nine stories: S0001 copied `_raising` of `tests/domain/test_settings.py`, S0002 copied `FORM`, `SMOKE` and `TICKS`, and S0009 copied the opencode login hint of `tests/application/test_agent_run_probe_opencode.py`. Each cost a review round and four more runs. The shared helpers live in 36 modules at the root of `tests/` besides `conftest.py` (`acceptance_support.py` to `write_path_support.py`, with `acceptance_walk.py`, `document_texts.py`, `human_clone.py`, `observing_runtime.py`, `run_process_recorder.py`, `shipped_agents.py` and `source_search.py`), and F0028 added three of them (`acceptance_support.py`, `evaluation_support.py`, `tick_support.py`) and grew two (`settings_support.py`, `probe_support.py`). The project guide names eleven of them, each where its domain needs it, and has no list a tester can read first. This story is for the tester and the reviewer: it adds that list to the guide. The code, the tests and the other documents stay as they are. It changes no behaviour, so it has no criterion of its own beyond the two closing ones; keeping the list current as modules are added is left to the documenter of each later story.
 
 ## Interface
 
@@ -126,3 +128,13 @@ Expect: `1`
    `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   Reviewed `git diff main...HEAD -- . ':!factory'`. It is empty: the only changes on the branch are the work item and its `.costs.jsonl` sidecar. That is what this story intends. The Interface says no module under `src/factory/` changes and the tester writes no test module. Criterion 2 is the documenter's work (`CLAUDE.md`, *Docs*), so it is checked at the next stage against `tests/*.py` and by the smoke test.
+   - Criterion 1: the coder's journal entry 7 reports `make check` green (coverage 99.14 %). Neither criterion has behaviour a test could pin, so no test is missing, and the Interface states no rule or limit.
+   - Architecture, security and quality: nothing under review, because no code or test changed. The record's `duplicates: 5 new` comes from the tree on `main`, not from this diff, which changes nothing under `src/factory`.
+   - Work item hygiene: entries 5 and 7 explain why no test and no code were written, and what was rejected (a pytest test reading the guide; the coder writing the section). The docs criterion still says everything the documenter needs: the file, the section title, the *The files* line, the leading sentences, one line per module (`conftest.py` included) and `none` for the other three documents.
+
+   description corrected: "The shared helpers live in 35 modules at the root of `tests/` besides `conftest.py`" -> "The shared helpers live in 36 modules at the root of `tests/` besides `conftest.py`". Intake (entry 3) settled this, and listing `tests/*.py` without the `test_` modules gives 37 with `conftest.py`.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
