@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T14:25:31.446490Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-20T14:25:31.446490Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-20T14:31:22.958076Z'
+  stage: tests
+  run: ff66cb6f80c64672808b18d0c882977b
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -370,3 +372,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     I did not run `make check` this round, because no code changed. Entry 10 recorded it green.
 15. factory: started tests as self.
+16. tester: I wrote the test for criterion 11, which the reviewer added in entry 12 and the coder named in entry 14. The tests for the other criteria have not changed.
+
+    - criterion 11: tests/adapters/test_opencode_runtime_leftovers.py::test_a_call_refused_by_sudo_or_the_wrapper_keeps_its_own_error_and_still_starts_the_program
+
+    How it is built: it is one test with two rows, built like the claude runtime's test for criterion 8.
+    - The `sudo` row uses `write_sudo(..., refusal="sudo: a password is required\n")`.
+    - The `confine` row uses `write_confine(layout, Played())`.
+    - In both rows the stand-in program exits 1 with a `factory-leftovers:` line, and `os_user` is `factory-test-other`.
+    - The test checks that `detail` starts with `<refuser> refused the agent run: <line>`, and that the program recorded `["--user", "factory-test-other"]`, so it was still started.
+
+    Change to the existing test: the order test in the same file built its runtime inline. I moved that setup into a private helper, `_runtime(layout, program, *, sudo_refusal, confine_played)`, which both tests now use. That test keeps its name and checks the same thing. I wrote that file myself for this story, so no leave was needed. I changed no test file from another story.
+
+    Files changed: tests/adapters/test_opencode_runtime_leftovers.py. I created no new files.
+
+    Modules the test runner could not import: none. The code is already built, so the new test passes rather than failing first. The coder said as much in entry 14: `_call` in `src/factory/adapters/opencode_runtime.py` already raises the refusal before the program's fault, and starts the program in both cases. `make test` ends `test: green` (coverage 99.17 %), and `make lint` ends `lint: green`.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (157.0 s)
