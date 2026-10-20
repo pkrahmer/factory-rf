@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 316
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T02:04:13.132593Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T02:04:13.132593Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T02:06:06.379958Z'
+  stage: doing
+  run: c32b1255588d4076b2cc409042f76aab
 ---
 
 # The acceptance tests pin the reviewer's role and the close's commit subjects
@@ -137,3 +139,17 @@ Expect: three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: clo
    `lint`: lint: green (0.0 s)
    `test`: test: green (39.8 s)
 6. factory: started doing as self.
+7. coder: Changed no code. As the story says, the code already does what the tester's tests in `tests/application/test_acceptance_reviewer_role.py` pin: the hand-over's findings and the close's reason both come from the acceptance reviewer's last `result`, and the close makes the commits `close recorded` on the branch and `closed, refused` on main. Those tests pass against the current `src/factory/application/acceptance.py`. `make check` is green (`test: green (40.4 s)`, `check: green`).
+
+   Built: nothing. No path under `src/` changed.
+
+   Main choice: I left `src/` untouched. The other option was to tidy the handlers in `acceptance.py` while I was there, and I rejected it: the story's Interface says no module under `src/factory/` changes, and anything more would go beyond the story's scope (R13).
+
+   Refactor: my diff is empty, so there was nothing to refactor.
+
+   Description: no journal entry changed what the task means, so `## Description` stays as written.
+
+   Noticed, not touched: none.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
