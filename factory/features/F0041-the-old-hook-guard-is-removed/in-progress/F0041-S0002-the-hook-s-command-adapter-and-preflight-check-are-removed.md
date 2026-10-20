@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T11:29:37.720143Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-10-20T11:29:37.720143Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T11:30:08.643199Z'
+  stage: docs
+  run: ee5aec4ba3284493bbf3047b24b3d568
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -446,3 +448,26 @@ Expect: `5`
     Notes:
     - `tests/test_hook_removed.py:91`: criterion 2's rows are module-level functions (`_fields`, `_builds`, `_refuses_a_temporary_folder`) passed as callables. Rows of data with one assertion body would read more plainly.
 21. factory: started docs as self.
+22. documenter: Docs stage, round 1. I changed no file. The docs criterion is `none`: S0003 writes the documents (the feature's decision 1).
+
+    Cross-read: I checked the diff against `README.md` and `docs/` with a grep for `factory-guard`, `claude_guard`, `GUARD_COMMAND`, `GuardSettingsInvalid` and `read_guard_settings`. The diff matches the Interface and the criteria. I found no contradiction between code and Interface, so there are no findings for the coder.
+
+    Stale text I saw and left for S0003 (the story assigns it, so I did not touch it):
+    - `README.md:12` lists the commands, `factory-guard` among them.
+    - `docs/operator-guide.md:222-224` has the section "`factory-guard` on the agent run's `PATH`".
+    - `docs/operator-guide.md:450` says the `agent-environment` item checks `factory-guard` on `PATH`. It now checks `HOME` only.
+    - `docs/project-guide/write-guard.md:63-87` describes `factory-guard`, `claude_guard.judge`, `GuardVerdict` and the two deleted guard tests.
+    - `docs/project-guide/README.md:15` describes `write-guard.md` as covering the guard.
+    - `docs/project-guide/agents.md:56` describes the `guard-<session>.json` and `hooks-<session>.json` files.
+    - `docs/project-guide/watching.md:238` describes `agent_environment(scripts, home)` and may need a check against the new `PATH` rule.
+    - `docs/decisions.md` entries mention the hook as history. They are dated records and I left them.
+
+    Unrelated notes:
+    - `pyproject.toml:17` still declares the `factory-guard` console script. That is the human's change 1, after this story.
+    - The `tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode` flake from earlier entries is still open and outside this story.
+
+    I ran no `make check`, because I changed no file.
+
+    `check`: check: green (not run again: passed on tree ac33334e0e3c at 2026-10-20T11:25:50Z)
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok
