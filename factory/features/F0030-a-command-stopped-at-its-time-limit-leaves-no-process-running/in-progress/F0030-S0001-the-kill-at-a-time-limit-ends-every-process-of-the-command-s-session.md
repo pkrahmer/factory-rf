@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T08:46:12.632571Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -63,6 +59,12 @@ journal:
   kind: started
   at: '2026-10-20T08:46:12.632571Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-20T08:51:55.871090Z'
+  stage: doing
+  run: 906e68e991d84bef8d8476a4ea567a9a
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -228,3 +230,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    FAILED tests/adapters/test_git_cli_work_tree.py::test_the_work_tree_id_is_the_tree_a_commit_records[tracked-ignored-file]
    make: *** [Makefile:75: test] Error 1
 9. factory: started doing as self.
+10. coder: Second run of the doing stage after the stall. I changed no code: the first run's work is committed (b54c626c) and `make check` is green now (`test: green (137.4 s)`, `check: green`).
+
+    What is built (from the first run, read again for this entry):
+    - `src/factory/domain/sessions.py` (new): `ENDED_STATES`, `ProcessEntry`, `parse_stat` (splits at the last `)`) and `left_to_kill` (a sorted set of the matching ids).
+    - `src/factory/adapters/process.py`: `_kill_group` is now `_kill_session`, called at the same three places. It kills the group first, exactly as before. Then it runs rounds: `_read_process_table` reads `/proc` and skips a folder that raises `OSError`, `_kill_one` skips `ProcessLookupError` and adds a `PermissionError` id to `refused`, and there is a 0.05 s pause between rounds until a round finds nothing.
+    - Main choice: the table is read fresh on every round. Rejected: collecting the targets once and then waiting for them, which would miss a process forked meanwhile.
+
+    The stall: `tests/adapters/test_git_cli_work_tree.py::test_the_work_tree_id_is_the_tree_a_commit_records[tracked-ignored-file]` failed once under `make check`. It passed when run alone (14 passed) and in a full `make check` this round. The factory's stall output gives no `E` lines and no `file:line`, so I cannot quote the failure. It does not touch processes or sessions.
+    - Likely cause (noticed, not touched, outside this work item): `GitCli.work_tree_id` (`src/factory/adapters/git_cli.py:420`) copies the own index with `shutil.copyfile`, which gives the copy a fresh mtime. Git's racy-entry check compares a file's mtime with the index file's mtime. So when `kept.log` goes from `one\n` to `two\n` (same size) within the timestamp granularity of the last index write, git can trust the stale stat data and skip the rehash, and the tree comes out stale.
+    - `shutil.copy2`, which keeps the mtime, would likely fix it. That is a separate story for the human to decide on.
+
+    Refactor pass: I read the diff again and found nothing to change.
+
+    Not run: the story's smoke-test blocks. The first run's permissions refused them, and I did not try again.
+
+    Noticed, not touched: the `ProcessLookupError` and `PermissionError` branches of `_kill_one` have no test of their own. Intake accepted that.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
