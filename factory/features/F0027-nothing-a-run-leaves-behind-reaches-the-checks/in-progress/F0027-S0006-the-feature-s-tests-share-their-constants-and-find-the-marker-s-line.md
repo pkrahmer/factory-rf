@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 360
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T19:35:35.121381Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T19:35:35.121381Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T19:38:06.011877Z'
+  stage: doing
+  run: 9f7f77bd22e945c8912d5a271bb12599
 ---
 
 # The feature's tests share their constants and find the marker's line
@@ -129,3 +131,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.6 s)
    `test`: test: green (59.6 s)
 6. factory: started doing as self.
+7. coder: I built nothing, because the tester already made the whole change and this story only touches tests. `make test` had no failing test to work from. I checked the tester's result as it stands in the working tree:
+   - `make check` ends with `check: green`, with coverage at 99.17 %.
+   - The first smoke grep prints only `tests/git_support.py:1`.
+   - The second smoke grep prints `0`.
+   - `git diff main -- src` is empty, so nothing under `src/` changed, as the Interface requires.
+
+   Main choice: I left the tester's eight changed files under `tests/` as they are. The rejected alternative was to touch any of them, for example tidying the `main_line` search in `tests/test_process_search.py`. That would break R9 (the coder never edits tests), and none of the acceptance criteria needs it.
+
+   Refactor: my diff is empty, so there was nothing to refactor.
+
+   Description: no journal entry changed the meaning of the task, so `## Description` stays as it is.
+
+   Noticed but did not touch: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
