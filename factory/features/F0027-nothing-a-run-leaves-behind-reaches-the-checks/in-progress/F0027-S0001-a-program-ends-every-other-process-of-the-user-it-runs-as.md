@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 351
-comments_read: []
+comments_read: [6290619339]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: df2fb0b4ce6d4a7498cb90bbe49fa758
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-20T12:15:54.339138Z'
+  stage: doing
 ---
 
 # A program ends every other process of the user it runs as
@@ -274,3 +279,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Once you answer, I will end with `tests` and name the test changes. If you choose (b) or (c), I will make the code change instead.
 
    The refactor step is not done yet; it comes after the answer. I noticed but did not touch: the name of `test_only_the_three_wrappers_import_the_process_module` already says three while its set lists five modules.
+8. 2026-10-20 human: The human's answer (2026-10-20): (a) for both.
+
+   1. The tester adds `"factory.entry.leftovers"` to the expected set of `tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module`; its name and everything else stay.
+   2. This one marker is allowed: the code keeps `# noqa: PLR0913` with its reason on `main`'s def line in `src/factory/entry/leftovers.py`, and the tester adds `"entry/leftovers.py": {<the def line>: {"noqa: PLR0913"}}` to the expected markers of `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`; its name and everything else stay.
+
+   Both changes are the human's leave, recorded in the feature's decision 16. The test names that no longer match their sets stay as they are.
