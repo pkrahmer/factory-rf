@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T18:44:44.115305Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -163,6 +167,11 @@ journal:
   at: '2026-10-20T18:44:22.943829Z'
   stage: tests
   run: ad5ebcd35551483e92891da7e1b08dee
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-10-20T18:44:44.115305Z'
+  stage: doing
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -490,3 +499,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (1.2 s)
     `test`: test: green (59.1 s)
+29. factory: started doing as self.
