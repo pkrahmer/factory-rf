@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 324
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T03:31:15.499172Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T03:31:15.499172Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T03:31:48.083955Z'
+  stage: docs
+  run: 6575417ad3904b6a81348430f66738c0
 ---
 
 # The protected paths refuse a .claude folder at any depth
@@ -178,3 +180,19 @@ Expect: four lines, `.claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is o
    - `tests/domain/test_write_paths.py`: changed under the human's leave, the feature's decision 3. Only the rename and the added second tuple item.
    - `tests/application/test_undo.py`: changed under the standing leave to move a shared test helper (`CLAUDE.md`, *Tests*). `_pipeline`, `_start`, `_undo` and their constants moved to `tests/undo_support.py` as `pipeline_text`, `start_stage` and `undo_stage`. Every test keeps its name and its assertions; only the calls were renamed, and one line was rewrapped.
 10. factory: started docs as self.
+11. documenter: No findings. I changed only documents, so I did not run `make check` (the factory's checks decide), and I ran no example, because I wrote none.
+
+    Files changed:
+    - `docs/operator-guide.md` (*A project's own skills*): replaced the sentences on the root-only protection with the rule. `.claude/` is protected at any depth (`.claude/*` and `*/.claude/*`), so no stage writes one anywhere in the repository. The hook refuses it in a Claude Code run, the undo removes it after every run, and the kernel cannot refuse it inside a folder a write path opens.
+    - `docs/project-guide/write-guard.md` (*Protected paths and the refusal*): "eleven" became "twelve", `*/.claude/*` is listed after `.claude/*`, and a sentence says a `.claude` segment is protected at any depth and only as a whole segment, and that the kernel's targets do not change.
+    - `docs/decisions.md`: new entry *No stage writes a .claude folder at any depth* (decisions, reasons, and the rejected Landlock rule and R14 rewording). The F0022 skills entry's open point now names it.
+
+    The diff matches the Interface and the criteria. `PROTECTED_PATHS` has the twelve patterns with `*/.claude/*` second, and `refusal`, the hook and the undo are unchanged.
+
+    Cross-read and found current: `README.md` (the criterion says none), and the rest of `docs/operator-guide.md` and `docs/project-guide/`. I searched them for "eleven" and `.claude/*`; the other "eleven" hits are unrelated, such as the eleven stall causes.
+
+    Stale text I saw and did not touch: none. I did not edit `docs/runs/`, which the human owns. I did not read the feature's `feature.md`, so I took the entry's decision numbers (1, 2 and 4) from the docs criterion.
+
+    `check`: check: green (not run again: passed on tree b1fcf2631b53 at 2026-10-20T03:28:39Z)
+    `secrets`: secrets: green (1.6 s)
+    `documents`: documents ok
