@@ -2,7 +2,7 @@
 
 ## Goal
 
-No stage runs `make mutants` (F0031); mutation testing runs only as these sweeps, which the human starts when the machine is idle. Run mutmut over all of `src/factory/` once, then sort every surviving mutant (and every mutant that was not checked) into one of:
+No stage runs `make mutants` (F0031); mutation testing runs only as these sweeps, which the human starts when the machine is idle. Since F0032 a sweep may run `make mutants MODULES=factory.application MUTANTS_SECONDS=<s> MUTANTS_CHILDREN=2` in its copy instead of mutmut by hand; every run starts from a fresh `mutants/`, so two runs in one copy share no stats. Run mutmut over all of `src/factory/` once, then sort every surviving mutant (and every mutant that was not checked) into one of:
 
 - **equivalent**: no test can tell it apart; say why in one line;
 - **missing test**: a behaviour no test pins; name the module, the behaviour, and the test module it belongs in;
