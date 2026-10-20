@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T14:53:30.859826Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T14:53:10.596018Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-20T14:53:30.859826Z'
   stage: intake
 ---
 
@@ -179,3 +188,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Format check: passed.
 4. 2026-10-20 human: Answer (2026-10-20): (a). Criterion 1 gains a row: a symbolic link `src/stray.pyc` (matched by `*.pyc`) that points to a file outside the repository; afterwards the link is gone and the target file is still there with its content. The Interface's sentence stays.
+5. factory: started intake as self.
