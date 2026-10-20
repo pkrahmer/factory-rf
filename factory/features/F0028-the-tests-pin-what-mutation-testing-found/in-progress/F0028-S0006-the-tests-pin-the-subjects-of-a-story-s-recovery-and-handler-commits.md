@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 317
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T02:16:37.646478Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T02:16:37.646478Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T02:16:52.696254Z'
+  stage: docs
+  run: 41a9decde5744b27a7f087d35d540cd9
 ---
 
 # The tests pin the subjects of a story's recovery and handler commits
@@ -168,3 +170,14 @@ Expect: two lines, `work item F0001-S0001: crash of stage doing recorded` and `w
 
    Earlier tests: none. `git diff --name-status main...HEAD` shows only added test files (status `A`).
 10. factory: started docs as self.
+11. documenter: Docs criterion is `none`, and the diff matches it: two new test modules (`tests/application/test_recovery_subjects.py`, `tests/application/handlers/test_handler_subjects.py`), no change under `src/`. I changed no file, so there is nothing to run and no `make check` (only documents could change).
+
+    Cross-read against the diff and found current:
+    - `docs/operator-guide.md`: the subjects `work item <id>: close recorded` (line 1311), `work item <id>: sent back` (line 1313) and `work item <id>: stage <to> -> <from>, moved back` (line 1365). In the move-back, `<to>` is the illegal stage and `<from>` the stage before it, which is the order the pinned test uses (`stage approval -> doing, moved back`).
+    - `docs/project-guide/watching.md`: `commit_subject` and the `work item <id>: ` prefix on every handler commit (line 138), the close record (line 177) and the `moved back` marker (line 209).
+
+    Nothing stale noticed that is unrelated. One gap I left alone: no document spells out the crash, expiry or `pull request opened` subjects of the recovery, or the `comments from the pull request` subject. The docs criterion says none, and the pinned tests now hold those subjects. No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 562b1eb11f1c at 2026-10-20T02:14:27Z)
+    `secrets`: secrets: green (0.1 s)
+    `documents`: documents ok
