@@ -152,3 +152,31 @@ Fail closed: after any fault the command never starts. On success `main` does no
 ### Tests
 
 `tests/entry/test_confine.py` runs every row that reaches step 5 or 6 in a child process (`sys.executable -m factory.entry.confine`), because the restriction cannot be undone; rows that stop at steps 1 to 4 call `main` in-process with `abi` injected. These rows check the real kernel. `tests/entry/test_confine_steps.py` runs the steps up to step 6 in-process as well, with `restrict` and `replace` injected as recorders (`replace` raises a test-local exception instead of replacing the process), so coverage and mutation testing see them. `tests/entry/test_confine_defaults.py` also runs in-process the rows for `main`'s defaults (`sys.argv`, `sys.stderr`, `abi_version`, `restrict_writes` and `replace_process`, each row refusing before the first system call or the `exec`), for a folder of the rules that already exists or cannot be made, and for the fault text of an unreadable rules file; `tests/confine_support.py` holds the helpers these modules share. `tests/adapters/test_process_replace_faults.py` does the same for `replace_process`'s refusals. Coverage does not follow the children. `factory.entry.confine` imports `factory.adapters.landlock` and `factory.adapters.process` directly: it picks no adapter behind an interface (feature decision 19).
+
+## The end of a run's processes
+
+A process that an agent run starts in a new session (`setsid`) outlives the run: neither the end of the call nor the time limit's kill of the run's process group reaches it, and it goes on writing under the run's rules while later stages run, are undone and are checked. `python -I -m factory.entry.leftovers --user <name>` ends such processes. It is meant to run as the agent's user, through the one `sudo` rule. Nothing starts it yet; the runtimes call it in a later story of the same feature, and the operator guide will describe its use then.
+
+`main(argv=None, *, stderr=None, identity=None, kill=None, processes=None, sleep=None) -> int` is in `factory.entry.leftovers` (`None` is `sys.argv[1:]`, `sys.stderr`, and `own_identity`, `signal_every_other` and `read_process_table` of `factory.adapters.process`, and `time.sleep`; the four calls are injected by tests). It writes nothing to standard output. Every fault is one line on standard error, `factory-leftovers: <fault>`, and status 1; no later step runs. The pure rules are in `factory.domain.leftovers`.
+
+### The three steps
+
+1. The arguments are exactly `--user` and one non-empty name. Anything else is `factory-leftovers: usage: python -m factory.entry.leftovers --user <name>`, before the identity is read.
+2. `leftovers_refusal(identity(), name)`, before the first signal. Two refusals: `refuses to run as root`, and `runs as <user>, not <name>` (case-sensitive). Root is refused whatever the name: `kill(-1)` as root would end every process of the container, the factory included. The second guards the same mistake from the other side: a stand-in `sudo` that does not switch users leaves the program running as the factory's user, and it then refuses instead of ending the factory's own processes.
+3. The rounds, 1 to 50 (`LEFTOVER_ROUNDS`): `kill(SIGKILL)`, then read the process table and take `leftover_pids`. None left ends the program with status 0 and no output. Otherwise, unless it was the last round, it pauses 0.1 s (`LEFTOVER_PAUSE_SECONDS`), so 50 rounds have 49 pauses. Each round signals again, since a process may have been started between the signal and the read. After round 50 with processes left: `factory-leftovers: <n> processes left after 50 rounds: <ids, joined by ", ">`, the ids of the last round.
+
+The faults of step 3: an `OSError` from the signal is `cannot signal the processes: <error>`; an `OSError`, or a `ValueError` for a status line that cannot be parsed, from the process table is `cannot list the processes: <error>`.
+
+### What counts as left
+
+`kill(-1)` sends the signal to every process the user may signal and spares the calling process, so the program does not end itself. `leftover_pids(entries, identity)` returns the ids, ascending and each once, of the entries whose `uid` is the identity's, whose `pid` is not the program's own and whose `ended` is false: zombies and dead entries are not counted, since SIGKILL cannot do more to them. `Identity` (uid, user name, own pid) comes from `own_identity()`.
+
+The table is read by `read_process_table(proc)` in `factory.adapters.process`, the reader that *Killing a session* in `processes-and-checks.md` describes, with the model `ProcessEntry` of `factory.domain.sessions`: `ended` comes from `/proc/<pid>/stat`, `uid` from the owner of the folder `/proc/<pid>`. It is the folder's owner and not a file's because a process that makes itself not dumpable (`prctl(PR_SET_DUMPABLE, 0)`) gets root-owned files under `/proc/<pid>` while its folder keeps its user; a file's owner would hide exactly the process that most needs ending. An entry that vanishes while it is read is left out. The program has no second reading of `/proc`.
+
+The program never waits with `kill -0 -1`: on Linux, a target the caller may not signal still counts as found, so the call would report processes of other users as left and never settle.
+
+### Tests
+
+`tests/domain/test_leftovers.py` (`leftover_pids`, `leftovers_refusal`, the limits of `Identity` and of `ProcessEntry.uid`), `tests/adapters/test_process_table.py` (`read_process_table` on fake tables of folders under `tmp_path`, and `own_identity`) and `tests/entry/test_leftovers.py` (`main` in-process with every call injected; one test runs the real module in a child process with `-I -B`, naming a user it does not run as, so it refuses before its first signal). `-B` matters: under the tests' umask `022` the bytecode the child would write into `src/factory` makes folders the removal of ignored paths cannot remove. `tests/leftovers_support.py` holds the shared `AGENT` identity and `process_entry`.
+
+No test calls `signal_every_other`, and no test or smoke test runs the program as the user it names: it would end every process of that user, which in an agent's run is the run itself, and under `make check` the factory.

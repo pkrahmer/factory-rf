@@ -12,16 +12,17 @@ _SESSION_FIELD = 3
 
 
 class ProcessEntry(BaseModel):
-    """One process of the kernel's table: its id, its session and whether it has ended."""
+    """One process of the kernel's table: its id, its session, whether it has ended, its owner."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     pid: PositiveInt
     session: NonNegativeInt
     ended: bool
+    uid: NonNegativeInt
 
 
-def parse_stat(pid: int, stat: str) -> ProcessEntry:
+def parse_stat(pid: int, stat: str, *, uid: int) -> ProcessEntry:
     """The entry of the text of `/proc/<pid>/stat`, whose name in parentheses may hold anything."""
     # The name may hold spaces and parentheses itself, so only the last `)` ends it.
     _, closing, rest = stat.rpartition(")")
@@ -34,6 +35,7 @@ def parse_stat(pid: int, stat: str) -> ProcessEntry:
         pid=pid,
         session=int(fields[_SESSION_FIELD]),
         ended=fields[_STATE_FIELD] in ENDED_STATES,
+        uid=uid,
     )
 
 

@@ -1,3 +1,170 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 351
+comments_read: [6290619339]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T12:01:46.134362Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:01:46.139950Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T12:02:14.610052Z'
+  stage: intake
+  run: 0eb8fd1c544642408534d74d69e21b40
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:02:35.836476Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T12:08:33.406031Z'
+  stage: tests
+  run: 77a64acd093c49c396bae566a1280561
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:08:54.145691Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-20T12:13:33.890021Z'
+  stage: doing
+  run: df2fb0b4ce6d4a7498cb90bbe49fa758
+  blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-20T12:15:54.339138Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:16:12.550051Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-20T12:18:19.671421Z'
+  stage: doing
+  run: 5784a671220d4e67a97ecc319900dea9
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:18:40.888632Z'
+  stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-10-20T12:22:19.374744Z'
+  stage: tests
+  run: 72ebf515e8044bc996070e3b034ef5f5
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:22:40.580471Z'
+  stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-20T12:26:36.362070Z'
+  stage: doing
+  run: e4fb25198a17492d9139ed8fd68577dd
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:26:57.916670Z'
+  stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T12:28:02.192694Z'
+  stage: review
+  run: 9f7bec2470a84d9f9f6885214d920742
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:28:23.395694Z'
+  stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-20T12:28:46.707781Z'
+  stage: doing
+  run: a046c0aa3adf4e0d9ab673afbcde3da9
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:29:07.535916Z'
+  stage: tests
+- number: 20
+  speaker: tester
+  kind: result
+  at: '2026-10-20T12:33:15.032737Z'
+  stage: tests
+  run: 8bdf9c7b6c9b465a92ab2a0f6d900087
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:33:36.323101Z'
+  stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-20T12:37:26.433457Z'
+  stage: doing
+  run: 12a70a7a1156462ca03fcfff2f46dcaa
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:37:47.122471Z'
+  stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T12:38:36.920945Z'
+  stage: review
+  run: 0baa1133ec314d56bcf5647138349400
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:38:57.511311Z'
+  stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T12:39:59.808278Z'
+  stage: docs
+  run: f10455729dc24fa8a3a21a9cbc0ccc6a
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:40:20.742134Z'
+  stage: smoke-test
+- number: 28
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T12:40:53.009096Z'
+  stage: smoke-test
+  run: 7ded30a3785744b5872791b59cad6b0f
+---
+
 # A program ends every other process of the user it runs as
 
 ## Description
@@ -159,3 +326,286 @@ Expect: three lines, `[(7, False, True), (8, True, True), (10, False, True), (11
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: concrete modules and signatures are named for all four layers (`factory.domain.sessions` `uid` field and `parse_stat(..., *, uid)`, `factory.domain.leftovers`, `factory.adapters.process` `read_process_table`/`own_identity`/`signal_every_other`, `factory.entry.leftovers.main` with its injected calls). Every behaviour stated in the Interface comments (sorting by pid, the owner read from the folder, the order of the arguments, rounds and pauses, fault texts) has a criterion.
+   Criteria: each can be tested by one parametrized test function. Each rule has its failing side: the root refusal and the user mismatch (2, 8), the limits of `uid`, `user` and `pid` at -1/0, ""/"a" and 0/1 (3), a bad name, a missing `stat` and an unparseable `stat` (4), a missing folder (5), usage faults (7), and the kill and list faults (10). The 50th-round failure is in 9. Not covered, by design: `signal_every_other`'s `ProcessLookupError` and the unreadable-owner `OSError`, which no test can reach safely or portably; the feature states that no test calls `signal_every_other`. The `None` defaults of `main` are only reached by criterion 11's child process.
+   Smoke test: three runnable commands, with no pytest and so no `-q` problem. I traced the third by hand: the table gives 7, 8, 10, 11 in order, `[7, 10]` follows, and two rounds give `0 [9, 9] [0.1] ''`. Each Expect line can be checked against the output. The second command's expectation assumes a non-root user, which the story's own criterion 11 also notes.
+   Architecture: matches CLAUDE.md. The domain modules are pure. `adapters.process` stays the one module that starts processes and reads `/proc`. `entry.leftovers` imports the adapters for its defaults, and the story names the wiring test change (decision 16). It reuses F0030's reader and model, so there is no second helper.
+   Scope: within F0027's scope for S0001 (the listed modules and tests). The test changes to other stories' tests are the ones decision 16 names, with the human's leave. Nothing is out of scope: nothing starts the program, since S0002 wires it.
+4. factory: started tests as self.
+5. tester: Wrote the tests for every acceptance criterion. Each one is a single test function. Rules with several cases are rows of one parametrized test.
+
+   - criterion 1: tests/domain/test_leftovers.py::test_leftover_pids_are_the_user_s_other_living_processes
+   - criterion 2: tests/domain/test_leftovers.py::test_root_and_another_user_are_refused
+   - criterion 3: tests/domain/test_leftovers.py::test_model_limits (each model is built through a parameter typed `type[BaseModel]`)
+   - criterion 4: tests/adapters/test_process_table.py::test_process_table_is_read_from_the_folders
+   - criterion 5: tests/adapters/test_process_table.py::test_missing_process_table_raises
+   - criterion 6: tests/adapters/test_process_table.py::test_own_identity_is_the_running_process
+   - criterion 7: tests/entry/test_leftovers.py::test_wrong_arguments_print_the_usage (the six bad argument lists) and tests/entry/test_leftovers.py::test_the_user_s_name_starts_the_rounds (`["--user", "agent"]` with a table that is empty at once)
+   - criterion 8: tests/entry/test_leftovers.py::test_refusals_come_before_the_first_signal
+   - criterion 9: tests/entry/test_leftovers.py::test_rounds_signal_until_none_is_left
+   - criterion 10: tests/entry/test_leftovers.py::test_faults_of_signal_and_listing_end_the_program
+   - criterion 11: tests/entry/test_leftovers.py::test_the_real_module_refuses_in_a_child_process (two rows: another user, which expects the root line when the tests run as uid 0, and no arguments; both run with `-I -B` through `run_process` in `tmp_path`)
+   - criterion 12: the factory's `make check`
+   - criterion 13: the docs stage
+
+   Files created: tests/domain/test_leftovers.py, tests/adapters/test_process_table.py, tests/entry/test_leftovers.py.
+
+   Earlier test files changed, each exactly as the Interface names under the feature's decision 16:
+   - tests/domain/test_sessions.py: every `ProcessEntry(...)` gains `uid=1001`, both `parse_stat` calls gain `uid=1001`, and the `fields` of `test_entry_limits` gain `"uid": 0`. Test names, rows and what each test checks are unchanged.
+   - tests/entry/test_wiring.py: the expected set of test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer gains `"factory.entry.leftovers"`.
+
+   The injected calls of `main` are recorded by one `Recorder` dataclass inside tests/entry/test_leftovers.py. No test calls `signal_every_other`, and none runs the program as the user it names.
+
+   One run of `make test`: it stopped at collection. tests/domain/test_sessions.py fails with a pydantic ValidationError because `ProcessEntry` has no field `uid` yet. The new test modules cannot import modules or names that do not exist yet:
+   - `factory.domain.leftovers`
+   - `factory.entry.leftovers`
+   - `read_process_table` and `own_identity` from `factory.adapters.process`
+
+   These failures are on purpose: they are the coder's specification. `make lint` is green. The type check was skipped, as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/entry/test_leftovers.py - ImportError while importing test module...
+6. factory: started doing as self.
+7. coder: I stopped before review. The code is built, but two structural tests that earlier stories wrote conflict with the Interface. Neither of them is in the list of test changes the Interface allows, so I need your decision (R9).
+
+   Built, and left in the working tree:
+   - `src/factory/domain/sessions.py`: `ProcessEntry.uid`, and `parse_stat(..., *, uid)`.
+   - `src/factory/domain/leftovers.py` (new): the constants, `Identity`, `leftover_pids` and `leftovers_refusal`.
+   - `src/factory/adapters/process.py`: `read_process_table(proc)` is now public, sorted by `pid`, and reads the owner of each folder. `own_identity` and `signal_every_other` are added, and `_kill_session` uses the reader.
+   - `src/factory/entry/leftovers.py` (new): `main`. A private `_Stop` exception carries each fault line, as in `factory.entry.confine`. I chose that over returning status codes from each step.
+
+   Results of `make check`: lint, types, layers, sast, secrets and licenses are green. `make test` fails in exactly two tests, and every story test passes.
+
+   1. `tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module` fails with `Extra items in the left set: 'factory.entry.leftovers'`. The Interface requires `main`'s defaults to be `own_identity`, `signal_every_other` and `read_process_table` of `factory.adapters.process`, so the module has to import it. The Interface names the change to `test_wiring.py` but not this one.
+      - Options: (a) the tester adds `"factory.entry.leftovers"` to the expected set of this test, and its name and everything else stay; (b) the entry reaches those functions through another adapter module, which only hides the import.
+      - I would choose (a).
+   2. `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` fails with `Left contains 1 more item: {'entry/leftovers.py': {32: {'noqa: PLR0913'}}}`. The Interface fixes `main` at six parameters (`argv` and five keywords). ruff's PLR0913 allows five, and `make lint` fails without the marker. For now the code carries `# noqa: PLR0913` with a comment that says why.
+      - Options: (a) you allow this one marker, and the tester adds `"entry/leftovers.py": {<the def line>: {"noqa: PLR0913"}}` to the expected markers; (b) a per-file ignore for `src/factory/entry/leftovers.py` in the ruff configuration in `pyproject.toml`, which leaves the test alone but hides the exception from it; (c) the Interface changes so the four injected calls go into one object, which means rewriting the story's tests in `tests/entry/test_leftovers.py` and its smoke test.
+      - I would choose (a): the exception stays visible on the one line it covers.
+
+   Once you answer, I will end with `tests` and name the test changes. If you choose (b) or (c), I will make the code change instead.
+
+   The refactor step is not done yet; it comes after the answer. I noticed but did not touch: the name of `test_only_the_three_wrappers_import_the_process_module` already says three while its set lists five modules.
+8. 2026-10-20 human: The human's answer (2026-10-20): (a) for both.
+
+   1. The tester adds `"factory.entry.leftovers"` to the expected set of `tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module`; its name and everything else stay.
+   2. This one marker is allowed: the code keeps `# noqa: PLR0913` with its reason on `main`'s def line in `src/factory/entry/leftovers.py`, and the tester adds `"entry/leftovers.py": {<the def line>: {"noqa: PLR0913"}}` to the expected markers of `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`; its name and everything else stay.
+
+   Both changes are the human's leave, recorded in the feature's decision 16. The test names that no longer match their sets stay as they are.
+9. factory: started doing as self.
+10. coder: The human chose (a) for both questions in entry 8. Those answers need two test changes and no code change, so this stage hands the work item back to the tester (R9). I changed no files in this round.
+
+    Test changes for the tester, exactly as the human worded them:
+    1. `tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module`: add `"factory.entry.leftovers"` to the expected set. The test's name and every other line stay.
+    2. `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`: add `"entry/leftovers.py": {32: {"noqa: PLR0913"}}` to the expected markers. Line 32 is the `def main(` line in `src/factory/entry/leftovers.py`. The test's name and every other line stay.
+
+    What I built, in the working tree since the last round:
+    - `src/factory/domain/sessions.py`: `ProcessEntry.uid` and `parse_stat(..., *, uid)`.
+    - `src/factory/domain/leftovers.py` (new).
+    - `src/factory/adapters/process.py`: `read_process_table(proc)`, now public, reads each folder's owner and sorts by pid. `own_identity` and `signal_every_other` are added.
+    - `src/factory/entry/leftovers.py` (new).
+
+    Main design choice: in `main`, each fault raises a private `_Stop` exception that carries its line, as `factory.entry.confine` does. I rejected returning a status from each step, because then every step would need its own early-return checks.
+
+    `make check`, run this round: lint, types, layers, sast, secrets and licenses are green. `make test` fails in exactly the two tests above, with `E   AssertionError` on the expected marker set and on the expected module set. Every test of this story passes.
+
+    Refactor step: I read my diff against main as a reviewer would and found nothing to change.
+
+    Noticed but not touched: both test names no longer match their sets ("three wrappers", "the four in the process wrapper"). The human decided in entry 8 that the names stay.
+11. factory: started tests as self.
+12. tester: I made the two test changes the human approved in entry 8, as the coder named them in entry 10. No other line changed.
+
+    1. `tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module`: I added `"factory.entry.leftovers"` to the expected set of importers. The test name and every other line are unchanged.
+    2. `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`: I added `"entry/leftovers.py": {32: {"noqa: PLR0913"}}` to the expected markers. Line 32 is `main`'s def line in `src/factory/entry/leftovers.py`. I wrote it as the literal line number the coder named, rather than finding the line by searching as the test does for its other entries, to keep the change exactly as approved. This means a later edit that moves `def main(` must also update this number. The test name and every other line are unchanged.
+
+    I created no new files. Every module imports now, so none failed to import.
+
+    I ran `make test` once: it passed, every test green, with 99.16 % coverage (`test: green (98.0 s)`). `make lint` is green.
+
+    Per the human's decision, the test names stay as they are even though they no longer match their sets.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (97.0 s)
+13. factory: started doing as self.
+14. coder: The tester made the two test changes from entry 12 (the human's answer in entry 8). The code from the earlier rounds now passes without any change, so I changed no files in this round. I ran `make check` this round and it ended `check: green`. `make test` reported `test: green (98.9 s)` with 99.16 % coverage.
+
+    What is built, all committed in earlier rounds:
+    - `src/factory/domain/sessions.py`: `ProcessEntry.uid` and `parse_stat(..., *, uid)`.
+    - `src/factory/domain/leftovers.py` (new): `LEFTOVERS_PREFIX`, `LEFTOVER_ROUNDS`, `LEFTOVER_PAUSE_SECONDS`, `Identity`, `leftover_pids` and `leftovers_refusal`.
+    - `src/factory/adapters/process.py`:
+      - `read_process_table(proc)` is now public. It reads the owner from each process's folder, not from a file in it, and sorts the entries by `pid`.
+      - New `own_identity` and `signal_every_other`, which ignores `ProcessLookupError`.
+      - `_kill_session` uses the public reader.
+    - `src/factory/entry/leftovers.py` (new): `main`, plus private `_parse` and `_end_the_others`. `main`'s def line keeps `# noqa: PLR0913` with its reason, as the human allowed in entry 8.
+
+    Main design choice: each fault raises a private `_Stop` exception that carries its line, and `main` writes it once with the prefix and returns 1. `factory.entry.confine` handles faults the same way. I rejected returning a status from each step, because every caller would then need its own early-return checks.
+
+    Refactor: I read `git diff main -- src` the way a reviewer would. Nothing needed changing.
+
+    Description: the journal changed no meaning of the task. Entry 8 only allowed two test changes and the one `noqa` marker.
+
+    Noticed, not touched:
+    - Two test names no longer match their sets: `test_only_the_three_wrappers_import_the_process_module` and `test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`. The human decided they stay.
+    - In `tests/test_process_search.py`, the expected marker for `entry/leftovers.py` is the literal line 32 (entry 12). Any edit that moves `def main(` in `src/factory/entry/leftovers.py` must update that number in the test.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+15. factory: started review as self.
+16. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. I read `src/factory/domain/sessions.py`, `src/factory/domain/leftovers.py`, `src/factory/adapters/process.py` and `src/factory/entry/leftovers.py`, plus the tests. The code matches the Interface: the argument check comes before `identity`, the refusal before the first `kill`, there is one `kill` and one listing per round, 49 pauses, and every fault line is as specified. The layers hold. The domain does no I/O. The one `# noqa: PLR0913` has its reason beside it and the human's leave (entry 8). The factory's `make check` after the coder was green (entry 14). `make duplicates` reported 5 new findings. All are in `claude_runtime`/`opencode_runtime` and `adapters/clock.py`, which this diff does not touch, so none is in scope.
+
+    Findings:
+    1. `tests/entry/test_leftovers.py`, `test_wrong_arguments_print_the_usage` and `test_the_user_s_name_starts_the_rounds`: criterion 7 asks for one parametrized test. Here its rejected argument lists and its accepted `["--user", "agent"]` are two separate test functions. Fix: one parametrized test whose rows are the six bad lists and the accepted list, each row with its expected status, output, `identity` calls and `kill` calls.
+    2. `tests/entry/test_leftovers.py:19` (`AGENT`) and `:23` (`_entry`) copy `AGENT` and `_entry` from `tests/domain/test_leftovers.py:9` and `:12`. Both build `Identity(uid=1001, user="agent", pid=11)` and `ProcessEntry(pid=pid, session=pid, ended=ended, uid=uid)`. `tests/adapters/test_process_table.py:15` holds the same `_entry` again, with `uid=os.getuid()`. Fix: the tester moves `AGENT` and one `_entry(pid, uid=1001, *, ended=False)` to a shared module under `tests/`, and the three new modules import them from there.
+
+    Earlier tests changed:
+    - `tests/domain/test_sessions.py`: the human's leave, the story's Interface (feature decision 16). Only the named `uid=1001` / `"uid": 0` additions and the reformatting they caused; every test keeps its name and rows.
+    - `tests/entry/test_wiring.py`: the human's leave, the story's Interface (feature decision 16). The expected set gains `"factory.entry.leftovers"`.
+    - `tests/test_wrapper_search.py`: the human's answer, journal entry 8. The expected set gains `"factory.entry.leftovers"`.
+    - `tests/test_process_search.py`: the human's answer, journal entry 8. The expected markers gain `"entry/leftovers.py": {32: {"noqa: PLR0913"}}`.
+17. factory: started doing as self.
+18. coder: Round 1. Both findings in the reviewer's entry 16 are about tests, so I changed no code and hand the work item to the tester (R9). I changed no files and did not rerun `make check`. The last coder run ended `check: green` (entry 14), and nothing under `src/` has changed since.
+
+    Test changes for the tester:
+    1. Finding 1: in `tests/entry/test_leftovers.py`, merge `test_wrong_arguments_print_the_usage` and `test_the_user_s_name_starts_the_rounds` into one parametrized test for criterion 7. Its rows are the six rejected argument lists and the accepted `["--user", "agent"]` (with a table that is empty at once). Each row carries its expected status, its stderr text, its number of `identity` calls and its `kill` calls.
+    2. Finding 2, under the standing leave to move a shared test helper in `CLAUDE.md`:
+       - Move `AGENT` (`Identity(uid=1001, user="agent", pid=11)`) and one `_entry(pid, uid=1001, *, ended=False)` helper to one shared module under `tests/`. The helper builds `ProcessEntry(pid=pid, session=pid, ended=ended, uid=uid)`.
+       - Change the three test modules that hold copies so they import both from there: `tests/domain/test_leftovers.py`, `tests/entry/test_leftovers.py` and `tests/adapters/test_process_table.py`. The last one passes `uid=os.getuid()`.
+       - Every test keeps its name and checks the same thing.
+
+    What is built, unchanged since entry 14: `src/factory/domain/sessions.py`, `src/factory/domain/leftovers.py`, `src/factory/adapters/process.py` and `src/factory/entry/leftovers.py`.
+
+    Main design choice, unchanged: each fault in `main` raises a private `_Stop` exception carrying its line, the same way `factory.entry.confine` handles faults. I rejected returning a status from each step.
+
+    Description: the journal did not change what the task means.
+
+    Noticed but not touched: `tests/test_process_search.py` expects `noqa: PLR0913` at the fixed line 32 of `src/factory/entry/leftovers.py`. Merging the tests in finding 1 does not move that line. Any later code edit above `def main(` will.
+19. factory: started tests as self.
+20. tester: Tester, round 1: I made the two test changes the coder named in entry 18 (the reviewer's findings in entry 16). The second change falls under the standing leave in `CLAUDE.md` to move a shared test helper. No code was changed.
+
+    1. Finding 1, `tests/entry/test_leftovers.py`: I merged `test_wrong_arguments_print_the_usage` and `test_the_user_s_name_starts_the_rounds` into one parametrized test, `test_only_a_user_s_name_starts_the_rounds`.
+       - It has the six rejected argument lists as rows, each giving status 1, `USAGE_LINE`, 0 `identity` calls and no `kill`.
+       - The accepted row is `["--user", "agent"]` with a table that is empty at once. It gives status 0, nothing written, 1 `identity` call and `kill` called once with `signal.SIGKILL`.
+       - I gave it a new name because neither old name fits both kinds of row. The merge was the approved change.
+    2. Finding 2: I added the new shared module `tests/leftovers_support.py`. It holds `AGENT` (`Identity(uid=1001, user="agent", pid=11)`) and `process_entry(pid, uid=1001, *, ended=False)`, which builds `ProcessEntry(pid=pid, session=pid, ended=ended, uid=uid)`. The three modules that held copies now import from it:
+       - `tests/domain/test_leftovers.py`: the local `AGENT` and `_entry` are removed. Calls are written `process_entry(7, 1001)` or `process_entry(8, 1001, ended=True)`, and every row keeps its values.
+       - `tests/entry/test_leftovers.py`: the local `AGENT` and `_entry` are removed.
+       - `tests/adapters/test_process_table.py`: the local `_entry` is removed. The rows call `process_entry(pid, _UID)`, where `_UID = os.getuid()`.
+       - Apart from the merge in change 1, every test keeps its name and checks the same thing.
+
+    Criterion → test, after this change:
+    - criterion 1: tests/domain/test_leftovers.py::test_leftover_pids_are_the_user_s_other_living_processes
+    - criterion 7: tests/entry/test_leftovers.py::test_only_a_user_s_name_starts_the_rounds
+    - The tests of the other criteria are unchanged.
+
+    `main`'s def line in `src/factory/entry/leftovers.py` was not touched, so the literal line 32 in `tests/test_process_search.py` still holds.
+
+    Files created: `tests/leftovers_support.py`. Files changed: the three test modules above. Every module imports, so there is no import failure. I ran `make test` once and it ended `test: green (95.4 s)` with 99.16 % coverage. `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (99.1 s)
+21. factory: started doing as self.
+22. coder: Round 1, after the tester's entry 20. The tester handled both of the reviewer's findings from entry 16. They merged the two argument tests into `tests/entry/test_leftovers.py::test_only_a_user_s_name_starts_the_rounds`. They also moved `AGENT` and `process_entry` into `tests/leftovers_support.py`. Both were test changes, so no code change was needed and I changed no files in this round. I ran `make check` this round and it ended `check: green` (`test: green (96.8 s)`, 99.16 % coverage).
+
+    What is built (unchanged since entry 14):
+    - `src/factory/domain/sessions.py`: `ProcessEntry.uid` and `parse_stat(..., *, uid)`.
+    - `src/factory/domain/leftovers.py` (new): `LEFTOVERS_PREFIX`, `LEFTOVER_ROUNDS`, `LEFTOVER_PAUSE_SECONDS`, `Identity`, `leftover_pids` and `leftovers_refusal`.
+    - `src/factory/adapters/process.py`: the public `read_process_table(proc)`, which reads the owner from each process folder and sorts by pid, plus `own_identity` and `signal_every_other`.
+    - `src/factory/entry/leftovers.py` (new): `main`, plus the private `_parse` and `_end_the_others`.
+
+    Main design choice (unchanged): each fault in `main` raises a private `_Stop` exception that carries its line, which is the pattern `factory.entry.confine` uses. I rejected returning a status from every step, because every caller would then need its own early-return checks.
+
+    Refactor: no code changed this round, so there was nothing new to refactor. The earlier rounds' review of the diff found nothing to change.
+
+    Description: the journal did not change what the task means.
+
+    Noticed but not touched: `tests/test_process_search.py` expects `noqa: PLR0913` at the literal line 32 of `src/factory/entry/leftovers.py`. Any later edit above `def main(` must update that number.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+23. factory: started review as self.
+24. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item. I read the four changed modules under `src/` and every test file the diff adds or changes.
+
+    Both findings from entry 16 are fixed:
+    - Criterion 7 is now one parametrized test, `tests/entry/test_leftovers.py::test_only_a_user_s_name_starts_the_rounds`. It has six rejected rows and the accepted `["--user", "agent"]` row. Each row checks the status, what is written, the number of `identity` calls and the `kill` calls.
+    - `AGENT` and `process_entry` now live in one place, `tests/leftovers_support.py`. All three new modules import them from there.
+
+    Checklist:
+    - **Criteria 1 to 11:** each has a test that checks what the criterion says. The stated limits are tested on both sides:
+      - `uid` at -1 and 0, on both models.
+      - `user` at `""` and `"a"`.
+      - `pid` at 0 and 1.
+      - The 50-round limit: none left after round 50 returns 0, some left after round 50 returns 1.
+    - **Interface:** the code matches it. The arguments are checked before `identity` is called, and the refusal comes before the first `kill`. Each round has one `kill` and one listing, and 50 rounds have 49 pauses. Every fault line is as specified. The reader takes the owner from the folder and sorts by `pid`.
+    - **Untested by design:** `signal_every_other`'s `ProcessLookupError` and an unreadable folder owner have no tests. Intake noted this in entry 3, and the feature decides that no test calls `signal_every_other`.
+    - **Checks:** the factory's `make check` after the coder was green (entry 22).
+    - **Architecture:** the layers hold and the domain does no I/O. `factory.entry.leftovers` imports `factory.adapters.process` for its defaults, under the human's leave (feature decision 16, entry 8).
+    - **Security:** the one `# noqa: PLR0913` has its reason beside it, at `src/factory/entry/leftovers.py:31-32`, and the human allowed it in entry 8.
+    - **Quality:** no dead code, and every comment says why. The docstrings are as `CLAUDE.md` asks.
+    - **`make duplicates`:** it reports 5 new findings. Per entry 16, they are in modules this diff does not touch.
+    - **Description and docs criterion:** both match what was built.
+
+    no findings
+
+    Earlier tests changed (status M):
+    - `tests/domain/test_sessions.py`: the human's leave, in the story's Interface (feature decision 16). It only adds the named `uid=1001` and `"uid": 0`, plus the reformatting they caused. Every test keeps its name and its rows.
+    - `tests/entry/test_wiring.py`: the human's leave, in the story's Interface (feature decision 16). The expected set gains `"factory.entry.leftovers"`.
+    - `tests/test_wrapper_search.py`: the human's answer, journal entry 8. The expected set gains `"factory.entry.leftovers"`.
+    - `tests/test_process_search.py`: the human's answer, journal entry 8. The expected markers gain `"entry/leftovers.py": {32: {"noqa: PLR0913"}}`, and line 32 is `main`'s def line.
+
+    Notes:
+    - `tests/domain/test_leftovers.py:45,48` and `tests/entry/test_leftovers.py:96`: each builds `Identity(uid=0, user="root", pid=11)` on its own. It could be a shared constant beside `AGENT` in `tests/leftovers_support.py`.
+    - `tests/test_process_search.py:100`: the line number is the literal 32. The other entries in that test find their line by searching for it. A later edit above `def main(` in `src/factory/entry/leftovers.py` must update this number.
+25. factory: started docs as self.
+26. documenter: Docs round 1. No findings: the code matches the Interface and the criteria. I changed only documents, so I did not run `make check`; the factory's checks after this stage decide. I ran the first smoke command (the usage line, status 1) and it printed what the story expects. I did not run the example that names a user the program does not run as, because the story forbids running the program as that user.
+
+    Files changed:
+    - `docs/project-guide/write-guard.md`: new section *The end of a run's processes*, after *The start wrapper*. It holds the command line, the three steps and their fault lines, the 50 rounds with 0.1 s pauses, and the two refusals with their reasons. It also explains what counts as left, why the owner is the folder's and not a file's, and why the program never waits with `kill -0 -1`. It names the tests and says no test calls `signal_every_other` or runs the program as the user it names.
+    - `docs/project-guide/processes-and-checks.md`, *Killing a session*: the reader is now public `read_process_table(proc)`, sorted by `pid`, and it also reads each folder's owner. `ProcessEntry` gains `uid`, and `parse_stat(pid, stat, *, uid)` takes it. The paragraph now says `own_identity` and `signal_every_other` live in the same module and which program uses them. It also lists `tests/adapters/test_process_table.py`.
+    - `docs/project-guide/README.md`: the `write-guard.md` line now also covers `factory.domain.leftovers` and `factory.entry.leftovers`, names `factory.adapters.process` for the three functions, and lists the new section.
+    - `docs/decisions.md`: new entry *A run's leftover processes are ended by a program that runs as the agent*. The reasons for the feature's decisions 8 to 10 come from the story's text, because the stage rules keep me out of `feature.md`. The entry also gives why it reuses F0030-S0001's model and reader (the human, 2026-10-20) and the rejected `kill -0 -1`.
+
+    Cross-read and found current: `docs/operator-guide.md` (the story says none, since nothing starts the program yet). Elsewhere in `docs/project-guide/` and `docs/decisions.md`, nothing else names the changed reader, `ProcessEntry` or `parse_stat`; the F0030-S0001 decision entry names `_kill_session`, which still exists.
+
+    Stale text I noticed and did not touch: the title of `write-guard.md` still reads "The write paths, the guard and the start wrapper". I left it so the title and the README line stay as the human wrote them. It could gain the new section's subject later.
+
+    Also noticed, for the coder or tester: `tests/test_process_search.py` pins `main`'s `def` line to the literal 32 in `src/factory/entry/leftovers.py`. Any edit above it must update that number. The reviewer already noted this.
+
+    `check`: check: green (not run again: passed on tree a909285f1c59 at 2026-10-20T12:35:39Z)
+    `secrets`: secrets: green (1.2 s)
+    `documents`: documents ok
+27. factory: started smoke-test as self.
+28. smoke-tester: Smoke test, round 1: I ran the three commands under `## Smoke test` from the repository root, in order, and changed nothing. One addition: on command 2 I appended `echo "[line=$line]"` after the command as written, so the refusal line itself would show. It only prints and does not affect the comparison.
+
+    Command 1 (no arguments):
+    ```
+    factory-leftovers: usage: python -m factory.entry.leftovers --user <name>
+    status 1
+    ```
+    Met the Expect line: the usage line and `status 1`.
+
+    Command 2 (`--user factory-smoke-nobody`, run as `agent`):
+    ```
+    refused as expected, status 1
+    [line=factory-leftovers: runs as agent, not factory-smoke-nobody]
+    ```
+    Met the Expect line: `refused as expected, status 1`. The second line is the extra echo.
+
+    Command 3 (`read_process_table` on a fake table in a `mktemp -d` folder, `leftover_pids`, and `main` with everything injected):
+    ```
+    [(7, False, True), (8, True, True), (10, False, True), (11, False, True)]
+    [7, 10]
+    0 [9, 9] [0.1] ''
+    ```
+    Met the Expect line, all three lines exactly:
+    - `self` and the digit folder `12` with no `stat` were left out.
+    - The entries came back sorted by pid, and the zombie (8) was marked ended.
+    - The folder owner was read as `uid`.
+    - The own pid 11 and the zombie were excluded from the leftovers.
+    - `main` ran two rounds with SIGKILL (9) each round, paused once for 0.1 s, returned 0 and wrote nothing.
+
+    Criteria check: I read `## Acceptance criteria` again. The output fits criteria 1, 4, 7, 9 and 11 (the usage fault, the refusal of a user the program does not run as, sorting, ended entries, rounds and pauses), and contradicts none of them. I did not run `make check` (criterion 12) because it is not one of the smoke-test commands; the factory's checks cover it. I did not judge the docs criterion (13); that belongs to the docs stage.
+
+    Findings: none. The temporary folder was removed by the trap. The working tree holds only the factory's `.costs.jsonl` sidecar, which I did not touch.

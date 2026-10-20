@@ -2,6 +2,7 @@
 
 import contextlib
 import os
+import pwd
 import selectors
 import signal
 import subprocess  # noqa: S404  # nosec B404
@@ -13,6 +14,7 @@ from typing import IO, Annotated, Literal, NoReturn
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from factory.domain.leftovers import Identity
 from factory.domain.sessions import ProcessEntry, left_to_kill, parse_stat
 
 Stream = Literal["stdout", "stderr"]
@@ -55,18 +57,38 @@ def _seconds(time_limit: timedelta | None) -> float | None:
     return None if time_limit is None else time_limit.total_seconds()
 
 
-def _read_process_table() -> list[ProcessEntry]:
+def read_process_table(proc: Path = _PROCESS_TABLE) -> list[ProcessEntry]:
+    """Every process of the table under `proc`, sorted by id, each with its folder's owner.
+
+    A process that ends while it is read is left out; a status line that cannot be read
+    raises `ValueError`, and a table that cannot be listed the `OSError` of the listing.
+    """
     entries: list[ProcessEntry] = []
-    for folder in _PROCESS_TABLE.iterdir():
+    for folder in proc.iterdir():
         if not folder.name.isdigit():
             continue
         try:
             stat = (folder / "stat").read_bytes()
+            # The folder's owner, not a file's: a process that is not dumpable gets
+            # root-owned files, while its folder keeps its user.
+            uid = folder.stat().st_uid
         except OSError:
             # The process ended between the listing and the read.
             continue
-        entries.append(parse_stat(int(folder.name), _decode(stat)))
-    return entries
+        entries.append(parse_stat(int(folder.name), _decode(stat), uid=uid))
+    return sorted(entries, key=lambda entry: entry.pid)
+
+
+def own_identity() -> Identity:
+    """The user id, the user's name and the process id this process runs with."""
+    uid = os.getuid()
+    return Identity(uid=uid, user=pwd.getpwuid(uid).pw_name, pid=os.getpid())
+
+
+def signal_every_other(signal_number: int) -> None:
+    """Send `signal_number` to every process this user may signal, this process spared."""
+    with contextlib.suppress(ProcessLookupError):
+        os.kill(-1, signal_number)
 
 
 def _kill_one(pid: int, refused: set[int]) -> None:
@@ -86,7 +108,7 @@ def _kill_session(process: subprocess.Popen[bytes]) -> None:
     with contextlib.suppress(ProcessLookupError):
         os.killpg(process.pid, signal.SIGKILL)
     refused: set[int] = set()
-    while left := left_to_kill(_read_process_table(), session=process.pid, refused=refused):
+    while left := left_to_kill(read_process_table(), session=process.pid, refused=refused):
         for pid in left:
             _kill_one(pid, refused)
         time.sleep(_ROUND_PAUSE_SECONDS)
