@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 340
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T06:56:57.703171Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T06:56:37.354158Z'
   stage: doing
   run: 69b77b7222704902846825ffcd88754c
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:56:57.703171Z'
+  stage: review
 ---
 
 # The opencode tests take their reply and waiting steps from the stand-in module
@@ -161,3 +170,4 @@ Expect: a line that starts `2 passed`
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
