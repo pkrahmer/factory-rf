@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 332
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T04:18:12.133154Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T04:18:12.133154Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T04:18:29.733054Z'
+  stage: intake
+  run: ffaefd7fa74f45e59426acb92cf1ee9f
 ---
 
 # The project guide names the recovery's commit subjects
@@ -62,3 +64,10 @@ Expect: `work item F0001-S0001: crash of stage doing recorded` (the form the gui
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: no module under `src/factory/` changes and no test module is written. The reference lines are right: `recovery.py:100-104` builds the subject as `commit_subject(id, f"{entry_kind} of stage {stage} recorded")`, and `commit_subject` in `handlers/recording.py:47` gives `work item <id>: <text>`. `tests/application/test_recovery_subjects.py` exists.
+   Criteria: criterion 2, the docs criterion, names the file, the section, step 4 and both subjects, one for a crash and one for an expiry. It also says step 4b stays and the other documents get `none`. A reviewer can check it by reading the guide. Criterion 1 is `make check`. The story states no Interface rule with a failing side, so none is missing a criterion.
+   Smoke test: both blocks are runnable. The grep loop is a plain shell loop. The Python block calls `commit_subject`, which exists with that signature. Each `Expect:` line is checkable against the output. Before the documenter's edit, the grep for the two recovery subjects will print `missing:` lines, as expected for a docs story.
+   Architecture: this is a documentation change in `docs/project-guide/`, which the documenter keeps. No layer is touched.
+   Scope: it is within F0028's goal, which pins what the recovery commits. The feature's "Out of scope" lists "The documents" only for the stories that add tests. This story is the documenter's follow-up proposed by feature acceptance, and its change is limited to the two subjects in step 4.
+   Open: none.
