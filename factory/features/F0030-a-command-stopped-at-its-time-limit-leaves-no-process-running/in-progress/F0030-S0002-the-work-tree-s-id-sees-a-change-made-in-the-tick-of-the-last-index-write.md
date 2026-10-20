@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 369
 comments_read: [6303767591]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T23:06:10.541077Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T23:05:52.546211Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:06:10.541077Z'
   stage: intake
 ---
 
@@ -98,3 +107,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: runnable, and its `Expect:` line is `True`, which can be checked.
    - Architecture: the change is inside the adapters layer, in the git wrapper, as `CLAUDE.md` requires.
 4. 2026-10-20 human: Answer (2026-10-21): (a), done on `main`: F0030's `feature.md` now lists S0002 and S0003 under *Stories* (proposed by the acceptance) and names S0002's files (`src/factory/adapters/git_cli.py`'s `work_tree_id`, `tests/adapters/test_git_cli_work_tree_tick.py`) and S0003's documents under *Scope*. Accept the story.
+5. factory: started intake as self.
