@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T05:07:00.501773Z'
   stage: smoke-test
   run: 8b2c667b2c864fd3a12fed845c38d03f
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T05:08:19.095510Z'
+  stage: approval
 ---
 
 # Intake asks about a smoke test that passes -q to pytest a second time
@@ -214,3 +219,4 @@ Expect: `1` (the human's change 1 is on `main`)
     - Criteria 1 to 3: the rule is in `claude/agents/intake.md:53`, the line that starts with `2. The factory has already checked the story's form`. That line ends with `Such a command is a question.`. The rule is in no other agent file (command 1).
     - Criterion 4: the smoke test does not run `make check`, so it does not show this one. The factory's earlier checks were green (journal entries 7 and 11).
     - Criterion 5: `docs/decisions.md:869` has the entry *A smoke test passes no -q that the pytest configuration already sets*. `docs/project-guide/agents.md:248` has the sentence about intake.
+14. factory: done (pull request merged); cost: 6 runs, 3.6 min, 32 turns, 102816 tokens in (479294 more from cache), 9417 out, $0.90
