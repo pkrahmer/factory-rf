@@ -8,6 +8,8 @@ import pytest
 from factory.adapters.claude_runtime import SUDO_EXECUTABLE
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.make_commands import CommandUser, MakeProjectCommands
+from factory.application.git import Git
+from factory.application.machine import FactoryLog
 from factory.application.project_commands import RecordingProjectCommands
 from factory.application.sealed_runs import SealedProjectCommands
 from factory.domain.settings import InstanceSettings
@@ -91,6 +93,8 @@ def test_the_built_project_commands_run_as_the_agent_user_inside_a_seal(
         return
     sealed = _held(recording, SealedProjectCommands)
     assert type(sealed) is SealedProjectCommands
+    assert _held(sealed, Git) is boundaries.git
+    assert _held(sealed, FactoryLog) is boundaries.log
     make = _held(sealed, MakeProjectCommands)
     assert type(make) is MakeProjectCommands
     assert make.user == CommandUser(

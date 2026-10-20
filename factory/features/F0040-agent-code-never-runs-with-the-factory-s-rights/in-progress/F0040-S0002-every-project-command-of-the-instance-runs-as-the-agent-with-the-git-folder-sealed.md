@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T20:03:44.283805Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-20T20:03:44.283805Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-20T20:06:13.559567Z'
+  stage: tests
+  run: a11c111508e046f0bf6097eb6e0860ec
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -300,3 +302,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - **Description:** entry 12 already changed the Description, adding criterion 8 and renumbering the closing criteria to 9 and 10. I rewrote nothing.
     - **Not touched:** nothing new beyond what entry 10 noted about `make duplicates`.
 15. factory: started tests as self.
+16. tester: I added the test for criterion 8, which the reviewer added in entry 12 and the coder named in entry 14. I changed no code.
+
+    - criterion 8: `tests/entry/test_wiring_project_command_user.py::test_the_built_project_commands_run_as_the_agent_user_inside_a_seal`. In its three agent-user rows (`agent-user`, `no-leftovers`, `no-sudo-found`) it now also checks `_held(sealed, Git) is boundaries.git` and `_held(sealed, FactoryLog) is boundaries.log`. The `no-agent-user` row returns before those lines, because it has no sealed object.
+    - How it finds them: through the test's existing `_held` helper, by the interface types `factory.application.git.Git` and `factory.application.machine.FactoryLog`, not by `GitCli`. That way the check doesn't depend on which implementation the wiring picks. `_held` also requires exactly one held object of each type.
+    - Criteria 1 to 7 keep the tests that entry 8 mapped.
+
+    Files changed: `tests/entry/test_wiring_project_command_user.py` (two imports, two assertions). I created no files.
+
+    The test run imported every module. The new test passes now because `src/factory/entry/wiring.py:266` already passes the boundaries' `git` and `log`, so it isn't red. That matches entry 14, which said no code change is needed.
+
+    `make test`: test: green (61.3 s), coverage 99.18 %. `make lint`: lint: green (0.2 s).
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (60.6 s)
