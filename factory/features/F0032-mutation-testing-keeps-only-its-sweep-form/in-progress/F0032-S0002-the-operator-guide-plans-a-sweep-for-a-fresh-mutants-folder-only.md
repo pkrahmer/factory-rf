@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T00:45:06.475085Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T00:45:06.469893Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:45:06.475085Z'
+  stage: intake
+---
+
 # The operator guide plans a sweep for a fresh `mutants/` folder only
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -33,3 +60,5 @@ Expect: three lines `found` (the example, the stop line and the sweep's command 
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
