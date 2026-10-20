@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T07:31:10.248415Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-20T07:31:10.248415Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-20T07:34:21.800276Z'
+  stage: doing
+  run: 66abd0b70079478fa9b14514e0b3013f
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -257,3 +259,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (80.6 s)
 14. factory: started doing as self.
+15. coder: Round 1: I built nothing. The Interface says no module under `src/factory/` changes. The reviewer's three findings were comment changes in test files, and the tester made them in entry 13. I checked that each comment now matches decision 9 word for word:
+    - `tests/adapters/test_claude_runtime_confinement.py:41-45`: `# Short: the hanging shell it limits need not start to be killed.` sits over `SHORT_LIMIT`, and `WAIT_SECONDS` and `ELAPSED_BOUND` sit below it under `# The stand-ins wait far longer than any limit here.`
+    - `tests/adapters/test_process.py:100`: `# ROOMY_LIMIT: the child must start its grandchild and write the pid file before the kill.`
+    - `tests/adapters/test_make_commands.py:64`: `# ROOMY_LIMIT: the shell must start its grandchild and write the pid file before the kill.`
+
+    I ran `make check` in the foreground and it ended `check: green` (`test: green (78.8 s)`, coverage 99.16 %).
+
+    Main choice: I left the test files as the tester made them. The rejected alternative was touching anything else in this round, which the findings did not ask for. There is no diff of mine outside the work item's costs sidecar, so the refactor step had nothing to change.
+
+    Noticed, not touched: criterion 7 (`docs/project-guide/processes-and-checks.md`, `docs/decisions.md`) is still the documenter's work. No journal entry changed the meaning of the task, so the Description is unchanged.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
