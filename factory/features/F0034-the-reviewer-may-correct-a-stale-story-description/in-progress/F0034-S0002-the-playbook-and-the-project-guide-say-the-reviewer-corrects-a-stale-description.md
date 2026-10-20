@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 331
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T04:15:09.330803Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T04:14:47.993065Z'
   stage: review
   run: c73a274c8f63433d96f9a6f2f76db1d1
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:15:09.330803Z'
+  stage: docs
 ---
 
 # The playbook and the project guide say the reviewer corrects a stale Description
@@ -138,3 +147,4 @@ Expect: two lines, `0` (the count of three is gone) and a number of at least `1`
       - `docs/project-guide/agents.md:248` and `:305`
       The three *Role* paragraphs the docs criterion names are at `claude/agents/reviewer.md:66`, `:68` and `:70`. So the criterion still tells the documenter what to write.
    6. Earlier tests: the diff changes no test file. None needed.
+10. factory: started docs as self.
