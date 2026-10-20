@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 364
 comments_read: [6301083856]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T20:54:39.935250Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-20T20:54:39.935250Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T20:56:42.409778Z'
+  stage: review
+  run: 397d4de8577644b09d9c00b3aed5e4d5
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -165,8 +167,10 @@ Tests (the tester writes them): `tests/domain/test_agent_home.py`, `tests/adapte
 11. `main` with the `owned` of criterion 9 returns 1 and writes `factory-fresh-home: .cache/a: Permission denied`.
 12. Modes of entries that are not `owned`: a not-owned folder `.claude/agents` at mode `0o500` and a not-owned file `.claude/settings.json` at mode `0o444` keep their modes after `clear_home`.
 13. An owned folder that holds an entry that is not `owned`: an owned `.cache/x/` holding a not-owned file `.cache/x/f`, beside a kept path outside it, stays with its file after `clear_home`, and an owned empty folder `.cache/y` is gone.
-14. `make check` stays green.
-15. docs: `docs/project-guide/agents.md`, a new section *The fresh home* after *The shared launch module*: the program, its arguments and exit statuses, the rule of `fate` and `removed_when_empty` (the user's own entries go, other users' stay, kept paths and what lies beneath them stay), that it never follows a link and has no default home, and that S0004 starts it. `docs/project-guide/README.md`: the index names the new modules under the agents domain. `docs/decisions.md`: none in this story; S0004 writes the entry.
+14. The home itself stays: `clear_home` on a home in `tmp_path` that holds only owned files and folders, with `kept` `[]`, gives `[]` and leaves the home an existing, empty folder.
+15. `main` refuses the other shapes of arguments too (rows of the parametrized test of criterion 10): `["--home"]`, `["--home", <home>, "--keep"]` and `["--home", <home>, "--kept", "a"]` return 2 with the usage line, and the home's files are all still there.
+16. `make check` stays green.
+17. docs: `docs/project-guide/agents.md`, a new section *The fresh home* after *The shared launch module*: the program, its arguments and exit statuses, the rule of `fate` and `removed_when_empty` (the user's own entries go, other users' stay, kept paths and what lies beneath them stay), that it never follows a link and has no default home, and that S0004 starts it. `docs/project-guide/README.md`: the index names the new modules under the agents domain. `docs/decisions.md`: none in this story; S0004 writes the entry.
 
 ## Smoke test
 
@@ -270,3 +274,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 7 new, 33 known, 3 gone
 11. factory: started review as self.
+12. reviewer: Review, round 0. Group 1 (acceptance criteria) fails, so I stopped there. I read the diff against the Interface and the criteria. Criteria 1 to 13 each have a test that checks what the criterion says, and the coder's `make check` was green (entry 10). `make duplicates` reports one new finding from this story: `kept_paths` is unused. That is expected, because the Interface defines it for S0004.
+
+    1. criterion 14 added: it needs its test. The Interface's rule "`home` itself is never removed" (`clear_home`) had no criterion. The "clears" row of criterion 10 also passes if the home is gone, because `listing` uses `rglob`, which returns nothing for a missing folder. Fix: a test where a home holding only owned files and folders, with `kept` `[]`, ends as an existing, empty folder.
+    2. criterion 15 added: it needs its test. `src/factory/entry/fresh_home.py` `_parse` has two refusals that no test reaches: the odd-length shape (`--keep` with no path) and an option after `--home` that is not `--keep`. The second matters: a misspelled `--kept a` must refuse rather than clear the home without keeping `a`. Fix: add rows `["--home"]`, `["--home", <home>, "--keep"]` and `["--home", <home>, "--kept", "a"]` to the parametrized test of criterion 10. Each returns 2 with the usage line and leaves the home's files in place.
+    3. `src/factory/entry/fresh_home.py` `_home`: the refusal of `/` compares `Path(folder) == Path("/")`. `--home //` gets past it, because pathlib keeps a leading `//` as its own root. So does `--home /home/..`, because pathlib does not collapse `..`. Both name the root, are absolute and are existing folders, so the program would walk all of `/`. Criterion 10 tests only the spelling `/`. Fix: refuse a home whose resolved path is `/` (`home.resolve() == Path("/")`) and give criterion 10 rows `//` and `/home/..` that expect the `--home ... is not an absolute folder other than /` line. This needs a code change, so I left it as a finding rather than adding a criterion. If the coder reads the Interface's "is `/`" as only the literal spelling, it is a question for the human.
+
+    The renumbered closing criteria are now 16 (`make check`) and 17 (`docs:`).
+
+    Earlier tests:
+    - `tests/entry/test_wiring.py`: changed under the human's leave in the feature's decision 14, which the story's Interface repeats. Only the expected set gains `factory.entry.fresh_home`; nothing else in the test changed.
