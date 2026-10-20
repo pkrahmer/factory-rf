@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 318
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T02:20:10.343930Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T02:20:10.343930Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T02:20:23.614905Z'
+  stage: intake
+  run: 25080d7385974d9f8c8adc16e0115f5d
 ---
 
 # The tests pin the expiry note's key at the crash cap and the stalls at their edges
@@ -77,3 +79,9 @@ Expect: two lines, `Stalled (attempt 1 of 2): merging the main branch conflicts 
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: no `src/` change. It names concrete behaviour on `RecoveryHandler.handle`, `StallService.stall` and `StageFinisher.finish`, with the `PostKey` fields, and it names the two test modules and the support helpers they build on. Each behaviour stated in it has a criterion.
+   Criteria: each is testable by one test function. Criterion 1 has a row at the crash cap and a row below it. Criterion 2 has a row for each of the two detail-less stalls, with the exact note and entry texts. Criterion 3 covers the branch restart and the dropped agent commit. Criterion 4 covers the undo of a file the red check wrote. The rule "stall with no detail" is pinned on both sides: the cap and non-cap keys, and the stalls' exact texts.
+   Smoke test: it is a runnable `stall_note` call. Its Expect line gives the two exact sentences, which can be checked against the output.
+   Architecture: the story changes only tests, under `tests/application/` and mirroring the package layers. It reuses the shared support modules and adds no copy of a helper.
+   Scope: it matches the feature's scope entry for S0007 and decisions 1, 8, 9 and 13. Nothing falls in the feature's "Out of scope".
