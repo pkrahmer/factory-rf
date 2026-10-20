@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 367
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T22:45:45.921365Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T22:45:25.711472Z'
   stage: intake
   run: 5c182e5ae5d44a1c930d81a82d122eb6
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:45:45.921365Z'
+  stage: tests
 ---
 
 # The shared time limits' test names the values of a relation that broke
@@ -102,3 +111,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: both blocks are runnable. `pyproject.toml` already sets `-q` in `addopts`, and the command does not repeat it, so the last line is `9 passed in ...` and the `cut` gives `9 passed`. The second block prints the first line of the assertion message, `30 gt 30`, and the `Expect:` lines are checkable.
    Architecture: only `tests/` changes, and the test sits at the `tests/` root because it tests a module outside the layers. `tests/time_limits.py` and `src/` stay as they are.
    Scope: the change falls inside feature.md's scope (S0003 is named for `tests/test_time_limits.py`, "its failure message") and touches nothing in its Out of scope list.
+4. factory: started tests as self.
