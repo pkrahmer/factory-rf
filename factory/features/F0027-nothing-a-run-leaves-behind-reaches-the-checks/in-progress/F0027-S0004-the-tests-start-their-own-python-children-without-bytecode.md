@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 358
 comments_read: [6299016224]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T19:18:14.033488Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-20T19:17:52.832511Z'
   stage: doing
   run: 268f99553c7d4967abc86d15d32e2589
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:18:14.033488Z'
+  stage: review
 ---
 
 # The tests start their own Python children without bytecode
@@ -190,3 +199,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+11. factory: started review as self.
