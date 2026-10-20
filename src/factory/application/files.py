@@ -85,5 +85,5 @@ class RecordLog[R: BaseModel](ABC):
     def read(self) -> list[R]:
         """The records in file order; `[]` without a file.
 
-        A line that does not validate is skipped.
+        A line that is not UTF-8 or does not validate is skipped.
         """

@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 339
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T06:41:51.815602Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T06:41:51.815602Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T06:44:18.860290Z'
+  stage: doing
+  run: 985c272fe06b48b6960dbab5eda845bf
 ---
 
 # The record log skips a line that is not UTF-8
@@ -158,3 +160,17 @@ Expect: one line, `['check: green ✓']`, and no traceback.
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/application/test_known_results_torn.py::test_a_torn_last_line_of_the_known_results_neither_raises_nor_logs[only-a-torn-line]
 6. factory: started doing as self.
+7. coder: Built: `src/factory/adapters/record_log_jsonl.py`. `JsonLinesRecordLog.read` now reads the file's bytes and splits them at `b"\n"` alone. `_parse` takes a line's bytes and decodes them as strict UTF-8. A line that does not decode is skipped, and so are a blank line and a line that does not validate, as before. A `\r` before the `\n` stays in the text, and the JSON parser accepts it as whitespace. I also changed `src/factory/application/files.py`: the `RecordLog.read` docstring now has the Interface's exact text. `make check` is green.
+
+   Main choice: each line is decoded on its own, inside `_parse`, so one bad line costs only itself. I rejected decoding the whole file with `errors="replace"` and then splitting. It would turn the `0xc3 0x28` case into a record that validates. It would also need `splitlines` or a str split, which brings back the U+2028/U+2029/U+0085 problem.
+
+   Refactor pass: I read the diff (three small hunks) and found nothing to change.
+
+   Noticed but not touched:
+   - A record appended after a torn line still shares the torn line and is skipped with it (the feature's decision 4, left for a later story).
+   - `KnownResults._read` still catches only `OSError`. The story leaves it unchanged, and with this change it no longer needs to catch more.
+
+   The journal did not change the task's meaning, so `## Description` is unchanged.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
