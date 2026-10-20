@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 351
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T12:01:46.139950Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T12:01:46.139950Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T12:02:14.610052Z'
+  stage: intake
+  run: 0eb8fd1c544642408534d74d69e21b40
 ---
 
 # A program ends every other process of the user it runs as
@@ -188,3 +190,9 @@ Expect: three lines, `[(7, False, True), (8, True, True), (10, False, True), (11
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: concrete modules and signatures are named for all four layers (`factory.domain.sessions` `uid` field and `parse_stat(..., *, uid)`, `factory.domain.leftovers`, `factory.adapters.process` `read_process_table`/`own_identity`/`signal_every_other`, `factory.entry.leftovers.main` with its injected calls). Every behaviour stated in the Interface comments (sorting by pid, the owner read from the folder, the order of the arguments, rounds and pauses, fault texts) has a criterion.
+   Criteria: each can be tested by one parametrized test function. Each rule has its failing side: the root refusal and the user mismatch (2, 8), the limits of `uid`, `user` and `pid` at -1/0, ""/"a" and 0/1 (3), a bad name, a missing `stat` and an unparseable `stat` (4), a missing folder (5), usage faults (7), and the kill and list faults (10). The 50th-round failure is in 9. Not covered, by design: `signal_every_other`'s `ProcessLookupError` and the unreadable-owner `OSError`, which no test can reach safely or portably; the feature states that no test calls `signal_every_other`. The `None` defaults of `main` are only reached by criterion 11's child process.
+   Smoke test: three runnable commands, with no pytest and so no `-q` problem. I traced the third by hand: the table gives 7, 8, 10, 11 in order, `[7, 10]` follows, and two rounds give `0 [9, 9] [0.1] ''`. Each Expect line can be checked against the output. The second command's expectation assumes a non-root user, which the story's own criterion 11 also notes.
+   Architecture: matches CLAUDE.md. The domain modules are pure. `adapters.process` stays the one module that starts processes and reads `/proc`. `entry.leftovers` imports the adapters for its defaults, and the story names the wiring test change (decision 16). It reuses F0030's reader and model, so there is no second helper.
+   Scope: within F0027's scope for S0001 (the listed modules and tests). The test changes to other stories' tests are the ones decision 16 names, with the human's leave. Nothing is out of scope: nothing starts the program, since S0002 wires it.
