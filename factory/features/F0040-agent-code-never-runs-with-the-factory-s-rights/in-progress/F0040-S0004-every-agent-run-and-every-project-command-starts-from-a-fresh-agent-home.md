@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: crash_cap
 round: 0
 attempts: 0
-crashes: 1
+crashes: 2
 pull_request: 365
 comments_read: [6301863943]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T21:56:47.518383Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -72,6 +68,17 @@ journal:
   kind: started
   at: '2026-10-20T21:56:47.518383Z'
   stage: doing
+- number: 12
+  speaker: factory
+  kind: crash
+  at: '2026-10-20T22:05:33.875549Z'
+  stage: doing
+- number: 13
+  speaker: factory
+  kind: question
+  at: '2026-10-20T22:05:33.875549Z'
+  stage: doing
+  blocked: crash_cap
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -302,3 +309,5 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 9. factory: started doing as self.
 10. factory: crash 1: the run of stage doing ended without a result. Its work is discarded back to commit 21fd3807889fa6bf762ec01334b91bf35bd687bc.
 11. factory: started doing as self.
+12. factory: crash 2: the run of stage doing ended without a result. Its work is discarded back to commit 4d52128a80c2fda680856cf61e34e6b71521ab75.
+13. factory: Stage doing crashed 2 times, which is the crash cap of 2. The factory has not rerun it. Write a comment here and the stage reruns with the crash counter reset to 0 (your comment is copied into the journal). Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
