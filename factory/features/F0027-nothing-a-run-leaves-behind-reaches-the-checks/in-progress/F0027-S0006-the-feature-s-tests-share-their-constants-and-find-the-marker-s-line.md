@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 360
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T19:39:53.470485Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T19:39:53.470485Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T19:40:08.363473Z'
+  stage: smoke-test
+  run: d69c67d2ca0d4033b2501e2304c12ef2
 ---
 
 # The feature's tests share their constants and find the marker's line
@@ -221,3 +223,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings. I ran both commands from the repository root exactly as written, in order.
+
+    Command 1: `grep -rc "git clean --quiet --force --force -d -X" tests | grep -v ":0$"`
+    ```
+    tests/git_support.py:1
+    ```
+    Met its Expect: line (`tests/git_support.py:1`).
+
+    Command 2: `grep -c '{32: {"noqa: PLR0913"}}' tests/test_process_search.py || true`
+    ```
+    0
+    ```
+    Met its Expect: line (`0`).
+
+    Re-reading the acceptance criteria against what the smoke test showed:
+    - Criterion 1: the text appears once in `tests/`, in `tests/git_support.py`. Command 1 shows this, and nothing contradicts it.
+    - Criterion 2: I also searched `tests/` for `Identity(uid=0, user="root", pid=11)`. The only match is `tests/leftovers_support.py:7` (`ROOT = ...`). This agrees with the criterion.
+    - Criterion 3: command 2 shows the literal `{32: ...}` entry is gone. `tests/test_process_search.py:94` finds `main_line` by a search, and line 107 uses `{main_line: {"noqa: PLR0913"}}`. This agrees with the criterion.
+    - Criterion 4 (`make check`): the smoke test does not cover it. I did not run it in this stage; the coder's entry 7 records `check: green`.
+    - Criterion 5 (docs: none): nothing in the smoke test contradicts it.
+
+    Open: nothing.
