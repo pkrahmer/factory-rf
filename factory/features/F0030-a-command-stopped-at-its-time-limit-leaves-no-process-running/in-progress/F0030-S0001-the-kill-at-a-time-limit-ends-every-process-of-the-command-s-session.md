@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T08:54:54.206036Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -87,6 +91,11 @@ journal:
   at: '2026-10-20T08:54:33.642183Z'
   stage: doing
   run: 5483606cbdb640c2be49271dbead69c2
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-20T08:54:54.206036Z'
+  stage: tests
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -302,3 +311,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The journal changed the meaning of the task: the reviewer added criterion 8 and renumbered `make check` and docs as 9 and 10. The `## Description` already holds that text, so I did not rewrite it.
 
     Noticed, not touched: the possible racy-index cause of the `tests/adapters/test_git_cli_work_tree.py` flake, described in entry 10, outside this work item.
+15. factory: started tests as self.
