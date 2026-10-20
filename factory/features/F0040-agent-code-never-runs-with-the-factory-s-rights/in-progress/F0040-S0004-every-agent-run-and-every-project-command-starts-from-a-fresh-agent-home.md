@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T22:25:46.477210Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -166,6 +170,11 @@ journal:
   at: '2026-10-20T22:25:25.689578Z'
   stage: doing
   run: b45b1e0adc6049dea606bf120ebab1e8
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:25:46.477210Z'
+  stage: review
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -532,3 +541,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 33 known, 3 gone
+30. factory: started review as self.
