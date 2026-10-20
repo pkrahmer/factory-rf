@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T20:59:12.502290Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-20T20:58:51.415749Z'
   stage: doing
   run: 6052f4273cd84c22a46788b372d28106
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:59:12.502290Z'
+  stage: tests
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -315,3 +324,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed but not touched:
     - The `/home/..` row relies on `/home` existing on the test machine. If that is a concern, the tester could use a link in `tmp_path` that points to `/`, which the code now refuses too.
+15. factory: started tests as self.
