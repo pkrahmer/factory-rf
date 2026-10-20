@@ -1,7 +1,6 @@
 """The `claude -p` runtime starts the agent as another user through `sudo -n -u ... env -i`."""
 
 import json
-import sys
 from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -10,6 +9,7 @@ import pytest
 from pydantic import BaseModel, ConfigDict
 
 from adapters.claude_stand_in import Step, read_calls, write_stand_in
+from confine_support import write_script
 from factory.adapters.claude_runtime import SWITCHES, ClaudeCodeRuntime
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.errors import AgentRuntimeError
@@ -77,10 +77,7 @@ def _write_sudo(
         (directory / "refusal.json").write_text(
             json.dumps({"stderr": stderr, "exit_status": exit_status}), encoding="utf-8"
         )
-    path = directory / "sudo"
-    path.write_text(f"#!{sys.executable}\n{SUDO_SCRIPT}", encoding="utf-8")
-    path.chmod(0o755)
-    return path
+    return write_script(directory / "sudo", SUDO_SCRIPT)
 
 
 def _sudo_calls(directory: Path) -> list[SudoCall]:

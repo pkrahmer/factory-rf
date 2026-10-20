@@ -161,7 +161,7 @@ def test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit(
 ) -> None:
     executable = tmp_path / "bin" / "claude"
     executable.parent.mkdir()
-    executable.write_text(f"#!{sys.executable}\n{SLOW_LIMIT_SCRIPT}", encoding="utf-8")
+    executable.write_text(f"#!{sys.executable} -B\n{SLOW_LIMIT_SCRIPT}", encoding="utf-8")
     executable.chmod(0o755)
     runtime = ClaudeCodeRuntime(str(executable), tmp_path / "state")
     request = _request(tmp_path, None).model_copy(update={"time_limit": ROOMY_LIMIT})

@@ -49,7 +49,7 @@ def open_umask() -> Iterator[None]:
 def _stand_in(directory: Path) -> Path:
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / "claude"
-    path.write_text(f"#!{sys.executable}\n{SCRIPT}", encoding="utf-8")
+    path.write_text(f"#!{sys.executable} -B\n{SCRIPT}", encoding="utf-8")
     path.chmod(0o755)
     return path
 

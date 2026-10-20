@@ -101,7 +101,7 @@ def test_delete_remote_branch_declined_by_a_remote_hook_is_rejected(
     directory = tmp_path / CHECKOUT
     commit = _pushed_branch(directory, BRANCH)
     hook = remote / "hooks" / "pre-receive"
-    hook.write_text(f"#!{sys.executable}\nimport sys\nsys.exit(1)\n", encoding="utf-8")
+    hook.write_text(f"#!{sys.executable} -B\nimport sys\nsys.exit(1)\n", encoding="utf-8")
     hook.chmod(0o755)
 
     assert checkout.delete_remote_branch(BRANCH) == "rejected"

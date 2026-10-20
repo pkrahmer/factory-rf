@@ -111,7 +111,7 @@ def build_layout(tmp_path: Path) -> Layout:
 def write_script(path: Path, script: str) -> Path:
     """Write `script` as an executable run by the test's interpreter and return its path."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(f"#!{sys.executable}\n{script}", encoding="utf-8")
+    path.write_text(f"#!{sys.executable} -B\n{script}", encoding="utf-8")
     path.chmod(0o755)
     return path
 

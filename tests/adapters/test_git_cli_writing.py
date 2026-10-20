@@ -287,7 +287,7 @@ def test_push_declined_by_a_remote_hook_is_rejected(
 ) -> None:
     directory = tmp_path / CHECKOUT
     hook = remote / "hooks" / "pre-receive"
-    hook.write_text(f"#!{sys.executable}\nimport sys\nsys.exit(1)\n", encoding="utf-8")
+    hook.write_text(f"#!{sys.executable} -B\nimport sys\nsys.exit(1)\n", encoding="utf-8")
     hook.chmod(0o755)
     _branch_with_commit(directory, BRANCH, {"new.txt": "new\n"})
 
