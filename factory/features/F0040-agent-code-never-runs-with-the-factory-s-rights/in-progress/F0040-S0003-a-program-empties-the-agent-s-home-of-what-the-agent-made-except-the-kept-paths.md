@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721, 6301756087]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T21:22:14.213606Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -217,6 +213,12 @@ journal:
   kind: started
   at: '2026-10-20T21:22:14.213606Z'
   stage: smoke-test
+- number: 38
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T21:22:57.012890Z'
+  stage: smoke-test
+  run: ca47b4f3583c41d8bd4691054548102b
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -649,3 +651,30 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     I would choose (a): the code refuses `/` before any removal, and the substitute could not have removed anything even if it hadn't.
 36. 2026-10-20 human: Answer (2026-10-21): (a). The in-process check (`main(["--home", "/"], ..., owned=lambda p: False)` printing the refusal and `status 2`) is the evidence for the last line; criterion 10's rows test the same refusal. No permission rule is added for running the real program on `/`. Note for the acceptance: the smoke test's last line should not ask a real run of the program on `/`; criterion 10's tests cover it.
 37. factory: started smoke-test as self.
+38. smoke-tester: Smoke test, round 2, run again after the human's answer (entry 36, option (a)). I ran the first five lines of `## Smoke test` from the repository root exactly as written. As the human decided, I did not run the last line (a real run of the program with `--home /`). In its place I ran the in-process check the human accepted as the evidence: `main(["--home", "/"], stderr=StringIO(), owned=lambda p: False)`. I fixed nothing.
+
+    Commands 1–5 (a temporary home, the program run with three `--keep`, then the listing):
+    ```
+    status 0
+    ./.claude
+    ./.claude-token
+    ./.claude/.credentials.json
+    ./.config
+    ./.config/sso
+    ./.config/sso/login
+    ```
+    Before these lines, the first `uv run` printed uv's own setup lines ("Creating virtual environment at: .venv", the hardlink fallback warning, "Installed 106 packages", "Bytecode compiled 4164 files"). They come from uv, not from the program.
+    Met its `Expect:`: yes. The status is `status 0` and the listing is exactly the six expected lines. `.claude/CLAUDE.md`, `.claude/projects/p/t.jsonl` and everything under `.cache/` are gone. The kept paths and the folders above them are still there.
+
+    Command 6 (`--home /`): not run as written, per entry 36. The in-process substitute gave:
+    ```
+    factory-fresh-home: --home / is not an absolute folder other than /
+    status 2
+    ```
+    Met its `Expect:`: the substitute's output matches the expected refusal line and `status 2` exactly.
+
+    Acceptance criteria re-read: nothing in the smoke test contradicts any criterion. This smoke test touches criteria 6, 10 and 14, and all three hold.
+
+    No findings.
+
+    Open for the acceptance (from the human's note in entry 36): the last line of `## Smoke test` should no longer ask for a real run of the program on `/`, because criterion 10's tests cover that refusal. `## Smoke test` is the human's, so I left it unchanged.
