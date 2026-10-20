@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 352
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T12:54:16.850747Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T12:53:56.014595Z'
   stage: review
   run: c8f857fa43014dc594f6876e59bca6f8
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:54:16.850747Z'
+  stage: docs
 ---
 
 # The follow-mode test reads only the Python sources
@@ -181,3 +190,4 @@ Expect: `1`
    Earlier tests:
    - tests/entry/test_watch.py: changed under the human's leave, `feature.md` decision 14 (named in the story). Only the follow-mode helpers and test changed, and one test was added.
    - tests/test_tests_umask.py: changed under the human's leave, `feature.md` decision 14 (named in the story). Only the env entry was added.
+10. factory: started docs as self.
