@@ -96,7 +96,7 @@ Git is reached only through the `Git` interface (`factory.application.git`, an a
 
 `factory.entry.wiring` fills `identity` from the instance settings `GIT_USER_NAME` and `GIT_USER_EMAIL`, and `environment` with the credential helper for the factory's own pushes (the helper reads the token file; the token itself is never in the environment), so that the agent run never receives it.
 
-The twenty-four operations of the `Git` interface (`tests/application/test_git_interface.py` checks that the interface has exactly these and that `GitCli` has each):
+The twenty-five operations of the `Git` interface (`tests/application/test_git_interface.py` checks that the interface has exactly these and that `GitCli` has each):
 
 | Operation | Returns |
 |---|---|
@@ -114,6 +114,7 @@ The twenty-four operations of the `Git` interface (`tests/application/test_git_i
 | `delete_branch(branch)` | `None`; deletes the local branch even when it is not merged. The checked-out branch is a `GitError` and stays; a branch that does not exist is no error and changes nothing |
 | `merge(ref, *, fast_forward_only=False)` | `MergeOutcome` (below) |
 | `reset_to(ref)` | `None`; `git reset --hard` then `git clean -fd` (below) |
+| `remove_ignored()` | `None`; `git clean --quiet --force --force -d -X` removes every untracked path the ignore rules match (below) |
 | `revert_paths(commit, paths)` | `None`; each path back to its content at `commit`, or deleted when it was not there (below) |
 | `move(source, destination)` | `None`; `git mv` that creates the destination's folders (below) |
 | `log(ref, *, since=None, path=None)` | `list[CommitInfo(commit, parents, subject, author, committed_at)]`: the commits reachable from `ref`, newest first, a commit always before its parents (a merge commit has two). `commit` and `parents` are full ids, `subject` is the first line of the message, `author` the author's name, `committed_at` the committer date in UTC. With `since`, only commits not reachable from it (`since == ref` gives `[]`); with `path`, only commits that changed that file or anything under that directory. An unknown `ref` or `since` is a `GitError` |
@@ -160,9 +161,10 @@ Who uses them: preparing a stage merges the main branch into a work item's branc
 
 ### Restoring the checkout
 
-These three make the checkout disposable: whatever a stage or a crash left behind can be put back.
+These four make the checkout disposable: whatever a stage or a crash left behind can be put back.
 
-- `reset_to(ref)` resolves `ref` to a commit, runs `git reset --hard` on it, then `git clean --force -d`. Tracked files, staged or not, go back to `ref` and the current branch points at it. Untracked files and directories are removed; ignored paths (a file named in `.gitignore`) stay. An unknown `ref` is a `GitError` and nothing changes. The ref is resolved first, so git only ever sees a commit id (`reset` takes no `--end-of-options`); an option-like `ref` is refused earlier by the argument rule below.
+- `reset_to(ref)` resolves `ref` to a commit, runs `git reset --hard` on it, then `git clean --force -d`. Tracked files, staged or not, go back to `ref` and the current branch points at it. Untracked files and directories are removed; ignored paths (a file named in `.gitignore`) stay: `remove_ignored()` takes them. An unknown `ref` is a `GitError` and nothing changes. The ref is resolved first, so git only ever sees a commit id (`reset` takes no `--end-of-options`); an option-like `ref` is refused earlier by the argument rule below.
+- `remove_ignored()` runs `git clean --quiet --force --force -d -X` and removes every untracked path the ignore rules match, a folder with all it holds (`.venv`, `__pycache__`, the tool caches, `mutants/`, `.reports/`). The rules are those git reads: every `.gitignore` in the work tree, nested ones included, and `.git/info/exclude`. The second `--force` also removes an ignored folder that holds a repository. A symbolic link is removed as a link and its target is untouched; a link that no rule matches (a link named `.mypy_cache` against the folder rule `.mypy_cache/`) stays. Tracked files, untracked files that no rule matches (the agent's new files in its write paths) and the repository stay, and `status()` and `HEAD` are the same before and after. A path that cannot be removed (an ignored folder of mode `0o555` that holds a file) is a `GitError` whose command is `git clean --quiet --force --force -d -X`; no ignored path is no error. `reset_to`, the undo and the result commit do not change.
 - `revert_paths(commit, paths)` brings each path to its content at `commit`, in the work tree and in the index. A path that does not exist at `commit` (added later, only staged, or untracked) is deleted from both. A path that exists nowhere is skipped without an error. Paths that were not given are not touched. An unknown `commit` is a `GitError`. A path that is a directory is not supported: the rules speak of files, and git then fails with a `GitError`.
 - `move(source, destination)` creates the destination's parent folders and runs `git mv`; the move is staged as a rename (`status()` and `changed_paths()` still show it as a deletion plus an addition, see above). A `source` that is not tracked, or a `destination` that exists, is a `GitError`.
 
@@ -182,6 +184,7 @@ Who uses them: a stall or a crash reverts or resets (F0004, F0005, F0008); the t
 |---|---|
 | `changed_paths`, `revert_paths` | F0004: the undo compares the work tree with the stage-start commit and reverts chosen paths |
 | `merge` | F0005: preparing a stage merges the main branch into the work item's branch |
+| `remove_ignored` | F0027: after every agent run (`run_sealed`) and at the restore (the tick) |
 | `status`, `reset_to` | F0006: the tick looks at the checkout and resets it to the remote |
 | `reset_to` | also F0004, F0005 and F0008: a stall or a crash |
 | `delete_remote_branch`, `delete_branch`, `move` | F0007: a merge or a discard |

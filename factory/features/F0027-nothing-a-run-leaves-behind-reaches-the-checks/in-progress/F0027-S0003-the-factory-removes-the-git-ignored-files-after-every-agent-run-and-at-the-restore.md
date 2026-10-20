@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T15:33:33.174608Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-10-20T15:33:33.174608Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T15:35:04.032971Z'
+  stage: docs
+  run: 7ca0bb63006148eb8411e383006871a7
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -539,3 +541,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_git_cli_ignored.py:40`: `_status` is a near-copy of `_status` in `tests/adapters/test_git_cli_restoring.py:12`. It leaves out `--untracked-files=all`, as criterion 2's `git status --porcelain` asks.
     - `tests/adapters/test_git_cli_ignored.py:13` and `tests/application/test_sealed_runs_ignored.py:21`: the constant `CLEAN` is defined twice.
 28. factory: started docs as self.
+29. documenter: Round 1. I read the story, the source diff (`git.py`, `git_cli.py`, `sealed_runs.py`, `tick.py`) and the docs. The code matches the Interface, so I have no findings. I changed only documents, so I did not run `make check`. `make documents` prints `documents ok`.
+
+    Files changed:
+    - `docs/project-guide/git-and-hosting.md`: *Restoring the checkout* now says "four" and has a `remove_ignored()` entry. The entry gives the command, what it removes and keeps (nested `.gitignore` files and `.git/info/exclude` included, links as links), the `GitError`, and that `reset_to` still keeps ignored paths. The operations table has a `remove_ignored()` row. *Which feature uses which operation* has the F0027 row. "The twenty-four operations" is now "twenty-five".
+    - `docs/project-guide/watching.md`: *The tick* step 3 puts `remove_ignored()` between `reset_to("HEAD")` and the switch to `main`, and says why: a branch's own `.gitignore` names what it hid only while that branch is checked out. The paragraph *Every agent run is sealed* has the removal after the check and the nested removal, only when the run returned. It says the undo and the same stage's checks come after it, the preflight's probe gets it too, and a raised run is left to the restore.
+    - `docs/project-guide/write-guard.md`: *Limits* lost "(left for v2)". Ignored paths are removed by `run_sealed` before the undo, and the undo still does not judge them.
+    - `docs/operator-guide.md`:
+      - The restore paragraph now says ignored paths are removed too, and that the factory also removes them after every returned agent run.
+      - The `checkout_restore_failed` row names an ignored folder it cannot empty.
+      - *The project's make targets* says the project's commands run without any ignored state, so each builds what it needs. It also gives the group-writable umask `002` rule and the failure a stricter umask causes.
+    - `docs/decisions.md`: a new entry, *The factory removes the git-ignored paths after every agent run and at the restore*, dated with the story.
+
+    For the decisions entry I did not read `feature.md`, which the stage forbids. I took the reasons from the story's Description, the journal and the reviewer's notes. If the feature's decisions 2 and 4 to 7 hold a reason that is not in the Description, the entry lacks it.
+
+    Cross-read and found current: `README.md`, the rest of `docs/operator-guide.md` and `docs/project-guide/` (the other files), and the `git clean -fd` example at `docs/operator-guide.md:212`. That example is about an agent-made directory, which stays true.
+
+    Stale text I saw and did not touch: none. The reviewer's notes on the duplicated `_status` and `CLEAN` in tests are the coder's and tester's, not documentation.
+
+    I did not run the story's smoke-test commands. The smoke-test stage does that.
+
+    `check`: check: green (not run again: passed on tree 9a5e4d1a5724 at 2026-10-20T15:30:29Z)
+    `secrets`: secrets: green (2.4 s)
+    `documents`: documents ok
