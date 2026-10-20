@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 365
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T21:26:22.208766Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-20T21:26:22.208766Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-20T21:26:44.840502Z'
+  stage: intake
+  run: 8be7a808014e42b3804a43ff0c745088
+  blocked: question
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -190,3 +193,10 @@ Expect: `/home/agent ['.claude-token', '.anthropic-api-key', '.claude/.credentia
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: Questions (the format check passed; the Interface, architecture and scope otherwise fit, but these clauses have no criterion):
+
+   1. Criterion 6 does not pin every clause of the `<line>` rule. The first row has a `FRESH_HOME_PREFIX` line after a non-prefix line, so that clause is covered. The second row has one line of standard error, so "the last non-blank line" cannot be told from "the first line", and nothing covers trailing blank lines or several lines where none starts with the prefix. Should I add a row of standard error `a`, `b`, a blank line, with the expected detail `...: b`? I would choose yes.
+   2. The Interface says `reset` passes `env` `{}` and a call time limit of `FRESH_HOME_TIME_LIMIT` plus 30 seconds (`SUDO_GRACE`). Criterion 5 checks only the stand-in's arguments and working directory, so a wrong `env` or a wrong factory-side limit would pass every test. Should a criterion cover the `Launch` fields (`env` empty, time limit 90 s by default)? I would choose yes, one test function that calls `launch` with the same arguments and compares, or that observes the `run_process` call through an injected seam. Please name the seam.
+   3. Criterion 9 says `kept` holds both runtimes' `LOGIN_STATE_FILE` "whatever the instance's runtime", but its table has no row with the opencode runtime. Should a row set `FACTORY_AGENT_RUNTIME` to opencode and expect the same `kept`? I would choose yes.
+   4. Criterion 10 does not cover three Interface statements. `build_boundaries` uses "the sudo which finds, or `SUDO_EXECUTABLE`". Building starts no process. The criterion for the same object also lacks a case with no `sudo` found. Should I add a row with `sudo` absent from `PATH` and `SudoAgentHome` built with `SUDO_EXECUTABLE`? I would choose yes. The "starts no process" clause I would drop as untestable, unless you want it kept.
+   5. Criterion 7's upper bound of 25 seconds is checkable, but the lower bound of 3 seconds with a 60-second sleeper relies on the real `timeout`. That is fine if `timeout` is in the test environment. Please confirm that `make check` machines have it. If not, say so.
