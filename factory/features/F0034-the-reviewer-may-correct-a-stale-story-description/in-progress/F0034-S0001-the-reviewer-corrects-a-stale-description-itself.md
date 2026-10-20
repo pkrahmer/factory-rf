@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 328
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T03:55:18.972306Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T03:55:18.972306Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T03:57:20.291505Z'
+  stage: tests
+  run: a0c12a0503ad410d8ab44a40ea4c705b
 ---
 
 # The reviewer corrects a stale Description itself
@@ -89,3 +91,16 @@ Expect: `1`
    Architecture: nothing under `src/` changes, so the layers are untouched. The change is an agent file under `claude/`, which the coder writes. The tests are under `tests/` at the root, as for the other agent-text modules.
    Scope: it matches the feature's Scope and touches nothing in its Out of scope. No other agent changes, and there is no pipeline change. The story edits no test another story wrote, and the new test module is its own.
 4. factory: started tests as self.
+5. tester: Tests written for criteria 1 to 4 in one new module, reading the reviewer's text through `agent_body` (tests/shipped_agents.py) and `section_text` (factory.domain.sections), the same way tests/test_claude_agent_texts_review_leave.py does.
+   criterion 1: tests/test_claude_agent_texts_description.py::test_reviewer_role_holds_the_description_correction
+   criterion 2: tests/test_claude_agent_texts_description.py::test_description_correction_sits_between_added_criterion_and_stage (rows `after-added-criterion`: the added-criterion paragraph's last sentence + "\n\n" + `When the work item's`; `before-stage`: `when no stage can fix it.` + "\n\n## Stage")
+   criterion 3: tests/test_claude_agent_texts_description.py::test_only_the_reviewer_names_a_description_correction (one row per name in `SHIPPED_NAMES`: reviewer 1, the other six 0)
+   criterion 4: tests/test_claude_agent_texts_description.py::test_reviewer_checklist_keeps_its_work_item_hygiene_item
+   criterion 5: `make check` (the coder's gate), no test of its own.
+   criterion 6: docs, no test.
+   File created: tests/test_claude_agent_texts_description.py. No other test file changed.
+   Every module imported; nothing failed to import. `make test` fails as intended. These 4 fail because the paragraph is not in claude/agents/reviewer.md yet: the criterion-1 test, both rows of the criterion-2 test, and the `reviewer` row of the criterion-3 test. The criterion-4 test and the six 0-count rows pass already, because they check text that must stay unchanged. `make lint` is green. The type check was skipped, as this stage says.
+   Rejected: listing the seven agent names by hand in the criterion-3 test. `SHIPPED_NAMES` already holds exactly those seven, and tests/test_claude_agent_refusal.py parametrizes over it the same way.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/test_claude_agent_texts_description.py::test_description_correction_sits_between_added_criterion_and_stage[before-stage]
