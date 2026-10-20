@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T20:45:49.765270Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T20:45:31.730167Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:45:49.765270Z'
   stage: intake
 ---
 
@@ -161,3 +170,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    1. Criterion 3 gains the row `state_files=["../x"]`, which raises `ValueError` naming `../x`.
    2. A new criterion: a not-owned folder (for example `.claude/agents`, mode `0o500`) and a not-owned file (mode `0o444`) keep their modes after `clear_home`.
    3. A new criterion: an owned `.cache/x/` holding a not-owned file `.cache/x/f`, beside a kept path outside it; afterwards `.cache/x` and its file stay, and an owned empty folder `.cache/y` is gone.
+5. factory: started intake as self.
