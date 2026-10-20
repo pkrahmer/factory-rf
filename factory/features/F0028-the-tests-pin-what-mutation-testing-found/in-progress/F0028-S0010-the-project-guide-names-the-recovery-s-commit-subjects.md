@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 332
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T04:22:05.939226Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T04:22:05.939226Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T04:22:21.894649Z'
+  stage: docs
+  run: e38ae522cc1340d18e9c72938915b141
 ---
 
 # The project guide names the recovery's commit subjects
@@ -141,3 +143,14 @@ Expect: `work item F0001-S0001: crash of stage doing recorded` (the form the gui
    5. Work item hygiene: the coder's entry explains the empty diff and the rejected alternative, which was editing `watching.md` in the doing stage. The Description and criterion 2 still describe what the documenter must write in `docs/project-guide/watching.md` step 4: both recovery subjects, with step 4b and the `pull request opened` bullet left as they are, and `none` for `README.md`, `docs/operator-guide.md` and `docs/decisions.md`.
    6. Earlier tests: the branch changes, renames or deletes no test file on `main` (`git diff --name-status main...HEAD` lists only the work item `M` and its sidecar `A`).
 10. factory: started docs as self.
+11. documenter: Files changed: `docs/project-guide/watching.md`, in *A crash is discarded and the stage is rerun*, step 4. It now names the commit subject: `work item <id>: crash of stage <stage> recorded` for a `crash` and `work item <id>: expiry of stage <stage> recorded` for an `expired`, with `<stage>` the stage the work item was in. I checked this against `src/factory/application/recovery.py:100-104` (entry kind `crash` or `expiry`, then `commit_subject`). Step 4b and the `pull request opened` bullet in *The crash cap asks the human* are untouched, as the criterion says.
+
+    Ran the story's smoke test. The grep loop printed `found` three times. The `commit_subject` block printed `work item F0001-S0001: crash of stage doing recorded`.
+
+    Cross-read and found current against the diff, which is empty under `src/` and `tests/`: `README.md`, `docs/operator-guide.md`, `docs/decisions.md`, the rest of `docs/project-guide/watching.md`. These are `none` by the docs criterion, since no behaviour or subject changed.
+
+    No findings. I did not run `make check`, because I changed only a document and the factory runs the checks after this stage. Stale text noticed but not touched: none.
+
+    `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok
