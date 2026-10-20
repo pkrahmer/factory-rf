@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 372
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T23:32:14.582026Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T23:32:14.582026Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T23:32:37.728009Z'
+  stage: intake
+  run: 56c1476914aa4b158a160f3f76abdfc5
 ---
 
 # The operator guide's records section names its four files
@@ -68,3 +70,9 @@ Expect: `documents ok`
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is right for a docs-only story. No module or signature is involved, and the story says the documenter touches `docs/operator-guide.md` only.
+   - Criteria: no criterion is a test function. Criterion 1 (nothing under `src/` or `tests/` changes) is checked by the stages' entries, criterion 2 by `make check`, and criterion 3 (docs) by the smoke test and `check_documents`. Each docs bullet names the passage and the change. The two rules that change, the telemetry sentence and the disk record sentence, have a bullet and a grep for each. The damage rule, with its failing side (the line after a torn one is skipped with it, a line that is not UTF-8 costs only itself), is covered by the first bullet.
+   - Smoke test: all three commands are runnable. I checked the guide: the telemetry sentence and "Like the other records" each occur once now (lines 592 and 662), so `0`, `0` is a real change. The `sed` range ends at the first `| Field` line (582) and needs the new paragraph to hold at least one of the three file names, as the `Expect:` says. No pytest command is involved.
+   - Architecture: this is a docs change that touches no layer. The documenter owns `docs/*`.
+   - Scope: the story is within F0037's goal of the four record files, and its docs are not in "Out of scope". It is not in the feature's Stories list, but it was proposed by acceptance. Not verified: the claims about `KnownResults`, `StopPublisher.publish` and the disk record's "last record that reads whole" are taken from the story, not read in the code.
