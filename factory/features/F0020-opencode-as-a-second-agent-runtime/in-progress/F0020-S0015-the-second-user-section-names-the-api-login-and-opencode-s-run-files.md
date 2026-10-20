@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 305
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T00:05:00.575698Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T00:05:00.575698Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T00:06:30.702809Z'
+  stage: tests
+  run: 6d125f7d99a74557a3c6a874653c4a6e
 ---
 
 # The second-user section names the API login and opencode's run files
@@ -92,3 +94,11 @@ Expect: `documents ok`
    - Architecture: nothing under `src/` changes, so the four layers are untouched. The change falls within the documenter's write paths (`docs/*`).
    - Scope: it is inside F0020's scope ("`docs/operator-guide.md` ... from each story's docs criterion"). Nothing in the story touches an "Out of scope" item. It changes no test written by another story.
 4. factory: started tests as self.
+5. tester: No tests written: this story only changes docs, and its Interface is "None".
+   - criterion 1 (nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes): no test function. That is a fact about the diff. This stage changed nothing under `tests/` or anywhere else (`git status` shows only the factory's costs sidecar).
+   - criterion 2 (`make check` stays green): no test function. It is the check itself. `make test` was green (coverage 99.13 %) and `make lint` was green before the hand-forward.
+   - criterion 3 (docs, `docs/operator-guide.md`): no test function. It is the documenter's criterion, checked by the smoke test and by `make documents`.
+   Files created: none. Modules the test run could not import: none. There are no red tests on this branch, because nothing here specifies code for the coder. Their work is to confirm that nothing outside the docs changes.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (37.1 s)
