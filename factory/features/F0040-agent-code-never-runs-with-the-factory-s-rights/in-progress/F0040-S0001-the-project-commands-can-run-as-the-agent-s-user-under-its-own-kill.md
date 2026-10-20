@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T18:38:10.623426Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-20T18:38:10.623426Z'
   stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T18:40:36.807297Z'
+  stage: review
+  run: 19b1bbea33e940be8ae3873913d0e700
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -191,7 +193,7 @@ Tests (the tester writes them): `tests/adapters/test_make_commands_user.py`, wit
 
 ## Acceptance criteria
 
-1. With `CommandUser(os_user="agent", sudo_executable=<stand-in>, environment={"PATH": "/usr/bin:/bin", "HOME": <tmp>})` and a target `check` whose recipe is `@echo "home=$$HOME token=$${FACTORY_TOKEN_FILE:-unset}"` then `@echo "to-stderr" >&2`, then `@echo "check: green"`, run with `time_limit` 30 seconds while the test's own environment sets `FACTORY_TOKEN_FILE` (`monkeypatch.setenv`): the stand-in records the arguments `["-n", "-u", "agent", "--", "timeout", "--signal=KILL", "30s", "env", "-i", "PATH=/usr/bin:/bin", "HOME=<tmp>", "make", "--no-print-directory", "check"]`. The result is `passed`, its `output_tail` holds the line `home=<tmp> token=unset` and the line `to-stderr` (`merge_stderr`), and its `targets` hold `check`.
+1. With `CommandUser(os_user="agent", sudo_executable=<stand-in>, environment={"PATH": "/usr/bin:/bin", "HOME": <tmp>})` and a target `check` whose recipe is `@echo "home=$$HOME token=$${FACTORY_TOKEN_FILE:-unset}"` then `@echo "to-stderr" >&2`, then `@echo "check: green (0.1 s)"`, run with `time_limit` 30 seconds while the test's own environment sets `FACTORY_TOKEN_FILE` (`monkeypatch.setenv`): the stand-in records the arguments `["-n", "-u", "agent", "--", "timeout", "--signal=KILL", "30s", "env", "-i", "PATH=/usr/bin:/bin", "HOME=<tmp>", "make", "--no-print-directory", "check"]`. The result is `passed`, its `output_tail` holds the line `home=<tmp> token=unset` and the line `to-stderr` (`merge_stderr`), and its `targets` hold `check`.
 2. The limit's words (rows of one parametrized test, with the stand-in `sudo`): `time_limit` 30 seconds gives `30s`, and 1.5 seconds gives `2s`.
 3. The environment's make variables (rows of one parametrized test): a `CommandUser` whose `environment` holds `MAKELEVEL=1`, `MAKEFLAGS=w` or `MFLAGS=-w` besides `PATH` gives arguments without that assignment; `PATH` stays.
 4. The kill at the limit (rows of one parametrized test): a target `slow` whose recipe is `@sleep 60`, run with the stand-in `sudo` and `time_limit` 3 seconds, gives `status` `time_limit` and `exit_status` `None`, after at least 3 and less than 25 seconds; the same with a stand-in `sudo` that first writes `sudo: unable to resolve host x` to standard error and then runs what follows `--` gives `time_limit` too and raises nothing.
@@ -199,9 +201,11 @@ Tests (the tester writes them): `tests/adapters/test_make_commands_user.py`, wit
 6. The refusal (rows of one parametrized test, the stand-in `sudo` exiting with the planned status and standard error and running nothing): status 1 with `sudo: a password is required` raises `ProjectCommandError` whose `detail` is `<stand-in> refused the command: sudo: a password is required`. Status 1 with `sudo: unable to resolve host x` then `sudo: a password is required` raises it with the second line. Status 0 with `sudo: unable to resolve host x` is `passed`. Status 1 with `sudo: unable to resolve host x` then `boom` is `failed` with `exit_status` 1.
 7. Before anything starts, with a `CommandUser`: `time_limit` 0 raises `ValueError`, and the command name `Check` raises `ProjectCommandError`, and the stand-in `sudo` records no call (rows of one parametrized test). A `CommandUser` whose `sudo_executable` does not exist raises `ProjectCommandError` whose `detail` starts with `[Errno 2] No such file or directory`.
 8. `MakeProjectCommands(tmp_path).user` is `None`, and `MakeProjectCommands(tmp_path, user=u).user` is `u`.
-9. The leftovers (rows of one parametrized test, a stand-in `sudo` that runs what follows `--`, a `CommandUser` whose `os_user` is `agent` and whose `leftovers` is a stand-in program): after `check` that passes, the stand-in `sudo` records a second call whose arguments are `["-n", "-u", "agent", "--", *<the stand-in's words>, "--user", "agent"]` and whose working directory is `/`, and the result is `passed`; after `slow` killed at its limit of 3 seconds, the same second call follows and the result is `time_limit`; a stand-in program that exits 1 with `factory-leftovers: 1 processes left after 50 rounds: 7` raises `ProjectCommandError` whose `detail` is `cannot end the agent's processes: factory-leftovers: 1 processes left after 50 rounds: 7`; a `leftovers` program that does not exist raises `ProjectCommandError` whose `detail` starts with `cannot end the agent's processes: [Errno 2] No such file or directory`; after a `failed` command (stand-in `sudo` exiting 1 with `boom`, running nothing) the second call is recorded and the result is `failed`; after a refused command (status 1, `sudo: a password is required`) the second call is recorded too, and the error is the `refused the command` one; when the command is refused and the leftovers stand-in exits 1 with a fault, the error is the `refused the command` one, not the leftovers one; a `CommandUser` without `leftovers`, and one whose `os_user` is the test's own user, make one call only.
-10. `make check` stays green.
-11. docs: `docs/project-guide/processes-and-checks.md`, *Project commands*: the keyword `user` and `CommandUser`, the chain it starts (the same as an agent run's, through `launch`), the environment of the command (only the `CommandUser`'s, less the three make variables), the user's own `timeout` as the kill and the 30 seconds of grace, the `time_limit` result of a command killed by it, the refusal and its `ProjectCommandError`, the leftovers program after every command run as another user and its fault, and that without `user` nothing changes. `docs/project-guide/agents.md`, *The shared launch module*: that the make class also starts its commands through `launch` and `killed_at_limit`; *Ending the agent's leftover processes*: that a project command run as the agent's user is followed by the same program. `docs/decisions.md`: none in this story; S0002 writes the entry that replaces *The project commands run as the factory's user and are left for v2*.
+9. The leftovers (rows of one parametrized test, a stand-in `sudo` that runs what follows `--`, a `CommandUser` whose `os_user` is a user no test runs as (`OTHER_USER` of `tests/leftovers_runtime_support.py`) and whose `leftovers` is a stand-in program): after `check` that passes, the stand-in `sudo` records a second call whose arguments are `["-n", "-u", <that user>, "--", *<the stand-in's words>, "--user", <that user>]` and whose working directory is `/`, and the result is `passed`; after `slow` killed at its limit of 3 seconds, the same second call follows and the result is `time_limit`; a stand-in program that exits 1 with `factory-leftovers: 1 processes left after 50 rounds: 7` raises `ProjectCommandError` whose `detail` is `cannot end the agent's processes: factory-leftovers: 1 processes left after 50 rounds: 7`; a leftovers call that cannot be started (the `check` recipe removes the stand-in `sudo` before the leftovers call) raises `ProjectCommandError` whose `detail` starts with `cannot end the agent's processes: [Errno 2] No such file or directory`; after a `failed` command (stand-in `sudo` exiting 1 with `boom`, running nothing) the second call is recorded and the result is `failed`; after a refused command (status 1, `sudo: a password is required`) the second call is recorded too, and the error is the `refused the command` one; when the command is refused and the leftovers stand-in exits 1 with a fault, the error is the `refused the command` one, not the leftovers one; a `CommandUser` without `leftovers`, and one whose `os_user` is the test's own user, make one call only.
+10. The `sudo` itself starts with none of the factory's environment: in the run of criterion 1, the environment the stand-in `sudo` records for its call holds no `FACTORY_TOKEN_FILE` (the process request's `env` is `{}`, not the factory's).
+11. A failing status with no output is no refusal (a further row of criterion 6's parametrized test): the stand-in `sudo` exiting 1 with empty standard error and running nothing gives `failed` with `exit_status` 1 and raises nothing.
+12. `make check` stays green.
+13. docs: `docs/project-guide/processes-and-checks.md`, *Project commands*: the keyword `user` and `CommandUser`, the chain it starts (the same as an agent run's, through `launch`), the environment of the command (only the `CommandUser`'s, less the three make variables), the user's own `timeout` as the kill and the 30 seconds of grace, the `time_limit` result of a command killed by it, the refusal and its `ProjectCommandError`, the leftovers program after every command run as another user and its fault, and that without `user` nothing changes. `docs/project-guide/agents.md`, *The shared launch module*: that the make class also starts its commands through `launch` and `killed_at_limit`; *Ending the agent's leftover processes*: that a project command run as the agent's user is followed by the same program. `docs/decisions.md`: none in this story; S0002 writes the entry that replaces *The project commands run as the factory's user and are left for v2*.
 
 ## Smoke test
 
@@ -422,3 +426,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 23. factory: started review as self.
+24. reviewer: Review of round 0. I read `git diff main...HEAD -- . ':!factory'` (`src/factory/adapters/make_commands.py` and `tests/adapters/test_make_commands_user.py`, the new file) and the work item, and read the code against the Interface and the criteria. The first group that fails is group 1 (acceptance criteria). Per the checklist I stopped there and do not report the later groups.
+
+    Findings:
+    1. criterion 10 added: it needs its test. Where: `tests/adapters/test_make_commands_user.py`, `test_the_command_runs_through_sudo_timeout_and_env_with_only_the_user_s_environment`. Problem: the Interface says the request that starts `sudo` has `env` `{}`, but no test checks it. The stand-in `sudo` records its `environment` (`SudoCall.environment`) and nothing reads it. `env -i` already removes `FACTORY_TOKEN_FILE` from what the command sees, so a `_start` that passed `os.environ` to `sudo` would still pass every test. Fix: assert that the first call's recorded environment holds no `FACTORY_TOKEN_FILE`.
+    2. criterion 11 added: it needs its test. Where: `tests/adapters/test_make_commands_user.py`, `test_only_sudo_lines_and_a_failing_status_are_a_refusal`. Problem: the Interface says a refusal needs "at least one non-blank line" (`_refusal_line` in `src/factory/adapters/make_commands.py`), but no row covers the side where that condition fails: a failing status with no output at all. Fix: add a row to that parametrized test where the stand-in `sudo` exits 1 with empty standard error and runs nothing; expect `failed` with `exit_status` 1.
+
+    Criteria corrected as the human answered: their answers in entries 9 and 16 told whoever may write the work item to reword two criteria, and the coder and tester could not. The tests already follow the new wording.
+    - Criterion 1: the recipe's last line was `@echo "check: green"`; it is now `@echo "check: green (0.1 s)"` (entry 16, answer 2).
+    - Criterion 9, the other user: it was `os_user` `agent` in the call and in the expected second-call arguments. It is now "a user no test runs as (`OTHER_USER` of `tests/leftovers_runtime_support.py`)", with `<that user>` in the arguments (entry 16, answer 1).
+    - Criterion 9, the missing program: "a `leftovers` program that does not exist" is now "a leftovers call that cannot be started (the `check` recipe removes the stand-in `sudo` before the leftovers call)" (entry 9).
+
+    The closing criteria are renumbered: `make check` is now 12 and docs is 13. Nothing else in the work item changed. The Description still matches what was built.
+
+    What I checked in the code: the two paths (own user and another user); the order of the judgements (kill at the limit, then refusal, then the leftovers call whatever the result, refusal winning over a leftovers fault); and the reuse of `launch`, `killed_at_limit`, `SUDO_PREFIX`, `leftovers_launch`, `leftovers_fault` and `LEFTOVERS_FAULT`. The layers hold, and nothing in the diff silences a check. The factory's `make check` after the coder was green (entry 22).
+
+    Earlier tests: none. The diff only adds `tests/adapters/test_make_commands_user.py` and changes no test file that `main` already holds.
