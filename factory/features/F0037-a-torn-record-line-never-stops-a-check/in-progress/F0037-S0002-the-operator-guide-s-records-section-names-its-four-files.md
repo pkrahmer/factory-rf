@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 372
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T23:37:43.484011Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T23:37:43.484011Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T23:38:02.768961Z'
+  stage: review
+  run: 66e624c22b3a4ce7b27fd3f087d9e892
 ---
 
 # The operator guide's records section names its four files
@@ -130,3 +132,14 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
    `duplicates`: duplicates: 6 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The only changes on the branch are this work item and its `.costs.jsonl` sidecar, both under `factory/`. Criterion 1 holds: nothing under `src/` or `tests/` changed.
+   - Criterion 2: the coder's entry 7 records `check: green`, reused from the passed result on tree 4c5c6c3d981c. The record `duplicates: 6 new` cannot come from this story because the diff is empty.
+   - Criterion 3 is the documenter's work. Intake and the coder had both left the story's code claims unchecked, so I read the code behind them. All three are true, and the docs criterion is sound to write from:
+     - `KnownResults.run` reads `known-results.jsonl` through `_read` to decide whether a result is reused (`src/factory/application/known_results.py:33`).
+     - `stops.jsonl` is published to `factory/stops.jsonl` on `main` by `src/factory/application/stops.py:132`.
+     - `DiskRecorder.last` takes the last record the reader returns (`src/factory/application/disk_records.py:42`). Acceptance uses it as the previous measure (`src/factory/application/acceptance.py:160`).
+     - All four files sit under `records/` (`src/factory/entry/wiring.py:138-141`).
+   - The Description matches the plan: the code and tests are unchanged and the change is left to the documenter.
+   - Earlier tests: the diff changes, renames or deletes no test file.
