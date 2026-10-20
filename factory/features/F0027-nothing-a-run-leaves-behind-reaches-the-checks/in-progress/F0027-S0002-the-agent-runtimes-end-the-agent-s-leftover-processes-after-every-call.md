@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T14:16:56.429719Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-20T14:16:56.429719Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-20T14:22:55.305197Z'
+  stage: doing
+  run: bc6e3e6aa2ae45b79f07e920b0c8303f
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -289,3 +291,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Noticed, not touched: `_end_leftovers`, `_remove_temporary_folder` and `_request_of` are near-copies in the two runtimes. That matches the existing duplication, and merging them is beyond this story.
 8. 2026-10-20 human: The human's answer (2026-10-20): (a). `main` now holds `"src/factory/entry/wiring.py" = ["PLR0913"]` under `[tool.ruff.lint.per-file-ignores]` in `pyproject.toml` (commit 52cfe595), beside the two runtime constructors. No noqa in the source; nothing else changes. Merge `main` and end with `review`.
 9. factory: started doing as self.
+10. coder: Picked up the human's answer (a). The branch already holds `main` with the PLR0913 per-file ignore for `src/factory/entry/wiring.py` (commit 52cfe595, merged in f61d08ec), so I did not merge anything. With that ignore in place the code from my last round passes as it is: `make check` is green (`check: green`, test coverage 99.17 %). I changed no code this round.
+
+    What I built (from the last round, now passing all checks):
+    - `src/factory/adapters/agent_launch.py`:
+      - The names the Interface asks for: `LEFTOVERS_TIME_LIMIT`, `Starters.leftovers`, `leftovers_due`, `leftovers_launch` and `leftovers_fault`.
+      - Two additions: the constant `LEFTOVERS_FAULT`, and `due_leftovers_launch`, a shared helper for both runtimes that returns `Launch | None`.
+      - The module still does not import `process`.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`:
+      - A `leftovers` keyword and a `leftovers` property.
+      - `_end_leftovers`: it reads `own_identity().user` once per call and starts the program through `_start` from `/`.
+      - The order in `_call`: the call, the program, the removal, the call's refusal (the call's own error wins), then the program's fault.
+    - `src/factory/entry/wiring.py`: `LEFTOVERS_MODULE`, `leftovers_command()`, and `build_boundaries(..., end_leftovers=True)`, which passes the command through `_agent_runtime` to both runtimes.
+
+    Main choice: the fault is worked out right after the program ends but raised only after the refusal check. The rejected alternative was to keep the program's `ProcessResult` and read it after the refusal check. The processes start in the same order either way, but that version carries a whole result through `_call` for no gain.
+
+    Refactor: I read the diff against `main` again and found nothing to change.
+
+    Description: the journal changed nothing in the task's meaning. The answer only added a lint configuration on `main`.
+
+    Noticed, not touched: `_end_leftovers`, `_remove_temporary_folder` and `_request_of` are near-copies in the two runtimes. The duplication between the runtimes was already there; merging them would be a restructuring beyond this story.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
