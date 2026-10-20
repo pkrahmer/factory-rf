@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 309
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T00:38:56.687297Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T00:38:56.687297Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T00:39:24.527507Z'
+  stage: docs
+  run: 9e1d5df0f5e34ed981cbe50d9d5624e0
 ---
 
 # The image makes opencode's configuration folder, read-only to the agent
@@ -184,3 +186,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Earlier tests: none. The diff only adds `tests/test_opencode_config_folder.py` and changes, renames or deletes no test file that `main` holds.
 10. factory: started docs as self.
+11. documenter: no findings. Only documents changed, so I did not run `make check`; the factory's checks decide.
+
+    Files changed:
+    - `docs/operator-guide.md`: in *What opencode keeps in the agent's home*, the image makes `/home/agent/.config/opencode`, read-only to the agent. It says why: opencode 1.19.3 makes it on its first run and dies (`EACCES ... mkdir`, probe `died`) when it cannot. It also says that naming it in `FACTORY_OPENCODE_FOLDERS` is not needed and that `/home/agent/.config` stays the agent's. In *The probe of the agent run*, an image built before this story stops each new opencode container with `died`; rebuild it. I put that note there because the criterion's "The preflight's items" has no passage on `died` apart from the probe's section.
+    - `docs/project-guide/agents.md`: *opencode's folders* now says the image makes `.config/opencode` read-only to the agent, that `RUNTIME_FOLDERS` does not list it, and that `.config` stays the agent's.
+    - `docs/decisions.md`: new entry *opencode's configuration folder is made by the image, read-only to the agent*, with the reasons and the three rejected alternatives from the criterion.
+
+    Cross-read and found current against the diff (`image/Dockerfile` +7 lines, plus the test file): the `FACTORY_OPENCODE_FOLDERS` row of the settings table, the "Running on opencode" login passage, and the Dockerfile description in the operator guide. None of them contradicts the diff.
+
+    Code against Interface: the Dockerfile `RUN` matches the Interface exactly (owners, modes, position after the `useradd` RUN, before `WORKDIR`).
+
+    Stale text not touched: none seen. I did not run the smoke test's second block, which needs the image's opencode and `factory-confine`.
+
+    `check`: check: green (not run again: passed on tree e77b3d64b793 at 2026-10-20T00:36:47Z)
+    `secrets`: secrets: green (1.6 s)
+    `documents`: documents ok
