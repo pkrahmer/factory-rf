@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 332
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T04:20:05.123454Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T04:19:44.646398Z'
   stage: tests
   run: 15c1ed54eecc482c8e3d856096aa90c1
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:20:05.123454Z'
+  stage: doing
 ---
 
 # The project guide names the recovery's commit subjects
@@ -92,3 +101,4 @@ Expect: `work item F0001-S0001: crash of stage doing recorded` (the form the gui
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (40.6 s)
+6. factory: started doing as self.
