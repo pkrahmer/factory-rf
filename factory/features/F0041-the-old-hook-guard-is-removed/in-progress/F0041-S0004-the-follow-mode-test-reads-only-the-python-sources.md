@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 352
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T12:44:58.151476Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T12:44:58.151476Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T12:48:52.699238Z'
+  stage: tests
+  run: a4c95923812c4054be9f996e04a28630
 ---
 
 # The follow-mode test reads only the Python sources
@@ -104,3 +106,25 @@ Expect: `1`
    Architecture: tests only, under `tests/entry/` and `tests/`, where they belong. No layer or interface is touched.
    Scope: within F0041 (feature scope lists S0004) and not in its Out of scope. The change to another story's tests has the human's leave in decision 14 of `feature.md`, and the story names those tests.
 4. factory: started tests as self.
+5. tester: Tests written under the leave of `feature.md`, decision 14. I changed only the two tests the Interface names.
+
+   - criterion 1: tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode (rows `--follow` and `factory-last-line`, ids unchanged). It now asserts `_files_naming(SRC, text) == []`.
+   - criterion 2: tests/entry/test_watch.py::test_the_follow_mode_scan_reads_only_python_sources. This is one parametrized test over a `src/factory` tree in `tmp_path`, with five rows: `python-source` (`entry/run.py` is found as `[path]`), and four rows where nothing is found: `document-check` (`domain/documents.py`), `bytecode` (`domain/__pycache__/watch.cpython-312.pyc`, mode 000), `text-file` (`entry/notes.txt`) and `temporary-name` (`entry/run.py.140000`).
+   - criterion 3: tests/test_tests_umask.py::test_the_tests_umask_holds_whatever_umask_pytest_was_started_under. The child's env now also holds `"PYTHONDONTWRITEBYTECODE": "1"`. Its name, its four rows and its assertions are unchanged.
+   - criteria 4 and 5: no test (make check; docs: none).
+
+   Helpers in tests/entry/test_watch.py, as the Interface says:
+   - `_files_naming(root, text)` scans `root.rglob("*.py")`.
+   - `_names_the_replaced_phrases(root, path)` now takes the root and has lost its `__pycache__` clause.
+   - The `rglob("*")` scan is gone.
+
+   Files changed (no files created):
+   - tests/entry/test_watch.py, an earlier test file (F0006-S0006 / F0011-S0005), changed under decision 14.
+   - tests/test_tests_umask.py, an earlier test file (F0033-S0001), changed under decision 14.
+
+   No modules failed to import. The tests are not red: the story changes only tests and nothing under `src/` (the Interface says the coder has nothing to build), so `make test` was green after the change ("test: green"). `make lint` is green.
+
+   Open: the coder has nothing to implement beyond running `make check`.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (97.2 s)
