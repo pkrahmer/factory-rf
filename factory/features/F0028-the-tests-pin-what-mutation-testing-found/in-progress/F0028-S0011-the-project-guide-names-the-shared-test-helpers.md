@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 333
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T04:27:38.743258Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T04:27:38.743258Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T04:28:46.461155Z'
+  stage: doing
+  run: 9028c0d354e44dd5bc2d6251896287dd
 ---
 
 # The project guide names the shared test helpers
@@ -102,3 +104,15 @@ Expect: `1`
    `lint`: lint: green (0.0 s)
    `test`: test: green (40.6 s)
 6. factory: started doing as self.
+7. coder: No code written, on purpose. The Interface says no module under `src/factory/` changes, and the tester wrote no test. The only criterion with content is criterion 2, the docs criterion: a *Shared test helpers* section in `docs/project-guide/README.md`. The documenter stage writes that section. `CLAUDE.md` (*Docs*) says the coder does not write the four guides.
+
+   - Built: nothing. The working tree has no changes outside the factory's own costs sidecar.
+   - Main choice: I left the guide section to the documenter. The alternative, writing it here, would have gone against `CLAUDE.md`'s rule that the documenter keeps `docs/project-guide/`, and it is outside a coder's work. I rejected it.
+   - Refactor: there is no diff to refactor, so nothing changed.
+   - Journal: no entry changed the meaning of the task, and the Description is unchanged.
+   - Noticed, not touched: intake found that the Description's count of helper modules is off ("35 besides `conftest.py`", where there are 36). The count is only background, and the smoke test counts by rule, not by number.
+
+   `make check`: check: green (test: green (45.9 s), coverage 99.14 %).
+
+   `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
