@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 314
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T01:48:02.947600Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T01:47:42.672299Z'
   stage: review
   run: 9fb4b0c9f13a43a8b15b2da9b50b9aa6
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:48:02.947600Z'
+  stage: docs
 ---
 
 # The tests pin the refusal reason after the role's own result, and the board's absent and blocked values
@@ -189,3 +198,4 @@ Expect: four lines, `Too wide. Cut the second story.`, `features`, `work items` 
 
    Earlier tests:
    - tests/domain/test_acceptance_booking.py: changed under the standing leave to move a shared test helper in `CLAUDE.md` (*Tests*), which the story's Interface also names. Its `_document` moved to `tests/acceptance_support.py` as `report_of`. Its three call sites now use `report_of`, and every test keeps its name and what it checks.
+10. factory: started docs as self.
