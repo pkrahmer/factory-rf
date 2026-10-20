@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 358
 comments_read: [6299016224]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T19:10:18.678730Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T19:10:00.309747Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:10:18.678730Z'
   stage: intake
 ---
 
@@ -115,3 +124,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 4. 2026-10-20 human: Answers (2026-10-20):
    1. (a). The matcher rows build the text from pieces, and criterion 3 says that no line of the module holds the literal text; the scan reads its own module like any other, and the smoke test's grep stays at `0`.
    2. Agreed: "same path" is `directory / "sudo"`, as the existing tests use it.
+5. factory: started intake as self.
