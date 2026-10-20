@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T06:58:53.796304Z'
   stage: smoke-test
   run: 73b6ab34029d498da157358562b75548
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T07:09:28.492350Z'
+  stage: approval
 ---
 
 # The opencode tests take their reply and waiting steps from the stand-in module
@@ -267,3 +272,4 @@ Expect: a line that starts `2 passed`
     - Criterion 4 (docs: none) is not contradicted.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 4.8 min, 39 turns, 132704 tokens in (740509 more from cache), 13610 out, $1.27
