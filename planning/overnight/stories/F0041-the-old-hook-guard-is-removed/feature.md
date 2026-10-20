@@ -75,3 +75,9 @@ Checked against `factory/pipeline.yml`: the tester writes `tests/*`, the coder `
    - F0038-S0005 "the decision log marks what is superseded": S0003 adds superseded lines to the hook's entries; whichever story goes second keeps the other's lines.
    - F0039-S0001 "the runtimes read the end of a call in one place" and F0027-S0002 "the agent runtimes end the agent's leftover processes after every call" (both drafts in `planning/overnight/stories/`): they change `ClaudeCodeRuntime._call` and `_state_error`, other functions of the module S0001 changes (`_RunFiles`, `_arguments`, `_write_files`). No conflict in behaviour; recommended: F0041-S0001 first, so their tests do not carry the guard and hooks files.
    - F0027 "nothing a run leaves behind reaches the checks" (S0003, removing the git-ignored files after each run) and F0030 "a command stopped at its time limit leaves no process running" (`process.py`): no overlap.
+
+## The human's answers (2026-10-20)
+
+- Order: F0041 is built before F0040 "agent code never runs with the factory's rights".
+- The leaves of decisions 9 and 10 are granted as listed.
+- Accepted: a protected path inside a folder a write path opens is written and reverted by the undo after the run, instead of refused during it, as opencode runs already work.

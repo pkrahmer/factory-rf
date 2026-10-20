@@ -85,3 +85,8 @@ Checked against `factory/pipeline.yml`: the coder writes `src/*`, `image/*`, `te
 13. **The program decides by ownership and has no default home** (S0003). It runs as the agent, so it can remove exactly what the agent can, and an entry of another user is the image's or the factory's by construction. A folder the agent made is walked and removed once empty, so a factory-owned folder inside it (`.config/opencode` inside the agent's `.config`) is never removed with it. `--home` is required, so no call clears a home it was not named, which is what the human's change 1 relies on.
 14. **No leave to change a test another story wrote.** Every story adds new test modules; `tests/adapters/test_make_commands.py`, `tests/application/test_sealed_runs.py`, `tests/application/test_interfaces.py`, `tests/test_compose.py` and the settings tests stay unchanged and green.
 15. **The number and the name.** F0040 is free in `factory/features/` (F0018 to F0036) and `planning/overnight/stories/` (F0027 to F0039); F0041 is drafted beside it. The name says what is true when it is done.
+
+## The human's answers (2026-10-20)
+
+- Order: F0040 is built after F0041 "the old hook guard is removed".
+- Decision 1: the project commands run as the agent's user without `factory-confine` (recommended answer taken).
