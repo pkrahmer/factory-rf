@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T00:56:40.269560Z'
   stage: acceptance
   run: 8ec7f1c3fdba4b8ebd0fd74cde111307
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T00:57:58.206391Z'
+  stage: done
 stories: [F0032-S0001, F0032-S0002]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of Mutation testing keeps only its sweep form
@@ -165,3 +170,4 @@ None. Every noticed item is either closed, the human's own (the `make duplicates
    6 Decisions: feature decisions 1 to 8 and 10 are listed for the human, with the journals' choices: a plain deletion, `rm` after the refused `git rm`, and the coder leaving the docs to the documenter. Two earlier test modules were deleted under decision 9, and the reviewer named that leave. No test was changed without a leave.
    7 Slow checks: nothing beyond `make check`, which is green: 5,973 tests, 99.14 %. The slowest tests take about 5 s, in the runtime time-limit tests. Disk is unchanged since the start record.
    8 Cost: 2 stories, 12 runs, 7.3 min, $1.94 (S0001 $1.15, S0002 $0.79). No rework and no stall. S0002 is mostly the fixed cost of six stages for a four-line document change. 0 questions, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 2.9 min, 15 turns, 55100 tokens in (626703 more from cache), 10080 out, $0.77
