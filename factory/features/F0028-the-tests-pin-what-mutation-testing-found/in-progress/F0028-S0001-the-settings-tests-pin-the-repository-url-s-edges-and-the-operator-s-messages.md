@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T01:12:58.152346Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T01:12:58.152346Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T01:14:45.682058Z'
+  stage: doing
+  run: e299c0010a8b468084d26b05bf8d70be
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -120,3 +122,10 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
    `lint`: lint: green (0.0 s)
    `test`: test: green (39.9 s)
 6. factory: started doing as self.
+7. coder: Built nothing: this story pins behaviour the code already has, and the Interface says no module under `src/factory/` changes. I ran `make check` on the committed state, which includes the tester's `tests/domain/test_settings_url_edges.py`. It passed (`test: green (41.2 s)`, `check: green`), and the new tests pass against the current `factory.domain.settings.read_settings`.
+   Main choice: I left `src/factory` alone. The alternative I rejected was touching `factory.domain.settings`, for example tidying the authority split. That would go beyond the description and would change exactly the code these tests are meant to pin. With no diff, there was nothing to refactor.
+   The journal did not change the meaning of the task, so `## Description` stays as it is.
+   Noticed but did not touch: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
