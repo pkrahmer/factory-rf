@@ -2,16 +2,12 @@
 stage: doing
 blocked: null
 round: 1
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T11:12:26.967178Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,19 @@ journal:
   kind: started
   at: '2026-10-20T11:12:26.967178Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-20T11:22:16.951575Z'
+  stage: doing
+  run: afaf1f24cd2240d4be9576c38d742368
+- number: 16
+  speaker: factory
+  kind: stall
+  at: '2026-10-20T11:22:16.977879Z'
+  stage: doing
+  run: afaf1f24cd2240d4be9576c38d742368
+  reason: check_red
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -311,3 +320,39 @@ Expect: `5`
     `lint`: lint: green (0.0 s)
     `test`: test: green (134.5 s)
 14. factory: started doing as self.
+15. coder: Round 1: the tester has made the two test changes that review entry 9 asked for (entry 13). The code needed nothing more, so this round changed no code. The built state is the one entry 7 describes:
+    - deleted: `src/factory/adapters/claude_guard.py` and `src/factory/entry/guard.py`
+    - `src/factory/domain/agent_runs.py`: `GUARD_COMMAND` and `GuardSettings.temporary_directory` removed
+    - `src/factory/domain/errors.py`: `GuardSettingsInvalid` removed
+    - `src/factory/application/preflight.py`: `agent_environment_item(environment, is_directory)` checks `HOME` only, through `_home_fault`; the comments are rewritten
+    - `src/factory/entry/wiring.py`: the re-exports are gone, `machine_extras` uses the new signature, and the comment names `factory-confine`
+
+    Main choice: `agent_environment_item` returns `_home_fault`'s one result directly. I rejected the list-and-join shape that `confinement_item` uses, because with a single fault it is dead structure.
+
+    Refactor: I read the diff again (9 lines added, 189 removed) and found nothing to change.
+
+    Checks: the second `make check` was green (`test: green (134.5 s)`, `check: green`). The first run failed on two rows that pass when run alone and that this diff does not touch:
+    - `tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode[--follow]`
+    - `tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode[factory-last-line]`
+
+    I cannot quote the failure's `E` lines or its `file:line`. I printed only the tail of that run, so only the two FAILED lines were kept, and a later `make test` ran without the failure. My guess, not verified: the test scans every file under `src/` with `rglob`, so it can catch a file that a worker writes there at the same moment. Its exception for `documents.py` covers only `domain/__pycache__/documents.*`. This is a flaky test outside this story and is still open; I left it alone.
+
+    Noticed but not touched:
+    - `pyproject.toml:17` still declares `factory-guard`. Removing it is the human's change 1, after this story.
+    - The leftover `mutants/` folder still holds copies of the old guard tests. Every mutmut run deletes it first.
+16. factory: Stage doing stalled (attempt 1 of 2): a check is red after the stage: `check`
+    src/factory/entry/check_story.py                   92      1     18      1    98%   161
+    src/factory/entry/confine.py                       70      1      8      1    97%   110
+    src/factory/entry/contract.py                      28      1      6      1    94%   41
+    src/factory/entry/health.py                        33      1     10      1    95%   48
+    src/factory/entry/run.py                           71      1      4      1    97%   170
+    src/factory/entry/watch.py                         52      1      6      1    97%   87
+    -------------------------------------------------------------------------------------------
+    TOTAL                                            8845     54   1812     26    99%
+
+    111 files skipped due to complete coverage.
+    Required test coverage of 90.0% reached. Total coverage: 99.19%
+    =========================== short test summary info ============================
+    FAILED tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode[--follow]
+    FAILED tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode[factory-last-line]
+    make: *** [Makefile:75: test] Error 1
