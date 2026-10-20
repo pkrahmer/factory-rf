@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T14:24:52.396848Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-20T14:24:29.530329Z'
   stage: review
   run: ab2ad42fc7074a59b37a38b308f02623
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-20T14:24:52.396848Z'
+  stage: doing
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -337,3 +346,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - I stopped at group 1 and did not report on groups 2 to 5.
 
     Earlier tests: the diff only adds test files (every test path has status `A`). No test file on `main` was changed, so no leave was needed.
+13. factory: started doing as self.
