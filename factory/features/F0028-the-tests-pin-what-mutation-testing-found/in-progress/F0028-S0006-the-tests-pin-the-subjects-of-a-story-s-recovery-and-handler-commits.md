@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 317
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T02:13:29.143493Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T02:13:29.143493Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T02:15:15.168113Z'
+  stage: doing
+  run: 8163a3393c0b4eaf935b093f987eddc3
 ---
 
 # The tests pin the subjects of a story's recovery and handler commits
@@ -123,3 +125,11 @@ Expect: two lines, `work item F0001-S0001: crash of stage doing recorded` and `w
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.8 s)
 6. factory: started doing as self.
+7. coder: Built nothing: no path changed. The Description and Interface say no module under `src/factory/` changes, because the code already writes these subjects. The tester's two modules, `tests/application/test_recovery_subjects.py` and `tests/application/handlers/test_handler_subjects.py`, already pass against the code as it is. I did not edit them.
+
+   Main choice: I left the source alone and only confirmed it with `make check`, which ends with `check: green` (`test: green (40.3 s)`, coverage 99.14 %). I rejected touching `recovery.py` or the handlers, for example to pull the subject texts into constants. Nothing failed and nothing asked for it, so that would go beyond the work item's scope. The refactor step found no diff of mine to tidy.
+
+   Noticed but did not touch: nothing new. The journal did not change the meaning of the task, so the Description stays as it is.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
