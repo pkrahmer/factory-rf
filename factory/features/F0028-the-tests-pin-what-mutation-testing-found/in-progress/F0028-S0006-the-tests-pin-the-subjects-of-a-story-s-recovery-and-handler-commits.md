@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T02:09:58.788211Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T02:09:58.782726Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:09:58.788211Z'
+  stage: intake
+---
+
 # The tests pin the subjects of a story's recovery and handler commits
 
 ## Description
@@ -47,3 +74,6 @@ EOF
 Expect: two lines, `work item F0001-S0001: crash of stage doing recorded` and `work item F0001-S0001: stage approval -> doing, moved back`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
