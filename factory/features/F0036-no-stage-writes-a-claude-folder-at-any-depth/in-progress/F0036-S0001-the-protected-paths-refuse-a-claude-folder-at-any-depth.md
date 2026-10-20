@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 324
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T03:29:53.436383Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T03:29:33.118668Z'
   stage: doing
   run: 37545a74d07547ca96709345c76d0a51
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:29:53.436383Z'
+  stage: review
 ---
 
 # The protected paths refuse a .claude folder at any depth
@@ -141,3 +150,4 @@ Expect: four lines, `.claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is o
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
