@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 316
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T02:00:54.354020Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:00:54.361146Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T02:01:10.692143Z'
+  stage: intake
+  run: ad4ec654695a4dd788ef14d8b9189135
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:01:31.056217Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T02:03:52.951608Z'
+  stage: tests
+  run: 278e5dd5929943a798ce95fc7f411471
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:04:13.132593Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T02:06:06.379958Z'
+  stage: doing
+  run: c32b1255588d4076b2cc409042f76aab
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:06:27.180634Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T02:07:05.105989Z'
+  stage: review
+  run: 33e7bfc014004ab690cd2a8d803997c6
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:07:25.837003Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T02:07:38.876166Z'
+  stage: docs
+  run: 395c3b5b8e5649a88b1c6052968ae823
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:07:59.036664Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T02:08:21.204914Z'
+  stage: smoke-test
+  run: d01ed9b81ff543c684807bdf4538b457
+---
+
 # The acceptance tests pin the reviewer's role and the close's commit subjects
 
 ## Description
@@ -58,3 +142,101 @@ EOF
 Expect: three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: closed, refused`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names concrete handlers (`AcceptanceHandOver.handle`, `AcceptanceClosed.handle`), the test module and the shared fixtures and helpers it builds on. The behaviours it states are the findings text, the refusal reason, and the two commit subjects. Nothing under `src/` changes. The smoke test's functions exist with those signatures (`acceptance_description` and `refusal_reason` take a document and a role, `commit_subject` takes an id and a text).
+   - Criteria: each is testable by one test function with exact expected values. Criterion 1 has the role's own result and a later other-speaker result. Criterion 2 has the later other-speaker result and the case without it. Criterion 3 has both subjects, the branch's and main's. The rules' failing side, a result of another speaker not counting, is covered in 1 and 2. Criteria 4 and 5 close the list as the form requires.
+   - Smoke test: the script is runnable and uses the existing domain functions. The Expect line names three exact output lines.
+   - Architecture: tests only, in `tests/application/` as the mirror rule requires. No wiring or layer change.
+   - Scope: within F0028's scope list (S0005 in `feature.md`), tests only, and none of its Out of scope items. Decision 10 of the feature records the two equivalent rows as excluded.
+4. factory: started tests as self.
+5. tester: Wrote the acceptance tests for the reviewer's role and the close's two commit subjects. They use the `walk`, `kill_points`, `human` and `hosting` fixtures and the helpers in `tests/acceptance_walk.py`. No earlier test changed and no shared helper moved.
+
+   - criterion 1: tests/application/test_acceptance_reviewer_role.py::test_the_hand_over_s_findings_are_the_reviewer_s_last_result (rows `the-reviewer-alone` and `a-later-result-of-another-speaker`)
+   - criterion 2: tests/application/test_acceptance_reviewer_role.py::test_the_close_s_reason_is_the_human_s_comments_after_the_reviewer_s_last_result (rows `a-later-result-of-another-speaker` and `the-reviewer-and-the-human-alone`)
+   - criterion 3: tests/application/test_acceptance_reviewer_role.py::test_the_close_is_committed_as_close_recorded_on_the_branch_and_closed_refused_on_main. It reads the heads before the first tick with `remote_commit` from `git_support`. The first tick raises `InjectedKill` under `pytest.raises`. After each tick it calls `boundaries.git.fetch()` and then `boundaries.git.log(..., since=...)`, and expects exactly one commit with the stated subject.
+   - criteria 4 and 5: no test (`make check`; docs: none).
+
+   Files created: tests/application/test_acceptance_reviewer_role.py.
+   Modules the test run could not import: none.
+
+   The tests are not red. The story says the code already behaves this way and the coder has nothing to change, so they pass now, as in F0025-S0003. `make test` was green (`test: green (40.2 s)`) and `make lint` is green after `ruff format` on the new file. I skipped the type check, as this stage's instructions say; `make check` covers it afterwards.
+
+   Choices I made, all within the criteria:
+   - The test module's own `_push_entries` helper appends each `NewEntry` and has the human push the rendered report to `report_of(FIRST)`.
+   - The criterion 2 and 3 tests share their entry constants at module level (`NOT_ACCEPTED`, `TOO_WIDE`, `RED`).
+   - `ROLE` is set to `REVIEWER`.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (39.8 s)
+6. factory: started doing as self.
+7. coder: Changed no code. As the story says, the code already does what the tester's tests in `tests/application/test_acceptance_reviewer_role.py` pin: the hand-over's findings and the close's reason both come from the acceptance reviewer's last `result`, and the close makes the commits `close recorded` on the branch and `closed, refused` on main. Those tests pass against the current `src/factory/application/acceptance.py`. `make check` is green (`test: green (40.4 s)`, `check: green`).
+
+   Built: nothing. No path under `src/` changed.
+
+   Main choice: I left `src/` untouched. The other option was to tidy the handlers in `acceptance.py` while I was there, and I rejected it: the story's Interface says no module under `src/factory/` changes, and anything more would go beyond the story's scope (R13).
+
+   Refactor: my diff is empty, so there was nothing to refactor.
+
+   Description: no journal entry changed what the task means, so `## Description` stays as written.
+
+   Noticed, not touched: none.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'`. It adds one file, `tests/application/test_acceptance_reviewer_role.py`, and changes nothing under `src/`. I read the file against each criterion and against the helpers it calls in `tests/acceptance_walk.py`, `GitCli.log` and `acceptance.py:400`/`:422`.
+
+   - Criterion 1: `test_the_hand_over_s_findings_are_the_reviewer_s_last_result` is one parametrized test with two rows, `[ACCEPTED]` and `[ACCEPTED, RED]`. It checks that the event is `hand_over` and that the findings are exactly `accepted; the feature holds together.`. In the second row a later `tester` result comes after the reviewer's, so a handler that took any speaker's last result would show `red` and fail. The rule's failing side is tested.
+   - Criterion 2: `test_the_close_s_reason_is_the_human_s_comments_after_the_reviewer_s_last_result` is one parametrized test with the two rows the criterion names. It pushes with `stage="approval"` and `handed_over="approval"`, calls `walk.close(number, "Cut the second story.")`, checks that the event is `closed`, and compares the `Recommendation` with the exact refusal paragraph.
+   - Criterion 3: `test_the_close_is_committed_as_close_recorded_on_the_branch_and_closed_refused_on_main` reads the branch's and main's heads with `remote_commit` before the first tick and arms `KillPoint.AFTER_PUSH`. The first tick raises `InjectedKill` under `pytest.raises`. After a fetch, the branch log since its old head must unpack to exactly one commit, `work item F0002-A0001: close recorded`. After the second tick, main's log since its old head must be exactly one commit, `closed, refused`. These subjects match `acceptance.py:400` and `:422`.
+   - Criteria 4 and 5: the coder's entry 7 records `check: green`. The docs criterion "docs: none" is still true, because no behaviour changed.
+   - Architecture and security: the change is test-only, in the mirrored folder. It adds no suppression markers and no secrets.
+   - Quality: `_push_entries` is a three-line helper that does what the Interface prescribes. `acceptance_walk.py` has no helper that appends entries to a document `walk.record` returned and pushes it again. The similar loops in `test_acceptance_closed.py:119` and `test_question_causes_recorded.py:48` build their documents from their own fixtures, so I don't count it as a copy.
+   - Work item: the journal states the main choice (no change under `src/`) and the option rejected (tidying `acceptance.py`), and the Description matches what was built.
+   - `duplicates: 5 new` (entry 7) cannot come from this diff, because `make duplicates` reads only `src/factory`, which this diff leaves alone.
+
+   Earlier tests: none. `git diff --name-status main...HEAD` shows only `A` for `tests/application/test_acceptance_reviewer_role.py`, and the other entries are the work item's own files under `factory/`.
+10. factory: started docs as self.
+11. documenter: Changed no file. The docs criterion is `none`, and the diff against main outside `factory/` and `docs/` is one new test module, `tests/application/test_acceptance_reviewer_role.py`. No module under `src/` changed, so there is no behaviour for the docs to follow.
+
+    Cross-read and found current against the diff:
+    - `docs/operator-guide.md`, the hand-over section (~line 1225): the findings are the text of the acceptance reviewer's latest `result`, found by speaker and kind. This matches criterion 1.
+    - `docs/operator-guide.md`, the close section (~lines 1234 and 1245): the refusal reason is the human's comments after the reviewer's last result. The subjects are `work item <id>: closed, refused` on main and `work item <id>: close recorded` on the branch. This matches criteria 2 and 3.
+    - `docs/operator-guide.md` ~line 1311 (the story close) and `docs/project-guide/watching.md:177` (the close recorded on the branch, subject `close recorded`).
+    - `docs/project-guide/work-items.md:147`: `AcceptanceHandOver` and `acceptance_description` with `last_record(speaker=role, kind="result")`. It lists tests for the hand-over but not the new test module. It does not claim to list every test, so I left it.
+
+    Findings: none. I ran no example and did not run `make check`, because I changed no file.
+
+    Stale text noticed but not touched: none.
+
+    `check`: check: green (not run again: passed on tree c2bd9b58ddf9 at 2026-10-20T02:05:19Z)
+    `secrets`: secrets: green (0.1 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings.
+
+    What I did: from the repository root I ran the one command under `## Smoke test` exactly as written. It is the `uv run -q python - <<'EOF' … EOF` script. It exited with status 0.
+
+    Command 1 (the domain script):
+
+    ```
+    not accepted
+    Too wide.
+    work item F0002-A0001: closed, refused
+    ```
+
+    Met its `Expect:` line: yes. It printed three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: closed, refused`, as expected.
+
+    Against the acceptance criteria:
+    - Criteria 1 and 2 (the findings and the refusal ignore a later `result` of another speaker): the output agrees with both. The script's journal ends with a `tester` result of `red`. The findings are still the reviewer's `not accepted`, and the reason is still only the human's `Too wide.`.
+    - Criterion 3 (the close's commit subjects): agrees. `commit_subject` gives `work item F0002-A0001: closed, refused`. The script does not exercise the branch subject `close recorded`; the tester's test pins that one.
+    - Criteria 4 and 5: the smoke test contradicts neither. I did not run `make check` again. Entry 7 records `check: green`, and the factory runs its own checks.
+
+    Findings: none.
+
+    Open: nothing.
