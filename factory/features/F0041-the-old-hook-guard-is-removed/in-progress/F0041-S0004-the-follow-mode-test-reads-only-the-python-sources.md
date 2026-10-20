@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 352
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T12:49:13.402531Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T12:48:52.699238Z'
   stage: tests
   run: a4c95923812c4054be9f996e04a28630
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:49:13.402531Z'
+  stage: doing
 ---
 
 # The follow-mode test reads only the Python sources
@@ -128,3 +137,4 @@ Expect: `1`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (97.2 s)
+6. factory: started doing as self.
