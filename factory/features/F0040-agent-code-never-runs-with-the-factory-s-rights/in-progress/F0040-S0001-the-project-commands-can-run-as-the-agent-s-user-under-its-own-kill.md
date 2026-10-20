@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T18:41:44.929947Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -161,6 +157,12 @@ journal:
   kind: started
   at: '2026-10-20T18:41:44.929947Z'
   stage: tests
+- number: 28
+  speaker: tester
+  kind: result
+  at: '2026-10-20T18:44:22.943829Z'
+  stage: tests
+  run: ad5ebcd35551483e92891da7e1b08dee
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -475,3 +477,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: nothing new.
 27. factory: started tests as self.
+28. tester: I added the tests for criteria 10 and 11 that the reviewer added (entry 24) and the coder named (entry 26). Both changes are in `tests/adapters/test_make_commands_user.py`, which is this story's own module and the only file I changed:
+    - criterion 10: `tests/adapters/test_make_commands_user.py::test_the_command_runs_through_sudo_timeout_and_env_with_only_the_user_s_environment`. It now also asserts that the environment the stand-in `sudo` records for its call has no `FACTORY_TOKEN_FILE`.
+    - criterion 11: `tests/adapters/test_make_commands_user.py::test_only_sudo_lines_and_a_failing_status_are_a_refusal`, with a new row `no-output`. In that row the stand-in `sudo` exits 1 with empty standard error and runs nothing, and the test expects `failed` with `exit_status` 1 and no error.
+
+    I changed nothing else. The mapping for criteria 1 to 9 is the one in entry 11.
+
+    `make test` is green: both new tests pass against the coder's implementation, which is what the coder predicted in entry 26, and coverage is 99.17 %. Every test module was imported. `make lint` is green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (60.3 s)
+
+    `lint`: lint: green (1.2 s)
+    `test`: test: green (59.1 s)

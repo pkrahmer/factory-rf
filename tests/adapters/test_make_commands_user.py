@@ -155,6 +155,7 @@ def test_the_command_runs_through_sudo_timeout_and_env_with_only_the_user_s_envi
         "--no-print-directory",
         "check",
     ]
+    assert "FACTORY_TOKEN_FILE" not in call.environment
     assert result.status == "passed"
     lines = result.output_tail.splitlines()
     assert f"home={home} token=unset" in lines
@@ -229,6 +230,7 @@ def test_an_exit_before_the_limit_is_a_failed_command_with_its_status(
         pytest.param(1, f"{WARNING}\n{SUDO_LINE}\n", SUDO_LINE, id="last-sudo-line"),
         pytest.param(0, f"{WARNING}\n", 0, id="status-0"),
         pytest.param(1, f"{WARNING}\nboom\n", 1, id="beside-other-output"),
+        pytest.param(1, "", 1, id="no-output"),
     ],
 )
 def test_only_sudo_lines_and_a_failing_status_are_a_refusal(
