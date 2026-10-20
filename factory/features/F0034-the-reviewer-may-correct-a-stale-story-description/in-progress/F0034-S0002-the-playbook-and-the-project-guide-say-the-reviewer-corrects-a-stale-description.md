@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 331
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T04:15:54.515694Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T04:15:33.738366Z'
   stage: docs
   run: 1336af79a1ac485280e06ccf29a4ec3f
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:15:54.515694Z'
+  stage: smoke-test
 ---
 
 # The playbook and the project guide say the reviewer corrects a stale Description
@@ -169,3 +178,4 @@ Expect: two lines, `0` (the count of three is gone) and a number of at least `1`
     `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
