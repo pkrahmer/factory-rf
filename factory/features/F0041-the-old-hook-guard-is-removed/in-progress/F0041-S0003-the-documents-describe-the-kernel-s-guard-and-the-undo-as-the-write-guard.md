@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 349
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T11:45:57.376677Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T11:45:57.376677Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T11:46:20.386895Z'
+  stage: review
+  run: 4eaf986b57be484485ce97130820fcab
 ---
 
 # The documents describe the kernel's guard and the undo as the write guard
@@ -140,3 +142,17 @@ Expect: `documents ok`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar. That is what a documents-only story should have at review, because the documenter does criterion 3 next.
+   - Criterion 1: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed, which I checked with `git diff --name-status main...HEAD`. The tester's entry (5) and the coder's entry (7) each say so, as the criterion asks.
+   - Criterion 2: the coder's `make check` was green (entry 7: `check: green`). I did not run it again.
+   - Tests: the Interface is "None" and states no rules or limits, so no failing side needs a test. The tester was right to write no pytest test for document wording.
+   - Architecture and security: no code changed, so nothing applies.
+   - Hygiene: the Description matches what the branch holds. Entry 7 says why the coder wrote nothing (the documents belong to the documenter).
+   - I checked the docs criterion against `main`, and it still describes what is true:
+     - `pyproject.toml` installs six console scripts, `factory-confine` among them, and none is `factory-guard`. `README.md:12` still says "Seven commands exist" and names `factory-guard`, which is the text criterion 3 changes.
+     - `agent_environment_item(environment, is_directory)` in `src/factory/application/preflight.py:151` has that signature. It reports the faults `the agent run has no HOME` and `the agent run's HOME <dir> is no directory`.
+     - `tests/test_model_configuration.py:12` lists the twelve `extra="ignore"` exceptions the criterion names.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
