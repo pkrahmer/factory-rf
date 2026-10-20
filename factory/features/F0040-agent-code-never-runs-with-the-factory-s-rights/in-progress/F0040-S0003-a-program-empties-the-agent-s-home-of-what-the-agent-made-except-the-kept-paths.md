@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T21:05:04.628890Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-20T21:05:04.628890Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-20T21:08:06.806384Z'
+  stage: doing
+  run: 1c035f059391456581206e9fe67507b9
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -393,3 +395,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.6 s)
     `test`: test: green (60.3 s)
 20. factory: started doing as self.
+21. coder: Round 1, after the human's answer (a) in entry 17 and the tester's new rows in entry 19. I made no code change this round, and `make check` is green (`check: green`, coverage 99.14 %).
+
+    What I built: nothing new. The code that refuses a home resolving to `/` was already in `src/factory/entry/fresh_home.py` `_home` from entry 14 (`home.resolve() == Path("/")`). The new rows `root-double-slash` (`//`) and `root-through-parent` (`/home/..`) in `tests/entry/test_fresh_home.py::test_main_clears_the_named_home_or_refuses_its_arguments_untouched` pass against it without changes. Line 69 of that file, the `if __name__ == "__main__"` line, is the only line coverage reports as missed.
+
+    Main choice: I left the code as it is. The other option was to also walk the resolved path, which I rejected for the same reason as in entry 14: it would change the names faults are reported under, and the answer did not ask for it.
+
+    Refactor pass: nothing to change. The only file this round touched is the work item's `.costs.jsonl`, which the factory writes.
+
+    What the journal changed, and is still open: the human's answer (entry 17) changes the Description in two places. I tried to make both edits and the write guard refused them (`EACCES` on the work item), so I did not retry. Someone with write access to the work item needs to make them:
+    - Interface, `main`: change "is not absolute, is `/`, or is not an existing folder" to "is not absolute, resolves to `/`, or is not an existing folder".
+    - Criterion 10: change "`["--home", "/"]` and `["--home", <missing folder>]`" to "`["--home", "/"]`, `["--home", "//"]`, `["--home", "/home/.."]` and `["--home", <missing folder>]`".
+
+    Noticed but not touched: the `/home/..` row assumes `/home` exists on the test machine (entry 14 noted this too). The human chose no link row, so I left it alone.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 33 known, 3 gone
