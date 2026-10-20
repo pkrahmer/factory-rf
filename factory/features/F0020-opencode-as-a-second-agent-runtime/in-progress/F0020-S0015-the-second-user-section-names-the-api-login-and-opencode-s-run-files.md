@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 305
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T00:09:40.997923Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T00:09:40.997923Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T00:10:03.153747Z'
+  stage: smoke-test
+  run: 73a5384ced1940f3a4a71edcfb0da62c
 ---
 
 # The second-user section names the API login and opencode's run files
@@ -191,3 +193,35 @@ Expect: `documents ok`
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Ran the three smoke-test commands from the repository root, exactly as written and in order. All three met their `Expect:` line. No findings.
+
+    1. Old login-shell sentence gone:
+    ```
+    0
+    ```
+    Met `Expect: 0`. `grep -c` exits with status 1 when it finds no match. That is the expected result here, not an error.
+
+    2. Counts of `FACTORY_API_LOGIN_FILE`, `ANTHROPIC_API_KEY` and `opencode-<run>.json` in the section *The agent runs as a second user*:
+    ```
+    1
+    1
+    1
+    ```
+    Met: three lines, each a number of at least 1.
+
+    3. Document check:
+    ```
+    documents ok
+    ```
+    Met `Expect: documents ok`. Exit status 0.
+
+    Acceptance criteria, read again against the branch:
+    - Criterion 1: `git diff --stat main...HEAD` shows only `docs/operator-guide.md` (4 lines: 2 in, 2 out) and the work item with its costs sidecar under `factory/`. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. The tester (entry 5) and the coder (entry 7) each said so in their entries.
+    - Criterion 2: entry 7 records `check: green`. This branch has changed only a document since then. I did not run `make check` again, because this stage does not call for it.
+    - Criterion 3: I read the section.
+      - The `env -i` sentence now names `CLAUDE_CODE_OAUTH_TOKEN`, or `ANTHROPIC_API_KEY` when an API key is in force. It names the switches as the runtime's own: Claude Code's three with `CLAUDE_CONFIG_DIR` (with the confined-run-with-`HOME` note), or, under opencode, `PYTHONDONTWRITEBYTECODE` with `OPENCODE_CONFIG`.
+      - The old "only when `FACTORY_CLAUDE_LOGIN_FILE`" sentence is replaced. The new text names both login files, says that under opencode only the API login file counts, and says the shell `exec`s the runtime's executable so `timeout`'s kill still reaches it.
+      - The run-files paragraph says an opencode run writes `opencode-<run>.json`, its per-run configuration, in place of the three files (see "Running on opencode"). Mode `0640` is not repeated in that sentence. The next sentence says the runtime sets each file of a run to `0640`, which covers it, so this does not contradict the criterion.
+      - The diff touches only those two paragraphs. No other passage changes.
+
+    Nothing is open.
