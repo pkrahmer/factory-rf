@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T07:27:06.742515Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T07:27:06.742515Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-20T07:27:18.747206Z'
+  stage: doing
+  run: cb17ffdc4830414e836da4b8289e6059
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -213,3 +215,11 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - tests/adapters/test_process.py: decision 9 (beyond it in its comment, finding 2)
    - tests/adapters/test_process_streaming.py: decision 9
 10. factory: started doing as self.
+11. coder: Round 1: all three of the reviewer's findings are comment changes in test files, so I changed no code and nothing under `src/` or `tests/`. The tester should make exactly these three changes, using the feature's decision 9 word for word:
+    1. `tests/adapters/test_claude_runtime_confinement.py`: replace the comment over `SHORT_LIMIT` with `# Short: the hanging shell it limits need not start to be killed.` Then put `WAIT_SECONDS` and `ELAPSED_BOUND` below it under their own comment `# The stand-ins wait far longer than any limit here.`
+    2. `tests/adapters/test_process.py`, `test_grandchild_is_killed_with_the_child_at_the_time_limit`: replace the comment with `# ROOMY_LIMIT: the child must start its grandchild and write the pid file before the kill.`
+    3. `tests/adapters/test_make_commands.py`, `test_command_reaching_its_time_limit_is_killed`: replace the comment with `# ROOMY_LIMIT: the shell must start its grandchild and write the pid file before the kill.`
+
+    Main choice: I hand these to the tester (R9) rather than edit the comments myself, because they are in tests that other stories wrote. The rejected alternative was editing the comments directly, which the coder may never do, not even in comments.
+
+    Noticed, not touched: none of the findings asks for a code change, so I did not run `make check` this round. Criterion 7 (docs) is still the documenter's work. No journal entry changed the meaning of the task, so the Description is unchanged.
