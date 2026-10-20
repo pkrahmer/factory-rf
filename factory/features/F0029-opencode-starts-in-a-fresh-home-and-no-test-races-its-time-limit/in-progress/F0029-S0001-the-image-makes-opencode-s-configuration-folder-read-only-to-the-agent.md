@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 309
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T00:33:21.749225Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T00:33:01.188605Z'
   stage: intake
   run: ad4b8eacad1a43309cb95065c996ed5e
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:33:21.749225Z'
+  stage: tests
 ---
 
 # The image makes opencode's configuration folder, read-only to the agent
@@ -95,3 +104,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: the first block is a `grep -c` that the Dockerfile text will match with `Expect: 3`. The second block runs `opencode debug config` under `factory-confine` in two temporary homes. Its expectation is three checkable lines, `fresh 1`, `made 0` and `1`.
    Architecture: this is an image-only change. It leaves the layers, the write guard and `RUNTIME_FOLDERS` alone, and the feature's decisions 1 to 3 give the reasons. The test goes in `tests/` at its root, like the other image tests.
    Scope: it matches the feature's Scope, S0001 first. The story does not touch anything in the feature's Out of scope: `RUNTIME_FOLDERS`, the entrypoint and S0002's tests. It changes no test another story wrote.
+4. factory: started tests as self.
