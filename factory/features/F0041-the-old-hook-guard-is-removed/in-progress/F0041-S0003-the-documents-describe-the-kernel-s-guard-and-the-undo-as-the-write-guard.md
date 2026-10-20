@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 349
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T11:35:26.412879Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T11:35:26.412879Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T11:40:17.333198Z'
+  stage: tests
+  run: ecc7c5e076cf4d5c91c4c30f9d59e97d
 ---
 
 # The documents describe the kernel's guard and the undo as the write guard
@@ -99,3 +101,11 @@ Expect: `documents ok`
    - Architecture: the story changes documents only, and the layers in `CLAUDE.md` are untouched. The documenter's write paths cover `README.md` and `docs/*`. The `CLAUDE.md` R12 edit is the human's change 2 and is not in this story.
    - Scope: it matches the feature's S0003 scope and decisions 1, 6, 11, 12 and 13. The human's answers of 2026-10-20 (the `PATH` and `HOME` section kept, six superseded entries counted as 6) are already in the story. Nothing in the feature's Out of scope is touched.
 4. factory: started tests as self.
+5. tester: No tests written. This story changes documents only: its Interface is "None", and criterion 1 forbids any change under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`.
+   - criterion 1: no test. As the criterion asks, this entry records that the tests stage changed nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The smoke test's `git diff --name-only origin/main -- src tests image template demo claude | wc -l` (expect `0`) checks it.
+   - criterion 2: no test. It is `make check` itself, which the factory runs.
+   - criterion 3 (docs): no pytest test. The documenter does this work, and the docs stage's gate checks it: `make documents` and the smoke test's greps for `factory-guard`, `PreToolUse`, `claude_guard`, `guard_support` and `GUARD_COMMAND`, plus the counts `1` and `6` for the new decision entry's title. A test under `tests/` that pins document wording would break criterion 1.
+   Files created: none. Every module imported, because nothing new was written. `make test` passed on its one run (`test: green`, coverage 99.19 %), and so did `make lint` (`lint: green`). So the branch has no red tests, which is expected for a documents-only story. Open: nothing.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (134.8 s)
