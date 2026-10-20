@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 333
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T04:25:41.942833Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T04:25:41.942833Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T04:26:02.479132Z'
+  stage: intake
+  run: d18535864ede4cf0be303c436846c294
 ---
 
 # The project guide names the shared test helpers
@@ -60,3 +62,9 @@ Expect: `1`
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: no module under `src/factory/` changes and the tester writes no test module. The reference is concrete: `tests/*.py` whose name does not start with `test_`. I listed them and found 37, `conftest.py` included. The Description says "35 besides `conftest.py`", but there are 36. The count is only background, and the criterion and smoke test name the set by rule, not by count. Not a finding.
+   - Criteria: the story has no behaviour of its own and no Interface comment that states a rule. It has the two closing ones, and the docs criterion is specific. It names the file (`docs/project-guide/README.md`), the section title (*Shared test helpers*), the *The files* line for `README.md` that must name it, the content of the leading sentences, every module with one line each, and the `none` for the other three documents. `docs/project-guide/README.md` today has no such section (0 matches), so the smoke test starts red.
+   - Smoke test: both commands run as written. The first loops over `tests/*.py` skipping `test_*` and counts the names missing from the index. The second counts the heading. Each `Expect:` line is checkable output (`0`, `1`).
+   - Architecture: documentation only, so no layer is touched. It follows `CLAUDE.md`'s standing leave on shared test helpers and its Docs section, where the documenter keeps the guide.
+   - Scope: it is within F0028 and not in its "Out of scope". The feature's scope lists `tests/tick_support.py` and the other support modules that this story names in the guide. The feature says the stories' docs criteria are `none`. That sentence is overridden by this proposed story, which the acceptance reviewer proposed and the human started. I did not raise it.
