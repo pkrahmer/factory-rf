@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T11:12:26.967178Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-20T11:12:06.394864Z'
   stage: tests
   run: fccd8e5f13ac45b5b3c5f8158d80bc7a
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-20T11:12:26.967178Z'
+  stage: doing
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -301,3 +310,4 @@ Expect: `5`
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (134.5 s)
+14. factory: started doing as self.
