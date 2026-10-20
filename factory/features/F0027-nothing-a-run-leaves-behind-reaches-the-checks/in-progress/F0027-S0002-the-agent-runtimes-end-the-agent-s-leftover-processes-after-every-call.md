@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 353
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T12:56:51.311401Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T12:56:51.311401Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T12:57:16.777668Z'
+  stage: intake
+  run: d3a704ff4836470baa997a20dcf16dd8
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -182,3 +184,9 @@ Expect: `True`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: it names concrete modules and signatures (`agent_launch`, both runtimes, `wiring`), and I checked that `sudo_prefix`, `own_identity`, `LEFTOVERS_PREFIX` and `factory.entry.leftovers` already exist (S0001 is in `done/`). Each stated behaviour has a criterion: `leftovers_due` (1), `leftovers_launch` (2), `leftovers_fault` (3), the order of the calls (4, 9), the resume (6), `version()` (5), and `leftovers_command` and `build_boundaries` (10).
+   - Criteria: each can be tested by one test function, with exact values. Both sides of each rule have one. For the due rule these are `None` leftovers, `None` user and own user. For the fault rule they are status 0, status 1 with and without a `factory-leftovers:` line, and timed out with and without a status. For the result they are exit 0, 1 and 3. A call's own error that wins is covered for both `sudo` and `factory-confine` (8). A runtime built without `leftovers` is covered in 4. The `end_leftovers` side is covered in 10.
+   - Smoke test: the commands are runnable Python snippets with stand-in scripts, and the story needs no paid call. They don't run pytest, so the `-q` rule does not apply. Each `Expect:` line gives the exact output lines or `True`.
+   - Architecture: the helpers sit in `adapters.agent_launch`, which the two runtime wrappers use. The keyword is wired only in `entry.wiring`, and the `AgentRuntime` interface does not change. `agent_launch` stays free of `process` imports, which is why `leftovers_fault` takes three plain values.
+   - Scope: it matches the feature's S0002 line (agent_launch, both runtimes, wiring). The story needs no change to another story's test (decision 16 says "S0002: none"). It stays out of S0001's program and S0003's git removal.
