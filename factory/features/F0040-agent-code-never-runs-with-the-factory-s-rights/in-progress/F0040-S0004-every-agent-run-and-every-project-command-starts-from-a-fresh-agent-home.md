@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658, 6303178244]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T22:29:43.396597Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -194,6 +198,11 @@ journal:
   at: '2026-10-20T22:29:22.687078Z'
   stage: review
   run: 8a48e0f1a05f4d1dabd16a70c2078f1b
+- number: 35
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:29:43.396597Z'
+  stage: docs
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -627,3 +636,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Notes:
     - `tests/adapters/test_sudo_agent_home.py::test_the_reset_call_has_no_environment_and_the_limit_plus_the_sudo_grace` and `::test_a_reset_the_factory_ended_at_its_limit_raises` each build a `ProcessResult` inline. A small builder would read more simply. Per the human's answer in entry 32, this stays a note.
+35. factory: started docs as self.
