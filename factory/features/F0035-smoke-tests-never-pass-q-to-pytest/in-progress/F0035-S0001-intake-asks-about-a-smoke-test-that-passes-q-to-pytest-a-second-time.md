@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 330
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T05:05:06.304214Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T05:05:06.304214Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T05:05:35.497120Z'
+  stage: review
+  run: c9e525608282449d9c48812a56c01e8c
 ---
 
 # Intake asks about a smoke test that passes -q to pytest a second time
@@ -133,3 +135,15 @@ Expect: `1` (the human's change 1 is on `main`)
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Acceptance criteria: `claude/agents/intake.md:53` (step 2 of *Stage*) now ends with the Interface's sentences, word for word. They follow one space after "can be checked against." on the same line. The line still starts with `2. The factory has already checked the story's form`, and steps 0 to 6 keep their numbers. Each criterion has a test in `tests/test_claude_agent_texts_smoke_pytest.py`:
+     - Criterion 1: `test_intake_stage_holds_the_pytest_quiet_rule` checks that the full sentences are in `section_text(agent_body("intake"), "Stage")`.
+     - Criterion 2: `test_pytest_quiet_rule_ends_step_two_of_intake` checks the start anchor, that exactly one line has it, the joining text and the ending `Such a command is a question.`.
+     - Criterion 3: `test_only_intake_carries_the_pytest_quiet_rule` is one parametrized test with seven rows (intake 1, the six other agents 0). The 0 rows cover the side where the rule is absent.
+     - Criterion 4: the factory's `make check` after the coder was green (journal entry 7).
+   - Architecture: nothing under `src/` changes. The test sits at the `tests/` root, and its module is outside the layers. It uses the existing helpers `agent_body` (`tests/shipped_agents.py`) and `section_text` (`factory.domain.sections`), the way the other agent-text tests do. No helper is copied.
+   - Security: no code, secrets or markers that silence a check.
+   - Quality: the names say what they hold, the module has a docstring, and there is no dead code.
+   - Work item hygiene: the Description matches what was built, and the coder's journal entry names the main choice (on the same line) and what was rejected (a separate line or sub-bullet). Criterion 5 (docs) still describes what the documenter needs: one sentence in `docs/project-guide/agents.md` and an entry in `docs/decisions.md`.
+   - Earlier tests: none. The diff only adds `tests/test_claude_agent_texts_smoke_pytest.py` (status A), and no test file on `main` is changed, renamed or deleted.
