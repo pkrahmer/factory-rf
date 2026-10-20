@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T10:25:08.060565Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-20T10:25:08.060565Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-20T10:30:47.332736Z'
+  stage: doing
+  run: 24b0d16f24fb43a991f78cd3131f534b
 ---
 
 # The Claude Code runtime registers no write hook
@@ -290,3 +292,25 @@ Expect: `7`
     `lint`: lint: green (0.0 s)
     `test`: test: green (154.7 s)
 14. factory: started doing as self.
+15. coder: This round needed no code change. Both review findings from entry 9 were changes to tests only, and the tester made them in entry 13. I checked both in the working tree:
+    - `import shlex` is gone from `tests/adapters/claude_stand_in.py`.
+    - `tests/test_claude_agent_no_hook.py` keeps only `test_no_shipped_agent_names_a_hook`.
+
+    `make check` is green: 99.17 % coverage, and it ends with `check: green`.
+
+    What I built is unchanged from entry 7:
+    - `src/factory/adapters/claude_runtime.py` no longer registers the hook. It writes no guard or hooks file and passes no `--settings`.
+    - The R14 line in the seven agent files under `claude/agents/` no longer has the hook clause.
+
+    Main choice, also unchanged: I deleted the hook code outright. I rejected keeping it behind a switch that is always off.
+
+    Refactor: nothing to change this round, because the source diff is the same as in round 0.
+
+    Noticed but not touched:
+    - From entry 7, `make duplicates` reported 5 new findings. Four are claude/opencode similar-code pairs that already existed; they count as new because deleting lines moved their line numbers. The fifth is `ManualWaiter` in `src/factory/adapters/clock.py`, which this story does not touch.
+    - `factory-guard`, its adapter and `GUARD_COMMAND` stay until S0002.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
