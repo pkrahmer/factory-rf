@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 315
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T01:58:24.702165Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T01:58:24.702165Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T01:58:44.978164Z'
+  stage: smoke-test
+  run: 6b59ded5632c42a4980192e901fa1eef
 ---
 
 # The tests pin seven small rules on both sides
@@ -225,3 +227,21 @@ Expect: four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: No findings. I ran the one command under `## Smoke test` exactly as written, from the repository root. It exited 0.
+
+    Command 1 (`uv run -q python - <<'EOF' … EOF`):
+    ```
+    0:00:01 None
+    ses_a
+    no agent files
+    False
+    ```
+    Met its `Expect:` line: it printed four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`.
+
+    Against the acceptance criteria, nothing in the output contradicts any of them:
+    - `named_wait` gives `0:00:01` for one second and `None` for zero (criterion 2).
+    - A resume ended by its time limit, where the second call has no session, keeps `ses_a` (criterion 3).
+    - `AgentDefinitionError("", "no agent files")` prints only its fault (criterion 5).
+    - A document without a state gives `reason_given` `False` (criterion 6).
+
+    The smoke test does not reach criteria 1, 4 and 7 to 9. The tests named in the tester's entry (5) cover them, and nothing seen here contradicts them. I changed no file.
