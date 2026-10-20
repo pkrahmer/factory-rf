@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T04:25:41.942833Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T04:25:41.935774Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:25:41.942833Z'
+  stage: intake
+---
+
 # The project guide names the shared test helpers
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -30,3 +57,6 @@ grep -c -F '## Shared test helpers' docs/project-guide/README.md
 Expect: `1`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
