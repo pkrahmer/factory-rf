@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T01:21:01.208408Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-20T01:20:40.966952Z'
   stage: doing
   run: fcfe061039f34d0195f28f67ce72a973
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:21:01.208408Z'
+  stage: review
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -218,3 +227,4 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+16. factory: started review as self.
