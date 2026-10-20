@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 336
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T04:51:58.638978Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T04:51:38.124945Z'
   stage: review
   run: 92d151d6f2bf4515be189132cdfca50a
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:51:58.638978Z'
+  stage: docs
 ---
 
 # The guide's list of shared test helpers names every fixture
@@ -147,3 +156,4 @@ Expect: `0` (every shared helper module at the root of `tests/` is still named, 
    - `duplicates: 5 new` (entry 7): this story changed nothing under `src/factory`, so none of those findings come from it.
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
