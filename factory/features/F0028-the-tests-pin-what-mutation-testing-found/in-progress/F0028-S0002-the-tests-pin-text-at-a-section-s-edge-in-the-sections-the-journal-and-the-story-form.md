@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T01:38:34.749096Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-20T01:38:34.749096Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T01:38:46.304212Z'
+  stage: docs
+  run: 94c47c56aa2143278a3858c2e6f54cfb
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -267,3 +269,14 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
 
     Earlier tests: none changed. Both files in the diff are new (status `A`).
 18. factory: started docs as self.
+19. documenter: Docs round 1. I changed no files. The docs criterion is `none`, and the diff holds only the two new test files, `tests/domain/test_section_edges.py` and `tests/domain/test_story_form_edges.py`. No file under `src/` changed. I did not run `make check`, because I changed no file.
+
+    Cross-read and found current: `docs/decisions.md` (the entries on `code_blocks`, `section_text` and `entry_text`, and on the form check counting entries outside code blocks) and `docs/project-guide/costs.md` (the `entry_text` allow list). Neither mentions the line-after-heading edge cases these tests pin. Their descriptions of the readers are still true, because the tests pin behaviour the code already had.
+
+    Stale text I noticed: none.
+
+    No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree c419906f7254 at 2026-10-20T01:36:44Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
