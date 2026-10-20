@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T19:53:39.833641Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-20T19:53:39.833641Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-20T19:57:31.119987Z'
+  stage: tests
+  run: 9632f258239b4559bc1a07d57572d3ca
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -176,3 +178,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: `SealedProjectCommands` sits in `factory.application`, which knows only the `ProjectCommands`, `Git` and `FactoryLog` interfaces. The wiring stays in `factory.entry.wiring`, which is the only place that wires.
    - Scope: the story is within F0040's scope, which lists `sealed_runs.py` and `wiring.py` for S0002. It touches none of the out-of-scope items and changes no test another story wrote.
 7. factory: started tests as self.
+8. tester: Wrote red tests for criteria 1–7 against the Interface. As intended, `make test` stops on two collection errors (ImportError), because the module under test does not exist yet. `make lint` is green.
+
+   - criterion 1: tests/application/test_sealed_project_commands.py::test_the_inner_command_runs_with_a_sealed_git_folder_and_its_result_is_returned
+   - criterion 2: tests/application/test_sealed_project_commands.py::test_nested_repositories_are_removed_after_every_inner_run (rows: returns, project-command-error, value-error)
+   - criterion 3: tests/application/test_sealed_project_commands.py::test_a_run_raises_unless_git_is_sealed_before_and_after_it (rows: opened-during-the-run, opened-then-project-command-error, missing-before-the-run; the nested repository is still there exactly when the inner command ran)
+   - criterion 4: tests/application/test_sealed_project_commands.py::test_the_removed_nested_repositories_are_logged_in_one_line (rows: two-nested, none)
+   - criterion 5: tests/entry/test_wiring_project_command_user.py::test_the_project_command_environment_is_the_agent_runs_without_bytecode_and_uv_copying (rows: agent-user, no-agent-user)
+   - criterion 6: tests/entry/test_wiring_project_command_user.py::test_the_built_project_commands_run_as_the_agent_user_inside_a_seal (rows: agent-user, no-leftovers, no-sudo-found, no-agent-user)
+   - criterion 7: tests/application/test_sealed_project_commands.py::test_sealed_project_commands_implement_the_project_commands_interface
+   - criteria 8 and 9: no test; they are `make check` and the docs stage.
+
+   Files created: `tests/application/test_sealed_project_commands.py` and `tests/entry/test_wiring_project_command_user.py`. I changed no earlier test file.
+
+   What the tests use:
+   - The inner command is the test's own `ProbeCommands(ProjectCommands)`. It records each call and whether `.git` was group-writable during it, then makes nested repositories with `git_support.run_git` and answers or raises through `project_command_support.raising`.
+   - Git is the real `checkout` fixture clone (`GitCli`).
+   - The log is `RecordingLog`, imported from `application.test_checkout_preparer_seal` the way `test_nested_repositories.py` already imports it, so no copy was made.
+
+   The Interface names no accessor for the objects `RecordingProjectCommands` and `SealedProjectCommands` wrap. The wiring test therefore finds the wrapped object by type among the wrapper's instance attributes (`vars(outer)`, a local helper `_held`) and does not use private attribute names. The only thing the coder must do for this to work is keep the wrapped `ProjectCommands` as an ordinary attribute, not in `__slots__`.
+
+   Modules the test run could not import: `factory.application.sealed_runs.SealedProjectCommands` and `factory.entry.wiring.project_command_environment`.
+
+   `lint`: lint: green (0.8 s)
+   `test`: ERROR tests/entry/test_wiring_project_command_user.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_project_command_user.py'.
