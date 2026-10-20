@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T03:41:10.029071Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T03:41:10.023192Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:41:10.029071Z'
+  stage: intake
+---
+
 # The decision log gives the feature's reasons for the rejected umask fixes
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -29,3 +56,6 @@ grep -c -F 'the fault would come back with the next recipe' docs/decisions.md
 Expect: `0`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
