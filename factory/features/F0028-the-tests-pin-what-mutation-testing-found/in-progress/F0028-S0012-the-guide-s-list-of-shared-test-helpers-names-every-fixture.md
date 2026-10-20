@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 336
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T04:47:47.501960Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T04:47:47.501960Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T04:49:29.124210Z'
+  stage: tests
+  run: d4ebb1a72df741fd8523f87d3bb4b532
 ---
 
 # The guide's list of shared test helpers names every fixture
@@ -87,3 +89,13 @@ Expect: `0` (every shared helper module at the root of `tests/` is still named, 
    - Architecture: a documentation-only change to the project guide's index. The layers are untouched. It matches CLAUDE.md's rule that the documenter keeps `docs/project-guide/` true and that the other three documents are not touched.
    - Scope: it is within F0028, which names the shared place in decision 13. It is not in the feature's "Out of scope", because no code or test changes. Its "none" for the other documents agrees with the feature, whose docs criteria are `none` for the same reason. Here the guide's own docs criterion is the one change.
 4. factory: started tests as self.
+5. tester: No test written, which is what the work item asks for. Its Interface says "the tester writes no test module", and the story changes no behaviour. Neither criterion gets a test function:
+   - criterion 1 (`make check` stays green): the factory's own checks cover it; there is no test function for it.
+   - criterion 2 (docs, `docs/project-guide/README.md` *Shared test helpers*): the documenter's criterion. The story's smoke test checks it (every `@pytest.fixture` of `tests/conftest.py` and `tests/application/handlers/conftest.py` named in its line). It is not a pytest test.
+
+   Files created: none. Modules the test runner could not import: none. Because no new test exists, there is nothing red: `make test` passed (`test: green (40.6 s)`, coverage 99.14 %) and `make lint` passed (`lint: green`). The coder or documenter has no test specification to meet beyond keeping `make check` green.
+
+   Rejected: writing a pytest test that parses the guide and compares it with the conftest fixtures. It would test a document rather than the code, and the Interface rules out a test module.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (46.0 s)
