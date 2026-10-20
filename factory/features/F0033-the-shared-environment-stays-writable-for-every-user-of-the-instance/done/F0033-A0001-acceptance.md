@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T03:21:01.445699Z'
   stage: acceptance
   run: 7e323492259f4332bf7d8d3186d941df
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T03:23:23.819244Z'
+  stage: done
 stories: [F0033-S0001]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The shared environment stays writable for every user of the instance
@@ -111,3 +116,4 @@ The one story cost 6 runs, 4.2 min, 34 turns and $1.05. By stage, from its `.cos
    6. Decisions: the feature's decisions 1 to 5 are listed for the human. No question was asked and no default was taken. `tests/conftest.py` was changed under decision 5, and the reviewer confirmed it.
    7. Slow checks: there is nothing beyond `make check`. The slowest tests are the 5.01 s time-limit tests (opencode budget, claude resume); the feature's rows take 0.67 to 0.75 s. Disk is unchanged since the previous record.
    8. Cost: 6 runs, 4.2 min, $1.05; the tester was largest at $0.28, and nothing stands out. 0 questions, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 4.2 min, 24 turns, 60305 tokens in (1122775 more from cache), 19573 out, $1.10
