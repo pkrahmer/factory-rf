@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T21:17:13.053741Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-10-20T21:17:13.053741Z'
   stage: review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T21:18:29.107030Z'
+  stage: review
+  run: 04bf8e8f92ea46ddb03b6ac384592d77
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -541,3 +543,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 7 new, 33 known, 3 gone
 30. factory: started review as self.
+31. reviewer: Review, round 2. I read the work item and all of `git diff main...HEAD -- . ':!factory'` again. The only change since round 1 is the test for criterion 16. Nothing under `src/` has changed since the coder's entry 14. The coder's `make check` was green (entry 29), and that run included the new test.
+
+    no findings
+
+    - Group 1, acceptance criteria: criteria 1 to 16 each have a test that checks what the criterion says.
+      - Criterion 16 (`tests/adapters/test_home_files.py::test_own_entry_judges_the_entry_itself_by_its_owner`) has three rows: an own file, an own link to `/`, and `/` itself. The root row is skipped when the tests run as root.
+      - The link row fails if `own_entry` changes `lstat` to `stat`. The root row fails if it always returns true. Both mutants from round 1 are now killed.
+      - Every refusal of `main` is a row of one parametrized test: the usage shapes, `relative`, `/`, `//`, `/home/..`, a missing folder, and `--keep ../x`. Each refusal row also checks that the home is untouched.
+    - Group 2, architecture: holds. The pure rule is in `factory.domain.agent_home`, the walk in `factory.adapters.home_files`, and the program in `factory.entry.fresh_home`. The program imports its adapter directly, which the feature's decision 14 allows. No interface or DTO is involved.
+    - Group 3, security: no secrets, no shell, no markers that silence a check. `--home` and `--keep` are checked before anything is removed. A home that resolves to `/` is refused.
+    - Group 4, quality: names, docstrings and comments are fine. `inside_home` replaces the copy of the same check in `settings.py`, so there are not two copies. `_beneath_or_at` copies no existing helper: `pipeline_definition.is_inside_checkout` is a different rule.
+    - Group 5, work item hygiene: the Description, the Interface and the criteria match what was built. That includes the human's answer in entry 17 and criterion 16. The docs criterion (18) still describes what the reader needs to know.
+
+    Earlier tests:
+    - `tests/entry/test_wiring.py`: changed under the human's leave in the feature's decision 14, which the story's Interface repeats. The expected set only gains `factory.entry.fresh_home`; nothing else in the test changed.
+
+    Notes:
+    - `tests/adapters/test_home_files.py` and `tests/entry/test_fresh_home.py` each define their own `home` fixture that makes `tmp_path / "home"`. The shared part could be one fixture in `tests/conftest.py`.
+    - `tests/domain/test_agent_home.py` `test_kept_paths_are_the_logins_inside_the_home_then_state_files_then_folders`: `pytest.raises(ValueError, match=refused)` reads `../x` as a regex. `re.escape(refused)` would pin the exact text.
