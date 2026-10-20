@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T04:31:00.107042Z'
   stage: smoke-test
   run: 1d7ed6474c8642618647c9316f8718e0
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T04:32:20.035868Z'
+  stage: approval
 ---
 
 # The project guide names the shared test helpers
@@ -198,3 +203,4 @@ Expect: `1`
     - Criterion 1 (`make check` stays green): the commands do not exercise it, and nothing I ran contradicts it. The factory runs the check itself.
 
     Findings: none. I changed nothing.
+14. factory: done (pull request merged); cost: 6 runs, 2.6 min, 29 turns, 102120 tokens in (426223 more from cache), 8947 out, $0.83
