@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T03:39:32.049426Z'
   stage: acceptance
   run: f35f9348ca5e46a487015b3c11ba1ca4
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T03:40:51.163904Z'
+  stage: done
 stories: [F0036-S0001]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of No stage writes a .claude folder at any depth
@@ -190,3 +195,4 @@ None. No finding needs a change. The leftover duplicates (4) belong to F0020's m
    6. Decisions: the feature's 1 to 4 are listed for the human, including that a bare `src/.claude` file or link stays writable. Two earlier tests were changed: `tests/domain/test_write_paths.py` under decision 3, and `tests/application/test_undo.py` under the standing leave. Neither was changed without a leave.
    7. Slow checks: there is no scan or SBOM. `make duplicates` has nothing new from this feature. Disk shows no growth (0.5 GB used on /work at start and now). The slowest tests are 5.0 s and come from other features.
    8. Cost: $1.34 over 6 runs. The tester was the largest share ($0.44), because it moved the shared undo helpers. 0 questions answered, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 4.0 min, 25 turns, 72216 tokens in (1348443 more from cache), 17781 out, $1.20
