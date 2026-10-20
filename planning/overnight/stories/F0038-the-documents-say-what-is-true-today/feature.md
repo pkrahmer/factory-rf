@@ -60,3 +60,11 @@ Checked against `factory/pipeline.yml`: the documenter writes `README.md` and `d
 ## Folded in by the human (2026-10-20)
 
 F0034-S0003 "the project guide names every passage of v1.1's own in the shipped agents" (proposed by F0034-A0002) is folded into this feature: its text lies in `folded/`. The round-2 pre-check before this feature starts takes it up as one more story or as criteria of the guide story it fits.
+
+## The human's answers (2026-10-20)
+
+- Order: F0038 is built last, after F0037, F0030, F0027, F0041, F0040, F0029-S0003 and F0039, with a fresh pre-check just before it starts (its quotes will have moved).
+- Decision 4 (S0009): when F0038 runs, gaps 1 and 2 are fixed by F0040, gap 4 by F0027, and the hook (gap 5) is gone with F0041. Only gap 3, the clone's working folder and the environment git is started with, stays, named "open, not planned". The "left for v2" sentences of the fixed gaps go or point to the feature that fixed them. The fresh pre-check adapts S0009 to what is then true.
+- S0009 also points the stale "Open: the kill of a timed-out agent under sudo" sentence of `docs/decisions.md` to the entry that settled it.
+- S0009's criterion on the night logs in `docs/runs/` is dropped: they are the human's history.
+- F0034-S0003 is folded in (see above).
