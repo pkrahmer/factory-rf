@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T18:56:16.145157Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -227,6 +223,19 @@ journal:
   kind: started
   at: '2026-10-20T18:56:16.145157Z'
   stage: review
+- number: 40
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T18:57:23.555731Z'
+  stage: review
+  run: 5c20d5aaf6c04397b7edc6b98317c736
+- number: 41
+  speaker: factory
+  kind: question
+  at: '2026-10-20T18:57:23.555731Z'
+  stage: review
+  run: 5c20d5aaf6c04397b7edc6b98317c736
+  blocked: round_cap
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -640,3 +649,35 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 39. factory: started review as self.
+40. reviewer: Review of round 2. I read the work item, `git diff main...HEAD -- . ':!factory'` and its name-status. The diff changes `src/factory/adapters/make_commands.py` and adds `tests/adapters/test_make_commands_user.py`. I also read `src/factory/adapters/agent_launch.py`, to check the reused helpers and look for copies.
+
+    Group 1 (acceptance criteria) passes:
+    - Every criterion from 1 to 12 has a test that checks what the criterion says.
+    - The new criterion 12 test, `test_the_factory_s_own_kill_waits_the_grace_beyond_the_limit`, would fail without `SUDO_GRACE`: the factory would kill the call at 3 s, giving `time_limit` instead of `passed`.
+    - Every limit is tested on both sides: the 137 kill at the limit against an early 137, the rounding of the limit, a refusal against a `sudo:` line beside other output, status 0 and no output, leftovers for another user against the own user and against none.
+    - The factory's `make check` after the coder was green (entry 38).
+
+    Groups 2 (architecture) and 3 (security) pass:
+    - `make_commands` imports only `agent_launch`, `process`, `application` and `domain`.
+    - No `dict[str, Any]`, no shell built from strings, no marker that silences a check.
+
+    Group 4 (quality) fails on one point:
+
+    Findings:
+    1. `src/factory/adapters/make_commands.py`, docstring of `MakeProjectCommands.run`. It still says "Run `make --no-print-directory <command>` and judge it by its exit status alone". With a `user` that is no longer true:
+       - a failing status whose output is only `sudo:` lines raises `ProjectCommandError` ("refused the command");
+       - a status of 137 at the limit becomes `time_limit` with `exit_status` `None`;
+       - a leftovers fault raises `ProjectCommandError`.
+       Fix: reword the docstring to cover both cases. Without a user, the run is judged by its exit status. With a user, it runs through `sudo` as that user; a kill at the limit is `time_limit`, and a refusal by `sudo` or a leftovers fault raises `ProjectCommandError`.
+
+    Points I looked at and do not count as findings:
+    - `_end_leftovers` restates the own-user condition of `leftovers_due` instead of calling it. `leftovers_due` takes a `Starters`, which this class does not have, and the Interface does not list it among the helpers to reuse.
+    - `_refusal_line` is not a copy of `line_starting` or `call_refusal`: it needs every printed line to be a `sudo:` line, and it takes the last one.
+
+    Earlier tests: none. The diff only adds `tests/adapters/test_make_commands_user.py` (status `A`) and changes no test file that `main` holds.
+
+    Notes:
+    - `tests/adapters/test_make_commands_user.py:33` (`SUDO_SCRIPT`, `_write_sudo`): this is a third local stand-in `sudo`, beside `write_sudo` in `tests/leftovers_runtime_support.py` and the one in `tests/adapters/test_claude_runtime_os_user.py`. It is not a plain copy: it also records the environment and the working directory, and it follows a plan.
+    - `tests/adapters/test_make_commands_user.py:22` (`LEFTOVERS_FAULT`): this restates `factory.adapters.agent_launch.LEFTOVERS_FAULT` with a trailing space instead of importing it.
+    - `tests/adapters/test_make_commands_user.py:305`: criterion 8 says `.user` "is `u`", but the test compares with `==`, not `is`.
+41. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
