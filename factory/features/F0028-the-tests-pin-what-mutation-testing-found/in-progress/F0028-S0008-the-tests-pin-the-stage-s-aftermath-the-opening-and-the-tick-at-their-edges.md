@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 319
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T02:34:29.411930Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T02:34:29.411930Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T02:36:39.100594Z'
+  stage: doing
+  run: 78d05e7caecb46adad01bd79ae2b4137
 ---
 
 # The tests pin the stage's aftermath, the opening and the tick at their edges
@@ -150,3 +152,15 @@ Expect: four lines, `None`, `Stalled (attempt 1 of 2): the agent gave no valid d
    `lint`: lint: green (0.0 s)
    `test`: test: green (46.3 s)
 6. factory: started doing as self.
+7. coder: Built nothing. The story pins behaviour the code already has, and its Interface says no module under `src/factory/` changes. The tester's tests (tests/application/test_after_agent_edges.py, tests/application/test_opening_journal_edges.py, tests/application/test_tick_stop_details.py, plus the shared tests/tick_support.py) pass against the code as it stands. I ran `make check` in the foreground and it ended `test: green (48.1 s)` and `check: green`, with total coverage at 99.14 %.
+
+   Main choice: I left `src/` alone. The alternative I rejected was making changes so the diff has something in it, which would go beyond the description (R13).
+
+   Refactor: there is no coder diff to review, so nothing was changed.
+
+   Description: the journal did not change what the task means, so the Description stays as it is.
+
+   Noticed but not touched: as the tester's entry says, `tests/application/test_tick.py` still has its own argument-free `Failing` class that records `.events`. It is separate from the shared `Failing` in `tests/tick_support.py`. The Interface did not name it for the move.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
