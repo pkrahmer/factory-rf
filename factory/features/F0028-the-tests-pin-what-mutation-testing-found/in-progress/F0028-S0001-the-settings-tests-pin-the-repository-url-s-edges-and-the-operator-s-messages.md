@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T01:22:29.172170Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-20T01:22:08.825789Z'
   stage: docs
   run: 3e32001b8c164d65ae6e2658ca282092
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:22:29.172170Z'
+  stage: smoke-test
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -277,3 +286,4 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
     `check`: check: green (not run again: passed on tree 5038ae5c5988 at 2026-10-20T01:19:52Z)
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
