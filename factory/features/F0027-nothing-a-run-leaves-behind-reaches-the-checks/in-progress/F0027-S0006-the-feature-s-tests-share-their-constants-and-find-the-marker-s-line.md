@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 360
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T19:38:26.826727Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T19:38:26.826727Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T19:38:52.083861Z'
+  stage: review
+  run: c2dc8e3caa424f40ac1afa444386c091
 ---
 
 # The feature's tests share their constants and find the marker's line
@@ -157,3 +159,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I checked:
+   - Criterion 1: `tests/` holds the text `git clean --quiet --force --force -d -X` in one place only, `tests/git_support.py:17` as `CLEAN_IGNORED`. Neither `tests/adapters/test_git_cli_ignored.py` nor `tests/application/test_sealed_runs_ignored.py` defines a `CLEAN` of its own any more. Each now compares `.command` with `CLEAN_IGNORED`. `tests/application/test_tick_ignored.py:83` checks `startswith(f"{CLEAN_IGNORED} failed (exit 1)")`. That is the same prefix as the literal it replaces. No test name or row changed.
+   - Criterion 2: `Identity(uid=0, user="root", pid=11)` is built only at `tests/leftovers_support.py:7`, as `ROOT`. Rows `root-root` and `root-agent` in `tests/domain/test_leftovers.py` and row `root` in `tests/entry/test_leftovers.py` use it, and their ids and expected values are unchanged.
+   - Criterion 3: in `tests/test_process_search.py`, `main_line` is now found with `next(...)` over the lines of `src/factory/entry/leftovers.py`, taking the line that starts with `def main(`. This is the same kind of search as `import_line`, `popen_line`, `exec_line` and `shm_line`. The search finds line 32, which is where the marker is today. The literal `32` is gone. The other entries, the test's name and what it checks are unchanged.
+   - Criterion 4: the coder's entry 7 records `check: green`.
+   - Criterion 5: docs: none still holds. Only tests changed.
+   - The Interface states no new rule or limit, so there is no failing side to test.
+   - Architecture and security: nothing under `src/` changed, and the diff adds no suppression marker.
+   - Description, Interface and criteria all match what was built.
+
+   Earlier tests (every file has status M):
+   - `tests/adapters/test_git_cli_ignored.py`: standing leave to move a shared test helper (`CLEAN` moved to `git_support.CLEAN_IGNORED`; names and checks kept).
+   - `tests/application/test_sealed_runs_ignored.py`: standing leave to move a shared test helper (`CLEAN` moved to `git_support.CLEAN_IGNORED`).
+   - `tests/application/test_tick_ignored.py`: standing leave to move a shared test helper (the literal prefix now built from `CLEAN_IGNORED`).
+   - `tests/domain/test_leftovers.py`: standing leave to move a shared test helper (root `Identity` moved to `leftovers_support.ROOT`).
+   - `tests/entry/test_leftovers.py`: standing leave to move a shared test helper (root `Identity` moved to `leftovers_support.ROOT`).
+   - `tests/git_support.py`: standing leave to move a shared test helper (it is the shared place and only gains `CLEAN_IGNORED`).
+   - `tests/leftovers_support.py`: standing leave to move a shared test helper (it is the shared place and only gains `ROOT`).
+   - `tests/test_process_search.py`: the human's leave, F0027 `feature.md` decision 16, S0006 line (granted 2026-10-20). The change stays within that leave.
