@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 369
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T23:04:13.782804Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-20T23:04:13.782804Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-20T23:04:33.651815Z'
+  stage: intake
+  run: 83df897c3be344e7b46ee1bb9243676b
+  blocked: question
 ---
 
 # The work tree's id sees a change made in the tick of the last index write
@@ -81,3 +84,11 @@ Expect: `True` (before this story the same block printed `False`)
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: 1. Scope: is this story within F0030? `feature.md` lists a single story, S0001, and its Scope names only `src/factory/domain/sessions.py`, `src/factory/adapters/process.py`, S0001's two test modules and the two docs files. Its Goal is the kill at a time limit. This story changes `src/factory/adapters/git_cli.py` (`work_tree_id`) and adds `tests/adapters/test_git_cli_work_tree_tick.py`. It fixes a different fault, the racily-clean index copy, and only its origin (S0001's flaky row) ties it to the feature. `feature.md` is the human's file, so I do not widen it. Options: (a) the human adds S0002 and its files to the feature's Stories and Scope, then restarts intake; (b) the human confirms the story stays as it is and I accept it on that word; (c) the story moves to its own feature. I would choose (a).
+
+   The rest of the story is buildable, so this is the only blocker.
+   - Format check: passed.
+   - Interface: concrete. It names `GitCli.work_tree_id` with an unchanged signature and the one change, `shutil.copy2` instead of `shutil.copyfile`.
+   - Criteria: criterion 1 is one parametrized test with two rows, `same-size` and `other-size`, each checked against `HEAD^{tree}`. The copy2 clause has its criterion. The "no index starts empty" rule is unchanged and the story says so.
+   - Smoke test: runnable, and its `Expect:` line is `True`, which can be checked.
+   - Architecture: the change is inside the adapters layer, in the git wrapper, as `CLAUDE.md` requires.
