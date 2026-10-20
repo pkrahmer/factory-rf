@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T14:54:27.414336Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-20T14:54:27.414336Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-20T15:02:21.894103Z'
+  stage: tests
+  run: 43cea450362e46c887bc19beb33c6aca
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -207,3 +209,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the new operation is an abstract method of the `Git` ABC in `application`, implemented in `adapters.git_cli` through `_run`. The sealed run and the tick call it only through the interface. This agrees with the layers in `CLAUDE.md`.
    - Scope: it matches S0003 in the feature's Scope, and it touches nothing under Out of scope. The test changes it names are the ones feature decision 16 allows.
 7. factory: started tests as self.
+8. tester: I wrote the tests for every acceptance criterion. Criterion → test:
+   - criterion 1: tests/adapters/test_git_cli_ignored.py::test_remove_ignored_removes_every_untracked_path_the_rules_match (10 rows: venv, pycache-folder, pattern, mypy-cache, mutants, nested-gitignore-hides-itself, nested-gitignore, info-exclude, nested-repository, link-as-link. Every row also checks that the outside target file keeps its content.)
+   - criterion 2: tests/adapters/test_git_cli_ignored.py::test_remove_ignored_keeps_tracked_and_unmatched_paths (5 rows: tracked-edit, tracked-gitignore, new, new-gitignore, unmatched-link. Each row compares `git status --porcelain` and HEAD before and after.)
+   - criterion 3: tests/adapters/test_git_cli_ignored.py::test_remove_ignored_raises_git_error_for_a_path_it_cannot_remove (rows: 0o555 → GitError with command `git clean --quiet --force --force -d -X` and exit 1; 0o755 → removed; nothing ignored → work tree and status unchanged)
+   - criterion 4: tests/application/test_sealed_runs_ignored.py::test_a_returned_run_leaves_no_ignored_path_and_a_raised_one_leaves_them (rows: returned, nested-repository, raised, unremovable. A test-local `ThenRuntime` lets the fake runtime write through `ScriptedRun.writes`, then makes the nested repository, raises `AgentRuntimeError("boom")` or locks `.venv/locked`.)
+   - criterion 5: tests/application/test_stage_run_ignored.py::test_the_checks_do_not_see_what_the_agent_hid (story at stage `doing`, role coder, whose `check` is `test ! -e <path>`. Rows: ignored → rule 6, no stall, path not in the result commit; in-write-path `src/standin.txt` → stall `check_red`.)
+   - criterion 6: tests/application/test_tick_ignored.py::test_the_restore_removes_the_ignored_paths (rows: info-exclude, branch-gitignore, unremovable. The last checks `stopped="checkout_restore_failed"` and that the stop's detail starts with `git clean --quiet --force --force -d -X failed (exit 1)`.)
+   - criterion 7: these are the edits feature decision 16 allows, and nothing else in those modules:
+     - tests/application/test_git_interface.py: `OPERATIONS` gains `"remove_ignored"`; the test is renamed to test_git_has_exactly_the_twenty_five_operations_and_git_cli_has_each.
+     - tests/application/test_interfaces.py: renamed to test_git_abstract_methods_are_exactly_its_twenty_five_operations.
+     - tests/application/test_tick.py::test_the_restore_discards_changes_and_names_them_in_one_line: the assertion is now `assert not (directory / "ignored.log").exists()`.
+   - criteria 8 and 9 (`make check` stays green, and docs) are not tests.
+
+   The rows that need a folder of mode 0o555 are skipped under root, as the existing restore test does. Each test sets the folder's mode back to 0o755 in a `finally`.
+
+   Files created: tests/adapters/test_git_cli_ignored.py, tests/application/test_sealed_runs_ignored.py, tests/application/test_stage_run_ignored.py, tests/application/test_tick_ignored.py.
+
+   Import failures: none. `factory.application.git` and `factory.adapters.git_cli` both import. The tests fail because `remove_ignored` does not exist and nothing removes the ignored paths yet. In the one `make test` run, for example, the tick rows failed with `assert not True` (the ignored file is still there) and `assert None == 'checkout_restore_failed'`, and the restore test fails on its inverted line. `make lint` is green, after `ruff format` re-wrapped two lines in test_tick_ignored.py.
+
+   Nothing needed interpreting, and nothing is open.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/application/test_tick.py::test_the_restore_discards_changes_and_names_them_in_one_line - AssertionError: assert not True
