@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T20:03:12.276487Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-20T20:02:50.540867Z'
   stage: review
   run: 423d1778351543d2ad6520eb5e73611c
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:03:12.276487Z'
+  stage: doing
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -272,3 +281,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     1. criterion 8 added: it needs its test. The Interface says `build_boundaries` builds the `SealedProjectCommands` with "the same `git` and `log` the boundaries hold". No criterion covered this, and `tests/entry/test_wiring_project_command_user.py::test_the_built_project_commands_run_as_the_agent_user_inside_a_seal` checks only `MakeProjectCommands.user`. The current code passes the right objects (`src/factory/entry/wiring.py:266`). But wiring that built a second `GitCli` on another folder, or a second log, would pass every test while sealing the wrong checkout. The fix is for the tester to assert, in the test's agent-user rows, that the sealed object holds `boundaries.git` and `boundaries.log`, compared by identity (for example `_held(sealed, GitCli) is boundaries.git`). No change under `src/` is needed. I added the criterion as 8 and renumbered the closing ones to 9 (`make check`) and 10 (docs).
 
     Earlier tests: none. The diff only adds test files (`tests/application/test_sealed_project_commands.py`, `tests/entry/test_wiring_project_command_user.py`).
+13. factory: started doing as self.
