@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 310
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T00:50:37.353096Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T00:50:16.943705Z'
   stage: review
   run: d35387a372704b1e902edb26dd2dc636
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:50:37.353096Z'
+  stage: docs
 ---
 
 # The operator guide plans a sweep for a fresh `mutants/` folder only
@@ -129,3 +138,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - 2 to 4, architecture, security and quality: there is no code, so none of these apply. `make duplicates` reported 5 new findings in entry 7, but with an empty diff under `src/` they cannot come from this story.
    - 5, work item hygiene: the journal gives the main choice and what was rejected (entry 7: the coder left `docs/operator-guide.md` to the documenter). The Description matches what was built, which is nothing yet. The docs criterion still says what the reader must know. I checked it against the guide as it stands. *How long it takes* (`docs/operator-guide.md:90`) still gives the 165 s twice, the per-story minutes of F0019 and F0021, and the `mutants/mutmut-stats.json` measurement. The guide does not yet contain the stop line `mutants: stopped after`. The example `make mutants MODULES=<module> MUTANTS_SECONDS=1500` is at line 95. So the criterion names the right removals and additions for the documenter.
    - 6, earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
