@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 326
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T03:45:53.392467Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T03:45:53.392467Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T03:46:06.867348Z'
+  stage: review
+  run: f69069da09bc4b708df15c8d91814fb5
 ---
 
 # The decision log gives the feature's reasons for the rejected umask fixes
@@ -116,3 +118,10 @@ Expect: `0`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar. This is what the Interface says should happen: no module under `src/factory/` changes and no test module is written.
+   - 1, acceptance criteria: criterion 1 (`make check` stays green) is covered by the factory's run after the coder, which journal entry 7 records as `check: green`. Criterion 2 is the docs criterion, which the documenter writes next. The Interface states no rule or limit of code, so there is no failing side to test.
+   - 2 to 4, architecture, security and quality: no code or configuration changed, so there is nothing to judge. The `duplicates: 5 new` record after the coder cannot come from this branch, because it changes nothing under `src/factory`. It is not under review here.
+   - 5, work item hygiene: the journal explains why the coder built nothing: the decision log belongs to the documenter. The `## Description` matches what was built, which is nothing yet. Criterion 2 names every edit to the entry *The tests set their own umask, and uv syncs under the caller's*: the reverse direction, the three reasons, the phrase that goes, and what stays. It also names the documents that need no change, so the documenter can work from it.
+   - 6, earlier tests: the diff changes, renames or deletes no test file.
