@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T04:07:53.541844Z'
   stage: acceptance
   run: b365b1900fb14a7f92342173a02dc934
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T04:09:11.857798Z'
+  stage: done
 stories: [F0034-S0001]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The reviewer may correct a stale story Description
@@ -139,3 +144,4 @@ One story: 6 runs, 3.7 min, 36 turns, 104297 tokens in (557574 more from cache),
    6 Decisions: feature decisions 1 to 4 listed for the human. The story has no answers and no defaults. Earlier tests changed: none.
    7 Slow checks: none beyond `make check` (green, 99.14 %, test 46.1 s). The slowest tests are runtime time-limit tests (5.01 s), none from this feature. Disk unchanged at 0.5 GB used on `/work`.
    8 Cost: 6 runs, 3.7 min, $0.95, every stage on its first attempt. The tester ($0.22, 73 s) and the coder ($0.17, 67 s) take longest because they run the project commands. 0 questions, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 3.8 min, 23 turns, 61346 tokens in (1084302 more from cache), 14792 out, $1.00
