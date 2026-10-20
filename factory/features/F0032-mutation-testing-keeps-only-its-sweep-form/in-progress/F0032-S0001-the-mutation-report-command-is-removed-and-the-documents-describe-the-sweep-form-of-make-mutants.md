@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 307
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T00:16:58.421375Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T00:16:58.421375Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T00:17:13.968258Z'
+  stage: intake
+  run: 06a65fe7a7a64ffdbebbe4912565c56b
 ---
 
 # The mutation report command is removed and the documents describe the sweep form of `make mutants`
@@ -78,3 +80,9 @@ Expect: five lines `found`, then two lines, `docs/project-guide/processes-and-ch
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: it names the two modules to remove (`src/factory/entry/check_mutants.py`, `src/factory/domain/mutants.py`, with their seven public names) and the modules that stay (`factory.entry.inputs`, `check_duplicates`). It adds no new behaviour. It lists the tests removed (under the leave of the feature's decision 9), the one new test module and the earlier tests that must pass unchanged.
+   Criteria: criterion 1 is one parametrized test over `find_spec` with four rows. Two rows are "not found" and two are "found", so both sides of the removal are covered. Criterion 2 is checkable, since the two test files must be absent and the six named tests must pass. Criterion 3 is `make check`. The docs criterion carries the documenter's work. It is checkable by the smoke test's greps. It has no new rules or failing sides of its own, because the rules it describes (the refusal with no `MODULES` or `FEATURE`, the stop line) belong to the human's Makefile change 1 and are not changed by this story.
+   Smoke test: the three blocks are runnable with `uv run`, `ls` and `grep` and make no paid calls. Each `Expect:` line gives exact output to compare. The second block assumes the human's changes 1 and 2 (Makefile, CLAUDE.md) are already in. That is a precondition the feature names, not a gap in the story.
+   Architecture: it removes a domain module and an entry module and leaves the layer order alone. It writes no new code under `src/`. `factory.entry.inputs` stays with its one remaining user.
+   Scope: it matches the feature's Scope list, including the four documents and the removal of the two test modules. It touches nothing in the feature's Out of scope list (`inputs`, `[tool.mutmut]`, `command_line`'s suffix, the template and the demo recipes, `pipeline.yml`).
