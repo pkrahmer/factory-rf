@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 363
 comments_read: [6300695093]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T20:37:20.189453Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-20T20:37:20.189453Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T20:38:37.251527Z'
+  stage: review
+  run: 2b9854b100ff4e84b1321bfbd9fec8dd
 ---
 
 # A call no longer waits for a process that keeps its output open after the call's own process ended
@@ -251,3 +253,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 6 new, 33 known, 3 gone
 11. factory: started review as self.
+12. reviewer: no findings
+
+    What I reviewed: `git diff main...HEAD -- . ':!factory'`, which covers `src/factory/adapters/process.py` and the new `tests/adapters/test_process_drain.py`, read against the work item.
+
+    - Acceptance criteria:
+      - Criteria 1 to 7 each have one test, and the rows the criteria name are rows of one parametrized test.
+      - Each test checks what its criterion says: exit status, `timed_out`, `stopped`, `output_abandoned`, the output, the timing bounds, and in criterion 1 that the holder is still alive.
+      - The failing sides of the Interface's rules are covered. Abandoned and not abandoned are criteria 1 and 2. A limit before the child's end and a limit during the drain are criteria 3 and 6. Kill, stop and raise are criterion 4. A request without `time_limit` has rows for both functions. The 0.05 s poll is covered by the 1.5 s row of criterion 2, as the human answered in entry 4.
+      - The factory's `make check` after the coder was green (entry 10).
+    - Architecture: the change stays in `factory.adapters.process`, the one module that starts processes. No new `Popen` call, no new suppression marker, no caller changed.
+    - Security: nothing new is built from strings, and no secrets or markers were added.
+    - Correctness:
+      - `_has_ended` uses `waitid(..., WNOWAIT)`, so the child is not reaped. That keeps `_kill_session`'s `killpg` safe when a limit falls during the drain.
+      - After a drain that ran out, `Popen.__exit__` closes the pipes and then reaps the child, which has already ended, so the result keeps the child's own exit status.
+      - `run_process` now reads through `_LineReader` with `_keep_reading` instead of `communicate()`. That reuses the existing reader rather than adding a second read loop.
+    - Quality: the names fit, the docstrings say what is new, and `_read_until_end` is gone with no user left.
+      - I ran `make duplicates`. Of its 6 new findings, only one comes from this diff: vulture marks `ProcessResult.output_abandoned` as an unused variable at 60 % confidence. It is a public result field that the Interface requires and the tests read, so it is not dead code. The other five are in `claude_runtime`, `opencode_runtime` and `clock.py`, which this diff does not touch.
+    - Work item hygiene:
+      - Entry 10 gives the main choice (`waitid` with `WNOWAIT` rather than `poll()`) and what was rejected.
+      - The Description matches what was built.
+      - Criterion 9 (docs) still names everything the reader must know after this story.
+
+    Earlier tests: none. The diff only adds `tests/adapters/test_process_drain.py` (status `A`). It changes no earlier test file and copies no helper: it imports `Recorder`, `is_gone` and `python_argv` from `tests/process_support.py`.
