@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T09:22:46.618552Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-10-20T09:22:25.786802Z'
   stage: review
   run: b2aaeddedac14b709ee4a35cf7ce0e89
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-10-20T09:22:46.618552Z'
+  stage: docs
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -552,3 +561,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/domain/test_sessions.py:41`: `# noqa: PT011` remains. A `match` pattern on each refused row would make the marker unnecessary. This is carried over from entry 20 and is not a finding.
 
     Earlier tests: none changed. The diff only adds test files (`tests/domain/test_sessions.py`, `tests/adapters/test_process_session.py`).
+29. factory: started docs as self.
