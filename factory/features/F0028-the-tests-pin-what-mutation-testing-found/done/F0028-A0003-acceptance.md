@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T04:58:49.526752Z'
   stage: acceptance
   run: 7a8a16c50f034a4e94ac0229cdc0612b
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T05:00:08.441839Z'
+  stage: done
 stories: [F0028-S0001, F0028-S0002, F0028-S0003, F0028-S0004, F0028-S0005, F0028-S0006, F0028-S0007, F0028-S0008, F0028-S0009, F0028-S0010, F0028-S0011, F0028-S0012]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The tests pin what mutation testing found
@@ -162,3 +167,4 @@ None. The one remark (check 4, the stand-ins under `tests/adapters/`) is already
    6 Decisions: feature.md's decisions 1 to 14 are unchanged. Decision 4 and the S0003 UTC survivor still have no recorded answer. New: keeping the fixture list current is the story writer's duty, and no check enforces it. Each conftest's fixtures stay on one line, which is now long. S0012 is a third override of "docs criterion `none`". No earlier test changed.
    7 Slow checks: nothing beyond `make check`. Disk is unchanged since the previous acceptance record. The slowest tests are the adapters' time-limit tests at 5.0 s; the feature's 23 modules take 5.4 s together.
    8 Cost: 84 runs, 54.0 min, $15.16 for the 12 stories. S0012 cost $0.80 in 6 runs, about half of it the empty-diff walk through the stages. S0009 is still the costliest at $1.84 in 10 runs. 0 questions to the human, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 3.5 min, 17 turns, 60997 tokens in (739276 more from cache), 13398 out, $0.90
