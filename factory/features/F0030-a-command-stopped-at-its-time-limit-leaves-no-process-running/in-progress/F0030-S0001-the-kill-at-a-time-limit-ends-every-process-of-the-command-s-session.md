@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T09:08:32.984523Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-10-20T09:08:32.984523Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-20T09:08:55.435880Z'
+  stage: doing
+  run: dc5620972eb047f189573c96a84a2961
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -425,3 +427,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: none changed. The diff only adds test files (`tests/domain/test_sessions.py`, `tests/adapters/test_process_session.py`).
 21. factory: started doing as self.
+22. coder: Round 2. I changed no code. The reviewer's one finding (entry 20) adds a test for the new criterion 9. The tester should add criterion 9's row beside criterion 8's in `tests/adapters/test_process_session.py` and make the two one parametrized test of `run_process`:
+    - The child, the grandchild in a group of its own (`process_group=0`) and `ROOMY_LIMIT` are the same as criterion 8's.
+    - The `os.kill` stand-in calls the real `os.kill` for the grandchild's id and then raises `ProcessLookupError`. It calls the real `os.kill` for every other id.
+    - The test asserts that the call raises nothing, that it returns within `ROOMY_BOUND_SECONDS`, that the result has `timed_out=True`, and that `is_gone(grandchild, within=0)` is true.
+    - Criterion 8's row keeps its assertions: the grandchild is still running, and the test kills it itself after `monkeypatch.undo()`.
+
+    Built: nothing new this round. The code from entries 7 and 10 stays as it is:
+    - `src/factory/domain/sessions.py`
+    - `_kill_session`, `_read_process_table` and `_kill_one` in `src/factory/adapters/process.py`
+
+    Main choice: I end with `tests` and leave the code alone. `_kill_one` (`src/factory/adapters/process.py:72-79`) already catches the `ProcessLookupError`, and the real kill ends the grandchild. The next round finds nothing left, so the new row should pass against the existing code. I rejected a speculative code change because no failing test asks for one.
+
+    The journal changed the meaning of the task: the reviewer added criterion 9 and renumbered `make check` to 10 and docs to 11. `## Description` already holds that text, so I did not rewrite it.
+
+    Noticed, not touched:
+    - The reviewer's note on `# noqa: PT011` at `tests/domain/test_sessions.py:41` is a test change. The marker could go if each refused row gave `pytest.raises` a `match` pattern. That is for the tester to take up if the reviewer wants it; the reviewer listed it as a note, not a finding.
+    - The racy-index cause of the flaky `tests/adapters/test_git_cli_work_tree.py` test (entry 10) is outside this work item.
+    - I did not run `make check` this round because nothing changed since entry 18's green run.
