@@ -11,17 +11,14 @@ from factory.application.preflight import agent_run_probe_item
 from factory.domain.agent_runs import AgentRunResult, Login
 from factory.domain.settings import InstanceSettings
 from git_support import install_agents
-from probe_support import ENVIRONMENT
+from probe_support import ENVIRONMENT, opencode_died, opencode_sso_hint
 
-DIED = "the probe run ended died; run opencode run by hand as agent to see why"
+DIED = opencode_died("agent")
 API_HINT = (
     "; the agent's API key is read from /home/agent/.anthropic-api-key: "
     "check that it is valid and that its account has credit"
 )
-SSO_HINT = (
-    "; the agent runs get no API key: log in once as agent with the opencode build's own "
-    "login, or put a key in the file FACTORY_API_LOGIN_FILE names"
-)
+SSO_HINT = opencode_sso_hint("agent")
 
 
 @pytest.fixture
