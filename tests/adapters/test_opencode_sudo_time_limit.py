@@ -2,14 +2,12 @@
 
 import json
 import time
-from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
 from adapters.claude_stand_in import Step
 from adapters.opencode_stand_in import (
-    BOUND_SECONDS,
     MODELS,
     SESSION,
     WAIT_SECONDS,
@@ -22,11 +20,10 @@ from adapters.test_agent_launch_login import API_LOGIN
 from adapters.test_claude_runtime_os_user import _write_sudo
 from confine_support import write_script
 from factory.adapters.opencode_runtime import OpencodeRuntime
+from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
-# A few seconds, so the child has room to start; the stand-ins wait far longer.
-LIMIT = timedelta(seconds=3)
 # Past the limit, well inside the grace `sudo` calls get on top of it.
-PAST_LIMIT_SECONDS = 4.5
+PAST_LIMIT_SECONDS = ROOMY_LIMIT.total_seconds() + 1.5
 STARTED = stdout(step_start())
 
 # A `sudo` that runs nothing: it prints a step, waits past the limit, then ends as planned.
@@ -94,13 +91,13 @@ def test_under_sudo_a_kill_at_the_limit_ends_time_limit_and_keeps_session_and_lo
         sudo_executable=str(sudo),
         api_login_file=api,
     )
-    request = opencode_request(tmp_path / "work", os_user="agent", time_limit=LIMIT)
+    request = opencode_request(tmp_path / "work", os_user="agent", time_limit=ROOMY_LIMIT)
 
     started = time.monotonic()
     result = runtime.run(request)
     elapsed = time.monotonic() - started
 
     assert result.end_reason == end_reason
-    assert elapsed < BOUND_SECONDS
+    assert elapsed < ROOMY_BOUND_SECONDS
     if sudo_kind == "passing" and end_reason == "time_limit":
         assert (result.session, result.login) == (SESSION, "api_key")

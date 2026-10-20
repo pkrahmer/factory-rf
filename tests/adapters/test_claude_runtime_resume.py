@@ -25,6 +25,8 @@ from factory.domain.agent_runs import (
 )
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from run_process_recorder import Recorder
+from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 LIMIT = timedelta(seconds=30)
 RUN_FILES = ("instructions-*.md", "guard-*.json", "hooks-*.json")
@@ -234,34 +236,37 @@ def test_first_call_ended_by_the_time_limit_is_not_resumed(tmp_path: Path) -> No
     steps = [Step(stdout=_budget_reply(), wait_seconds=60), Step(stdout=_reply())]
     runtime = _runtime(tmp_path, steps)
 
-    result = runtime.run(_request(tmp_path, time_limit=timedelta(seconds=1)))
+    result = runtime.run(_request(tmp_path, time_limit=ROOMY_LIMIT))
 
     assert result.end_reason == "time_limit"
     assert len(_calls(tmp_path)) == 1
 
 
 def test_resume_gets_what_is_left_of_the_time_limit_and_unknown_measures(
-    tmp_path: Path,
+    tmp_path: Path, recorder: Recorder
 ) -> None:
     steps = [
-        Step(stdout=_budget_reply(num_turns=5, total_cost_usd=3.0), wait_seconds=1),
+        Step(stdout=_budget_reply(num_turns=5, total_cost_usd=3.0), wait_seconds=2),
         Step(stdout=_reply(), wait_seconds=60),
     ]
     runtime = _runtime(tmp_path, steps)
 
     started = time.monotonic()
-    result = runtime.run(_request(tmp_path, time_limit=timedelta(seconds=2)))
+    result = runtime.run(_request(tmp_path, time_limit=ROOMY_LIMIT))
     elapsed = time.monotonic() - started
 
-    assert elapsed < 5
-    # A resume given the whole 2 seconds again would end near 3 seconds.
-    assert elapsed < 2.9
+    assert elapsed < ROOMY_BOUND_SECONDS
     assert len(_calls(tmp_path)) == 2
     assert result.end_reason == "time_limit"
     assert result.turns is None
     assert result.cost_usd is None
     assert result.tokens is None
-    assert result.duration >= timedelta(seconds=1)
+    assert result.duration >= timedelta(seconds=2)
+    # The resume is handed what the first call left, not the whole limit again.
+    resume_limit = recorder.requests[1].time_limit
+    assert resume_limit is not None
+    assert ROOMY_LIMIT - timedelta(seconds=elapsed) <= resume_limit
+    assert resume_limit <= ROOMY_LIMIT - timedelta(seconds=2)
 
 
 @pytest.mark.parametrize(
@@ -459,7 +464,7 @@ def test_call_killed_by_the_time_limit_has_no_model_duration(tmp_path: Path, par
     steps = [Step(stdout_before_wait=partial, wait_seconds=60, stdout=_reply())]
     runtime = _runtime(tmp_path, steps)
 
-    result = runtime.run(_request(tmp_path, time_limit=timedelta(seconds=2)))
+    result = runtime.run(_request(tmp_path, time_limit=ROOMY_LIMIT))
 
     assert result.end_reason == "time_limit"
     assert result.model_duration is None
@@ -490,7 +495,7 @@ def test_call_killed_by_the_time_limit_has_no_model_duration(tmp_path: Path, par
         (
             Step(stdout=_budget_reply(duration_api_ms=30000)),
             Step(stdout=_reply(duration_api_ms=5000), wait_seconds=60),
-            timedelta(seconds=5),
+            ROOMY_LIMIT,
             None,
         ),
     ],

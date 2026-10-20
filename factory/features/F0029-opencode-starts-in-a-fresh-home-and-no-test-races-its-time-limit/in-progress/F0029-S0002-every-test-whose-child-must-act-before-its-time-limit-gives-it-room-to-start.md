@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T07:16:55.360492Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T07:16:55.360492Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T07:21:51.838372Z'
+  stage: tests
+  run: 3c421e11ceea42c0bfe4397e6e13b882
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -121,3 +123,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: tests only, under `tests/` at the root for the shared module and in the mirrored `tests/adapters/` for the changed ones. This follows CLAUDE.md. Nothing in `src/` or the layers is touched.
    Scope: within the feature's S0002 scope and decisions 6, 7, 9 and 10. It stays out of the feature's "Out of scope" (shipped tester lesson, `RUNTIME_FOLDERS`, short-limit tests). The leave to change other stories' tests is given by the feature's decision 9. The `CLAUDE.md` rule is the human's change 2, not this story's. No questions.
 4. factory: started tests as self.
+5. tester: Wrote the shared limits module and changed the tests the Interface names. The feature's decision 9 gives the leave to change another story's tests. Each changed test keeps its name and what it checks. No production code changes, so the tests are green rather than red. `make test` passed in one run (coverage 99.16 %). `make lint` and `make types` are green. The coder has nothing to build and can go straight to `make check` and the docs criterion.
+
+   Criterion → test:
+   criterion 1: tests/test_time_limits.py::test_the_roomy_limit_leaves_room_and_stays_below_every_wait (rows: the limit, the bound, the room between them, the four `WAIT_SECONDS` above the bound, and `PAST_LIMIT_SECONDS` above the limit and below the bound)
+   criterion 2: tests/adapters/test_claude_runtime_confinement.py::test_the_temporary_folder_is_empty_at_each_call_and_gone_after_the_run[time-limit], ::test_a_wrapper_line_of_a_call_killed_at_its_time_limit_is_a_runtime_error; tests/adapters/test_claude_runtime_provider_limit.py::test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit; tests/adapters/test_claude_runtime_resume.py::test_first_call_ended_by_the_time_limit_is_not_resumed, ::test_call_killed_by_the_time_limit_has_no_model_duration (both rows), ::test_model_duration_of_a_resumed_run_adds_the_known_calls[resume ended by the time limit]; tests/adapters/test_opencode_budget.py::test_a_resume_past_what_is_left_of_the_time_limit_ends_the_run_by_time_limit; tests/adapters/test_opencode_resume_session.py::test_a_run_resumes_the_named_session_and_reports_the_first_session_of_its_events (rows timed-out-with-events, timed-out-resumed-without-events, last assertion); tests/adapters/test_opencode_events.py::test_a_call_past_its_time_limit_ends_by_time_limit_without_measures; tests/adapters/test_opencode_confinement.py::test_through_the_wrapper_the_temporary_root_is_empty_after_the_run[time-limit]; tests/adapters/test_opencode_sudo_time_limit.py::test_under_sudo_a_kill_at_the_limit_ends_time_limit_and_keeps_session_and_login (all four rows)
+   criterion 3: tests/adapters/test_process.py::test_child_is_killed_at_the_time_limit, ::test_grandchild_is_killed_with_the_child_at_the_time_limit (now also bounds the elapsed time by `ROOMY_BOUND_SECONDS`, as criterion 3 asks); tests/adapters/test_process_streaming.py::test_child_is_killed_at_the_time_limit_and_no_later_line_is_passed, ::test_child_that_closed_its_streams_is_killed_at_the_time_limit; tests/adapters/test_make_commands.py::test_command_reaching_its_time_limit_is_killed
+   criterion 4: tests/adapters/test_claude_runtime_resume.py::test_resume_gets_what_is_left_of_the_time_limit_and_unknown_measures (rewritten with the `recorder` fixture)
+   criterion 5: tests/adapters/test_make_commands.py::test_time_limit_of_one_second_runs (rewritten with `Recorder` through monkeypatch); test_time_limit_of_zero_or_less_is_rejected is unchanged
+   criteria 6, 7: no test (`make check`, docs).
+
+   Files created: tests/time_limits.py (as the Interface gives it), tests/test_time_limits.py.
+   Files changed (earlier stories' tests, under the feature's decision 9): tests/adapters/test_claude_runtime_confinement.py, test_claude_runtime_provider_limit.py, test_claude_runtime_resume.py, test_opencode_budget.py, test_opencode_resume_session.py (`SHORT_LIMIT` removed), test_opencode_events.py (`SHORT_LIMIT`, `ELAPSED_BOUND` and their comment removed), test_opencode_confinement.py (`SHORT_LIMIT`, its comment and the `BOUND_SECONDS` import removed), test_opencode_sudo_time_limit.py (`LIMIT`, its comment and the `BOUND_SECONDS` and `timedelta` imports removed; `PAST_LIMIT_SECONDS = ROOMY_LIMIT.total_seconds() + 1.5`), test_process.py, test_process_streaming.py (`RETURNS_WITHIN_SECONDS` kept for its other tests), test_make_commands.py. In test_claude_runtime_confinement.py, `SHORT_LIMIT` and `ELAPSED_BOUND` are kept for the removal test. `ruff check --fix` also removed the import of `timedelta` that test_opencode_budget.py no longer uses.
+
+   Open: the Interface asks for "the comment the feature gives" in three places (`SHORT_LIMIT` in test_claude_runtime_confinement.py, the grandchild test in test_process.py, and test_command_reaching_its_time_limit_is_killed). This stage may not read `feature.md`, so I wrote those comments myself in the same sense: the roomy limit because the child may need seconds to start, and the short limit kept only for a removal that need not start to be ended. If the feature's exact wording matters, the reviewer can compare them.
+
+   No module failed to import.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (79.3 s)

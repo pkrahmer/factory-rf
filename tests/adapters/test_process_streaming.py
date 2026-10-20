@@ -16,6 +16,7 @@ from factory.adapters.process import (
     run_streaming,
 )
 from process_support import Recorder, is_gone, python_argv
+from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 # A child that starts a grandchild, writes its pid to `sys.argv[1]` and then runs `REST`.
 GRANDCHILD = (
@@ -143,11 +144,11 @@ def test_child_is_killed_at_the_time_limit_and_no_later_line_is_passed(tmp_path:
     start = time.monotonic()
 
     result = run_streaming(
-        ProcessRequest(argv=python_argv(code), cwd=tmp_path, time_limit=timedelta(seconds=3)),
+        ProcessRequest(argv=python_argv(code), cwd=tmp_path, time_limit=ROOMY_LIMIT),
         recorder,
     )
 
-    assert time.monotonic() - start < RETURNS_WITHIN_SECONDS
+    assert time.monotonic() - start < ROOMY_BOUND_SECONDS
     assert result.timed_out is True
     assert result.stopped is False
     assert result.exit_status is None
@@ -169,12 +170,12 @@ def test_child_that_closed_its_streams_is_killed_at_the_time_limit(tmp_path: Pat
         ProcessRequest(
             argv=python_argv(code, str(pid_file)),
             cwd=tmp_path,
-            time_limit=timedelta(seconds=3),
+            time_limit=ROOMY_LIMIT,
         ),
         Recorder(),
     )
 
-    assert time.monotonic() - start < RETURNS_WITHIN_SECONDS
+    assert time.monotonic() - start < ROOMY_BOUND_SECONDS
     assert result.timed_out is True
     assert result.stopped is False
     assert result.exit_status is None
