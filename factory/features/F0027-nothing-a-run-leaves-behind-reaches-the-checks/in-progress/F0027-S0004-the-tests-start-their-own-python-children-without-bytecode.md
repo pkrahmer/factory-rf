@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 358
-comments_read: []
+comments_read: [6299016224]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 388a832dedee41a0803c6214ee34f9ae
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-20T19:10:00.309747Z'
+  stage: intake
 ---
 
 # The tests start their own Python children without bytecode
@@ -107,3 +112,6 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    2. Minor, answer only if you disagree. Criterion 2 checks the stand-in `sudo`'s first line and mode. The Interface says `_write_sudo` returns the same path as before. The criterion does not test the path. I will read "same path" as `directory / "sudo"`, covered by the stand-in's location in the existing tests.
 
    Everything else holds. Format check passed. The three changed helpers and the eight shebang writers are at the named lines (I checked with grep). `import sys` is used outside `SUDO_SCRIPT` only inside the script text, so dropping it is right. The smoke test commands are runnable and none runs pytest, so no `-q` issue arises. The scope is within F0027's scope, and decision 16 grants the leave for S0004. No `src/` module changes, so the layers are untouched.
+4. 2026-10-20 human: Answers (2026-10-20):
+   1. (a). The matcher rows build the text from pieces, and criterion 3 says that no line of the module holds the literal text; the scan reads its own module like any other, and the smoke test's grep stays at `0`.
+   2. Agreed: "same path" is `directory / "sudo"`, as the existing tests use it.
