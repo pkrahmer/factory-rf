@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 367
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T22:52:07.634926Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T22:52:07.634926Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T22:52:29.377963Z'
+  stage: review
+  run: 197e98e6e8d64995a6498309ced3184e
 ---
 
 # The shared time limits' test names the values of a relation that broke
@@ -164,3 +166,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 6 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` contains one file, `tests/test_time_limits.py`, plus the work item. Nothing under `src/` changed, which matches the Interface.
+
+   - Criterion 1: `test_the_roomy_limit_leaves_room_and_stays_below_every_wait` keeps its name and its nine ids (limit, bound, room, claude-confinement-wait, stand-in-wait, resume-session-wait, events-wait, sudo-past-limit, sudo-within-bound). Each row is now `(left, relation, right)` and states the same relation as the old `bool`, with the same constants from the same modules. The `limit` row changed from `timedelta(seconds=10) == ROOMY_LIMIT` to `ROOMY_LIMIT.total_seconds() eq 10.0`, which means the same thing and is the form the Interface writes. The failure message is `f"{left} {relation.__name__} {right}"`, as the Interface says.
+   - Criterion 2: `test_a_relation_that_breaks_names_its_values` is one parametrized test with two rows. `broken` (30 gt 30) checks that the first line of the `AssertionError` message is `30 gt 30`. `holds` (11.5 lt 25) checks that the call returns without raising. Both sides of the one rule are covered, as rows of the same test.
+   - Criterion 3: the factory's `make check` after the coder was green (entry 7: `check: green`).
+   - Criterion 4: docs: none, with a reason that still holds; `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS` stay as they are.
+   - `timedelta` is no longer imported. `operator` and `collections.abc.Callable` were added and are used. There is no dead code, and no helper is copied.
+   - Architecture and security: the change is test-only, at the `tests/` root, which is right for testing a module outside the layers. It adds no suppression marker.
+   - Work item hygiene: the Description matches what was built. The tester's and the coder's entries explain the empty coder diff and why the tests were green from the start.
+
+   Earlier tests:
+   - `tests/test_time_limits.py` (M, written by F0029-S0002): changed under the human's leave in `feature.md`, decision 9, S0003 (the human, 2026-10-20). The change stays within that leave: same test name, nine row ids and relations, the message, the new test, and the `timedelta` import removed.
