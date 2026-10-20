@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 331
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T04:15:54.515694Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T04:15:54.515694Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T04:16:16.802675Z'
+  stage: smoke-test
+  run: a5aa493e820648e9880dde38a690f4ef
 ---
 
 # The playbook and the project guide say the reviewer corrects a stale Description
@@ -179,3 +181,37 @@ Expect: two lines, `0` (the count of three is gone) and a number of at least `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: I ran the three smoke-test commands exactly as written, in order, from the repository root. All three matched their `Expect:` line. No findings.
+
+    Command 1, the three old playbook strings:
+    ```
+    gone
+    gone
+    gone
+    ```
+    Expect: three lines `gone`. Met.
+
+    Command 2, the new section 7 state:
+    ```
+    1
+    ```
+    Expect: `1`. Met.
+
+    Command 3, the old count and the story id in agents.md:
+    ```
+    0
+    1
+    ```
+    Expect: two lines, `0` and at least `1`. Met.
+
+    Check against the acceptance criteria: I read `git diff main...HEAD -- docs/` and compared it with criterion 2.
+    - `docs/operator-playbook.md` section 3: the stale-Description bullet says the reviewer rewrites it when the human's answers, the Interface or the criteria settle what it should say (F0034). It says an answer that settles the meaning is enough and names `description corrected:`. "Until a story gives the reviewer that edit" is gone.
+    - Section 5: the row now ends with "the reviewer rewrites a stale Description (F0034)".
+    - Section 7: the row has the state `built (F0034, the reviewer may correct a stale story Description)`.
+    - Item 17 of *What changed against the draft* is not in the diff, so it is unchanged.
+    - `docs/project-guide/agents.md`: the sentence now says "Six passages". It keeps the three it listed and adds the reviewer's three *Role* paragraphs (the `Notes:` from round 1 on and the added criterion, F0021-S0005; the correction of a stale Description, F0034-S0001). The renaming table's lead-in says "the six passages", the same count.
+    - `README.md`, `docs/operator-guide.md` and `docs/decisions.md` are not in the diff, as the criterion says.
+
+    Criterion 1 (`make check` green): I did not run `make check` in this stage. The factory's record in entry 11 shows `check: green`, reused from tree 450879e8d6a9. The docs stage's `secrets` and `documents` checks were green.
+
+    The smoke test contradicts no criterion. Nothing is open.
