@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T01:26:59.742643Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T01:26:59.736860Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:26:59.742643Z'
+  stage: intake
+---
+
 # The tests pin text at a section's edge in the sections, the journal and the story form
 
 ## Description
@@ -50,3 +77,6 @@ EOF
 Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `created.`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
