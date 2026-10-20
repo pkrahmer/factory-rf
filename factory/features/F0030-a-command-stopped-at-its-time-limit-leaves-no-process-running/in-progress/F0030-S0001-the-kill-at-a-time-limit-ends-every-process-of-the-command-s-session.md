@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T08:40:03.193981Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T08:39:42.082635Z'
   stage: tests
   run: 929b95205b9d44c9bfeacfb879bb3808
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T08:40:03.193981Z'
+  stage: doing
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -163,3 +172,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/domain/test_sessions.py - ImportError while importing test module...
+6. factory: started doing as self.
