@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T18:40:57.863065Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -141,6 +145,11 @@ journal:
   at: '2026-10-20T18:40:36.807297Z'
   stage: review
   run: 19b1bbea33e940be8ae3873913d0e700
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-20T18:40:57.863065Z'
+  stage: doing
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -442,3 +451,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     What I checked in the code: the two paths (own user and another user); the order of the judgements (kill at the limit, then refusal, then the leftovers call whatever the result, refusal winning over a leftovers fault); and the reuse of `launch`, `killed_at_limit`, `SUDO_PREFIX`, `leftovers_launch`, `leftovers_fault` and `LEFTOVERS_FAULT`. The layers hold, and nothing in the diff silences a check. The factory's `make check` after the coder was green (entry 22).
 
     Earlier tests: none. The diff only adds `tests/adapters/test_make_commands_user.py` and changes no test file that `main` already holds.
+25. factory: started doing as self.
