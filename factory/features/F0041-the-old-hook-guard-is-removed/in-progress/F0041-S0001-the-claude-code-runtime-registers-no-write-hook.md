@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T10:25:08.060565Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-20T10:24:47.078402Z'
   stage: tests
   run: c4049a4943874ceca6245b25ff1185f6
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:25:08.060565Z'
+  stage: doing
 ---
 
 # The Claude Code runtime registers no write hook
@@ -280,3 +289,4 @@ Expect: `7`
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (154.7 s)
+14. factory: started doing as self.
