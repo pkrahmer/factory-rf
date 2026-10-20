@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 359
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T19:23:07.138994Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T19:23:07.138994Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T19:25:45.153723Z'
+  stage: tests
+  run: 0446e2f5433f418b8e017213cc9a4b04
 ---
 
 # The documents say what an ignored path the factory cannot remove does
@@ -90,3 +92,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: nothing in `src/` changes. The documents are in the documenter's write paths (`docs/*`), and `README.md` is correctly left out. The sections the docs criterion names exist: *The project's make targets* (`docs/operator-guide.md:74`), *Boundaries* (`docs/project-guide/watching.md:260`) and the decision entry *The factory removes the git-ignored paths after every agent run and at the restore* (`docs/decisions.md:934`). The `umask=0002` bullet and the `checkout_restore_failed` row (line 858) are also in the operator guide.
    - Scope: the story is within F0027's scope, since the feature lists `docs/operator-guide.md`, `docs/project-guide/` and `docs/decisions.md` as documentation. The story is proposed by F0027-A0001 (the feature's acceptance), and none of it is in the feature's "Out of scope". The S0004 and S0005 references to the Makefile quick fix match the feature's change 5.
 4. factory: started tests as self.
+5. tester: This story only changes documents, and its Interface says "None: documents only". So I wrote no tests and changed nothing under `src/` or `tests/`.
+
+   - criterion 1 (nothing under `src/` or `tests/` changes): no test function. It is kept by this stage and the coder's adding nothing there. I changed nothing under `src/` or `tests/` and created no files.
+   - criterion 2 (`make check` stays green): no test function. The factory runs `make check` after the coder.
+   - criterion 3 (the docs): no test function. It is the documenter's work, and the story's smoke test checks it with three `grep` commands (`a bytecode folder`, `records it as a crash`, the `build_boundaries` signature in `docs/project-guide/watching.md`). I did not repeat those checks in pytest, because the criteria say no test changes.
+
+   Files created: none. Modules the test run could not import: none. `make test` ran once and is green (`test: green`, coverage 99.17 %). There are no red tests, because nothing is left for the coder to implement in code. `make lint` is green.
+
+   I did not have to interpret any criterion, so nothing is left open.
+
+   `lint`: lint: green (0.8 s)
+   `test`: test: green (70.4 s)
