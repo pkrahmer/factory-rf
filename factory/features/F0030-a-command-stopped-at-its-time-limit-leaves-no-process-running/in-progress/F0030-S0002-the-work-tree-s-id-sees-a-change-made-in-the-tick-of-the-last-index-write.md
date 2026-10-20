@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 369
 comments_read: [6303767591]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T23:14:29.714199Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-20T23:14:29.714199Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T23:14:52.468677Z'
+  stage: smoke-test
+  run: 0924069c43d54d2aa75d271ea380de9d
 ---
 
 # The work tree's id sees a change made in the tick of the last index write
@@ -224,3 +226,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 15. factory: started smoke-test as self.
+16. smoke-tester: Smoke test passed with no findings.
+
+    I ran the one block under `## Smoke test` exactly as written, from the repository root, in a single bash shell. It made its own `mktemp -d` folder and removed it on exit through its trap.
+
+    Command: the whole block (a throwaway repo with `core.trustctime false`; `kept.log` committed with `GitCli.commit`, rewritten to the same size, and the times of the file and `.git/index` set to the same past value; then `work_tree_id()` compared with `HEAD^{tree}` after `commit("edit")`).
+
+    ```
+    True
+    exit=0
+    ```
+
+    Expect: `True`. Met.
+
+    Acceptance criteria, read again against the run:
+    1. A change in the tick of the last index write is seen: the smoke test runs the `same-size` case (`one\n` to `two\n`) against the real `GitCli` and prints `True`, so the id names the changed tree. Nothing contradicts the `other-size` row. The branch's change is `shutil.copy2(own_index, index)` at `src/factory/adapters/git_cli.py:427`, as the Interface says.
+    2. `make check` stays green: the smoke test contradicts nothing here. Entries 10 and 14 report `check: green`, and the factory runs the gate itself.
+    3. docs: `docs/decisions.md:970` has the entry *The work tree's id copies the index with its timestamps*, and `docs/project-guide/git-and-hosting.md` is changed. `README.md` is untouched, as the criterion asks. Nothing contradicts it.
+
+    Findings: none. I fixed nothing and changed no file. Skills: none used.
