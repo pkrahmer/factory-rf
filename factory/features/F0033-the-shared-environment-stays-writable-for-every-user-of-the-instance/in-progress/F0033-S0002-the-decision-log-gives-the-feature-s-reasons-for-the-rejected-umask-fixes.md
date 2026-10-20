@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 326
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T03:46:27.348948Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T03:46:06.867348Z'
   stage: review
   run: f69069da09bc4b708df15c8d91814fb5
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:46:27.348948Z'
+  stage: docs
 ---
 
 # The decision log gives the feature's reasons for the rejected umask fixes
@@ -125,3 +134,4 @@ Expect: `0`
    - 2 to 4, architecture, security and quality: no code or configuration changed, so there is nothing to judge. The `duplicates: 5 new` record after the coder cannot come from this branch, because it changes nothing under `src/factory`. It is not under review here.
    - 5, work item hygiene: the journal explains why the coder built nothing: the decision log belongs to the documenter. The `## Description` matches what was built, which is nothing yet. Criterion 2 names every edit to the entry *The tests set their own umask, and uv syncs under the caller's*: the reverse direction, the three reasons, the phrase that goes, and what stays. It also names the documents that need no change, so the documenter can work from it.
    - 6, earlier tests: the diff changes, renames or deletes no test file.
+10. factory: started docs as self.
