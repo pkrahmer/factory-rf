@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 315
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T01:51:08.331366Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T01:51:08.331366Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T01:54:25.524657Z'
+  stage: tests
+  run: a51c56aa11c348bba549e8d58e1a10ad
 ---
 
 # The tests pin seven small rules on both sides
@@ -110,3 +112,31 @@ Expect: four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`
    - Architecture: all behaviour lives in `factory.domain`, with tests under `tests/domain/` and one shared module at the `tests/` root. No layer is crossed.
    - Scope: within F0028's Scope entry for S0004, and none of it is in the feature's Out of scope. The two guards of decision 4 are pinned by criteria 8 and 9, as decided there.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 9. The story says the code already behaves this way, so the tests pass now and are not red: the one `make test` run ended `test: green (39.0 s)`. `make lint` is green. The code under test already exists, so I also ran `make types`, which is green too.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_tick_status_mark.py::test_only_entries_matching_key_and_state_are_marked_reported
+   - criterion 2: tests/domain/test_provider_limits_one_second.py::test_a_named_wait_of_one_second_is_a_wait_and_of_zero_none
+   - criterion 3: tests/domain/test_resumed_result_time_limit.py::test_a_resume_ended_by_its_time_limit_keeps_a_session_and_sums_durations
+   - criterion 4: tests/domain/test_duplicates_skipped_lines.py::test_a_skipped_element_or_line_leaves_what_follows_it_read
+   - criterion 5: tests/domain/test_errors_agent_definition.py::test_an_agent_definition_error_names_its_agent_only_when_it_has_one
+   - criterion 6: tests/domain/test_send_back_records.py::test_the_send_back_reads_records_only_from_a_state_and_since_the_latest_result
+   - criterion 7: tests/domain/test_evaluation_details.py::test_the_human_tiers_events_carry_their_exact_detail
+   - criterion 8: tests/domain/test_evaluation_details.py::test_a_question_is_posted_only_for_a_work_item_with_a_state
+   - criterion 9: tests/domain/test_evaluation_details.py::test_the_agent_tier_follows_the_claim_status
+   - criteria 10 and 11: no test (`make check` and docs: none).
+
+   Files created: tests/evaluation_support.py and the seven test modules above.
+
+   Earlier test file changed under the standing leave in CLAUDE.md (*Tests*): tests/domain/test_evaluation.py.
+   - These helpers moved to tests/evaluation_support.py: `DEFINITION`, `_snapshot`, `_blocked`, `_at_approval`, `_claimed`, `_view`, `_factory_comment`, `_Lookup`, `_ClaimStatus` and `_evaluate`.
+   - So did what they depend on: `MAIN`, `BRANCH_COMMIT`, `MERGE_COMMIT`, `PULL_REQUEST`, `OTHER_INSTANCE`, `AT`, `_id`, `_journal` and `_facts`.
+   - test_evaluation.py now imports them from there. Its own `_runnable` and `_human_comment` stay in it, and every test keeps its name and what it checks.
+   - No other earlier test changed.
+
+   In criterion 6, the row with a result after the comment checks only `reason_given`, because the criterion names nothing else for that row.
+
+   Modules the test run could not import: none. No `src/` change is expected from the coder.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (38.5 s)
