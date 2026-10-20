@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T02:48:06.841056Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T02:48:06.841056Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-20T02:50:00.352346Z'
+  stage: tests
+  run: c82a8cbbc38d4f1e8a59853d348ba2c3
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -194,3 +196,20 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
 
     Noticed, not touched: `tests/application/test_agent_run_probe_api_login.py:22` has its own `DIED` for `claude -p`. Its text is different (claude, not opencode), so it is not part of this move.
 12. factory: started tests as self.
+13. tester: Round 1: I moved the shared test helper that the coder's entry 11 names (the reviewer's finding 1, entry 9). I made the move under the standing leave in `CLAUDE.md` to move a shared test helper.
+
+    - The shared place: `tests/probe_support.py` now has `opencode_died(user)`, which is the "died" sentence of a probe under opencode run as `user`, and `opencode_sso_hint(user)`, which is the "no API key" hint for `user`. I split the text in two because the `no-login` row of the earlier test checks the died sentence alone. The module's docstring now names the opencode texts.
+    - The earlier test file changed: `tests/application/test_agent_run_probe_opencode.py`. `DIED` is now `opencode_died("agent")` and `SSO_HINT` is now `opencode_sso_hint("agent")`. `API_HINT` keeps its own text. The test keeps its name, its rows and the strings it compares.
+    - The new test: `tests/application/test_agent_run_probe_factory_user.py` no longer has its own `HINT`. It asserts `opencode_died(named) + opencode_sso_hint(named)`.
+
+    The mapping is unchanged:
+    - criterion 1: tests/application/test_dispatcher_without_state.py::test_the_error_report_of_a_work_item_without_a_state_opens_a_draft
+    - criterion 2: tests/application/test_board_in_progress.py::test_a_feature_row_counts_one_story_in_each_folder
+    - criterion 3: tests/application/test_agent_run_probe_factory_user.py::test_the_opencode_login_hint_names_the_agent_user_or_the_factory_user
+    - criterion 4: `make check`, the factory's gate. It has no test of its own.
+    - criterion 5: docs: none. It has no test.
+
+    Files created: none this round. The files changed are `tests/probe_support.py` and the two test modules above. No module failed to import. `make test` is green (`test: green (45.9 s)`, coverage 99.14 %) and `make lint` is green. I skipped the type check, as the stage says. Nothing is open.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (38.2 s)

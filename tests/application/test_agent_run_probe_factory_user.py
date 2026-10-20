@@ -11,13 +11,7 @@ from factory.application.preflight import agent_run_probe_item
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.settings import InstanceSettings
 from git_support import install_agents
-from probe_support import ENVIRONMENT
-
-HINT = (
-    "the probe run ended died; run opencode run by hand as {user} to see why; "
-    "the agent runs get no API key: log in once as {user} with the opencode build's own "
-    "login, or put a key in the file FACTORY_API_LOGIN_FILE names"
-)
+from probe_support import ENVIRONMENT, opencode_died, opencode_sso_hint
 
 
 @pytest.mark.parametrize(
@@ -52,4 +46,4 @@ def test_the_opencode_login_hint_names_the_agent_user_or_the_factory_user(
 
     detail = agent_run_probe_item(boundaries, settings, ENVIRONMENT).detail
 
-    assert detail == HINT.format(user=named)
+    assert detail == opencode_died(named) + opencode_sso_hint(named)
