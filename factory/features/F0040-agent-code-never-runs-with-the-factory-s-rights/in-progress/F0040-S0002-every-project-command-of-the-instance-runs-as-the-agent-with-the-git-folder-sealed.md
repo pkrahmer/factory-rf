@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368, 6300375333]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T20:17:33.296287Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-10-20T20:17:11.300182Z'
   stage: doing
   run: 9710e450a6cf445f947fac42f0aae82d
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:17:33.296287Z'
+  stage: review
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -426,3 +435,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+26. factory: started review as self.
