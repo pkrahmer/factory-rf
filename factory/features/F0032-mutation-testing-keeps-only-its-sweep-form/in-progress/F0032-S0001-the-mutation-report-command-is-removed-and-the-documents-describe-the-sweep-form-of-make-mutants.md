@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 307
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T00:17:34.947766Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T00:17:34.947766Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T00:19:32.263066Z'
+  stage: tests
+  run: 5023b3d483074ed3affc9963113d4022
 ---
 
 # The mutation report command is removed and the documents describe the sweep form of `make mutants`
@@ -96,3 +98,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: it removes a domain module and an entry module and leaves the layer order alone. It writes no new code under `src/`. `factory.entry.inputs` stays with its one remaining user.
    Scope: it matches the feature's Scope list, including the four documents and the removal of the two test modules. It touches nothing in the feature's Out of scope list (`inputs`, `[tool.mutmut]`, `command_line`'s suffix, the template and the demo recipes, `pipeline.yml`).
 4. factory: started tests as self.
+5. tester: I wrote the one new test module and removed the two earlier test modules, as the Interface says.
+
+   - criterion 1: tests/entry/test_mutation_report_removed.py::test_the_mutation_report_is_removed_and_the_input_reader_stays. It has four rows over `importlib.util.find_spec`: `factory.entry.check_mutants` not found, `factory.domain.mutants` not found, `factory.entry.inputs` found, `factory.entry.check_duplicates` found.
+   - criterion 2: I wrote no new test for this one. I deleted `tests/entry/test_check_mutants.py` and `tests/domain/test_mutants.py` from the working tree under the leave of the feature's decision 9. `git rm` was refused (`.git/index.lock` Permission denied), so I used a plain `rm` and the factory's commit stages the deletion. The six named earlier tests stay as they are and pass now: `test_inputs`, `test_check_duplicates`, `test_command_line_time_limit`, `test_stage_time_limited_report`, `test_template_makefile` and `test_claude_agent_texts_mutants`.
+   - criterion 3: `make check`, the coder's job.
+   - criterion 4 (docs): the documenter's job; no test.
+
+   Files created: tests/entry/test_mutation_report_removed.py. Files deleted: tests/entry/test_check_mutants.py, tests/domain/test_mutants.py. I changed no other earlier test file.
+
+   `make test`: the test runner could import every module. The report-command and report-rules rows fail on purpose because the two modules still exist; the coder removes `src/factory/entry/check_mutants.py` and `src/factory/domain/mutants.py`. Every other test passes. `make lint` is green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/entry/test_mutation_report_removed.py::test_the_mutation_report_is_removed_and_the_input_reader_stays[report-rules]
