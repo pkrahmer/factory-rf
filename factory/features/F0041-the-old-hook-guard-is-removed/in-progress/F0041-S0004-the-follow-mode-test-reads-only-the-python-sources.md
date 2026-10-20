@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 352
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T12:54:53.370489Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T12:54:32.389507Z'
   stage: docs
   run: c4562669b52e45b1821b00ca9bd9f683
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:54:53.370489Z'
+  stage: smoke-test
 ---
 
 # The follow-mode test reads only the Python sources
@@ -207,3 +216,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree a7f65c68ac2d at 2026-10-20T12:51:22Z)
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
