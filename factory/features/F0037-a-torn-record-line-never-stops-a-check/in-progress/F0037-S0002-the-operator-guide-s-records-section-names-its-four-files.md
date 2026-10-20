@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T23:32:14.582026Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T23:32:14.576190Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:32:14.582026Z'
+  stage: intake
+---
+
 # The operator guide's records section names its four files
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -38,3 +65,6 @@ uv run python -m factory.entry.check_documents
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
