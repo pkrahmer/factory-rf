@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 363
 comments_read: [6300695093]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T20:25:59.533786Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-20T20:25:59.533786Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-20T20:26:27.866780Z'
+  stage: intake
+  run: a2860186deba4903acdaa9053f0577f5
 ---
 
 # A call no longer waits for a process that keeps its output open after the call's own process ended
@@ -90,13 +92,15 @@ Tests (the tester writes them): `tests/adapters/test_process_drain.py`. A holder
 
 ## Acceptance criteria
 
-1. A child that prints `done` and exits 0 at once beside a holder (rows of one parametrized test: `run_process` with the holder on standard output; `run_process` with the holder on standard error, not merged; `run_streaming` with the holder on standard output; each with a `time_limit` of 60 seconds, and `run_process` also without one): the result has `exit_status` 0, `timed_out` false, `output_abandoned` true and `done` in its standard output (for `run_streaming`, `on_line` got `done`), after at least 2 and less than 20 seconds; the holder is still running when the call returns.
-2. The other side (rows of one parametrized test, `run_process` and `run_streaming`): a child that exits 0 at once beside a grandchild in a session of its own that writes `late` to the inherited standard output 1 second later and then exits gives `output_abandoned` false and `late` in the output, in less than 15 seconds, before the drain of 2 seconds could have run out after it; a child that exits 0 with no descendant gives `output_abandoned` false.
+1. A child that prints `done` and exits 0 at once beside a holder (rows of one parametrized test: `run_process` with the holder on standard output; `run_process` with the holder on standard error, not merged; `run_streaming` with the holder on standard output; each with a `time_limit` of 60 seconds, and `run_process` and `run_streaming` also without one): the result has `exit_status` 0, `timed_out` false, `output_abandoned` true and `done` in its standard output (for `run_streaming`, `on_line` got `done`), after at least 2 and less than 20 seconds; the holder is still running when the call returns.
+2. The other side (rows of one parametrized test, `run_process` and `run_streaming`): a child that exits 0 at once beside a grandchild in a session of its own that writes `late` to the inherited standard output 1 second later and then exits gives `output_abandoned` false and `late` in the output, the call returning after at least 1 and less than 15 seconds; the same with a grandchild that writes `late` 1.5 seconds later (the end of the child is noticed in time, so the line is read in full within the drain of 2 seconds); a child that exits 0 with no descendant gives `output_abandoned` false.
 3. After the kill (`run_process`): a child that prints `started`, starts a holder and sleeps 60 seconds, with a `time_limit` of 3 seconds, gives `exit_status` `None`, `timed_out` true, `output_abandoned` true and `started` in the output, after at least 3 and less than 25 seconds. The same child without a holder gives `output_abandoned` false.
-4. `run_streaming` at its time limit beside a holder: `timed_out` true, `output_abandoned` false, as today.
+4. `run_streaming` beside a holder, rows of one parametrized test: at its time limit (`timed_out` true); a stop by `on_line` returning True (`stopped` true); an exception from `on_line` (it propagates); each with `output_abandoned` false, as today.
 5. `PIPE_DRAIN` is 5 seconds, and `ProcessResult(exit_status=0, stdout="", stderr="", timed_out=False, duration=timedelta(0)).output_abandoned` is false.
-6. `make check` stays green.
-7. docs: `docs/project-guide/processes-and-checks.md`, *Starting a process*: `PIPE_DRAIN`, `output_abandoned`, the read after the child's end and after the kill, in the paragraphs on `run_process`, `ProcessResult` and `run_streaming`; the paragraph *Known limits* is replaced: a process that left the session and keeps a pipe holds the call for at most `PIPE_DRAIN` after the child's end or the kill, not until it ends; it is not killed by this module (the leftovers program ends it after a call as another user). `docs/operator-guide.md`, **A `time_limit` under `sudo`.**: a call under `sudo` returns at most 5 seconds after the inner kill, also when a process of `agent` that left the group still holds its output. `docs/decisions.md`: a new entry *A call stops reading five seconds after its own process ended*, dated with the story, with the reasons of the feature's decision 17.
+6. A limit that falls during the drain (rows of one parametrized test, `run_process` and `run_streaming`): a child that exits at once beside a holder, with a `time_limit` of 1 second and `PIPE_DRAIN` of 2 seconds, gives `timed_out` true; for `run_process` `exit_status` is `None` and `output_abandoned` true (the bounded read after the kill ran out beside the holder); for `run_streaming` `output_abandoned` is false.
+7. `run_streaming` with a child that prints `a\nb` (no final line feed) beside a holder: after the drain, `on_line` got `a` and not `b`, `b` is still in `stdout`, and `output_abandoned` is true.
+8. `make check` stays green.
+9. docs: `docs/project-guide/processes-and-checks.md`, *Starting a process*: `PIPE_DRAIN`, `output_abandoned`, the read after the child's end and after the kill, in the paragraphs on `run_process`, `ProcessResult` and `run_streaming`; the paragraph *Known limits* is replaced: a process that left the session and keeps a pipe holds the call for at most `PIPE_DRAIN` after the child's end or the kill, not until it ends; it is not killed by this module (the leftovers program ends it after a call as another user). `docs/operator-guide.md`, **A `time_limit` under `sudo`.**: a call under `sudo` returns at most 5 seconds after the inner kill, also when a process of `agent` that left the group still holds its output. `docs/decisions.md`: a new entry *A call stops reading five seconds after its own process ended*, dated with the story, with the reasons of the feature's decision 17.
 
 ## Smoke test
 
@@ -144,3 +148,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Criterion 2's wording: use your checkable form (the call returns after at least 1 and less than 15 seconds, with `late` in the output).
    Keep every new row's limits and waits as short as the rule allows; the suite's slowest tests are already time-limit tests.
 5. factory: started intake as self.
+6. intake: accepted. I carried the human's answers (journal entry 4) into the story's criteria and changed nothing else. The Description's meaning is unchanged, so I left it alone.
+   - Interface: accepted. It names `factory.adapters.process`, `PIPE_DRAIN`, `ProcessResult.output_abandoned` and the unchanged signatures of `run_process` and `run_streaming`. Every clause now has a criterion, including the 0.05 s polling, which the 1.5 s case in criterion 2 covers (answer 4).
+   - Criteria: accepted. Each is testable by one parametrized test, and the failing side of each rule has a row. Edits from entry 4:
+     - Criterion 1 gets the no-limit row for `run_streaming` (answer 5).
+     - Criterion 2 is reworded to "returns after at least 1 and less than 15 seconds, with `late` in the output", plus the 1.5 s grandchild case (answers 4 and the wording point).
+     - Criterion 4 is now rows for the time limit, a stop by `on_line` returning True (the value `run_streaming`'s docstring says stops it), and an exception from `on_line`, each with `output_abandoned` false (answer 3).
+     - New criterion 6 is a limit that falls during the drain: `timed_out` true, `exit_status` `None` and `output_abandoned` true for `run_process`, `output_abandoned` false for `run_streaming` (answer 1).
+     - New criterion 7 is `a\nb` beside a holder: `on_line` gets `a` and not `b`, `b` stays in `stdout`, `output_abandoned` true (answer 2).
+     - `make check` and `docs:` are now criteria 8 and 9 and stay last.
+     - Answer 1 only states the `run_process` case. I wrote the `run_streaming` row from its Interface line: no read after a kill, so `output_abandoned` false.
+   - Smoke test: accepted. It is runnable. Each `Expect:` line is checkable: the status, `timed_out`, `output_abandoned`, the output and the timing bound. No pytest command, so no `-q` question.
+   - Architecture: accepted. The change sits in `factory.adapters.process`, the one module that starts processes. No layer, interface or caller changes.
+   - Scope: accepted. It matches the feature's S0005 scope line and decision 17, and no earlier test changes.
