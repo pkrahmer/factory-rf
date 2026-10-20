@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 319
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T02:37:56.287735Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T02:37:56.287735Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T02:38:08.344475Z'
+  stage: docs
+  run: 59c0279c1f414f01bb5bb57d78480f0d
 ---
 
 # The tests pin the stage's aftermath, the opening and the tick at their edges
@@ -209,3 +211,14 @@ Expect: four lines, `None`, `Stalled (attempt 1 of 2): the agent gave no valid d
    - `tests/application/test_tick.py`: changed under the standing leave to move a shared test helper. `_factory` was replaced by the shared `handlers_of`, and two imports that are no longer used were dropped. Every test keeps its name and checks the same thing.
    - `tests/application/test_tick_stale_branch.py`: changed under the standing leave to move a shared test helper. Its copy of `_factory` was replaced by `handlers_of`, and the imports that are no longer used were dropped. Every test keeps its name and checks the same thing.
 10. factory: started docs as self.
+11. documenter: Docs: none, as the docs criterion says. I changed no file. The diff is tests only (`tests/application/test_after_agent_edges.py`, `test_opening_journal_edges.py`, `test_tick_stop_details.py`, the new `tests/tick_support.py`, and the helper move in `test_dispatcher.py`, `test_tick.py` and `test_tick_stale_branch.py`). Nothing under `src/factory/` changed.
+
+    Cross-read and found current: `docs/operator-guide.md`. Its stop table (lines 846 and 849) gives `fetch_failed` and `checkout_restore_failed` with git's message as the detail. Line 1401 gives the error-cap log line `error cap reached on <event>: <last error>` for an event without a work item. Both match what the new tests pin.
+
+    I did not run `make check`, because I changed no file outside the documents (none at all). The factory's checks run after this stage.
+
+    Nothing stale noticed. No findings.
+
+    `check`: check: green (not run again: passed on tree d2877c496152 at 2026-10-20T02:35:43Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
