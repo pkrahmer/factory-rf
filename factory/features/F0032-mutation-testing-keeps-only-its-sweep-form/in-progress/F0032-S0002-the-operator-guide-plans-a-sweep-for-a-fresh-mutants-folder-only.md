@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 310
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T00:49:52.683436Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T00:49:52.683436Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T00:50:16.943705Z'
+  stage: review
+  run: d35387a372704b1e902edb26dd2dc636
 ---
 
 # The operator guide plans a sweep for a fresh `mutants/` folder only
@@ -120,3 +122,10 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar. That is what the story asks for: its Interface says no module under `src/factory/` changes and the tester writes no test module. The one real change is the operator guide, which belongs to the documenter's stage.
+   - 1, acceptance criteria: there are only the two closing criteria. Criterion 1 is met: the coder's `make check` in entry 7 was green, with coverage at 99.14 %. Criterion 2 is the documenter's next step. The story states no Interface rule or limit, so nothing has an untested failing side.
+   - 2 to 4, architecture, security and quality: there is no code, so none of these apply. `make duplicates` reported 5 new findings in entry 7, but with an empty diff under `src/` they cannot come from this story.
+   - 5, work item hygiene: the journal gives the main choice and what was rejected (entry 7: the coder left `docs/operator-guide.md` to the documenter). The Description matches what was built, which is nothing yet. The docs criterion still says what the reader must know. I checked it against the guide as it stands. *How long it takes* (`docs/operator-guide.md:90`) still gives the 165 s twice, the per-story minutes of F0019 and F0021, and the `mutants/mutmut-stats.json` measurement. The guide does not yet contain the stop line `mutants: stopped after`. The example `make mutants MODULES=<module> MUTANTS_SECONDS=1500` is at line 95. So the criterion names the right removals and additions for the documenter.
+   - 6, earlier tests: none. The diff changes, renames or deletes no test file.
