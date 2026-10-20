@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 318
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T02:26:14.246239Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T02:26:14.246239Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T02:26:46.656664Z'
+  stage: review
+  run: c6530146e9d34d45af465f01dd3cac7f
 ---
 
 # The tests pin the expiry note's key at the crash cap and the stalls at their edges
@@ -147,3 +149,18 @@ Expect: two lines, `Stalled (attempt 1 of 2): merging the main branch conflicts 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I read: the work item and `git diff main...HEAD -- . ':!factory'`, which adds two test files and changes nothing under `src/`. I checked them against `tests/stage_run_support.py` (`_target`, `stage_makefile`, `open_story`), `CommittingRuntime` in `tests/application/test_stage_run.py`, and the two `SwitchingRuntime` classes in `test_after_agent.py` and `test_stalls.py`.
+
+   1. Acceptance criteria: each criterion has one test, and each test checks what its criterion says.
+      - Criterion 1 is one parametrized test in `tests/application/test_recovery_expiry_key.py:23`. The crash cap is tested on both sides: `crashes=1` (at the cap) expects the expiry key then the crash-cap key; `crashes=0` (below it) expects the expiry key alone.
+      - Criterion 2 is one parametrized test in `tests/application/test_stall_edges.py:75`, with a merge-conflict row and a left-branch row. Each row requires exactly one factory post (`[post] = ...`) and checks its first line and the last journal record's `entry_text` at `report.commit`.
+      - Criterion 3 (`test_stall_edges.py:118`) checks the stall reason, the three exact log subjects and that `tests/test_a.py` is gone.
+      - Criterion 4 (`test_stall_edges.py:136`) cannot pass without the file having been written. `_target` puts the `extra` line ahead of `exit 1` in the `lint` recipe, and the test requires `check_red`, so lint ran its whole recipe. The test then checks that the file is in neither the commit nor the checkout.
+      - The coder's `make check` was green (journal entry 7: `check: green`).
+   2. Architecture: no `src/` change. The tests sit under `tests/application/`, mirroring the package layers.
+   3. Security: no markers, no secrets, no command or query built from strings.
+   4. Quality: `CommitThenLeaveRuntime` is the class the Interface asks for. It commits on the work branch before leaving, so it copies neither `SwitchingRuntime`. It wraps the `agent_runtime` fixture the way `CommittingRuntime` does. The test modules import their helpers from `crash_support` and `stage_run_support` unchanged.
+   5. Work item hygiene: the Description matches what was built (tests only, as in F0025-S0003). Journal entry 7 gives the main choice (change no code) and what was rejected. The docs criterion "none" still holds.
+   6. Earlier tests: `git diff --name-status main...HEAD` shows only `A` for test files, so no earlier test file was changed, renamed or deleted.
