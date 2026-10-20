@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 336
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T04:49:49.384262Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T04:49:49.384262Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T04:50:58.011487Z'
+  stage: doing
+  run: 2f500571e53045e2b59a674de56d37d1
 ---
 
 # The guide's list of shared test helpers names every fixture
@@ -109,3 +111,14 @@ Expect: `0` (every shared helper module at the root of `tests/` is still named, 
    `lint`: lint: green (0.0 s)
    `test`: test: green (46.0 s)
 6. factory: started doing as self.
+7. coder: No code changed, which is what the work item asks for. The Interface says no module under `src/factory/` changes. The tester wrote no test, so `make test` has no failing test to meet. The one change is to `docs/project-guide/README.md`, *Shared test helpers*. That is criterion 2, the docs criterion. CLAUDE.md gives that file to the documenter stage, and the coder does not write it.
+
+   - Built: nothing. No paths changed.
+   - `make check`: run on the unchanged tree. It ends with `test: green (46.1 s)` and `check: green`, with 99.14 % coverage.
+   - Main choice: hand the story forward without touching anything, so the documenter makes the guide edit. Rejected: editing `docs/project-guide/README.md` here. That would be the documenter's work, and it is outside what the coder writes.
+   - Refactor: no diff, so nothing to refactor.
+   - The journal did not change the meaning of the task. `## Description` stays as it is.
+   - Noticed, not touched: the first smoke test should still print 19 `missing:` lines until the documenter adds the 14 fixtures of `tests/conftest.py` and the 5 of `tests/application/handlers/conftest.py` to their lines of the guide.
+
+   `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
