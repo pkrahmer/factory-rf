@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T07:34:42.772468Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-20T07:34:42.772468Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T07:35:30.090180Z'
+  stage: review
+  run: 026fedc98ef94073b2f632ba5fb1bca2
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -284,3 +286,36 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 16. factory: started review as self.
+17. reviewer: Round 1 review. I read the work item and `git diff main...HEAD -- . ':!factory'`: 11 test modules changed, plus the new `tests/time_limits.py` and `tests/test_time_limits.py`. Nothing under `src/` changes. I did not run `make check`. After the coder it was green (entry 15: `check: green`, coverage 99.16 %).
+
+    no findings
+
+    Checked:
+    - The three comment findings from round 0 are fixed word for word. `tests/adapters/test_claude_runtime_confinement.py:41-45` has `# Short: ...` over `SHORT_LIMIT` and `# The stand-ins wait far longer than any limit here.` over `WAIT_SECONDS`/`ELAPSED_BOUND`. `tests/adapters/test_process.py:100` and `tests/adapters/test_make_commands.py:64` carry the `# ROOMY_LIMIT: ...` comments.
+    - Criterion 1: `tests/test_time_limits.py` has one parametrized test with rows for the limit, the bound, the room between them, the four `WAIT_SECONDS` (30 each) above the bound, and `PAST_LIMIT_SECONDS` (11.5) on both sides: above the limit and below the bound.
+    - Criteria 2 and 3: every test the Interface names now uses `ROOMY_LIMIT`, and where it bounds the elapsed time it uses `ROOMY_BOUND_SECONDS`. Every child the limit must end waits longer than 25 s, so a missed kill fails:
+      - `time.sleep(60)` in `SLOW_LIMIT_SCRIPT`, `test_process.py` and `test_process_streaming.py`; `sleep 60` in the make test;
+      - the confine stand-in's `Played(wait_seconds=WAIT_SECONDS)` (30);
+      - opencode `WAITING` and the other stand-in steps (30);
+      - the claude resume steps (60).
+      `RETURNS_WITHIN_SECONDS` and `opencode_stand_in.BOUND_SECONDS` stay only for tests the story leaves alone.
+    - Criterion 4: the `recorder` fixture (`tests/conftest.py:273`) patches `claude_runtime.run_process`, which the runtime calls by that name (`src/factory/adapters/claude_runtime.py:563`). With no results it runs both calls for real. The resume's limit is checked to lie between `ROOMY_LIMIT - elapsed` and `ROOMY_LIMIT - 2 s`, so the whole 10 s again fails the test.
+    - Criterion 5: `make_commands` imports `run_process` by name (`src/factory/adapters/make_commands.py:8`), so the monkeypatch takes effect. The test asserts the one request's `timedelta(seconds=1)`. `test_time_limit_of_zero_or_less_is_rejected` is unchanged.
+    - Architecture and security: tests only, and no silencing markers. The `# noqa: PLR2004` in `test_opencode_budget.py` was already there.
+    - Hygiene: the Description, Interface and docs criterion match what was built.
+
+    Earlier tests (all status M, all changed under the human's leave: the feature's decision 9, which the story's Interface names test by test):
+    - tests/adapters/test_claude_runtime_confinement.py: decision 9
+    - tests/adapters/test_claude_runtime_provider_limit.py: decision 9
+    - tests/adapters/test_claude_runtime_resume.py: decision 9
+    - tests/adapters/test_make_commands.py: decision 9
+    - tests/adapters/test_opencode_budget.py: decision 9
+    - tests/adapters/test_opencode_confinement.py: decision 9
+    - tests/adapters/test_opencode_events.py: decision 9
+    - tests/adapters/test_opencode_resume_session.py: decision 9
+    - tests/adapters/test_opencode_sudo_time_limit.py: decision 9
+    - tests/adapters/test_process.py: decision 9
+    - tests/adapters/test_process_streaming.py: decision 9
+
+    Notes:
+    - `tests/test_time_limits.py:15-40`: each row is a `bool` worked out when the tests are collected, so a failing row prints only `assert False`. Rows that carry the two compared values would say which relation broke.
