@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T14:39:59.136469Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-20T14:39:59.136469Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T14:41:15.876075Z'
+  stage: docs
+  run: 2148f39cd6a14b29954fec85c9c6abec
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -477,3 +479,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     1. `tests/adapters/test_opencode_runtime_leftovers.py:59`: `# noqa: PLR0913` on the test with five columns. It gives its reason and follows `tests/adapters/opencode_stand_in.py:120` and `:237`. One row model, or fewer columns, would make it unnecessary.
     2. `tests/adapters/test_claude_runtime_leftovers.py:8-9`: imports `BUDGET_STOP` from `test_claude_runtime_login` and `REPLY` from `test_claude_runtime_os_user`, which are other stories' test modules. Under the standing leave, they could move to a shared module under `tests/`.
 21. factory: started docs as self.
+22. documenter: wrote the documentation criterion 13 asks for. I changed only documents, so I did not run `make check`; the factory's checks after this stage decide. I did not run the smoke test's commands, and the new text rests on the journal, the Interface and the diff, which I read.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - *The agent runs as a second user*: a new paragraph, "The end of the agent's processes", after the one on the command line. It gives the `sudo -n -u agent -- ... factory.entry.leftovers --user agent` command, the order before the removal and the seal, and the two calls of a resumed run. It says the `agent` user must serve agent runs only and that an operator's shell as `agent` is ended by the next call. It gives the error text and its three `<line>` forms, says what happens with no `FACTORY_AGENT_USER` or with the factory's own user, and says that a refused call keeps its own error.
+      - Morning observations: a new table row and a new paragraph, "The agent's processes after a run" (`ps -o user,pid,ppid,stat,args -U agent` lists nothing).
+    - `docs/project-guide/agents.md`:
+      - Both runtime signatures now show `leftovers=None`.
+      - The shared launch module's list gains `Starters.leftovers`, `leftovers_due`, `leftovers_launch`, `leftovers_fault` and `due_leftovers_launch`.
+      - A new section, "Ending the agent's leftover processes", gives the order in `_call`: the call, the program, the removal, the call's refusal, the program's fault. It says a runtime built without `leftovers` starts none, names the tests, and notes the near-copy helpers.
+    - `docs/project-guide/write-guard.md`: replaced "Nothing starts it yet" with who starts the program, when, and what a failure does.
+    - `docs/project-guide/watching.md`: *Boundaries* now has the `end_leftovers` keyword, `leftovers_command()` and `LEFTOVERS_MODULE`.
+    - `docs/decisions.md`: a new entry, "Every agent call is followed by the end of the agent's leftover processes", dated with the story. It gives the reasons of the feature's decisions 10 to 12 and says it closes the window F0014 decision 21 left open. I took the reasons and the rejected options from the journal and the Description, because I did not have the feature's decision text. The human should check that wording.
+
+    Cross-read and found current against the diff: `docs/project-guide/README.md` (its index line for `write-guard.md` already names the program), the rest of the operator guide's *The agent runtime* sections, and `docs/project-guide/agents.md` outside the new parts. I found no code that contradicts the Interface, so I have no findings for the coder.
+
+    Stale text I noticed and did not touch:
+    - The operator guide's opening paragraph (line 3) lists what is built and does not mention this feature. I left it because it is a general summary.
+    - The reviewer's two notes (a `noqa: PLR0913` in a test, and shared test constants imported from other stories' test modules) are test matters and not mine.
+
+    `check`: check: green (not run again: passed on tree b8c2cdbccc63 at 2026-10-20T14:34:53Z)
+    `secrets`: secrets: green (2.4 s)
+    `documents`: documents ok
