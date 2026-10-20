@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 305
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T00:06:51.277228Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T00:06:30.702809Z'
   stage: tests
   run: 6d125f7d99a74557a3c6a874653c4a6e
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:06:51.277228Z'
+  stage: doing
 ---
 
 # The second-user section names the API login and opencode's run files
@@ -102,3 +111,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (37.1 s)
+6. factory: started doing as self.
