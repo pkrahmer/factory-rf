@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 336
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T04:51:18.666636Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T04:50:58.011487Z'
   stage: doing
   run: 2f500571e53045e2b59a674de56d37d1
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:51:18.666636Z'
+  stage: review
 ---
 
 # The guide's list of shared test helpers names every fixture
@@ -122,3 +131,4 @@ Expect: `0` (every shared helper module at the root of `tests/` is still named, 
 
    `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
