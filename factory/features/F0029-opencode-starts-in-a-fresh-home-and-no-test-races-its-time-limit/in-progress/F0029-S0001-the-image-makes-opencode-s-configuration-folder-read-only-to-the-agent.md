@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T00:32:46.087951Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T00:32:46.082400Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:32:46.087951Z'
+  stage: intake
+---
+
 # The image makes opencode's configuration folder, read-only to the agent
 
 ## Description
@@ -58,3 +85,5 @@ Expect: three lines, `fresh 1`, `made 0`, `1` (the image's opencode under the wr
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
