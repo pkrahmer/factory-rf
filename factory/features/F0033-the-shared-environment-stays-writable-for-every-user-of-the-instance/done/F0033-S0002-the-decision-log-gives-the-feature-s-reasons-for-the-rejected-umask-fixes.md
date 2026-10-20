@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T03:47:27.119032Z'
   stage: smoke-test
   run: c30f04bf9b95463da46c5fea8ea92cc0
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T03:48:46.140118Z'
+  stage: approval
 ---
 
 # The decision log gives the feature's reasons for the rejected umask fixes
@@ -189,3 +194,4 @@ Expect: `0`
     - Criterion 1 (`make check` stays green): the smoke test does not contradict it. I did not run it in this stage. The coder's run (entry 7) and the factory's gate after docs (entry 11) record `check: green`, and the docs-only change does not touch anything `make check` reads.
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 2.8 min, 28 turns, 86362 tokens in (390916 more from cache), 6509 out, $0.72
