@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 307
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T00:22:48.913854Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T00:22:28.028479Z'
   stage: review
   run: 03dad3a5ff7a4b03a05b95c3f948c355
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:22:48.913854Z'
+  stage: docs
 ---
 
 # The mutation report command is removed and the documents describe the sweep form of `make mutants`
@@ -160,3 +169,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Earlier tests:
    - `tests/domain/test_mutants.py` (deleted): the human's leave, decision 9 in the feature's `feature.md`, which the story's Interface names.
    - `tests/entry/test_check_mutants.py` (deleted): the human's leave, the same decision 9 in the feature's `feature.md`, named in the story's Interface.
+10. factory: started docs as self.
