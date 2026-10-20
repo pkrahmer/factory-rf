@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T02:41:00.512972Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T02:41:00.512972Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T02:43:37.333351Z'
+  stage: tests
+  run: 741c9dffdf9046a19ea6163a6645bbaa
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -93,3 +95,19 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
    - Architecture: tests only, under `tests/application/`, mirroring the package. It uses the shared fixtures and helpers and copies none of them. No fake git, no mock of the code under test. Nothing under `src/` changes.
    - Scope: inside F0028's scope (the `S0009` line of `feature.md`) and not in its "Out of scope". It changes no earlier test. The only shared-helper move is S0008's, which `feature.md` records. The docs criterion is `none`, as in the feature's decision.
 4. factory: started tests as self.
+5. tester: Wrote one test per criterion, against the Interface. Each test uses the shared fixtures and helpers: `Failing` from `tests/tick_support.py`, `probe_settings`, `ENVIRONMENT` from `tests/probe_support.py`, `remote_commit`, `install_agents`, `PIPELINE_YAML` and `HumanClone`. None of them is copied.
+
+   - criterion 1: tests/application/test_dispatcher_without_state.py::test_the_error_report_of_a_work_item_without_a_state_opens_a_draft
+   - criterion 2: tests/application/test_board_in_progress.py::test_a_feature_row_counts_one_story_in_each_folder
+   - criterion 3: tests/application/test_agent_run_probe_factory_user.py::test_the_opencode_login_hint_names_the_agent_user_or_the_factory_user (rows `no-user`: `agent_user=None` → `the factory user`, and `agent`: `agent_user="agent"` → `agent`)
+   - criterion 4: `make check`; the factory runs it as the gate. No test of its own.
+   - criterion 5: docs: none. No test.
+
+   Files created: the three test modules above. No earlier test file changed, and no shared helper was moved.
+
+   Modules the test run could not import: none. The story changes nothing under `src/` and says the code already behaves this way, so the new tests pass now instead of failing first. In my one `make test` run they passed (`test: green (46.2 s)`), and `make lint` is green. As the stage says, I skipped the type check. There is nothing for the coder to implement. Their `make check` covers the new tests under `mypy --strict`.
+
+   No criterion needed interpreting, and nothing is open.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (47.6 s)
