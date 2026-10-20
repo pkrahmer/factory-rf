@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 324
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T03:23:42.734186Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T03:23:42.734186Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T03:23:58.352026Z'
+  stage: intake
+  run: e3b8550ffd324a878a0f60a647c856d5
 ---
 
 # The protected paths refuse a .claude folder at any depth
@@ -81,3 +83,9 @@ Expect: four lines, `.claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is o
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names `src/factory/domain/write_paths.py` and the full twelve-pattern `PROTECTED_PATHS` tuple. The unchanged modules are listed, and the three test files are named with their changes.
+   - Criteria: each is testable by one test function or one parametrized test. Criterion 1 pins the tuple. Criterion 2 covers the pattern's true and false sides: the root, nested depths, `.claudex`, `x.claude`, `claude/` without the dot, and a path that only ends in `.claude`. Criterion 3 covers the refusal text on the refused side and `None` on the allowed side, with the write path `src/*` matching. Criterion 4 covers the undo's removal of a new nested file, the two kept files and the `deleted` list. The docs criterion lists every edit by file. `make check` is present.
+   - Smoke test: one runnable `uv run python -c` command. Its Expect line gives four exact output lines that can be compared with the output.
+   - Architecture: the change is a constant in `factory.domain`, and `refusal`, the hook, the undo and the kernel's confinement are not touched. That matches the layering in CLAUDE.md.
+   - Scope: matches `feature.md`: the pattern, the tests under decision 3 and the three docs. The kernel guard, `~/.claude` and R14 are out of scope and untouched. The test rename has the human's leave through decision 3.
