@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 370
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T23:17:18.809188Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T23:17:18.809188Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T23:17:41.930418Z'
+  stage: intake
+  run: d65e6712d1194de1a83ae0e3facf57b7
 ---
 
 # The documents say what the factory's kill of make mutants leaves
@@ -60,3 +62,9 @@ Expect: `1`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None: documents only" names the two files, `docs/project-guide/processes-and-checks.md` and `docs/decisions.md`, and says no module under `src/factory/` changes. Nothing to sign, which is right for a documents-only story. I checked the target text: the decision (4) line in the entry *Mutation testing per story* (`docs/decisions.md:814`) and the entry *A command stopped at its time limit loses every process of its session* (`docs/decisions.md:900`) both exist.
+   - Criteria: criterion 1 (nothing under `src/` or `tests/` changes) can be checked by a diff of those folders. Criterion 2 is `make check`. Criterion 3 is the docs criterion and is the only place the new text is stated. It fixes the wording the smoke test greps (`the temporary folder stays`, `runs on until it ends by itself`) and the exact parenthetical for decision (4). It also fixes where each sentence goes. Each sentence is one unit of text with a stated location, so it can be checked without further decisions. The story states no limit, validation or error, so there is no failing side to cover.
+   - Smoke test: both commands are plain `grep -c` calls with no pytest. Today the first prints 0 and the second prints 0, because the exact phrase `since F0030-S0001 the factory's kill reaches mutmut` is absent (line 506 has a different "since F0030-S0001"). So both `Expect: 1` lines can only be met after the edit. Neither `Expect:` line is met yet. One gap: the phrase `runs on until it ends by itself` has no grep of its own. The criterion states it, so the docs check and the reviewer cover it. I did not treat this as a question.
+   - Architecture: documents only. The documenter writes `docs/*`, and `README.md` is correctly left alone. No layer is touched, and no `src/` or `tests/` file.
+   - Scope: this is S0003 in the feature's Stories and Scope list ("documents only", proposed by the acceptance). It follows the feature's *The human's changes* and decision 14, which the human answered on 2026-10-20. It does not touch the `Makefile`'s `mutants` recipe, `factory/pipeline.yml` or the TERM question, which are in *Out of scope*.
