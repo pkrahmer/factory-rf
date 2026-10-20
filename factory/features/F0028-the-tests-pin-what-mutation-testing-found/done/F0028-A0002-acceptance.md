@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T04:37:52.807294Z'
   stage: acceptance
   run: e56568a9fd0a47f19772b661868b997c
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T04:40:14.730583Z'
+  stage: done
 stories: [F0028-S0001, F0028-S0002, F0028-S0003, F0028-S0004, F0028-S0005, F0028-S0006, F0028-S0007, F0028-S0008, F0028-S0009, F0028-S0010, F0028-S0011]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The tests pin what mutation testing found
@@ -154,3 +159,4 @@ Human interventions: 0 questions answered, 0.0 h waited. No story needed the hum
    6 Decisions: feature.md's decisions 1 to 14 were listed in A0001; decision 4 and the S0003 UTC survivor still have no recorded answer. New: keeping the helper list current is left to each later story's docs criterion, with no check enforcing it. No earlier test changed.
    7 Slow checks: nothing beyond `make check`. Disk is unchanged since the previous acceptance record. The slowest tests are the adapters' time-limit tests (5.0 s); the feature's 23 modules take 5.3 s together.
    8 Cost: 78 runs, 50.7 min, $14.35 for the 11 stories. S0010 ($0.69) and S0011 ($0.83) took 6 runs each, the cheapest of the feature. S0009 ($1.84, 10 runs) is still the costliest. 0 questions to the human, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 4.9 min, 24 turns, 74079 tokens in (1301390 more from cache), 17975 out, $1.21
