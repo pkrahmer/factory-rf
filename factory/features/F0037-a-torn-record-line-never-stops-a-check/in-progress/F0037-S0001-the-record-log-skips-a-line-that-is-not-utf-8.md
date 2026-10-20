@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 339
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T06:47:02.924069Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T06:47:02.924069Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T06:47:23.541024Z'
+  stage: smoke-test
+  run: 3da534ebf06146878daf4867d939a879
 ---
 
 # The record log skips a line that is not UTF-8
@@ -242,3 +244,22 @@ Expect: one line, `['check: green ✓']`, and no traceback.
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: no findings.
+
+    I ran the one command under `## Smoke test` exactly as written, from the repository root. The temporary folder came from `mktemp -d` in `$TMPDIR` and its `trap` removed it. I fixed nothing.
+
+    Command 1: the Python snippet. It appends one whole `ResultRecord` with `last_line` `check: green ✓`, then appends that record's line again without a line feed, cut after the first of the 3 bytes of `✓`, then prints the `last_line`s that `read()` returns.
+
+    ```
+    ['check: green ✓']
+    exit: 0
+    ```
+
+    Expect: one line, `['check: green ✓']`, and no traceback. **Met.** The output is that one line, with no traceback, and the exit status is 0.
+
+    Acceptance criteria re-read: the smoke test contradicts none of them.
+    - The output agrees with criterion 1: a torn last line, cut inside a multibyte character, is skipped and the whole line before it counts.
+    - It agrees with the Interface: `read()` reads bytes, splits at `\n` and decodes each line strictly, and raises nothing.
+    - The smoke test does not reach criteria 2 to 5 (a bad line in the middle, U+2028/U+2029/U+0085, `OSError`, `KnownResults`) or 6 and 7 (`make check`, docs). Their tests and the earlier stages' entries cover them, and nothing here contradicts them.
+
+    Open: nothing for this story. Decision 4 (a record appended after a torn line is skipped with it) stays out of scope, as the Description says.
