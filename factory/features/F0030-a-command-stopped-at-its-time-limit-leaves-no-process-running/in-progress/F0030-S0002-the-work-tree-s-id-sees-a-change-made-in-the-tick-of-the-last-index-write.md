@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 369
 comments_read: [6303767591]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T23:13:08.135749Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-20T23:12:47.316179Z'
   stage: doing
   run: 1f303dc15dcf414aa89670a2f7e73325
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:13:08.135749Z'
+  stage: review
 ---
 
 # The work tree's id sees a change made in the tick of the last index write
@@ -165,3 +174,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 33 known, 3 gone
+11. factory: started review as self.
