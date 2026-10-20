@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T01:48:52.441084Z'
   stage: smoke-test
   run: 47807578dbd4407996861b40393d6b27
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T01:50:11.422287Z'
+  stage: approval
 ---
 
 # The tests pin the refusal reason after the role's own result, and the board's absent and blocked values
@@ -245,3 +250,4 @@ Expect: four lines, `Too wide. Cut the second story.`, `features`, `work items` 
     - No other criterion is contradicted. The smoke test does not cover criteria 2, 3 and 6, or the `blocked=question` row of criterion 5. Its output does not contradict any of them.
 
     I fixed nothing and changed no file. Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 3.4 min, 28 turns, 115659 tokens in (419746 more from cache), 10172 out, $1.04
