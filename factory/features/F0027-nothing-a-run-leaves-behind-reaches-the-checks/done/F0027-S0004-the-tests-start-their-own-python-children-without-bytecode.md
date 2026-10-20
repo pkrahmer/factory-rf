@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-10-20T19:20:31.312024Z'
   stage: smoke-test
   run: d1c2ca8adca04748be0782e8d1d4a3be
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-20T19:21:52.793894Z'
+  stage: approval
 ---
 
 # The tests start their own Python children without bytecode
@@ -291,3 +296,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     None of the outputs contradicts a criterion.
 
     Open: nothing.
+17. factory: done (pull request merged); cost: 7 runs, 6.0 min, 45 turns, 164779 tokens in (782103 more from cache), 16239 out, $1.44
