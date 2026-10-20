@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 332
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T04:22:42.323561Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T04:22:42.323561Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T04:22:59.633518Z'
+  stage: smoke-test
+  run: 5fa75530864f4bffa7af58a5bcd5bc01
 ---
 
 # The project guide names the recovery's commit subjects
@@ -164,3 +166,24 @@ Expect: `work item F0001-S0001: crash of stage doing recorded` (the form the gui
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Ran both smoke-test commands from the repository root, exactly as written and in order. Both met their `Expect:` lines.
+
+    Command 1 (the grep loop over `docs/project-guide/watching.md`):
+    ```
+    found
+    found
+    found
+    ```
+    Expect: three lines `found`. Met.
+
+    Command 2 (`commit_subject` through `uv run`):
+    ```
+    work item F0001-S0001: crash of stage doing recorded
+    ```
+    Expect: `work item F0001-S0001: crash of stage doing recorded`. Met.
+
+    I also checked the output against the acceptance criteria. Criterion 2: `watching.md:103` (step 4) now names both subjects, `work item <id>: crash of stage <stage> recorded` for a `crash` and `work item <id>: expiry of stage <stage> recorded` for an `expired`, where `<stage>` is the stage the work item was in. `pull request opened` still appears once, at `watching.md:113`, in the `ask_crash_cap` bullet. `git diff --stat main...HEAD` shows that `watching.md` is the only document changed, and only one line of it (`2 +-`), so step 4b and `README.md`, `docs/operator-guide.md` and `docs/decisions.md` are unchanged. Criterion 1: the smoke test does not contradict it; the factory's check of the tree is green (entries 7 and 11).
+
+    Findings: none.
+
+    Open: none.
