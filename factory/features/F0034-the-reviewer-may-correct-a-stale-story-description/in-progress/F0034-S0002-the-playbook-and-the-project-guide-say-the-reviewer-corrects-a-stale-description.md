@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 331
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T04:12:06.650571Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T04:11:45.967525Z'
   stage: tests
   run: 4729b9ed095a4a68b0b625a693feef3c
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:12:06.650571Z'
+  stage: doing
 ---
 
 # The playbook and the project guide say the reviewer corrects a stale Description
@@ -93,3 +102,4 @@ Expect: two lines, `0` (the count of three is gone) and a number of at least `1`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (45.9 s)
+6. factory: started doing as self.
