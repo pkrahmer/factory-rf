@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T18:41:44.929947Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -152,6 +156,11 @@ journal:
   at: '2026-10-20T18:41:24.344513Z'
   stage: doing
   run: fb8132b1e6154639bed1a80031238262
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-20T18:41:44.929947Z'
+  stage: tests
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -465,3 +474,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Nothing else changed. No refactor this round: I made no code change. The Description still matches what was built. The reviewer already reworded criteria 1 and 9 as the human answered in entries 9 and 16.
 
     Noticed, not touched: nothing new.
+27. factory: started tests as self.
