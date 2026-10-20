@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T01:39:06.729105Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-20T01:39:06.729105Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T01:39:23.559590Z'
+  stage: smoke-test
+  run: d84bbe1a78e14373a90a5927b94b2e5e
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -290,3 +292,22 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test, round 1. From the repository root I ran the one command under `## Smoke test` exactly as written. It is a `uv run -q python` heredoc. I fixed nothing.
+
+    Command 1 (`uv run -q python - <<'EOF' … EOF`), exit status 0:
+
+    ```
+    'first\nsecond'
+    [CodeBlock(start=0, end=1)]
+    created.
+    ```
+
+    Met its `Expect:` line. It printed three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `created.`, in that order and exactly as expected.
+
+    Checked against the acceptance criteria:
+    - Criterion 1: the output matches its first row. `section_text` takes the text from the line right after `## A`, with no blank line between them.
+    - Criterion 2: the output matches its first row. The empty fenced block closes on line 1.
+    - Criterion 3: the smoke test's body is a variant of the criterion's second row, with entry 1 right under `## Journal` and a numbered line right above it. It printed `created.`. The numbered line above the heading was not taken for entry 1, and that agrees with both rows of criterion 3.
+    - Criteria 4 to 6: the smoke test does not exercise them, and nothing it printed goes against them.
+
+    Findings: none.
