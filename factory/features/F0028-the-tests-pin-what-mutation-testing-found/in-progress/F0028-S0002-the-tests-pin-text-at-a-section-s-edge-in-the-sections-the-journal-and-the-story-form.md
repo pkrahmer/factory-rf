@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T01:39:06.729105Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-20T01:38:46.304212Z'
   stage: docs
   run: 94c47c56aa2143278a3858c2e6f54cfb
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:39:06.729105Z'
+  stage: smoke-test
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -280,3 +289,4 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
     `check`: check: green (not run again: passed on tree c419906f7254 at 2026-10-20T01:36:44Z)
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
