@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 322
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T03:07:05.400190Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T03:07:05.400190Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T03:07:20.335856Z'
+  stage: intake
+  run: 86a602382667462689d7937fa3fd09d7
 ---
 
 # The tests set their own umask, so uv syncs the shared environment under the caller's
@@ -75,3 +77,9 @@ Expect: `1`
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: no `src/` change. `tests/conftest.py` gains `TESTS_UMASK = 0o022` and `pytest_configure() -> None`, which takes no parameter and calls only `os.umask(TESTS_UMASK)`. The new test module `tests/test_tests_umask.py` is named, and it starts its child through `factory.adapters.process.run_process`. The Interface has no comment with a behaviour that lacks a criterion. The xdist note says it has no criterion of its own, with its reason.
+   - Criteria: criterion 1 is one test function. It checks the umask value, the 0o644 file mode and the 0o755 folder mode. Criterion 2 is one parametrized test with rows 000, 002, 022 and 077. Its command, environment, time limit, exit status and last output line are all spelled out, and it names the rows that fail without the hook. The rule is "the umask is 0o022 whatever the starting umask", and the rows cover the side that must change (000, 002, 077) and the side that is already right (022). The hook has no failing input of its own. Criterion 3 is `make check`. Criterion 4 is the docs criterion, with paths, sections and wording.
+   - Smoke test: both commands are runnable. The first expects `5 passed in `, which is 1 test plus 4 rows. The second expects a count of 1 for `os.umask(TESTS_UMASK)`. Both `Expect:` lines can be checked against the output.
+   - Architecture: the hook is in `tests/conftest.py`, the shared fixtures file, and the child process starts through the process wrapper, not a direct subprocess. Nothing is added to `src/`, so the layers are untouched.
+   - Scope: this matches the feature's Scope, S0001 and decisions 4 and 5. The `Makefile`, the `mutants` recipe and the other items in Out of scope are not touched. Decision 5 gives the leave to change `tests/conftest.py`.
