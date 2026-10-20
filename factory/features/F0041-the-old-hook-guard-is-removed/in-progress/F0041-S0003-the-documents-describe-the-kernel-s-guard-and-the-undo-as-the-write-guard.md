@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 349
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T11:35:26.412879Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T11:35:06.025413Z'
   stage: intake
   run: aa91e10b7b8d46938870c13728707db0
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T11:35:26.412879Z'
+  stage: tests
 ---
 
 # The documents describe the kernel's guard and the undo as the write guard
@@ -89,3 +98,4 @@ Expect: `documents ok`
      - Each block has an `Expect:` line that can be checked against its output. No pytest command appears, so the `-q` rule does not apply.
    - Architecture: the story changes documents only, and the layers in `CLAUDE.md` are untouched. The documenter's write paths cover `README.md` and `docs/*`. The `CLAUDE.md` R12 edit is the human's change 2 and is not in this story.
    - Scope: it matches the feature's S0003 scope and decisions 1, 6, 11, 12 and 13. The human's answers of 2026-10-20 (the `PATH` and `HOME` section kept, six superseded entries counted as 6) are already in the story. Nothing in the feature's Out of scope is touched.
+4. factory: started tests as self.
