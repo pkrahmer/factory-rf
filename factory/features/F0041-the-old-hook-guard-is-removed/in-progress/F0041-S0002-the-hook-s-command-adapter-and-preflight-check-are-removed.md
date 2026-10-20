@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T10:51:23.010607Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T10:51:23.005340Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:51:23.010607Z'
+  stage: intake
+---
+
 # The hook's command, adapter and preflight check are removed
 
 ## Description
@@ -94,3 +121,6 @@ ls src/factory/adapters/claude_guard.py src/factory/entry/guard.py tests/adapter
 Expect: `5`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
