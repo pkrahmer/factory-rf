@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T18:50:23.240230Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -196,6 +200,11 @@ journal:
   at: '2026-10-20T18:50:02.355728Z'
   stage: doing
   run: c7d3d773cbcf4ef7a3d45b79bb515db0
+- number: 35
+  speaker: factory
+  kind: started
+  at: '2026-10-20T18:50:23.240230Z'
+  stage: tests
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -574,3 +583,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     There was no refactor this round, since I made no code change; the pass of entry 22 still holds. The Description still matches what was built. The reviewer wrote criterion 12 into the work item and renumbered the closing two, so nothing in the Description needs rewriting. The main design choice is unchanged from entry 22: the refusal is judged on the merged output and names the last `sudo:` line, and I rejected reusing `call_refusal`.
 
     Noticed, not touched: the reviewer's note that `_write_sudo` in this module is a third local stand-in `sudo`, beside `write_sudo` in `tests/leftovers_runtime_support.py` and the one in `tests/adapters/test_claude_runtime_os_user.py`. It is not a plain copy, since it also records the environment and working directory and plays a plan. Whether to share it is the tester's call under the standing leave.
+35. factory: started tests as self.
