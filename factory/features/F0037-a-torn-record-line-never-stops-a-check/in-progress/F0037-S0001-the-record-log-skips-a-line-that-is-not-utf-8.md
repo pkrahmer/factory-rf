@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 339
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T06:37:49.218814Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T06:37:49.218814Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T06:38:09.994305Z'
+  stage: intake
+  run: 89a0c1911e4340a6a5f75b12274dd9e0
 ---
 
 # The record log skips a line that is not UTF-8
@@ -103,3 +105,9 @@ Expect: one line, `['check: green ✓']`, and no traceback.
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: `JsonLinesRecordLog.read` in `src/factory/adapters/record_log_jsonl.py` and the `RecordLog.read` docstring in `application/files.py` are named with exact signatures and text. I read the current code, and the constructor `(path, model)` and `ResultRecord` fields match the story's use. The rules are bytes, split at `\n` alone, strict per-line decode, `\r` kept, and `OSError` propagating.
+   Criteria: each is one parametrized test with concrete rows. Every Interface rule has both sides. Torn lines cover 2-, 3- and 4-byte cuts and an ASCII cut. The skip covers a line at the start, the middle and the end, and a decoding-with-replacement trap. U+2028, U+2029 and U+0085 cover whole-record reading, with a `\r\n` row. A directory raises and a missing file gives `[]`. Criterion 5 covers `KnownResults` on a torn log. The `make check` and docs criteria are last.
+   Smoke test: the command is runnable, since the Python snippet uses no pytest and so no `-q` issue. The `Expect:` line gives an exact printed list and no traceback, which can be checked against the output.
+   Architecture: the change is inside the adapters layer, plus a docstring in application. No new dependency or wiring, and the callers are untouched, matching CLAUDE.md.
+   Scope: it matches feature.md's Scope and decisions 1 to 5. The append-after-torn-line case (decision 4) and `KnownResults._read` are left out as the feature's Out of scope says. The existing test file is not changed, and the moves of the rig fall under the standing leave.
