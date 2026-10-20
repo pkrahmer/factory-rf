@@ -57,7 +57,7 @@ def test_each_runtime_names_the_login_it_keeps_in_the_home() -> None:
 def test_the_fresh_home_program_runs_with_this_interpreter_isolated_and_uv_s_cache_is_named() -> (
     None
 ):
-    assert fresh_home_command() == [sys.executable, "-I", "-m", "factory.entry.fresh_home"]
+    assert fresh_home_command() == [sys.executable, "-I", "-B", "-m", "factory.entry.fresh_home"]
     assert UV_CACHE_FOLDER == ".cache/uv"
 
 

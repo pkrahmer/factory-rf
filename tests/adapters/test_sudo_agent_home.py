@@ -21,7 +21,7 @@ from factory.application.agent_home import AgentHome
 from factory.domain.errors import AgentRuntimeError
 from run_process_recorder import Recorder
 
-PROGRAM = [sys.executable, "-I", "-m", "factory.entry.fresh_home"]
+PROGRAM = [sys.executable, "-I", "-B", "-m", "factory.entry.fresh_home"]
 KEPT = [".claude-token", ".config/sso"]
 CALLS = "sudo-calls.jsonl"
 PLANNED = "planned.json"
@@ -120,6 +120,7 @@ def test_reset_runs_the_fresh_home_program_through_sudo_from_the_root_and_keeps_
         "-i",
         sys.executable,
         "-I",
+        "-B",
         "-m",
         "factory.entry.fresh_home",
         "--home",

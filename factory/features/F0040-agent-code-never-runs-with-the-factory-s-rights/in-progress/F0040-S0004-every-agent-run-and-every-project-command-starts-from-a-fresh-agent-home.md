@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T22:10:49.560171Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -109,6 +105,12 @@ journal:
   kind: started
   at: '2026-10-20T22:10:49.560171Z'
   stage: tests
+- number: 19
+  speaker: tester
+  kind: result
+  at: '2026-10-20T22:13:25.766291Z'
+  stage: tests
+  run: 5c7fc4a9021b427397103dd8bcacec49
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -369,3 +371,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     **Noticed, not touched:** the tests' `PROGRAM` currently starts the real program with `-I` and no `-B`. Until the test change lands, `make test` can still write `__pycache__` into `src/`. The checkout's new default ACL keeps that from breaking the restore.
 18. factory: started tests as self.
+19. tester: tester (a test change the human approved): I made the test change that the coder named in journal entry 17. It follows the human's notes in entries 14 and 15, which say the fresh-home program starts with `-I -B`. I added `"-B"` after `"-I"` in the three places where the tests spell out the command, and nothing else changed:
+    - `tests/adapters/test_sudo_agent_home.py`, line 24: `PROGRAM` is now `[sys.executable, "-I", "-B", "-m", "factory.entry.fresh_home"]`. Tests that start the real program no longer write `__pycache__` into `src/`.
+    - `tests/adapters/test_sudo_agent_home.py::test_reset_runs_the_fresh_home_program_through_sudo_from_the_root_and_keeps_the_kept`: `"-B"` now follows `"-I"` in the expected sudo arguments (line 123).
+    - `tests/entry/test_wiring_agent_home.py::test_the_fresh_home_program_runs_with_this_interpreter_isolated_and_uv_s_cache_is_named`: it now expects `fresh_home_command()` to be `[sys.executable, "-I", "-B", "-m", "factory.entry.fresh_home"]`.
+
+    `make test` has one failure, and it is the expected one: `test_the_fresh_home_program_runs_with_this_interpreter_isolated_and_uv_s_cache_is_named` fails because `src/factory/entry/wiring.py` still builds `-I` without `-B`. That one-word change is the coder's to make. All other tests pass and coverage is 99.14 %. `make lint` is green.
+
+    Still open: the `## Description` (sudo command line, criteria 5, 10 and 13, and the smoke test's `program`) still says `-I` without `-B`. I did not edit it, because this mode allows only the named test change. A stage that may write the work item should add `-B` there.
+
+    Files changed: `tests/adapters/test_sudo_agent_home.py` and `tests/entry/test_wiring_agent_home.py`, both written by this story's tests stage. No new files. Every module imported in the test run.
+
+    `lint`: lint: green (0.5 s)
+    `test`: FAILED tests/entry/test_wiring_agent_home.py::test_the_fresh_home_program_runs_with_this_interpreter_isolated_and_uv_s_cache_is_named - AssertionError: assert ['/work/check...y.fresh_home'] == ['/w...
