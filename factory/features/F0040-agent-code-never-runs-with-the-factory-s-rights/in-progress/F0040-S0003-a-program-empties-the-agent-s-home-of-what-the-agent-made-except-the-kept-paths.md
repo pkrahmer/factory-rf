@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721, 6301756087]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T21:22:14.213606Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -207,6 +211,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T21:21:56.115774Z'
+  stage: smoke-test
+- number: 37
+  speaker: factory
+  kind: started
+  at: '2026-10-20T21:22:14.213606Z'
   stage: smoke-test
 ---
 
@@ -639,3 +648,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     (c) change `## Smoke test` so its last line uses something the classifier accepts, for example `--home //` or `--home /home/..`, which the program also refuses (criterion 10).
     I would choose (a): the code refuses `/` before any removal, and the substitute could not have removed anything even if it hadn't.
 36. 2026-10-20 human: Answer (2026-10-21): (a). The in-process check (`main(["--home", "/"], ..., owned=lambda p: False)` printing the refusal and `status 2`) is the evidence for the last line; criterion 10's rows test the same refusal. No permission rule is added for running the real program on `/`. Note for the acceptance: the smoke test's last line should not ask a real run of the program on `/`; criterion 10's tests cover it.
+37. factory: started smoke-test as self.
