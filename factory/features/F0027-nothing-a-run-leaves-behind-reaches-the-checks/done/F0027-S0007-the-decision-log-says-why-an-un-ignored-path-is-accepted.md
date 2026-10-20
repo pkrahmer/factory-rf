@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T23:48:12.349041Z'
   stage: smoke-test
   run: aede2ccc653d4b29ad8bc5db1b622c2f
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T23:49:31.723704Z'
+  stage: approval
 ---
 
 # The decision log says why an un-ignored path is accepted
@@ -184,3 +189,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The extra last sentence, which tells a later story to ask before adding a rule, contradicts nothing.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 3.9 min, 28 turns, 100164 tokens in (372683 more from cache), 6014 out, $0.78
