@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 310
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T00:51:18.954380Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T00:51:18.954380Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T00:51:50.026779Z'
+  stage: smoke-test
+  run: d836ceffbe954de1bcc0856b8ab0c897
 ---
 
 # The operator guide plans a sweep for a fresh `mutants/` folder only
@@ -168,3 +170,33 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings. I ran both blocks from the repository root exactly as written.
+
+    Command 1:
+    ```
+    0
+    1
+    ```
+    It met `Expect: 0, then 1`. The kept-stats wording is gone and the guide gives the 165 s once.
+
+    Command 2:
+    ```
+    found
+    found
+    found
+    ```
+    It met `Expect: three lines found`.
+
+    Check against the acceptance criteria: I read both paragraphs of `docs/operator-guide.md` and found nothing that contradicts a criterion.
+    - *How long it takes* is line 90. It gives the stats once (165 s on 20 cores, 4.5 to 19 minutes on two cores in the sweeps of 2026-10-19) and the cost per mutant (0.13 to 0.25 s on 20 cores). It has no `mutmut-stats.json` measurement and no per-story minutes of F0019 or F0021.
+    - *A run that never gets past mutmut's stats* is lines 92 to 95. It contains each of these:
+      - every run starts with the stats over the whole suite in one process;
+      - a `MUTANTS_SECONDS` below the stats checks no mutant;
+      - the stop line in full;
+      - the value must cover the stats plus the mutants' time;
+      - the `make mutants MODULES=<module> MUTANTS_SECONDS=1500` example.
+    - Neither paragraph says "repairs" or that mutmut keeps the stats when a run ends. The other matches for "repair" in the guide are on lines 68, 542 and 853, in unrelated sections.
+
+    Criterion 1 (`make check` green): I did not run it in this stage. The factory's own checks cover it: entry 11 records `check: green` on the tree before the docs change, and the only change since is to the document.
+
+    Against `main`, the branch changes only `docs/operator-guide.md` (4 lines) and the work item's own files. Nothing is open.
