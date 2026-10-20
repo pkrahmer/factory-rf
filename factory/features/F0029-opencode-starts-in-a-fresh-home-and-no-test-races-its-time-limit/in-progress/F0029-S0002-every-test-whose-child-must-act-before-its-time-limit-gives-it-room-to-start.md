@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T07:27:06.742515Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T07:26:46.116735Z'
   stage: review
   run: 7a6d3c0b8f4f4975b2a5b8426bd72519
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:27:06.742515Z'
+  stage: doing
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -203,3 +212,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - tests/adapters/test_opencode_sudo_time_limit.py: decision 9
    - tests/adapters/test_process.py: decision 9 (beyond it in its comment, finding 2)
    - tests/adapters/test_process_streaming.py: decision 9
+10. factory: started doing as self.
