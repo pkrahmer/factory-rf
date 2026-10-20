@@ -29,6 +29,13 @@ RUN groupadd --gid 1000 factory \
  && chmod 2750 /state/runs \
  && chmod 2775 /work \
  && chmod 3775 /home/agent/.claude
+# opencode makes its configuration folder in the agent's home on its first run and dies when the
+# write guard refuses that; made here and read-only to the agent, so that no run can write what
+# the next run reads. The folder above stays the agent's, for the folders of FACTORY_OPENCODE_FOLDERS.
+RUN mkdir -p /home/agent/.config/opencode \
+ && chown agent:factory-work /home/agent/.config \
+ && chown factory:factory-work /home/agent/.config/opencode \
+ && chmod 0755 /home/agent/.config /home/agent/.config/opencode
 WORKDIR /opt/factory
 COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
