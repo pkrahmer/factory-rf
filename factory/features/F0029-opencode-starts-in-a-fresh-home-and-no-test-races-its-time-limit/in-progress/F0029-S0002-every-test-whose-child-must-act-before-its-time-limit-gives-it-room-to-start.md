@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T07:25:36.981093Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T07:25:36.981093Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T07:26:46.116735Z'
+  stage: review
+  run: 7a6d3c0b8f4f4975b2a5b8426bd72519
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -172,3 +174,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Findings:
+   1. `tests/adapters/test_claude_runtime_confinement.py:41-44`: the comment over `SHORT_LIMIT` is the tester's own wording (`# For a removal that need not start to be ended; ...`). The Interface asks for "the comment the feature gives". That is the feature's decision 9: `# Short: the hanging shell it limits need not start to be killed.` over `SHORT_LIMIT`, and `WAIT_SECONDS` and `ELAPSED_BOUND` below it under their own comment `# The stand-ins wait far longer than any limit here.`, which is missing. Fix: use those two comments word for word.
+   2. `tests/adapters/test_process.py:100-101` (`test_grandchild_is_killed_with_the_child_at_the_time_limit`): the comment is the tester's own wording (`# The roomy limit: under make test's parallel workers ...`). The Interface and decision 9 give `# ROOMY_LIMIT: the child must start its grandchild and write the pid file before the kill.` Fix: use that comment.
+   3. `tests/adapters/test_make_commands.py:64-65` (`test_command_reaching_its_time_limit_is_killed`): the comment is the tester's own wording. Decision 9 gives the grandchild comment with "the shell" in place of "the child": `# ROOMY_LIMIT: the shell must start its grandchild and write the pid file before the kill.` Fix: use that comment.
+   All three changes are to tests other stories wrote. The leave for them (decision 9, which the story's Interface cites) names exact comment texts and lets the tester make "exactly these changes and nothing else". These three go beyond that leave. The coder ends with `tests` and names the three comments; the tester replaces them.
+
+   Checked and fine:
+   - Criteria 1 to 5 each have a test.
+   - Every stand-in a changed test relies on being killed waits longer than `ROOMY_BOUND_SECONDS`: 30 s or 60 s, and the confine stand-in waits 30 s.
+   - `PAST_LIMIT_SECONDS` (11.5) is checked on both sides, above the limit and below the bound, and stays inside `SUDO_GRACE` (30 s).
+   - The resume rewrite reads the second request through the `recorder` fixture, which patches `claude_runtime.run_process`.
+   - The make rewrite asserts the one request's limit. `test_time_limit_of_zero_or_less_is_rejected` is unchanged.
+   - The bound added to the grandchild test in `test_process.py` is what criterion 3 asks for, though decision 9 bounds only the first test.
+   - Nothing changes under `src/`.
+   - After the coder, the factory's `make check` was green (entry 7).
+   - `make duplicates` reported 5 new findings, all in `src/factory`, which this diff does not touch, so none of them comes from this diff.
+
+   Earlier tests (all status M), each changed under the human's leave: the feature's decision 9, which the story's Interface names test by test.
+   - tests/adapters/test_claude_runtime_confinement.py: decision 9 (beyond it in its comment, finding 1)
+   - tests/adapters/test_claude_runtime_provider_limit.py: decision 9
+   - tests/adapters/test_claude_runtime_resume.py: decision 9
+   - tests/adapters/test_make_commands.py: decision 9 (beyond it in its comment, finding 3)
+   - tests/adapters/test_opencode_budget.py: decision 9
+   - tests/adapters/test_opencode_confinement.py: decision 9
+   - tests/adapters/test_opencode_events.py: decision 9
+   - tests/adapters/test_opencode_resume_session.py: decision 9
+   - tests/adapters/test_opencode_sudo_time_limit.py: decision 9
+   - tests/adapters/test_process.py: decision 9 (beyond it in its comment, finding 2)
+   - tests/adapters/test_process_streaming.py: decision 9
