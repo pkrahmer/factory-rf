@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 331
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T04:14:19.436855Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T04:14:19.436855Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T04:14:47.993065Z'
+  stage: review
+  run: c73a274c8f63433d96f9a6f2f76db1d1
 ---
 
 # The playbook and the project guide say the reviewer corrects a stale Description
@@ -124,3 +126,15 @@ Expect: two lines, `0` (the count of three is gone) and a number of at least `1`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and adds its `.costs.jsonl` sidecar, both under `factory/`. This is a documentation-only story. Its one substantive criterion is the docs criterion, and the documenter stage writes that next. CLAUDE.md *Docs* says the coder does not write those documents, so a coder who changed nothing is correct here.
+
+   Checklist:
+   1. Acceptance criteria: criterion 1 (`make check` stays green) holds. The coder's entry 7 records `check: green` from the factory. Criterion 2 is the docs criterion and is the documenter's to fulfil. The Interface states no rule or limit, so no failing side needs a test.
+   2. to 4. Architecture, security, quality: there is no diff under `src/` or anywhere outside `factory/`, so there is nothing to check. The factory's `duplicates: 5 new` record cannot come from this diff, which touches no code.
+   5. Work item hygiene: entry 7 explains the main choice (hand forward with no change) and the rejected alternative (editing the docs in the doing stage). I compared the Description and the docs criterion with the files they name. All five places still read as the Description says:
+      - `docs/operator-playbook.md:50`, `:127` and `:148`
+      - `docs/project-guide/agents.md:248` and `:305`
+      The three *Role* paragraphs the docs criterion names are at `claude/agents/reviewer.md:66`, `:68` and `:70`. So the criterion still tells the documenter what to write.
+   6. Earlier tests: the diff changes no test file. None needed.
