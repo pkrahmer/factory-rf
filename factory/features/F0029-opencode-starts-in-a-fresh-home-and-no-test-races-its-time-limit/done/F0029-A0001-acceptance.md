@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T07:48:51.399450Z'
   stage: acceptance
   run: a0eb8597af8e4faa8aa7db25157b416a
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T08:32:10.918421Z'
+  stage: done
 stories: [F0029-S0001, F0029-S0002]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of opencode starts in a fresh home, and no test races its time limit
@@ -226,3 +231,4 @@ Human interventions: 1 question answered (question 1), 0.0 h waited. It was S000
    6 Decisions: `feature.md` 1–11, S0001's answer (a), and the extra elapsed bound on the grandchild test. Changes 1 and 2 are still open, plus two notes for the human's story form. S0002 changed earlier tests in eleven modules, all under decision 9. Nothing was changed without a leave.
    7 Slow checks: nothing beyond `make check`, which was green (test 81.6 s, 99.16 %). The slowest tests are this feature's `sudo` rows at 11.5 s. Disk is unchanged.
    8 Cost: 17 runs, 17.1 min, $4.24. S0002 ($2.96) had one review round spent on three comments. S0001 needed the human once (0.0 h waited), because the safety check blocked its smoke block.
+3. factory: done (pull request merged); cost: 1 runs, 5.9 min, 20 turns, 81839 tokens in (1040649 more from cache), 18630 out, $1.24
