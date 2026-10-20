@@ -7,9 +7,9 @@ A curator reviewed the documents on `main` of 2026-10-20 (`planning/overnight/do
 ## Scope
 
 - `README.md`: its first paragraph, its commands as a table, the playbook in *Where to look next* (S0002; findings H2, M10, M11).
-- `docs/operator-guide.md`: the template and demo paragraph (S0001; H1), the opening, a contents list and the current rule without history, and the init's own heading (S0006; H3, M4 with L9, M13), class and module names and the hypothetical handler case (S0007; M2, M3), the stop tables (S0008; M1), the token gap named open (S0009; H6).
-- `docs/project-guide/`: the template's pipeline definition as a pointer and `factory-health` described and indexed (S0003; H4, the rest of M5), the planning codes and v1 feature ids in the guide files (S0004; M6).
-- `docs/decisions.md`: two superseded marks, the removal of `factory/v1/`, the header sentence on the codes (S0005; H7, M12, M6), the v2 gaps named open and a new entry on v2's retirement (S0009; H6).
+- `docs/operator-guide.md`: the template and demo paragraph (S0001; H1), the opening, a contents list and the current rule without history, and the init's own heading (S0006; H3, M4 with L9, M13), class and module names and the hypothetical handler case (S0007; M2, M3), the stop tables (S0008; M1).
+- `docs/project-guide/`: the template's pipeline definition as a pointer and `factory-health` described and indexed (S0003; H4, the rest of M5), the planning codes and v1 feature ids in the guide files (S0004; M6), every passage of v1.1's own in the shipped agents (S0010; folded in from F0034-S0003).
+- `docs/decisions.md`: two superseded marks, the removal of `factory/v1/`, the header sentence on the codes (S0005; H7, M12, M6), a new entry on v2's retirement that points each closed gap to the entry that closed it and names the one open gap, the replaced entry on the project commands renamed *The project commands first ran as the factory's user; replaced*, and the settled kill under `sudo` pointed to its entry (S0009; H6).
 
 ## Out of scope
 
@@ -23,7 +23,7 @@ A curator reviewed the documents on `main` of 2026-10-20 (`planning/overnight/do
 
 ## Stories
 
-The build order; start one at a time, the next when the one before is archived in `done/`. All start after F0032-S0001 is merged (decision 2).
+The build order; start one at a time, the next when the one before is archived in `done/`. F0032-S0001 is merged (decision 2); by the human's answers all start after F0037, F0030, F0027, F0041, F0040, F0029-S0003 and F0039 are merged, with a pre-check right before.
 
 - S0001: The operator guide says the template and the todo demo run under the write guard
 - S0002: The README says what the factory is, that an instance runs in the container, and where to go next
@@ -34,6 +34,7 @@ The build order; start one at a time, the next when the one before is archived i
 - S0007: The operator guide names what the operator sees, not the classes behind it
 - S0008: The operator guide lists each stop in one table
 - S0009: What was left for v2 is named open and not planned
+- S0010: The project guide names every passage of v1.1's own in the shipped agents
 
 ## The human's changes
 
@@ -59,7 +60,7 @@ Checked against `factory/pipeline.yml`: the documenter writes `README.md` and `d
 
 ## Folded in by the human (2026-10-20)
 
-F0034-S0003 "the project guide names every passage of v1.1's own in the shipped agents" (proposed by F0034-A0002) is folded into this feature: its text lies in `folded/`. The round-2 pre-check before this feature starts takes it up as one more story or as criteria of the guide story it fits.
+F0034-S0003 "the project guide names every passage of v1.1's own in the shipped agents" (proposed by F0034-A0002) is folded into this feature; its text, refined, is now `backlog/F0038-S0010-...md`, and `folded/` is gone. The fresh pre-check of 2026-10-20 takes it up as S0010, a story of its own: it needs a search of `git log` that S0004's list of exact replacements does not, and it rewrites the sentence of `agents.md` whose neighbour S0004 changes, so it runs after S0004.
 
 ## The human's answers (2026-10-20)
 
@@ -68,3 +69,10 @@ F0034-S0003 "the project guide names every passage of v1.1's own in the shipped 
 - S0009 also points the stale "Open: the kill of a timed-out agent under sudo" sentence of `docs/decisions.md` to the entry that settled it.
 - S0009's criterion on the night logs in `docs/runs/` is dropped: they are the human's history.
 - F0034-S0003 is folded in (see above).
+
+## The human's answers to the fresh pre-check (2026-10-20)
+
+- F0034-S0003 becomes S0010, a story of its own, last in the order (the human, 2026-10-20).
+- S0009's new entry is titled *v2 is retired; nothing is left for v2*. The replaced entry *The project commands run as the factory's user and are left for v2* is renamed too, *The project commands first ran as the factory's user; replaced*, with a line that points to *The project commands run as the agent user, with the git folder sealed* (the human, 2026-10-20).
+- F0027-S0003 removes "(left for v2)" from `docs/project-guide/write-guard.md`, *Limits*; S0009 does not touch that file (the human, 2026-10-20).
+- S0007 removes the made-up handler case in *An event that keeps failing*; F0039-S0005 stays as it is (the human, 2026-10-20).
