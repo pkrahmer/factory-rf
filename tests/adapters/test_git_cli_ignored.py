@@ -7,10 +7,9 @@ import pytest
 
 from factory.adapters.git_cli import GitCli
 from factory.domain.errors import GitError
-from git_support import CHECKOUT, commit_all, head_of, run_git, write_files
+from git_support import CHECKOUT, CLEAN_IGNORED, commit_all, head_of, run_git, write_files
 from root_support import AS_ROOT
 
-CLEAN = "git clean --quiet --force --force -d -X"
 GITIGNORE = ".venv/\n__pycache__/\n*.pyc\n.mypy_cache/\nmutants/\n"
 MODULE = "x = 1\n"
 STANDIN = "standin\n"
@@ -191,7 +190,7 @@ def test_remove_ignored_raises_git_error_for_a_path_it_cannot_remove(
         if mode == 0o555:
             with pytest.raises(GitError) as raised:
                 checkout.remove_ignored()
-            assert raised.value.command == CLEAN
+            assert raised.value.command == CLEAN_IGNORED
             assert raised.value.exit_status == 1
         else:
             checkout.remove_ignored()

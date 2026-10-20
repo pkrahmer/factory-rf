@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 360
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T19:32:39.049289Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T19:32:39.049289Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T19:35:13.894185Z'
+  stage: tests
+  run: 8efe07e8c21c4f259f5b4efa1fce45e1
 ---
 
 # The feature's tests share their constants and find the marker's line
@@ -92,3 +94,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: only files under `tests/` change, and they sit in the shared support modules `CLAUDE.md` describes. No layer is touched.
    - Scope: the story stays inside F0027's S0006 line and decision 16. It adds nothing to `feature.md`'s Out of scope.
 4. factory: started tests as self.
+5. tester: This story only changes tests, so I made the whole change in this stage. The coder has nothing left to write. No test is red: `make test` is green (59.6 s, coverage 99.17 %) and so is `make lint`.
+
+   Criterion → test (each test keeps its name and rows):
+   - criterion 1: `tests/adapters/test_git_cli_ignored.py`, `tests/application/test_sealed_runs_ignored.py` and `tests/application/test_tick_ignored.py`. The first two drop their own `CLEAN` and compare with `git_support.CLEAN_IGNORED`. The third checks `stop.detail.startswith(f"{CLEAN_IGNORED} failed (exit 1)")`. The smoke grep shows only `tests/git_support.py:1`.
+   - criterion 2: `tests/domain/test_leftovers.py` (rows `root-root`, `root-agent`) and `tests/entry/test_leftovers.py` (row `root`) use `leftovers_support.ROOT`. `Identity(uid=0, user="root", pid=11)` is now built only in `tests/leftovers_support.py`.
+   - criterion 3: `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` finds `main_line` with `next(...)` over the lines of `src/factory/entry/leftovers.py`, taking the one where `line.startswith("def main(")`. This is the same kind of search as `import_line` and the others. The expected entry is now `{main_line: {"noqa: PLR0913"}}`, and the other entries are unchanged.
+   - criterion 4: `make check` is the coder's gate. Here only `make test` and `make lint` ran, both green.
+   - criterion 5: docs: none.
+
+   Files created: none (no new test module). Files changed:
+   - `tests/git_support.py` (adds `CLEAN_IGNORED`)
+   - `tests/leftovers_support.py` (adds `ROOT`)
+   - `tests/adapters/test_git_cli_ignored.py`
+   - `tests/application/test_sealed_runs_ignored.py`
+   - `tests/application/test_tick_ignored.py`
+   - `tests/domain/test_leftovers.py`
+   - `tests/entry/test_leftovers.py`
+   - `tests/test_process_search.py`
+
+   Leave for these changes: the moves follow the standing leave under `CLAUDE.md` *Tests*. The change to `tests/test_process_search.py` relies on the human's leave in F0027 `feature.md` decision 16, as the Interface cites it. I did not read `feature.md` itself.
+
+   Modules the test run could not import: none. Nothing under `src/` changed.
+
+   `lint`: lint: green (0.6 s)
+   `test`: test: green (59.6 s)

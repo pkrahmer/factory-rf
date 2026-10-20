@@ -14,6 +14,8 @@ from factory.domain.git import GitIdentity
 
 CHECKOUT = "checkout"
 
+CLEAN_IGNORED = "git clean --quiet --force --force -d -X"
+
 TEST_IDENTITY = GitIdentity(name="Test Author", email="test@example.invalid")
 
 PIPELINE_YAML = """\

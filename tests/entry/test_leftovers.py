@@ -15,7 +15,7 @@ from factory.adapters.process import ProcessRequest, run_process
 from factory.domain.leftovers import Identity
 from factory.domain.sessions import ProcessEntry
 from factory.entry.leftovers import main
-from leftovers_support import AGENT, process_entry
+from leftovers_support import AGENT, ROOT, process_entry
 
 USAGE_LINE = "factory-leftovers: usage: python -m factory.entry.leftovers --user <name>\n"
 
@@ -92,7 +92,7 @@ def test_only_a_user_s_name_starts_the_rounds(
     ("identity", "user", "expected"),
     [
         pytest.param(
-            Identity(uid=0, user="root", pid=11),
+            ROOT,
             "root",
             "factory-leftovers: refuses to run as root\n",
             id="root",
