@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T19:30:07.368145Z'
   stage: smoke-test
   run: 51b918897b3f4be993b3287c24eba699
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T19:31:28.724469Z'
+  stage: approval
 ---
 
 # The documents say what an ignored path the factory cannot remove does
@@ -231,3 +236,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `README.md` is unchanged, as the criterion says.
 
     Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 4.6 min, 30 turns, 125039 tokens in (456988 more from cache), 9596 out, $0.99
