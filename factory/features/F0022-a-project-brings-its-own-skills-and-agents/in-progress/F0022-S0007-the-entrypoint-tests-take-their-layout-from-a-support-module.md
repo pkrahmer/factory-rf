@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T00:01:23.518814Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-20T00:01:23.518814Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T00:01:35.639390Z'
+  stage: docs
+  run: d68a4ff832d24e4e9a54b23033b0d68d
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -294,3 +296,12 @@ Expect: `exit 0`
     - `tests/test_entrypoint_skills.py`: the standing leave to move a shared test helper (import changed, `_texts` calls renamed to `texts`).
     - `tests/test_shared_test_helpers.py`: the standing leave to move a shared test helper for replacing `_writing` with `modules_matching`, where names, ids and patterns are unchanged. The one changed expected line has the human's leave, the S0007 bullet in decision 14 of `feature.md`.
 18. factory: started docs as self.
+19. documenter: Docs round 1: no findings, and I changed no file. The docs criterion says `none`: the story only moves test helpers into `tests/entrypoint_support.py` and `tests/search_support.py`, with nothing under `src/` changed. I read the diff (eight test files) and agree.
+
+    Cross-read: I searched `README.md` and all of `docs/` for `test_entrypoint`, `entrypoint_support`, `search_support`, `_texts`, `ImageLayout` and `image_layout`. No document names these helpers. The hits were unrelated: `post_texts` in `docs/project-guide/` and the overnight night log under `docs/runs/`, which is the human's. `README.md`, `docs/operator-guide.md` and `docs/project-guide/` stay current. I did not run `make check`, because I changed no file; the factory's checks run after this stage.
+
+    Stale text I noticed that is not mine to fix: none.
+
+    `check`: check: green (not run again: passed on tree 7897e571521e at 2026-10-19T23:58:37Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
