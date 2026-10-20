@@ -577,6 +577,8 @@ Missing parent directories are created. If the file cannot be written, the line 
 
 ### The records
 
+The state directory's `records/` folder holds four JSON Lines files. None is committed; the tick publishes the stop records to `factory/stops.jsonl` on `main` (see "The stop records on main"). `project-commands.jsonl` holds every project command run (below), `known-results.jsonl` is described in "The known results", `stops.jsonl` in "The stop records" and `disk.jsonl` in "The disk record". A line of any of them that a kill cut, or that is not UTF-8, is skipped when the factory reads the file, so a damaged record file needs no repair. A record appended right after a line a kill cut shares that line and is skipped with it; a whole line that is not UTF-8 costs only itself.
+
 `records/project-commands.jsonl` in the state directory (`/state/records/project-commands.jsonl`) holds one JSON line for every project command the factory runs (`check`, `lint`, `test` and the rest), whoever asked for it: the stage checks after an agent, the preflight's probe and the check of `main`. The folder is created on the first run. A line has these fields:
 
 | Field | Meaning |
@@ -589,7 +591,7 @@ Missing parent directories are created. If the file cannot be written, the line 
 | `exit_status` | The exit status; `null` for `time_limit`. |
 | `targets` | For each target that ended green, `{"target": ..., "seconds": ...}`, in the order printed (for `check`, the time of each of its targets). |
 
-The records are telemetry beside the factory log, not a work item's state: they are not committed and nothing reads them to decide anything. You may delete the file at any time; the next run starts a new one. A command that raises an error (a missing `make`, a time limit of 0) leaves no record. When a line cannot be written, the factory log gets `cannot write the record of <command>: <error>` and the run goes on. A line of any of the four record files that a kill cut, or that is not UTF-8, is skipped when the factory reads the file, so a damaged record file needs no repair.
+`project-commands.jsonl` is telemetry beside the factory log, not a work item's state: nothing reads it to decide anything. You may delete the file at any time; the next run starts a new one. A command that raises an error (a missing `make`, a time limit of 0) leaves no record. When a line cannot be written, the factory log gets `cannot write the record of <command>: <error>` and the run goes on.
 
 To count the `check` runs of each commit, with the most-run commits first:
 
@@ -659,7 +661,7 @@ python3 -c "import json,collections as c; print(c.Counter(r['key']['tree'] for r
 
 The same record is one line in the factory log, for example `disk start: /work 812.3 GB free, 0.7 GB used; /state 812.3 GB free, 0.0 GB used; /tmp 812.3 GB free, 4.3 GB used`, each value in GB or `unknown`.
 
-It is written at each start of the instance, before the first tick, and at each feature acceptance (F0012-S0017). No record is written at the end of a run. Compare the new line with the last one to see whether disk use grows. When the line cannot be written, the factory log gets `cannot write the disk record: <error>` and the run goes on. Like the other records it is not committed and nothing reads it to decide anything.
+It is written at each start of the instance, before the first tick, and at each feature acceptance (F0012-S0017). No record is written at the end of a run. Compare the new line with the last one to see whether disk use grows. When the line cannot be written, the factory log gets `cannot write the disk record: <error>` and the run goes on. It is not committed; the factory uses only its last record that reads whole, to name the previous measure beside the new one at a feature acceptance.
 
 The size of a folder counts only what the factory user can read. The agent's own folders under `/tmp`, made by pytest or Claude Code with mode `0700`, are left out, while the free space of the file system still shows them.
 

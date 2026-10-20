@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 372
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T23:38:23.378274Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T23:38:23.378274Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T23:38:44.367157Z'
+  stage: docs
+  run: 8630d0bd93934492b26bbb8d430d09d6
 ---
 
 # The operator guide's records section names its four files
@@ -153,3 +155,15 @@ Expect: `documents ok`
    - The Description matches the plan: the code and tests are unchanged and the change is left to the documenter.
    - Earlier tests: the diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: Files changed: `docs/operator-guide.md` only, in *The records* and *The disk record*.
+    - *The records*: a new first paragraph names the four files under `records/` (`project-commands.jsonl`, `known-results.jsonl`, `stops.jsonl`, `disk.jsonl`) and points to the sections for the last three. It says none is committed, and that the tick publishes the stop records to `main`'s `factory/stops.jsonl`. It states the damage rule once: a line a kill cut, or that is not UTF-8, is skipped. A record appended right after a cut line is skipped with it, and a whole non-UTF-8 line costs only itself.
+    - The `project-commands.jsonl` closing paragraph lost the "four record files" sentence. Its telemetry sentence now speaks of `project-commands.jsonl` alone.
+    - *The disk record*: "Like the other records it is not committed and nothing reads it to decide anything" now says the file is not committed and that the factory uses only its last record that reads whole, to name the previous measure at a feature acceptance.
+
+    Checks: `uv run python -m factory.entry.check_documents` printed `documents ok`. `grep -c "nothing reads them to decide anything"` gives 0. I did not run `make check`, because I changed only a document. I did not re-read the code. The reviewer's entry 9 had already confirmed these claims at `known_results.py:33`, `stops.py:132` and `disk_records.py:42`.
+
+    Cross-read: the rest of *The records*, its three subsections and *The stop records on main* agree with the new text. Findings for the coder: none. Nothing under `src/` or `tests/` changed. Stale text noticed but not touched: none.
+
+    `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
+    `secrets`: secrets: green (1.3 s)
+    `documents`: documents ok
