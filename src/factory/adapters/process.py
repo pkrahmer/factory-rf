@@ -22,6 +22,9 @@ Stream = Literal["stdout", "stderr"]
 _READ_SIZE = 65536
 _PROCESS_TABLE = Path("/proc")
 _ROUND_PAUSE_SECONDS = 0.05
+_END_POLL_SECONDS = 0.05
+
+PIPE_DRAIN = timedelta(seconds=5)
 
 
 class ProcessRequest(BaseModel):
@@ -47,6 +50,7 @@ class ProcessResult(BaseModel):
     timed_out: bool
     duration: timedelta
     stopped: bool = False
+    output_abandoned: bool = False
 
 
 def _decode(output: bytes | None) -> str:
@@ -127,29 +131,9 @@ def _start(request: ProcessRequest) -> subprocess.Popen[bytes]:
     )
 
 
-def run_process(request: ProcessRequest) -> ProcessResult:
-    """Run `request.argv` without a shell and kill every process of its session at the time limit.
-
-    A failure to start the program, such as `FileNotFoundError`, is raised to the caller.
-    """
-    start = time.monotonic()
-    process = _start(request)
-    with process:
-        timed_out = False
-        try:
-            out, err = process.communicate(timeout=_seconds(request.time_limit))
-        except subprocess.TimeoutExpired:
-            timed_out = True
-            _kill_session(process)
-            # Once the session is dead the pipes close, so this collects what was written.
-            out, err = process.communicate()
-    return ProcessResult(
-        exit_status=None if timed_out else process.returncode,
-        stdout=_decode(out),
-        stderr=_decode(err),
-        timed_out=timed_out,
-        duration=timedelta(seconds=time.monotonic() - start),
-    )
+def _deadline(start: float, time_limit: timedelta | None) -> float | None:
+    seconds = _seconds(time_limit)
+    return None if seconds is None else start + seconds
 
 
 class _LineReader:
@@ -203,19 +187,49 @@ class _LineReader:
         self._selector.close()
 
 
+def _keep_reading(_stream: Stream, _line: str) -> bool:
+    return False
+
+
 def _remaining(deadline: float | None) -> float | None:
     return None if deadline is None else max(deadline - time.monotonic(), 0.0)
 
 
-def _read_until_end(reader: _LineReader, deadline: float | None) -> tuple[bool, bool]:
-    """Pass every line until the streams end; returns (stopped, timed_out)."""
+def _has_ended(process: subprocess.Popen[bytes]) -> bool:
+    # WNOWAIT leaves the child unreaped, so its id, the session's, stays reserved for a kill.
+    flags = os.WEXITED | os.WNOHANG | os.WNOWAIT
+    return os.waitid(os.P_PID, process.pid, flags) is not None
+
+
+_ReadOutcome = Literal["closed", "stopped", "timed_out", "abandoned"]
+
+
+def _read_bounded(
+    reader: _LineReader,
+    process: subprocess.Popen[bytes],
+    deadline: float | None,
+    ended_at: float | None,
+) -> _ReadOutcome:
+    """Read until the streams close, the reader stops, or the deadline or the drain passes.
+
+    The drain counts from `ended_at`, or from the moment the child is seen to have ended:
+    a descendant that left the session may keep a pipe open long after the child.
+    """
+    drain = PIPE_DRAIN.total_seconds()
     while reader.has_open_stream():
-        remaining = _remaining(deadline)
-        if remaining == 0.0:
-            return False, True
-        if reader.read_ready(remaining):
-            return True, False
-    return False, False
+        now = time.monotonic()
+        if ended_at is None and _has_ended(process):
+            ended_at = now
+        if deadline is not None and now >= deadline:
+            return "timed_out"
+        wait = _END_POLL_SECONDS if ended_at is None else ended_at + drain - now
+        if wait <= 0:
+            return "abandoned"
+        if deadline is not None:
+            wait = min(wait, deadline - now)
+        if reader.read_ready(wait):
+            return "stopped"
+    return "closed"
 
 
 def _wait_for_exit(process: subprocess.Popen[bytes], deadline: float | None) -> bool:
@@ -227,27 +241,71 @@ def _wait_for_exit(process: subprocess.Popen[bytes], deadline: float | None) -> 
     return False
 
 
+def _read_to_exit(
+    reader: _LineReader, process: subprocess.Popen[bytes], deadline: float | None
+) -> _ReadOutcome:
+    """Read the streams, then wait for the child's exit when they closed within the deadline."""
+    outcome = _read_bounded(reader, process, deadline, ended_at=None)
+    if outcome == "closed" and _wait_for_exit(process, deadline):
+        return "timed_out"
+    return outcome
+
+
+def run_process(request: ProcessRequest) -> ProcessResult:
+    """Run `request.argv` without a shell and kill every process of its session at the time limit.
+
+    Once the child has ended, or its session was killed, the output is read for at most
+    `PIPE_DRAIN`; a pipe still open then is closed and the result says `output_abandoned`.
+    A failure to start the program, such as `FileNotFoundError`, is raised to the caller.
+    """
+    start = time.monotonic()
+    deadline = _deadline(start, request.time_limit)
+    process = _start(request)
+    with process:
+        reader = _LineReader(process, _keep_reading)
+        try:
+            outcome = _read_to_exit(reader, process, deadline)
+            timed_out = outcome == "timed_out"
+            abandoned = outcome == "abandoned"
+            if timed_out:
+                _kill_session(process)
+                after_kill = _read_bounded(reader, process, None, ended_at=time.monotonic())
+                abandoned = after_kill == "abandoned"
+        finally:
+            reader.close()
+    return ProcessResult(
+        exit_status=None if timed_out else process.returncode,
+        stdout=_decode(reader.read_bytes["stdout"]),
+        stderr=_decode(reader.read_bytes["stderr"]),
+        timed_out=timed_out,
+        duration=timedelta(seconds=time.monotonic() - start),
+        output_abandoned=abandoned,
+    )
+
+
 def run_streaming(request: ProcessRequest, on_line: Callable[[Stream, str], bool]) -> ProcessResult:
     """Run `request.argv` as `run_process` does and hand `on_line` each line as it arrives.
 
     `on_line` returning True kills the session at once and passes no further line; so
-    does the time limit. An exception from `on_line` kills the session and propagates.
+    does the time limit, and neither reads on after the kill. An exception from `on_line`
+    kills the session and propagates. Once the child has ended, the output is read for at
+    most `PIPE_DRAIN`, as `run_process` does; a last line without a line feed is then not
+    passed.
     """
     start = time.monotonic()
-    time_limit = _seconds(request.time_limit)
-    deadline = None if time_limit is None else start + time_limit
+    deadline = _deadline(start, request.time_limit)
     process = _start(request)
     with process:
         reader = _LineReader(process, on_line)
         try:
-            stopped, timed_out = _read_until_end(reader, deadline)
-            if not (stopped or timed_out):
-                timed_out = _wait_for_exit(process, deadline)
+            outcome = _read_to_exit(reader, process, deadline)
         except BaseException:
             _kill_session(process)
             raise
         finally:
             reader.close()
+        stopped = outcome == "stopped"
+        timed_out = outcome == "timed_out"
         if stopped or timed_out:
             _kill_session(process)
     return ProcessResult(
@@ -257,6 +315,7 @@ def run_streaming(request: ProcessRequest, on_line: Callable[[Stream, str], bool
         timed_out=timed_out,
         stopped=stopped,
         duration=timedelta(seconds=time.monotonic() - start),
+        output_abandoned=outcome == "abandoned",
     )
 
 
