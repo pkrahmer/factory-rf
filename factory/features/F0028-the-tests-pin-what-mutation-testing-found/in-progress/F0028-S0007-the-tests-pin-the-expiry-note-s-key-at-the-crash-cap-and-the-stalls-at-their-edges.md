@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 318
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T02:27:07.589535Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T02:26:46.656664Z'
   stage: review
   run: c6530146e9d34d45af465f01dd3cac7f
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:27:07.589535Z'
+  stage: docs
 ---
 
 # The tests pin the expiry note's key at the crash cap and the stalls at their edges
@@ -164,3 +173,4 @@ Expect: two lines, `Stalled (attempt 1 of 2): merging the main branch conflicts 
    4. Quality: `CommitThenLeaveRuntime` is the class the Interface asks for. It commits on the work branch before leaving, so it copies neither `SwitchingRuntime`. It wraps the `agent_runtime` fixture the way `CommittingRuntime` does. The test modules import their helpers from `crash_support` and `stage_run_support` unchanged.
    5. Work item hygiene: the Description matches what was built (tests only, as in F0025-S0003). Journal entry 7 gives the main choice (change no code) and what was rejected. The docs criterion "none" still holds.
    6. Earlier tests: `git diff --name-status main...HEAD` shows only `A` for test files, so no earlier test file was changed, renamed or deleted.
+10. factory: started docs as self.
