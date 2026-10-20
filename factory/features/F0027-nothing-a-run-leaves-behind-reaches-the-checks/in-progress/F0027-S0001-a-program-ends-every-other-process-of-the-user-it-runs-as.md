@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T12:16:12.550051Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-20T12:16:12.550051Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-20T12:18:19.671421Z'
+  stage: doing
+  run: 5784a671220d4e67a97ecc319900dea9
 ---
 
 # A program ends every other process of the user it runs as
@@ -295,3 +297,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Both changes are the human's leave, recorded in the feature's decision 16. The test names that no longer match their sets stay as they are.
 9. factory: started doing as self.
+10. coder: The human chose (a) for both questions in entry 8. Those answers need two test changes and no code change, so this stage hands the work item back to the tester (R9). I changed no files in this round.
+
+    Test changes for the tester, exactly as the human worded them:
+    1. `tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module`: add `"factory.entry.leftovers"` to the expected set. The test's name and every other line stay.
+    2. `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`: add `"entry/leftovers.py": {32: {"noqa: PLR0913"}}` to the expected markers. Line 32 is the `def main(` line in `src/factory/entry/leftovers.py`. The test's name and every other line stay.
+
+    What I built, in the working tree since the last round:
+    - `src/factory/domain/sessions.py`: `ProcessEntry.uid` and `parse_stat(..., *, uid)`.
+    - `src/factory/domain/leftovers.py` (new).
+    - `src/factory/adapters/process.py`: `read_process_table(proc)`, now public, reads each folder's owner and sorts by pid. `own_identity` and `signal_every_other` are added.
+    - `src/factory/entry/leftovers.py` (new).
+
+    Main design choice: in `main`, each fault raises a private `_Stop` exception that carries its line, as `factory.entry.confine` does. I rejected returning a status from each step, because then every step would need its own early-return checks.
+
+    `make check`, run this round: lint, types, layers, sast, secrets and licenses are green. `make test` fails in exactly the two tests above, with `E   AssertionError` on the expected marker set and on the expected module set. Every test of this story passes.
+
+    Refactor step: I read my diff against main as a reviewer would and found nothing to change.
+
+    Noticed but not touched: both test names no longer match their sets ("three wrappers", "the four in the process wrapper"). The human decided in entry 8 that the names stay.
