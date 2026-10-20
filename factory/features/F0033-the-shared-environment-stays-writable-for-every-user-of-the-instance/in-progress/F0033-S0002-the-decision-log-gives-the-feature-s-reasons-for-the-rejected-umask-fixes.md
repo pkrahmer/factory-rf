@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 326
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T03:43:45.286762Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T03:43:24.492806Z'
   stage: tests
   run: 1695214151c543319459aac599d4010f
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:43:45.286762Z'
+  stage: doing
 ---
 
 # The decision log gives the feature's reasons for the rejected umask fixes
@@ -86,3 +95,4 @@ Expect: `0`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (40.3 s)
+6. factory: started doing as self.
