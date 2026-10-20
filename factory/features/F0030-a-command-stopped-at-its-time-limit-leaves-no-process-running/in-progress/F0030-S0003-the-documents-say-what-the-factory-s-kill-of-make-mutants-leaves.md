@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 370
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T23:18:02.794422Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T23:18:02.794422Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T23:19:25.268417Z'
+  stage: tests
+  run: cd12312e9ca446d4bd8aa33bd28f45db
 ---
 
 # The documents say what the factory's kill of make mutants leaves
@@ -78,3 +80,11 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: documents only. The documenter writes `docs/*`, and `README.md` is correctly left alone. No layer is touched, and no `src/` or `tests/` file.
    - Scope: this is S0003 in the feature's Stories and Scope list ("documents only", proposed by the acceptance). It follows the feature's *The human's changes* and decision 14, which the human answered on 2026-10-20. It does not touch the `Makefile`'s `mutants` recipe, `factory/pipeline.yml` or the TERM question, which are in *Out of scope*.
 4. factory: started tests as self.
+5. tester: No tests written. This story only changes documents. Its Interface says "None: documents only" and that no test changes. Criterion 1 says nothing under `src/` or `tests/` changes.
+   - criterion 1 (nothing under `src/` or `tests/` changes): no test function. I left `src/` and `tests/` alone, so the tester's part of this criterion is met. `git status` shows no change of mine.
+   - criterion 2 (`make check` stays green): no test function. This is the stage check the coder and the documenter run.
+   - criterion 3 (docs): no test function. The docs stage writes the text. The story's smoke test (`grep -c` on the two phrases) checks it, along with `make documents` and the reviewer.
+   Files created: none. Modules the test runner could not import: none. Since there are no new tests, there is no red test that `make test` needed to show failing, so I did not run it. `make lint`: green. Nothing for the coder to implement against: the coder's entry should also say that nothing under `src/` or `tests/` changed.
+
+   `lint`: lint: green (0.5 s)
+   `test`: test: green (63.0 s)
