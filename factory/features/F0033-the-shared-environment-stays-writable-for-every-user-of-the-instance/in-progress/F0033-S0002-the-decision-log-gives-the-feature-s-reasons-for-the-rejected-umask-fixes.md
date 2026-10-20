@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 326
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T03:41:47.853792Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T03:41:27.407684Z'
   stage: intake
   run: 49b54f3a9c26444ab5ba0ef4ca0942c2
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:41:47.853792Z'
+  stage: tests
 ---
 
 # The decision log gives the feature's reasons for the rejected umask fixes
@@ -67,3 +76,4 @@ Expect: `0`
    - Smoke test: both blocks are runnable `sed`/`grep` commands against `docs/decisions.md`. Each `Expect:` line is checkable: three `found` lines, and `0`. The three search strings match the criterion's wording (`needs a new step as \`agent\``, `would not get the tests`, `644\` files that an agent`).
    - Architecture: nothing under `src/` or the layers is touched. Only the decision log changes, which is the documenter's file under CLAUDE.md's Docs section.
    - Scope: within F0033. The reasons come from the feature's decisions 1 and 2 and its Goal. The story touches no *Out of scope* item, no code, no `Makefile` and no earlier story's test.
+4. factory: started tests as self.
