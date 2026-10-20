@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T15:22:23.269871Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-10-20T15:22:02.311331Z'
   stage: doing
   run: 871b8fd7eec1418ab1d359390dfd9de9
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:22:23.269871Z'
+  stage: review
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -357,3 +366,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+18. factory: started review as self.
