@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 362
-comments_read: []
+comments_read: [6300047368]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: cd1b4e27b6914f36b3782c6e61705eaf
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-20T19:52:37.077355Z'
+  stage: intake
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -136,3 +141,7 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    2. The Interface says "When `git.check_seal()` or the removal raises `RepositoryUnsealed`, that error propagates". Criterion 3 covers `check_seal` only, through a replaced `.git`. The removal's failure has no criterion. Should I add one, saying what makes `remove_nested_repositories` raise `RepositoryUnsealed` and what the test checks? `GitCli.remove_nested_repositories` (`src/factory/adapters/git_cli.py:396`) raises nothing of the kind. Suggested: drop "or the removal" from the Interface, or add a criterion with a recording `Git` of the test's own whose removal raises `RepositoryUnsealed`.
 
    3. Criterion 2 says `check_seal` and `remove_nested_repositories` are called "in that order" after the run. No criterion checks that order. Should the criterion 3 row, where the inner run replaces `.git`, also assert that the nested repository is not removed, or that it is? Please state which. Suggested: the order is `check_seal` first, so a failed seal removes nothing.
+4. 2026-10-20 human: Answers (2026-10-20):
+   1. Add it: a row in criterion 2's parametrized test where the inner run raises `ValueError`, which propagates after `check_seal` and the removal.
+   2. Drop "or the removal" from the Interface: `GitCli.remove_nested_repositories` raises no `RepositoryUnsealed`, so only `check_seal` can.
+   3. The order is `check_seal` first, as in `run_sealed`'s `finally`: a failed seal removes nothing. Criterion 3's row (the inner run replaces `.git`) also asserts that the nested repository is still there.
