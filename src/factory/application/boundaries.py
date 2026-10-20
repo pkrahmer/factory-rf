@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from factory.application.agent_home import AgentHome
 from factory.application.agent_runtime import AgentDefinitionReader, AgentRuntime
 from factory.application.files import (
     CostRecordReader,
@@ -48,3 +49,4 @@ class Boundaries:
     stop_records: RecordLog[StopRecord] | None = None
     waiter: Waiter | None = None
     result_records: RecordLog[ResultRecord] | None = None
+    agent_home: AgentHome | None = None
