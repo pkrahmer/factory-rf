@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T11:29:37.720143Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   at: '2026-10-20T11:29:16.655212Z'
   stage: review
   run: 2256e0a7cf644f38b81f2fcb64e5d211
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-20T11:29:37.720143Z'
+  stage: docs
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -436,3 +445,4 @@ Expect: `5`
 
     Notes:
     - `tests/test_hook_removed.py:91`: criterion 2's rows are module-level functions (`_fields`, `_builds`, `_refuses_a_temporary_folder`) passed as callables. Rows of data with one assertion body would read more plainly.
+21. factory: started docs as self.
