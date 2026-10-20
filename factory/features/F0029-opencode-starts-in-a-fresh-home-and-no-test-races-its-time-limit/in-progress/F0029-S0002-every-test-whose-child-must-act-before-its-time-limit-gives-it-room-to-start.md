@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T07:36:47.343824Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-20T07:36:47.343824Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T07:37:51.496755Z'
+  stage: smoke-test
+  run: 29f59b278807423f87e3d11eaa583cd2
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -356,3 +358,29 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Ran both smoke-test commands from the repository root, exactly as written and in order. This machine has 20 cores, so `-n 64` put the load on that the first command asks for.
+
+    Command 1 (the twelve modules run on 64 pytest-xdist workers, output kept in a self-removing temporary directory):
+    ```
+    exit 0
+    0
+    ```
+    It met its `Expect:` line: two lines, `exit 0` and `0`, so no `FAILED` or `ERROR` lines in the run. The shell's own exit status was 1 because `grep -c` exits 1 when it counts no matches. That status is not part of the expected output.
+
+    Command 2 (`SHORT_LIMIT` count in three modules, and the shared limits read from `tests/time_limits.py`):
+    ```
+    tests/adapters/test_opencode_resume_session.py:0
+    tests/adapters/test_opencode_events.py:0
+    tests/adapters/test_opencode_confinement.py:0
+    10.0 25
+    ```
+    It met its `Expect:` line: four lines, matching exactly.
+
+    I read the acceptance criteria again against these results. Nothing the smoke test showed goes against any of them:
+    - The 64-worker run of every changed module passed, which covers criteria 1–5 under load.
+    - The values `10.0 25` match criterion 1.
+    - `SHORT_LIMIT` is gone from the three modules whose `SHORT_LIMIT` the Interface removes.
+
+    Criteria 6 (`make check`) and 7 (docs) are outside what these commands cover, and the factory's checks gate them.
+
+    Findings: none. I changed nothing. The working tree holds only the factory's `.costs.jsonl` sidecar change.
