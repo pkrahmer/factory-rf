@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 328
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T03:57:40.847703Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T03:57:40.847703Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T03:59:43.842106Z'
+  stage: doing
+  run: 7f072df7199f4c4cad8f13aadb147802
 ---
 
 # The reviewer corrects a stale Description itself
@@ -114,3 +116,12 @@ Expect: `1`
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_agent_texts_description.py::test_description_correction_sits_between_added_criterion_and_stage[before-stage]
 6. factory: started doing as self.
+7. coder: Built: `claude/agents/reviewer.md`, section *Role*. I added the Interface's paragraph word for word, after the added-criterion paragraph and before `## Stage`, with one blank line on each side. No other line in the file changed, and nothing under `src/` or `tests/` changed.
+   Main choice: I copied the Interface's text exactly, because criteria 1 and 2 pin it to the character. I rejected rewording it or merging it into checklist item 5, since criterion 4 keeps item 5's exact line.
+   Refactor: I read the diff (2 inserted lines). Nothing needed changing.
+   Checks: `make check` is green (`check: green`), and the four new tests in tests/test_claude_agent_texts_description.py pass. The first smoke-test grep gives the expected seven counts: reviewer 1, the other six 0.
+   The journal does not change what the task means, so the Description stays as it is.
+   Noticed but not touched: the docs criterion (operator guide, decision log, playbook) is for the documenter.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
