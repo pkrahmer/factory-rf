@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 315
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T01:50:30.241730Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:50:30.248029Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T01:50:47.406238Z'
+  stage: intake
+  run: 430878f612d64237b197c6dd864c4240
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:51:08.331366Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T01:54:25.524657Z'
+  stage: tests
+  run: a51c56aa11c348bba549e8d58e1a10ad
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:54:45.980303Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T01:56:33.296079Z'
+  stage: doing
+  run: 3748915cd3034ea7b0781de24f164234
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:56:53.572061Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T01:57:31.926040Z'
+  stage: review
+  run: fbe07127019d444c848523f1cf0e01cf
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:57:52.420115Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T01:58:04.455303Z'
+  stage: docs
+  run: 7591ef2dbe9f4bf0b7a5cc15e1faba13
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:58:24.702165Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T01:58:44.978164Z'
+  stage: smoke-test
+  run: 6b59ded5632c42a4980192e901fa1eef
+---
+
 # The tests pin seven small rules on both sides
 
 ## Description
@@ -62,3 +146,102 @@ EOF
 Expect: four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: no `src/` change. The seven `factory.domain` functions and classes it names are concrete, with their signatures. Each stated behaviour (matching on both key and state, a wait of 0 s versus more than 0 s, the session fallback with the summed duration, skipped lines that still let later ones be read, the error text with and without a name, the records rules, the evaluation details and the `none` claim) has a criterion. The shared-helper move to `tests/evaluation_support.py` is the standing leave in CLAUDE.md, and it names the helpers.
+   - Criteria: each is testable by one parametrized test with the exact inputs and values given. Every rule has both sides: the key matching and the state matching (1), 1 s versus 0 s (2), session None versus set (3), the skipped line with and without it (4), a name versus no name (5), no state, a record, and a record followed by a result (6), the five evaluation rows (7), `question_posted` without and with a state (8), and the four claim statuses (9). 10 and 11 are the closing criteria.
+   - Smoke test: the script is runnable with the imports shown, and the `Expect:` line gives four checkable lines (`0:00:01 None`, `ses_a`, `no agent files`, `False`).
+   - Architecture: all behaviour lives in `factory.domain`, with tests under `tests/domain/` and one shared module at the `tests/` root. No layer is crossed.
+   - Scope: within F0028's Scope entry for S0004, and none of it is in the feature's Out of scope. The two guards of decision 4 are pinned by criteria 8 and 9, as decided there.
+4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 9. The story says the code already behaves this way, so the tests pass now and are not red: the one `make test` run ended `test: green (39.0 s)`. `make lint` is green. The code under test already exists, so I also ran `make types`, which is green too.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_tick_status_mark.py::test_only_entries_matching_key_and_state_are_marked_reported
+   - criterion 2: tests/domain/test_provider_limits_one_second.py::test_a_named_wait_of_one_second_is_a_wait_and_of_zero_none
+   - criterion 3: tests/domain/test_resumed_result_time_limit.py::test_a_resume_ended_by_its_time_limit_keeps_a_session_and_sums_durations
+   - criterion 4: tests/domain/test_duplicates_skipped_lines.py::test_a_skipped_element_or_line_leaves_what_follows_it_read
+   - criterion 5: tests/domain/test_errors_agent_definition.py::test_an_agent_definition_error_names_its_agent_only_when_it_has_one
+   - criterion 6: tests/domain/test_send_back_records.py::test_the_send_back_reads_records_only_from_a_state_and_since_the_latest_result
+   - criterion 7: tests/domain/test_evaluation_details.py::test_the_human_tiers_events_carry_their_exact_detail
+   - criterion 8: tests/domain/test_evaluation_details.py::test_a_question_is_posted_only_for_a_work_item_with_a_state
+   - criterion 9: tests/domain/test_evaluation_details.py::test_the_agent_tier_follows_the_claim_status
+   - criteria 10 and 11: no test (`make check` and docs: none).
+
+   Files created: tests/evaluation_support.py and the seven test modules above.
+
+   Earlier test file changed under the standing leave in CLAUDE.md (*Tests*): tests/domain/test_evaluation.py.
+   - These helpers moved to tests/evaluation_support.py: `DEFINITION`, `_snapshot`, `_blocked`, `_at_approval`, `_claimed`, `_view`, `_factory_comment`, `_Lookup`, `_ClaimStatus` and `_evaluate`.
+   - So did what they depend on: `MAIN`, `BRANCH_COMMIT`, `MERGE_COMMIT`, `PULL_REQUEST`, `OTHER_INSTANCE`, `AT`, `_id`, `_journal` and `_facts`.
+   - test_evaluation.py now imports them from there. Its own `_runnable` and `_human_comment` stay in it, and every test keeps its name and what it checks.
+   - No other earlier test changed.
+
+   In criterion 6, the row with a result after the comment checks only `reason_given`, because the criterion names nothing else for that row.
+
+   Modules the test run could not import: none. No `src/` change is expected from the coder.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (38.5 s)
+6. factory: started doing as self.
+7. coder: Built nothing: no path under `src/` changed, as the Interface says ("No module under `src/factory/` changes"). The tester's seven test modules and `tests/evaluation_support.py` already pass against the existing code. I ran `make check` once in the foreground and it ended `test: green (40.3 s)` and `check: green`, with total coverage at 99.14 %.
+   - Main choice: hand forward with no code change. The alternative I rejected was touching the code that the new tests pin, such as removing guards the mutation sweep called dead. The story pins that behaviour as it is, and decision 4 of the feature keeps those guards.
+   - Refactor: there was no diff of mine to refactor.
+   - Description: the journal did not change the meaning of the task, so I did not rewrite it.
+   - Noticed but did not touch: the tester's note on criterion 6. In the row with a `result` record after the comment, the test checks only `reason_given`, because the criterion names nothing else for that row. That is a question for the review to weigh, not something for me to change.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the work item and `git diff main...HEAD -- . ':!factory'`. The diff has seven new test modules under `tests/domain/`, the new shared module `tests/evaluation_support.py` and a change to `tests/domain/test_evaluation.py`. Nothing under `src/` changes, as the Interface says.
+   - Criteria 1 to 9: each has one parametrized test, and its rows are exactly the inputs and values the criterion gives. Each rule is tested on both sides:
+     - 1: the key and the state both match, then only one matches; the test also checks that every other field stays as it was.
+     - 2: 1 s and 0 s, for both forms.
+     - 3: a second session of `None` and one that is set, each with `time_limit` and a duration of 120 s.
+     - 4: the other symbol or the blank line is first, then absent.
+     - 5: an error with a name and one without.
+     - 6: no state, a comment numbered 1, then a result after the comment. The last row checks only `reason_given`, which is all the criterion asks of it.
+     - 7: the five details of the human tier.
+     - 8: `question_posted` without a state and with one.
+     - 9: all four claim statuses.
+   - The coder's journal entry (7) says `make check` was green.
+   - Architecture and security: only test code changes. No marker silences a check, and the fake commit ids are low-entropy.
+   - Quality: I checked the neighbouring test modules (`test_send_back.py`, `test_resumed_result.py`, `test_evaluation_reject.py`). The new modules copy none of their helpers. `_approval` in `test_send_back_records.py` returns a `WorkItemState` built from records, so it is not a copy of `_document` in `test_send_back.py`.
+   - Work item hygiene: the Description matches what was built. The journal names the main choice (no code change) and what was rejected. The docs criterion "none" still holds, because no behaviour changes.
+
+   Earlier tests:
+   - tests/domain/test_evaluation.py: changed under the standing leave in `CLAUDE.md` (*Tests*) to move a shared test helper. The change moves `MAIN`, `BRANCH_COMMIT`, `MERGE_COMMIT`, `PULL_REQUEST`, `OTHER_INSTANCE`, `AT`, `DEFINITION`, `_id`, `_snapshot`, `_journal`, `_blocked`, `_at_approval`, `_claimed`, `_view`, `_factory_comment`, `_Lookup`, `_ClaimStatus`, `_facts` and `_evaluate` unchanged to `tests/evaluation_support.py` and imports them from there. The diff touches only the module's head, so every test there keeps its name and what it checks.
+10. factory: started docs as self.
+11. documenter: no findings, and I changed no file. The docs criterion says `none`, and the diff agrees: it holds only tests (seven new modules under `tests/domain/`, the shared `tests/evaluation_support.py`, and the helper move in `tests/domain/test_evaluation.py`). Nothing under `src/` changed, so no behaviour, name or example in the documentation moved.
+
+    Cross-read: I searched `README.md` and `docs/` (not `docs/runs/`, which is the human's) for `test_evaluation` and `evaluation_support` and found no mention. The rules the story pins are the ones the project guide already describes, so I found those documents current against the diff.
+
+    Stale text noticed but not mine to fix: none.
+
+    I ran no `make check`, because I changed no file; the factory's check after this stage decides.
+
+    `check`: check: green (not run again: passed on tree f5dde544af5c at 2026-10-20T01:55:45Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: No findings. I ran the one command under `## Smoke test` exactly as written, from the repository root. It exited 0.
+
+    Command 1 (`uv run -q python - <<'EOF' … EOF`):
+    ```
+    0:00:01 None
+    ses_a
+    no agent files
+    False
+    ```
+    Met its `Expect:` line: it printed four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`.
+
+    Against the acceptance criteria, nothing in the output contradicts any of them:
+    - `named_wait` gives `0:00:01` for one second and `None` for zero (criterion 2).
+    - A resume ended by its time limit, where the second call has no session, keeps `ses_a` (criterion 3).
+    - `AgentDefinitionError("", "no agent files")` prints only its fault (criterion 5).
+    - A document without a state gives `reason_given` `False` (criterion 6).
+
+    The smoke test does not reach criteria 1, 4 and 7 to 9. The tests named in the tester's entry (5) cover them, and nothing seen here contradicts them. I changed no file.
