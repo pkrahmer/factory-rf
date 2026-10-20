@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T02:20:10.343930Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T02:20:10.337180Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:20:10.343930Z'
+  stage: intake
+---
+
 # The tests pin the expiry note's key at the crash cap and the stalls at their edges
 
 ## Description
@@ -47,3 +74,6 @@ EOF
 Expect: two lines, `Stalled (attempt 1 of 2): merging the main branch conflicts and the merge was aborted. Retrying on the next tick.` and `Stalled (attempt 1 of 2): the agent left the work item's branch. Retrying on the next tick.`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
