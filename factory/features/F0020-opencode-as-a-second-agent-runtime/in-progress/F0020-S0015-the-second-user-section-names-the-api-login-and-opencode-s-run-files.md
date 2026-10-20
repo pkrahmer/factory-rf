@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 305
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T00:05:00.575698Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T00:04:39.455547Z'
   stage: intake
   run: 9d1da6c545b64bab91b4c805a0b98878
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:05:00.575698Z'
+  stage: tests
 ---
 
 # The second-user section names the API login and opencode's run files
@@ -82,3 +91,4 @@ Expect: `documents ok`
    - Smoke test: the three blocks are runnable. The section's start and end headings exist in `docs/operator-guide.md` (lines 113 and 143), and the old sentence is on line 117. Each `Expect:` line can be checked against the output: `0`, three numbers of at least 1, and `documents ok`.
    - Architecture: nothing under `src/` changes, so the four layers are untouched. The change falls within the documenter's write paths (`docs/*`).
    - Scope: it is inside F0020's scope ("`docs/operator-guide.md` ... from each story's docs criterion"). Nothing in the story touches an "Out of scope" item. It changes no test written by another story.
+4. factory: started tests as self.
