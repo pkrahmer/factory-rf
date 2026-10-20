@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 339
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T06:41:51.815602Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T06:41:31.002285Z'
   stage: tests
   run: d65d9c7d431d4648be497ea5d9b826f7
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:41:51.815602Z'
+  stage: doing
 ---
 
 # The record log skips a line that is not UTF-8
@@ -148,3 +157,4 @@ Expect: one line, `['check: green ✓']`, and no traceback.
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/application/test_known_results_torn.py::test_a_torn_last_line_of_the_known_results_neither_raises_nor_logs[only-a-torn-line]
+6. factory: started doing as self.
