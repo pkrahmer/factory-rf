@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 326
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T03:43:45.286762Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T03:43:45.286762Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T03:45:32.520622Z'
+  stage: doing
+  run: e3c80ec8f4e349bf8347c0c75bfac32c
 ---
 
 # The decision log gives the feature's reasons for the rejected umask fixes
@@ -96,3 +98,11 @@ Expect: `0`
    `lint`: lint: green (0.0 s)
    `test`: test: green (40.3 s)
 6. factory: started doing as self.
+7. coder: No code built and no paths changed. The story only edits a document, and its Interface says no module under `src/factory/` changes and no test module is written. Its one docs criterion asks for an edit to `docs/decisions.md` (the entry *The tests set their own umask, and uv syncs under the caller's*). That file is the documenter's under CLAUDE.md's Docs section, so the coder does not write it. `make check` ran on the branch as it stands: `check: green` (test: green, 40.7 s, coverage 99.14 %).
+      - Main choice: I leave the decision-log edit to the docs stage, as CLAUDE.md assigns it. Rejected: writing the entry's new reasons in this stage, which would take over the documenter's file and skip the check the story asks for against F0033's `feature.md`.
+      - Refactor: there is no diff, so there was nothing to refactor.
+      - Description: no journal entry changed the meaning of the task, so it stays as it is.
+      - Noticed but not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
