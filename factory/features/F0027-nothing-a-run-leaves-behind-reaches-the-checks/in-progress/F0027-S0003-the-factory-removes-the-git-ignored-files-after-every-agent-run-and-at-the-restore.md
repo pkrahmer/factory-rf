@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T14:53:30.859826Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-20T14:53:30.859826Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-20T14:54:05.891248Z'
+  stage: intake
+  run: 13a1c789d6cc4eef8ede8a25d3636424
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -83,7 +85,7 @@ Tests (the tester writes them): `tests/adapters/test_git_cli_ignored.py` (a real
 
 ## Acceptance criteria
 
-1. `GitCli.remove_ignored()` removes (rows of one parametrized test, a commit holding a `.gitignore` with the lines `.venv/`, `__pycache__/`, `*.pyc`, `.mypy_cache/` and `mutants/`, and `src/mod.py`; each row adds one stand-in and checks that it is gone afterwards): `.venv/lib/python3.12/site-packages/standin.pth`. `src/pkg/__pycache__/mod.cpython-312.pyc` (the whole `__pycache__` folder is gone). `src/stray.pyc`. `.mypy_cache/3.12/standin.json`. `mutants/src/mod.py`. `tests/hidden/conftest.py` beside a new `tests/hidden/.gitignore` holding `*` (the folder `tests/hidden` is gone, `.gitignore` included). `src/secret.py`, which a new `src/.gitignore` holding `secret.py` names. `scratch.log`, which `.git/info/exclude` names. `.venv/src/dep/` holding a repository made by `git init`.
+1. `GitCli.remove_ignored()` removes (rows of one parametrized test, a commit holding a `.gitignore` with the lines `.venv/`, `__pycache__/`, `*.pyc`, `.mypy_cache/` and `mutants/`, and `src/mod.py`; each row adds one stand-in and checks that it is gone afterwards): `.venv/lib/python3.12/site-packages/standin.pth`. `src/pkg/__pycache__/mod.cpython-312.pyc` (the whole `__pycache__` folder is gone). `src/stray.pyc`. `.mypy_cache/3.12/standin.json`. `mutants/src/mod.py`. `tests/hidden/conftest.py` beside a new `tests/hidden/.gitignore` holding `*` (the folder `tests/hidden` is gone, `.gitignore` included). `src/secret.py`, which a new `src/.gitignore` holding `secret.py` names. `scratch.log`, which `.git/info/exclude` names. `.venv/src/dep/` holding a repository made by `git init`. A symbolic link `src/stray.pyc` (matched by `*.pyc`) that points to a file outside the repository: afterwards the link is gone and the target file is still there with its content.
 2. `GitCli.remove_ignored()` keeps (rows of one parametrized test, the same commit; each row adds one path and checks that it is there afterwards with its content): the tracked `src/mod.py`, also after an edit in the work tree (the edit stays). The tracked `.gitignore`. A new untracked `src/pkg/new.py`. A new `src/.gitignore` holding `secret.py`, which no rule matches. A symbolic link `.mypy_cache` that points to a folder outside the repository with a file in it, which the folder rule `.mypy_cache/` does not match: the link and the target's file both stay. In every row `git status --porcelain` (through `run_git`) is the same before and after the call, and `HEAD` is unchanged.
 3. A path the factory cannot remove (rows of one parametrized test): an ignored folder `.venv/locked` of mode `0o555` holding a file makes `remove_ignored()` raise `GitError` whose `command` is `git clean --quiet --force --force -d -X` and whose `exit_status` is 1. The same folder with mode `0o755` is removed and nothing is raised. Without any ignored path the call raises nothing and changes nothing.
 4. `run_sealed` (rows of one parametrized test, a checkout whose `main` holds a `.gitignore` with `.venv/`, `__pycache__/` and `*.pyc`). A run that writes `.venv/lib/standin.pth`, `src/__pycache__/a.cpython-312.pyc`, `tests/hidden/.gitignore` (`*`), `tests/hidden/conftest.py` and an untracked `src/new.py`, and returns, leaves only `src/new.py` of them. The result is the run's, and `nested_repositories` is `[]`. A run that also makes a repository at `.venv/dep/.git` gives `nested_repositories == [".venv/dep/.git"]`, and `.venv` is gone. A run that writes the same files and then raises `AgentRuntimeError("boom")` propagates that error, and `.venv/lib/standin.pth` and `tests/hidden/conftest.py` are still there. A run that writes `.venv/locked/x`, closes `.venv/locked` to mode `0o555` and returns makes `run_sealed` raise `GitError` whose `command` is `git clean --quiet --force --force -d -X`, and no `SealedRun` is returned.
@@ -189,3 +191,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Format check: passed.
 4. 2026-10-20 human: Answer (2026-10-20): (a). Criterion 1 gains a row: a symbolic link `src/stray.pyc` (matched by `*.pyc`) that points to a file outside the repository; afterwards the link is gone and the target file is still there with its content. The Interface's sentence stays.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: `Git.remove_ignored()` in `factory.application.git`, `GitCli.remove_ignored()`, `run_sealed` and `Tick._restore_checkout` are named with signatures and the exact git command. Checked against the human's answer in journal entry 4 (a): I wrote exactly that into criterion 1, a new last row. It is a symbolic link `src/stray.pyc`, matched by `*.pyc`, that points to a file outside the repository. Afterwards the link is gone and the target file is still there with its content. The Interface sentence stays as it was. Nothing else in the story changed.
+   - Criteria: every clause now has a test, on the failing side too. The failing side is the `0o555` folder in criteria 3, 4 and 6, and the raised run in criterion 4. The empty case is in criterion 3. The links are covered on both sides: a matched link is removed (criterion 1), an unmatched link stays (criterion 2). The restore (criterion 6), the order of the checks (criterion 5) and the earlier tests that change (criterion 7) each have a criterion. Each criterion fits one test function, or one parametrized test.
+   - Smoke test: the commands are runnable and none runs pytest, so there is no `-q` issue. Each `Expect:` line can be checked against the output.
+   - Architecture: the new operation is an abstract method of the `Git` ABC in `application`, implemented in `adapters.git_cli` through `_run`. The sealed run and the tick call it only through the interface. This agrees with the layers in `CLAUDE.md`.
+   - Scope: it matches S0003 in the feature's Scope, and it touches nothing under Out of scope. The test changes it names are the ones feature decision 16 allows.
