@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 317
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T02:10:34.448619Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T02:10:34.448619Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T02:13:08.763818Z'
+  stage: tests
+  run: f041459261a14168a99fa0c64fc4eb6b
 ---
 
 # The tests pin the subjects of a story's recovery and handler commits
@@ -95,3 +97,19 @@ Expect: two lines, `work item F0001-S0001: crash of stage doing recorded` and `w
    Architecture: tests only, under tests/application/ as CLAUDE.md prescribes. They use real git and the fake hosting service, with no mocks of the code under test.
    Scope: within the feature's Scope, which lists these two modules for S0006. The 15 subjects match decision 8. The story is not in Out of scope, and it changes no earlier test.
 4. factory: started tests as self.
+5. tester: Wrote one test per criterion. Each test reads the branch's subjects with `git.log("origin/work-item/F0001-S0001", since=...)` after a fetch, newest first, and compares them with the exact list the criterion gives.
+
+   - criterion 1: tests/application/test_recovery_subjects.py::test_the_recovery_commits_name_the_work_item_and_what_it_recorded (rows `crash`, `expiry`, `expiry-opening-a-pull-request`; each since `claimed.start.commit`)
+   - criterion 2: tests/application/handlers/test_handler_subjects.py::test_the_copied_comments_are_committed_under_the_work_item_s_id
+   - criterion 3: tests/application/handlers/test_handler_subjects.py::test_a_close_at_the_approval_commits_the_close_and_then_the_send_back
+   - criterion 4: tests/application/handlers/test_handler_subjects.py::test_the_move_back_names_the_work_item_and_both_stages
+   - criteria 5 and 6: no test (`make check`; docs: none)
+
+   Files created: tests/application/test_recovery_subjects.py, tests/application/handlers/test_handler_subjects.py. They use `tests/crash_support.py` and the fixtures of `tests/application/handlers/conftest.py` and the root `definition` fixture unchanged. No earlier test changed and no shared helper moved.
+
+   Modules the test run could not import: none. These tests pass now instead of failing first. That is expected: the Description says the code already writes these subjects and the coder has nothing to change. `make test` was green (40.5 s) and `make lint` is green. The type check was skipped, as this stage says.
+
+   In criteria 3 and 4, the human's push is `work_item.document` with its state copied to `stage="approval"`: with `handed_over="approval"` for the close, and with `handed_over` left as `None` for the move-back. The snapshot is re-read from `origin/work-item/F0001-S0001` after that push, and its `branch_commit` is the commit the subjects are read since. In criterion 4, `remote_state` is the commit `origin/main` resolves to. Nothing open.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (38.8 s)
