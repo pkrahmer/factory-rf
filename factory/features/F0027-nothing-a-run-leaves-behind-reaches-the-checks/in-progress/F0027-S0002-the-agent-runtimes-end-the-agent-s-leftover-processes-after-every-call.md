@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T14:31:44.364216Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-20T14:31:22.958076Z'
   stage: tests
   run: ff66cb6f80c64672808b18d0c882977b
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-20T14:31:44.364216Z'
+  stage: doing
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -390,3 +399,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (157.0 s)
+17. factory: started doing as self.
