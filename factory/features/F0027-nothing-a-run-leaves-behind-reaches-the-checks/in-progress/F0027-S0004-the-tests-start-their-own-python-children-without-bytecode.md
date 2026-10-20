@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 358
 comments_read: [6299016224]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T19:14:53.176077Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-20T19:14:32.120436Z'
   stage: tests
   run: 6f1fc7645ca64da5a7fc03281a5fd94c
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:14:53.176077Z'
+  stage: doing
 ---
 
 # The tests start their own Python children without bytecode
@@ -167,3 +176,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.8 s)
    `test`: test: green (68.3 s)
+9. factory: started doing as self.
