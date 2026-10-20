@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655, 6298783444]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T19:03:11.225037Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -272,6 +268,12 @@ journal:
   kind: started
   at: '2026-10-20T19:03:11.225037Z'
   stage: review
+- number: 48
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T19:03:42.165850Z'
+  stage: review
+  run: d12f37f467e04a9c8e06e1e1c14c47e6
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -755,3 +757,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 47. factory: started review as self.
+48. reviewer: Review of round 1, after the human's answer in entry 42. I read the work item, `git diff main...HEAD -- . ':!factory'` and its name-status. The diff changes `src/factory/adapters/make_commands.py` and adds `tests/adapters/test_make_commands_user.py`. Since the review in entry 44, the only change is the docstring of `MakeProjectCommands.run`.
+
+    no findings
+
+    - The finding of entries 40 and 44 is fixed. The docstring of `MakeProjectCommands.run` (`src/factory/adapters/make_commands.py`) now covers both cases. Without a user, the run is judged by its exit status alone. With a user, it runs through `sudo` as that user: a kill at the limit is a `time_limit` result, and a refusal by `sudo` or a leftovers fault raises `ProjectCommandError`. That matches `_run_as`, which judges `killed_at_limit` once, then the refusal on the merged output, then runs the leftovers call whatever the result, with a refusal winning over a leftovers fault.
+    - Group 1 (acceptance criteria) passes. Criteria 1 to 12 each have a test (the mapping is in entries 11, 28 and 36), every limit is tested on both sides, and the factory's `make check` after the coder was green (entry 46). As entry 42 asked, I added no criterion.
+    - Groups 2 (architecture) and 3 (security) pass. `make_commands` is in `factory.adapters` and imports only `agent_launch`, `process`, `application` and `domain`. It reuses `launch`, `killed_at_limit`, `SUDO_PREFIX`, `leftovers_launch`, `leftovers_fault` and `LEFTOVERS_FAULT` and copies none of them. There is no `dict[str, Any]`, no shell built from strings and no marker that silences a check.
+    - Group 4 (quality) passes. Names, docstrings and comments fit, and the "why" comments are on `_refusal_line`, `_end_leftovers` and the warning before a kill.
+    - Group 5 (work item hygiene) passes. The Description and the Interface match the code, and the journal gives the main decision (the refusal is judged on the merged output and names the last `sudo:` line) and the alternative it rejected (`call_refusal`). Docs criterion 14 still describes what the reader needs to know.
+
+    Earlier tests: none. The diff only adds `tests/adapters/test_make_commands_user.py` (status `A`), so it changes no test file that `main` already holds.
+
+    Notes (left to the acceptance, per entry 42):
+    - `tests/adapters/test_make_commands_user.py:33` (`SUDO_SCRIPT`, `_write_sudo`): this is a third local stand-in `sudo`, beside `write_sudo` in `tests/leftovers_runtime_support.py` and the one in `tests/adapters/test_claude_runtime_os_user.py`.
+    - `tests/adapters/test_make_commands_user.py:22` (`LEFTOVERS_FAULT`): restates `factory.adapters.agent_launch.LEFTOVERS_FAULT` instead of importing it.
+    - `tests/adapters/test_make_commands_user.py:305`: criterion 8 says `.user` "is `u`", but the test compares with `==`.
