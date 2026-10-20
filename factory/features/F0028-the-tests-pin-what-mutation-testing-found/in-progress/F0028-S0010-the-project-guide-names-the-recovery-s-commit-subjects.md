@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 332
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T04:21:31.858957Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T04:21:31.858957Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T04:21:45.655458Z'
+  stage: review
+  run: 289e7ee2ba8a4cf0bc4a0d90eb7b393f
 ---
 
 # The project guide names the recovery's commit subjects
@@ -122,3 +124,10 @@ Expect: `work item F0001-S0001: crash of stage doing recorded` (the form the gui
    `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   The scope (`git diff main...HEAD -- . ':!factory'`) is empty. The only changes on the branch are the work item and its `.costs.jsonl` sidecar, both under `factory/`. That is what the story asks for: the Interface says no module under `src/factory/` changes and no test module is written. Criterion 2, the docs criterion, is the documenter's job, so the guide edit was not expected before this stage.
+   1. Acceptance criteria: criterion 1 holds. The journal shows `check: green` after the coder (entry 7, total coverage 99.14 %). Criterion 2 has no test because it is a docs criterion, as the tester explained in entry 5. The Interface states no rule with a failing side and no limit, so no test is missing.
+   2. to 4. Architecture, security, quality: no code changed, so there is nothing to judge. The `duplicates: 5 new` record in entry 7 cannot come from this branch because it changes nothing under `src/factory`.
+   5. Work item hygiene: the coder's entry explains the empty diff and the rejected alternative, which was editing `watching.md` in the doing stage. The Description and criterion 2 still describe what the documenter must write in `docs/project-guide/watching.md` step 4: both recovery subjects, with step 4b and the `pull request opened` bullet left as they are, and `none` for `README.md`, `docs/operator-guide.md` and `docs/decisions.md`.
+   6. Earlier tests: the branch changes, renames or deletes no test file on `main` (`git diff --name-status main...HEAD` lists only the work item `M` and its sidecar `A`).
