@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T21:11:13.911235Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-10-20T21:10:53.102746Z'
   stage: doing
   run: 3906e401564148b084543caa93b2831b
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-20T21:11:13.911235Z'
+  stage: tests
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -473,3 +482,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - In `tests/domain/test_agent_home.py`, `pytest.raises(match=refused)` treats `../x` as a regex. `re.escape` would make it match the exact text.
 
     I did not run `make check` this round, because nothing in the code or tests changed since entry 21's green run.
+26. factory: started tests as self.
