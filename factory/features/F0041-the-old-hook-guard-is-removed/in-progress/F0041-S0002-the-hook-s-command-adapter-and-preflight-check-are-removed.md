@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T11:05:02.966727Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T11:04:40.998177Z'
   stage: doing
   run: 281a4c80cd414df0b3ede4a899ac56f5
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T11:05:02.966727Z'
+  stage: review
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -209,3 +218,4 @@ Expect: `5`
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
