@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T03:54:43.215728Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T03:54:43.210047Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:54:43.215728Z'
+  stage: intake
+---
+
 # The reviewer corrects a stale Description itself
 
 ## Description
@@ -41,3 +68,6 @@ grep -c -F '5. **Work item hygiene**: the journal explains the main decision and
 Expect: `1`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
