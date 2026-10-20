@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 315
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T01:50:30.248029Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T01:50:30.248029Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T01:50:47.406238Z'
+  stage: intake
+  run: 430878f612d64237b197c6dd864c4240
 ---
 
 # The tests pin seven small rules on both sides
@@ -92,3 +94,9 @@ Expect: four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: no `src/` change. The seven `factory.domain` functions and classes it names are concrete, with their signatures. Each stated behaviour (matching on both key and state, a wait of 0 s versus more than 0 s, the session fallback with the summed duration, skipped lines that still let later ones be read, the error text with and without a name, the records rules, the evaluation details and the `none` claim) has a criterion. The shared-helper move to `tests/evaluation_support.py` is the standing leave in CLAUDE.md, and it names the helpers.
+   - Criteria: each is testable by one parametrized test with the exact inputs and values given. Every rule has both sides: the key matching and the state matching (1), 1 s versus 0 s (2), session None versus set (3), the skipped line with and without it (4), a name versus no name (5), no state, a record, and a record followed by a result (6), the five evaluation rows (7), `question_posted` without and with a state (8), and the four claim statuses (9). 10 and 11 are the closing criteria.
+   - Smoke test: the script is runnable with the imports shown, and the `Expect:` line gives four checkable lines (`0:00:01 None`, `ses_a`, `no agent files`, `False`).
+   - Architecture: all behaviour lives in `factory.domain`, with tests under `tests/domain/` and one shared module at the `tests/` root. No layer is crossed.
+   - Scope: within F0028's Scope entry for S0004, and none of it is in the feature's Out of scope. The two guards of decision 4 are pinned by criteria 8 and 9, as decided there.
