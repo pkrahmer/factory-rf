@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 316
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T02:04:13.132593Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T02:03:52.951608Z'
   stage: tests
   run: 278e5dd5929943a798ce95fc7f411471
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:04:13.132593Z'
+  stage: doing
 ---
 
 # The acceptance tests pin the reviewer's role and the close's commit subjects
@@ -127,3 +136,4 @@ Expect: three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: clo
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (39.8 s)
+6. factory: started doing as self.
