@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 358
 comments_read: [6299016224]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T19:10:18.678730Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-20T19:10:18.678730Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-20T19:10:36.879912Z'
+  stage: intake
+  run: a376326046fc4faa8a4fbddc4170ad12
 ---
 
 # The tests start their own Python children without bytecode
@@ -73,7 +75,7 @@ def python_argv(code: str, *args: str) -> list[str]: ...  # [sys.executable, "-B
 
 1. Each row writes a module `standin.py` (`x = 1`) in `tmp_path`, then starts a child of the test interpreter in `tmp_path` with the environment `{}` (no `PYTHONDONTWRITEBYTECODE`), under the tests' umask `022`. The child runs `import standin`. Rows: a script written by `write_script(tmp_path / "child", "import standin\n")` and run by its path, so `tmp_path/__pycache__` does not exist afterwards; `python_argv("import standin")`, the same; and the plain `[sys.executable, "-S", "-c", "import standin"]`, the side the helpers close, after which `tmp_path/__pycache__` exists. `-S` keeps that row's child from loading `site`: without it, the child would write `_virtualenv`'s bytecode into `.venv`'s `site-packages` under `022` whenever uv has not compiled it (a `.venv` that a plain `uv run` built), which is the folder this story closes. One parametrized test.
 2. The stand-in `sudo` that `_write_sudo` writes has the first line `#!{sys.executable} -B` and mode `0755`. Every test in `tests/adapters/test_claude_runtime_os_user.py` keeps its name and checks the same thing.
-3. No file under `tests/` writes a shebang of the test interpreter without `-B`. The structural test's scan finds none in the built tests. Its matcher, as rows of one parametrized test: the text `f"#!{sys.executable}\n"` is found, and `f"#!{sys.executable} -B\n"` is not.
+3. No file under `tests/` writes a shebang of the test interpreter without `-B`. The structural test's scan finds none in the built tests. Its matcher, as rows of one parametrized test: the text `f"#!{sys.executable}\n"` is found, and `f"#!{sys.executable} -B\n"` is not. The rows build these two texts from pieces, so that no line of `tests/test_test_children.py` holds the literal text `#!{sys.executable}\n`; the scan reads that module like any other and finds nothing, and the third smoke test's grep stays at `0`.
 4. `make check` stays green.
 5. docs: `docs/decisions.md`, the entry *The factory removes the git-ignored paths after every agent run and at the restore*: one sentence says that the tests' shared helpers and every script the tests write for their own interpreter start it with `-B`, and that a structural test keeps the shebangs so. The reason: the tests run under umask `022`, and a bytecode folder written there by the agent's `make check` is one the factory's removal cannot remove. That stopped F0027's acceptance twice on 2026-10-20. `README.md`, `docs/operator-guide.md` and `docs/project-guide/`: none, since no behaviour of the factory changes.
 
@@ -125,3 +127,10 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    1. (a). The matcher rows build the text from pieces, and criterion 3 says that no line of the module holds the literal text; the scan reads its own module like any other, and the smoke test's grep stays at `0`.
    2. Agreed: "same path" is `directory / "sudo"`, as the existing tests use it.
 5. factory: started intake as self.
+6. intake: accepted
+   Carried in from the human's answer (journal entry 4, answer 1, option a): criterion 3 now says the matcher rows build the two texts from pieces, so no line of `tests/test_test_children.py` holds the literal `#!{sys.executable}\n`. The scan reads its own module like any other, and the third smoke test's grep stays at `0`. Answer 2 (the "same path" is `directory / "sudo"`) needs no edit. The Description's meaning did not change.
+   - Interface: concrete. It names `write_script` and `python_argv` with their exact outputs, `_write_sudo`'s replacement line, the eight shebang writers by file and line, and the new test module. No `src/` module changes.
+   - Criteria: each is testable by one test function. Criterion 1 is one parametrized test with three rows, the third being the side the helpers close. Criterion 2 checks the first line and mode of the stand-in `sudo`. Criterion 3 covers both sides of the matcher, plus the scan of the built tests. The rules have a failing side: the plain shebang is found, the `-B` one is not, and the plain child does write `__pycache__`. Criteria 4 and 5 are the closing two.
+   - Smoke test: the three commands are runnable. None runs pytest, so no `-q` issue arises. Each `Expect:` (`True`, `False`, `0`) can be checked against the output.
+   - Architecture: only test helpers change. The new module sits at the `tests/` root because it tests no package module. The layers are untouched.
+   - Scope: it is within F0027. Decision 16 grants the leave for exactly these helpers and stand-ins, and the story is listed as S0004 in the feature. No "Out of scope" item is touched.
