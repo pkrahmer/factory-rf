@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658, 6303178244]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T22:29:43.396597Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -203,6 +199,12 @@ journal:
   kind: started
   at: '2026-10-20T22:29:43.396597Z'
   stage: docs
+- number: 36
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T22:31:03.102640Z'
+  stage: docs
+  run: 963acb49ddac406e82542b647e7ae572
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -637,3 +639,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - `tests/adapters/test_sudo_agent_home.py::test_the_reset_call_has_no_environment_and_the_limit_plus_the_sudo_grace` and `::test_a_reset_the_factory_ended_at_its_limit_raises` each build a `ProcessResult` inline. A small builder would read more simply. Per the human's answer in entry 32, this stays a note.
 35. factory: started docs as self.
+36. documenter: Docs, round 1. I read the story, the diff `git diff main...HEAD -- . ':!factory' ':!docs' ':!README.md'` and the docs it touches. I changed documents only, so I did not run `make check`; `make documents` printed `documents ok`. I ran none of the new text as a command, because the story only documents code the tests cover. The `sudo ... fresh_home` command I wrote matches `SudoAgentHome.reset` and `fresh_home_command()` (`-I -B`). No finding for the coder: the code matches the Interface and the criteria.
+
+    Files changed:
+    - `docs/operator-guide.md`: the paragraph on the agent's home in *The agent runs as a second user* is rewritten. A new section, *The home is cleared before every run*, holds the command, what is removed and what is kept, and that the last transcript stays until the next run or command. It also covers the two failure messages, the rule that nothing is cleared without an agent user, and the first reset after the upgrade (about 222 MB on `self`). The `FACTORY_OPENCODE_FOLDERS` row, the manual-login paragraph and *What opencode keeps in the agent's home* now say the same. A new row in the morning observations checks `ls -A /home/agent/.claude`.
+    - `docs/project-guide/agents.md`: *The fresh home* now says who starts the program and when, covers `AgentHome` and `SudoAgentHome`, its faults, the kept paths, `LOGIN_STATE_FILE`, `UV_CACHE_FOLDER` and `-B`, and says the kept uv cache is the one thing a run leaves that a later run or check reads. I removed the sentence that said S0004 "starts it".
+    - `docs/project-guide/processes-and-checks.md`: `SealedProjectCommands`' new `home` argument and how a failed reset becomes `ProjectCommandError`.
+    - `docs/project-guide/watching.md`: `Boundaries.agent_home` and `agent_home_of`.
+    - `docs/decisions.md`: the new entry *Every agent run and every project command starts from a fresh agent home*. It marks the sentence "The agent's home stays writable by the agent (L69) ... Left for v2" in the 2026-10-16 entry as closed by it, and S0002's "Left" line now says the clearing came with S0004. The entry has no *Rejected* line, because the story's journal names no rejected alternative.
+
+    Cross-read and found current: the README, and the rest of `docs/operator-guide.md`, `docs/project-guide/` and `docs/decisions.md` against the diff. I could not read the feature's `feature.md`, so the entry's reasons come from the story's Description and journal, not from the feature's decisions 8 to 13 in their own words. Please check that wording.
+
+    Stale but unrelated, not touched: `leftovers_command()` in `src/factory/entry/wiring.py` and its description in `docs/project-guide/watching.md` start the program with `-I` and no `-B`. The coder noted the same in its entry. That belongs to another story.
+
+    `check`: check: green (not run again: passed on tree 9c97e3563684 at 2026-10-20T22:24:14Z)
+    `secrets`: secrets: green (2.8 s)
+    `documents`: documents ok
