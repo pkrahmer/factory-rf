@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 309
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T00:33:21.749225Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T00:33:21.749225Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T00:35:20.950070Z'
+  stage: tests
+  run: d5fe32a6e12d450b98d793585e0229df
 ---
 
 # The image makes opencode's configuration folder, read-only to the agent
@@ -105,3 +107,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: this is an image-only change. It leaves the layers, the write guard and `RUNTIME_FOLDERS` alone, and the feature's decisions 1 to 3 give the reasons. The test goes in `tests/` at its root, like the other image tests.
    Scope: it matches the feature's Scope, S0001 first. The story does not touch anything in the feature's Out of scope: `RUNTIME_FOLDERS`, the entrypoint and S0002's tests. It changes no test another story wrote.
 4. factory: started tests as self.
+5. tester: Wrote the tests for the image's opencode configuration folder. The tests read `image/Dockerfile` through `_commands` and `_path_settings` of `tests/test_image.py` and `dockerfile_instructions` of `tests/dockerfile_support.py`, as the Interface says.
+
+   - criterion 1: tests/test_opencode_config_folder.py::test_the_image_makes_the_configuration_folder_read_only_and_leaves_its_parent_the_agents, with rows `configuration` and `parent`. Each row checks that a `mkdir -p` names `/home/agent/.config/opencode`, the last `chown` and last `chmod` of the path, and `int(mode, 8) & 0o022 == 0`. That last check also holds for the parent's `0755`, since it follows from the mode.
+   - criterion 2: tests/test_opencode_config_folder.py::test_the_configuration_folder_is_made_right_after_the_agent_is_added. Exactly one `RUN` holds `mkdir -p /home/agent/.config/opencode`, and exactly one `RUN` holds `useradd ... agent`. The mkdir `RUN` is the instruction right after the useradd `RUN` and comes before `WORKDIR /opt/factory` and `USER factory`.
+   - criterion 3: tests/adapters/test_opencode_runtime_folders.py::test_the_rules_allow_each_runtime_folder_in_the_home_in_order[default], which already exists and is not changed. No new test.
+   - criteria 4 and 5: `make check` and docs, no test.
+
+   Files created: tests/test_opencode_config_folder.py. No earlier test file was changed.
+
+   Modules the test runner could not import: none. The three new test cases fail on missing Dockerfile settings and the wrong instruction order, the right reasons. `make lint` is green.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/test_opencode_config_folder.py::test_the_image_makes_the_configuration_folder_read_only_and_leaves_its_parent_the_agents[configuration]
