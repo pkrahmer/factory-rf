@@ -12,7 +12,8 @@ The read-only review `planning/overnight/mess-scan-2026-10-20.md` found code tha
 - `src/factory/application/tick.py` (docstrings) and `src/factory/application/scheduler.py` (`CheckoutPreparer.prepare -> None`); seven earlier tests changed under decision 6 (S0004).
 - `src/factory/entry/wiring.py`: `NOT_YET_HANDLED` removed; five earlier tests changed under decision 7 (S0005).
 - `src/factory/application/boundaries.py`: the six fields `settings`, `disk`, `disk_records`, `stop_records`, `waiter` and `result_records` required; every `is None` branch on them in `factory.application` removed; the `boundaries` fixture and `tests/proof_support.py` set all six; seventeen earlier tests changed under decision 11 (S0006).
-- `docs/project-guide/README.md` (*Shared test helpers*, S0002 and S0003), `docs/project-guide/agents.md`, `docs/project-guide/watching.md`, `docs/project-guide/stages.md` and `docs/project-guide/processes-and-checks.md` (S0006), `docs/operator-guide.md` and `docs/decisions.md`, from each story's docs criterion.
+- `security/duplicates-baseline.txt` (the human's change) and the decision log's and the project guide's record of it: the five standing findings of `make duplicates` in the runtimes and `clock.py` settled, one merged by S0001, four accepted (S0007, decision 12).
+- `docs/project-guide/README.md` (*Shared test helpers*, S0002 and S0003), `docs/project-guide/agents.md`, `docs/project-guide/watching.md`, `docs/project-guide/stages.md` and `docs/project-guide/processes-and-checks.md` (S0006, S0007), `docs/operator-guide.md` and `docs/decisions.md`, from each story's docs criterion.
 
 ## Out of scope
 
@@ -27,9 +28,10 @@ The read-only review `planning/overnight/mess-scan-2026-10-20.md` found code tha
 
 ## Stories
 
-The build order; start one at a time, the next when the one before is archived in `done/`. Start S0001 after F0029 and F0030 are merged, S0003 after F0033, and S0006 after F0040-S0004 and once the human has granted decision 11 (decision 10).
+The build order; start one at a time, the next when the one before is archived in `done/`. Start S0001 after F0029 and F0030 are merged, S0007 after S0001 and the human's baseline change, S0003 after F0033, and S0006 after F0040-S0004 and once the human has granted decision 11 (decisions 10 and 13).
 
 - S0001: The runtimes read the end of a call in one place
+- S0007: The duplicates report holds no standing finding of the runtimes or the clock
 - S0002: The tests read the pipeline definition and the factory log from one place each
 - S0003: The tests read the pushed work item, its posts and the disk records from one place
 - S0004: The tick's docstrings and the checkout preparer say what the code does
@@ -38,7 +40,20 @@ The build order; start one at a time, the next when the one before is archived i
 
 ## The human's changes
 
-One, after S0006 is merged: in `CLAUDE.md`, *Tests*, the bullet "Two more `mypy --strict` traps in tests" ends with the example `(`pytest.param(lambda b: replace(b, disk=None), id="disk")`)`, which no longer type-checks once `disk` is required. Replace that example with `(`pytest.param(lambda b: replace(b, checkout=b.checkout / "elsewhere"), id="checkout")`)`. Nothing else. Checked against `factory/pipeline.yml`: the coder writes `src/*`, `image/*`, `template/*` and `claude/*`, the tester `tests/*`, the documenter `README.md` and `docs/*`. S0001, S0004, S0005 and S0006 change `src/` and `tests/`; S0002 and S0003 change only `tests/` (and their documenter the project guide), and their coder has nothing to build. No new dependency, no `.secrets.baseline` entry, no `security/` change, no suppression marker. No story adds a test that reads `src/`, so `[tool.mutmut]` stays as it is. `make duplicates` may report findings of the runtimes as gone after S0001; `security/duplicates-baseline.txt` needs no change for that.
+Two.
+
+The first, after S0001 is merged and before S0007 starts (decision 12): in `security/duplicates-baseline.txt`, add the four lines below, and remove the two lines `dead-code src/factory/adapters/clock.py: unused class 'ManualClock'` and `dead-code src/factory/adapters/clock.py: unused method 'advance'`, which `make duplicates` reports as `gone` (vulture counts both as used since `ManualWaiter` calls `advance`). A similar-code key is the first code line of its block, so take the keys from the `new` lines of `make duplicates` on `main` after S0001: S0001's coder may shape `_call` so that its block starts at another line, or leaves none. On a copy of 2026-10-20 with S0001 built as its Interface gives it, they were:
+
+```text
+similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: return version_printed(
+similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: leftovers_error = self._end_leftovers(request)
+similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: started = due_leftovers_launch(self._starters, request.os_user, own_identity().user)
+dead-code src/factory/adapters/clock.py: unused class 'ManualWaiter'
+```
+
+The key `similar-code ...: refusal = call_refusal(` is not added: S0001 merges that block, and the prototype no longer reported it. If `make duplicates` still reports it after S0001, S0001 is not done, and S0007 waits.
+
+The second, after S0006 is merged: in `CLAUDE.md`, *Tests*, the bullet "Two more `mypy --strict` traps in tests" ends with the example `(`pytest.param(lambda b: replace(b, disk=None), id="disk")`)`, which no longer type-checks once `disk` is required. Replace that example with `(`pytest.param(lambda b: replace(b, checkout=b.checkout / "elsewhere"), id="checkout")`)`. Nothing else. Checked against `factory/pipeline.yml`: the coder writes `src/*`, `image/*`, `template/*` and `claude/*`, the tester `tests/*`, the documenter `README.md` and `docs/*`. S0001, S0004, S0005 and S0006 change `src/` and `tests/`; S0002 and S0003 change only `tests/` (and their documenter the project guide), and their coder has nothing to build; S0007 changes only `docs/`, and neither its tester nor its coder has anything to build. No new dependency, no `.secrets.baseline` entry, no `security/` change, no suppression marker. No story adds a test that reads `src/`, so `[tool.mutmut]` stays as it is. After S0001, `make duplicates` no longer reports the runtimes' refusal block; the baseline lines for the other four findings are the first change above.
 
 ## Decisions taken for the human
 
@@ -81,3 +96,12 @@ One, after S0006 is merged: in `CLAUDE.md`, *Tests*, the bullet "Two more `mypy 
 4. Decision 9: answer (a), the stop records file stays as it is.
 5. S0002 and S0003 each gained a docs criterion that names their new helper module in the project guide's *Shared test helpers*, and a smoke check for the line (decision 5).
 6. S0002's and S0003's first smoke blocks re-run on today's `main`: 22 and 12 modules, as drafted; no new copy, no list changed (decision 10).
+12. **The five standing findings of `make duplicates` (S0007): OPEN, for the human; answer (a) is recommended and drafted.** Since F0020 every coder entry records `duplicates: 5 new` (the night log of 2026-10-20, 06:09). They were read on a copy of `main` of 2026-10-20 (pylint 4.1.3 and vulture 2.16, as `pyproject.toml` pins them), and again with S0001 built as its Interface gives it:
+    - `similar-code ...: refusal = call_refusal(` (`claude_runtime.py` lines 500 to 511, `opencode_runtime.py` 687 to 698): the reading of the refusals at the end of `_call`. **Merge**, by S0001's `read_call_end`; with S0001 built, it is no longer reported.
+    - `similar-code ...: leftovers_error = self._end_leftovers(request)` (487 to 494, 674 to 681): the start of the leftovers program and of the folder removal at the start of `_call`, then the time-limit reading. S0001 removes the time-limit reading, but the first lines stay alike: with S0001 built, five lines are still reported under the same key. **Accept**: they are the runtimes' own process calls.
+    - `similar-code ...: started = due_leftovers_launch(...)` (515 to 536, 702 to 723): the methods `_end_leftovers` and `_remove_temporary_folder`, the same in both runtimes. **Accept**: the launches they start (`due_leftovers_launch`, `cleanup_launch`) and the reading of the result (`leftovers_fault`) already lie in `agent_launch`; what is left is the start through each runtime's own `_start`, and the earlier tests set `run_process`, `SHELL_EXECUTABLE` and `CLEANUP_TIME_LIMIT` on `claude_runtime`, which the decision log's entry keeps "names of that module, read at the call".
+    - `similar-code ...: return version_printed(` (435 to 450, 624 to 632): the call of `<executable> --version`. **Accept**: a process call, whose reading (`version_printed`) is shared already.
+    - `dead-code src/factory/adapters/clock.py: unused class 'ManualWaiter'`: added by F0020-S0007 on 2026-10-19, after the baseline was written. **Accept**: a fake that only the tests use, like `ManualClock`, `FakeAgentRuntime` and `FakeHostingService`, whose lines the baseline already holds; removing it would move a fake out of `factory.adapters`, where `CLAUDE.md` (*Architecture*) puts the fakes the tests use.
+
+    Options: (a) as above: one merge by S0001, four lines in the baseline, and S0007 records why (recommended: the decision log's entry *What the agent runtimes share lies in one module* decided that "each runtime keeps its own process calls" and rejected a base class, and every copy left is a start whose meaning is shared already); (b) a second shared module for the runtimes' process calls (`request_of`, the leftovers program, the folder removal, the version call), each taking the runtime's own `_start` and the names the tests set on `claude_runtime`: it removes the three similar blocks, but changes the decision log's entry and the sentence of `CLAUDE.md` (R5) that what the runtimes share lies in `agent_launch`, and S0007 becomes a code story with tests of its own; (c) no story: the human's baseline change alone, with the decision log's line added to S0001's docs criterion. Under (a), S0007 changes documents only.
+13. **The order of S0007 (S0007).** S0007 starts after S0001, because S0001 changes the lines that the similar-code keys are read from, and after the human's baseline change, which its smoke test reads. It changes only `docs/decisions.md` and `docs/project-guide/processes-and-checks.md`. S0006's docs criterion names `processes-and-checks.md` too, in another section; whichever starts second edits the file as it then stands. No other story of this feature touches the runtimes after S0001, and F0040-S0004 adds only a constant `LOGIN_STATE_FILE` to each runtime, which changes no similar block. S0007 changes no test, so it needs no leave.
