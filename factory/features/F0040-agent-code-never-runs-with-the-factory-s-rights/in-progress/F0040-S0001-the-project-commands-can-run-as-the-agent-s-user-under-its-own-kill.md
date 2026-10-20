@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T18:04:13.374294Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-10-20T18:03:52.603417Z'
   stage: tests
   run: 4fc54d6de4254eefa8607d4a076403cd
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T18:04:13.374294Z'
+  stage: doing
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -259,3 +268,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.6 s)
     `test`: ERROR tests/adapters/test_make_commands_user.py - ImportError while importing test module '/work/checkout/tests/adapters/test_make_commands_user.py'.
+12. factory: started doing as self.
