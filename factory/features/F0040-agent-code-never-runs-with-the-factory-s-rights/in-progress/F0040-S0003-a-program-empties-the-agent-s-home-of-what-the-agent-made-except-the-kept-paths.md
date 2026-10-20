@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T21:11:13.911235Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-10-20T21:11:13.911235Z'
   stage: tests
+- number: 27
+  speaker: tester
+  kind: result
+  at: '2026-10-20T21:13:46.864810Z'
+  stage: tests
+  run: 3d390a8a0d0347929508d99a532b37b7
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -483,3 +485,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     I did not run `make check` this round, because nothing in the code or tests changed since entry 21's green run.
 26. factory: started tests as self.
+27. tester: Round 2, test-only change. The coder's entry 25 says the only remaining finding (reviewer, entry 23) is new criterion 16, which needs just its test. I wrote that test as the role section describes.
+
+    Criterion → test:
+    - criterion 16: tests/adapters/test_home_files.py::test_own_entry_judges_the_entry_itself_by_its_owner. It has three rows. `own-file`: a file made in `tmp_path` gives true. `own-link-to-root`: a link made in `tmp_path` that points to `/` gives true. `root-folder`: `/` gives false, and this row is skipped when the tests run as root, who owns `/`.
+
+    Files changed: `tests/adapters/test_home_files.py`. I added `import os`, imported `own_entry` beside `clear_home`, and added the three row builders and the parametrized test. I created no new file and changed no other story's test.
+
+    Modules the test run could not import: none. `factory.adapters.home_files.own_entry` already exists. `make test` was green on its one run (`test: green`, coverage 99.14 %). That means this test did not fail first. The coder predicted this in entry 25: `own_entry` already uses `lstat`, so it passes every row of the criterion. `make lint` is green.
+
+    Rejected: I left out the reviewer's two optional notes in entry 23 (a shared `home` fixture in `tests/conftest.py`, and `re.escape` in `tests/domain/test_agent_home.py`). This mode is limited to the named test change, and neither note is a finding. Nothing is open.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (60.9 s)

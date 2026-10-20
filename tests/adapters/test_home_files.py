@@ -1,12 +1,13 @@
 """The walk that clears an agent's home of its own entries but the kept paths."""
 
+import os
 import stat
 from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
-from factory.adapters.home_files import clear_home
+from factory.adapters.home_files import clear_home, own_entry
 from home_files_support import build_home, listing, owned_but, refusing
 
 
@@ -153,3 +154,38 @@ def test_the_home_itself_stays_once_emptied(home: Path) -> None:
     assert faults == []
     assert home.is_dir()
     assert listing(home) == set()
+
+
+def _own_file(tmp_path: Path) -> Path:
+    path = tmp_path / "file"
+    path.write_text("x")
+    return path
+
+
+def _own_link_to_root(tmp_path: Path) -> Path:
+    path = tmp_path / "link"
+    path.symlink_to("/")
+    return path
+
+
+def _root(_tmp_path: Path) -> Path:
+    return Path("/")
+
+
+@pytest.mark.parametrize(
+    ("make", "expected"),
+    [
+        pytest.param(_own_file, True, id="own-file"),
+        pytest.param(_own_link_to_root, True, id="own-link-to-root"),
+        pytest.param(
+            _root,
+            False,
+            id="root-folder",
+            marks=pytest.mark.skipif(os.geteuid() == 0, reason="root owns /"),
+        ),
+    ],
+)
+def test_own_entry_judges_the_entry_itself_by_its_owner(
+    tmp_path: Path, make: Callable[[Path], Path], expected: bool
+) -> None:
+    assert own_entry(make(tmp_path)) is expected
