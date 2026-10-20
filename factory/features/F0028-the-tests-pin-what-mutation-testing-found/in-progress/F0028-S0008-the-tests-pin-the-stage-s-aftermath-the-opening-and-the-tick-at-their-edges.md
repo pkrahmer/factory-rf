@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 319
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T02:37:56.287735Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T02:37:35.584012Z'
   stage: review
   run: 2be74335efb64a88bcdb9ef5a6ead627
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:37:56.287735Z'
+  stage: docs
 ---
 
 # The tests pin the stage's aftermath, the opening and the tick at their edges
@@ -199,3 +208,4 @@ Expect: four lines, `None`, `Stalled (attempt 1 of 2): the agent gave no valid d
    - `tests/application/test_dispatcher.py`: changed under the standing leave to move a shared test helper. `Failing` moved to `tests/tick_support.py` and is imported from there. Every test keeps its name and checks the same thing.
    - `tests/application/test_tick.py`: changed under the standing leave to move a shared test helper. `_factory` was replaced by the shared `handlers_of`, and two imports that are no longer used were dropped. Every test keeps its name and checks the same thing.
    - `tests/application/test_tick_stale_branch.py`: changed under the standing leave to move a shared test helper. Its copy of `_factory` was replaced by `handlers_of`, and the imports that are no longer used were dropped. Every test keeps its name and checks the same thing.
+10. factory: started docs as self.
