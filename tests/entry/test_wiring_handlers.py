@@ -1,6 +1,7 @@
 """The production wiring of the dispatcher: the handlers, the unhandled kinds, the environment."""
 
 import os
+import shutil
 import sys
 from datetime import timedelta
 from pathlib import Path
@@ -96,10 +97,19 @@ def test_the_kinds_without_a_handler_are_exactly_those_not_yet_handled(
     assert unhandled_kinds(handlers) == list(NOT_YET_HANDLED)
 
 
-def test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "confine_present", [True, False], ids=["confine-present", "confine-absent"]
+)
+def test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home(
+    tmp_path: Path, *, confine_present: bool
+) -> None:
     scripts = tmp_path / "scripts"
     scripts.mkdir()
     home = tmp_path / "home"
+    if confine_present:
+        confine = scripts / "factory-confine"
+        confine.write_text("", encoding="utf-8")
+        confine.chmod(0o755)
 
     environment = agent_environment(scripts, home)
 
@@ -107,6 +117,8 @@ def test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home(tmp_path:
     assert environment["HOME"] == str(home)
     assert environment["PATH"] == f"{scripts}:/usr/local/bin:/usr/bin:/bin"
     assert environment["PATH"].split(os.pathsep)[0] == str(scripts)
+    found = shutil.which("factory-confine", path=environment["PATH"])
+    assert found == (str(scripts / "factory-confine") if confine_present else None)
 
 
 def test_the_production_environment_uses_the_interpreter_directory_and_the_home(

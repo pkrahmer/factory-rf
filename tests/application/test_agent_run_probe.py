@@ -18,8 +18,8 @@ from factory.application.preflight import (
     PROBE_PROMPT,
     MachineChecks,
     Preflight,
-    agent_environment_item,
     agent_run_probe_item,
+    confinement_item,
 )
 from factory.application.stops import StopService
 from factory.domain.agent_runs import (
@@ -28,6 +28,7 @@ from factory.domain.agent_runs import (
     EndReason,
     GuardSettings,
 )
+from factory.domain.confinement import LANDLOCK_MINIMUM_ABI
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.settings import InstanceSettings
 from git_support import install_agents
@@ -217,15 +218,15 @@ def test_the_probe_runs_once_for_each_image_build(
     boundaries.git.fetch()
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
-    homes: list[Path] = []
+    finds: list[str] = []
 
-    def is_directory(path: Path) -> bool:
-        homes.append(path)
-        return path.is_dir()
+    def find(name: str, path: str) -> str | None:
+        finds.append(name)
+        return f"{path.partition(':')[0]}/{name}"
 
     environment = {"PATH": "/opt/factory/bin:/usr/bin", "HOME": str(tmp_path)}
     extra = [
-        lambda: agent_environment_item(environment, is_directory),
+        lambda: confinement_item(lambda: LANDLOCK_MINIMUM_ABI, environment, find),
         lambda: agent_run_probe_item(boundaries, probe_settings, environment),
     ]
     checks = MachineChecks(boundaries, probe_settings, lambda name: f"/usr/bin/{name}", extra)
@@ -236,4 +237,4 @@ def test_the_probe_runs_once_for_each_image_build(
     assert preflight.run() is None
 
     assert len(agent_runtime.requests()) == 1
-    assert homes == [tmp_path]
+    assert finds == ["factory-confine"]

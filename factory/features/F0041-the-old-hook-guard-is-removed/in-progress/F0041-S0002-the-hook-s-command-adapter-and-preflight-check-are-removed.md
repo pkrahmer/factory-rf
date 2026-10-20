@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T11:07:02.024362Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T11:07:02.024362Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-20T11:12:06.394864Z'
+  stage: tests
+  run: fccd8e5f13ac45b5b3c5f8158d80bc7a
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -270,3 +272,32 @@ Expect: `5`
 
     Noticed but not touched, still open: `pyproject.toml:17` still declares `factory-guard`, which is the human's change 1 after this story. A leftover `mutants/` folder holds copies of the old guard tests; every mutmut run deletes it first. I did not run `make check` this round, because nothing in the code changed since entry 7, when it passed.
 12. factory: started tests as self.
+13. tester: Round 1: I made the two test changes from the coder's entry 11, which fix review entry 9's findings, exactly as the feature's decision 10 spells them out. I changed nothing else.
+
+    1. `tests/application/test_agent_run_probe.py::test_the_probe_runs_once_for_each_image_build`:
+       - The first extra item is now `confinement_item(lambda: LANDLOCK_MINIMUM_ABI, environment, find)`. `find` and `finds` are back as they were on `main`.
+       - The last line expects `finds == ["factory-confine"]`.
+       - I removed the `is_directory`/`homes` counter. In the imports, `agent_environment_item` is replaced by `confinement_item`, and I added `LANDLOCK_MINIMUM_ABI` from `factory.domain.confinement`.
+    2. `tests/entry/test_wiring_handlers.py::test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home`:
+       - It is parametrized again, on `confine_present`, with the ids `confine-present` and `confine-absent`.
+       - When the parameter is true, the test writes an executable `factory-confine` into `scripts`.
+       - It asserts `shutil.which("factory-confine", path=environment["PATH"])` against that script, or `None` when the script is absent. The PATH and HOME checks are unchanged, and the `shutil` import is back.
+
+    Both are earlier tests of other stories, changed under the human's leave in the feature's decision 10, as the review asked.
+
+    Criterion → test (unchanged from entry 5):
+    - criterion 1: tests/test_hook_removed.py::test_the_hook_s_code_is_gone_and_the_kernel_s_guard_is_kept
+    - criterion 2: tests/test_hook_removed.py::test_the_guard_settings_have_no_temporary_folder
+    - criterion 3: tests/application/test_agent_environment_item.py::test_the_agent_environment_checks_the_home_only
+    - criterion 4: tests/entry/test_wiring_agent_environment.py::test_the_wiring_s_agent_environment_needs_no_factory_guard
+    - criterion 5: tests/application/test_undo.py::test_the_guard_refuses_exactly_what_the_undo_puts_back
+    - criteria 6 and 7: no test (`make check`; docs: none)
+
+    Files created this round: none. Files changed: the two above.
+
+    `make test`, run once: test: green (134.7 s). The code was already in place, so no test is red. The test run imported every module it needed.
+
+    `make lint`: green. Nothing is open.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (134.5 s)
