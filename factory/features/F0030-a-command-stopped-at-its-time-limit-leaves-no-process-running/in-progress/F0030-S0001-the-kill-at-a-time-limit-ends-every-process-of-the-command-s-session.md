@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T09:09:16.109511Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-10-20T09:09:16.109511Z'
   stage: tests
+- number: 24
+  speaker: tester
+  kind: result
+  at: '2026-10-20T09:15:09.223580Z'
+  stage: tests
+  run: a80ca2e6fb17452b9af47730b2734f73
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -455,3 +457,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - The racy-index cause of the flaky `tests/adapters/test_git_cli_work_tree.py` test (entry 10) is outside this work item.
     - I did not run `make check` this round because nothing changed since entry 18's green run.
 23. factory: started tests as self.
+24. tester: Round 2, a test change the human approved. Coder's entry 22 asked for a test of criterion 9, which the reviewer added in entry 20. I changed one file, `tests/adapters/test_process_session.py`. This story's tests stage wrote it, so I changed no earlier test file and created no files.
+
+    What changed: criterion 8's test `test_process_the_factory_may_not_signal_is_left_not_waited_for` is now one parametrized test of `run_process`, `test_process_the_kill_cannot_reach_does_not_hold_the_call`, with two rows:
+    - `may-not-signal` (criterion 8): the `os.kill` stand-in raises `PermissionError` for the grandchild's id. The grandchild is still running when the call returns. The test then undoes the replacement and kills it itself, as before.
+    - `ended-in-between` (criterion 9): the stand-in calls the real `os.kill` for the grandchild's id and then raises `ProcessLookupError`. The call raises nothing and the grandchild is gone (`is_gone(pid, within=0)`).
+
+    Both rows use the same child, a grandchild in a group of its own (`OWN_GROUP`), and `ROOMY_LIMIT`. Both assert that the call returns within `ROOMY_BOUND_SECONDS` with `timed_out=True`. Every other id goes to the real `os.kill`.
+
+    One parameter, `ended`, drives two things: whether the stand-in kills first, and whether the grandchild is expected gone. I first wrote these as two parameters, but `make lint` refused six positional arguments (PLR0917). The two values are equal in both rows, so I merged them.
+
+    Mapping (unchanged apart from criteria 8 and 9):
+    - criterion 8: tests/adapters/test_process_session.py::test_process_the_kill_cannot_reach_does_not_hold_the_call[may-not-signal]
+    - criterion 9: tests/adapters/test_process_session.py::test_process_the_kill_cannot_reach_does_not_hold_the_call[ended-in-between]
+
+    One run of `make test`: `test: green (157.4 s)`, 99.17 % coverage. As the coder expected, the new row passes against the existing code. No module failed to import. That run was before the PLR0917 rename, which changed parameter names only, not what the test does. `make lint`: green after the rename.
+
+    Not taken up: the reviewer's note on `# noqa: PT011` at `tests/domain/test_sessions.py:41`. It is a note, not a finding, and not part of the change asked for.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (159.0 s)

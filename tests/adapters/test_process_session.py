@@ -148,17 +148,30 @@ def test_time_limit_of_a_make_target_ends_what_timeout_started(
     assert is_gone(_grandchild(pid_file), within=0)
 
 
-def test_process_the_factory_may_not_signal_is_left_not_waited_for(
-    tmp_path: Path, pid_file: Path, monkeypatch: pytest.MonkeyPatch
+@pytest.mark.parametrize(
+    ("error", "ended"),
+    [
+        pytest.param(PermissionError, False, id="may-not-signal"),
+        pytest.param(ProcessLookupError, True, id="ended-in-between"),
+    ],
+)
+def test_process_the_kill_cannot_reach_does_not_hold_the_call(
+    tmp_path: Path,
+    pid_file: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    error: type[OSError],
+    ended: bool,
 ) -> None:
     real_kill = os.kill
 
-    def refusing_kill(pid: int, sig: int) -> None:
+    def failing_kill(pid: int, sig: int) -> None:
         if pid_file.exists() and pid == _grandchild(pid_file):
-            raise PermissionError(pid)
+            if ended:
+                real_kill(pid, sig)
+            raise error(pid)
         real_kill(pid, sig)
 
-    monkeypatch.setattr(os, "kill", refusing_kill)
+    monkeypatch.setattr(os, "kill", failing_kill)
     request = ProcessRequest(
         argv=python_argv(CHILD, str(pid_file), OWN_GROUP), cwd=tmp_path, time_limit=ROOMY_LIMIT
     )
@@ -169,6 +182,7 @@ def test_process_the_factory_may_not_signal_is_left_not_waited_for(
     assert time.monotonic() - start < ROOMY_BOUND_SECONDS
     assert result.timed_out is True
     grandchild = _grandchild(pid_file)
-    assert not is_gone(grandchild, within=0)
+    assert is_gone(grandchild, within=0) is ended
     monkeypatch.undo()
-    os.kill(grandchild, signal.SIGKILL)
+    if not ended:
+        os.kill(grandchild, signal.SIGKILL)
