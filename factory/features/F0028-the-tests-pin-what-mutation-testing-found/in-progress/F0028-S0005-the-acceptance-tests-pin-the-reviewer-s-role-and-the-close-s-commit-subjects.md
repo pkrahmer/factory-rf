@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 316
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T02:00:54.361146Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T02:00:54.361146Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T02:01:10.692143Z'
+  stage: intake
+  run: ad4ec654695a4dd788ef14d8b9189135
 ---
 
 # The acceptance tests pin the reviewer's role and the close's commit subjects
@@ -88,3 +90,9 @@ Expect: three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: clo
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names concrete handlers (`AcceptanceHandOver.handle`, `AcceptanceClosed.handle`), the test module and the shared fixtures and helpers it builds on. The behaviours it states are the findings text, the refusal reason, and the two commit subjects. Nothing under `src/` changes. The smoke test's functions exist with those signatures (`acceptance_description` and `refusal_reason` take a document and a role, `commit_subject` takes an id and a text).
+   - Criteria: each is testable by one test function with exact expected values. Criterion 1 has the role's own result and a later other-speaker result. Criterion 2 has the later other-speaker result and the case without it. Criterion 3 has both subjects, the branch's and main's. The rules' failing side, a result of another speaker not counting, is covered in 1 and 2. Criteria 4 and 5 close the list as the form requires.
+   - Smoke test: the script is runnable and uses the existing domain functions. The Expect line names three exact output lines.
+   - Architecture: tests only, in `tests/application/` as the mirror rule requires. No wiring or layer change.
+   - Scope: within F0028's scope list (S0005 in `feature.md`), tests only, and none of its Out of scope items. Decision 10 of the feature records the two equivalent rows as excluded.
