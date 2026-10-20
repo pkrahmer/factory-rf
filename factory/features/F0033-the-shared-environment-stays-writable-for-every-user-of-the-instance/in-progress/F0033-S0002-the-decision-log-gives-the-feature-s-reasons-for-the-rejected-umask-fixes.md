@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 326
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T03:47:10.264055Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T03:47:10.264055Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T03:47:27.119032Z'
+  stage: smoke-test
+  run: c30f04bf9b95463da46c5fea8ea92cc0
 ---
 
 # The decision log gives the feature's reasons for the rejected umask fixes
@@ -166,3 +168,24 @@ Expect: `0`
     `secrets`: secrets: green (0.7 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed. I ran both blocks from the repository root exactly as written. No findings.
+
+    Command 1 (the three search strings in the entry *The tests set their own umask, and uv syncs under the caller's*):
+    ```
+    found
+    found
+    found
+    ```
+    Met `Expect:` (three lines `found`).
+
+    Command 2:
+    ```
+    0
+    ```
+    Met `Expect:` (`0`).
+
+    Check against the acceptance criteria (`git diff main...HEAD -- docs/decisions.md`):
+    - Criterion 2: the change is limited to the one entry. Its opening paragraph adds the reverse direction (factory-owned `644` files in `.venv` that an agent's `uv run` could not replace). The *Rejected* line gives the three reasons word for word as the criterion states them. The phrase "the fault would come back with the next recipe that calls `uv`" is gone. The title, the date and the two *Decision* lines are unchanged. `README.md`, `docs/operator-guide.md` and the project guide are not in the diff, as the criterion asks. The branch's diff outside `factory/` is `docs/decisions.md` alone.
+    - Criterion 1 (`make check` stays green): the smoke test does not contradict it. I did not run it in this stage. The coder's run (entry 7) and the factory's gate after docs (entry 11) record `check: green`, and the docs-only change does not touch anything `make check` reads.
+
+    Open: nothing.
