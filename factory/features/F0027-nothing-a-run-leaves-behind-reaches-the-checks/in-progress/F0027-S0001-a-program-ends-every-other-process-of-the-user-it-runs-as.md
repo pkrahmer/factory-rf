@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T12:28:23.395694Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-20T12:28:02.192694Z'
   stage: review
   run: 9f7bec2470a84d9f9f6885214d920742
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:28:23.395694Z'
+  stage: doing
 ---
 
 # A program ends every other process of the user it runs as
@@ -399,3 +408,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/entry/test_wiring.py`: the human's leave, the story's Interface (feature decision 16). The expected set gains `"factory.entry.leftovers"`.
     - `tests/test_wrapper_search.py`: the human's answer, journal entry 8. The expected set gains `"factory.entry.leftovers"`.
     - `tests/test_process_search.py`: the human's answer, journal entry 8. The expected markers gain `"entry/leftovers.py": {32: {"noqa: PLR0913"}}`.
+17. factory: started doing as self.
