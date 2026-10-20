@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T09:15:30.935519Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-10-20T09:15:30.935519Z'
   stage: doing
+- number: 26
+  speaker: coder
+  kind: result
+  at: '2026-10-20T09:21:32.013641Z'
+  stage: doing
+  run: 7abcce01948746daab48114a8eaf0b3c
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -487,3 +489,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (159.0 s)
 25. factory: started doing as self.
+26. coder: Round 2, after the tester's change (entry 24). I changed no code. The reviewer's one finding (entry 20) was a missing test for criterion 9. The tester has added it as the `ended-in-between` row of `tests/adapters/test_process_session.py::test_process_the_kill_cannot_reach_does_not_hold_the_call`, beside criterion 8's `may-not-signal` row. Both rows pass against the existing code. I ran `make check` after the merge of `origin/main` (52883299): `test: green (158.5 s)`, 99.17 % coverage, `check: green`.
+
+    What is built (from entries 7 and 10, unchanged):
+    - `src/factory/domain/sessions.py`: `ENDED_STATES`, `ProcessEntry`, `parse_stat` (splits the text at its last `)`) and `left_to_kill` (a sorted set of the matching ids).
+    - `src/factory/adapters/process.py`: `_kill_session` replaces `_kill_group` at the same three call sites. It kills the group first, exactly as before. Then it kills in rounds, 0.05 s apart, until a round finds nothing left:
+      - `_read_process_table` reads `/proc` and skips a folder whose `stat` raises `OSError`.
+      - `_kill_one` skips a `ProcessLookupError` and adds the id to `refused` on a `PermissionError`.
+
+    Main choice: I read the process table again on every round. I rejected collecting the targets once and then waiting for them, because that would miss a process forked in between.
+
+    Refactor pass: I read `git diff main -- src` again and found nothing to change.
+
+    The journal changed the meaning of the task: the reviewer added criterion 9 and renumbered `make check` to 10 and docs to 11. `## Description` already holds that text, so I did not rewrite it.
+
+    Noticed, not touched:
+    - The reviewer's note on `# noqa: PT011` at `tests/domain/test_sessions.py:41` is a test matter and was a note, not a finding.
+    - The skipped unreadable `/proc` folder (the `OSError` branch of `_read_process_table`) stays untested, as the reviewer accepted.
+    - The racy-index cause of the flaky `tests/adapters/test_git_cli_work_tree.py` test (entry 10) is outside this work item.
+    - I did not run the smoke-test blocks; the smoke-test stage runs them.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
