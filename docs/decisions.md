@@ -912,3 +912,13 @@ Date: 2026-10-20 (F0041-S0003; the feature's decisions 2, 3, 5 and 6 and F0019's
 - Decision: a protected path inside a folder a write path opens is written and then reverted by the undo, since the kernel cannot exclude a path beneath an allowed folder (the feature's decision 6). The undo judges the exact write paths; the tool paths widen what the kernel allows only.
 - Reasons: the cross-check of 2026-10-19 compared 405 transcripts and found no refusal by the hook in the 264 runs after the kernel guard went live; its one disagreement was fixed by F0019-S0011. The hook saw two tools only (`Edit` and `Write`), while the kernel refuses a write by any route. The opencode runs had no hook already, so the hook was a second code path for one runtime.
 - Rejected: a reduced hook for the protected paths only (it keeps the command, its settings file and the `PATH` requirement for a rule the undo already enforces).
+
+## A run's leftover processes are ended by a program that runs as the agent
+
+Date: 2026-10-20 (F0027-S0001; the feature's decisions 8 to 10). A process that an agent run starts in a new session survives the end of the call and the kill of the run's process group, and goes on writing while later stages run, are undone and are checked. `_kill_session` (F0030-S0001) does not reach it: it is in another session.
+
+- Decision: `python -I -m factory.entry.leftovers --user <name>` sends SIGKILL with `kill(-1)` and reads the process table until no other process of its user is left (not counting zombies and dead entries), in at most 50 rounds 0.1 s apart. It refuses to run as root and refuses unless it runs as the user `--user` names, both before its first signal. `own_identity` and `signal_every_other` are in `factory.adapters.process`, the one module that touches processes. No test calls the real signal and none runs the program as the user it names.
+- Reasons: the agent's own user is the only boundary that holds the leftovers and nothing else; `kill(-1)` reaches them wherever their session, group or parent is, and spares the program. As root, or as a user a stand-in `sudo` did not switch, the same call would end the container or the factory, so the program refuses first. A test that ran it as its own user would end the run that runs it.
+- Reuse: it reads the table through F0030-S0001's `ProcessEntry` and `read_process_table` (now public, sorted, with `uid` added) and not through a second reading of `/proc` (the human, 2026-10-20). The owner is the folder's, since a process that makes itself not dumpable gets root-owned files under its folder.
+- Rejected: waiting with `kill -0 -1` (Linux counts a target the caller may not signal as found, so it never settles).
+

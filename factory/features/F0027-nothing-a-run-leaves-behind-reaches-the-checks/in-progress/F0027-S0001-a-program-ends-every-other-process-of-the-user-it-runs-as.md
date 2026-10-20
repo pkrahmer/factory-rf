@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T12:38:57.511311Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,12 @@ journal:
   kind: started
   at: '2026-10-20T12:38:57.511311Z'
   stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T12:39:59.808278Z'
+  stage: docs
+  run: f10455729dc24fa8a3a21a9cbc0ccc6a
 ---
 
 # A program ends every other process of the user it runs as
@@ -546,3 +548,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/domain/test_leftovers.py:45,48` and `tests/entry/test_leftovers.py:96`: each builds `Identity(uid=0, user="root", pid=11)` on its own. It could be a shared constant beside `AGENT` in `tests/leftovers_support.py`.
     - `tests/test_process_search.py:100`: the line number is the literal 32. The other entries in that test find their line by searching for it. A later edit above `def main(` in `src/factory/entry/leftovers.py` must update this number.
 25. factory: started docs as self.
+26. documenter: Docs round 1. No findings: the code matches the Interface and the criteria. I changed only documents, so I did not run `make check`; the factory's checks after this stage decide. I ran the first smoke command (the usage line, status 1) and it printed what the story expects. I did not run the example that names a user the program does not run as, because the story forbids running the program as that user.
+
+    Files changed:
+    - `docs/project-guide/write-guard.md`: new section *The end of a run's processes*, after *The start wrapper*. It holds the command line, the three steps and their fault lines, the 50 rounds with 0.1 s pauses, and the two refusals with their reasons. It also explains what counts as left, why the owner is the folder's and not a file's, and why the program never waits with `kill -0 -1`. It names the tests and says no test calls `signal_every_other` or runs the program as the user it names.
+    - `docs/project-guide/processes-and-checks.md`, *Killing a session*: the reader is now public `read_process_table(proc)`, sorted by `pid`, and it also reads each folder's owner. `ProcessEntry` gains `uid`, and `parse_stat(pid, stat, *, uid)` takes it. The paragraph now says `own_identity` and `signal_every_other` live in the same module and which program uses them. It also lists `tests/adapters/test_process_table.py`.
+    - `docs/project-guide/README.md`: the `write-guard.md` line now also covers `factory.domain.leftovers` and `factory.entry.leftovers`, names `factory.adapters.process` for the three functions, and lists the new section.
+    - `docs/decisions.md`: new entry *A run's leftover processes are ended by a program that runs as the agent*. The reasons for the feature's decisions 8 to 10 come from the story's text, because the stage rules keep me out of `feature.md`. The entry also gives why it reuses F0030-S0001's model and reader (the human, 2026-10-20) and the rejected `kill -0 -1`.
+
+    Cross-read and found current: `docs/operator-guide.md` (the story says none, since nothing starts the program yet). Elsewhere in `docs/project-guide/` and `docs/decisions.md`, nothing else names the changed reader, `ProcessEntry` or `parse_stat`; the F0030-S0001 decision entry names `_kill_session`, which still exists.
+
+    Stale text I noticed and did not touch: the title of `write-guard.md` still reads "The write paths, the guard and the start wrapper". I left it so the title and the README line stay as the human wrote them. It could gain the new section's subject later.
+
+    Also noticed, for the coder or tester: `tests/test_process_search.py` pins `main`'s `def` line to the literal 32 in `src/factory/entry/leftovers.py`. Any edit above it must update that number. The reviewer already noted this.
+
+    `check`: check: green (not run again: passed on tree a909285f1c59 at 2026-10-20T12:35:39Z)
+    `secrets`: secrets: green (1.2 s)
+    `documents`: documents ok
