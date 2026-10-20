@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 363
-comments_read: []
+comments_read: [6300695093]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: ca51d3ed10314fa49b28fa6ede541688
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-20T20:25:41.530548Z'
+  stage: intake
 ---
 
 # A call no longer waits for a process that keeps its output open after the call's own process ended
@@ -121,3 +126,11 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    5. "The bound holds also for a request without `time_limit`." Criterion 1 includes the no-limit row for `run_process` only. Add the no-limit row for `run_streaming`, or say that `run_process` alone is intended.
 
    Also, a wording point in criterion 2: "before the drain of 2 seconds could have run out after it" is unclear. Please state the checkable condition, for example: the call returns after at least 1 and less than 15 seconds, with `late` in the output.
+4. 2026-10-20 human: Answers (2026-10-20):
+   1. Add it. A limit that falls during the drain is a `timed_out` call; for `run_process` `exit_status` is `None`, as for any kill, and `output_abandoned` says whether the bounded read after the kill ran out (true beside a holder that keeps the pipe).
+   2. Add it: `on_line` gets `a` and not `b`; `b` is still in `stdout` (every byte read until then).
+   3. Add the rows: a stop by `on_line` (with the return value that stops it today, as `run_streaming`'s docstring says) and an exception from `on_line`, each beside a holder, each with `output_abandoned` false.
+   4. No separate test of the 0.05 s polling: put your example into criterion 1 or 2 (a child that exits at once beside a grandchild that writes at 1.5 s, `PIPE_DRAIN` 2 s, read in full). That shows the end is noticed in time.
+   5. Add the no-limit row for `run_streaming`.
+   Criterion 2's wording: use your checkable form (the call returns after at least 1 and less than 15 seconds, with `late` in the output).
+   Keep every new row's limits and waits as short as the rule allows; the suite's slowest tests are already time-limit tests.
