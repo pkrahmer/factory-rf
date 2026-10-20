@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 307
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T00:19:53.171300Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T00:19:53.171300Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T00:21:43.537094Z'
+  stage: doing
+  run: 7ec368a30ac243f08d487ea2b945799d
 ---
 
 # The mutation report command is removed and the documents describe the sweep form of `make mutants`
@@ -121,3 +123,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/entry/test_mutation_report_removed.py::test_the_mutation_report_is_removed_and_the_input_reader_stays[report-rules]
 6. factory: started doing as self.
+7. coder: I removed `src/factory/entry/check_mutants.py` and `src/factory/domain/mutants.py` whole, as the Interface says. Nothing else under `src/` imported them: a search of `src/`, `security/` and `pyproject.toml` found no other user, and no contract schema comes from them. I left `src/factory/entry/inputs.py` and `check_duplicates.py` untouched. `make check` is green: `check: green`, coverage 99.14 %. The new test `tests/entry/test_mutation_report_removed.py` passes on all four rows.
+
+   Main choice: a pure deletion. I rejected keeping `factory.entry.inputs` only through a re-export or any other shim, because the Interface keeps it as it is with `check_duplicates` as its one user.
+
+   Refactor: the diff only deletes files, so nothing needed changing.
+
+   The journal did not change the meaning of the task, so I left the Description alone. The four documents in criterion 4 are the documenter's work and I did not touch them.
+
+   Noticed, not touched: an ignored `mutants/` folder left from an earlier mutmut run still holds copies of the removed modules, their tests and the old `Makefile` recipe. It is not tracked, and it does not affect `make check`. The next sweep's `rm -rf mutants` removes it.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
