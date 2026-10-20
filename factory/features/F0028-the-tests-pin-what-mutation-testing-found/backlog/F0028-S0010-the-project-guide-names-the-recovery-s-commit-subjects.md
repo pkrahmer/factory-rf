@@ -13,7 +13,7 @@ No module under `src/factory/` changes, and the tester writes no test module. Th
 ## Acceptance criteria
 
 1. `make check` stays green.
-2. docs: `docs/project-guide/watching.md`, *A crash is discarded and the stage is rerun*, step 4: the commit's subject is `work item <id>: crash of stage <stage> recorded` for a `crash` and `work item <id>: expiry of stage <stage> recorded` for an `expired`, where `<stage>` is the stage the work item was in. Step 4b keeps its `pull request opened`. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none, because they describe what an operator sees and decides, and no subject or behaviour changes.
+2. docs: `docs/project-guide/watching.md`, *A crash is discarded and the stage is rerun*, step 4: the commit's subject is `work item <id>: crash of stage <stage> recorded` for a `crash` and `work item <id>: expiry of stage <stage> recorded` for an `expired`, where `<stage>` is the stage the work item was in. Step 4b stays as it is; the subject of its draft's commit, `pull request opened`, stays named once, in the `ask_crash_cap` bullet of *The crash cap asks the human*. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none, because they describe what an operator sees and decides, and no subject or behaviour changes.
 
 ## Smoke test
 
