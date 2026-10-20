@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from factory.domain.errors import FactoryError, SettingsInvalid
 from factory.domain.git import GitIdentity
 from factory.domain.settings import InstanceSettings, read_settings
-from settings_support import BASE
+from settings_support import BASE, raising
 
 URL = "/srv/project.git"
 DEFAULT_IMAGE_PATH = Path("/opt/factory/image-id")
@@ -21,13 +21,6 @@ def _reader(files: dict[Path, str]) -> Callable[[Path], str]:
         if path not in files:
             raise FileNotFoundError(path)
         return files[path]
-
-    return read_file
-
-
-def _raising(error: OSError) -> Callable[[Path], str]:
-    def read_file(_path: Path) -> str:
-        raise error
 
     return read_file
 
@@ -163,7 +156,7 @@ def test_without_a_reader_there_is_no_image_identity() -> None:
     "read_file",
     [
         _reader({}),
-        _raising(PermissionError("denied")),
+        raising(PermissionError("denied")),
         _reader({DEFAULT_IMAGE_PATH: ""}),
         _reader({DEFAULT_IMAGE_PATH: "   "}),
     ],

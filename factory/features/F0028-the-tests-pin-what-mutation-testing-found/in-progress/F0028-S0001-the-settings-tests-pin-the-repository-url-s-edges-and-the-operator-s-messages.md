@@ -1,3 +1,131 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 312
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T01:09:54.209799Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:09:54.214909Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T01:10:10.298044Z'
+  stage: intake
+  run: e6b1c5d5b85943d1991c3f4b66816da6
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:10:30.772873Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T01:12:37.875032Z'
+  stage: tests
+  run: d7339cc599c448bfb4fce20241f162e5
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:12:58.152346Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T01:14:45.682058Z'
+  stage: doing
+  run: e299c0010a8b468084d26b05bf8d70be
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:15:06.523958Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T01:15:39.464018Z'
+  stage: review
+  run: d7a96a1fd5144736b89585169757d2c3
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:16:00.639040Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-20T01:16:24.979074Z'
+  stage: doing
+  run: 04f84bc3b02943fbbcf72c699fb112cf
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:16:45.387101Z'
+  stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-20T01:18:27.941458Z'
+  stage: tests
+  run: 275b27715ce7411a94af41504626122b
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:18:48.363491Z'
+  stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-20T01:20:40.966952Z'
+  stage: doing
+  run: fcfe061039f34d0195f28f67ce72a973
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:21:01.208408Z'
+  stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T01:21:34.960538Z'
+  stage: review
+  run: 1e406de0921f4846b37736303cd30cd8
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:21:55.553230Z'
+  stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T01:22:08.825789Z'
+  stage: docs
+  run: 3e32001b8c164d65ae6e2658ca282092
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:22:29.172170Z'
+  stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T01:22:47.563770Z'
+  stage: smoke-test
+  run: d84a6cf9c8e048668f4f4c940ac65273
+---
+
 # The settings tests pin the repository URL's edges and the operator's messages
 
 ## Description
@@ -50,3 +178,132 @@ EOF
 Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a password; use the token file`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: names no change under src/factory/ and pins `factory.domain.settings.read_settings(environ, read_file)` (domain) in test file `tests/domain/test_settings_url_edges.py`. The password rule's clauses are concrete: authority after the first `://` up to the next `/`, user information before the last `@`, refused on a `:`. The error shape is `SettingsInvalid` with `variable`, `fault` and `str()` as `<variable>: <fault>`.
+   Criteria: each is testable by one parametrized test function. Criterion 1 covers every clause of the rule on both sides. Accepted rows: `:` and `@` in the path, a second `://` in the path, and an `@` in the user name with no password. The refused row is `u@x:y@`. Criterion 2 gives the exact fault text for every message (multiple repositories, password, the two "not a name" cases, ceiling shorter than cool-down, unreadable image-id file, empty image-id file), and each row also checks `str()`. Criterion 3 is `make check`; criterion 4 is `docs: none`, which is justified because no message or behaviour changes.
+   Smoke test: the command is runnable (inline Python via `uv run`). The Expect line gives three checkable lines (`True`, `True`, and the exact refusal text).
+   Architecture: the story touches only `tests/domain/`, which mirrors the package layout. It reads `BASE` from `tests/settings_support.py`, and credential-like URLs are built by concatenation to keep `make secrets` quiet.
+   Scope: it matches S0001 in feature.md's Scope, and nothing in Out of scope is touched (internal-guard messages and the equivalent `split("/", 2)` variant are excluded). The story changes no earlier test.
+4. factory: started tests as self.
+5. tester: Wrote the tests for the password rule's edges and the operator's messages, as the Interface specifies. Each criterion has one parametrized test:
+   criterion 1: tests/domain/test_settings_url_edges.py::test_the_password_rule_judges_only_the_authority (rows: `:` and `@` in the path accepted, a second `://` in the path accepted, an `@` in the user name with no password accepted, `u@x:y@` refused with variable `FACTORY_REPOSITORY_URL` and the exact fault)
+   criterion 2: tests/domain/test_settings_url_edges.py::test_a_refused_setting_names_its_variable_and_its_fault (8 rows: `a/b,c/d`, `a b`, the password URL, `FACTORY_INSTANCE` `Factory-1`, `FACTORY_AGENT_USER` `Agent`, ceiling 20 below cool-down 30, image-id file unreadable with `PermissionError("denied")`, image-id file `"  \n"`; each row checks `variable`, `fault` and `str(error)`)
+   criterion 3: `make check`, the factory's gate; criterion 4: docs none, nothing to test.
+   File created: tests/domain/test_settings_url_edges.py. It uses `BASE` from tests/settings_support.py unchanged. URLs holding a credential are built by concatenation. No earlier test was changed.
+   Imports: the test run imported every module. As the story says, the code already behaves this way, so these tests pass now rather than failing: the single `make test` run finished `test: green`. The coder has nothing to implement.
+   The first `make lint` failed for two reasons. Ruff's S105 flagged a fault constant whose name held `PASSWORD`, so the fault text now stands in the rows, as the Interface asks. Some lines were too long; I fixed them with `ruff format`. After that, `make lint` is green. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (39.9 s)
+6. factory: started doing as self.
+7. coder: Built nothing: this story pins behaviour the code already has, and the Interface says no module under `src/factory/` changes. I ran `make check` on the committed state, which includes the tester's `tests/domain/test_settings_url_edges.py`. It passed (`test: green (41.2 s)`, `check: green`), and the new tests pass against the current `factory.domain.settings.read_settings`.
+   Main choice: I left `src/factory` alone. The alternative I rejected was touching `factory.domain.settings`, for example tidying the authority split. That would go beyond the description and would change exactly the code these tests are meant to pin. With no diff, there was nothing to refactor.
+   The journal did not change the meaning of the task, so `## Description` stays as it is.
+   Noticed but did not touch: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`: one new file, `tests/domain/test_settings_url_edges.py`, and no change under `src/`. The criteria are covered. Criterion 1 is one parametrized test with the three accepted edges (a `:` and `@` in the path, a second `://` in the path, an `@` in the user name with no password) and the refused `u@x:y@`. Read against `src/factory/domain/settings.py:142-146`, each row kills its mutant: `partition("://")`, `split("/", 1)[0]` and `rpartition("@")`. Criterion 2 is one parametrized test with all eight rows, and each checks `variable`, `fault` and `str(error)`. Credentials are built by concatenation, and no constant name holds `password`, `secret` or `token`. The coder's `make check` was green (journal 7). Architecture and security are clean. The review stopped at group 4, quality:
+
+   1. `tests/domain/test_settings_url_edges.py:15` `_raising` is a second copy of `_raising` in `tests/domain/test_settings.py:28`, line for line the same. Fix: the tester moves it to `tests/settings_support.py` under the standing leave to move a shared test helper. `test_settings.py` then imports it from there, with every earlier test keeping its name and what it checks, and the new module imports it too. The Interface's "uses `BASE` of `tests/settings_support.py` as it is" still holds after the move, because `BASE` itself stays unchanged.
+
+   Earlier tests: none. The diff adds `tests/domain/test_settings_url_edges.py` (status `A`) and changes no test file that `main` already holds.
+10. factory: started doing as self.
+11. coder: Round 1: the reviewer's one finding is a copied test helper, so this round is a test change. I changed no code. Under the standing leave in `CLAUDE.md` to move a shared test helper, the tester moves `_raising(error: OSError) -> Callable[[Path], str]` into the shared `tests/settings_support.py`. It is currently copied line for line at `tests/domain/test_settings.py:28` and `tests/domain/test_settings_url_edges.py:15`. Then both modules import it from `tests/settings_support.py`. Changed earlier test file: `tests/domain/test_settings.py`, where every test keeps its name and checks the same thing. `BASE` stays unchanged, so the Interface's "uses `BASE` ... as it is" still holds.
+    Noticed but did not touch: `tests/application/test_preflight_run.py:239` calls a different `_raising`, one that wraps a `ProjectCommandError` for `RecordingCommands`. It has another signature and is not part of this move.
+    The journal did not change the meaning of the task, so `## Description` stays as it is. I did not run `make check` this round because nothing changed in the working tree.
+12. factory: started tests as self.
+13. tester: Round 1, a test change: the move the coder named in entry 11, made under the standing leave in `CLAUDE.md` to move a shared test helper. No answer from the human was needed.
+
+    What changed:
+    - The file reader that raises a given `OSError` moved into `tests/settings_support.py` as `raising(error: OSError) -> Callable[[Path], str]`. It is public because two test modules import it, and it has a docstring.
+    - `tests/domain/test_settings.py` lost its copy of `_raising` and now imports `raising` from `settings_support`. This is an earlier test file, changed under that standing leave. Its one call site was renamed and every test keeps its name and checks the same thing.
+    - `tests/domain/test_settings_url_edges.py` lost its copy the same way and imports `raising` too.
+    - `BASE` is unchanged, so the Interface's "uses `BASE` of `tests/settings_support.py` as it is" still holds.
+    - Not touched: the unrelated `_raising` in `tests/application/test_preflight_run.py`, as the coder noted.
+
+    The criteria map to the same test functions as before:
+    - criterion 1: `tests/domain/test_settings_url_edges.py::test_the_password_rule_judges_only_the_authority`
+    - criterion 2: `tests/domain/test_settings_url_edges.py::test_a_refused_setting_names_its_variable_and_its_fault`
+    - criterion 3: `make check`, the factory's gate
+    - criterion 4: docs none, nothing to test
+
+    Files changed: `tests/settings_support.py`, `tests/domain/test_settings.py`, `tests/domain/test_settings_url_edges.py`. No files created.
+
+    Imports: the test run imported every module. These tests pin behaviour the code already has, so they pass rather than fail. The coder has nothing to build.
+
+    `lint`: lint: green (0.1 s)
+    `test`: test: green (39.8 s)
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (40.1 s)
+14. factory: started doing as self.
+15. coder: Round 1: I built nothing, and no module under `src/factory/` changes, as the Interface says. The reviewer's one finding was the copied `_raising` helper. The tester fixed it in entry 13 by moving the helper to `tests/settings_support.py` as `raising`. I checked that no copy is left: `tests/domain/test_settings.py:12` and `tests/domain/test_settings_url_edges.py:10` both import it from `settings_support`. That closes the finding, so there is no code left for me to change.
+    I ran `make check` on the committed state and it passed: `test: green (39.7 s)`, `check: green`.
+    Main choice: I left `factory.domain.settings` untouched. The alternative I rejected was tidying its authority split while I was here, because that is the exact code these tests pin and the change would go beyond the description.
+    Refactor: my diff is empty, so there was nothing to refactor.
+    The journal did not change the meaning of the task, so `## Description` stays as it is.
+    Noticed but did not touch: nothing new. The unrelated `_raising` in `tests/application/test_preflight_run.py`, which I noted in entry 11, has a different signature and is outside this move.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+16. factory: started review as self.
+17. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`. The diff touches three test files and nothing under `src/`.
+
+    no findings
+
+    - Acceptance criteria:
+      - Criterion 1 is `tests/domain/test_settings_url_edges.py::test_the_password_rule_judges_only_the_authority`, one parametrized test. It has the three accepted edges (a `:` and `@` in the path, a second `://` in the path, an `@` in the user name with no password) and the refused `u@x:y@`, which checks `variable` and the exact `fault`.
+      - I read the rows against `src/factory/domain/settings.py:142-147` (`partition("://")`, `split("/", 1)[0]`, `rpartition("@")`). Each row tells the built rule apart from the variant it names: judging the whole URL, splitting on the last `://`, or splitting on the first `@`.
+      - Criterion 2 is `test_a_refused_setting_names_its_variable_and_its_fault`. Its eight rows match the criterion's list one for one, and each checks `variable`, `fault` and `str(error) == f"{variable}: {fault}"`.
+      - The rule's two sides are rows of one test, not separate tests.
+      - Both URLs that hold a credential are built by concatenation, and no constant name holds `password`, `secret` or `token`.
+      - The coder's `make check` was green (journal 15).
+    - Architecture and security: no change under `src/`, no markers that silence a check, no secrets.
+    - Quality: the round-0 finding is closed. The copied `_raising` now lives once, as `raising`, in `tests/settings_support.py:9`. Both `tests/domain/test_settings.py:12` and `tests/domain/test_settings_url_edges.py:10` import it, and no copy is left.
+    - Work item hygiene: the Description, the Interface ("No module under `src/factory/` changes") and the docs criterion (`docs: none`) match what was built.
+
+    Earlier tests:
+    - `tests/domain/test_settings.py` (M): changed under the standing leave to move a shared test helper. The change removes `_raising` and changes its one call site to the shared `raising` in a `parametrize` list. Every test keeps its name and what it checks.
+    - `tests/settings_support.py` (M): changed under the same standing leave, as the shared place under `tests/` that receives `raising`. `BASE` is unchanged.
+
+    Notes:
+    - `tests/domain/test_settings_url_edges.py:15` `_returning(text)` is a reader that returns the same text for every path. `_reader({DEFAULT_IMAGE_PATH: "  \n"})` in `tests/domain/test_settings.py:19` does the same job but stays private to that module. It is not a copy, so this is not a finding.
+    - `tests/settings_support.py:1` the module docstring still names only the environment and not the shared `raising` reader that now sits beside it.
+18. factory: started docs as self.
+19. documenter: Docs round 1. The docs criterion says `none`, so I wrote nothing new and changed no file. The diff (`git diff main...HEAD -- . ':!factory'`) is three test files: `tests/domain/test_settings_url_edges.py` (new), `tests/domain/test_settings.py` and `tests/settings_support.py`. No module under `src/` changes, and no behaviour or message changes.
+
+    Cross-read and found current:
+    - `docs/operator-guide.md:50-52`, the section "A repository URL with a password is refused". It matches the rule the tests now pin: user information with a colon is refused, a user name alone is accepted, and the token file is the fix. The guide does not name the edge cases (the path, a second `://`, an `@` in the user name). They are consistent with its wording, so I did not add them.
+    - `README.md` and `docs/project-guide/agents.md:40`. The naming rule for test constants (nothing named `key`, `token`, `secret` or `password`) matches how the tests are written.
+
+    Stale text I noticed but did not touch: the module docstring at `tests/settings_support.py:1` names only the environment, not the shared `raising` reader that now sits beside it. That is a docstring, so it is the coder's or tester's file, not mine. The reviewer noted it too. It is not a finding that blocks, because nothing in the criteria asks for it.
+
+    I did not run `make check`, because I changed no file. The factory's checks run right after this stage.
+
+    `check`: check: green (not run again: passed on tree 5038ae5c5988 at 2026-10-20T01:19:52Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
+20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test, round 1. From the repository root I ran the one command under `## Smoke test` exactly as written. It exited 0.
+
+    Command 1 (`uv run -q python -` with the inline script that runs three URLs through `read_settings`):
+    ```
+    True
+    True
+    FACTORY_REPOSITORY_URL: holds a password; use the token file
+    ```
+    Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a password; use the token file`. **Met.** The output is the same as the expected text, line for line.
+
+    Acceptance criteria re-read:
+    - Criterion 1: the output confirms three of the four edges. A `:` and `@` in the path are accepted, a second `://` in the path is accepted, and `u@x:y@` is refused with the exact fault. The fourth edge, an `@` in the user name with no password (`https://u@x@github.com/...`), is not exercised by the smoke test. Nothing in the output contradicts it, and the tester's parametrized test covers it.
+    - Criterion 2: the third line has the form `<variable>: <fault>`, as `str()` of a refusal should. The other messages are not exercised, and nothing contradicts them.
+    - Criteria 3 and 4 are outside what a smoke test can contradict. `make check` is the factory's gate and was last green on tree 5038ae5c5988 (journal 19). The docs criterion is `none`.
+
+    Findings: none.
+
+    Open: nothing for this stage. The non-blocking note from the reviewer and the documenter still stands: the module docstring of `tests/settings_support.py` does not mention the shared `raising` reader.
