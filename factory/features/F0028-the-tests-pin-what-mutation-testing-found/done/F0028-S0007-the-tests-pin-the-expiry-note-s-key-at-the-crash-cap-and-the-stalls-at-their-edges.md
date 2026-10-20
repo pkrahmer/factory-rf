@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T02:27:54.321361Z'
   stage: smoke-test
   run: 1e1567f13b6d49a5834b51939c92e26d
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T02:29:12.914887Z'
+  stage: approval
 ---
 
 # The tests pin the expiry note's key at the crash cap and the stalls at their edges
@@ -215,3 +220,4 @@ Expect: two lines, `Stalled (attempt 1 of 2): merging the main branch conflicts 
     Against the acceptance criteria: the two sentences are exactly the notes criterion 2 pins for the merge-conflict and left-branch stalls. Neither has a detail after the reason's sentence. No criterion is contradicted. The smoke test does not touch criteria 1, 3 and 4 (the expiry key, the branch restart and the red-check undo); their tests and the green `make check` are recorded in entries 5, 7 and 9. Criterion 6 (docs: none) still holds.
 
     Findings: none. Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 4.3 min, 37 turns, 127892 tokens in (714332 more from cache), 12538 out, $1.24
