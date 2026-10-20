@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T15:35:25.293928Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-10-20T15:35:04.032971Z'
   stage: docs
   run: 7ca0bb63006148eb8411e383006871a7
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:35:25.293928Z'
+  stage: smoke-test
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -564,3 +573,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 9a5e4d1a5724 at 2026-10-20T15:30:29Z)
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
+30. factory: started smoke-test as self.
