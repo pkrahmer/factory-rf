@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T21:10:29.768425Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-10-20T21:10:09.072317Z'
   stage: review
   run: 78af585e4efe48d390593f4f60d32aef
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-10-20T21:10:29.768425Z'
+  stage: doing
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -439,3 +448,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - `tests/adapters/test_home_files.py` and `tests/entry/test_fresh_home.py`: each defines its own `home` fixture that makes `tmp_path / "home"`. The entry one also fills the home. The shared part could be one fixture in `tests/conftest.py`.
     - `tests/domain/test_agent_home.py` `test_kept_paths_...`: `pytest.raises(..., match=refused)` reads `../x` as a regex, so its dots match any character. `re.escape(refused)` would pin the exact text.
+24. factory: started doing as self.
