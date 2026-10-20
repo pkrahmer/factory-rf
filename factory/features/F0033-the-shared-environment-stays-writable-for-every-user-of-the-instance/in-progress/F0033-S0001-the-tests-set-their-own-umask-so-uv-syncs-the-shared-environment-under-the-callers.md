@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 322
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T03:14:31.463815Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T03:14:10.753727Z'
   stage: docs
   run: e3109909011a4382a4f3ff1fa0d40bc8
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:14:31.463815Z'
+  stage: smoke-test
 ---
 
 # The tests set their own umask, so uv syncs the shared environment under the caller's
@@ -199,3 +208,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 856eb506d5ed at 2026-10-20T03:11:31Z)
     `secrets`: secrets: green (0.9 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
