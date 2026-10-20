@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 316
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T02:07:25.837003Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T02:07:25.837003Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T02:07:38.876166Z'
+  stage: docs
+  run: 395c3b5b8e5649a88b1c6052968ae823
 ---
 
 # The acceptance tests pin the reviewer's role and the close's commit subjects
@@ -189,3 +191,18 @@ Expect: three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: clo
 
    Earlier tests: none. `git diff --name-status main...HEAD` shows only `A` for `tests/application/test_acceptance_reviewer_role.py`, and the other entries are the work item's own files under `factory/`.
 10. factory: started docs as self.
+11. documenter: Changed no file. The docs criterion is `none`, and the diff against main outside `factory/` and `docs/` is one new test module, `tests/application/test_acceptance_reviewer_role.py`. No module under `src/` changed, so there is no behaviour for the docs to follow.
+
+    Cross-read and found current against the diff:
+    - `docs/operator-guide.md`, the hand-over section (~line 1225): the findings are the text of the acceptance reviewer's latest `result`, found by speaker and kind. This matches criterion 1.
+    - `docs/operator-guide.md`, the close section (~lines 1234 and 1245): the refusal reason is the human's comments after the reviewer's last result. The subjects are `work item <id>: closed, refused` on main and `work item <id>: close recorded` on the branch. This matches criteria 2 and 3.
+    - `docs/operator-guide.md` ~line 1311 (the story close) and `docs/project-guide/watching.md:177` (the close recorded on the branch, subject `close recorded`).
+    - `docs/project-guide/work-items.md:147`: `AcceptanceHandOver` and `acceptance_description` with `last_record(speaker=role, kind="result")`. It lists tests for the hand-over but not the new test module. It does not claim to list every test, so I left it.
+
+    Findings: none. I ran no example and did not run `make check`, because I changed no file.
+
+    Stale text noticed but not touched: none.
+
+    `check`: check: green (not run again: passed on tree c2bd9b58ddf9 at 2026-10-20T02:05:19Z)
+    `secrets`: secrets: green (0.1 s)
+    `documents`: documents ok
