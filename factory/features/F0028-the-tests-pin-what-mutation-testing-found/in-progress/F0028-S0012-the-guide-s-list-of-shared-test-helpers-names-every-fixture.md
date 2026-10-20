@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 336
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T04:52:52.835564Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T04:52:31.565651Z'
   stage: docs
   run: 502588708921445e84bd94f4dfe0a3df
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:52:52.835564Z'
+  stage: smoke-test
 ---
 
 # The guide's list of shared test helpers names every fixture
@@ -179,3 +188,4 @@ Expect: `0` (every shared helper module at the root of `tests/` is still named, 
     `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
