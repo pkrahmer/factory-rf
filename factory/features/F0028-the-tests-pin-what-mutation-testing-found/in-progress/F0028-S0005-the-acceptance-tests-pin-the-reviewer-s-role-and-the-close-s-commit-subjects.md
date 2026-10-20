@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 316
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T02:01:31.056217Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T02:01:10.692143Z'
   stage: intake
   run: ad4ec654695a4dd788ef14d8b9189135
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:01:31.056217Z'
+  stage: tests
 ---
 
 # The acceptance tests pin the reviewer's role and the close's commit subjects
@@ -96,3 +105,4 @@ Expect: three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: clo
    - Smoke test: the script is runnable and uses the existing domain functions. The Expect line names three exact output lines.
    - Architecture: tests only, in `tests/application/` as the mirror rule requires. No wiring or layer change.
    - Scope: within F0028's scope list (S0005 in `feature.md`), tests only, and none of its Out of scope items. Decision 10 of the feature records the two equivalent rows as excluded.
+4. factory: started tests as self.
