@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T01:21:55.553230Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-20T01:21:34.960538Z'
   stage: review
   run: 1e406de0921f4846b37736303cd30cd8
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:21:55.553230Z'
+  stage: docs
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -252,3 +261,4 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
     Notes:
     - `tests/domain/test_settings_url_edges.py:15` `_returning(text)` is a reader that returns the same text for every path. `_reader({DEFAULT_IMAGE_PATH: "  \n"})` in `tests/domain/test_settings.py:19` does the same job but stays private to that module. It is not a copy, so this is not a finding.
     - `tests/settings_support.py:1` the module docstring still names only the environment and not the shared `raising` reader that now sits beside it.
+18. factory: started docs as self.
