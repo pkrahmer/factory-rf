@@ -109,7 +109,7 @@ mutants:
 	# three days under pytest's root in /tmp: give each run a root of its own and remove it after.
 	temporary=$$(mktemp -d)
 	trap 'chmod -R u+rwX "$$temporary" 2>/dev/null || true; rm -rf "$$temporary" || true' EXIT
-	umask 022   # as for make test: the seal refuses a group-writable checkout
+	umask 022   # the seal refuses a group-writable checkout
 	# Nothing is kept between runs (the human, 2026-10-19): mutmut makes mutants/ anew, copies the
 	# other files under src/ (the contract's schemas) afresh and runs its stats again.
 	rm -rf mutants
