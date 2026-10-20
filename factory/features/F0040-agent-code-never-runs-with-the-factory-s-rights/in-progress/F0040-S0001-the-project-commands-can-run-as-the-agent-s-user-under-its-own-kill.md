@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655, 6298783444]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T19:05:12.489044Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -294,6 +290,12 @@ journal:
   kind: started
   at: '2026-10-20T19:05:12.489044Z'
   stage: smoke-test
+- number: 52
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T19:05:40.312524Z'
+  stage: smoke-test
+  run: d1ecac7bfa034c49a0bc50318e4179b6
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -819,3 +821,36 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
 51. factory: started smoke-test as self.
+52. smoke-tester: I ran the smoke test exactly as written, from the repository root, as one shell command. It exited 0.
+
+    Command 1: the whole block under `## Smoke test`. It builds a temporary `Makefile` and a stand-in `sudo`, then runs `check`, then `slow`, then `check` with the refusal file present. The first lines are uv building the run's `.venv`. They are not the script's output.
+
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 115ms
+    Bytecode compiled 4164 files in 389ms
+    passed True ['-n', '-u', 'agent', '--', 'timeout', '--signal=KILL', '30s'] ['make', '--no-print-directory', 'check']
+    time_limit None True
+    True
+    ```
+
+    Expect: met. The script printed exactly the three expected lines:
+    - `passed True ['-n', '-u', 'agent', '--', 'timeout', '--signal=KILL', '30s'] ['make', '--no-print-directory', 'check']`
+    - `time_limit None True`
+    - `True`
+
+    Checked against the acceptance criteria:
+    - **Criteria 1 and 10:** the command saw `token=unset` even though `FACTORY_TOKEN_FILE=/nowhere` was set for the run. So no variable from the factory's environment reached it, and `HOME` came from the `CommandUser`.
+    - **Criterion 4:** the kill at the limit gave `time_limit` with `exit_status` `None`, between 3 and 25 seconds.
+    - **Criterion 6:** the refusal raised `ProjectCommandError` with the expected `detail`.
+    - **Remaining criteria (leftovers, make variables, `user` property, grace):** the smoke test did not exercise them, and nothing it showed contradicts any of them.
+
+    Findings: none.
+
+    Not run: I did not run `make check` here. The smoke-test stage does not ask for it, and I changed no files.
+
+    Open: nothing.
