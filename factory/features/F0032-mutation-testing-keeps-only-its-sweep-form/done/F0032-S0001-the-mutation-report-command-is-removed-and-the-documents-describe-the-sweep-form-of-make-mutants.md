@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T00:24:23.494163Z'
   stage: smoke-test
   run: 3f5e3318cedc416c8655be821f523101
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T00:25:42.522166Z'
+  stage: approval
 ---
 
 # The mutation report command is removed and the documents describe the sweep form of `make mutants`
@@ -258,3 +263,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
       - The operator guide gives 165 s on 20 cores and 4.5 to 19 minutes on two cores, and has the example `make mutants MODULES=<module> MUTANTS_SECONDS=1500`. It no longer mentions a 540 s stop or a `partial` end.
 
     As the work item says, no command ran `make mutants`. I changed no files.
+14. factory: done (pull request merged); cost: 6 runs, 4.0 min, 39 turns, 133304 tokens in (719451 more from cache), 13848 out, $1.15
