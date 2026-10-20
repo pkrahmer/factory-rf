@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T02:08:21.204914Z'
   stage: smoke-test
   run: d01ed9b81ff543c684807bdf4538b457
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T02:09:39.511868Z'
+  stage: approval
 ---
 
 # The acceptance tests pin the reviewer's role and the close's commit subjects
@@ -240,3 +245,4 @@ Expect: three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: clo
     Findings: none.
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 4.1 min, 38 turns, 121369 tokens in (717563 more from cache), 11739 out, $1.17
