@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T01:27:41.154801Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T01:27:41.154801Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T01:29:39.335978Z'
+  stage: tests
+  run: c0bcf80516a1406482af751d23fe8f40
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -98,3 +100,21 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
    - Architecture: nothing under `src/` changes. The tests sit in `tests/domain/`, mirroring `factory.domain`, and the story follows the standing leave and tests-only rules in `CLAUDE.md`. It changes no earlier test.
    - Scope: it matches S0002 in `feature.md`. The `_item_text` survivor is left out as equivalent (decision 3), and no out-of-scope item is touched.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 4 as parametrized tests, one per criterion, with the literal bodies from the Interface. I changed no earlier test.
+   - criterion 1: tests/domain/test_section_edges.py::test_section_text_starts_on_the_line_right_after_the_heading
+   - criterion 2: tests/domain/test_section_edges.py::test_an_empty_fenced_block_closes_on_the_line_after_its_opening
+   - criterion 3: tests/domain/test_section_edges.py::test_the_journal_starts_right_after_its_heading_and_not_above_it
+   - criterion 4: tests/domain/test_story_form_edges.py::test_items_count_from_the_line_right_after_their_heading_and_not_above_it
+   - criterion 5 (`make check` green): the factory's check after the coder. It needs no test function.
+   - criterion 6 (docs: none): needs no test.
+
+   Files created: tests/domain/test_section_edges.py and tests/domain/test_story_form_edges.py.
+
+   Modules the test run could not import: none. Unlike a usual tests stage, the new tests pass now (`make test`: green, coverage 99.14 %). That is expected, because the Description says the code already behaves this way and the coder has nothing to change. `make lint` is green.
+
+   The started state is `WorkItemState(stage="done", journal=[JournalRecord(number=1, speaker="factory", kind="result")])`, as the Interface says. I copied `FORM`, `TICKS`, `CRITERIA` and `SMOKE` into the new modules as constants. I did not import them from the earlier test modules, because this story's `CRITERIA` ("3. docs: none.") differs from the one in test_story_form.py.
+
+   Nothing is open.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (38.8 s)
