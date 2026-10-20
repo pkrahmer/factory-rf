@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 351
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T12:08:54.145691Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T12:08:33.406031Z'
   stage: tests
   run: 77a64acd093c49c396bae566a1280561
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:08:54.145691Z'
+  stage: doing
 ---
 
 # A program ends every other process of the user it runs as
@@ -241,3 +250,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_leftovers.py - ImportError while importing test module...
+6. factory: started doing as self.
