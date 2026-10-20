@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T07:16:55.360492Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T07:16:34.596236Z'
   stage: intake
   run: 1d25bb4768c9492b8f507c4ec5c79b15
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:16:55.360492Z'
+  stage: tests
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -111,3 +120,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: the first block runs pytest with `--no-header --tb=short` and no `-q`; its `Expect` counts `FAILED`/`ERROR` lines and the exit status, so it does not rely on a summary line. The second block's `grep -c` over three files and the `python -c` print give four lines whose text can be checked.
    Architecture: tests only, under `tests/` at the root for the shared module and in the mirrored `tests/adapters/` for the changed ones. This follows CLAUDE.md. Nothing in `src/` or the layers is touched.
    Scope: within the feature's S0002 scope and decisions 6, 7, 9 and 10. It stays out of the feature's "Out of scope" (shipped tester lesson, `RUNTIME_FOLDERS`, short-limit tests). The leave to change other stories' tests is given by the feature's decision 9. The `CLAUDE.md` rule is the human's change 2, not this story's. No questions.
+4. factory: started tests as self.
