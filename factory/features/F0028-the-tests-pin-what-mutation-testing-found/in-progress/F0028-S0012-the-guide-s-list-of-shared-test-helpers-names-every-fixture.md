@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 336
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T04:47:10.527047Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T04:47:10.527047Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T04:47:26.989642Z'
+  stage: intake
+  run: 42574c49871d4a3a8ff8f6f9ef0c64e0
 ---
 
 # The guide's list of shared test helpers names every fixture
@@ -69,3 +71,9 @@ Expect: `0` (every shared helper module at the root of `tests/` is still named, 
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: no module changes. It names the two conftest files and the `@pytest.fixture` functions the documenter checks against, so there is no signature to pin. Nothing under `src/factory/` changes.
+   - Criteria: the closing `make check` criterion and one docs criterion, as the Description says (no behaviour changes). The docs criterion has three checkable parts: the `conftest.py` line names every fixture in backticks, the new `application/handlers/conftest.py` line does the same and says that `work_item` is a published work item, and the opening paragraph gains one sentence. It states no limit, default or rejected input, so no failing side needs a criterion.
+   - Smoke test: both commands are runnable bash using grep, sed and case over the repo files. Each `Expect:` line is checkable. The first expects `0` with no `missing:` line and says it prints 19 `missing:` lines and `19` before the edit. The second expects `0` for the shared helper modules.
+   - Architecture: a documentation-only change to the project guide's index. The layers are untouched. It matches CLAUDE.md's rule that the documenter keeps `docs/project-guide/` true and that the other three documents are not touched.
+   - Scope: it is within F0028, which names the shared place in decision 13. It is not in the feature's "Out of scope", because no code or test changes. Its "none" for the other documents agrees with the feature, whose docs criteria are `none` for the same reason. Here the guide's own docs criterion is the one change.
