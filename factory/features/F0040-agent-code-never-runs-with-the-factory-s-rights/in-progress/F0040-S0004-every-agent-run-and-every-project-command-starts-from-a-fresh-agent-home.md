@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T21:29:05.176417Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-20T21:29:05.176417Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-20T21:34:24.801464Z'
+  stage: tests
+  run: 574b3ee09f054dc58f3907a7dd327276
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -247,3 +249,34 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: `AgentHome` is an ABC in `application`, `SudoAgentHome` is in `adapters` and starts its process through `process`, and the wiring is in `entry`. The `tests/test_wrapper_search.py` leave is named, and decision 14 of the feature grants it.
    - Scope: the story is within the feature's Scope and Stories list (S0004) and touches nothing in its Out of scope.
 7. factory: started tests as self.
+8. tester: I wrote the tests for criteria 1 to 11. They are red on purpose: the three new test modules cannot import their modules yet, and the wrapper-search test now expects the new importer. `make lint` is green. I skipped the type check, as this stage allows.
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_sudo_agent_home.py::test_the_agent_home_interface_has_reset_alone_and_sudo_agent_home_implements_it
+   - criterion 2: tests/application/test_agent_home_resets.py::test_the_home_is_reset_after_the_seal_and_before_the_run (row `reset-then-run`) and ::test_a_run_that_calls_the_runtime_twice_resets_the_home_once_before_the_first_call
+   - criterion 3: tests/application/test_agent_home_resets.py::test_the_home_is_reset_after_the_seal_and_before_the_run (rows `reset-raises` and `no-home`). The raising home opens `.git` again before it raises. If `check_seal` were reached, `RepositoryUnsealed` would replace the `AgentRuntimeError`, so the test asserts the exact type.
+   - criterion 4: tests/application/test_agent_home_resets.py::test_the_home_is_reset_after_the_seal_and_before_each_project_command
+   - criterion 5: tests/adapters/test_sudo_agent_home.py::test_reset_runs_the_fresh_home_program_through_sudo_from_the_root_and_keeps_the_kept
+   - criterion 6: tests/adapters/test_sudo_agent_home.py::test_a_failed_reset_raises_with_the_line_that_says_why. A missing `sudo` is one of its rows and expects `os.strerror(ENOENT)`.
+   - criterion 7: tests/adapters/test_sudo_agent_home.py::test_a_reset_that_reaches_its_time_limit_raises
+   - criterion 8: tests/entry/test_wiring_agent_home.py::test_each_runtime_names_the_login_it_keeps_in_the_home
+   - criterion 9: tests/entry/test_wiring_agent_home.py::test_the_agent_home_of_the_settings_keeps_the_logins_the_uv_cache_and_the_folders. The opencode row sets `agent_runtime="opencode"` on the settings, which is the field `FACTORY_AGENT_RUNTIME` fills.
+   - criterion 10: tests/entry/test_wiring_agent_home.py::test_the_built_boundaries_hold_one_agent_home_shared_with_the_project_commands and ::test_the_fresh_home_program_runs_with_this_interpreter_isolated_and_uv_s_cache_is_named
+   - criterion 11: tests/adapters/test_sudo_agent_home.py::test_the_reset_call_has_no_environment_and_the_limit_plus_the_sudo_grace
+
+   Seams the coder has to respect:
+   - Criterion 11 replaces `factory.adapters.agent_home.run_process` with the shared `Recorder` (monkeypatch). So `factory.adapters.agent_home` must call `run_process` by that module-level name.
+   - Criterion 10 uses the `which` parameter of `build_boundaries` for "no sudo on PATH", as tests/entry/test_wiring_project_command_user.py does.
+   - The Interface gives no property for the sudo executable. So criterion 10 checks that the built `SudoAgentHome` holds the expected `sudo` string among `vars(...)`, and finds the shared object inside `SealedProjectCommands` the same way that existing test does.
+
+   Files created:
+   - tests/application/test_agent_home_resets.py. It reuses `ProbeCommands` and `PASSED` from tests/application/test_sealed_project_commands.py and `RecordingLog` from tests/application/test_checkout_preparer_seal.py, by import; I did not change either file.
+   - tests/adapters/test_sudo_agent_home.py
+   - tests/entry/test_wiring_agent_home.py
+
+   Earlier test changed, under the leave the Interface names (the feature's decision 14): tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module now also expects `factory.adapters.agent_home`. Nothing else in it changed.
+
+   Modules the test run could not import (collection errors): `factory.application.agent_home`, `factory.adapters.agent_home`, and the new names in `factory.entry.wiring` (`UV_CACHE_FOLDER`, `agent_home_of`, `fresh_home_command`). The `make test` run ended with the wrapper-search failure and these three collection errors, and nothing else failed.
+
+   `lint`: lint: green (0.5 s)
+   `test`: ERROR tests/entry/test_wiring_agent_home.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_agent_home.py'.
