@@ -7,7 +7,11 @@ crashes: 1
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T18:30:55.149296Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -96,6 +100,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T18:30:36.914481Z'
+  stage: doing
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-20T18:30:55.149296Z'
   stage: doing
 ---
 
@@ -323,3 +332,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     1. (a). The leftovers rows use `OTHER_USER` from `tests/leftovers_runtime_support.py` as the other user, in the call and in the expected `sudo` arguments; criterion 9 says "a user no test runs as" instead of `agent`. The own-user rule stays as the Interface states it.
     2. (a). Criterion 1's recipe ends with `@echo "check: green (0.1 s)"`, and the criterion changes the same way; `target_times` stays as it is.
     Both are changes to this story's own new test module. Criterion 9's wording for the missing program follows the answer of entry 9.
+17. factory: started doing as self.
