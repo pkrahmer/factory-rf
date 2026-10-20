@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 1
@@ -186,6 +186,11 @@ journal:
   at: '2026-10-20T09:24:36.116108Z'
   stage: smoke-test
   run: 3768366f4bd74485b60babb31f33b950
+- number: 33
+  speaker: factory
+  kind: done
+  at: '2026-10-20T09:25:55.988543Z'
+  stage: approval
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -620,3 +625,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Against the acceptance criteria: nothing the smoke test showed contradicts any of them. Command 1 matches criterion 6's `own-group` row and the story's main rule, and command 2 matches criterion 1's row for a name with parentheses and the `Z` state. The smoke test does not cover criteria 7–11 (sudo runs, permission and race handling, `make check`, docs), and it shows nothing against them.
 
     Findings: none. Open: nothing.
+33. factory: done (pull request merged); cost: 15 runs, 28.6 min, 118 turns, 461684 tokens in (2506379 more from cache), 56358 out, $4.94
