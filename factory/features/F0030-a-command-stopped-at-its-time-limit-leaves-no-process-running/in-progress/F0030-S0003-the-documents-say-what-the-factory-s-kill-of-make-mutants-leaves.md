@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 370
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T23:24:10.263623Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T23:23:49.840895Z'
   stage: docs
   run: e05f9553ec9140e197e2698f648d55b7
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:24:10.263623Z'
+  stage: smoke-test
 ---
 
 # The documents say what the factory's kill of make mutants leaves
@@ -163,3 +172,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
