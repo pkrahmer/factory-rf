@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-20T01:22:47.563770Z'
   stage: smoke-test
   run: d84a6cf9c8e048668f4f4c940ac65273
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-20T01:25:08.840827Z'
+  stage: approval
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -307,3 +312,4 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
     Findings: none.
 
     Open: nothing for this stage. The non-blocking note from the reviewer and the documenter still stands: the module docstring of `tests/settings_support.py` does not mention the shared `raising` reader.
+22. factory: done (pull request merged); cost: 10 runs, 6.5 min, 46 turns, 169069 tokens in (686146 more from cache), 13874 out, $1.58
