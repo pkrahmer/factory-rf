@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 339
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T06:38:30.484221Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T06:38:30.484221Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T06:41:31.002285Z'
+  stage: tests
+  run: d65d9c7d431d4648be497ea5d9b826f7
 ---
 
 # The record log skips a line that is not UTF-8
@@ -121,3 +123,28 @@ Expect: one line, `['check: green ✓']`, and no traceback.
    Architecture: the change is inside the adapters layer, plus a docstring in application. No new dependency or wiring, and the callers are untouched, matching CLAUDE.md.
    Scope: it matches feature.md's Scope and decisions 1 to 5. The append-after-torn-line case (decision 4) and `KnownResults._read` are left out as the feature's Out of scope says. The existing test file is not changed, and the moves of the rig fall under the standing leave.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 5, one parametrized test per criterion. The rows are the ones each criterion names.
+
+   - criterion 1: tests/adapters/test_record_log_jsonl_torn.py::test_a_torn_last_line_is_skipped_and_the_whole_lines_before_it_count
+   - criterion 2: tests/adapters/test_record_log_jsonl_torn.py::test_a_line_that_does_not_decode_is_skipped_wherever_it_stands
+   - criterion 3: tests/adapters/test_record_log_jsonl_torn.py::test_a_record_holding_a_line_break_other_than_a_line_feed_reads_back_whole (the rows are U+2028, U+2029 and U+0085 through `append`, plus the `\r\n` line written directly)
+   - criterion 4: tests/adapters/test_record_log_jsonl_torn.py::test_an_error_of_reading_propagates_and_a_missing_file_reads_empty
+   - criterion 5: tests/application/test_known_results_torn.py::test_a_torn_last_line_of_the_known_results_neither_raises_nor_logs
+   - criteria 6 and 7 (`make check`, docs) have no test of their own.
+
+   Files created: tests/adapters/test_record_log_jsonl_torn.py, tests/application/test_known_results_torn.py and tests/torn_record_support.py. The last is a shared helper with `KEY`, `result_record`, `line_of` and `torn_inside`, which both new modules use, so neither holds a copy.
+
+   The rig (`Rig`, `_rig`, `_answering`, `_result`, `TIME_LIMIT`) is imported from `application.test_known_results`. I did not move it, so no earlier test file changed. tests/adapters/test_record_log_jsonl.py is unchanged.
+
+   Rejected: separate test functions for the `\r\n` row and for the missing-file row. The criteria make them rows of the parametrized tests above.
+
+   `make lint` is green.
+
+   `make test` fails, with these failures in the tail it printed:
+   - the u2029 and u0085 rows of criterion 3 (`splitlines` cuts the record today)
+   - both rows of criterion 5 (the `UnicodeDecodeError` from `read`)
+
+   The other new tests fail against the current `read_text`/`splitlines` reading in the same way. Every module imported; the runner reported no import errors. I skipped the type check, as the stage allows.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/application/test_known_results_torn.py::test_a_torn_last_line_of_the_known_results_neither_raises_nor_logs[only-a-torn-line]
