@@ -922,3 +922,11 @@ Date: 2026-10-20 (F0027-S0001; the feature's decisions 8 to 10). A process that 
 - Reuse: it reads the table through F0030-S0001's `ProcessEntry` and `read_process_table` (now public, sorted, with `uid` added) and not through a second reading of `/proc` (the human, 2026-10-20). The owner is the folder's, since a process that makes itself not dumpable gets root-owned files under its folder.
 - Rejected: waiting with `kill -0 -1` (Linux counts a target the caller may not signal as found, so it never settles).
 
+## Every agent call is followed by the end of the agent's leftover processes
+
+Date: 2026-10-20 (F0027-S0002; the feature's decisions 10 to 12). S0001 built the program that ends every other process of the agent's user; this story makes both runtimes start it. It closes the window F0014 decision 21 left open: a process that swapped `.git` after the seal's check.
+
+- Decision: after every call of a run with an operating-system user other than the factory's own, the runtime starts the program through the one `sudo` rule, from `/`, with an empty environment and a 30-second limit, inside `AgentRuntime.run`. It runs before the run's temporary folder is removed, and so before the seal's check, the removal of nested repositories, the undo and the checks. A resumed run runs it after each of its two calls, and it runs also after a call that `sudo`, the wrapper or the login shell refused. A runtime starts it only when built with the command (`leftovers`); `build_boundaries` builds it so by default (`end_leftovers=True`).
+- Decision: when the program fails or does not end in time, the run raises `AgentRuntimeError` (`cannot end the agent's processes: <line>`), after the removal. The call's own refusal wins when there is one.
+- Reasons: nothing the factory cannot vouch for may reach the undo and the checks, so a failure is an error and not a stall. Running it inside the runtime leaves no window between the call and the program. Never when the user is the factory's own: in an agent's `make test` that user is `agent`, and the program would end the run itself. A runtime a test builds has no command, so earlier runtime tests keep their calls.
+- Rejected: running it from the stage code after `agent_runtime.run` (a window in which a process can still write); ignoring a failure (the checks would run on a tree the factory cannot vouch for).
