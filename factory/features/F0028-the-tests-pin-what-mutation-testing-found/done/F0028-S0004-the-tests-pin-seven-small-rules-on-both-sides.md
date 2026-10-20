@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T01:58:44.978164Z'
   stage: smoke-test
   run: 6b59ded5632c42a4980192e901fa1eef
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T02:00:04.619286Z'
+  stage: approval
 ---
 
 # The tests pin seven small rules on both sides
@@ -245,3 +250,4 @@ Expect: four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`
     - A document without a state gives `reason_given` `False` (criterion 6).
 
     The smoke test does not reach criteria 1, 4 and 7 to 9. The tests named in the tester's entry (5) cover them, and nothing seen here contradicts them. I changed no file.
+14. factory: done (pull request merged); cost: 6 runs, 4.9 min, 39 turns, 140386 tokens in (827924 more from cache), 16811 out, $1.44
