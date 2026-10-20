@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 315
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T01:58:24.702165Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T01:58:04.455303Z'
   stage: docs
   run: 7591ef2dbe9f4bf0b7a5cc15e1faba13
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:58:24.702165Z'
+  stage: smoke-test
 ---
 
 # The tests pin seven small rules on both sides
@@ -215,3 +224,4 @@ Expect: four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`
     `check`: check: green (not run again: passed on tree f5dde544af5c at 2026-10-20T01:55:45Z)
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
