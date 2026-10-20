@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -51,8 +51,13 @@ journal:
   at: '2026-10-20T17:51:37.137138Z'
   stage: acceptance
   run: b641dae061b1465989087dcd733646d9
+- number: 9
+  speaker: factory
+  kind: done
+  at: '2026-10-20T17:52:58.014459Z'
+  stage: done
 stories: [F0027-S0001, F0027-S0002, F0027-S0003]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of Nothing a run leaves behind reaches the checks
@@ -258,3 +263,4 @@ Nothing beyond `make check` today except two records: `make documents` (`documen
    7 Slow checks: `make check` is green (test 59.3 s, 99.17 %). The slowest tests are not F0027's (11.5 s and 10.1 s); F0027's 105 cases take 3.7 s. Disk used fell from 0.4 GB to 0.0 GB, which the removal explains. Free space fell 0.5 GB, which the feature does not explain (likely the image rebuilds, not verified).
    8 Cost: $14.19 over 38 runs. S0002 was dearest ($5.21), mostly from the coder's two refused routes past `PLR0913` before asking. There were 4 questions over 1.1 h, and S0003 needed the human most (2 questions). Not in that count: this acceptance's 2 crashes and its `crash_cap` answer.
    Set aside: `sed -i` on the report was refused by the write guard (its temporary file), so I made that edit with the edit tool. The stories' forms pass `factory-check-story`. No folder the factory cannot remove is left in the checkout.
+9. factory: done (pull request merged); cost: 1 runs, 15.0 min, 63 turns, 173845 tokens in (7126326 more from cache), 53503 out, $3.89
