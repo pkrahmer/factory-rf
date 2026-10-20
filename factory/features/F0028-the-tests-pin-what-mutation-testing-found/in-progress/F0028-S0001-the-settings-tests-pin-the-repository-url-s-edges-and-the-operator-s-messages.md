@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T01:16:45.387101Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T01:16:24.979074Z'
   stage: doing
   run: 04f84bc3b02943fbbcf72c699fb112cf
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:16:45.387101Z'
+  stage: tests
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -161,3 +170,4 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
 11. coder: Round 1: the reviewer's one finding is a copied test helper, so this round is a test change. I changed no code. Under the standing leave in `CLAUDE.md` to move a shared test helper, the tester moves `_raising(error: OSError) -> Callable[[Path], str]` into the shared `tests/settings_support.py`. It is currently copied line for line at `tests/domain/test_settings.py:28` and `tests/domain/test_settings_url_edges.py:15`. Then both modules import it from `tests/settings_support.py`. Changed earlier test file: `tests/domain/test_settings.py`, where every test keeps its name and checks the same thing. `BASE` stays unchanged, so the Interface's "uses `BASE` ... as it is" still holds.
     Noticed but did not touch: `tests/application/test_preflight_run.py:239` calls a different `_raising`, one that wraps a `ProjectCommandError` for `RecordingCommands`. It has another signature and is not part of this move.
     The journal did not change the meaning of the task, so `## Description` stays as it is. I did not run `make check` this round because nothing changed in the working tree.
+12. factory: started tests as self.
