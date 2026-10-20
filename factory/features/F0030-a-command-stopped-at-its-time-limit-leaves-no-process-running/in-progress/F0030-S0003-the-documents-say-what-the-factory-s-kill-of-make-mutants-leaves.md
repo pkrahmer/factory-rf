@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 370
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T23:19:46.233770Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T23:19:46.233770Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T23:22:24.078013Z'
+  stage: doing
+  run: 717c1b8f65f44442950c7db8780e0224
 ---
 
 # The documents say what the factory's kill of make mutants leaves
@@ -98,3 +100,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.5 s)
    `test`: test: green (63.0 s)
 6. factory: started doing as self.
+7. coder: I built nothing. This story changes documents only. Its Interface says "None: documents only", and criterion 1 says nothing under `src/` or `tests/` changes. I changed no file under `src/`, `tests/` or anywhere else. `git status --short` shows only the factory's `.costs.jsonl` sidecar.
+   - Main choice: I left both documents, `docs/project-guide/processes-and-checks.md` and `docs/decisions.md`, to the docs stage. `CLAUDE.md` says the documenter keeps the project guide and the decision log true from each story's docs criterion, and that the coder does not write them. Rejected: writing criterion 3's text myself in the doing stage. That would take over the documenter's work.
+   - Refactor: no diff, so nothing to change.
+   - Description: no journal entry changed what the task means, so `## Description` stays as written.
+   - Noticed but not touched: the tester pointed out that the phrase `runs on until it ends by itself` has no grep in the smoke test. The docs check and the reviewer cover it.
+
+   `make check`: check: green (test: green, 64.2 s; coverage 99.14 %).
+
+   `check`: check: green
+   `duplicates`: duplicates: 6 new, 33 known, 3 gone
