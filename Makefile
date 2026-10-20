@@ -92,51 +92,34 @@ duplicates:
 documents:
 	uv run python -m factory.entry.check_documents
 
-# Mutation testing (mutmut) of the modules under src/factory that one story or one feature changed.
-# Slow, so not part of `check`. On a story's branch, work-item/<story id>, it mutates the modules
-# the branch changes against origin/main, the work tree included: the factory runs it as a report
-# after the coder. With FEATURE=<feature id>, or on an acceptance's branch (v1.1's
-# work-item/<feature id>-A<n>, or v1's acceptance/<feature id>-<slug>, kept for a rollback), it
-# re-runs, of the modules the feature's story commits changed, only the mutants that are not
-# killed: what the stories left, against the final code.
-BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
-FEATURE ?= $(shell echo '$(BRANCH)' | sed -n -e 's|^acceptance/\(F[0-9]\{4\}\)-.*|\1|p' -e 's|^work-item/\(F[0-9]\{4\}\)-A[0-9]\{4\}$$|\1|p')
-STORY := $(shell echo '$(BRANCH)' | sed -n 's|^work-item/\(F[0-9]\{4\}-S[0-9]\{4\}\)$$|\1|p')
-MUTANTS_SECONDS ?= 540
-FEATURE_MODULES = $(shell git log --format= --name-only -E --grep='^(ticket|work item) $(FEATURE)-S[0-9]{4}:' origin/main -- 'src/factory/*.py' | sort -u)
-STORY_MODULES = $(shell { git diff --name-only $$(git merge-base origin/main HEAD) -- 'src/factory/*.py'; git ls-files --others --exclude-standard -- 'src/factory/*.py'; } | sort -u)
-MUTATED = $(wildcard $(if $(FEATURE),$(FEATURE_MODULES),$(STORY_MODULES)))
-MODULES = $(foreach module,$(MUTATED),$(subst /,.,$(patsubst src/%.py,%,$(module))))
+# Mutation testing (mutmut), for a sweep by hand: no stage and no agent runs it (the human,
+# 2026-10-19). MODULES names dotted modules or packages, each run by its pattern <name>.*, as in
+# make mutants MODULES='factory.domain.disk factory.application'. FEATURE=<feature id> takes instead
+# the modules under src/factory that the feature's story commits on origin/main changed, which needs
+# a checkout with its history; MODULES given by hand wins. MUTANTS_SECONDS stops mutmut after that
+# many seconds (no stop when it is empty); MUTANTS_CHILDREN caps its workers (mutmut's default is
+# every core the machine reports, also inside a container limited to fewer).
+FEATURE ?=
+MUTANTS_SECONDS ?=
+MUTANTS_CHILDREN ?=
+FEATURE_MODULES = $(wildcard $(shell git log --format= --name-only -E --grep='^(ticket|work item) $(FEATURE)-S[0-9]{4}:' origin/main -- 'src/factory/*.py' 2>/dev/null | sort -u))
+MODULES ?= $(if $(FEATURE),$(foreach module,$(FEATURE_MODULES),$(subst /,.,$(patsubst src/%.py,%,$(module)))))
 mutants:
-	if [ -z "$(FEATURE)$(STORY)" ]; then echo "mutants: set FEATURE, as in make mutants FEATURE=F0012, or run it on a story's branch"; exit 2; fi
-	if [ -z "$(MUTATED)" ]; then echo "mutants: no module under src/factory changed by $(or $(FEATURE),$(STORY))"; exit 0; fi
+	if [ -z "$(FEATURE)$(MODULES)" ]; then echo "mutants: set MODULES or FEATURE, as in make mutants MODULES=factory.domain.disk or make mutants FEATURE=F0012"; exit 2; fi
+	if [ -z "$(strip $(MODULES))" ]; then echo "mutants: no module under src/factory changed by $(FEATURE)"; exit 0; fi
 	# mutmut stops a mutant's pytest at its time limit, which leaves that run's folder locked for
 	# three days under pytest's root in /tmp: give each run a root of its own and remove it after.
 	temporary=$$(mktemp -d)
+	trap 'chmod -R u+rwX "$$temporary" 2>/dev/null || true; rm -rf "$$temporary" || true' EXIT
 	umask 022   # as for make test: the seal refuses a group-writable checkout
-	# A mutant that drops a working folder can make a test's repository in mutants/ itself; the
-	# factory cannot remove the agent's folder there and stops, so the run removes it. mutants/ is
-	# written by the factory's report and by the acceptance reviewer, two users of one group.
-	trap 'chmod -R u+rwX "$$temporary" 2>/dev/null || true; rm -rf "$$temporary" || true; find mutants -name .git -prune -exec rm -rf {} + 2>/dev/null || true; chmod -R g+w mutants 2>/dev/null || true' EXIT
-	# mutmut copies the other files under src/ (the contract's schemas) into mutants/ only on its
-	# first run: copy them again, so a changed file is not tested in its old form.
-	if [ -d mutants/src ]; then (cd src && find . -type f ! -name '*.py' ! -path '*/__pycache__/*' -exec cp --parents {} ../mutants/src/ \;); fi
+	# Nothing is kept between runs (the human, 2026-10-19): mutmut makes mutants/ anew, copies the
+	# other files under src/ (the contract's schemas) afresh and runs its stats again.
+	rm -rf mutants
 	set -f   # the names below are mutmut's patterns, never file names
-	# mutmut runs again every mutant a name selects: a story's run takes all of its modules'
-	# mutants; a feature's run takes only those not killed, so each of its runs goes on.
-	if [ -n "$(FEATURE)" ]; then
-	  uv run mutmut results --all true > "$$temporary/results.txt"
-	  names=$$(uv run python -m factory.entry.check_mutants --names "$$temporary/results.txt" $(MODULES))
-	else
-	  names="$(foreach module,$(MODULES),$(module).*)"
-	fi
-	# An agent's shell command ends after 10 minutes and the report's limit is 10 minutes: stop
-	# mutmut before both, so that this recipe ends itself and says what it reached.
 	stopped=""
-	if [ -n "$$names" ]; then
-	  # mutmut mutates only functions without a decorator: a module of interfaces, models or constants has
-	  # no mutant, and mutmut stops when no name matches one. That is a run with nothing to check.
-	  TMPDIR="$$temporary" timeout $(MUTANTS_SECONDS) uv run mutmut run $$names 2>&1 | tee "$$temporary/run.txt" || { status=$$?; [ $$status -eq 124 ] || grep -qF 'Filtered for specific mutants, but nothing matches' "$$temporary/run.txt" || exit $$status; [ $$status -ne 124 ] || stopped="--stopped-after $(MUTANTS_SECONDS)"; }
-	fi
-	uv run mutmut results --all true > "$$temporary/results.txt"
-	uv run python -m factory.entry.check_mutants $$stopped "$$temporary/results.txt" $(MODULES)
+	# mutmut mutates only functions without a decorator: a module of interfaces, models or constants has
+	# no mutant, and mutmut stops when no name matches one. That is a run with nothing to check.
+	TMPDIR="$$temporary" $(if $(MUTANTS_SECONDS),timeout $(MUTANTS_SECONDS)) uv run mutmut run $(if $(MUTANTS_CHILDREN),--max-children $(MUTANTS_CHILDREN)) $(foreach module,$(MODULES),$(module).*) 2>&1 | tee "$$temporary/run.txt" || { status=$$?; [ $$status -eq 124 ] || grep -qF 'Filtered for specific mutants, but nothing matches' "$$temporary/run.txt" || exit $$status; [ $$status -ne 124 ] || stopped=yes; }
+	# mutmut generates mutants for every module; those outside MODULES stay "not checked".
+	uv run mutmut results | { grep -v ': not checked$$' || true; }
+	if [ -n "$$stopped" ]; then echo "mutants: stopped after $(MUTANTS_SECONDS) s, so the mutants it did not reach are not checked"; exit 1; fi
