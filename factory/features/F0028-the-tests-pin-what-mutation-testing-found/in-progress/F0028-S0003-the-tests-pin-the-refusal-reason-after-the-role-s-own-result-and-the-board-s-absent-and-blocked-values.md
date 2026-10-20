@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 314
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T01:48:35.980364Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T01:48:15.616855Z'
   stage: docs
   run: c20d14232455491d9b990a29e314eece
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:48:35.980364Z'
+  stage: smoke-test
 ---
 
 # The tests pin the refusal reason after the role's own result, and the board's absent and blocked values
@@ -214,3 +223,4 @@ Expect: four lines, `Too wide. Cut the second story.`, `features`, `work items` 
     `check`: check: green (not run again: passed on tree e11d2b1585e1 at 2026-10-20T01:45:59Z)
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
