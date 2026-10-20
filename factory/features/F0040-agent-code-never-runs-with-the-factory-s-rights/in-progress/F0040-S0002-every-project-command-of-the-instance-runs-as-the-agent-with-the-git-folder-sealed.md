@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T19:57:52.856656Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-20T19:57:31.119987Z'
   stage: tests
   run: 9632f258239b4559bc1a07d57572d3ca
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:57:52.856656Z'
+  stage: doing
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -202,3 +211,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.8 s)
    `test`: ERROR tests/entry/test_wiring_project_command_user.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_project_command_user.py'.
+9. factory: started doing as self.
