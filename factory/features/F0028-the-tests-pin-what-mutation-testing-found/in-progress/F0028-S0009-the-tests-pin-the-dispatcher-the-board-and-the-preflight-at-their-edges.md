@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T02:48:06.841056Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T02:47:46.082173Z'
   stage: doing
   run: 4effc1f81877459c98846308db848a63
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:48:06.841056Z'
+  stage: tests
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -184,3 +193,4 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
     Refactor: there was nothing to refactor; my diff outside `factory/` and `tests/` is still empty. Description: no journal entry changed what the task means.
 
     Noticed, not touched: `tests/application/test_agent_run_probe_api_login.py:22` has its own `DIED` for `claude -p`. Its text is different (claude, not opencode), so it is not part of this move.
+12. factory: started tests as self.
