@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 326
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T03:47:10.264055Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T03:46:50.056037Z'
   stage: docs
   run: f697011ef41c4ad5be10bba6ded9f89f
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:47:10.264055Z'
+  stage: smoke-test
 ---
 
 # The decision log gives the feature's reasons for the rejected umask fixes
@@ -156,3 +165,4 @@ Expect: `0`
     `check`: check: green (not run again: passed on tree b1fcf2631b53 at 2026-10-20T03:44:44Z)
     `secrets`: secrets: green (0.7 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
