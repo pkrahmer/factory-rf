@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T08:32:30.154147Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T08:32:30.147688Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T08:32:30.154147Z'
+  stage: intake
+---
+
 # The kill at a time limit ends every process of the command's session
 
 ## Description
@@ -90,3 +117,5 @@ Expect: `pid=77 session=70 ended=True`
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
