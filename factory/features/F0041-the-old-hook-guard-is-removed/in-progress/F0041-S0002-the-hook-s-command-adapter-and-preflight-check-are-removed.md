@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T10:58:54.071199Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T10:58:33.077840Z'
   stage: tests
   run: b4bb58e5eccb430caf3bd091fa323184
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:58:54.071199Z'
+  stage: doing
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -176,3 +185,4 @@ Expect: `5`
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/application/test_agent_environment_item.py::test_the_agent_environment_checks_the_home_only[home-not-a-directory]
+6. factory: started doing as self.
