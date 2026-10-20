@@ -5,34 +5,29 @@ from pydantic import BaseModel, ValidationError
 
 from factory.domain.leftovers import Identity, leftover_pids, leftovers_refusal
 from factory.domain.sessions import ProcessEntry
-
-AGENT = Identity(uid=1001, user="agent", pid=11)
-
-
-def _entry(pid: int, uid: int, ended: bool) -> ProcessEntry:
-    return ProcessEntry(pid=pid, session=pid, ended=ended, uid=uid)
+from leftovers_support import AGENT, process_entry
 
 
 @pytest.mark.parametrize(
     ("entries", "expected"),
     [
-        pytest.param([_entry(7, 1001, False)], [7], id="kept"),
-        pytest.param([_entry(11, 1001, False)], [], id="own"),
-        pytest.param([_entry(9, 1000, False)], [], id="other-user"),
-        pytest.param([_entry(8, 1001, True)], [], id="ended"),
+        pytest.param([process_entry(7, 1001)], [7], id="kept"),
+        pytest.param([process_entry(11, 1001)], [], id="own"),
+        pytest.param([process_entry(9, 1000)], [], id="other-user"),
+        pytest.param([process_entry(8, 1001, ended=True)], [], id="ended"),
         pytest.param(
             [
-                _entry(10, 1001, False),
-                _entry(3, 1001, False),
-                _entry(11, 1001, False),
-                _entry(9, 1000, False),
-                _entry(7, 1001, False),
-                _entry(8, 1001, True),
+                process_entry(10, 1001),
+                process_entry(3, 1001),
+                process_entry(11, 1001),
+                process_entry(9, 1000),
+                process_entry(7, 1001),
+                process_entry(8, 1001, ended=True),
             ],
             [3, 7, 10],
             id="unsorted-table",
         ),
-        pytest.param([_entry(7, 1001, False), _entry(7, 1001, False)], [7], id="twice"),
+        pytest.param([process_entry(7, 1001), process_entry(7, 1001)], [7], id="twice"),
         pytest.param([], [], id="empty"),
     ],
 )

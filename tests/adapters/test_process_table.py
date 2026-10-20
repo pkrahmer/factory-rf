@@ -8,25 +8,23 @@ import pytest
 
 from factory.adapters.process import own_identity, read_process_table
 from factory.domain.sessions import ProcessEntry
+from leftovers_support import process_entry
 
 _VALID = "{pid} (x) S 1 {pid} {pid} 0\n"
-
-
-def _entry(pid: int, *, ended: bool = False) -> ProcessEntry:
-    return ProcessEntry(pid=pid, session=pid, ended=ended, uid=os.getuid())
+_UID = os.getuid()
 
 
 @pytest.mark.parametrize(
     ("folders", "expected"),
     [
-        pytest.param({"7": "7 (x y) S 1 7 7 0\n"}, [_entry(7)], id="running"),
-        pytest.param({"8": "8 (x) Z 1 8 8 0\n"}, [_entry(8, ended=True)], id="zombie"),
+        pytest.param({"7": "7 (x y) S 1 7 7 0\n"}, [process_entry(7, _UID)], id="running"),
+        pytest.param({"8": "8 (x) Z 1 8 8 0\n"}, [process_entry(8, _UID, ended=True)], id="zombie"),
         pytest.param({"self": _VALID.format(pid=1)}, [], id="self"),
         pytest.param({"12a": _VALID.format(pid=12)}, [], id="not-digits"),
         pytest.param({"12": None}, [], id="no-stat"),
         pytest.param(
             {name: _VALID.format(pid=name) for name in ("10", "2", "33")},
-            [_entry(2), _entry(10), _entry(33)],
+            [process_entry(2, _UID), process_entry(10, _UID), process_entry(33, _UID)],
             id="sorted",
         ),
         pytest.param({"5": "5 x S 1 5 5 0\n"}, None, id="unreadable-stat"),

@@ -15,13 +15,9 @@ from factory.adapters.process import ProcessRequest, run_process
 from factory.domain.leftovers import Identity
 from factory.domain.sessions import ProcessEntry
 from factory.entry.leftovers import main
+from leftovers_support import AGENT, process_entry
 
-AGENT = Identity(uid=1001, user="agent", pid=11)
 USAGE_LINE = "factory-leftovers: usage: python -m factory.entry.leftovers --user <name>\n"
-
-
-def _entry(pid: int, uid: int = 1001, *, ended: bool = False) -> ProcessEntry:
-    return ProcessEntry(pid=pid, session=pid, ended=ended, uid=uid)
 
 
 @dataclass
@@ -68,35 +64,28 @@ class Recorder:
 
 
 @pytest.mark.parametrize(
-    "argv",
+    ("argv", "status", "written", "identities", "kills"),
     [
-        pytest.param([], id="none"),
-        pytest.param(["--user"], id="no-name"),
-        pytest.param(["--user", ""], id="empty-name"),
-        pytest.param(["--name", "agent"], id="other-option"),
-        pytest.param(["--user", "agent", "extra"], id="extra"),
-        pytest.param(["agent"], id="name-only"),
+        pytest.param([], 1, USAGE_LINE, 0, [], id="none"),
+        pytest.param(["--user"], 1, USAGE_LINE, 0, [], id="no-name"),
+        pytest.param(["--user", ""], 1, USAGE_LINE, 0, [], id="empty-name"),
+        pytest.param(["--name", "agent"], 1, USAGE_LINE, 0, [], id="other-option"),
+        pytest.param(["--user", "agent", "extra"], 1, USAGE_LINE, 0, [], id="extra"),
+        pytest.param(["agent"], 1, USAGE_LINE, 0, [], id="name-only"),
+        pytest.param(["--user", "agent"], 0, "", 1, [signal.SIGKILL], id="user-name"),
     ],
 )
-def test_wrong_arguments_print_the_usage(argv: list[str]) -> None:
+def test_only_a_user_s_name_starts_the_rounds(
+    argv: list[str], status: int, written: str, identities: int, kills: list[int]
+) -> None:
     recorder = Recorder()
 
-    status = recorder.run(argv)
+    result = recorder.run(argv)
 
-    assert status == 1
-    assert recorder.stderr.getvalue() == USAGE_LINE
-    assert recorder.identities == 0
-    assert recorder.kills == []
-
-
-def test_the_user_s_name_starts_the_rounds() -> None:
-    recorder = Recorder()
-
-    status = recorder.run(["--user", "agent"])
-
-    assert status == 0
-    assert recorder.stderr.getvalue() == ""
-    assert recorder.kills == [signal.SIGKILL]
+    assert result == status
+    assert recorder.stderr.getvalue() == written
+    assert recorder.identities == identities
+    assert recorder.kills == kills
 
 
 @pytest.mark.parametrize(
@@ -131,10 +120,10 @@ def test_refusals_come_before_the_first_signal(
     ("tables", "status", "kills", "pauses", "written"),
     [
         pytest.param([[]], 0, 1, 0, "", id="none-after-round-1"),
-        pytest.param([[_entry(7)], []], 0, 2, 1, "", id="none-after-round-2"),
-        pytest.param([[_entry(7)]] * 49 + [[]], 0, 50, 49, "", id="none-after-round-50"),
+        pytest.param([[process_entry(7)], []], 0, 2, 1, "", id="none-after-round-2"),
+        pytest.param([[process_entry(7)]] * 49 + [[]], 0, 50, 49, "", id="none-after-round-50"),
         pytest.param(
-            [[_entry(7), _entry(10)]] * 50,
+            [[process_entry(7), process_entry(10)]] * 50,
             1,
             50,
             49,
@@ -142,7 +131,7 @@ def test_refusals_come_before_the_first_signal(
             id="left-after-round-50",
         ),
         pytest.param(
-            [[_entry(11), _entry(8, ended=True), _entry(9, uid=1000)]],
+            [[process_entry(11), process_entry(8, ended=True), process_entry(9, uid=1000)]],
             0,
             1,
             0,

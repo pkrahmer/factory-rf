@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T12:29:07.535916Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-20T12:29:07.535916Z'
   stage: tests
+- number: 20
+  speaker: tester
+  kind: result
+  at: '2026-10-20T12:33:15.032737Z'
+  stage: tests
+  run: 8bdf9c7b6c9b465a92ab2a0f6d900087
 ---
 
 # A program ends every other process of the user it runs as
@@ -437,3 +439,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed but not touched: `tests/test_process_search.py` expects `noqa: PLR0913` at the fixed line 32 of `src/factory/entry/leftovers.py`. Merging the tests in finding 1 does not move that line. Any later code edit above `def main(` will.
 19. factory: started tests as self.
+20. tester: Tester, round 1: I made the two test changes the coder named in entry 18 (the reviewer's findings in entry 16). The second change falls under the standing leave in `CLAUDE.md` to move a shared test helper. No code was changed.
+
+    1. Finding 1, `tests/entry/test_leftovers.py`: I merged `test_wrong_arguments_print_the_usage` and `test_the_user_s_name_starts_the_rounds` into one parametrized test, `test_only_a_user_s_name_starts_the_rounds`.
+       - It has the six rejected argument lists as rows, each giving status 1, `USAGE_LINE`, 0 `identity` calls and no `kill`.
+       - The accepted row is `["--user", "agent"]` with a table that is empty at once. It gives status 0, nothing written, 1 `identity` call and `kill` called once with `signal.SIGKILL`.
+       - I gave it a new name because neither old name fits both kinds of row. The merge was the approved change.
+    2. Finding 2: I added the new shared module `tests/leftovers_support.py`. It holds `AGENT` (`Identity(uid=1001, user="agent", pid=11)`) and `process_entry(pid, uid=1001, *, ended=False)`, which builds `ProcessEntry(pid=pid, session=pid, ended=ended, uid=uid)`. The three modules that held copies now import from it:
+       - `tests/domain/test_leftovers.py`: the local `AGENT` and `_entry` are removed. Calls are written `process_entry(7, 1001)` or `process_entry(8, 1001, ended=True)`, and every row keeps its values.
+       - `tests/entry/test_leftovers.py`: the local `AGENT` and `_entry` are removed.
+       - `tests/adapters/test_process_table.py`: the local `_entry` is removed. The rows call `process_entry(pid, _UID)`, where `_UID = os.getuid()`.
+       - Apart from the merge in change 1, every test keeps its name and checks the same thing.
+
+    Criterion → test, after this change:
+    - criterion 1: tests/domain/test_leftovers.py::test_leftover_pids_are_the_user_s_other_living_processes
+    - criterion 7: tests/entry/test_leftovers.py::test_only_a_user_s_name_starts_the_rounds
+    - The tests of the other criteria are unchanged.
+
+    `main`'s def line in `src/factory/entry/leftovers.py` was not touched, so the literal line 32 in `tests/test_process_search.py` still holds.
+
+    Files created: `tests/leftovers_support.py`. Files changed: the three test modules above. Every module imports, so there is no import failure. I ran `make test` once and it ended `test: green (95.4 s)` with 99.16 % coverage. `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (99.1 s)
