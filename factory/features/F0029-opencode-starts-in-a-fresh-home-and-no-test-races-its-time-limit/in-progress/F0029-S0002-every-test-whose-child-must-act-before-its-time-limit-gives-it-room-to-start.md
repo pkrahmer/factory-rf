@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T07:34:42.772468Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-20T07:34:21.800276Z'
   stage: doing
   run: 66abd0b70079478fa9b14514e0b3013f
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:34:42.772468Z'
+  stage: review
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -274,3 +283,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+16. factory: started review as self.
