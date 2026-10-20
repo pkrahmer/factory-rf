@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 319
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T02:37:00.474977Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T02:37:00.474977Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T02:37:35.584012Z'
+  stage: review
+  run: 2be74335efb64a88bcdb9ef5a6ead627
 ---
 
 # The tests pin the stage's aftermath, the opening and the tick at their edges
@@ -174,3 +176,26 @@ Expect: four lines, `None`, `Stalled (attempt 1 of 2): the agent gave no valid d
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the work item and `git diff main...HEAD -- . ':!factory'`: three new test modules, the new shared `tests/tick_support.py`, and three earlier test files changed. Nothing under `src/` changed.
+
+   Acceptance criteria:
+   - Criterion 1 is `test_an_empty_entry_stalls_as_no_result` in `tests/application/test_after_agent_edges.py`. Its two rows are `""` and `tester:`. Each checks for exactly one factory post and asserts its exact first line.
+   - Criterion 2 is `test_only_findings_beyond_the_count_before_the_run_are_new`. The `TWICE` row checks no stall and `rule == 1`. The `THRICE` row checks `form_invalid` and the exact note about line 27 in the last post. Both sides of the count are covered.
+   - Criterion 3 is in `tests/application/test_opening_journal_edges.py` and asserts the exact body.
+   - Criterion 4 is `test_a_repository_stop_carries_the_errors_text_as_its_detail` in `tests/application/test_tick_stop_details.py`. Its two rows use the `GitCli` subclasses `FailingFetch` and `FailingReset`, built as the Interface says, and the tick runs on `replace(boundaries, git=...)`. `reset_to` is what `tick.py:183` calls during the restore.
+   - Criterion 5 is in the same file. It checks the outcomes error, error, reported and the exact `error cap` log line.
+
+   The coder's journal entry says `make check` ended with `check: green`.
+
+   Architecture and security: only tests changed. The diff adds no markers that silence a check, no secrets, and no shell built from strings.
+
+   Quality: the helpers are moved to one shared place, not copied again. The failing gits are small subclasses, not mocks. Everything has module and class docstrings.
+
+   Work item hygiene: the journal explains the main choice (leave `src/` alone) and what was rejected. The Description matches what was built, and "docs: none" still holds.
+
+   Earlier tests:
+   - `tests/application/test_dispatcher.py`: changed under the standing leave to move a shared test helper. `Failing` moved to `tests/tick_support.py` and is imported from there. Every test keeps its name and checks the same thing.
+   - `tests/application/test_tick.py`: changed under the standing leave to move a shared test helper. `_factory` was replaced by the shared `handlers_of`, and two imports that are no longer used were dropped. Every test keeps its name and checks the same thing.
+   - `tests/application/test_tick_stale_branch.py`: changed under the standing leave to move a shared test helper. Its copy of `_factory` was replaced by `handlers_of`, and the imports that are no longer used were dropped. Every test keeps its name and checks the same thing.
