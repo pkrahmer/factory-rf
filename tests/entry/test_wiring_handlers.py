@@ -97,17 +97,19 @@ def test_the_kinds_without_a_handler_are_exactly_those_not_yet_handled(
     assert unhandled_kinds(handlers) == list(NOT_YET_HANDLED)
 
 
-@pytest.mark.parametrize("guard_present", [True, False], ids=["guard-present", "guard-absent"])
+@pytest.mark.parametrize(
+    "confine_present", [True, False], ids=["confine-present", "confine-absent"]
+)
 def test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home(
-    tmp_path: Path, *, guard_present: bool
+    tmp_path: Path, *, confine_present: bool
 ) -> None:
     scripts = tmp_path / "scripts"
     scripts.mkdir()
     home = tmp_path / "home"
-    if guard_present:
-        guard = scripts / "factory-guard"
-        guard.write_text("", encoding="utf-8")
-        guard.chmod(0o755)
+    if confine_present:
+        confine = scripts / "factory-confine"
+        confine.write_text("", encoding="utf-8")
+        confine.chmod(0o755)
 
     environment = agent_environment(scripts, home)
 
@@ -115,8 +117,8 @@ def test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home(
     assert environment["HOME"] == str(home)
     assert environment["PATH"] == f"{scripts}:/usr/local/bin:/usr/bin:/bin"
     assert environment["PATH"].split(os.pathsep)[0] == str(scripts)
-    found = shutil.which("factory-guard", path=environment["PATH"])
-    assert found == (str(scripts / "factory-guard") if guard_present else None)
+    found = shutil.which("factory-confine", path=environment["PATH"])
+    assert found == (str(scripts / "factory-confine") if confine_present else None)
 
 
 def test_the_production_environment_uses_the_interpreter_directory_and_the_home(

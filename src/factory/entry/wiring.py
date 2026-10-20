@@ -9,7 +9,6 @@ from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
-from factory.adapters.claude_guard import judge, read_guard_settings
 from factory.adapters.claude_runtime import SUDO_EXECUTABLE, ClaudeCodeRuntime
 from factory.adapters.clock import SleepingWaiter, SystemClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
@@ -102,12 +101,10 @@ __all__ = [
     "git_options",
     "handler_factory",
     "health_store",
-    "judge",
     "machine_extras",
     "machine_log",
     "production_environment",
     "read_environment_settings",
-    "read_guard_settings",
     "read_hosting_token",
     "repository_name",
     "system_clock",
@@ -325,7 +322,7 @@ def agent_environment(scripts: Path, home: Path) -> dict[str, str]:
 
 def production_environment() -> dict[str, str]:
     """Return the agent environment: the allowed names of the process, its own `PATH` and home."""
-    # The console scripts, `factory-guard` among them, sit next to the interpreter.
+    # The console scripts, `factory-confine` among them, sit next to the interpreter.
     own = agent_environment(Path(sys.executable).parent, Path.home())
     return scrub_environment({**os.environ, **own})
 
@@ -419,7 +416,7 @@ def machine_extras(
     ]
     if settings.agent_user is not None:
         extras.append(lambda: tool_item("sudo", which))
-    extras.append(lambda: agent_environment_item(environment, _which_on, Path.is_dir))
+    extras.append(lambda: agent_environment_item(environment, Path.is_dir))
     extras.append(lambda: confinement_item(abi_version, environment, _which_on))
     if settings.agent_runtime == "opencode":
         extras.append(
