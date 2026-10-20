@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 369
 comments_read: [6303767591]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T23:13:47.891146Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-20T23:13:47.891146Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T23:14:08.976290Z'
+  stage: docs
+  run: dc9d476c997e491491492e859fd89bdd
 ---
 
 # The work tree's id sees a change made in the tick of the last index write
@@ -196,3 +198,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: none. The diff only adds `tests/adapters/test_git_cli_work_tree_tick.py`, with status `A`.
 13. factory: started docs as self.
+14. documenter: I wrote the two documents the docs criterion names. I found no findings: the code matches the Interface (`src/factory/adapters/git_cli.py` copies the index with `shutil.copy2`), and the added comment there explains why.
+
+    Files changed:
+    - `docs/project-guide/git-and-hosting.md`: the `work_tree_id` row now says the temporary index is a copy of the checkout's own with its modification time (`shutil.copy2`). Git's racily-clean rule therefore applies to the copy, and it rehashes a file changed in the tick of the last index write.
+    - `docs/decisions.md`: new entry *The work tree's id copies the index with its timestamps*, dated 2026-10-20 (F0030-S0002). It gives the cause (the flaky row from F0030-S0001 and F0030's acceptance reproduction), the decision, and the rejected `git read-tree HEAD` and `update-index --really-refresh`.
+    - `README.md`: not changed, as the criterion says (`none`).
+
+    Cross-read and found current against the diff: `docs/project-guide/git-and-hosting.md` (the other rows and the F0023 line at 191), `docs/project-guide/processes-and-checks.md` (the `work_tree_id` use in `KnownResults`), `docs/project-guide/stages.md` (`not_read` and `left_out`), `docs/operator-guide.md` (the `tree` key, line 618) and `README.md`. None of them mentions the index copy or `copyfile`.
+
+    Stale text I noticed and did not touch: none.
+
+    I ran no example and no `make check`: I changed only documents, so the factory's checks after this stage decide. The smoke test in the story is the example to run next.
+
+    `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:11:32Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
