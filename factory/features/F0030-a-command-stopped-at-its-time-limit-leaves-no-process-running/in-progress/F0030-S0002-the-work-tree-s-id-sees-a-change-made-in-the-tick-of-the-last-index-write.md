@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 369
-comments_read: []
+comments_read: [6303767591]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 83df897c3be344e7b46ee1bb9243676b
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-20T23:05:52.546211Z'
+  stage: intake
 ---
 
 # The work tree's id sees a change made in the tick of the last index write
@@ -92,3 +97,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Criteria: criterion 1 is one parametrized test with two rows, `same-size` and `other-size`, each checked against `HEAD^{tree}`. The copy2 clause has its criterion. The "no index starts empty" rule is unchanged and the story says so.
    - Smoke test: runnable, and its `Expect:` line is `True`, which can be checked.
    - Architecture: the change is inside the adapters layer, in the git wrapper, as `CLAUDE.md` requires.
+4. 2026-10-20 human: Answer (2026-10-21): (a), done on `main`: F0030's `feature.md` now lists S0002 and S0003 under *Stories* (proposed by the acceptance) and names S0002's files (`src/factory/adapters/git_cli.py`'s `work_tree_id`, `tests/adapters/test_git_cli_work_tree_tick.py`) and S0003's documents under *Scope*. Accept the story.
