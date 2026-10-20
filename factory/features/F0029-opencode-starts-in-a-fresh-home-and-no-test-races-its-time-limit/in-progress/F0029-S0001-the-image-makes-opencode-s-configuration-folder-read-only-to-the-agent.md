@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 309
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T00:32:46.087951Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T00:32:46.087951Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T00:33:01.188605Z'
+  stage: intake
+  run: ad4b8eacad1a43309cb95065c996ed5e
 ---
 
 # The image makes opencode's configuration folder, read-only to the agent
@@ -87,3 +89,9 @@ Expect: three lines, `fresh 1`, `made 0`, `1` (the image's opencode under the wr
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names `image/Dockerfile` with the exact `RUN`, its position (after the `useradd ... agent` RUN, before `WORKDIR /opt/factory` and `USER factory`), owners and modes of both folders, and the `chown` form that `_path_settings` of `tests/test_image.py` reads. No `src/` module changes. It has no behaviour comment without a criterion.
+   Criteria: each fits one test function. Criterion 1 is one parametrized test with a row per folder, `configuration` and `parent`. Both rows check owner and mode, and the no-write-bit check is stated as `int(mode, 8) & 0o022 == 0`. Criterion 2 is the order, criterion 3 pins `RUNTIME_FOLDERS` through an existing test, 4 is `make check`, and 5 is the docs. The failing side (the agent cannot write the configuration folder) is covered by the mode check. The parent folder staying the agent's is covered by the `parent` row.
+   Smoke test: the first block is a `grep -c` that the Dockerfile text will match with `Expect: 3`. The second block runs `opencode debug config` under `factory-confine` in two temporary homes. Its expectation is three checkable lines, `fresh 1`, `made 0` and `1`.
+   Architecture: this is an image-only change. It leaves the layers, the write guard and `RUNTIME_FOLDERS` alone, and the feature's decisions 1 to 3 give the reasons. The test goes in `tests/` at its root, like the other image tests.
+   Scope: it matches the feature's Scope, S0001 first. The story does not touch anything in the feature's Out of scope: `RUNTIME_FOLDERS`, the entrypoint and S0002's tests. It changes no test another story wrote.
