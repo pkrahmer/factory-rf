@@ -171,3 +171,11 @@ class Git(ABC):
         `matches_any(path, left_out)`. The index, `HEAD`, the refs and the work tree stay
         as they are.
         """
+
+    @abstractmethod
+    def remove_ignored(self) -> None:
+        """Remove every untracked path the ignore rules match, a folder with all it holds.
+
+        Tracked files, untracked paths no rule matches and the repository stay. A path that
+        cannot be removed raises `GitError`.
+        """

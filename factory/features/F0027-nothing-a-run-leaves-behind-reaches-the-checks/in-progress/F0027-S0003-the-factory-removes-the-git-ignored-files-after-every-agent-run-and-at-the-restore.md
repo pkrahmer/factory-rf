@@ -1,3 +1,187 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 355
+comments_read: [6293770931, 6294082194]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T14:51:29.564622Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T14:51:29.572073Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-20T14:51:49.232501Z'
+  stage: intake
+  run: 4f9a20ed0c8b4eff98a707432a740d10
+  blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-20T14:53:10.596018Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-20T14:53:30.859826Z'
+  stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-20T14:54:05.891248Z'
+  stage: intake
+  run: 13a1c789d6cc4eef8ede8a25d3636424
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-20T14:54:27.414336Z'
+  stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-20T15:02:21.894103Z'
+  stage: tests
+  run: 43cea450362e46c887bc19beb33c6aca
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:02:43.317932Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-10-20T15:06:21.296569Z'
+  stage: doing
+  run: 6de6bf1d786e49b18be61c17e5eba147
+  blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-10-20T15:07:42.103869Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:08:01.564221Z'
+  stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-20T15:08:17.343585Z'
+  stage: doing
+  run: 1800b98fa9f749e4b0c8c542f6cbf7eb
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:08:42.639513Z'
+  stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-20T15:15:05.342498Z'
+  stage: tests
+  run: 904310c40c3f4d17849942efb9a98f53
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:15:27.003923Z'
+  stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-20T15:22:02.311331Z'
+  stage: doing
+  run: 871b8fd7eec1418ab1d359390dfd9de9
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:22:23.269871Z'
+  stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T15:23:45.290070Z'
+  stage: review
+  run: c5672a9e30c841f49e8cb5c11b01da61
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:24:08.644965Z'
+  stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-20T15:24:39.772178Z'
+  stage: doing
+  run: f708083c97184684ab55288949752246
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:25:01.203953Z'
+  stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-10-20T15:28:27.076245Z'
+  stage: tests
+  run: 4debaf35017c45f0995791559586e1ac
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:28:48.290030Z'
+  stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-20T15:31:39.620766Z'
+  stage: doing
+  run: 0400a41f871c4606afc7b96078dac04c
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:32:00.926500Z'
+  stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T15:33:12.183547Z'
+  stage: review
+  run: 8bcf73d86ccc43a8ac53415173a314e9
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:33:33.174608Z'
+  stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T15:35:04.032971Z'
+  stage: docs
+  run: 7ca0bb63006148eb8411e383006871a7
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:35:25.293928Z'
+  stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T15:36:03.141967Z'
+  stage: smoke-test
+  run: 90d954a2d35f4d639e9b94b4fe0f2a90
+---
+
 # The factory removes the git-ignored files after every agent run and at the restore
 
 ## Description
@@ -39,7 +223,7 @@ Tests (the tester writes them): `tests/adapters/test_git_cli_ignored.py` (a real
 
 ## Acceptance criteria
 
-1. `GitCli.remove_ignored()` removes (rows of one parametrized test, a commit holding a `.gitignore` with the lines `.venv/`, `__pycache__/`, `*.pyc`, `.mypy_cache/` and `mutants/`, and `src/mod.py`; each row adds one stand-in and checks that it is gone afterwards): `.venv/lib/python3.12/site-packages/standin.pth`. `src/pkg/__pycache__/mod.cpython-312.pyc` (the whole `__pycache__` folder is gone). `src/stray.pyc`. `.mypy_cache/3.12/standin.json`. `mutants/src/mod.py`. `tests/hidden/conftest.py` beside a new `tests/hidden/.gitignore` holding `*` (the folder `tests/hidden` is gone, `.gitignore` included). `src/secret.py`, which a new `src/.gitignore` holding `secret.py` names. `scratch.log`, which `.git/info/exclude` names. `.venv/src/dep/` holding a repository made by `git init`.
+1. `GitCli.remove_ignored()` removes (rows of one parametrized test, a commit holding a `.gitignore` with the lines `.venv/`, `__pycache__/`, `*.pyc`, `.mypy_cache/` and `mutants/`, and `src/mod.py`; each row adds one stand-in and checks that it is gone afterwards): `.venv/lib/python3.12/site-packages/standin.pth`. `src/pkg/__pycache__/mod.cpython-312.pyc` (the whole `__pycache__` folder is gone). `src/stray.pyc`. `.mypy_cache/3.12/standin.json`. `mutants/src/mod.py`. `tests/hidden/conftest.py` beside a new `tests/hidden/.gitignore` holding `*` (the folder `tests/hidden` is gone, `.gitignore` included). `src/secret.py`, which a new `src/.gitignore` holding `secret.py` names. `scratch.log`, which `.git/info/exclude` names. `.venv/src/dep/` holding a repository made by `git init`. A symbolic link `src/stray.pyc` (matched by `*.pyc`) that points to a file outside the repository: afterwards the link is gone and the target file is still there with its content.
 2. `GitCli.remove_ignored()` keeps (rows of one parametrized test, the same commit; each row adds one path and checks that it is there afterwards with its content): the tracked `src/mod.py`, also after an edit in the work tree (the edit stays). The tracked `.gitignore`. A new untracked `src/pkg/new.py`. A new `src/.gitignore` holding `secret.py`, which no rule matches. A symbolic link `.mypy_cache` that points to a folder outside the repository with a file in it, which the folder rule `.mypy_cache/` does not match: the link and the target's file both stay. In every row `git status --porcelain` (through `run_git`) is the same before and after the call, and `HEAD` is unchanged.
 3. A path the factory cannot remove (rows of one parametrized test): an ignored folder `.venv/locked` of mode `0o555` holding a file makes `remove_ignored()` raise `GitError` whose `command` is `git clean --quiet --force --force -d -X` and whose `exit_status` is 1. The same folder with mode `0o755` is removed and nothing is raised. Without any ignored path the call raises nothing and changes nothing.
 4. `run_sealed` (rows of one parametrized test, a checkout whose `main` holds a `.gitignore` with `.venv/`, `__pycache__/` and `*.pyc`). A run that writes `.venv/lib/standin.pth`, `src/__pycache__/a.cpython-312.pyc`, `tests/hidden/.gitignore` (`*`), `tests/hidden/conftest.py` and an untracked `src/new.py`, and returns, leaves only `src/new.py` of them. The result is the run's, and `nested_repositories` is `[]`. A run that also makes a repository at `.venv/dep/.git` gives `nested_repositories == [".venv/dep/.git"]`, and `.venv` is gone. A run that writes the same files and then raises `AgentRuntimeError("boom")` propagates that error, and `.venv/lib/standin.pth` and `tests/hidden/conftest.py` are still there. A run that writes `.venv/locked/x`, closes `.venv/locked` to mode `0o555` and returns makes `run_sealed` raise `GitError` whose `command` is `git clean --quiet --force --force -d -X`, and no `SealedRun` is returned.
@@ -132,3 +316,298 @@ Expect: `0`
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: 1. The Interface says "A symbolic link is removed as a link and its target is untouched" for `GitCli.remove_ignored()`, and no criterion tests that. Criterion 1 has no row with a symbolic link that an ignore rule matches. Criterion 2 only covers a link that no rule matches (`.mypy_cache` against the folder rule `.mypy_cache/`), which stays. Two coders could read the clause differently and both pass the tests. Options: (a) add a row to criterion 1: a symbolic link `src/stray.pyc` (matched by `*.pyc`) that points to a file outside the repository. Afterwards the link is gone and the target's file is still there with its content. (b) Drop the sentence from the Interface. I would choose (a).
+
+   Everything else checks out:
+   - Interface: it names the modules and signatures.
+   - Criteria: apart from question 1, every clause has its own test, on the failing side as well. The failing side is the mode `0o555` folder in criteria 3, 4 and 6, and the raised run in criterion 4. The empty case is the third row of criterion 3.
+   - Smoke test: the commands are runnable, and no pytest command is involved, so there is no `-q` issue. Each Expect line can be checked against the output.
+   - Architecture and scope: both are within the layers in CLAUDE.md and within the feature's scope.
+
+   Format check: passed.
+4. 2026-10-20 human: Answer (2026-10-20): (a). Criterion 1 gains a row: a symbolic link `src/stray.pyc` (matched by `*.pyc`) that points to a file outside the repository; afterwards the link is gone and the target file is still there with its content. The Interface's sentence stays.
+5. factory: started intake as self.
+6. intake: accepted
+   - Interface: `Git.remove_ignored()` in `factory.application.git`, `GitCli.remove_ignored()`, `run_sealed` and `Tick._restore_checkout` are named with signatures and the exact git command. Checked against the human's answer in journal entry 4 (a): I wrote exactly that into criterion 1, a new last row. It is a symbolic link `src/stray.pyc`, matched by `*.pyc`, that points to a file outside the repository. Afterwards the link is gone and the target file is still there with its content. The Interface sentence stays as it was. Nothing else in the story changed.
+   - Criteria: every clause now has a test, on the failing side too. The failing side is the `0o555` folder in criteria 3, 4 and 6, and the raised run in criterion 4. The empty case is in criterion 3. The links are covered on both sides: a matched link is removed (criterion 1), an unmatched link stays (criterion 2). The restore (criterion 6), the order of the checks (criterion 5) and the earlier tests that change (criterion 7) each have a criterion. Each criterion fits one test function, or one parametrized test.
+   - Smoke test: the commands are runnable and none runs pytest, so there is no `-q` issue. Each `Expect:` line can be checked against the output.
+   - Architecture: the new operation is an abstract method of the `Git` ABC in `application`, implemented in `adapters.git_cli` through `_run`. The sealed run and the tick call it only through the interface. This agrees with the layers in `CLAUDE.md`.
+   - Scope: it matches S0003 in the feature's Scope, and it touches nothing under Out of scope. The test changes it names are the ones feature decision 16 allows.
+7. factory: started tests as self.
+8. tester: I wrote the tests for every acceptance criterion. Criterion → test:
+   - criterion 1: tests/adapters/test_git_cli_ignored.py::test_remove_ignored_removes_every_untracked_path_the_rules_match (10 rows: venv, pycache-folder, pattern, mypy-cache, mutants, nested-gitignore-hides-itself, nested-gitignore, info-exclude, nested-repository, link-as-link. Every row also checks that the outside target file keeps its content.)
+   - criterion 2: tests/adapters/test_git_cli_ignored.py::test_remove_ignored_keeps_tracked_and_unmatched_paths (5 rows: tracked-edit, tracked-gitignore, new, new-gitignore, unmatched-link. Each row compares `git status --porcelain` and HEAD before and after.)
+   - criterion 3: tests/adapters/test_git_cli_ignored.py::test_remove_ignored_raises_git_error_for_a_path_it_cannot_remove (rows: 0o555 → GitError with command `git clean --quiet --force --force -d -X` and exit 1; 0o755 → removed; nothing ignored → work tree and status unchanged)
+   - criterion 4: tests/application/test_sealed_runs_ignored.py::test_a_returned_run_leaves_no_ignored_path_and_a_raised_one_leaves_them (rows: returned, nested-repository, raised, unremovable. A test-local `ThenRuntime` lets the fake runtime write through `ScriptedRun.writes`, then makes the nested repository, raises `AgentRuntimeError("boom")` or locks `.venv/locked`.)
+   - criterion 5: tests/application/test_stage_run_ignored.py::test_the_checks_do_not_see_what_the_agent_hid (story at stage `doing`, role coder, whose `check` is `test ! -e <path>`. Rows: ignored → rule 6, no stall, path not in the result commit; in-write-path `src/standin.txt` → stall `check_red`.)
+   - criterion 6: tests/application/test_tick_ignored.py::test_the_restore_removes_the_ignored_paths (rows: info-exclude, branch-gitignore, unremovable. The last checks `stopped="checkout_restore_failed"` and that the stop's detail starts with `git clean --quiet --force --force -d -X failed (exit 1)`.)
+   - criterion 7: these are the edits feature decision 16 allows, and nothing else in those modules:
+     - tests/application/test_git_interface.py: `OPERATIONS` gains `"remove_ignored"`; the test is renamed to test_git_has_exactly_the_twenty_five_operations_and_git_cli_has_each.
+     - tests/application/test_interfaces.py: renamed to test_git_abstract_methods_are_exactly_its_twenty_five_operations.
+     - tests/application/test_tick.py::test_the_restore_discards_changes_and_names_them_in_one_line: the assertion is now `assert not (directory / "ignored.log").exists()`.
+   - criteria 8 and 9 (`make check` stays green, and docs) are not tests.
+
+   The rows that need a folder of mode 0o555 are skipped under root, as the existing restore test does. Each test sets the folder's mode back to 0o755 in a `finally`.
+
+   Files created: tests/adapters/test_git_cli_ignored.py, tests/application/test_sealed_runs_ignored.py, tests/application/test_stage_run_ignored.py, tests/application/test_tick_ignored.py.
+
+   Import failures: none. `factory.application.git` and `factory.adapters.git_cli` both import. The tests fail because `remove_ignored` does not exist and nothing removes the ignored paths yet. In the one `make test` run, for example, the tick rows failed with `assert not True` (the ignored file is still there) and `assert None == 'checkout_restore_failed'`, and the restore test fails on its inverted line. `make lint` is green, after `ruff format` re-wrapped two lines in test_tick_ignored.py.
+
+   Nothing needed interpreting, and nothing is open.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/application/test_tick.py::test_the_restore_discards_changes_and_names_them_in_one_line - AssertionError: assert not True
+9. factory: started doing as self.
+10. coder: I wrote the code, but `make check` is red because of one test that cannot pass. I did not change that test.
+
+    The failing test is `tests/application/test_sealed_runs_ignored.py::test_a_returned_run_leaves_no_ignored_path_and_a_raised_one_leaves_them[raised]`. Line 154 asserts `str(error.value) == "boom"`. But `AgentRuntimeError.__init__` (`src/factory/domain/errors.py:90`) passes `f"agent runtime failed: {detail}"` to its base class. `tests/domain/test_errors.py::test_agent_runtime_error_names_its_detail` pins that text: `str(error) == "agent runtime failed: boom"`. From the `make test` run:
+    ```
+        assert str(error.value) == "boom"
+    E   AssertionError: assert 'agent runtime failed: boom' == 'boom'
+    ```
+    The rest of that row already passes. The error propagates unchanged and its type matches. `.venv/lib/standin.pth` and `tests/hidden/conftest.py` are still there. Every other new test and every changed test passes. Lint, types and layers are green.
+
+    Options:
+    - (a) The tester changes line 154 to `assert error.value.detail == "boom"`. That checks the error the run raised, with the detail the criterion names.
+    - (b) The tester changes line 154 to `assert str(error.value) == "agent runtime failed: boom"`.
+    - (c) Change `AgentRuntimeError` so its text is the bare detail. That breaks the earlier `test_errors.py` test and every message built on that text.
+
+    I would choose (a). Once you answer, I end the next round with `tests` and name that one line.
+
+    What I built:
+    - `src/factory/application/git.py`: the abstract `Git.remove_ignored()`, with the Interface's docstring.
+    - `src/factory/adapters/git_cli.py`: `GitCli.remove_ignored()`, which runs `clean --quiet --force --force -d -X` through `_run`, so a non-zero exit is a `GitError` with that command.
+    - `src/factory/application/sealed_runs.py`: `run_sealed` calls `git.remove_ignored()` after the `try`/`finally`. So it runs only when the run returned and both the seal check and the nested removal passed. A run that raised leaves its ignored paths to the restore.
+    - `src/factory/application/tick.py`: `_restore_checkout` calls `remove_ignored()` between `reset_to("HEAD")` and the switch to `main`. Its `GitError` reaches the existing `checkout_restore_failed` handler.
+
+    Main choice: I put the removal after the `finally` block instead of inside it. Inside, it would also run after a raised run. The Interface leaves that case to the restore, and a second git error inside `finally` would hide the run's own error. I did not consider removing the paths from Python, as `remove_nested_repositories` does. The Interface asks for git's own rules: every nested `.gitignore` and `.git/info/exclude`.
+
+    Refactor: I read the diff and found nothing to change. The only edit was shortening the docstring of `run_sealed`, which was over the line limit.
+
+    Noticed but not touched: nothing.
+11. 2026-10-20 human: Answer (2026-10-20): (a). The tester changes line 154 of this story's own `tests/application/test_sealed_runs_ignored.py` to `assert error.value.detail == "boom"`; nothing else changes, and `AgentRuntimeError` keeps its text.
+12. factory: started doing as self.
+13. coder: The human's answer in entry 11 calls for a test change. I made no code change in this round. The tester changes line 154 of `tests/application/test_sealed_runs_ignored.py` (the `raised` row of `test_a_returned_run_leaves_no_ignored_path_and_a_raised_one_leaves_them`) from `assert str(error.value) == "boom"` to `assert error.value.detail == "boom"`, and nothing else.
+
+    The code from the last doing round is already on the branch (commit 05aa6710): `src/factory/application/git.py`, `src/factory/adapters/git_cli.py`, `src/factory/application/sealed_runs.py` and `src/factory/application/tick.py`. With that one line changed, I expect every test of this story to pass. In the last round, this assertion was the only failure in `make test`. I did not run `make check` this round, because no code changed.
+
+    The journal did not change what the task means. `AgentRuntimeError` keeps its text, so the Description stays as it is.
+14. factory: started tests as self.
+15. tester: I made the test change the human approved in entry 11, which the coder named in entry 13. It is in the `raised` row of `tests/application/test_sealed_runs_ignored.py::test_a_returned_run_leaves_no_ignored_path_and_a_raised_one_leaves_them`. The assertion `assert str(error.value) == "boom"` is now `assert error.value.detail == "boom"`, so the row checks the detail of the error the run raised, and `AgentRuntimeError` keeps its text.
+
+    I also added one line just before it: `assert isinstance(error.value, AgentRuntimeError)`. I had to. `error.value` is typed `Exception`, so the approved line alone fails `mypy --strict` with `"Exception" has no attribute "detail" [attr-defined]`. That would turn `make check` red. The added line only narrows the type. The line above it already asserts `type(error.value) is raised`, so it checks nothing new and skips no case. The test keeps its name, and no other line or file changed.
+
+    Criterion → test is the same as in entry 8. Criterion 4 is still `tests/application/test_sealed_runs_ignored.py::test_a_returned_run_leaves_no_ignored_path_and_a_raised_one_leaves_them`.
+
+    Files created this round: none. Files changed: `tests/application/test_sealed_runs_ignored.py`. Modules the test run could not import: none.
+
+    Results:
+    - `make test`: green, coverage 99.17 % (`test: green (167.1 s)`).
+    - `make lint`: green.
+    - `make types`: green. I ran it because of the added line.
+
+    Nothing is open.
+
+    `lint`: lint: green (0.0 s)
+    `test`: FAILED tests/adapters/test_git_cli_work_tree.py::test_the_work_tree_id_is_the_tree_a_commit_records[edited-untracked-deleted] - AssertionError: assert '78031b56ee55...d6f3e7b31b1dc' == 'c044850cabf...
+16. factory: started doing as self.
+17. coder: The code was already on the branch from the earlier doing round (commit 05aa6710). The tester has made the one test change the human approved in entry 11. I made no code change this round. In this run `make check` was green: `check: green`, coverage 99.17 %.
+
+    What I built:
+    - `src/factory/application/git.py`: the abstract `Git.remove_ignored()`, with the docstring from the Interface.
+    - `src/factory/adapters/git_cli.py`: `GitCli.remove_ignored()` runs `clean --quiet --force --force -d -X` through `_run`, so a non-zero exit is a `GitError` with that command. A comment says why there is a second `--force`.
+    - `src/factory/application/sealed_runs.py`: `run_sealed` calls `git.remove_ignored()` after the `try`/`finally`. So it runs only when the run returned and the seal check and the nested removal both passed.
+    - `src/factory/application/tick.py`: `_restore_checkout` calls `remove_ignored()` between `reset_to("HEAD")` and the switch to `main`. Its `GitError` reaches the existing `checkout_restore_failed` stop.
+
+    Main choice: the removal sits after the `finally` block, not inside it. Inside, it would also run after a raised run, which the Interface leaves to the next restore, and a second git error in `finally` would hide the run's own error. I rejected removing the paths from Python, as `remove_nested_repositories` does, because the Interface asks for git's own rules: every nested `.gitignore` and `.git/info/exclude`.
+
+    Refactor: I read the whole diff again and found nothing to change.
+
+    The journal did not change what the task means: `AgentRuntimeError` keeps its text, so the Description stays.
+
+    Noticed but not touched: the factory's `make test` after the tester failed once in `tests/adapters/test_git_cli_work_tree.py::test_the_work_tree_id_is_the_tree_a_commit_records[edited-untracked-deleted]`. That test calls no code this story changed. It passed in my `make check` and in five runs of its module alone.
+    - What I can quote: only the factory's one-line summary in entry 15, not the `E` lines or the failing `file:line` of that run: `AssertionError: assert '78031b56ee55...d6f3e7b31b1dc' == 'c044850cabf...`.
+    - My guess at the cause (not verified): git's racy timestamp check. `_changed` rewrites `tracked.txt` from `one\n` to `two\n`, the same size, right after the `base` commit. If both fall in the same timestamp tick, a temporary index that copies the real index's file stats can treat the file as unchanged, and `work_tree_id` hashes the old content.
+    - If so, it is an existing problem in `GitCli.work_tree_id`, outside this story, and a fix would be a story of its own.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+18. factory: started review as self.
+19. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (4 source files, 4 new and 3 changed test files) against the work item. The source matches the Interface. `Git.remove_ignored()` carries the Interface's docstring. `GitCli.remove_ignored()` runs `clean --quiet --force --force -d -X` through `_run`. `run_sealed` calls it after the `try`/`finally`. `_restore_checkout` calls it between `reset_to("HEAD")` and the switch to `main`. The layers hold, and the change adds no suppression marker. Criteria 1 to 7 each have one parametrized test that checks what the criterion says, failing sides included. The branch row of criterion 6 also pins the order: after the switch, `src/x.dat` would no longer be ignored. `make check` was green after the coder (entry 17). `make duplicates` reports 5 new findings, all in `claude_runtime`/`opencode_runtime` and `adapters/clock.py`, none in code this diff touches. Round 0, so the copied test helpers below are findings:
+
+    1. `tests/application/test_sealed_runs_ignored.py` `_request` and `COMPLETED` are copies of `_request` (`tests/application/test_sealed_runs.py:137`) and `COMPLETED` (`tests/application/test_sealed_runs.py:32`). Fix: the tester moves both to one shared module under `tests/` under the standing leave, and both modules import them from there.
+    2. `tests/adapters/test_git_cli_ignored.py` `_head` is a copy of `_head` in `tests/adapters/test_git_cli_restoring.py:12`. Fix: move it to `tests/git_support.py` under the standing leave and use it from both modules.
+    3. `AS_ROOT` in `tests/adapters/test_git_cli_ignored.py`, `tests/application/test_sealed_runs_ignored.py` and `tests/application/test_tick_ignored.py` is a copy of `AS_ROOT` in `tests/adapters/test_git_cli_nested.py:13` and `tests/application/test_nested_repositories.py:39`. Fix: one shared mark in a module at the `tests/` root, used by the new modules and by the earlier modules that hold the copy, under the standing leave.
+
+    Earlier tests:
+    - `tests/application/test_git_interface.py`: changed under the human's leave, the story's Interface under the feature's decision 16 (`OPERATIONS` gains `"remove_ignored"`, the test is renamed to twenty-five). The change is within that leave.
+    - `tests/application/test_interfaces.py`: changed under the same leave (the Git test renamed to twenty-five). The change is within that leave.
+    - `tests/application/test_tick.py`: changed under the same leave (`test_the_restore_discards_changes_and_names_them_in_one_line`, the `ignored.log` assertion inverted). The change is within that leave.
+20. factory: started doing as self.
+21. coder: Round 1: the reviewer's findings in entry 19 are all test helpers copied from other stories' tests. So no code changes this round, and I did not run `make check`. `CLAUDE.md` gives a standing leave to move a shared test helper. Under it, the tester moves these helpers, keeps the name of every earlier test, and checks the same things. Any helper this story's new tests still copy goes too.
+
+    1. `COMPLETED` and `_request(checkout)`: the copies in `tests/application/test_sealed_runs_ignored.py` move to one shared module at the `tests/` root. The originals are at `tests/application/test_sealed_runs.py:32` and `:137`. Both modules then import them from there. Note: `tests/probe_support.py` already has a `COMPLETED`. It has the same fields except `entry="probe"` instead of `"done"`, so it cannot be reused as is unless the shared constant takes the place of both.
+    2. `_head(directory)`: the copies in `tests/adapters/test_git_cli_ignored.py` and `tests/adapters/test_git_cli_restoring.py:12` move to `tests/git_support.py`, and both modules use it from there.
+    3. `AS_ROOT`: the copies become one shared mark in a module at the `tests/` root. They are in `tests/adapters/test_git_cli_ignored.py`, `tests/application/test_sealed_runs_ignored.py`, `tests/application/test_tick_ignored.py`, `tests/adapters/test_git_cli_nested.py:13` and `tests/application/test_nested_repositories.py:39`. All five modules use the shared mark.
+
+    The tester's entry names each earlier test file it changes.
+
+    What is already built (no change this round): `Git.remove_ignored()` in `src/factory/application/git.py` and `GitCli.remove_ignored()` in `src/factory/adapters/git_cli.py`. `run_sealed` (`src/factory/application/sealed_runs.py`) calls it after the `try`/`finally`, and `Tick._restore_checkout` (`src/factory/application/tick.py`) between `reset_to("HEAD")` and the switch to `main`.
+
+    Main choice: I pass the findings to the tester and leave the code alone. I rejected touching the tests myself, because the coder never edits tests. The journal did not change what the task means, so the Description stays.
+
+    Noticed but not touched: `_head` has more near-copies with other signatures in `tests/adapters/test_git_cli_branches.py`, `test_git_cli_writing.py`, `tests/application/test_costs.py`, `test_after_agent.py`, `test_stalls.py` and `test_stage_finish.py`. They are outside these findings. The flaky `test_git_cli_work_tree.py` row from entry 17 is still open.
+22. factory: started tests as self.
+23. tester: Round 1. I moved the three shared test helpers that the reviewer named in entry 19 and the coder passed on in entry 21. I did this under the standing leave in `CLAUDE.md` to move a shared test helper. Every earlier test keeps its name and checks the same thing. I wrote no new test.
+
+    New shared modules (files created):
+    - `tests/sealed_run_support.py`: holds `COMPLETED` (entry "done") and `run_request(checkout)`, which was the private `_request`. I did not merge it with `COMPLETED` in `tests/probe_support.py`. That one carries entry "probe", and `tests/test_shared_test_helpers.py` pins it there.
+    - `tests/root_support.py`: holds `AS_ROOT`. The reason text is the earlier modules' "root removes files in unwritable directories".
+    - `tests/git_support.py` (changed): gains `head_of(directory)`, which was the private `_head`.
+
+    Earlier test files I changed under the standing leave (imports and call names only):
+    - `tests/application/test_sealed_runs.py`: its own `COMPLETED` and `_request` removed; it now imports them from `sealed_run_support`.
+    - `tests/application/test_sealed_runs_runner.py`: it imported `COMPLETED` and `_request` from `application.test_sealed_runs`, so it was in the way of that move. It now imports from `sealed_run_support`.
+    - `tests/application/test_nested_repositories.py`: its `AS_ROOT` copy removed. It now takes `AS_ROOT` from `root_support`, and `COMPLETED` and `run_request` from `sealed_run_support` instead of `application.test_sealed_runs`.
+    - `tests/adapters/test_git_cli_nested.py`: its `AS_ROOT` copy removed; it now uses `root_support`.
+    - `tests/adapters/test_git_cli_restoring.py`: its `_head` removed; it now uses `git_support.head_of`.
+
+    This story's own tests, changed the same way:
+    - `tests/application/test_sealed_runs_ignored.py`: `COMPLETED`, `_request` and `AS_ROOT` removed.
+    - `tests/adapters/test_git_cli_ignored.py`: `_head` and `AS_ROOT` removed.
+    - `tests/application/test_tick_ignored.py`: `AS_ROOT` removed.
+
+    The mapping from criterion to test is the same as in entry 8. No test name changed.
+
+    Results:
+    - `make lint`: green.
+    - `make types`: green.
+    - `make test`: green, coverage 99.17 %.
+
+    Modules the test run could not import: none.
+
+    Still open, and outside this round: the `_head` near-copies with other signatures that the coder listed in entry 21, which I left alone, and the flaky `test_git_cli_work_tree.py` row from entry 17.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (59.9 s)
+24. factory: started doing as self.
+25. coder: Round 1. The reviewer's findings in entry 19 were all copied test helpers. The tester has moved them under the standing leave (entry 23). That needed no code change, so I made none this round. `make check` is green on the current tree (`check: green`, coverage 99.17 %, `test: green (64.3 s)`).
+
+    What I built (on the branch since commit 05aa6710, unchanged this round):
+    - `src/factory/application/git.py`: the abstract `Git.remove_ignored()`, with the Interface's docstring.
+    - `src/factory/adapters/git_cli.py`: `GitCli.remove_ignored()` runs `clean --quiet --force --force -d -X` through `_run`, so a non-zero exit is a `GitError` with that command.
+    - `src/factory/application/sealed_runs.py`: `run_sealed` calls `git.remove_ignored()` after the `try`/`finally`. It runs only when the run returned and both the seal check and the nested-repository removal passed.
+    - `src/factory/application/tick.py`: `_restore_checkout` calls `remove_ignored()` between `reset_to("HEAD")` and the switch to `main`. Its `GitError` reaches the existing `checkout_restore_failed` stop.
+
+    Main choice: the removal comes after the `finally` block, not inside it. I rejected putting it inside: there it would also run after a raised run, which the Interface leaves to the next restore, and a second git error in `finally` would hide the run's own error. I also rejected removing the paths from Python, the way `remove_nested_repositories` does. The Interface asks for git's own rules: every nested `.gitignore` and `.git/info/exclude`.
+
+    Refactor: no code changed this round, and I found nothing to change.
+
+    The journal did not change what the task means, so the Description stays.
+
+    Noticed but not touched:
+    - The `_head` near-copies with other signatures (entry 21).
+    - The flaky row `tests/adapters/test_git_cli_work_tree.py::test_the_work_tree_id_is_the_tree_a_commit_records[edited-untracked-deleted]` (entry 17). It did not fail in this run.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+26. factory: started review as self.
+27. reviewer: Round 1. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item: 4 source files, 4 new test files, 2 new support modules, and 8 changed test and support files.
+
+    no findings
+
+    - Source: it matches the Interface.
+      - `Git.remove_ignored()` is an `@abstractmethod` whose body is the Interface's docstring.
+      - `GitCli.remove_ignored()` runs `clean --quiet --force --force -d -X` through `_run`. A comment says why there is a second `--force`.
+      - `run_sealed` calls it after the `try`/`finally`, so only a run that returned gets it. A comment says why. The preflight's probe run goes through `run_sealed` (`src/factory/application/preflight.py:251`), so it gets the removal as well.
+      - `Tick._restore_checkout` calls it between `reset_to("HEAD")` and `checkout("main", ...)`, with a comment on the order.
+      - `GitCli` is the only class that implements `Git`.
+    - Layers hold, no marker silences a check, and no string is built into a shell command.
+    - Criteria 1 to 7: each has one parametrized test, and each test checks what its criterion says, failing sides included:
+      - the `0o555` rows in criteria 3, 4 and 6;
+      - the raised run in criterion 4;
+      - the link rows on both sides (criteria 1 and 2);
+      - in criterion 5, the `in-write-path` row against the coder's `src/*`.
+    - `make check` was green after the coder (entry 25). `make duplicates` reports 5 new findings, none in code this diff touches.
+    - The round-0 findings (entry 19) are resolved:
+      - `COMPLETED` and `_request` now live in `tests/sealed_run_support.py`, unchanged apart from the rename to `run_request`.
+      - `_head` is now `tests/git_support.py::head_of`.
+      - `AS_ROOT` is now `tests/root_support.py`.
+    - The Description and the docs criterion still match what was built.
+
+    Earlier tests:
+    - `tests/adapters/test_git_cli_nested.py`: the standing leave to move a shared test helper (its `AS_ROOT` copy now comes from `root_support`). Same names, same checks.
+    - `tests/adapters/test_git_cli_restoring.py`: the standing leave (`_head` moved to `git_support.head_of`). Same names, same checks.
+    - `tests/application/test_nested_repositories.py`: the standing leave (`AS_ROOT`, `COMPLETED` and `run_request` now come from the shared modules). Same names, same checks.
+    - `tests/application/test_sealed_runs.py`: the standing leave (`COMPLETED` and `_request` moved to `sealed_run_support`). Same names, same checks.
+    - `tests/application/test_sealed_runs_runner.py`: the standing leave (it imports `COMPLETED` and `run_request` from `sealed_run_support`). Same names, same checks.
+    - `tests/application/test_git_interface.py`: the human's leave, the story's Interface under the feature's decision 16 (`OPERATIONS` gains `"remove_ignored"`, the test is renamed to twenty-five). Within that leave.
+    - `tests/application/test_interfaces.py`: the same leave (the Git test renamed to twenty-five). Within that leave.
+    - `tests/application/test_tick.py`: the same leave (the `ignored.log` assertion inverted in `test_the_restore_discards_changes_and_names_them_in_one_line`). Within that leave.
+    - `tests/git_support.py`: none needed. It only adds `head_of` and leaves everything it held as it was.
+
+    Notes:
+    - `tests/adapters/test_git_cli_ignored.py:40`: `_status` is a near-copy of `_status` in `tests/adapters/test_git_cli_restoring.py:12`. It leaves out `--untracked-files=all`, as criterion 2's `git status --porcelain` asks.
+    - `tests/adapters/test_git_cli_ignored.py:13` and `tests/application/test_sealed_runs_ignored.py:21`: the constant `CLEAN` is defined twice.
+28. factory: started docs as self.
+29. documenter: Round 1. I read the story, the source diff (`git.py`, `git_cli.py`, `sealed_runs.py`, `tick.py`) and the docs. The code matches the Interface, so I have no findings. I changed only documents, so I did not run `make check`. `make documents` prints `documents ok`.
+
+    Files changed:
+    - `docs/project-guide/git-and-hosting.md`: *Restoring the checkout* now says "four" and has a `remove_ignored()` entry. The entry gives the command, what it removes and keeps (nested `.gitignore` files and `.git/info/exclude` included, links as links), the `GitError`, and that `reset_to` still keeps ignored paths. The operations table has a `remove_ignored()` row. *Which feature uses which operation* has the F0027 row. "The twenty-four operations" is now "twenty-five".
+    - `docs/project-guide/watching.md`: *The tick* step 3 puts `remove_ignored()` between `reset_to("HEAD")` and the switch to `main`, and says why: a branch's own `.gitignore` names what it hid only while that branch is checked out. The paragraph *Every agent run is sealed* has the removal after the check and the nested removal, only when the run returned. It says the undo and the same stage's checks come after it, the preflight's probe gets it too, and a raised run is left to the restore.
+    - `docs/project-guide/write-guard.md`: *Limits* lost "(left for v2)". Ignored paths are removed by `run_sealed` before the undo, and the undo still does not judge them.
+    - `docs/operator-guide.md`:
+      - The restore paragraph now says ignored paths are removed too, and that the factory also removes them after every returned agent run.
+      - The `checkout_restore_failed` row names an ignored folder it cannot empty.
+      - *The project's make targets* says the project's commands run without any ignored state, so each builds what it needs. It also gives the group-writable umask `002` rule and the failure a stricter umask causes.
+    - `docs/decisions.md`: a new entry, *The factory removes the git-ignored paths after every agent run and at the restore*, dated with the story.
+
+    For the decisions entry I did not read `feature.md`, which the stage forbids. I took the reasons from the story's Description, the journal and the reviewer's notes. If the feature's decisions 2 and 4 to 7 hold a reason that is not in the Description, the entry lacks it.
+
+    Cross-read and found current: `README.md`, the rest of `docs/operator-guide.md` and `docs/project-guide/` (the other files), and the `git clean -fd` example at `docs/operator-guide.md:212`. That example is about an agent-made directory, which stays true.
+
+    Stale text I saw and did not touch: none. The reviewer's notes on the duplicated `_status` and `CLEAN` in tests are the coder's and tester's, not documentation.
+
+    I did not run the story's smoke-test commands. The smoke-test stage does that.
+
+    `check`: check: green (not run again: passed on tree 9a5e4d1a5724 at 2026-10-20T15:30:29Z)
+    `secrets`: secrets: green (2.4 s)
+    `documents`: documents ok
+30. factory: started smoke-test as self.
+31. smoke-tester: I ran the three commands under `## Smoke test` from the repository root, in order and exactly as written. Each shell block ran in its own `bash` so that its `trap` removed its own temporary folder. I fixed nothing, and the run left nothing in the working tree. The factory's own `.costs.jsonl` sidecar is the only changed file.
+
+    **Command 1** (`GitCli.remove_ignored()` on a repository with `.gitignore` (`.venv/`, `__pycache__/`), stand-ins in `.venv`, `src/__pycache__`, `tests/hidden` (with its own `.gitignore` `*`) and an untracked `src/new.py`). Exit 0.
+
+    ```
+    ['.gitignore', 'src/mod.py', 'src/new.py']
+    ```
+
+    Met its `Expect:` line (`['.gitignore', 'src/mod.py', 'src/new.py']`). The run removed the ignored folders whole, including the folder hidden by the nested `.gitignore`, and kept the tracked files and the untracked `src/new.py`.
+
+    **Command 2** (`run_sealed` with `FakeAgentRuntime`, whose scripted run writes the same stand-ins into a clone of a local bare remote, and returns). Exit 0.
+
+    ```
+    completed [] ['.gitignore', 'src/mod.py', 'src/new.py']
+    ```
+
+    Met its `Expect:` line (`completed [] ['.gitignore', 'src/mod.py', 'src/new.py']`). The result is the run's, `nested_repositories` is empty, and only the untracked `src/new.py` of the run's files is left.
+
+    **Command 3** (`grep -c 'left for v2' docs/project-guide/write-guard.md || true`).
+
+    ```
+    0
+    ```
+
+    Met its `Expect:` line (`0`).
+
+    **Judgement.** All three commands met their `Expect:` lines. I read `## Acceptance criteria` again after the run, and nothing the smoke test showed contradicts any of them:
+    - Criterion 1: command 1 matches its rows for `.venv`, `__pycache__` and the nested `.gitignore`.
+    - Criterion 2: command 1 matches its rows for the tracked files and the untracked new file.
+    - Criterion 4: command 2 matches the row for a run that returns.
+    - Criterion 9: command 3 matches the docs criterion that "(left for v2)" leaves *The undo*, *Limits*.
+
+    The smoke test did not exercise criteria 3, 5, 6 and 7 (the paths that cannot be removed, the stage's checks and the restore). The tests cover them, and the factory's checks judge criterion 8 (`make check`).
+
+    Findings: none.

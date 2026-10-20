@@ -306,7 +306,7 @@ def test_the_restore_discards_changes_and_names_them_in_one_line(
         checkout.show_file("origin/main", "factory/story-form.md")
     )
     assert not (directory / "scratch.txt").exists()
-    assert (directory / "ignored.log").exists()
+    assert not (directory / "ignored.log").exists()
     status = checkout.status()
     assert status.branch == "main"
     assert status.head == checkout.resolve("origin/main")

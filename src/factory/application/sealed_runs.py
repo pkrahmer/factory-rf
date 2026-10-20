@@ -23,7 +23,7 @@ def run_sealed(
     *,
     run: Callable[[AgentRunRequest], AgentRunResult] | None = None,
 ) -> SealedRun:
-    """Seal the git folder, run the agent, then check the seal and remove nested repositories.
+    """Seal the git folder, run the agent, check the seal, remove nested and ignored paths.
 
     `run` runs the agent in place of the boundaries' runtime, when it is given.
 
@@ -41,4 +41,6 @@ def run_sealed(
     finally:
         git.check_seal()
         nested = git.remove_nested_repositories()
+    # Only after a returned run: a raised one leaves its ignored paths to the next restore.
+    git.remove_ignored()
     return SealedRun(result=result, nested_repositories=nested)

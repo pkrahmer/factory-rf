@@ -80,7 +80,7 @@ The baseline is read first. When the stage-start commit does not hold the work i
 ### Limits
 
 - The undo makes no commit and no push. A commit the agent made stays in the history; only the work tree is put back.
-- Ignored paths and anything outside the checkout are not seen and stay as they are (left for v2).
+- Ignored paths are not seen by the undo and it does not judge them. `run_sealed` removes them before the undo (`remove_ignored()`), after every run that returned; a run that raised leaves them to the next restore. Anything outside the checkout is not seen and stays as it is.
 - Git's paths are taken as they are; renames show as a deletion and an addition (see "The git wrapper").
 
 Tests: `tests/application/test_undo.py`; a fake agent writes into `boundaries.checkout` between `ClaimService` and `undo`.

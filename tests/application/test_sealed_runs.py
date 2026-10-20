@@ -4,8 +4,6 @@ import shutil
 import stat
 from collections.abc import Callable
 from dataclasses import replace
-from datetime import timedelta
-from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -20,18 +18,16 @@ from factory.application.preflight import MachineChecks, Preflight, agent_run_pr
 from factory.application.sealed_runs import run_sealed
 from factory.application.stage import StageLauncher
 from factory.application.stops import StopService
-from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, AgentRunResult
+from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.errors import AgentRuntimeError, RepositoryUnsealed
 from factory.domain.settings import InstanceSettings
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
+from sealed_run_support import COMPLETED, run_request
 
 MOVED = ".git-moved"
 OPEN_FOLDER = 0o2775
 OPEN_FILE = 0o666
-COMPLETED = AgentRunResult(
-    end_reason="completed", decision="question", entry="done", duration=timedelta(seconds=5)
-)
 ENVIRONMENT = {"PATH": "/usr/local/bin:/usr/bin", "HOME": "/home/factory"}
 INSTANCE = "factory-1"
 IMAGE = "build-7"
@@ -134,23 +130,6 @@ class ModeRecordingRuntime(AgentRuntime):
         return self._delegate.version()
 
 
-def _request(checkout: Path) -> AgentRunRequest:
-    agent = AgentDefinition(
-        name="coder",
-        model="sonnet",
-        tools=["Read"],
-        budget_usd=Decimal("1.00"),
-        instructions="Write the code.",
-    )
-    return AgentRunRequest(
-        agent=agent,
-        prompt="Do the stage.",
-        allowed_decisions=["question"],
-        time_limit=timedelta(minutes=5),
-        working_directory=checkout,
-    )
-
-
 def test_the_run_sees_a_sealed_git_folder_and_its_result_is_returned(
     boundaries: Boundaries, agent_runtime: FakeAgentRuntime
 ) -> None:
@@ -161,7 +140,7 @@ def test_the_run_sees_a_sealed_git_folder_and_its_result_is_returned(
     runtime = ModeRecordingRuntime(agent_runtime, boundaries.checkout)
     recording = replace(boundaries, agent_runtime=runtime)
 
-    result = run_sealed(recording, _request(boundaries.checkout)).result
+    result = run_sealed(recording, run_request(boundaries.checkout)).result
 
     assert runtime.modes == [(0o2755, 0o644)]
     assert result == COMPLETED
@@ -217,7 +196,7 @@ def test_a_run_raises_unless_git_is_sealed_before_and_after_it(
     before(boundaries.checkout)
 
     with pytest.raises(Exception) as raised:
-        run_sealed(swapping, _request(boundaries.checkout))
+        run_sealed(swapping, run_request(boundaries.checkout))
 
     assert type(raised.value) is expected
     if context is None:

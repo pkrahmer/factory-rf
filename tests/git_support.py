@@ -119,6 +119,11 @@ def commit_all(directory: Path, message: str) -> str:
     return run_git(directory, "rev-parse", "HEAD").strip()
 
 
+def head_of(directory: Path) -> str:
+    """The commit id `HEAD` of `directory` names."""
+    return run_git(directory, "rev-parse", "HEAD").strip()
+
+
 def clone(remote: Path, target: Path) -> Path:
     """Clone `remote` into `target` and return `target`."""
     run_git(target.parent, "clone", "-q", str(remote), target.name)
