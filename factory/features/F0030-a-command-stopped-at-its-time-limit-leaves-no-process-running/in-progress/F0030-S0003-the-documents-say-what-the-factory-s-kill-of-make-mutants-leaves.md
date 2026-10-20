@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 370
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T23:22:44.931261Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T23:22:44.931261Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T23:23:00.234486Z'
+  stage: review
+  run: 612e4700a0e94a5ba5e12ab6ae44fa03
 ---
 
 # The documents say what the factory's kill of make mutants leaves
@@ -120,3 +122,14 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 6 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar. That is what a documents-only story should look like before the docs stage, because the documenter writes the text of criterion 3.
+   - Criterion 1 (nothing under `src/` or `tests/` changes): met. The diff touches neither folder, and the tester (entry 5) and the coder (entry 7) each wrote an entry saying so, as the criterion asks.
+   - Criterion 2 (`make check` stays green): the factory's check after the coder was green (entry 7: `check: green`).
+   - Criterion 3 (docs): this criterion is for the docs stage. It states where each sentence goes and fixes the exact wording that the smoke test greps (`the temporary folder stays`, `since F0030-S0001 the factory's kill reaches mutmut`). It also fixes the phrase `runs on until it ends by itself`, which has no grep of its own, so the docs check has to cover it. The criterion still describes what the reader must know.
+   - Interface: "None: documents only". It states no rule and no limit, so no failing side needs a test.
+   - Architecture, security, quality: there is no code in the diff to judge. The coder's `duplicates: 6 new` comes from code already on `main`, not from this diff, which changes nothing under `src/factory`.
+   - Work item hygiene: the coder's journal entry states the main choice (both documents are left to the docs stage) and what was rejected (writing criterion 3's text in the doing stage). The `## Description` still matches what was built: no code, documents still to come.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
