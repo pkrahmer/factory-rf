@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 359
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T19:28:05.653811Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T19:27:44.959372Z'
   stage: doing
   run: 143d6c883881486fb2bb669f99e2bb41
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:28:05.653811Z'
+  stage: review
 ---
 
 # The documents say what an ignored path the factory cannot remove does
@@ -129,3 +138,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `check`: check: green (not run again: passed on tree 416ad76bbc59 at 2026-10-20T19:16:27Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
