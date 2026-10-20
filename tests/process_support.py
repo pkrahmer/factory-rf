@@ -26,7 +26,7 @@ def is_gone(pid: int, within: float = GONE_WITHIN_SECONDS) -> bool:
 
 def python_argv(code: str, *args: str) -> list[str]:
     """The command line that runs `code` in this test run's Python, with `args` after it."""
-    return [sys.executable, "-c", code, *args]
+    return [sys.executable, "-B", "-c", code, *args]
 
 
 class Recorder:

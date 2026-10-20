@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 358
 comments_read: [6299016224]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T19:10:57.833074Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-20T19:10:57.833074Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-20T19:14:32.120436Z'
+  stage: tests
+  run: 6f1fc7645ca64da5a7fc03281a5fd94c
 ---
 
 # The tests start their own Python children without bytecode
@@ -144,3 +146,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: only test helpers change. The new module sits at the `tests/` root because it tests no package module. The layers are untouched.
    - Scope: it is within F0027. Decision 16 grants the leave for exactly these helpers and stand-ins, and the story is listed as S0004 in the feature. No "Out of scope" item is touched.
 7. factory: started tests as self.
+8. tester: Every change in this story is a test change, so I made all of it here. The coder never edits tests (R9), and nothing under `src/` changes. The tests are green, not red. There is nothing left for the coder to implement, so the coder only needs to run `make check`. The `docs:` criterion goes to the documenter.
+
+   Criterion → test:
+   - criterion 1: tests/test_test_children.py::test_a_child_started_by_the_helpers_writes_no_bytecode (rows `write-script`, `python-argv`, `plain`; `plain` is `[sys.executable, "-S", "-c", ...]` and does write `__pycache__`)
+   - criterion 2: tests/test_test_children.py::test_the_stand_in_sudo_starts_the_interpreter_without_bytecode (first line `#!{sys.executable} -B`, mode 0755). The existing tests in tests/adapters/test_claude_runtime_os_user.py keep their names and checks.
+   - criterion 3: matcher rows in tests/test_test_children.py::test_the_scan_finds_a_shebang_without_the_flag (rows `plain` found, `bytecode-off` not found; both texts are built from pieces). Scan of the built tests: tests/test_test_children.py::test_no_test_writes_a_shebang_of_the_interpreter_without_the_flag (reads every `tests/**/*.py`, its own module included). The pattern is `#!\{sys\.executable\}(?! -B)`.
+   - criterion 4: `make check`, not a test function.
+   - criterion 5: docs, for the documenter stage.
+
+   Changes to helpers under the leave in decision 16 of `feature.md`, as the Interface lists them (other stories' test files; I did not read `feature.md`):
+   - tests/confine_support.py `write_script`: the shebang is now `#!{sys.executable} -B`.
+   - tests/process_support.py `python_argv`: now returns `[sys.executable, "-B", "-c", code, *args]`.
+   - tests/adapters/test_claude_runtime_os_user.py `_write_sudo`: now `return write_script(directory / "sudo", SUDO_SCRIPT)`, with `write_script` imported from `confine_support`. I removed `import sys`.
+   - Added ` -B` to the shebang in each of these and changed nothing else in them: tests/adapters/claude_stand_in.py, tests/adapters/opencode_stand_in.py (two places), tests/adapters/test_claude_runtime_file_modes.py, tests/adapters/test_claude_runtime_provider_limit.py, tests/git_support.py, tests/adapters/test_git_cli_branches.py, tests/adapters/test_git_cli_writing.py.
+
+   File created: tests/test_test_children.py.
+
+   Modules the test runner could not import: none. `make test` was green with 99.17 % coverage, so the new tests pass already, because the helper changes they check are in place. `make lint` is green. The third smoke test's grep `grep -rnF '#!{sys.executable}\n' tests | wc -l` gives 0. The subprocess call in the new test carries `# noqa: S603` with a reason, as other test modules do. Nothing is open.
+
+   `lint`: lint: green (0.8 s)
+   `test`: test: green (68.3 s)

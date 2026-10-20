@@ -80,7 +80,7 @@ def write_opencode(directory: Path, steps: list[Step]) -> Path:
         json.dumps([step.model_dump() for step in steps]), encoding="utf-8"
     )
     path = directory / "opencode"
-    path.write_text(f"#!{sys.executable}\n{SCRIPT}", encoding="utf-8")
+    path.write_text(f"#!{sys.executable} -B\n{SCRIPT}", encoding="utf-8")
     path.chmod(0o755)
     return path
 
@@ -267,7 +267,7 @@ def _stderr_first(tmp_path: Path, executable: Path, line: str) -> Path:
     wrapper = tmp_path / "wrapper" / "opencode"
     wrapper.parent.mkdir()
     wrapper.write_text(
-        f"#!{sys.executable}\n"
+        f"#!{sys.executable} -B\n"
         "import os\nimport sys\n"
         f"sys.stderr.write({line!r} + '\\n')\n"
         "sys.stderr.flush()\n"

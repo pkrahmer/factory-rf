@@ -80,7 +80,7 @@ def write_stand_in(directory: Path, steps: list[Step]) -> Path:
         json.dumps([step.model_dump() for step in steps]), encoding="utf-8"
     )
     path = directory / "claude"
-    path.write_text(f"#!{sys.executable}\n{SCRIPT}", encoding="utf-8")
+    path.write_text(f"#!{sys.executable} -B\n{SCRIPT}", encoding="utf-8")
     path.chmod(0o755)
     return path
 
