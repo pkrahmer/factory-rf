@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T21:18:50.152346Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -189,6 +185,12 @@ journal:
   kind: started
   at: '2026-10-20T21:18:50.152346Z'
   stage: docs
+- number: 33
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T21:19:27.529177Z'
+  stage: docs
+  run: 2f27da1bb621479bae4b6bee2718965c
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -572,3 +574,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_home_files.py` and `tests/entry/test_fresh_home.py` each define their own `home` fixture that makes `tmp_path / "home"`. The shared part could be one fixture in `tests/conftest.py`.
     - `tests/domain/test_agent_home.py` `test_kept_paths_are_the_logins_inside_the_home_then_state_files_then_folders`: `pytest.raises(ValueError, match=refused)` reads `../x` as a regex. `re.escape(refused)` would pin the exact text.
 32. factory: started docs as self.
+33. documenter: Docs, round 2. I read the story (Description, Interface, criteria, journal) and the diff against `main` outside `factory/`, `docs/` and `README.md`. No findings: the code matches the Interface and the criteria.
+
+    Files changed:
+    - `docs/project-guide/agents.md`: new section *The fresh home*, placed after *The shared launch module* (before *The opencode runtime*, the next section). It covers the program and its three layers. It has a table of arguments, exit statuses and the lines written to standard error. It states the rule of `inside_home`, `kept_paths`, `fate` and `removed_when_empty`, and the walk. The walk never follows a link, opens a closed owned folder, never changes the mode of another user's entry, never removes the home, and records faults. It also says the program has no default home, that S0004 starts it, and names the tests and the `test_wiring.py` set.
+    - `docs/project-guide/README.md`: the index entry for `agents.md` now names `factory.domain.agent_home`, `factory.adapters.home_files` and `factory.entry.fresh_home`, and lists *The fresh home* among the subsections.
+
+    I ran the story's smoke-test commands. The first gives status 0 and leaves exactly `./.claude`, `./.claude-token`, `./.claude/.credentials.json`, `./.config`, `./.config/sso` and `./.config/sso/login`. `--home /` gives the refusal line and status 2. No arguments gives the usage line and status 2.
+
+    Cross-read and found current: `docs/operator-guide.md` and `docs/project-guide/agents.md` on `FACTORY_OPENCODE_FOLDERS`. The refusal text is unchanged and only its check moved into `inside_home`. `docs/decisions.md` needs no entry, per criterion 18; S0004 writes it. `docs/project-guide/write-guard.md` describes the sibling programs `confine` and `leftovers`; nothing in it is touched.
+
+    I changed only documents, so I did not run `make check`; the factory's checks follow.
+
+    Stale text noticed and not touched: none. Tests-side notes from the reviewer (the overlapping `home` fixtures, `re.escape` in `test_agent_home.py`) are still open and are not mine to fix.
+
+    `check`: check: green (not run again: passed on tree 9c9ade480b8d at 2026-10-20T21:15:40Z)
+    `secrets`: secrets: green (1.0 s)
+    `documents`: documents ok
