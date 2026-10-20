@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T04:22:59.633518Z'
   stage: smoke-test
   run: 5fa75530864f4bffa7af58a5bcd5bc01
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T04:25:23.000362Z'
+  stage: approval
 ---
 
 # The project guide names the recovery's commit subjects
@@ -187,3 +192,4 @@ Expect: `work item F0001-S0001: crash of stage doing recorded` (the form the gui
     Findings: none.
 
     Open: none.
+14. factory: done (pull request merged); cost: 6 runs, 2.1 min, 26 turns, 87322 tokens in (315347 more from cache), 5411 out, $0.69
