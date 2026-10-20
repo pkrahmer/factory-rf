@@ -7,7 +7,11 @@ crashes: 1
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T18:32:01.120120Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-20T18:31:39.944499Z'
   stage: doing
   run: 3c805c88c44e4ccd8079d73a7cf18cf3
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-20T18:32:01.120120Z'
+  stage: tests
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -345,3 +354,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Criterion 9: "a leftovers call that cannot be started (the stand-in `sudo` removed by the `check` recipe before the leftovers call)" instead of "a `leftovers` program that does not exist".
 
     Someone who may write the work item has to make those edits.
+19. factory: started tests as self.
