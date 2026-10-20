@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 352
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T12:54:16.850747Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T12:54:16.850747Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T12:54:32.389507Z'
+  stage: docs
+  run: c4562669b52e45b1821b00ca9bd9f683
 ---
 
 # The follow-mode test reads only the Python sources
@@ -191,3 +193,17 @@ Expect: `1`
    - tests/entry/test_watch.py: changed under the human's leave, `feature.md` decision 14 (named in the story). Only the follow-mode helpers and test changed, and one test was added.
    - tests/test_tests_umask.py: changed under the human's leave, `feature.md` decision 14 (named in the story). Only the env entry was added.
 10. factory: started docs as self.
+11. documenter: Files changed: none. The docs criterion is `none`: the story changes two tests only (`tests/entry/test_watch.py`, `tests/test_tests_umask.py`) and nothing under `src/`, so no document is wrong because of it. I did not run `make check`, because I changed no file.
+
+    Cross-read and found current:
+    - `docs/decisions.md`: the F0011-S0005 entry says every other file under `src/` is searched. The story's criterion 5 keeps it as the record of that decision, so I left it.
+    - `docs/project-guide/agents.md`: line 58 says the agent runtime sets `PYTHONDONTWRITEBYTECODE=1` in the environment. It stays true, and the umask test's child now has the same variable.
+    - `docs/operator-guide.md` and the README: nothing in them depends on the follow-mode scan or on the umask test's child environment.
+
+    Stale text I noticed that is not mine to fix: none.
+
+    The diff matches the Interface and the criteria. I found no code that contradicts the docs, so there are no findings for the coder.
+
+    `check`: check: green (not run again: passed on tree a7f65c68ac2d at 2026-10-20T12:51:22Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
