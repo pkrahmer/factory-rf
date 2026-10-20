@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368, 6300375333]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T20:13:00.141579Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-10-20T20:13:00.141579Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-20T20:17:11.300182Z'
+  stage: doing
+  run: 9710e450a6cf445f947fac42f0aae82d
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -410,3 +412,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.6 s)
     `test`: test: green (64.3 s)
 24. factory: started doing as self.
+25. coder: `make check` is green again. The tester's change in entry 23 fixed the `type-abstract` errors that entry 18 reported. I changed no code this round, and the working tree under `src/` and `tests/` matches the committed state.
+
+    - **What is built** (unchanged since entry 10):
+      - `src/factory/application/sealed_runs.py`: `SealedProjectCommands(ProjectCommands)`. It calls `seal()`, then the inner `run`, then `check_seal()` and `remove_nested_repositories()` in a `finally`. It writes the log line `removed nested repositories after <command>: <paths>` only when something was removed.
+      - `src/factory/entry/wiring.py`: `project_command_environment`, and `build_boundaries` through the private `_project_commands`. With an agent user it builds `SealedProjectCommands(MakeProjectCommands(..., user=CommandUser(...)), git, log)`, using the boundaries' own `git` and `log`. Without one it builds the project commands as before.
+    - **Main choice:** still the one from entry 10. `SealedProjectCommands` has its own `try/finally`, shaped like `run_sealed`. I rejected a shared "seal around a callable" helper: `run_sealed` also calls `remove_ignored` and builds a `SealedRun`, so the two would share only three git calls, and the change would reach into `run_sealed`.
+    - **Refactor pass:** I read the diff again. I tried making the docstring of `project_command_environment` say "the agent run's" word for word as the Interface does, but that line is too long for `make lint`. I put the shorter docstring back, so the file is as committed. Nothing else needed changing.
+    - **Description:** entries 19 to 23 changed only a test, not what the task means, so I rewrote nothing.
+    - **Noticed but did not touch:** the `make duplicates` findings from entry 10. Five are new, all outside this diff: four similar-code findings shared by `claude_runtime` and `opencode_runtime`, and `ManualWaiter` in `adapters/clock.py` as dead code. Three known findings are gone, so `security/duplicates-baseline.txt` is out of date.
+
+    `check`: check: green (test: green (61.1 s), coverage 99.18 %)
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
