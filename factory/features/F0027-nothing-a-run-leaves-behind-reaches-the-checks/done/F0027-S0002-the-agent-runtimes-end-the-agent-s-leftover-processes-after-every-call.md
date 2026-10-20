@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-20T14:42:15.367318Z'
   stage: smoke-test
   run: dd48f71186004fd2ac026ec1d06b916b
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-20T14:43:36.754905Z'
+  stage: approval
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -543,3 +548,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The smoke test builds the runtime without `factory-confine`, so no temporary-folder removal appears in the records. That fits the Interface, which removes the folder only when confined. The removal and the other criteria (resume, refused calls, opencode, `build_boundaries`) are not exercised here; the story's tests cover them.
 
     **Findings:** none.
+25. factory: done (pull request merged); cost: 11 runs, 27.0 min, 111 turns, 468809 tokens in (3712677 more from cache), 59043 out, $5.21
