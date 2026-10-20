@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 362
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T19:50:53.847043Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-20T19:50:53.847043Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-20T19:51:18.574081Z'
+  stage: intake
+  run: cd1b4e27b6914f36b3782c6e61705eaf
+  blocked: question
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -126,3 +129,10 @@ Expect: two lines, the factory log's own line on standard output, `<UTC time sta
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: Questions (the format check passed; the Interface, architecture, scope and smoke test are fine; two Interface rules have no criterion):
+
+   1. The Interface says "A `ProjectCommandError` or `ValueError` of the inner run propagates when the seal holds". Criterion 2 tests `ProjectCommandError` only. `ValueError` has no criterion. Should I add one? Suggested: a row in criterion 2's parametrized test where the inner run raises `ValueError`, which propagates after `check_seal` and the removal. Or should I drop `ValueError` from the Interface?
+
+   2. The Interface says "When `git.check_seal()` or the removal raises `RepositoryUnsealed`, that error propagates". Criterion 3 covers `check_seal` only, through a replaced `.git`. The removal's failure has no criterion. Should I add one, saying what makes `remove_nested_repositories` raise `RepositoryUnsealed` and what the test checks? `GitCli.remove_nested_repositories` (`src/factory/adapters/git_cli.py:396`) raises nothing of the kind. Suggested: drop "or the removal" from the Interface, or add a criterion with a recording `Git` of the test's own whose removal raises `RepositoryUnsealed`.
+
+   3. Criterion 2 says `check_seal` and `remove_nested_repositories` are called "in that order" after the run. No criterion checks that order. Should the criterion 3 row, where the inner run replaces `.git`, also assert that the nested repository is not removed, or that it is? Please state which. Suggested: the order is `check_seal` first, so a failed seal removes nothing.
