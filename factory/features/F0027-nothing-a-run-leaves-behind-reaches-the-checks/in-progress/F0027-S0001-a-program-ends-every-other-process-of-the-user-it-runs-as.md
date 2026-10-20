@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T12:40:20.742134Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -161,6 +157,12 @@ journal:
   kind: started
   at: '2026-10-20T12:40:20.742134Z'
   stage: smoke-test
+- number: 28
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T12:40:53.009096Z'
+  stage: smoke-test
+  run: 7ded30a3785744b5872791b59cad6b0f
 ---
 
 # A program ends every other process of the user it runs as
@@ -575,3 +577,35 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
 27. factory: started smoke-test as self.
+28. smoke-tester: Smoke test, round 1: I ran the three commands under `## Smoke test` from the repository root, in order, and changed nothing. One addition: on command 2 I appended `echo "[line=$line]"` after the command as written, so the refusal line itself would show. It only prints and does not affect the comparison.
+
+    Command 1 (no arguments):
+    ```
+    factory-leftovers: usage: python -m factory.entry.leftovers --user <name>
+    status 1
+    ```
+    Met the Expect line: the usage line and `status 1`.
+
+    Command 2 (`--user factory-smoke-nobody`, run as `agent`):
+    ```
+    refused as expected, status 1
+    [line=factory-leftovers: runs as agent, not factory-smoke-nobody]
+    ```
+    Met the Expect line: `refused as expected, status 1`. The second line is the extra echo.
+
+    Command 3 (`read_process_table` on a fake table in a `mktemp -d` folder, `leftover_pids`, and `main` with everything injected):
+    ```
+    [(7, False, True), (8, True, True), (10, False, True), (11, False, True)]
+    [7, 10]
+    0 [9, 9] [0.1] ''
+    ```
+    Met the Expect line, all three lines exactly:
+    - `self` and the digit folder `12` with no `stat` were left out.
+    - The entries came back sorted by pid, and the zombie (8) was marked ended.
+    - The folder owner was read as `uid`.
+    - The own pid 11 and the zombie were excluded from the leftovers.
+    - `main` ran two rounds with SIGKILL (9) each round, paused once for 0.1 s, returned 0 and wrote nothing.
+
+    Criteria check: I read `## Acceptance criteria` again. The output fits criteria 1, 4, 7, 9 and 11 (the usage fault, the refusal of a user the program does not run as, sorting, ended entries, rounds and pauses), and contradicts none of them. I did not run `make check` (criterion 12) because it is not one of the smoke-test commands; the factory's checks cover it. I did not judge the docs criterion (13); that belongs to the docs stage.
+
+    Findings: none. The temporary folder was removed by the trap. The working tree holds only the factory's `.costs.jsonl` sidecar, which I did not touch.
