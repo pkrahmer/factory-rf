@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 364
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T20:43:50.818872Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-20T20:43:50.818872Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-20T20:44:13.374019Z'
+  stage: intake
+  run: aededd05a142486587cf5c03dd8750ed
+  blocked: question
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -133,3 +136,19 @@ Expect: `status 0`, then the lines `./.claude`, `./.claude-token`, `./.claude/.c
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: Format check passed. The story is not buildable yet. Three Interface rules have no criterion, and a coder and a tester could read each one two ways:
+
+   1. `kept_paths` raises `ValueError` for an entry of `state_files` or `folders` that is not `inside_home`. Criterion 3 tests only a `folders` entry (`/abs`). The `state_files` side has no test. Proposed: extend criterion 3 with a row `state_files=["../x"]` that raises `ValueError` naming `../x`.
+
+   2. `clear_home` states "The mode of an entry that is not `owned` is never changed", but no criterion tests it. Criterion 6 checks only which entries remain. Proposed: a new criterion with a not-owned folder, for example `.claude/agents`, at mode `0o500`, and a not-owned file at mode `0o444`. After `clear_home`, both modes are unchanged. Or say that criterion 6 covers it by asserting those modes.
+
+   3. Two `clear_home` rules are untested: "folders left empty are removed" and "an owned folder holding an entry that is not `owned` stays". The second is decision 13's case, a factory-owned `.config/opencode` inside the agent's `.config`. In criterion 6, `.config` stays only because `.config/sso` is kept, so it never tests the not-owned reason. Proposed: a criterion with an owned `.cache/x/` holding a not-owned file `.cache/x/f` and a kept path outside it. Afterwards `.cache/x` and its file stay, and an owned empty folder `.cache/y` is gone.
+
+   Everything else is fine:
+   - **Interface:** the modules and signatures are concrete. Each fate rule from `fate` and `removed_when_empty` has a criterion row.
+   - **Criteria:** each is testable by one function, except the gaps above.
+   - **Smoke test:** the commands are runnable. The `Expect:` list matches `LC_ALL=C` sort order, where `-` sorts before `/`.
+   - **Architecture:** the pure rule is in the domain, the walk in an adapter, and the command line in the entry. The `test_wiring` leave is covered by decision 14.
+   - **Scope:** inside the feature and not in its Out of scope.
+
+   My recommendation is to take all three proposals.
