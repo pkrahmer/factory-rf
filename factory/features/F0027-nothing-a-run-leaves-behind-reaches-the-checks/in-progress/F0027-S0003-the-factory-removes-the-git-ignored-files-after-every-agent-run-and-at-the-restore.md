@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T15:33:33.174608Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-10-20T15:33:12.183547Z'
   stage: review
   run: 8bcf73d86ccc43a8ac53415173a314e9
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:33:33.174608Z'
+  stage: docs
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -529,3 +538,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - `tests/adapters/test_git_cli_ignored.py:40`: `_status` is a near-copy of `_status` in `tests/adapters/test_git_cli_restoring.py:12`. It leaves out `--untracked-files=all`, as criterion 2's `git status --porcelain` asks.
     - `tests/adapters/test_git_cli_ignored.py:13` and `tests/application/test_sealed_runs_ignored.py:21`: the constant `CLEAN` is defined twice.
+28. factory: started docs as self.
