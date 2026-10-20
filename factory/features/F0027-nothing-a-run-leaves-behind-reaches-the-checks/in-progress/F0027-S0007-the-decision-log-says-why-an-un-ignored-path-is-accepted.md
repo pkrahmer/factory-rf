@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 373
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T23:47:54.042361Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T23:47:33.565438Z'
   stage: docs
   run: 3fcdfbb2172f4ae1807f82b96482dc78
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:47:54.042361Z'
+  stage: smoke-test
 ---
 
 # The decision log says why an un-ignored path is accepted
@@ -150,3 +159,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
