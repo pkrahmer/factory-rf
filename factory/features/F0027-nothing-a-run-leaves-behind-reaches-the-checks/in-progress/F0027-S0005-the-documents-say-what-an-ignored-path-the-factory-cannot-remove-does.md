@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 359
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T19:28:05.653811Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T19:28:05.653811Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T19:28:24.595247Z'
+  stage: review
+  run: 6694a237cae54ab0aefa7c9d068b268f
 ---
 
 # The documents say what an ignored path the factory cannot remove does
@@ -139,3 +141,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green (not run again: passed on tree 416ad76bbc59 at 2026-10-20T19:16:27Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The only changes are the work item and its `.costs.jsonl` sidecar under `factory/`, so criterion 1 holds: nothing under `src/` or `tests/` changes, and entries 5 (tester) and 7 (coder) both say so.
+   - Criterion 2: the coder's entry 7 records `check: green`. The `duplicates: 5 new` record does not come from this diff, because nothing under `src/` changed.
+   - Criterion 3 (docs) is the documenter's to write. I compared the facts it asks for with the code on this branch, and they are right:
+     - The `build_boundaries` signature, and what `which` and `confine_executable` do, match `src/factory/entry/wiring.py:235-249`.
+     - `export UV_COMPILE_BYTECODE := 1` is in `Makefile:15`.
+     - The stale texts the criterion names to change are where it says: the "stricter umask" sentence at `docs/operator-guide.md:78`, the `umask=0002` bullet at `docs/operator-guide.md:140`, and the old signature at `docs/project-guide/watching.md:268`.
+   - Hygiene: the Description matches what was built, which is nothing yet; the documenter writes from criterion 3. The journal gives the main decision (the documents are the documenter's work) and what was rejected (the coder writing them).
+   - Earlier tests: none. The diff changes, renames or deletes no test file.
