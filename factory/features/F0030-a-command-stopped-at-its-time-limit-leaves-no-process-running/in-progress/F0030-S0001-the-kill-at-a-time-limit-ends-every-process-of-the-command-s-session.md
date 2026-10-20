@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T09:08:32.984523Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   at: '2026-10-20T09:08:11.383537Z'
   stage: review
   run: 1e6ad97c27c7494487e2c5d245e6d764
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-20T09:08:32.984523Z'
+  stage: doing
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -415,3 +424,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/domain/test_sessions.py:41: `# noqa: PT011` silences ruff's broad-`pytest.raises` rule. It is the only such marker under `tests/`. Giving each refused row a `match` pattern would make the marker unnecessary.
 
     Earlier tests: none changed. The diff only adds test files (`tests/domain/test_sessions.py`, `tests/adapters/test_process_session.py`).
+21. factory: started doing as self.
