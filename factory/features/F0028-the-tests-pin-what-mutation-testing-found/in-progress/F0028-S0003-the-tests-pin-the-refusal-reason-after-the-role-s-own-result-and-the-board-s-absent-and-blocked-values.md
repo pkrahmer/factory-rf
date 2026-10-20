@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 314
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T01:45:00.637659Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T01:44:39.925146Z'
   stage: tests
   run: a649c5fdcddc48eb8445d70a43d0e745
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:45:00.637659Z'
+  stage: doing
 ---
 
 # The tests pin the refusal reason after the role's own result, and the board's absent and blocked values
@@ -134,3 +143,4 @@ Expect: four lines, `Too wide. Cut the second story.`, `features`, `work items` 
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.0 s)
+6. factory: started doing as self.
