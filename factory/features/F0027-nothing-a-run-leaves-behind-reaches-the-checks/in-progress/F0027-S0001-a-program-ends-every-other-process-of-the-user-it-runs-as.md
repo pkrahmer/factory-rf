@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T12:40:20.742134Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -152,6 +156,11 @@ journal:
   at: '2026-10-20T12:39:59.808278Z'
   stage: docs
   run: f10455729dc24fa8a3a21a9cbc0ccc6a
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:40:20.742134Z'
+  stage: smoke-test
 ---
 
 # A program ends every other process of the user it runs as
@@ -565,3 +574,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree a909285f1c59 at 2026-10-20T12:35:39Z)
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
+27. factory: started smoke-test as self.
