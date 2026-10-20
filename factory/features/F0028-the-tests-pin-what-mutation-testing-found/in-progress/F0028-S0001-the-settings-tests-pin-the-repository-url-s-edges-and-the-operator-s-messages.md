@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T01:15:06.523958Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T01:15:06.523958Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T01:15:39.464018Z'
+  stage: review
+  run: d7a96a1fd5144736b89585169757d2c3
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -139,3 +141,8 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`: one new file, `tests/domain/test_settings_url_edges.py`, and no change under `src/`. The criteria are covered. Criterion 1 is one parametrized test with the three accepted edges (a `:` and `@` in the path, a second `://` in the path, an `@` in the user name with no password) and the refused `u@x:y@`. Read against `src/factory/domain/settings.py:142-146`, each row kills its mutant: `partition("://")`, `split("/", 1)[0]` and `rpartition("@")`. Criterion 2 is one parametrized test with all eight rows, and each checks `variable`, `fault` and `str(error)`. Credentials are built by concatenation, and no constant name holds `password`, `secret` or `token`. The coder's `make check` was green (journal 7). Architecture and security are clean. The review stopped at group 4, quality:
+
+   1. `tests/domain/test_settings_url_edges.py:15` `_raising` is a second copy of `_raising` in `tests/domain/test_settings.py:28`, line for line the same. Fix: the tester moves it to `tests/settings_support.py` under the standing leave to move a shared test helper. `test_settings.py` then imports it from there, with every earlier test keeping its name and what it checks, and the new module imports it too. The Interface's "uses `BASE` of `tests/settings_support.py` as it is" still holds after the move, because `BASE` itself stays unchanged.
+
+   Earlier tests: none. The diff adds `tests/domain/test_settings_url_edges.py` (status `A`) and changes no test file that `main` already holds.
