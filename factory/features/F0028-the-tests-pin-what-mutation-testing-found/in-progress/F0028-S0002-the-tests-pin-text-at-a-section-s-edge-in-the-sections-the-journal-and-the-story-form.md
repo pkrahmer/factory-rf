@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T01:29:59.714867Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T01:29:59.714867Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T01:31:47.335665Z'
+  stage: doing
+  run: 2b3222460d1349bdb057de7b7402c48d
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -128,3 +130,11 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.8 s)
 6. factory: started doing as self.
+7. coder: I built nothing, as the Description and Interface say ("No module under `src/factory/` changes"). The tester's new tests (`tests/domain/test_section_edges.py`, `tests/domain/test_story_form_edges.py`) already pass against today's `section_text`, `code_blocks`, `entry_text` and `check_story_form`. I ran `make check` and it is green: check: green, coverage 99.14 %.
+      - Main choice: leave the source untouched. I rejected touching the readers in `factory.domain.sections`, `journal` or `story_form` to "harden" them, because that is beyond scope and the tests pin behaviour that already holds.
+      - Refactor: nothing to refactor, because my diff against main holds no source change.
+      - The journal did not change the meaning of the task, so I left the Description as it is.
+      - Noticed, not touched: the tester copied `FORM` and `TICKS` from the earlier test modules (`tests/domain/test_story_form.py`, `tests/domain/test_sections.py`) as constants. Their entry gives the reason for `CRITERIA`, which differs. `FORM` and `TICKS`, though, are identical copies. Under CLAUDE.md's standing leave the tester could move them to one shared place, so the reviewer may want to judge that.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
