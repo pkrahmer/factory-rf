@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 358
 comments_read: [6299016224]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T19:18:14.033488Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-20T19:18:14.033488Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T19:18:58.396494Z'
+  stage: review
+  run: d41857ebf8cb4fe99cc73d74389a131e
 ---
 
 # The tests start their own Python children without bytecode
@@ -200,3 +202,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 11. factory: started review as self.
+12. reviewer: no findings
+
+    I read the work item and `git diff main...HEAD -- . ':!factory'`, which changes 11 files, all under `tests/`. Nothing under `src/` changes. I also read decision 16 in F0027's `feature.md` to check the leave.
+    - Criterion 1: `tests/test_test_children.py::test_a_child_started_by_the_helpers_writes_no_bytecode` is one parametrized test with three rows. Each row passes `env={}`, and the umask is the tests' `022` from `tests/conftest.py`. The rows are `write-script` (no `__pycache__`), `python-argv` (no `__pycache__`) and `plain` with `-S` (writes `__pycache__`), so both sides of the rule are covered.
+    - Criterion 2: `test_the_stand_in_sudo_starts_the_interpreter_without_bytecode` checks the stand-in's first line `#!{sys.executable} -B` and mode `0755`. `_write_sudo` is now `return write_script(directory / "sudo", SUDO_SCRIPT)`, which returns the same path, `directory / "sudo"`. `import sys` is gone. Six modules on `main` already import `_write_sudo`, so importing it into the new module follows an existing pattern.
+    - Criterion 3: the matcher test is one parametrized test with two rows, `plain` (found) and `bytecode-off` (not found). Both texts are built from pieces. The scan test reads every `tests/**/*.py`, its own module included. The pattern escapes its braces and uses a lookahead for ` -B`, so this module's own text does not match it. I grepped `tests` for `#!`: every other shebang is `#!/bin/sh`, so no interpreter shebang is missing `-B`.
+    - Criterion 4: the factory's `make check` after the coder was green (journal entry 10). The new `# noqa: S603` gives its reason beside it, and seven test modules on `main` already carry the same marker.
+    - Architecture and security: nothing under `src/` changes, and no `nosec`, `nosemgrep` or baseline entry was added.
+    - Work item: the Description matches what was built. The docs criterion still names the sentence the documenter must add to `docs/decisions.md`.
+
+    Earlier tests (every changed file is status `M`, and each change is exactly the one decision 16's S0004 line names):
+    - `tests/confine_support.py`: decision 16, S0004 (`write_script` shebang ` -B`).
+    - `tests/process_support.py`: decision 16, S0004 (`python_argv` adds `"-B"`).
+    - `tests/adapters/test_claude_runtime_os_user.py`: decision 16, S0004 (`_write_sudo` through `write_script`, `import sys` dropped).
+    - `tests/adapters/claude_stand_in.py`: decision 16, S0004 (shebang ` -B`).
+    - `tests/adapters/opencode_stand_in.py`: decision 16, S0004 (two shebangs ` -B`).
+    - `tests/adapters/test_claude_runtime_file_modes.py`: decision 16, S0004 (shebang ` -B`).
+    - `tests/adapters/test_claude_runtime_provider_limit.py`: decision 16, S0004 (shebang ` -B`).
+    - `tests/git_support.py`: decision 16, S0004 (`write_executable` shebang ` -B`).
+    - `tests/adapters/test_git_cli_branches.py`: decision 16, S0004 (hook shebang ` -B`).
+    - `tests/adapters/test_git_cli_writing.py`: decision 16, S0004 (hook shebang ` -B`).
