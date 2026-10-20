@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 305
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T00:04:19.815448Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T00:04:19.815448Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T00:04:39.455547Z'
+  stage: intake
+  run: 9d1da6c545b64bab91b4c805a0b98878
 ---
 
 # The second-user section names the API login and opencode's run files
@@ -74,3 +76,9 @@ Expect: `documents ok`
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is right for a docs-only story. It says no module, test, image, template or agent file changes, and only `docs/operator-guide.md` changes. There is no signature or comment behaviour to pin.
+   - Criteria: criterion 1 (nothing outside docs changes) is a statement about the diff, not a test function; the tests stage can only confirm it by writing no tests, which it already has to say in its entry. Criterion 2 is `make check` and criterion 3 is the docs criterion, both in the closing positions. The docs criterion lists each claim to change: the `env -i` sentence with both logins and both runtimes' switches, the login-shell sentence with both login files, the opencode-only API login file and the `exec` of the runtime's executable, and the run-files paragraph with `opencode-<run>.json` (mode `0640`). It also names the sources to check each claim against. No Interface rule is stated, so no failing side is needed. Each behaviour in the Description has a criterion.
+   - Smoke test: the three blocks are runnable. The section's start and end headings exist in `docs/operator-guide.md` (lines 113 and 143), and the old sentence is on line 117. Each `Expect:` line can be checked against the output: `0`, three numbers of at least 1, and `documents ok`.
+   - Architecture: nothing under `src/` changes, so the four layers are untouched. The change falls within the documenter's write paths (`docs/*`).
+   - Scope: it is inside F0020's scope ("`docs/operator-guide.md` ... from each story's docs criterion"). Nothing in the story touches an "Out of scope" item. It changes no test written by another story.
