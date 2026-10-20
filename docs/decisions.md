@@ -302,6 +302,8 @@ Date: 2026-10-16 (F0010-S0015; R33; WE3.1; the human, 2026-10-14). One `sudo` ru
 
 The sudoers file sets the umask and no pseudo-terminal because `sudo`'s defaults break two things. Its own umask (`0022` joined with the caller's) makes agent-made files `644` and directories `755`, so the factory's `git clean -fd` cannot remove an agent-made directory (`checkout_restore_failed`); `umask=0002` with `umask_override` keeps them group-writable, and the entrypoint's `umask 002` makes the factory's files the same. Debian's `use_pty` would put the command in a new session; `!use_pty` leaves it in the factory's.
 
+The entrypoint's `umask 002` is also what `uv` syncs `.venv` under; see *The tests set their own umask, and uv syncs under the caller's*.
+
 A missing agent user beside an existing token file is a stop (preflight item `agent-user`), decided by the human on 2026-10-14. Without it every agent would run as `factory`, who can read the token file, and no check would say so: WE3.1 and R33 would be silently off. With no token file (tests, local runs) there is nothing to protect and the item passes. Rejected: folding the check into `token-file`; the two answer different questions.
 
 ## The preflight runs the factory's own arguments once for each image build, and finds a refused `sudo` before any claim
@@ -838,3 +840,11 @@ Date: 2026-10-20 (F0029-S0001). opencode 1.19.3 makes `~/.config/opencode` on it
 - Decision: `image/Dockerfile` makes `/home/agent/.config/opencode`, owned by `factory:factory-work`, mode `0755`, and leaves `/home/agent/.config` to `agent:factory-work`, mode `0755`. The agent cannot write the folder, and still makes folders under `.config` (`FACTORY_OPENCODE_FOLDERS`, such as `.config/sso-opencode`). `RUNTIME_FOLDERS`, the run's rules and the entrypoint stay as they are.
 - Reasons: the folder must exist, but a run must not write it: opencode reads `opencode.jsonc` there on every run, beside `OPENCODE_CONFIG`, so a writable folder would let one run change what the next run is told.
 - Rejected: `.config/opencode` in `RUNTIME_FOLDERS` (one run could change what the next run is told); the entrypoint making it (it runs as `factory`, could make it only through `sudo -u agent` as an agent-owned folder, and at every start); `XDG_CONFIG_HOME` in the run's temporary folder (it moves every tool's configuration and an operator's single sign-on login).
+
+## The tests set their own umask, and uv syncs under the caller's
+
+Date: 2026-10-20 (F0033-S0001; F0033 decisions 1 and 2). On 2026-10-19 an agent's run, as `agent`, left `factory-0.1.0.dist-info` in `.venv` as `drwxr-sr-x` with `-rw-r--r--` files. `make test` ran `umask 022` before `uv run pytest`, and `uv run` syncs `.venv` first, so the reinstall ran under `022` as well. The factory's next `make lint`, as `factory`, could not remove the folder, and the instance stopped with `main_branch_failing`.
+
+- Decision: `pytest_configure` in `tests/conftest.py` sets the process umask to `0o022` (`TESTS_UMASK`) for every pytest run, whatever umask it started under. The tests' checkouts stay not group-writable, as the seal requires, and a module run alone with `uv run pytest <module>` gets the same umask as `make test`.
+- Decision: the `Makefile`'s `test` recipe sets no umask, so uv syncs `.venv` under the caller's umask: `002` in the container and under `sudo`. `make mutants` keeps its `umask 022`.
+- Rejected: `UV_NO_SYNC` for agents (an agent would then run against a stale environment after a change to `pyproject.toml`); a repair of modes after every agent call (a second mechanism that must run on every path, including a crash); a shell wrapper in the recipe (it moves the umask but still wraps `uv`, and the fault would come back with the next recipe that calls `uv`).

@@ -47,6 +47,13 @@ from run_process_recorder import Recorder
 from tmp_path_support import reopen
 from wiring_support import HOSTED_URL
 
+TESTS_UMASK = 0o022
+
+
+def pytest_configure() -> None:
+    """Run every test under the umask `0o022`, whatever umask pytest was started under."""
+    os.umask(TESTS_UMASK)
+
 
 @pytest.fixture(autouse=True)
 def reopened_tmp_path(request: pytest.FixtureRequest) -> Iterator[None]:
