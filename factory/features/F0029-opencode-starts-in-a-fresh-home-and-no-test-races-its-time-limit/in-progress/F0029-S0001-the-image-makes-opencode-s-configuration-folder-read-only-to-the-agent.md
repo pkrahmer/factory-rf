@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 309
 comments_read: [6280599340]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T00:43:08.420957Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -85,6 +89,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T00:42:50.141058Z'
+  stage: smoke-test
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:43:08.420957Z'
   stage: smoke-test
 ---
 
@@ -248,3 +257,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     ```
 
     exit 0. Judge it against the Expect line; command 1 stands as you ran it.
+15. factory: started smoke-test as self.
