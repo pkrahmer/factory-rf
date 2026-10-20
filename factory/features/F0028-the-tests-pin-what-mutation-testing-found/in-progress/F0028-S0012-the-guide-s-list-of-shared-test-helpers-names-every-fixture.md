@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 336
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T04:49:49.384262Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T04:49:29.124210Z'
   stage: tests
   run: d4ebb1a72df741fd8523f87d3bb4b532
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:49:49.384262Z'
+  stage: doing
 ---
 
 # The guide's list of shared test helpers names every fixture
@@ -99,3 +108,4 @@ Expect: `0` (every shared helper module at the root of `tests/` is still named, 
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (46.0 s)
+6. factory: started doing as self.
