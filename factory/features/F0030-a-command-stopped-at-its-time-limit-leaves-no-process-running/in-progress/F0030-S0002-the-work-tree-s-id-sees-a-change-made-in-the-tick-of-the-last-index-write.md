@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 369
 comments_read: [6303767591]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T23:10:01.027845Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-20T23:09:40.110337Z'
   stage: tests
   run: 6e4ca5bc08ed4d87a635e0cfecb7fe38
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:10:01.027845Z'
+  stage: doing
 ---
 
 # The work tree's id sees a change made in the tick of the last index write
@@ -142,3 +151,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.5 s)
    `test`: FAILED tests/adapters/test_git_cli_work_tree_tick.py::test_a_change_in_the_tick_of_the_last_index_write_is_seen[same-size] - AssertionError: assert 'eef991509a20...d5ba5d5c0dd69' == '11bdcc0ae77a.....
+9. factory: started doing as self.
