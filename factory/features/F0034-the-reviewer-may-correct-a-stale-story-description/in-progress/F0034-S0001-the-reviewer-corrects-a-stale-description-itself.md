@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 328
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T04:00:53.319520Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T04:00:32.818794Z'
   stage: review
   run: ebe8227366a241c0b854d905185fca22
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:00:53.319520Z'
+  stage: docs
 ---
 
 # The reviewer corrects a stale Description itself
@@ -152,3 +161,4 @@ Expect: `1`
    4. Quality: the new test module follows the pattern of `tests/test_claude_agent_texts_review_leave.py` and uses `agent_body`, `SHIPPED_NAMES` and `section_text`. It copies no helper. The two sides of criterion 2 are rows of one parametrized test.
    5. Work item hygiene: the Description matches what was built (one paragraph, only the reviewer, checklist item 5 unchanged). The journal gives the coder's choice and what was rejected. The docs criterion (6) still names what the documenter must write.
    6. Earlier tests: none. The diff's only test file has status `A` (`tests/test_claude_agent_texts_description.py`), and it changes no test file that `main` already holds.
+10. factory: started docs as self.
