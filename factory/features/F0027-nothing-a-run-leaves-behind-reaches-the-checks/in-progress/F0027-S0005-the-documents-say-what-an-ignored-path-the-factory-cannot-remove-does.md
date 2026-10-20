@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 359
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T19:28:45.447152Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T19:28:24.595247Z'
   stage: review
   run: 6694a237cae54ab0aefa7c9d068b268f
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:28:45.447152Z'
+  stage: docs
 ---
 
 # The documents say what an ignored path the factory cannot remove does
@@ -151,3 +160,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
      - The stale texts the criterion names to change are where it says: the "stricter umask" sentence at `docs/operator-guide.md:78`, the `umask=0002` bullet at `docs/operator-guide.md:140`, and the old signature at `docs/project-guide/watching.md:268`.
    - Hygiene: the Description matches what was built, which is nothing yet; the documenter writes from criterion 3. The journal gives the main decision (the documents are the documenter's work) and what was rejected (the coder writing them).
    - Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
