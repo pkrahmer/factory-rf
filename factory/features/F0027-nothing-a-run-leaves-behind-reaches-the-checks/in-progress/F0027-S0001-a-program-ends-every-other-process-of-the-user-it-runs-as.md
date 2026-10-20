@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T12:26:57.916670Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-20T12:26:36.362070Z'
   stage: doing
   run: e4fb25198a17492d9139ed8fd68577dd
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:26:57.916670Z'
+  stage: review
 ---
 
 # A program ends every other process of the user it runs as
@@ -376,3 +385,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+15. factory: started review as self.
