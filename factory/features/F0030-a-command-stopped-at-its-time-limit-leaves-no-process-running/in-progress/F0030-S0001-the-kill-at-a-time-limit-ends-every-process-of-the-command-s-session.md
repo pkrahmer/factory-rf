@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T09:09:16.109511Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-10-20T09:08:55.435880Z'
   stage: doing
   run: dc5620972eb047f189573c96a84a2961
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-20T09:09:16.109511Z'
+  stage: tests
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -445,3 +454,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - The reviewer's note on `# noqa: PT011` at `tests/domain/test_sessions.py:41` is a test change. The marker could go if each refused row gave `pytest.raises` a `match` pattern. That is for the tester to take up if the reviewer wants it; the reviewer listed it as a note, not a finding.
     - The racy-index cause of the flaky `tests/adapters/test_git_cli_work_tree.py` test (entry 10) is outside this work item.
     - I did not run `make check` this round because nothing changed since entry 18's green run.
+23. factory: started tests as self.
