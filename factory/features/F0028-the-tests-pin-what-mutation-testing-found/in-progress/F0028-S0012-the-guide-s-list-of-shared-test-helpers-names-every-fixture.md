@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 336
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T04:51:18.666636Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T04:51:18.666636Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T04:51:38.124945Z'
+  stage: review
+  run: 92d151d6f2bf4515be189132cdfca50a
 ---
 
 # The guide's list of shared test helpers names every fixture
@@ -132,3 +134,16 @@ Expect: `0` (every shared helper module at the root of `tests/` is still named, 
    `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The only changes are the work item and its `.costs.jsonl` sidecar under `factory/`. That is what the Interface asks for: no module under `src/factory/` changes, and the tester writes no test module.
+   - Criterion 1: the coder's entry 7 says the factory's `make check` was green (`check: green`, coverage 99.14 %).
+   - Criterion 2: this is the documenter's guide edit, and the docs stage makes it next. I checked its premises against the tree:
+     - `tests/conftest.py` defines 25 `@pytest.fixture` functions. The 14 the Description says are missing from the guide (`reopened_tmp_path` through `recorder`) are exactly the ones the guide's `conftest.py` line leaves out.
+     - `tests/application/handlers/conftest.py` defines the 5 fixtures the Description names (`snapshot_of`, `state_with`, `event_of`, `pull_request`, `work_item`).
+     - So the Description, the docs criterion and the smoke test's expected 19 `missing:` lines before the edit all match the code.
+   - Architecture, security and quality: nothing to judge, since no code changed.
+   - Hygiene: entries 5 and 7 explain why nothing was built and what each stage rejected. The Description still matches the story.
+   - `duplicates: 5 new` (entry 7): this story changed nothing under `src/factory`, so none of those findings come from it.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
