@@ -20,10 +20,10 @@ None. No module under `src/factory/` changes, and no test, image, template or ag
 1. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. The tester and the coder each end with an entry saying so.
 2. `make check` stays green.
 3. docs: `docs/operator-guide.md`, section *The agent runs as a second user*:
-   - The sentence on what `env -i` lets through names, from the login shell, `CLAUDE_CODE_OAUTH_TOKEN`, or `ANTHROPIC_API_KEY` when an API key is in force. It names the switches as the runtime's own: Claude Code's three, or, under opencode, `PYTHONDONTWRITEBYTECODE` with `OPENCODE_CONFIG`.
+   - The sentence on what `env -i` lets through names, from the login shell, `CLAUDE_CODE_OAUTH_TOKEN`, or `ANTHROPIC_API_KEY` when an API key is in force. It names the switches as the runtime's own: Claude Code's three with `CLAUDE_CONFIG_DIR` (set for a confined run with a `HOME`, as every run in the image is), or, under opencode, `PYTHONDONTWRITEBYTECODE` with `OPENCODE_CONFIG`.
    - The sentence "The login shell is there only when `FACTORY_CLAUDE_LOGIN_FILE` is set; it `exec`s `claude`" is replaced. The new text says the login shell is there when `FACTORY_CLAUDE_LOGIN_FILE` or `FACTORY_API_LOGIN_FILE` is set (under opencode, only the API login file counts), and that it `exec`s the runtime's executable, so `timeout`'s kill still reaches it.
    - The paragraph on the files of a run says that an opencode run writes `opencode-<run>.json` (its per-run configuration, mode `0640`) in place of the instructions, guard and hooks files (see "Running on opencode").
-   - The documenter checks each claim against `docs/project-guide/agents.md` (*The shared launch module*, *The opencode runtime*), `SWITCHES` and `CONFIG_VARIABLE` in `factory.adapters.opencode_runtime`, and `login_argv` in `factory.adapters.agent_launch`.
+   - The documenter checks each claim against `docs/project-guide/agents.md` (*The shared launch module*, *The opencode runtime*), `SWITCHES` and `CONFIG_VARIABLE` in `factory.adapters.opencode_runtime` and in `factory.adapters.claude_runtime` (with `_config_folder`), and `login_argv` in `factory.adapters.agent_launch`.
    - No other passage changes. `uv run python -m factory.entry.check_documents` prints `documents ok`.
 
 ## Smoke test
