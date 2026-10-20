@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 318
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T02:24:03.321034Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T02:24:03.321034Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T02:25:53.629479Z'
+  stage: doing
+  run: 8eeec9d0b76848b48257dd3b12599725
 ---
 
 # The tests pin the expiry note's key at the crash cap and the stalls at their edges
@@ -125,3 +127,13 @@ Expect: two lines, `Stalled (attempt 1 of 2): merging the main branch conflicts 
    `lint`: lint: green (0.0 s)
    `test`: test: green (39.9 s)
 6. factory: started doing as self.
+7. coder: I built nothing. The Interface says no module under `src/factory/` changes, and the tester's new tests already pass against the code as it stands: `tests/application/test_recovery_expiry_key.py` and `tests/application/test_stall_edges.py`. I ran `make check` in the foreground and it ended `check: green`. That run includes `mypy --strict` over the two new test modules, which the tester had skipped. `test: green (40.3 s)`, total coverage 99.14 %.
+
+   Main choice: change no code. The one alternative was to touch `recovery.py`, `stage.py` or `stalls.py` to "strengthen" the pinned sides, and I rejected it. The story's purpose is to pin behaviour that already exists, and any change there is scope beyond the description (R13).
+
+   Refactor: I have no diff of my own under `src/` (`git diff main -- . ':!factory'` shows only the tester's two files), so there was nothing to refactor. The journal did not change the meaning of the task, so the Description stays as it is.
+
+   Noticed, not touched: the coverage report still lists uncovered lines in the modules this feature is about, `recovery.py` 126 and 200 and `stage.py` 467. They are outside this story's criteria.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
