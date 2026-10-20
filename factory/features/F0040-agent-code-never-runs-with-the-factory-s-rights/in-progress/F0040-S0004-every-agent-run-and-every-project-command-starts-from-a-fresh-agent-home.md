@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T22:13:46.887984Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -120,6 +116,12 @@ journal:
   kind: started
   at: '2026-10-20T22:13:46.887984Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-20T22:16:42.557342Z'
+  stage: doing
+  run: 3fc368b879e74076a1a746c46f90f1da
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -394,3 +396,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.5 s)
     `test`: FAILED tests/entry/test_wiring_agent_home.py::test_the_fresh_home_program_runs_with_this_interpreter_isolated_and_uv_s_cache_is_named - AssertionError: assert ['/work/check...y.fresh_home'] == ['/w...
 20. factory: started doing as self.
+21. coder: I made the one-word change that was still open in the code. `fresh_home_command()` in `src/factory/entry/wiring.py` now returns `[sys.executable, "-I", "-B", "-m", "factory.entry.fresh_home"]`, as the human's notes (entries 14 and 15) ask. The tester has already changed the tests to match (entry 19). I added a comment saying why the `-B` is there: `-I` ignores `PYTHONDONTWRITEBYTECODE`, so without `-B` the agent's user writes bytecode into `src/`, and the restore cannot remove it. `make check` is green: coverage is 99.14 % and `check: green`. `git status` shows no `__pycache__` under `src/`.
+
+    Everything else in this story was built in entry 17 and is unchanged: `src/factory/application/agent_home.py`, `src/factory/adapters/agent_home.py`, `LOGIN_STATE_FILE` in `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`, `Boundaries.agent_home` in `src/factory/application/boundaries.py`, the resets in `src/factory/application/sealed_runs.py`, and `agent_home_of` and `build_boundaries` in `src/factory/entry/wiring.py`.
+
+    Main choice (from entry 17, kept): the reset comes before the `try`/`finally` in `run_sealed` and in `SealedProjectCommands.run`, not inside it. A reset that fails has run nothing, so there is no seal to check. I rejected putting it inside the `try` because the seal check would then hide the reset's own error.
+
+    Refactor: I read the diff once more and found nothing to change.
+
+    What the journal changed: entries 14 and 15 add `-B` to the command. The sudo command line in `## Description`, criteria 5, 10 and 13, and the smoke test's `program` still say `-I` without `-B`. The work item is outside my write paths, so I left it as it is; a stage that may write it should add `-B` there.
+
+    Noticed, not touched: `leftovers_command()` in the same file also starts its program with `-I` and no `-B`, so it could write bytecode into `src/` the same way. That is outside this story.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 33 known, 3 gone

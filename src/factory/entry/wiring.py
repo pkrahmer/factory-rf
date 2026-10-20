@@ -311,7 +311,9 @@ def leftovers_command() -> list[str]:
 
 def fresh_home_command() -> list[str]:
     """The words that start the fresh-home program with this interpreter, isolated."""
-    return [sys.executable, "-I", "-m", FRESH_HOME_MODULE]
+    # `-I` ignores PYTHONDONTWRITEBYTECODE; `-B` keeps the agent's user from writing
+    # bytecode beside the factory's source, which the checkout's restore cannot remove.
+    return [sys.executable, "-I", "-B", "-m", FRESH_HOME_MODULE]
 
 
 def agent_home_of(settings: InstanceSettings, sudo_executable: str) -> SudoAgentHome | None:
