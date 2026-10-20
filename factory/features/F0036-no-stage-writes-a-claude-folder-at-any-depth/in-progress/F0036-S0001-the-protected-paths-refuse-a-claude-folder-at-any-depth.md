@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 324
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T03:29:53.436383Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T03:29:53.436383Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T03:30:55.059394Z'
+  stage: review
+  run: 56efb09215c14b76b0ebdf1527978a7b
 ---
 
 # The protected paths refuse a .claude folder at any depth
@@ -151,3 +153,18 @@ Expect: four lines, `.claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is o
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I checked:
+   - Acceptance criteria: each of criteria 1 to 4 has a test, and each test checks what its criterion says. Criterion 1 is `tests/domain/test_write_paths.py::test_the_protected_paths_are_the_engines_twelve_patterns`. Criterion 2 is `tests/domain/test_nested_claude_paths.py::test_a_claude_folder_is_protected_at_any_depth_and_only_as_a_whole_segment`, with the 12 rows the criterion lists. Criterion 3 is `tests/domain/test_nested_claude_paths.py::test_the_guard_refuses_a_nested_claude_folder_although_a_write_path_matches_it`, 4 rows with the guard set up as the criterion says. Criterion 4 is `tests/application/test_undo_nested_claude.py::test_the_undo_removes_a_nested_claude_folder_and_keeps_the_rest`, run against a real bare remote.
+   - Both sides of the Interface's rules are tested: a whole `.claude` segment against `.claudex`, `x.claude` and `claude`, and "at least one segment after it" (`src/.claude` gives false, `src/.claude/...` gives true). The refused side is tested while a write path still matches.
+   - The coder's journal entry 7 records `check: green`.
+   - Code: `src/factory/domain/write_paths.py:23` adds `"*/.claude/*"` right after `.claude/*`. `matches_any` uses `fnmatchcase`, so the pattern only matches a path with `/.claude/` inside it, which is the whole-segment rule. `refusal`, the hook, the undo and the kernel's confinement are unchanged. `factory.application.write_paths` reads `PROTECTED_PATHS` as before.
+   - Architecture: a constant in `factory.domain`, no new imports.
+   - Security: no silencing markers, no secrets.
+   - Quality: `tests/undo_support.py` is a move of the helpers out of `tests/application/test_undo.py`, not a copy. It overlaps nothing in `tests/write_path_support.py`; both modules held a `PIPELINE_FILE` constant before this story too.
+   - Work item hygiene: the coder's entry gives the main choice (keep `matches_any` as it is) and what was rejected (a segment-aware matcher). The Description matches what was built, and the docs criterion still says what the reader must know.
+
+   Earlier tests:
+   - `tests/domain/test_write_paths.py`: changed under the human's leave, the feature's decision 3. Only the rename and the added second tuple item.
+   - `tests/application/test_undo.py`: changed under the standing leave to move a shared test helper (`CLAUDE.md`, *Tests*). `_pipeline`, `_start`, `_undo` and their constants moved to `tests/undo_support.py` as `pipeline_text`, `start_stage` and `undo_stage`. Every test keeps its name and its assertions; only the calls were renamed, and one line was rewrapped.
