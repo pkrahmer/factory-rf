@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 362
 comments_read: [6300047368]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T20:06:34.374879Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,13 @@ journal:
   kind: started
   at: '2026-10-20T20:06:34.374879Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: question
+  at: '2026-10-20T20:07:18.208494Z'
+  stage: doing
+  run: 1594f6a87f224e0687cababb8c26fc09
+  blocked: question
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -326,3 +329,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.6 s)
     `test`: test: green (60.6 s)
 17. factory: started doing as self.
+18. coder: Stopped before handing forward: `make check` is red because of the test added for criterion 8, and I may not change tests. No code changed this round. `src/factory/application/sealed_runs.py` and `src/factory/entry/wiring.py` are still as entry 10 left them.
+
+    `make types` fails with:
+    ```
+    tests/entry/test_wiring_project_command_user.py:96: error: Only concrete class can be given where "type[Git]" is expected  [type-abstract]
+    tests/entry/test_wiring_project_command_user.py:97: error: Only concrete class can be given where "type[FactoryLog]" is expected  [type-abstract]
+    ```
+    The cause is that the helper `_held[T](outer, kind: type[T])` gets the abstract interfaces `Git` and `FactoryLog`, and mypy refuses an abstract class where `type[T]` is expected. The tester ran only `make lint` and `make test`, which is why entry 16 shows green. The test does pass at runtime. Nothing under `src/` can fix a type error inside the test, so the check stays red until the test changes.
+
+    Question: may the tester change the two assertions at lines 96–97 of `test_the_built_project_commands_run_as_the_agent_user_inside_a_seal`? I see three options:
+    - (a) Look up the concrete classes: `_held(sealed, GitCli) is boundaries.git` and `_held(sealed, TimestampedFactoryLog) is boundaries.log`. This is the reviewer's own example in entry 12. It ties the test to the implementations the wiring picks, but the test already does that with `MakeProjectCommands`.
+    - (b) Check identity without a type: `assert any(value is boundaries.git for value in vars(sealed).values())`, and the same for `boundaries.log`.
+    - (c) Loosen `_held`'s parameter to `type[object]` and cast the result. This is the weakest choice, because it loses the typing.
+
+    I would choose (a). If you agree, I will end the next run with `tests`, naming that change, for the tester to make.
+
+    Noticed but did not touch: the `make duplicates` findings that entry 10 recorded.
