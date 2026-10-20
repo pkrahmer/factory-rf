@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T01:16:00.639040Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T01:15:39.464018Z'
   stage: review
   run: d7a96a1fd5144736b89585169757d2c3
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:16:00.639040Z'
+  stage: doing
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -146,3 +155,4 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
    1. `tests/domain/test_settings_url_edges.py:15` `_raising` is a second copy of `_raising` in `tests/domain/test_settings.py:28`, line for line the same. Fix: the tester moves it to `tests/settings_support.py` under the standing leave to move a shared test helper. `test_settings.py` then imports it from there, with every earlier test keeping its name and what it checks, and the new module imports it too. The Interface's "uses `BASE` of `tests/settings_support.py` as it is" still holds after the move, because `BASE` itself stays unchanged.
 
    Earlier tests: none. The diff adds `tests/domain/test_settings_url_edges.py` (status `A`) and changes no test file that `main` already holds.
+10. factory: started doing as self.
