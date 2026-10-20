@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 339
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T06:44:39.523330Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T06:44:39.523330Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T06:45:38.771956Z'
+  stage: review
+  run: 6e393c52a5de40c59b322308166cdd52
 ---
 
 # The record log skips a line that is not UTF-8
@@ -184,3 +186,23 @@ Expect: one line, `['check: green ✓']`, and no traceback.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I read: the work item, and `git diff main...HEAD -- . ':!factory'`. It changes `src/factory/adapters/record_log_jsonl.py` and `src/factory/application/files.py`, and adds `tests/adapters/test_record_log_jsonl_torn.py`, `tests/application/test_known_results_torn.py` and `tests/torn_record_support.py`.
+
+   - Acceptance criteria: criteria 1 to 5 each have one parametrized test, with the rows the criterion names.
+     - Criterion 1 has the é 1/2, € 1/3, € 2/3, 😀 3/4, ASCII-cut and only-torn rows.
+     - Criterion 2 has the unchanged row, `0xff` before B, `0xc3 0x28` inside B's string, `0xff` before A, and the empty line.
+     - Criterion 3 has U+2028, U+2029 and U+0085 written through `append`, and the `\r\n` row written directly. Each row checks that the file holds exactly one `\n`.
+     - Criterion 4 has the directory row raising `IsADirectoryError` and the missing-file row giving `[]`.
+     - Criterion 5 has the after-a-pass and only-a-torn-line rows. Both check one call of the project commands and an empty factory log, and the first checks that the second run is reused with `last_line` `check: green`.
+     - Every Interface rule is tested on its failing side as well as its passing side. The Interface states no numeric limit.
+     - The coder's journal entry (7) records `check: green`.
+   - Architecture: the change stays inside the adapter, plus the docstring the Interface gives in `application/files.py`. There is no new import, wiring or dependency, and no other module calls a tool.
+   - Security: there is no marker, secret, shell or string-built query. The read is strict decoding per line, and an `OSError` still propagates.
+   - Quality: `read` splits the bytes at `b"\n"`, and `_parse` decodes each line as strict UTF-8 and skips one that fails. The comments say why. I found no dead code.
+     - `make duplicates` reports 5 new findings, all in `claude_runtime`/`opencode_runtime` and `clock.py`. This diff touches none of those files.
+     - The new shared module `tests/torn_record_support.py` is used by both new test modules. The rig is imported from `application.test_known_results`, as other test modules already import from test modules. No helper is copied.
+   - Work item hygiene: the coder's entry names the main choice (decode each line on its own) and the rejected one (decode the whole file with `errors="replace"`). The Description matches what was built, and the docs criterion (7) still says what the reader needs to know.
+
+   Earlier tests: none. The diff adds test files and changes, renames or deletes no test file that `main` already holds.
