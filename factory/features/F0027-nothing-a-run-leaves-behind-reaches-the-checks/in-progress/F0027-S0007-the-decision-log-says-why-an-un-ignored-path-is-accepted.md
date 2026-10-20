@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 373
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T23:41:47.276206Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T23:41:47.276206Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T23:44:10.032417Z'
+  stage: tests
+  run: 573ba301d3be46e5810fd5d81a1dea81
 ---
 
 # The decision log says why an un-ignored path is accepted
@@ -78,3 +80,11 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: a decision-log bullet belongs in `docs/decisions.md`, which the documenter stage keeps. Nothing in the layers is touched.
    Scope: it follows F0027 `feature.md` decision 7, which accepts that an agent can un-ignore a path and adds no rule, and it adds nothing beyond that. It is not in the feature's Out of scope. It adds no test and changes no test another story wrote.
 4. factory: started tests as self.
+5. tester: I wrote no tests. Nothing under `src/` or `tests/` changes in this stage, which is what criterion 1 requires.
+   - criterion 1 (nothing under `src/` or `tests/` changes): I added no test function, and the story's second smoke test checks this (`git diff --name-only origin/main -- src tests`). The only change in my working tree is the factory's `.costs.jsonl` sidecar.
+   - criterion 2 (`make check` stays green): no test function. The factory's checks cover it. I ran `make test` once and it is green (99.14 % coverage); `make lint` is green too.
+   - criterion 3 (docs: the `Accepted: an agent can un-ignore a path` bullet in `docs/decisions.md`): no test function. It is a docs criterion, and the documenter stage and the first smoke test (`grep -c`) check it.
+   Files created: none. Modules the test run could not import: none. There are no red tests on this branch on purpose, because the story is documents only (Interface: none). For the coder: do not change anything under `src/` or `tests/`, and end your entry by saying so, as criterion 1 asks.
+
+   `lint`: lint: green (0.5 s)
+   `test`: test: green (63.5 s)
