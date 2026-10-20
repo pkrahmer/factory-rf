@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 340
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T06:54:21.832751Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T06:54:00.969251Z'
   stage: tests
   run: 017dbe23c36140e587951ca6d78a8e38
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:54:21.832751Z'
+  stage: doing
 ---
 
 # The opencode tests take their reply and waiting steps from the stand-in module
@@ -134,3 +143,4 @@ Expect: a line that starts `2 passed`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (45.5 s)
+6. factory: started doing as self.
