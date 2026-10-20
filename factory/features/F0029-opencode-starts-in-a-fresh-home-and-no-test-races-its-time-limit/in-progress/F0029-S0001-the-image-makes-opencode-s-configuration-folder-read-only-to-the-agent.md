@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 309
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T00:35:41.461005Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T00:35:20.950070Z'
   stage: tests
   run: d5fe32a6e12d450b98d793585e0229df
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:35:41.461005Z'
+  stage: doing
 ---
 
 # The image makes opencode's configuration folder, read-only to the agent
@@ -120,3 +129,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_opencode_config_folder.py::test_the_image_makes_the_configuration_folder_read_only_and_leaves_its_parent_the_agents[configuration]
+6. factory: started doing as self.
