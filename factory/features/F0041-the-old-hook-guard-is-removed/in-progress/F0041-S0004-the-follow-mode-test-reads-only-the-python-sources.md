@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 352
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T12:44:15.085665Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:44:15.091299Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T12:44:37.468597Z'
+  stage: intake
+  run: de23a64954744dd6a27d5bb15150110f
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:44:58.151476Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T12:48:52.699238Z'
+  stage: tests
+  run: a4c95923812c4054be9f996e04a28630
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:49:13.402531Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T12:53:09.895537Z'
+  stage: doing
+  run: 2c56e76e13f44482a0e965fb95133dac
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:53:30.768414Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T12:53:56.014595Z'
+  stage: review
+  run: c8f857fa43014dc594f6876e59bca6f8
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:54:16.850747Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T12:54:32.389507Z'
+  stage: docs
+  run: c4562669b52e45b1821b00ca9bd9f683
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:54:53.370489Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T12:55:11.239208Z'
+  stage: smoke-test
+  run: 184bf2debdc141f292070d1806b9cecf
+---
+
 # The follow-mode test reads only the Python sources
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -56,3 +140,109 @@ grep -c '"PYTHONDONTWRITEBYTECODE": "1"' tests/test_tests_umask.py
 Expect: `1`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete code: `_files_naming(root, text)`, `_names_the_replaced_phrases(root, path) -> bool`, both test names in `tests/entry/test_watch.py`, and the child environment change in `tests/test_tests_umask.py`. It says nothing under `src/` changes. I checked the current helper (line 279) and the `rglob("*")` use (line 290), and the interface matches them.
+   Criteria: each is testable by one function or one parametrized test. 1 is the real-tree scan. 2 has five rows, with both sides: `entry/run.py` is found, and `documents.py`, the mode-000 `.pyc`, `notes.txt` and the temporary name are not. 3 is the umask child's environment. Every Interface behaviour has a criterion: the `*.py` pattern, the `documents.py` exclusion and the root parameter. The `__pycache__` clause removal follows from the `.pyc` row. 4 and 5 are the closing two.
+   Smoke test: runnable. pytest's `addopts` is `-q`, and the command passes none, so the summary line exists for `tail -n 1`. `-k 'follow_mode_scan or knows_the_follow_mode'` matches the two named tests, so 2 + 5 = 7 passed. The two `grep -c` commands are checkable. `rglob("\*")` matches no other line of the module, since line 276 uses `rglob("factory-last-line")`. Each Expect states an exact output.
+   Architecture: tests only, under `tests/entry/` and `tests/`, where they belong. No layer or interface is touched.
+   Scope: within F0041 (feature scope lists S0004) and not in its Out of scope. The change to another story's tests has the human's leave in decision 14 of `feature.md`, and the story names those tests.
+4. factory: started tests as self.
+5. tester: Tests written under the leave of `feature.md`, decision 14. I changed only the two tests the Interface names.
+
+   - criterion 1: tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode (rows `--follow` and `factory-last-line`, ids unchanged). It now asserts `_files_naming(SRC, text) == []`.
+   - criterion 2: tests/entry/test_watch.py::test_the_follow_mode_scan_reads_only_python_sources. This is one parametrized test over a `src/factory` tree in `tmp_path`, with five rows: `python-source` (`entry/run.py` is found as `[path]`), and four rows where nothing is found: `document-check` (`domain/documents.py`), `bytecode` (`domain/__pycache__/watch.cpython-312.pyc`, mode 000), `text-file` (`entry/notes.txt`) and `temporary-name` (`entry/run.py.140000`).
+   - criterion 3: tests/test_tests_umask.py::test_the_tests_umask_holds_whatever_umask_pytest_was_started_under. The child's env now also holds `"PYTHONDONTWRITEBYTECODE": "1"`. Its name, its four rows and its assertions are unchanged.
+   - criteria 4 and 5: no test (make check; docs: none).
+
+   Helpers in tests/entry/test_watch.py, as the Interface says:
+   - `_files_naming(root, text)` scans `root.rglob("*.py")`.
+   - `_names_the_replaced_phrases(root, path)` now takes the root and has lost its `__pycache__` clause.
+   - The `rglob("*")` scan is gone.
+
+   Files changed (no files created):
+   - tests/entry/test_watch.py, an earlier test file (F0006-S0006 / F0011-S0005), changed under decision 14.
+   - tests/test_tests_umask.py, an earlier test file (F0033-S0001), changed under decision 14.
+
+   No modules failed to import. The tests are not red: the story changes only tests and nothing under `src/` (the Interface says the coder has nothing to build), so `make test` was green after the change ("test: green"). `make lint` is green.
+
+   Open: the coder has nothing to implement beyond running `make check`.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (97.2 s)
+6. factory: started doing as self.
+7. coder: Nothing built. The Interface says no module under `src/factory/` changes, and the tester's changes (`tests/entry/test_watch.py` and `tests/test_tests_umask.py`, the only files in `git diff main` outside `factory/`) already cover all three criteria. The tests were green when I started, so there was nothing to implement. I ran `make check` in the foreground and it was green: `test: green (96.7 s)`, then `check: green`, with total coverage at 99.16 %.
+
+   Main choice: I left `src/` untouched, as the Interface says. The alternative I rejected was adding anything under `src/` to "fix" the bytecode permissions. That would go beyond the description, and the cause is in the tests (the umask child writing bytecode), not in the source.
+
+   Refactor: there is no code diff of mine to read again, so nothing changed. The tests are the tester's and I left them alone.
+
+   Journal: no entry changed the meaning of the task, so `## Description` stays as it is.
+
+   Noticed but not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the diff (`tests/entry/test_watch.py`, `tests/test_tests_umask.py`; nothing under `src/`) and checked it against the Interface, the criteria and decision 14 of `feature.md`.
+   - Criterion 1: `test_no_source_file_knows_the_follow_mode` keeps its name and its rows `--follow` and `factory-last-line`, and asserts `_files_naming(SRC, text) == []`.
+   - Criterion 2: `test_the_follow_mode_scan_reads_only_python_sources` is one parametrized test with five rows in `tmp_path/src/factory`. It covers the found side (`entry/run.py` → `[path]`) and the four not-found sides.
+     - The `bytecode` row is mode 000 and named `watch.*`, not `documents.*`. So for a user who is not root, it fails under the old `rglob("*")` scan with a `PermissionError`. The removed `__pycache__` clause would not have excluded it either.
+     - The `document-check` row tests the root-relative `_names_the_replaced_phrases(root, path)`.
+   - Criterion 3: the umask child's env adds `"PYTHONDONTWRITEBYTECODE": "1"` beside `PATH`, `HOME` and `TMPDIR`. Its name, its four rows and its assertions are unchanged.
+   - Criterion 4: the coder's entry 7 records `make check` green (`check: green`, coverage 99.16 %).
+   - Architecture and security: not touched. The diff has no suppression markers.
+   - Work item: the Description, the Interface and the docs criterion (`docs: none`, decisions.md stays) match what was built. The coder's entry 7 explains why nothing under `src/` changed.
+
+   Rejected: counting the docstring on the private `_files_naming` as a finding. The Interface prescribes it, and the docstring rule in `CLAUDE.md` covers `src/factory/` only.
+
+   Earlier tests:
+   - tests/entry/test_watch.py: changed under the human's leave, `feature.md` decision 14 (named in the story). Only the follow-mode helpers and test changed, and one test was added.
+   - tests/test_tests_umask.py: changed under the human's leave, `feature.md` decision 14 (named in the story). Only the env entry was added.
+10. factory: started docs as self.
+11. documenter: Files changed: none. The docs criterion is `none`: the story changes two tests only (`tests/entry/test_watch.py`, `tests/test_tests_umask.py`) and nothing under `src/`, so no document is wrong because of it. I did not run `make check`, because I changed no file.
+
+    Cross-read and found current:
+    - `docs/decisions.md`: the F0011-S0005 entry says every other file under `src/` is searched. The story's criterion 5 keeps it as the record of that decision, so I left it.
+    - `docs/project-guide/agents.md`: line 58 says the agent runtime sets `PYTHONDONTWRITEBYTECODE=1` in the environment. It stays true, and the umask test's child now has the same variable.
+    - `docs/operator-guide.md` and the README: nothing in them depends on the follow-mode scan or on the umask test's child environment.
+
+    Stale text I noticed that is not mine to fix: none.
+
+    The diff matches the Interface and the criteria. I found no code that contradicts the docs, so there are no findings for the coder.
+
+    `check`: check: green (not run again: passed on tree a7f65c68ac2d at 2026-10-20T12:51:22Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: I ran the three commands under `## Smoke test` from the repository root, as written and in order. All three met their `Expect:` lines. I fixed nothing.
+
+    1. `uv run pytest tests/entry/test_watch.py -k 'follow_mode_scan or knows_the_follow_mode' 2>&1 | tail -n 1 | sed 's/ in .*//'`
+    ```
+    7 passed, 12 deselected
+    ```
+    Met `Expect: 7 passed, 12 deselected`: the two rows of criterion 1 and the five rows of criterion 2 passed.
+
+    2. `grep -c 'rglob("\*")' tests/entry/test_watch.py`
+    ```
+    0
+    ```
+    Met `Expect: 0`. grep's exit status is 1 because it found no match; that is the expected result, not an error.
+
+    3. `grep -c '"PYTHONDONTWRITEBYTECODE": "1"' tests/test_tests_umask.py`
+    ```
+    1
+    ```
+    Met `Expect: 1`.
+
+    Criteria re-read: the smoke test contradicts none of them.
+    - Criteria 1 and 2 are covered by command 1. The 7 passed tests are the two rows of criterion 1 and the five of criterion 2.
+    - Criterion 3 is only partly covered here: command 3 confirms the child's environment holds `"PYTHONDONTWRITEBYTECODE": "1"`, but the smoke test does not run the umask test's rows. Entry 7 records them passing under `make check`.
+    - Criterion 4: entry 7 records `make check` green.
+    - Criterion 5 is `docs: none`.
+
+    Findings: none.

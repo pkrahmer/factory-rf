@@ -53,6 +53,7 @@ def test_the_tests_umask_holds_whatever_umask_pytest_was_started_under(
                 "PATH": os.environ["PATH"],
                 "HOME": os.environ["HOME"],
                 "TMPDIR": str(tmp_path),
+                "PYTHONDONTWRITEBYTECODE": "1",
             },
             time_limit=timedelta(seconds=60),
             merge_stderr=True,

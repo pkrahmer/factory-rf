@@ -276,19 +276,44 @@ def test_no_tick_and_no_watch_run_writes_a_last_line_file(
     assert list(tmp_path.rglob("factory-last-line")) == []
 
 
-def _names_the_replaced_phrases(path: Path) -> bool:
+def _names_the_replaced_phrases(root: Path, path: Path) -> bool:
     # The document check's list of replaced phrases has to name them to reject them.
-    if path == SRC / "domain" / "documents.py":
-        return True
-    return path.parent == SRC / "domain" / "__pycache__" and path.name.startswith("documents.")
+    return path == root / "domain" / "documents.py"
+
+
+def _files_naming(root: Path, text: bytes) -> list[Path]:
+    """The Python sources under `root` that hold `text`, the document check's list left out."""
+    return [
+        path
+        for path in root.rglob("*.py")
+        if path.is_file()
+        and not _names_the_replaced_phrases(root, path)
+        and text in path.read_bytes()
+    ]
 
 
 @pytest.mark.parametrize("text", [b"--follow", b"factory-last-line"])
 def test_no_source_file_knows_the_follow_mode(text: bytes) -> None:
-    found = [
-        path
-        for path in SRC.rglob("*")
-        if path.is_file() and not _names_the_replaced_phrases(path) and text in path.read_bytes()
-    ]
+    assert _files_naming(SRC, text) == []
 
-    assert found == []
+
+@pytest.mark.parametrize(
+    ("name", "mode", "found"),
+    [
+        pytest.param("entry/run.py", 0o644, True, id="python-source"),
+        pytest.param("domain/documents.py", 0o644, False, id="document-check"),
+        pytest.param("domain/__pycache__/watch.cpython-312.pyc", 0o000, False, id="bytecode"),
+        pytest.param("entry/notes.txt", 0o644, False, id="text-file"),
+        pytest.param("entry/run.py.140000", 0o644, False, id="temporary-name"),
+    ],
+)
+def test_the_follow_mode_scan_reads_only_python_sources(
+    tmp_path: Path, name: str, mode: int, found: bool
+) -> None:
+    root = tmp_path / "src" / "factory"
+    path = root / name
+    path.parent.mkdir(parents=True)
+    path.write_bytes(b'FLAG = "--follow"\n')
+    path.chmod(mode)
+
+    assert _files_naming(root, b"--follow") == ([path] if found else [])
