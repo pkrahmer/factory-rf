@@ -2,21 +2,15 @@
 
 import pytest
 
-from adapters.claude_stand_in import Step
 from adapters.opencode_stand_in import (
     MODELS,
-    result_text,
-    stdout,
-    step_finish,
-    step_start,
-    text,
+    REPLY,
     write_opencode,
 )
 from confine_support import ConfineCall, Layout, read_records, run_request, write_confine
 from factory.adapters.opencode_runtime import RUNTIME_FOLDERS, OpencodeRuntime
 from factory.domain.confinement import Confinement
 
-REPLY = stdout(step_start(), text(result_text()), step_finish())
 OPENCODE_THREE = [".local/share/opencode", ".local/state/opencode", ".cache/opencode"]
 
 
@@ -35,7 +29,7 @@ def test_the_rules_allow_each_runtime_folder_in_the_home_in_order(
     layout: Layout, runtime_folders: tuple[str, ...] | None, expected: list[str]
 ) -> None:
     confine = write_confine(layout)
-    executable = write_opencode(layout.stand_in, [Step(stdout=REPLY)])
+    executable = write_opencode(layout.stand_in, [REPLY])
     layout.state.mkdir(exist_ok=True)
     runtime = (
         OpencodeRuntime(

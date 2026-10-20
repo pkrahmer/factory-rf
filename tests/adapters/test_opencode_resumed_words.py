@@ -7,16 +7,15 @@ import pytest
 
 from adapters.claude_stand_in import Step, read_calls
 from adapters.opencode_stand_in import (
+    REPLY,
     RESUME_REPLY,
     SESSION,
     WAIT_SECONDS,
     opencode_request,
-    result_text,
     stand_in_runtime,
     stdout,
     step_finish,
     step_start,
-    text,
 )
 from factory.adapters.agent_launch import FINISH_MESSAGE
 from factory.domain.agent_runs import AgentRunRequest
@@ -35,7 +34,6 @@ OVER_BUDGET = Step(
     stdout_before_wait=stdout(step_start(1000), step_finish(2000, cost=1.2)),
     wait_seconds=WAIT_SECONDS,
 )
-REPLY = Step(stdout=stdout(step_start(), text(result_text()), step_finish()))
 
 
 def _budget_stop(work: Path) -> tuple[list[Step], AgentRunRequest]:

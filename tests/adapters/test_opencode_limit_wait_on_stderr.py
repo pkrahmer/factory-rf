@@ -11,14 +11,10 @@ from adapters.opencode_stand_in import (
     BOUND_SECONDS,
     REPLY,
     RESUME_REPLY,
-    WAIT_SECONDS,
+    WAITING,
     opencode_request,
     stand_in_runtime,
-    stdout,
-    step_start,
 )
-
-WAITING = Step(stdout_before_wait=stdout(step_start()), wait_seconds=WAIT_SECONDS)
 
 
 @pytest.mark.parametrize(
