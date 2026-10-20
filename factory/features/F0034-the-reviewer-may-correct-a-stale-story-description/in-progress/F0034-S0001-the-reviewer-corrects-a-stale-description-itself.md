@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 328
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T04:00:04.353575Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T03:59:43.842106Z'
   stage: doing
   run: 7f072df7199f4c4cad8f13aadb147802
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:00:04.353575Z'
+  stage: review
 ---
 
 # The reviewer corrects a stale Description itself
@@ -125,3 +134,4 @@ Expect: `1`
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
