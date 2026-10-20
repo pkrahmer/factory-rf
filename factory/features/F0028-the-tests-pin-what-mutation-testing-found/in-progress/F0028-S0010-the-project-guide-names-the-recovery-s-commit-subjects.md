@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 332
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T04:18:50.209103Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T04:18:29.733054Z'
   stage: intake
   run: ffaefd7fa74f45e59426acb92cf1ee9f
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:18:50.209103Z'
+  stage: tests
 ---
 
 # The project guide names the recovery's commit subjects
@@ -71,3 +80,4 @@ Expect: `work item F0001-S0001: crash of stage doing recorded` (the form the gui
    Architecture: this is a documentation change in `docs/project-guide/`, which the documenter keeps. No layer is touched.
    Scope: it is within F0028's goal, which pins what the recovery commits. The feature's "Out of scope" lists "The documents" only for the stories that add tests. This story is the documenter's follow-up proposed by feature acceptance, and its change is limited to the two subjects in step 4.
    Open: none.
+4. factory: started tests as self.
