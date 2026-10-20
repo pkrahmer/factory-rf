@@ -101,6 +101,7 @@ __all__ = [
     "git_options",
     "handler_factory",
     "health_store",
+    "leftovers_command",
     "machine_extras",
     "machine_log",
     "production_environment",
@@ -116,6 +117,8 @@ NOT_YET_HANDLED: tuple[EventKind, ...] = ()
 _SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
 
 CREDENTIAL_HELPER = "/usr/local/bin/git-credential-factory"
+
+LEFTOVERS_MODULE = "factory.entry.leftovers"
 
 _LOG_FILE_NAME = "factory.log"
 _HEALTH_FILE_NAME = "health.json"
@@ -237,11 +240,13 @@ def build_boundaries(
     hosting: HostingService | None = None,
     which: Callable[[str], str | None] = shutil.which,
     confine_executable: str | None = CONFINE_COMMAND,
+    end_leftovers: bool = True,
 ) -> Boundaries:
     """Return the boundaries of the instance of `settings`; `hosting` replaces PyGithub.
 
     The agent runtime starts the `sudo` that `which` finds, the one the preflight checks,
-    and every call through `confine_executable`, unless it is `None`.
+    and every call through `confine_executable`, unless it is `None`. With `end_leftovers`,
+    every call as the agent's user is followed by the program that ends its processes.
     """
     if hosting is None:
         hosting = pygithub_service(repository_name(settings.repository_url), token)
@@ -253,7 +258,10 @@ def build_boundaries(
         git=git,
         hosting=hosting,
         agent_runtime=_agent_runtime(
-            settings, which("sudo") or SUDO_EXECUTABLE, confine_executable
+            settings,
+            which("sudo") or SUDO_EXECUTABLE,
+            confine_executable,
+            leftovers_command() if end_leftovers else None,
         ),
         project_commands=RecordingProjectCommands(
             MakeProjectCommands(settings.checkout),
@@ -283,8 +291,16 @@ def build_boundaries(
     )
 
 
+def leftovers_command() -> list[str]:
+    """The words that start the leftovers program with this interpreter, isolated."""
+    return [sys.executable, "-I", "-m", LEFTOVERS_MODULE]
+
+
 def _agent_runtime(
-    settings: InstanceSettings, sudo_executable: str, confine_executable: str | None
+    settings: InstanceSettings,
+    sudo_executable: str,
+    confine_executable: str | None,
+    leftovers: list[str] | None,
 ) -> AgentRuntime:
     runs = settings.state_directory / RUNS_DIRECTORY_NAME
     if settings.agent_runtime == "opencode":
@@ -298,6 +314,7 @@ def _agent_runtime(
             confine_executable=confine_executable,
             provider_limit=settings.provider_limit,
             runtime_folders=(*RUNTIME_FOLDERS, *settings.opencode_folders),
+            leftovers=leftovers,
         )
     return ClaudeCodeRuntime(
         settings.claude_executable,
@@ -307,6 +324,7 @@ def _agent_runtime(
         api_login_file=settings.api_login_file,
         confine_executable=confine_executable,
         provider_limit=settings.provider_limit,
+        leftovers=leftovers,
     )
 
 

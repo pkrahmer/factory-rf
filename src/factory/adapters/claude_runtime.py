@@ -4,6 +4,7 @@ import json
 import tempfile
 import time
 import uuid
+from collections.abc import Sequence
 from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -38,8 +39,10 @@ from factory.adapters.agent_launch import (
     confined_argv,
     denied_path,
     device_confinement,
+    due_leftovers_launch,
     finished_run,
     killed_at_limit,
+    leftovers_fault,
     login_argv,
     login_used,
     request_home,
@@ -49,7 +52,7 @@ from factory.adapters.agent_launch import (
     temporary_folder,
     version_printed,
 )
-from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from factory.adapters.process import ProcessRequest, ProcessResult, own_identity, run_process
 from factory.application.agent_runtime import AgentRuntime
 from factory.domain.agent_runs import (
     AgentRunRequest,
@@ -350,6 +353,7 @@ class ClaudeCodeRuntime(AgentRuntime):
         temporary_root: Path | None = None,
         api_login_file: Path | None = None,
         provider_limit: ProviderLimit | None = None,
+        leftovers: Sequence[str] | None = None,
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
 
@@ -359,11 +363,14 @@ class ClaudeCodeRuntime(AgentRuntime):
         With `confine_executable`, every call starts through it with the run's rules and
         its own temporary folder under `temporary_root`, the system's by default.
         A call refused by `provider_limit`, the default limit when `None`, ends `provider_limit`.
+        Every call as another user is followed by `leftovers`, the program that ends that
+        user's processes, when it is set.
         """
         self._executable = executable
         self._starters = Starters(
             sudo_executable=sudo_executable,
             confine_executable=confine_executable,
+            leftovers=None if leftovers is None else list(leftovers),
             login_files=LoginFiles(subscription=login_file, api=api_login_file),
         )
         self._temporary_root = (
@@ -383,6 +390,11 @@ class ClaudeCodeRuntime(AgentRuntime):
     def confine_executable(self) -> str | None:
         """The wrapper every call starts through, or `None` when calls are not confined."""
         return self._starters.confine_executable
+
+    @property
+    def leftovers(self) -> list[str] | None:
+        """The words that start the program ending the agent's leftover processes, or `None`."""
+        return self._starters.leftovers
 
     def run(self, request: AgentRunRequest) -> AgentRunResult:
         """Run the agent of `request` and turn the JSON it prints into a result.
@@ -473,6 +485,7 @@ class ClaudeCodeRuntime(AgentRuntime):
         time_limit: timedelta,
     ) -> ProcessResult:
         process = self._start(self._process_request(request, files, arguments, time_limit))
+        leftovers_error = self._end_leftovers(request)
         if self._starters.confine_executable is not None:
             self._remove_temporary_folder(request, files.temporary)
         killed = killed_at_limit(
@@ -494,7 +507,20 @@ class ClaudeCodeRuntime(AgentRuntime):
         )
         if refusal is not None:
             raise AgentRuntimeError(refusal)
+        if leftovers_error is not None:
+            raise AgentRuntimeError(leftovers_error)
         return process
+
+    def _end_leftovers(self, request: AgentRunRequest) -> str | None:
+        # The program's fault, or `None` when it ended them or was not due.
+        started = due_leftovers_launch(self._starters, request.os_user, own_identity().user)
+        if started is None:
+            return None
+        # From the root, so the program holds no folder of the run open.
+        process = self._start(_request_of(started, Path("/")))
+        return leftovers_fault(
+            exit_status=process.exit_status, timed_out=process.timed_out, stderr=process.stderr
+        )
 
     def _remove_temporary_folder(self, request: AgentRunRequest, temporary: Path) -> None:
         # Its status is not read: a folder left behind changes no run's result.
