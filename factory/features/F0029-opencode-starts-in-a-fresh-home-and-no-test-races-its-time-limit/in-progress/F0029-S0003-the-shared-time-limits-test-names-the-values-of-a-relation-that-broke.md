@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 367
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T22:53:23.829247Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T22:53:23.829247Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T22:53:40.458817Z'
+  stage: smoke-test
+  run: 845521c8d9d1424e95424e7c1e732ef9
 ---
 
 # The shared time limits' test names the values of a relation that broke
@@ -216,3 +218,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: I ran both smoke-test commands from the repository root, exactly as written and in order. Both met their `Expect:` lines. There are no findings.
+
+    Command 1: `uv run pytest --no-header -p no:cacheprovider tests/test_time_limits.py::test_the_roomy_limit_leaves_room_and_stays_below_every_wait 2>&1 | tail -1 | cut -d' ' -f1-2`
+    ```
+    9 passed
+    ```
+    Expect `9 passed`: met.
+
+    Command 2: `uv run -q python - <<'PY' …` (it imports the test from `tests/` and calls it with `left=30, relation=operator.gt, right=30`)
+    ```
+    30 gt 30
+    ```
+    Expect `30 gt 30`: met.
+
+    Judged against the acceptance criteria:
+    - Criterion 1: all nine rows of the test pass. The smoke test does not print the row ids, so it neither confirms nor contradicts them. The reviewer checked the ids in entry 9.
+    - Criterion 2: when the test is called directly with `30 gt 30`, it raises an `AssertionError` whose message is `30 gt 30`. The smoke test does not run the side where the relation holds (`11.5 lt 25`), but nothing it showed contradicts it.
+    - Criterion 3: `make check` was green after the coder (entry 7). The documenter's run reused that passed result (entry 11). I did not run it again: this stage changes no file.
+    - Criterion 4: docs: none. The smoke test does not touch it.
+
+    Nothing is open.
