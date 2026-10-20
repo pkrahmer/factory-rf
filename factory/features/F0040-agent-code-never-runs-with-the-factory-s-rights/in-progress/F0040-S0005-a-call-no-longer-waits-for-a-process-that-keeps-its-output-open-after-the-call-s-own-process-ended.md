@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 363
 comments_read: [6300695093]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T20:37:20.189453Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-20T20:36:58.514521Z'
   stage: doing
   run: 448b1ddcfa644395b12c03c125e790cf
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:37:20.189453Z'
+  stage: review
 ---
 
 # A call no longer waits for a process that keeps its output open after the call's own process ended
@@ -241,3 +250,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 33 known, 3 gone
+11. factory: started review as self.
