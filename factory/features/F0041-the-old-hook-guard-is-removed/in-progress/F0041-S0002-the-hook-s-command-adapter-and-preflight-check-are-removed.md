@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T11:30:29.237965Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-10-20T11:30:08.643199Z'
   stage: docs
   run: ee5aec4ba3284493bbf3047b24b3d568
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-20T11:30:29.237965Z'
+  stage: smoke-test
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -471,3 +480,4 @@ Expect: `5`
     `check`: check: green (not run again: passed on tree ac33334e0e3c at 2026-10-20T11:25:50Z)
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok
+23. factory: started smoke-test as self.
