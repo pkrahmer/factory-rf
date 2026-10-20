@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 310
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T00:47:39.504841Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T00:47:39.504841Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T00:49:32.567005Z'
+  stage: doing
+  run: 4968fe66c125459f9cb3735c51e848c6
 ---
 
 # The operator guide plans a sweep for a fresh `mutants/` folder only
@@ -99,3 +101,12 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: test: green (40.4 s)
 6. factory: started doing as self.
+7. coder: No code written, as the story asks. Its Interface says no module under `src/factory/` changes. The tester wrote no test module, so no test was failing and there was nothing to make pass. `make check` is green on the unchanged branch (coverage 99.14 %, `check: green`).
+   - Built: nothing. My diff against `main` is empty apart from the factory's own files.
+   - Main choice: I left `docs/operator-guide.md` alone, even though it is the story's only real change. Under CLAUDE.md *Docs* that guide belongs to the documenter, and the coder does not write it. The documenter makes the two paragraph rewrites in criterion 2 (*How long it takes* and *A run that never gets past mutmut's stats*). The alternative I rejected was rewriting the paragraphs myself in this stage: that would put the coder in the documenter's place.
+   - Refactor: nothing to refactor, because there is no diff.
+   - Description: no journal entry changed the meaning of the task, so the Description stands.
+   - Noticed, not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
