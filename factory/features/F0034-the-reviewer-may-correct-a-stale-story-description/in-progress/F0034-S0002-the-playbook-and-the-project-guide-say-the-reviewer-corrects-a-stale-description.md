@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 331
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T04:10:46.013567Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T04:10:25.216923Z'
   stage: intake
   run: 4ae475764ccd4370b7542e4f433bc9e2
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:10:46.013567Z'
+  stage: tests
 ---
 
 # The playbook and the project guide say the reviewer corrects a stale Description
@@ -72,3 +81,4 @@ Expect: two lines, `0` (the count of three is gone) and a number of at least `1`
    Smoke test: runnable. I grepped the current files and each searched string exists today: playbook lines 50, 127 and 148, and agents.md lines 248 and 305. The three commands therefore show a change after the edit. Each Expect line is checkable: three `gone` lines, `1`, and `0` plus a count of at least 1.
    Architecture: documents only, within the documenter's write paths (README.md, docs/*). The playbook is named by the docs criterion, as CLAUDE.md *Docs* allows. No layer is touched.
    Scope: within F0034's goal of bringing the docs in line with the reviewer's new rule. The out-of-scope items (agent texts, tests, decisions, archived stories) are respected, and item 17 stays as it is. Two things to note. The feature's Scope and Stories lists name only S0001 and the playbook; agents.md and S0002 are not in them. S0002 was proposed by the acceptance reviewer and reached backlog through the human's merge, so I took it as approved. I did not ask.
+4. factory: started tests as self.
