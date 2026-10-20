@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 367
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T22:45:08.050814Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T22:45:08.050814Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T22:45:25.711472Z'
+  stage: intake
+  run: 5c182e5ae5d44a1c930d81a82d122eb6
 ---
 
 # The shared time limits' test names the values of a relation that broke
@@ -94,3 +96,9 @@ Expect: `30 gt 30`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: no `src/` change, which is right for a test-only story. It names the one test (`tests/test_time_limits.py::test_the_roomy_limit_leaves_room_and_stays_below_every_wait`), its `left`/`relation`/`right` signature, the failure message format, the nine row ids, the new test and the dropped `timedelta` import. The leave for changing F0029-S0002's test is stated (feature.md, decision 9, S0003).
+   Criteria: 1 (the nine rows pass) and 2 (message `30 gt 30` for a broken relation, a return for `11.5 lt 25`) are each testable by one test function. The only rule here is the message, and both its failing side and its passing side have a criterion. Criterion 3 is `make check`. Criterion 4 is `docs: none`, with a stated reason.
+   Smoke test: both blocks are runnable. `pyproject.toml` already sets `-q` in `addopts`, and the command does not repeat it, so the last line is `9 passed in ...` and the `cut` gives `9 passed`. The second block prints the first line of the assertion message, `30 gt 30`, and the `Expect:` lines are checkable.
+   Architecture: only `tests/` changes, and the test sits at the `tests/` root because it tests a module outside the layers. `tests/time_limits.py` and `src/` stay as they are.
+   Scope: the change falls inside feature.md's scope (S0003 is named for `tests/test_time_limits.py`, "its failure message") and touches nothing in its Out of scope list.
