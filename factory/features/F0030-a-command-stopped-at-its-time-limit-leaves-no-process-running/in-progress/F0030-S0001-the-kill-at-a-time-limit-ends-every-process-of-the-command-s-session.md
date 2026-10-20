@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T09:00:49.409526Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-10-20T09:00:49.409526Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-20T09:06:19.872041Z'
+  stage: doing
+  run: e12c15da521645ffa40812aff95a462c
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -354,3 +356,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.0 s)
     `test`: test: green (147.2 s)
 17. factory: started doing as self.
+18. coder: Round 1, after the tester's changes (entry 16). I changed no code. The three findings in entry 12 were all test changes, and the tester has made them: the `four-fields` row, the merged `test_status_line_is_read`, and `test_process_the_factory_may_not_signal_is_left_not_waited_for` for criterion 8. All of them pass against the existing code. `make check` is green: `test: green (148.3 s)`, 99.16 % coverage, `check: green`.
+
+    What is built (from entries 7 and 10, unchanged):
+    - `src/factory/domain/sessions.py`: `ENDED_STATES`, `ProcessEntry`, `parse_stat` (splits the text at its last `)`) and `left_to_kill` (a sorted set of the matching ids).
+    - `src/factory/adapters/process.py`: `_kill_session` replaces `_kill_group` at the same three call sites. It kills the group first, exactly as before. Then it works in rounds, with a 0.05 s pause between them, until a round finds nothing left to kill:
+      - `_read_process_table` reads `/proc` and skips a folder whose `stat` raises `OSError`.
+      - `_kill_one` skips a `ProcessLookupError` and adds the id to `refused` on a `PermissionError`.
+
+    Main choice: the process table is read fresh on every round. I rejected collecting the targets once and then waiting for them, because a process forked in between would be missed. Criterion 8's new test now covers the `PermissionError` → `refused` branch of `_kill_one`.
+
+    Refactor pass: I read `git diff main -- src` again and found nothing to change.
+
+    The journal's change of meaning (criterion 8 added, `make check` and docs renumbered 9 and 10) is already in `## Description`, so I did not rewrite it.
+
+    Noticed, not touched:
+    - The `ProcessLookupError` branch of `_kill_one` and the skipped unreadable `/proc` folder are race branches and stay untested, as intake and the reviewer accepted.
+    - The possible racy-index cause of the flaky `tests/adapters/test_git_cli_work_tree.py` test (entry 10) is outside this work item.
+    - I did not run the smoke-test blocks; the smoke-test stage runs them.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
