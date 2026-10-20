@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T03:07:05.400190Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T03:07:05.394197Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:07:05.400190Z'
+  stage: intake
+---
+
 # The tests set their own umask, so uv syncs the shared environment under the caller's
 
 ## Description
@@ -45,3 +72,6 @@ grep -c -F 'os.umask(TESTS_UMASK)' tests/conftest.py
 Expect: `1`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
