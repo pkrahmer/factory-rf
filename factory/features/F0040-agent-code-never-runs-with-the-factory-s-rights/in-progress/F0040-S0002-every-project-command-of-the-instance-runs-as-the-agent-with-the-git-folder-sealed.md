@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368, 6300375333]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T20:19:56.904290Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-10-20T20:19:56.904290Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T20:20:23.185714Z'
+  stage: smoke-test
+  run: e8fab14fd143402dbae542ca1396756a
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -501,3 +503,36 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.5 s)
     `documents`: documents ok
 30. factory: started smoke-test as self.
+31. smoke-tester: Ran the one command under `## Smoke test` exactly as written, from the repository root. It produced no findings.
+
+    **Command 1** (the `uv run python - "$d"` script over a fresh `git init` clone in a `mktemp -d` folder). Output, with an `exit=` line I added after it to show the exit status:
+
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 105ms
+    Bytecode compiled 4164 files in 359ms
+    2026-10-20T20:20:13Z removed nested repositories after check: nested/.git
+    passed [False] False True
+    exit=0
+    ```
+
+    Met its `Expect:` line: yes. The two expected lines appear in order:
+    - The factory log's own line: `<UTC time stamp> removed nested repositories after check: nested/.git`.
+    - Then `passed [False] False True`.
+
+    The lines before them are uv's stderr output from creating the `.venv` on first use in this checkout. They come from the environment, not the code under test, and the expectation is about the script's standard output.
+
+    **Against the acceptance criteria:**
+    - The run shows `.git` was not group-writable during the inner run, even though it was set to 0o775 before the call (criterion 1).
+    - The inner result came back unchanged (`passed`).
+    - The nested repository's `.git` was removed after the run (criterion 2).
+    - The factory log line has the stated form (criterion 4).
+    - `SealedProjectCommands` accepted a `ProjectCommands` subclass as `inner` (consistent with criterion 7).
+
+    Nothing in the output contradicts any criterion. The command did not exercise criteria 3, 5, 6 and 8 (the unsealed and missing-`.git` rows, the environment, the wiring and identity checks); the tests cover those. I did not run `make check` (criterion 9) in this stage; the factory runs the stage's checks.
+
+    Findings: none.
