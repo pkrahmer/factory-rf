@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 316
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T02:06:27.180634Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T02:06:27.180634Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T02:07:05.105989Z'
+  stage: review
+  run: 33e7bfc014004ab690cd2a8d803997c6
 ---
 
 # The acceptance tests pin the reviewer's role and the close's commit subjects
@@ -163,3 +165,17 @@ Expect: three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: clo
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'`. It adds one file, `tests/application/test_acceptance_reviewer_role.py`, and changes nothing under `src/`. I read the file against each criterion and against the helpers it calls in `tests/acceptance_walk.py`, `GitCli.log` and `acceptance.py:400`/`:422`.
+
+   - Criterion 1: `test_the_hand_over_s_findings_are_the_reviewer_s_last_result` is one parametrized test with two rows, `[ACCEPTED]` and `[ACCEPTED, RED]`. It checks that the event is `hand_over` and that the findings are exactly `accepted; the feature holds together.`. In the second row a later `tester` result comes after the reviewer's, so a handler that took any speaker's last result would show `red` and fail. The rule's failing side is tested.
+   - Criterion 2: `test_the_close_s_reason_is_the_human_s_comments_after_the_reviewer_s_last_result` is one parametrized test with the two rows the criterion names. It pushes with `stage="approval"` and `handed_over="approval"`, calls `walk.close(number, "Cut the second story.")`, checks that the event is `closed`, and compares the `Recommendation` with the exact refusal paragraph.
+   - Criterion 3: `test_the_close_is_committed_as_close_recorded_on_the_branch_and_closed_refused_on_main` reads the branch's and main's heads with `remote_commit` before the first tick and arms `KillPoint.AFTER_PUSH`. The first tick raises `InjectedKill` under `pytest.raises`. After a fetch, the branch log since its old head must unpack to exactly one commit, `work item F0002-A0001: close recorded`. After the second tick, main's log since its old head must be exactly one commit, `closed, refused`. These subjects match `acceptance.py:400` and `:422`.
+   - Criteria 4 and 5: the coder's entry 7 records `check: green`. The docs criterion "docs: none" is still true, because no behaviour changed.
+   - Architecture and security: the change is test-only, in the mirrored folder. It adds no suppression markers and no secrets.
+   - Quality: `_push_entries` is a three-line helper that does what the Interface prescribes. `acceptance_walk.py` has no helper that appends entries to a document `walk.record` returned and pushes it again. The similar loops in `test_acceptance_closed.py:119` and `test_question_causes_recorded.py:48` build their documents from their own fixtures, so I don't count it as a copy.
+   - Work item: the journal states the main choice (no change under `src/`) and the option rejected (tidying `acceptance.py`), and the Description matches what was built.
+   - `duplicates: 5 new` (entry 7) cannot come from this diff, because `make duplicates` reads only `src/factory`, which this diff leaves alone.
+
+   Earlier tests: none. `git diff --name-status main...HEAD` shows only `A` for `tests/application/test_acceptance_reviewer_role.py`, and the other entries are the work item's own files under `factory/`.
