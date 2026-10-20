@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T21:29:05.176417Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-20T21:28:44.654397Z'
   stage: intake
   run: f46befcc54994c30b7c410e4f1cd3e69
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-20T21:29:05.176417Z'
+  stage: tests
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -237,3 +246,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: both blocks are runnable. They call no pytest, so the `-q` rule does not apply. Each `Expect:` line is checkable against the printed output. Answer 5 confirms GNU `timeout` is at `/usr/bin/timeout` in the image where `make check` runs, which criterion 7 relies on.
    - Architecture: `AgentHome` is an ABC in `application`, `SudoAgentHome` is in `adapters` and starts its process through `process`, and the wiring is in `entry`. The `tests/test_wrapper_search.py` leave is named, and decision 14 of the feature grants it.
    - Scope: the story is within the feature's Scope and Stories list (S0004) and touches nothing in its Out of scope.
+7. factory: started tests as self.
