@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 364
 comments_read: [6301083856]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T20:59:12.502290Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,13 @@ journal:
   kind: started
   at: '2026-10-20T20:59:12.502290Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: question
+  at: '2026-10-20T21:00:58.495903Z'
+  stage: tests
+  run: 1784501eddbd4da9a61630a40e0a0b8b
+  blocked: question
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -325,3 +328,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Noticed but not touched:
     - The `/home/..` row relies on `/home` existing on the test machine. If that is a concern, the tester could use a link in `tmp_path` that points to `/`, which the code now refuses too.
 15. factory: started tests as self.
+16. tester: Tests for criteria 14 and 15 are written. I stopped before adding the rows for finding 3, because no criterion names them yet.
+
+    Question: should criterion 10 get the rows `["--home", "//"]` and `["--home", "/home/.."]`? Each would return 2 with `factory-fresh-home: --home <spelling> is not an absolute folder other than /` and leave the home's files in place. In the Interface, "is `/`" would then read "resolves to `/`".
+    - (a) Yes. You, or the reviewer, add those rows to criterion 10 and change the Interface wording. I write them as rows of `test_main_clears_the_named_home_or_refuses_its_arguments_untouched`. I would use a link in `tmp_path` pointing to `/` instead of `/home/..` only if you name it, since that is a different case. **This is the option I would choose.** The coder already refuses these spellings (entry 14). Without a criterion, nothing pins that refusal, and a program that walks all of `/` is the case that matters most.
+    - (b) No. "Is `/`" means only the literal spelling, criterion 10 stays as it is, and the coder's check that resolves the path stays untested.
+    I cannot do (a) without a criterion. It is a case the criteria leave open, and the work item's Description is not mine to change.
+
+    What I did:
+    - criterion 14: tests/adapters/test_home_files.py::test_the_home_itself_stays_once_emptied (new). A home holding only owned files and folders, `kept` `[]`, gives `[]`, and the home is left as an existing, empty folder. It uses the default `own_entry`, as the test of criterion 7 does.
+    - criterion 15: tests/entry/test_fresh_home.py::test_main_clears_the_named_home_or_refuses_its_arguments_untouched gets three new rows: `home-without-folder` (`["--home"]`), `keep-without-path` (`["--home", <home>, "--keep"]`) and `unknown-option` (`["--home", <home>, "--kept", "a"]`). Each expects 2, the usage line, and the home's files still there.
+
+    Files created: none. I changed only test files this story wrote: tests/adapters/test_home_files.py and tests/entry/test_fresh_home.py.
+
+    Modules the test run could not import: none. The code exists, so the new tests passed at once instead of failing first. `make test`: test: green (64.1 s). `make lint`: lint: green.

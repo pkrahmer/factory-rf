@@ -143,3 +143,13 @@ def test_an_own_folder_holding_a_foreign_entry_stays_and_an_own_empty_one_goes(h
     assert faults == []
     assert (home / ".cache/x/f").is_file()
     assert not (home / ".cache/y").exists()
+
+
+def test_the_home_itself_stays_once_emptied(home: Path) -> None:
+    build_home(home, [".claude/projects/p/t.jsonl", ".cache/", ".profile"])
+
+    faults = clear_home(home, [])
+
+    assert faults == []
+    assert home.is_dir()
+    assert listing(home) == set()

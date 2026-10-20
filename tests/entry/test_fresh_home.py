@@ -51,6 +51,13 @@ def home(tmp_path: Path) -> Path:
             FILES,
             id="keep-outside",
         ),
+        pytest.param(lambda _h: ["--home"], 2, [USAGE], FILES, id="home-without-folder"),
+        pytest.param(
+            lambda h: ["--home", str(h), "--keep"], 2, [USAGE], FILES, id="keep-without-path"
+        ),
+        pytest.param(
+            lambda h: ["--home", str(h), "--kept", "a"], 2, [USAGE], FILES, id="unknown-option"
+        ),
     ],
 )
 def test_main_clears_the_named_home_or_refuses_its_arguments_untouched(
