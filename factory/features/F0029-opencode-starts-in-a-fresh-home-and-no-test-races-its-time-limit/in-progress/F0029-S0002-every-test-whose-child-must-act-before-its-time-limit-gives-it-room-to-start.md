@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 342
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T07:16:15.259764Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T07:16:15.259764Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T07:16:34.596236Z'
+  stage: intake
+  run: 1d25bb4768c9492b8f507c4ec5c79b15
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -103,3 +105,9 @@ Expect: four lines, `tests/adapters/test_opencode_resume_session.py:0`, `tests/a
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: no module under `src/factory/` changes, which the story says outright. `tests/time_limits.py` is given in full: `ROOMY_LIMIT` (`timedelta(seconds=10)`) and `ROOMY_BOUND_SECONDS` (25), typed `Final`. Every changed test is named by module and test, and each says which constants go and which stay (`SHORT_LIMIT` for the removal test, `RETURNS_WITHIN_SECONDS` for the streaming tests' other tests).
+   Criteria: all seven are testable. Criterion 1 holds the numeric relations of the Interface and the stand-in waits (30 each) above the bound; `PAST_LIMIT_SECONDS` is checked above the limit and below the bound. Criteria 2 and 3 name for each killed run what the child must still have done before the kill. Criterion 4 gives the numbers for the rewritten resume test (2 s first call, 60 s resume wait, a request limit of at least the limit less the elapsed time and at most the limit less 2 s); the whole 10 s again fails it. Criterion 5 gives the rewritten one-second test, with the refused side kept in `test_time_limit_of_zero_or_less_is_rejected`. The failing side of the limit rule is covered: a missed kill fails because every stand-in waits longer than the bound. Criterion 6 is `make check` and criterion 7 is the docs criterion.
+   Smoke test: the first block runs pytest with `--no-header --tb=short` and no `-q`; its `Expect` counts `FAILED`/`ERROR` lines and the exit status, so it does not rely on a summary line. The second block's `grep -c` over three files and the `python -c` print give four lines whose text can be checked.
+   Architecture: tests only, under `tests/` at the root for the shared module and in the mirrored `tests/adapters/` for the changed ones. This follows CLAUDE.md. Nothing in `src/` or the layers is touched.
+   Scope: within the feature's S0002 scope and decisions 6, 7, 9 and 10. It stays out of the feature's "Out of scope" (shipped tester lesson, `RUNTIME_FOLDERS`, short-limit tests). The leave to change other stories' tests is given by the feature's decision 9. The `CLAUDE.md` rule is the human's change 2, not this story's. No questions.
