@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T20:45:49.765270Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-20T20:45:49.765270Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-20T20:46:09.647182Z'
+  stage: intake
+  run: c88ed764cf694fb3b4e077be7113d898
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -121,7 +123,7 @@ Tests (the tester writes them): `tests/domain/test_agent_home.py`, `tests/adapte
 
 1. `inside_home` (rows of one parametrized test): `.config/sso` and `a` are true; `""`, `/a`, `a//b`, `./a`, `a/.`, `a/..` and `..` are false.
 2. `FACTORY_OPENCODE_FOLDERS=.config/sso,a/../b` is refused by `read_settings` with `SettingsInvalid` naming `FACTORY_OPENCODE_FOLDERS` and `holds a/../b, which is not a folder inside the agent's home`, as today, and `.config/sso` alone gives `[".config/sso"]`.
-3. `kept_paths(Path("/home/agent"), login_files=[Path("/home/agent/.claude-token"), None, Path("/run/key")], state_files=[".claude/.credentials.json"], folders=[".config/sso", ".claude-token"])` gives `[".claude-token", ".claude/.credentials.json", ".config/sso"]`. A `folders` entry `/abs` raises `ValueError` whose message holds `/abs` (rows of one parametrized test with the valid case).
+3. `kept_paths(Path("/home/agent"), login_files=[Path("/home/agent/.claude-token"), None, Path("/run/key")], state_files=[".claude/.credentials.json"], folders=[".config/sso", ".claude-token"])` gives `[".claude-token", ".claude/.credentials.json", ".config/sso"]`. A `folders` entry `/abs` raises `ValueError` whose message holds `/abs` (rows of one parametrized test with the valid case). So does a `state_files` entry `../x`, which raises `ValueError` whose message holds `../x`.
 4. `fate` (rows of one parametrized test, `kept` `[".claude-token", ".config/sso"]`): `.claude-token` not owned and not a folder is `keep`; `.config/sso` owned folder is `keep`; `.config/sso/login` owned file is `keep`; `.config` owned folder is `descend`; `.claude` not owned folder is `descend`; `.claude/projects` owned folder is `descend`; `.claude/CLAUDE.md` owned file is `remove`; `.claude/settings.json` not owned file is `keep`; `.config-old` owned file is `remove` (a name that only begins like a kept path); `.config` owned and not a folder (a link or a file) is `remove`, and not owned and not a folder is `keep`, although `.config/sso` lies beneath its name.
 5. `removed_when_empty` (rows of one parametrized test, same `kept`): `.cache` owned is true; `.config` owned is false (a kept path lies beneath it); `.claude` not owned is false.
 6. `clear_home` on a home in `tmp_path` holding `.claude/agents/a.md`, `.claude/settings.json`, `.claude/CLAUDE.md`, `.claude/rules/x.md`, `.claude/projects/p/t.jsonl`, `.claude/.credentials.json`, `.config/opencode/`, `.config/sso/login`, `.cache/uv/f`, `.profile` and `.claude-token`, with `kept` `[".claude-token", ".claude/.credentials.json", ".config/sso"]` and `owned` false for `.claude`, `.claude/agents`, `.claude/agents/a.md`, `.claude/settings.json` and `.config/opencode`: afterwards the home holds exactly `.claude`, `.claude/agents`, `.claude/agents/a.md`, `.claude/settings.json`, `.claude/.credentials.json`, `.config`, `.config/opencode`, `.config/sso`, `.config/sso/login` and `.claude-token`, and the faults are `[]`.
@@ -130,8 +132,10 @@ Tests (the tester writes them): `tests/domain/test_agent_home.py`, `tests/adapte
 9. A fault: with an `owned` that raises `PermissionError(13, "Permission denied")` for `.cache/a` and answers true otherwise (the tests cannot make an unremovable entry without root), `clear_home` gives `[".cache/a: Permission denied"]`, the walk goes on, and `.cache/b` beside it is removed.
 10. `main` (rows of one parametrized test, `stderr` a `StringIO`): `["--home", <home>]` over a home holding only owned files returns 0, writes nothing, and leaves the home empty. `["--home", <home>, "--keep", "a"]` keeps `a`. `[]` and `["--keep", "a"]` return 2 with the usage line. `["--home", "relative"]`, `["--home", "/"]` and `["--home", <missing folder>]` return 2 with `factory-fresh-home: --home <folder> is not an absolute folder other than /`. `["--home", <home>, "--keep", "../x"]` returns 2 with `factory-fresh-home: --keep ../x is not a path inside the home`. In each row that returns 2, the home's files are all still there.
 11. `main` with the `owned` of criterion 9 returns 1 and writes `factory-fresh-home: .cache/a: Permission denied`.
-12. `make check` stays green.
-13. docs: `docs/project-guide/agents.md`, a new section *The fresh home* after *The shared launch module*: the program, its arguments and exit statuses, the rule of `fate` and `removed_when_empty` (the user's own entries go, other users' stay, kept paths and what lies beneath them stay), that it never follows a link and has no default home, and that S0004 starts it. `docs/project-guide/README.md`: the index names the new modules under the agents domain. `docs/decisions.md`: none in this story; S0004 writes the entry.
+12. Modes of entries that are not `owned`: a not-owned folder `.claude/agents` at mode `0o500` and a not-owned file `.claude/settings.json` at mode `0o444` keep their modes after `clear_home`.
+13. An owned folder that holds an entry that is not `owned`: an owned `.cache/x/` holding a not-owned file `.cache/x/f`, beside a kept path outside it, stays with its file after `clear_home`, and an owned empty folder `.cache/y` is gone.
+14. `make check` stays green.
+15. docs: `docs/project-guide/agents.md`, a new section *The fresh home* after *The shared launch module*: the program, its arguments and exit statuses, the rule of `fate` and `removed_when_empty` (the user's own entries go, other users' stay, kept paths and what lies beneath them stay), that it never follows a link and has no default home, and that S0004 starts it. `docs/project-guide/README.md`: the index names the new modules under the agents domain. `docs/decisions.md`: none in this story; S0004 writes the entry.
 
 ## Smoke test
 
@@ -171,3 +175,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    2. A new criterion: a not-owned folder (for example `.claude/agents`, mode `0o500`) and a not-owned file (mode `0o444`) keep their modes after `clear_home`.
    3. A new criterion: an owned `.cache/x/` holding a not-owned file `.cache/x/f`, beside a kept path outside it; afterwards `.cache/x` and its file stay, and an owned empty folder `.cache/y` is gone.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete modules and signatures (`factory.domain.agent_home`, `factory.adapters.home_files`, `factory.entry.fresh_home`); every rule of `inside_home`, `kept_paths`, `fate`, `removed_when_empty`, `clear_home` and `main` is stated precisely.
+   - Criteria: each is testable by one test function. Every rule has its failing side: `inside_home` false rows, `kept_paths` ValueError for `folders` and `state_files`, `fate` remove/keep/descend rows, `main` usage, home and keep refusals with the home untouched, and the fault path. Interface rules that had no criterion now have one. I carried in the human's answer (journal entry 4, "take all three proposals") and wrote only that into the story: (1) criterion 3 gains the `state_files=["../x"]` row; (2) new criterion 12 on the unchanged modes of not-owned entries; (3) new criterion 13 on an owned folder holding a not-owned file, and the removal of an owned empty folder. The two closing criteria are now 14 (`make check`) and 15 (`docs:`). The Description needed no rewrite.
+   - Smoke test: the commands are runnable and use no pytest. The `Expect:` list matches the `LC_ALL=C` sort order and the two statuses (0 and 2) can be checked.
+   - Architecture: the pure rule is in the domain, the walk in an adapter, and the command line in the entry. The `test_wiring` leave is granted by the feature's decision 14. `settings` reuses `inside_home` downward, which the layers allow.
+   - Scope: within F0040's Scope (S0003 lines) and not in its Out of scope. No `pyproject.toml`, dependency or `factory/` change.
