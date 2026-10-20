@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-20T02:54:13.594486Z'
   stage: smoke-test
   run: 3f422c0ed5de418fb30bbdad7fd78b40
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-20T02:55:33.053570Z'
+  stage: approval
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -319,3 +324,4 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
     - Criteria 3 to 5: the smoke test does not reach them, and nothing in its output contradicts them.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 7.2 min, 51 turns, 190975 tokens in (796517 more from cache), 17166 out, $1.84
