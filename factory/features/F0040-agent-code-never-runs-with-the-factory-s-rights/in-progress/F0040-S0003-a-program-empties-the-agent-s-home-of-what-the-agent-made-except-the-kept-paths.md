@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T21:19:49.193564Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -191,6 +195,11 @@ journal:
   at: '2026-10-20T21:19:27.529177Z'
   stage: docs
   run: 2f27da1bb621479bae4b6bee2718965c
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-10-20T21:19:49.193564Z'
+  stage: smoke-test
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -591,3 +600,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 9c9ade480b8d at 2026-10-20T21:15:40Z)
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
+34. factory: started smoke-test as self.
