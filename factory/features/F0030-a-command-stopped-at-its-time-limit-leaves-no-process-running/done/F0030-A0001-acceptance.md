@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T09:35:52.695628Z'
   stage: acceptance
   run: 1827d59f405e4efa940bf8151b4801ac
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T09:44:24.589649Z'
+  stage: done
 stories: [F0030-S0001]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of A command stopped at its time limit leaves no process running
@@ -149,3 +154,4 @@ The reviewers' runs were the dearest single runs ($0.66, $0.58). Had intake aske
    6. Decisions: the feature's 15 decisions are listed. 12 and 15 are moot now, 13 is kept (KILL only), and 14 waits for change 2. The story's own choices are listed too: the docstring split, and criteria 8 and 9 added by the reviewer. No earlier test was changed.
    7. Slow checks: `make check` green (test 157.8 s), `documents ok`, `duplicates: 5 new` (none in this feature's files). The ten time-limit rows run about 10 s each by design, about 101 s summed. Disk did not grow.
    8. Cost: 1 story, 15 runs, 28.6 min, $4.94, no question to the human. The cost came from one stall on the flaky git test and two rework rounds that each only added a test (criteria 8 and 9).
+3. factory: done (pull request merged); cost: 1 runs, 9.1 min, 40 turns, 128349 tokens in (3061508 more from cache), 34040 out, $2.32
