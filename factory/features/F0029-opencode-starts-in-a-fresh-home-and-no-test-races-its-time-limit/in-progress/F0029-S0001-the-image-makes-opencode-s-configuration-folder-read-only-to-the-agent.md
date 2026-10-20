@@ -1,17 +1,13 @@
 ---
 stage: smoke-test
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 309
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T00:39:45.100168Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,13 @@ journal:
   kind: started
   at: '2026-10-20T00:39:45.100168Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: question
+  at: '2026-10-20T00:40:31.321297Z'
+  stage: smoke-test
+  run: 915e795973264a59885bcd8c92f7e733
+  blocked: question
 ---
 
 # The image makes opencode's configuration folder, read-only to the agent
@@ -212,3 +215,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.6 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: The smoke test is not finished: the first command ran and passed, but the second one was never run. Claude Code's safety check blocked it in this session, so I have no result to judge it on. I stopped there and did not try to get around the check.
+
+    Command 1 met its `Expect:` line (`3`):
+    ```
+    $ grep -c -F -e 'mkdir -p /home/agent/.config/opencode' -e 'chown factory:factory-work /home/agent/.config/opencode' -e 'chown agent:factory-work /home/agent/.config ' image/Dockerfile
+    3
+    ```
+
+    Command 2 (`factory-confine` running `opencode debug config` in a `fresh` home and in a `made` one) did not run, so I cannot say whether it met its `Expect:` line. It was blocked twice:
+    - Run as written, Claude Code's built-in check refused it: "This command passes a shell -c script that runs rm, and Claude Code could not check the script for dangerous removals." It flags the `trap 'rm -rf "$d"' EXIT` line, and the `sh -c '... exec opencode debug config'` inside the loop seems to make it unable to check the script. Only a person can approve that, and no prompt was possible here.
+    - The check's message says to finish the task without the removal, so I tried once more with only the `trap` line left out (`mktemp -d` puts the folder in `$TMPDIR`, which the factory removes). It was refused with the same message. The check says not to try again by splitting or rewriting the command, so I stopped. Nothing was run and nothing was left behind.
+
+    Not a finding: I have nothing that contradicts an acceptance criterion. Command 1 confirms the Dockerfile lines behind criterion 1. Criteria 2 to 4 rest on the tests and `make check`, which the earlier stages recorded as green. I did not run `make check` again, because the smoke test does not include it.
+
+    Question: how should command 2 be run? Options:
+    (a) The human runs command 2 as written in the image (or approves it in an interactive session) and posts its output; the smoke test then runs again, and I judge that output against `fresh 1`, `made 0`, `1`.
+    (b) The human changes the `## Smoke test` so the safety check can read it, for example a script file run with `bash <file>`, or no `trap rm -rf` (the stage's `$TMPDIR` is removed anyway), and the stage runs again.
+    (c) The human accepts command 1 alone for this story and leaves the mechanism to change 1 on a recreated instance, which the story already names as the human's.
+    I would choose (b): the smoke test stays repeatable by the pipeline. As far as this run shows, the `trap` line plus the `sh -c` is what the check refuses.
