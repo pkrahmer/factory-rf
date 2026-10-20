@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T04:02:01.913174Z'
   stage: smoke-test
   run: f722a0e106ec48aab13e9279724a3af1
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T04:03:20.549947Z'
+  stage: approval
 ---
 
 # The reviewer corrects a stale Description itself
@@ -219,3 +224,4 @@ Expect: `1`
     - Criteria 5 and 6 (`make check` and docs) are not what the smoke test checks. The journal records `check: green` and the docs stage's checks as green.
 
     Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 3.7 min, 36 turns, 104297 tokens in (557574 more from cache), 9432 out, $0.95
