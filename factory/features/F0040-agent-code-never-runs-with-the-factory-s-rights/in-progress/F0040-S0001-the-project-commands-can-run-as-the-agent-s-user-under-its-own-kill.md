@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T18:01:13.260396Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T18:00:54.894419Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T18:01:13.260396Z'
   stage: tests
 ---
 
@@ -225,3 +234,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `make test`: the module could not be imported, an ImportError for `factory.adapters.make_commands.CommandUser`, which is the failure to expect before the code exists. `make lint` is green.
 9. 2026-10-20 human: Answer (2026-10-20): (a). The row means "the leftovers call cannot be started": the `check` recipe removes the stand-in `sudo` before the leftovers call, and the expected detail stays `cannot end the agent's processes: [Errno 2] No such file or directory`. Change the criterion's words to say so. My earlier answer 2 was imprecise; this replaces it.
+10. factory: started tests as self.
