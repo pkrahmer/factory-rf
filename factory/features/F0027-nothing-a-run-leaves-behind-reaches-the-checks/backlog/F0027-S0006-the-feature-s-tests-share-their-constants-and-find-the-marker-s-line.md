@@ -18,7 +18,7 @@ CLEAN_IGNORED = "git clean --quiet --force --force -d -X"
 ROOT = Identity(uid=0, user="root", pid=11)
 ```
 
-- `tests/adapters/test_git_cli_ignored.py` and `tests/application/test_sealed_runs_ignored.py` lose their `CLEAN` and use `git_support.CLEAN_IGNORED`. `tests/application/test_tick_ignored.py` builds its expected detail as `f"{CLEAN_IGNORED} failed (exit 1)"`. `tests/domain/test_leftovers.py` and `tests/entry/test_leftovers.py` use `leftovers_support.ROOT` in place of the three constructions. This is the standing leave to move a shared test helper (`CLAUDE.md`, *Tests*).
+- `tests/adapters/test_git_cli_ignored.py` and `tests/application/test_sealed_runs_ignored.py` lose their `CLEAN` and use `git_support.CLEAN_IGNORED`. `tests/application/test_tick_ignored.py` checks `stop.detail.startswith(f"{CLEAN_IGNORED} failed (exit 1)")`, the same prefix it checks today as a literal. `tests/domain/test_leftovers.py` and `tests/entry/test_leftovers.py` use `leftovers_support.ROOT` in place of the three constructions. This is the standing leave to move a shared test helper (`CLAUDE.md`, *Tests*).
 - `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`: the entry `"entry/leftovers.py": {32: {"noqa: PLR0913"}}` takes its line number from a search of `src/factory/entry/leftovers.py` for the line that starts `def main(`, the way the test finds the lines of its other entries. Leave: this is beyond the standing leave. The human grants it in F0027's `feature.md`, decision 16, with a line for S0006, before this story starts. The test keeps its name, and its other entries and what it checks stay.
 - No new test module.
 
