@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 352
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T12:54:53.370489Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T12:54:53.370489Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T12:55:11.239208Z'
+  stage: smoke-test
+  run: 184bf2debdc141f292070d1806b9cecf
 ---
 
 # The follow-mode test reads only the Python sources
@@ -217,3 +219,30 @@ Expect: `1`
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: I ran the three commands under `## Smoke test` from the repository root, as written and in order. All three met their `Expect:` lines. I fixed nothing.
+
+    1. `uv run pytest tests/entry/test_watch.py -k 'follow_mode_scan or knows_the_follow_mode' 2>&1 | tail -n 1 | sed 's/ in .*//'`
+    ```
+    7 passed, 12 deselected
+    ```
+    Met `Expect: 7 passed, 12 deselected`: the two rows of criterion 1 and the five rows of criterion 2 passed.
+
+    2. `grep -c 'rglob("\*")' tests/entry/test_watch.py`
+    ```
+    0
+    ```
+    Met `Expect: 0`. grep's exit status is 1 because it found no match; that is the expected result, not an error.
+
+    3. `grep -c '"PYTHONDONTWRITEBYTECODE": "1"' tests/test_tests_umask.py`
+    ```
+    1
+    ```
+    Met `Expect: 1`.
+
+    Criteria re-read: the smoke test contradicts none of them.
+    - Criteria 1 and 2 are covered by command 1. The 7 passed tests are the two rows of criterion 1 and the five of criterion 2.
+    - Criterion 3 is only partly covered here: command 3 confirms the child's environment holds `"PYTHONDONTWRITEBYTECODE": "1"`, but the smoke test does not run the umask test's rows. Entry 7 records them passing under `make check`.
+    - Criterion 4: entry 7 records `make check` green.
+    - Criterion 5 is `docs: none`.
+
+    Findings: none.
