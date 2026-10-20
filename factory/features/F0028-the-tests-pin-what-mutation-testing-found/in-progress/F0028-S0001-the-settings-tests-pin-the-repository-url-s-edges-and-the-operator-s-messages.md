@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T01:21:01.208408Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-20T01:21:01.208408Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T01:21:34.960538Z'
+  stage: review
+  run: 1e406de0921f4846b37736303cd30cd8
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -228,3 +230,25 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 16. factory: started review as self.
+17. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`. The diff touches three test files and nothing under `src/`.
+
+    no findings
+
+    - Acceptance criteria:
+      - Criterion 1 is `tests/domain/test_settings_url_edges.py::test_the_password_rule_judges_only_the_authority`, one parametrized test. It has the three accepted edges (a `:` and `@` in the path, a second `://` in the path, an `@` in the user name with no password) and the refused `u@x:y@`, which checks `variable` and the exact `fault`.
+      - I read the rows against `src/factory/domain/settings.py:142-147` (`partition("://")`, `split("/", 1)[0]`, `rpartition("@")`). Each row tells the built rule apart from the variant it names: judging the whole URL, splitting on the last `://`, or splitting on the first `@`.
+      - Criterion 2 is `test_a_refused_setting_names_its_variable_and_its_fault`. Its eight rows match the criterion's list one for one, and each checks `variable`, `fault` and `str(error) == f"{variable}: {fault}"`.
+      - The rule's two sides are rows of one test, not separate tests.
+      - Both URLs that hold a credential are built by concatenation, and no constant name holds `password`, `secret` or `token`.
+      - The coder's `make check` was green (journal 15).
+    - Architecture and security: no change under `src/`, no markers that silence a check, no secrets.
+    - Quality: the round-0 finding is closed. The copied `_raising` now lives once, as `raising`, in `tests/settings_support.py:9`. Both `tests/domain/test_settings.py:12` and `tests/domain/test_settings_url_edges.py:10` import it, and no copy is left.
+    - Work item hygiene: the Description, the Interface ("No module under `src/factory/` changes") and the docs criterion (`docs: none`) match what was built.
+
+    Earlier tests:
+    - `tests/domain/test_settings.py` (M): changed under the standing leave to move a shared test helper. The change removes `_raising` and changes its one call site to the shared `raising` in a `parametrize` list. Every test keeps its name and what it checks.
+    - `tests/settings_support.py` (M): changed under the same standing leave, as the shared place under `tests/` that receives `raising`. `BASE` is unchanged.
+
+    Notes:
+    - `tests/domain/test_settings_url_edges.py:15` `_returning(text)` is a reader that returns the same text for every path. `_reader({DEFAULT_IMAGE_PATH: "  \n"})` in `tests/domain/test_settings.py:19` does the same job but stays private to that module. It is not a copy, so this is not a finding.
+    - `tests/settings_support.py:1` the module docstring still names only the environment and not the shared `raising` reader that now sits beside it.
