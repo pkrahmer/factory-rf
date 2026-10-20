@@ -1,7 +1,6 @@
 """The production wiring of the dispatcher: the handlers, the unhandled kinds, the environment."""
 
 import os
-import shutil
 import sys
 from datetime import timedelta
 from pathlib import Path
@@ -97,17 +96,10 @@ def test_the_kinds_without_a_handler_are_exactly_those_not_yet_handled(
     assert unhandled_kinds(handlers) == list(NOT_YET_HANDLED)
 
 
-@pytest.mark.parametrize("guard_present", [True, False], ids=["guard-present", "guard-absent"])
-def test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home(
-    tmp_path: Path, *, guard_present: bool
-) -> None:
+def test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home(tmp_path: Path) -> None:
     scripts = tmp_path / "scripts"
     scripts.mkdir()
     home = tmp_path / "home"
-    if guard_present:
-        guard = scripts / "factory-guard"
-        guard.write_text("", encoding="utf-8")
-        guard.chmod(0o755)
 
     environment = agent_environment(scripts, home)
 
@@ -115,8 +107,6 @@ def test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home(
     assert environment["HOME"] == str(home)
     assert environment["PATH"] == f"{scripts}:/usr/local/bin:/usr/bin:/bin"
     assert environment["PATH"].split(os.pathsep)[0] == str(scripts)
-    found = shutil.which("factory-guard", path=environment["PATH"])
-    assert found == (str(scripts / "factory-guard") if guard_present else None)
 
 
 def test_the_production_environment_uses_the_interpreter_directory_and_the_home(

@@ -8,19 +8,7 @@ from confine_support import write_script
 from factory.application.boundaries import Boundaries
 from factory.domain.preflight import PreflightItem
 from factory.domain.settings import InstanceSettings
-from factory.entry.wiring import machine_extras
-from wiring_support import every_tool
-
-
-def _item(
-    boundaries: Boundaries, settings: InstanceSettings, environment: dict[str, str], name: str
-) -> PreflightItem:
-    # The items run in order up to the one asked for, so the agent run probe never starts.
-    for check in machine_extras(boundaries, settings, every_tool, environment):
-        item = check()
-        if item.name == name:
-            return item
-    raise AssertionError(name)
+from wiring_support import machine_item
 
 
 @pytest.mark.parametrize(
@@ -28,8 +16,6 @@ def _item(
     [
         pytest.param("confinement", "factory-confine", True, id="confinement-agent-path"),
         pytest.param("confinement", "factory-confine", False, id="confinement-own-path"),
-        pytest.param("agent-environment", "factory-guard", True, id="environment-agent-path"),
-        pytest.param("agent-environment", "factory-guard", False, id="environment-own-path"),
     ],
 )
 def test_the_wrapper_items_search_the_agent_run_s_path_not_the_process_s(
@@ -58,7 +44,7 @@ def test_the_wrapper_items_search_the_agent_run_s_path_not_the_process_s(
     )
     environment = {"PATH": str(agent_path), "HOME": str(home)}
 
-    item = _item(boundaries, settings, environment, name)
+    item = machine_item(boundaries, settings, environment, name)
 
     if on_agent_path:
         assert item == PreflightItem(name=name, passed=True)

@@ -10,8 +10,6 @@ from pydantic import BaseModel, ConfigDict
 import factory
 
 EXCEPTIONS = [
-    "factory.adapters.claude_guard._ToolInput",
-    "factory.adapters.claude_guard._Payload",
     "factory.adapters.claude_runtime._Usage",
     "factory.adapters.claude_runtime._Denial",
     "factory.adapters.claude_runtime._StructuredOutput",

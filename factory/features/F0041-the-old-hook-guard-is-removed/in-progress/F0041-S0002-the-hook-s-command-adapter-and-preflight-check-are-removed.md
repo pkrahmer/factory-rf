@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T10:52:01.792838Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T10:52:01.792838Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T10:58:33.077840Z'
+  stage: tests
+  run: b4bb58e5eccb430caf3bd091fa323184
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -142,3 +144,35 @@ Expect: `5`
    - Architecture: the changes stay in their layers. The domain loses a constant, an error and a field. The application item narrows to `HOME`. The entry wiring drops the re-exports. The adapter and the entry module are deleted. No layer import is reversed, and `GuardSettings`, `AgentRunRequest.guard`, `refusal` and `WritePathService` are kept as decision 4 says.
    - Scope: within the feature's S0002 scope list (decisions 2, 3, 4, 5, 8, 10). The human's leave in decision 10 names every changed or deleted test of other stories. The console script line, the documents and the kernel's guard are left out, as the feature's out-of-scope list requires.
 4. factory: started tests as self.
+5. tester: Wrote the tests for this story's criteria, and deleted or changed the earlier tests that the Interface lists under the feature's decision 10.
+
+   Criterion → test:
+   - criterion 1: tests/test_hook_removed.py::test_the_hook_s_code_is_gone_and_the_kernel_s_guard_is_kept (one row per name: two `find_spec` rows, four removed names, two `__all__` rows, `CONFINE_COMMAND == "factory-confine"`, and four kept names)
+   - criterion 2: tests/test_hook_removed.py::test_the_guard_settings_have_no_temporary_folder (rows: the four fields in order, a build without `temporary_directory`, and `ValidationError` with it; the constructor is reached through a variable typed `type[BaseModel]`)
+   - criterion 3: tests/application/test_agent_environment_item.py::test_the_agent_environment_checks_the_home_only (five rows: PATH /usr/bin with home, home without PATH, PATH /opt/factory/bin with home, no HOME, HOME a file)
+   - criterion 4: tests/entry/test_wiring_agent_environment.py::test_the_wiring_s_agent_environment_needs_no_factory_guard (rows `home` and `missing-home`, run through `machine_extras` with an agent PATH that holds only `factory-confine`)
+   - criterion 5: tests/application/test_undo.py::test_the_guard_refuses_exactly_what_the_undo_puts_back, now judging with `factory.domain.write_paths.refusal(path, settings)` on the relative paths
+   - criteria 6 and 7: no test (`make check`; docs: none)
+
+   Files created: tests/test_hook_removed.py, tests/entry/test_wiring_agent_environment.py.
+
+   Files deleted under decision 10: tests/adapters/test_claude_guard.py, tests/adapters/test_claude_guard_temporary.py, tests/entry/test_guard.py, tests/guard_support.py.
+
+   Files changed under decision 10:
+   - tests/application/test_agent_environment_item.py: rewritten for criterion 3.
+   - tests/application/test_undo.py: `judge` replaced by `refusal`; `_payload` and the unused `json` and `Path` imports removed.
+   - tests/test_model_configuration.py: the two `claude_guard` rows removed from `EXCEPTIONS`.
+   - tests/application/test_agent_run_probe.py::test_the_probe_runs_once_for_each_image_build: now calls `agent_environment_item(environment, is_directory)`. The old count of `find` calls is replaced by a count of `is_directory` calls (`homes == [tmp_path]`), so it still checks that the item runs once across the two preflight runs.
+   - tests/entry/test_wiring_extras_path.py: the two `agent-environment`/`factory-guard` rows removed.
+   - tests/entry/test_wiring_handlers.py::test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home: the `guard_present` parameter, the `factory-guard` script, the `shutil.which` check and the `shutil` import removed. The PATH and HOME checks are unchanged.
+
+   Under the standing leave in CLAUDE.md (*Tests*), I moved `_item` from tests/entry/test_wiring_extras_path.py to tests/wiring_support.py as `machine_item`. The earlier file now imports it from there, and its test keeps its name and checks the same thing.
+
+   `make test`, run once: it failed on the new and changed tests for the right reasons, not on syntax. The last lines named test_model_configuration's `claude_guard` rows (the module still exists), test_agent_run_probe's image-build test (old signature), and test_hook_removed's refused-`temporary_directory` row. After that run I merged test_hook_removed.py's separate test functions into the two parametrized tests that criteria 1 and 2 call for, and fixed two lint findings (an unused `Path` import, a `PLR0402` import alias). I did not run `make test` again, as the stage says. The restructured file has the same checks and passes `make lint`, but its failure has not been seen in a run. `make lint`: green.
+
+   The test runner could import every module the tests need. The failures are wrong results or the old `agent_environment_item` signature, not missing modules.
+
+   Nothing is open; no criterion needed interpreting.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/application/test_agent_environment_item.py::test_the_agent_environment_checks_the_home_only[home-not-a-directory]

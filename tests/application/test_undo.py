@@ -1,13 +1,10 @@
 """The undo puts back every mark an agent may not leave, by the stage-start commit."""
 
-import json
 import re
 from collections.abc import Callable
-from pathlib import Path
 
 import pytest
 
-from factory.adapters.claude_guard import judge
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.undo import UndoReport
@@ -15,6 +12,7 @@ from factory.application.write_paths import WritePathService
 from factory.domain.errors import WorkItemFormatError
 from factory.domain.journal import NewEntry, append_entry
 from factory.domain.paths import cost_records_path
+from factory.domain.write_paths import refusal
 from git_support import PIPELINE_YAML, write_files
 from human_clone import HumanClone
 from undo_support import (
@@ -49,10 +47,6 @@ def _edit_section(boundaries: Boundaries) -> str:
     edited = target.read_text(encoding="utf-8").replace("Original.", "Changed by the agent.")
     target.write_text(edited, encoding="utf-8")
     return edited
-
-
-def _payload(file_path: Path) -> str:
-    return json.dumps({"tool_name": "Write", "tool_input": {"file_path": str(file_path)}})
 
 
 def test_a_modified_tracked_file_outside_the_write_paths_is_reverted(
@@ -303,8 +297,7 @@ def test_the_guard_refuses_exactly_what_the_undo_puts_back(
     start = start_stage(boundaries, human, stage="doing")
     paths = ["src/a.py", "docs/a.md", "tests/t.py", "pyproject.toml", PIPELINE_FILE]
     settings = WritePathService(boundaries).at(start, PATH)
-    verdicts = {path: judge(_payload(settings.root / path), settings) for path in paths}
-    refused = {path for path, verdict in verdicts.items() if not verdict.allowed}
+    refused = {path for path in paths if refusal(path, settings) is not None}
     write_files(boundaries.checkout, dict.fromkeys(paths, AGENT_TEXT))
 
     report = undo_stage(boundaries, start)

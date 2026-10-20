@@ -217,15 +217,15 @@ def test_the_probe_runs_once_for_each_image_build(
     boundaries.git.fetch()
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
-    finds: list[str] = []
+    homes: list[Path] = []
 
-    def find(name: str, path: str) -> str | None:
-        finds.append(name)
-        return f"{path.partition(':')[0]}/{name}"
+    def is_directory(path: Path) -> bool:
+        homes.append(path)
+        return path.is_dir()
 
     environment = {"PATH": "/opt/factory/bin:/usr/bin", "HOME": str(tmp_path)}
     extra = [
-        lambda: agent_environment_item(environment, find, Path.is_dir),
+        lambda: agent_environment_item(environment, is_directory),
         lambda: agent_run_probe_item(boundaries, probe_settings, environment),
     ]
     checks = MachineChecks(boundaries, probe_settings, lambda name: f"/usr/bin/{name}", extra)
@@ -236,4 +236,4 @@ def test_the_probe_runs_once_for_each_image_build(
     assert preflight.run() is None
 
     assert len(agent_runtime.requests()) == 1
-    assert finds == ["factory-guard"]
+    assert homes == [tmp_path]
