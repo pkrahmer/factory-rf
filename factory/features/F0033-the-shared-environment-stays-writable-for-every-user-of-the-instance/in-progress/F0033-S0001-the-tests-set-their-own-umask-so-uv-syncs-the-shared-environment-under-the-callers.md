@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 322
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T03:10:25.606843Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T03:10:05.320191Z'
   stage: tests
   run: 3bd08a1a75524331b7dc53a0d442046c
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:10:25.606843Z'
+  stage: doing
 ---
 
 # The tests set their own umask, so uv syncs the shared environment under the caller's
@@ -111,3 +120,4 @@ Expect: `1`
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (47.0 s)
+6. factory: started doing as self.
