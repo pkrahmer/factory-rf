@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 316
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T02:01:31.056217Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T02:01:31.056217Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T02:03:52.951608Z'
+  stage: tests
+  run: 278e5dd5929943a798ce95fc7f411471
 ---
 
 # The acceptance tests pin the reviewer's role and the close's commit subjects
@@ -106,3 +108,22 @@ Expect: three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: clo
    - Architecture: tests only, in `tests/application/` as the mirror rule requires. No wiring or layer change.
    - Scope: within F0028's scope list (S0005 in `feature.md`), tests only, and none of its Out of scope items. Decision 10 of the feature records the two equivalent rows as excluded.
 4. factory: started tests as self.
+5. tester: Wrote the acceptance tests for the reviewer's role and the close's two commit subjects. They use the `walk`, `kill_points`, `human` and `hosting` fixtures and the helpers in `tests/acceptance_walk.py`. No earlier test changed and no shared helper moved.
+
+   - criterion 1: tests/application/test_acceptance_reviewer_role.py::test_the_hand_over_s_findings_are_the_reviewer_s_last_result (rows `the-reviewer-alone` and `a-later-result-of-another-speaker`)
+   - criterion 2: tests/application/test_acceptance_reviewer_role.py::test_the_close_s_reason_is_the_human_s_comments_after_the_reviewer_s_last_result (rows `a-later-result-of-another-speaker` and `the-reviewer-and-the-human-alone`)
+   - criterion 3: tests/application/test_acceptance_reviewer_role.py::test_the_close_is_committed_as_close_recorded_on_the_branch_and_closed_refused_on_main. It reads the heads before the first tick with `remote_commit` from `git_support`. The first tick raises `InjectedKill` under `pytest.raises`. After each tick it calls `boundaries.git.fetch()` and then `boundaries.git.log(..., since=...)`, and expects exactly one commit with the stated subject.
+   - criteria 4 and 5: no test (`make check`; docs: none).
+
+   Files created: tests/application/test_acceptance_reviewer_role.py.
+   Modules the test run could not import: none.
+
+   The tests are not red. The story says the code already behaves this way and the coder has nothing to change, so they pass now, as in F0025-S0003. `make test` was green (`test: green (40.2 s)`) and `make lint` is green after `ruff format` on the new file. I skipped the type check, as this stage's instructions say; `make check` covers it afterwards.
+
+   Choices I made, all within the criteria:
+   - The test module's own `_push_entries` helper appends each `NewEntry` and has the human push the rendered report to `report_of(FIRST)`.
+   - The criterion 2 and 3 tests share their entry constants at module level (`NOT_ACCEPTED`, `TOO_WIDE`, `RED`).
+   - `ROLE` is set to `REVIEWER`.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (39.8 s)
