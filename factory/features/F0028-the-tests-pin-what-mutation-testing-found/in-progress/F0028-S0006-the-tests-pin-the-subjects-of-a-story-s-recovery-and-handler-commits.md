@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 317
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T02:09:58.788211Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T02:09:58.788211Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T02:10:13.588548Z'
+  stage: intake
+  run: 6e1a6ed050a241bca744d33090cc35d5
 ---
 
 # The tests pin the subjects of a story's recovery and handler commits
@@ -77,3 +79,9 @@ Expect: two lines, `work item F0001-S0001: crash of stage doing recorded` and `w
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete methods (RecoveryHandler.handle, ClosedHandler.handle, CommentCopier.copy, RejectHandler.handle), the exact subject of each, and the two test modules with the existing fixtures and support helpers they build on. No source change.
+   Criteria: each is testable by one test function. Criterion 1 is rows of one parametrized test and covers both sides of "when the expiry note opens a draft pull request", with the extra commit and without it, and the crash and expiry subjects. Criteria 2 to 4 each give the exact expected subject list, in order, and the commit they are read since. Every subject the Interface states has a criterion. The Interface states no limit, validation or rejected input, so there is no failing side to cover. Criteria 5 and 6 are the closing ones.
+   Smoke test: the command is runnable. It uses commit_subject and MOVED_BACK_MARKER, which the Interface's subjects imply. The Expect line gives two exact output lines that can be compared.
+   Architecture: tests only, under tests/application/ as CLAUDE.md prescribes. They use real git and the fake hosting service, with no mocks of the code under test.
+   Scope: within the feature's Scope, which lists these two modules for S0006. The 15 subjects match decision 8. The story is not in Out of scope, and it changes no earlier test.
