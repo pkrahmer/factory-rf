@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T00:51:50.026779Z'
   stage: smoke-test
   run: d836ceffbe954de1bcc0856b8ab0c897
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T00:53:08.301931Z'
+  stage: approval
 ---
 
 # The operator guide plans a sweep for a fresh `mutants/` folder only
@@ -200,3 +205,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Criterion 1 (`make check` green): I did not run it in this stage. The factory's own checks cover it: entry 11 records `check: green` on the tree before the docs change, and the only change since is to the document.
 
     Against `main`, the branch changes only `docs/operator-guide.md` (4 lines) and the work item's own files. Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 3.3 min, 28 turns, 97869 tokens in (400880 more from cache), 7122 out, $0.79
