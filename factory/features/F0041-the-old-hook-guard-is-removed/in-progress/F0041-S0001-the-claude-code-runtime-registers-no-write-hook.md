@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 347
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T10:02:54.035685Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T10:02:54.035685Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T10:03:21.172686Z'
+  stage: intake
+  run: af1895c5d780472585064a41fbbbb25b
 ---
 
 # The Claude Code runtime registers no write hook
@@ -112,3 +114,9 @@ Expect: `7`
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names concrete symbols in `src/factory/adapters/claude_runtime.py` (removed `GUARDED_TOOLS`, `_hook_settings`, `_RunFiles.guard` and `_RunFiles.hooks`, `_guard_settings`, the `GUARD_COMMAND` import). It gives the unchanged `_arguments` and `_write_files` behaviour, the `SWITCHES` comment and `__all__`. It also lists the seven agent files with the exact words deleted from R14, and the test files that change under the feature's decision 9 leave.
+   - Criteria: each is testable by one parametrized test or one named existing test. Criterion 1 has its rows: guard settings, guard `None` and confined. Criteria 2 to 4 pin the argument order, the call's files and the file modes. Criterion 5 covers the R14 text and the absence of the word `hook`. The failing side is covered too: no `--settings` and no `guard-*` or `hooks-*` file, with and without guard settings. The Interface line that `request.guard` still reaches `run_confinement` is exercised by the confined row, which ends `completed`, and by the existing confinement tests. The word `hook` appears in each shipped agent only on line 43 (R14), once, which I checked with grep, so criterion 5's second half is meetable.
+   - Smoke test: both blocks are runnable. The first runs a stand-in `claude` through the real runtime unconfined and confined and prints one line per run. The second counts the agents without the old clause. Each `Expect:` gives exact output to compare against. No pytest command is involved, so there is no `-q` issue.
+   - Architecture: the change stays inside `factory.adapters` (the Claude wrapper) plus the shipped agent files under `claude/`. No new dependency, layer or interface. `factory-guard` and `GUARD_COMMAND` stay until S0002, as the Description says.
+   - Scope: it is within F0041's S0001 scope, and nothing in "Out of scope" is touched. The test changes are covered by the human's leave in decision 9, including the two tests added in the human's answers of 2026-10-20.
