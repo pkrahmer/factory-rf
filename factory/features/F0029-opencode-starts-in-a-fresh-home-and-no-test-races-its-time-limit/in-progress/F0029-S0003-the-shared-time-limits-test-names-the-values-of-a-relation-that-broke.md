@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 367
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T22:45:45.921365Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T22:45:45.921365Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T22:48:40.052242Z'
+  stage: tests
+  run: 86768edae34e4cc28d5ce478dfe7f667
 ---
 
 # The shared time limits' test names the values of a relation that broke
@@ -112,3 +114,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: only `tests/` changes, and the test sits at the `tests/` root because it tests a module outside the layers. `tests/time_limits.py` and `src/` stay as they are.
    Scope: the change falls inside feature.md's scope (S0003 is named for `tests/test_time_limits.py`, "its failure message") and touches nothing in its Out of scope list.
 4. factory: started tests as self.
+5. tester: Changed `tests/test_time_limits.py` (written by F0029-S0002) under the leave in `feature.md`, decision 9, S0003, and only as far as the Interface says. No other test file changed. No files were created.
+
+   Criteria → tests:
+   - criterion 1: tests/test_time_limits.py::test_the_roomy_limit_leaves_room_and_stays_below_every_wait. It keeps its name and its nine row ids (limit, bound, room, claude-confinement-wait, stand-in-wait, resume-session-wait, events-wait, sudo-past-limit, sudo-within-bound). Each row is now `(left, relation, right)` and states the same relation the row's `bool` stated before, with the same constants from the same modules. The `limit` row is now `ROOMY_LIMIT.total_seconds() eq 10.0`, as the Interface writes it. On failure the test prints `f"{left} {relation.__name__} {right}"`.
+   - criterion 2: tests/test_time_limits.py::test_a_relation_that_breaks_names_its_values. It has two rows, `broken` and `holds`. Each calls the test above directly. `broken` (30 gt 30) expects an `AssertionError` whose message's first line is `30 gt 30`; `holds` (11.5 lt 25) expects no error.
+   - criterion 3: `make check`. The factory and the coder cover it.
+   - criterion 4: docs: none.
+
+   The `timedelta` import is gone; `operator` and `collections.abc.Callable` were added.
+
+   Red/green: these tests are not red. The story changes no module under `src/`, so all 11 tests pass already (`make test`: `test: green (61.6 s)`). The coder has nothing to build. No module failed to import. `make lint` is green. I also ran pytest once on this module alone and mypy --strict on this file: mypy reported nothing in `tests/test_time_limits.py`. Its other errors were import-untyped errors in the modules this file imports, which come from running mypy outside `make types`.
+
+   `lint`: lint: green (0.6 s)
+   `test`: test: green (63.2 s)
