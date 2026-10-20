@@ -52,7 +52,7 @@ The suite and `factory-check-story` do not run on Windows. Run them in throwaway
      -v {{TEMP}}/repo:/src -w /src factory-self-factory -c '<command>'
    ```
 
-   If the image lacks a tool you need, say so in the report; never install it from the network. The image has no pytest: mount the host's pure-Python test packages read-only from their place (`-v C:/Dev/Projects/factory-rf/.venv/Lib/site-packages:/hostsite:ro`) and put `/hostsite` last on `PYTHONPATH`, after the copy's `src`, so the image's own compiled packages win. Never point `uv` or `UV_PROJECT_ENVIRONMENT` at `factory-self-factory-1`'s `.venv`: it is the instance's own, and a sync there by another user can leave files the factory cannot replace (`self` stopped on 2026-10-19 on such a file).
+   If the image lacks a tool you need, say so in the report; never install it from the network. The image has no pytest: mount the host's pure-Python test packages read-only from their place (`-v C:/Dev/Projects/factory-rf/.venv/Lib/site-packages:/hostsite:ro`) and link into a folder on `PYTHONPATH` only the pure-Python packages the image lacks (pytest and its plugins), never the whole host folder: the host's Windows `pydantic_core` would otherwise win over the image's. Never point `uv` or `UV_PROJECT_ENVIRONMENT` at `factory-self-factory-1`'s `.venv`: it is the instance's own, and a sync there by another user can leave files the factory cannot replace (`self` stopped on 2026-10-19 on such a file).
 
 Never run anything in the running instance `factory-self-factory-1`, and mount no instance volume and no secret.
 
