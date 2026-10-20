@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T02:53:56.875799Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-20T02:53:56.875799Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T02:54:13.594486Z'
+  stage: smoke-test
+  run: 3f422c0ed5de418fb30bbdad7fd78b40
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -301,3 +303,19 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test, round 1. From the repository root I ran the one command under `## Smoke test` exactly as written: the `uv run -q python -` heredoc that calls `feature_rows` and `error_report_text`. It exited with status 0.
+
+    Output:
+    ```
+    [FeatureRow(feature='F0001', title='Example feature', backlog=1, in_progress=1, done=1, acceptance=None)]
+    The factory failed 3 times on `run:F0001-S0001` and has stopped retrying it. Last error: ValueError: boom. A new commit on the work item's branch (now at aaaaaaaaaaaa) makes the factory try again.
+    ```
+
+    Expect: met. There are exactly two lines, and both match the `Expect:` text character for character. The first is the `FeatureRow` with 1/1/1 and `acceptance=None`. The second is the error report with the commit cut to `aaaaaaaaaaaa`.
+
+    Against the acceptance criteria:
+    - Criterion 2: the domain function counts one story in progress in the feature's row (`in_progress=1`), which agrees with it. `acceptance=None` here is what the domain call returns when there is no acceptance report. It does not contradict the reader's `"incomplete"` in criterion 2, as the intake also noted (entry 3).
+    - Criterion 1: the error report text uses the cap of 3 and the short commit, which agrees with the error stop it describes.
+    - Criteria 3 to 5: the smoke test does not reach them, and nothing in its output contradicts them.
+
+    Findings: none.
