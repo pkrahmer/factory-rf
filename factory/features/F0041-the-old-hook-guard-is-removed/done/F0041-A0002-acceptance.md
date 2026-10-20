@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T14:49:46.952003Z'
   stage: acceptance
   run: 3e34ddddaba942a38b370ed1feb49cd7
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T14:51:08.923241Z'
+  stage: done
 stories: [F0041-S0001, F0041-S0002, F0041-S0003, F0041-S0004]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The old hook guard is removed
@@ -195,3 +200,4 @@ None. S0004, the only story proposed before, is built and archived. The open poi
    6. Decisions: the feature's decisions 1 to 14 are listed, with the human's answers. S0004's two changed earlier tests are under decision 14, and no earlier test was changed without a named leave.
    7. Slow checks: only the `duplicates` record (5/33/3) and `make documents` (ok). The slowest tests are the opencode sudo time-limit rows (11.5 s); none was written by this feature. Disk: no growth.
    8. Cost: $8.03 over 33 runs and 53.3 min. S0002 stands out ($3.30, 11 runs: one review round and one stall). S0004 cost $0.91, about the price of the stall it removes. 0 questions, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 5.5 min, 27 turns, 79133 tokens in (1313223 more from cache), 14898 out, $1.19
