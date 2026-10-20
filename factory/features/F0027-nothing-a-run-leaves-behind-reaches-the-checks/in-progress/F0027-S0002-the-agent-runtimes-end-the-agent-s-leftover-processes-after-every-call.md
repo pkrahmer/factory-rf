@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 353
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T12:57:37.423128Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T12:57:16.777668Z'
   stage: intake
   run: d3a704ff4836470baa997a20dcf16dd8
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:57:37.423128Z'
+  stage: tests
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -190,3 +199,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: the commands are runnable Python snippets with stand-in scripts, and the story needs no paid call. They don't run pytest, so the `-q` rule does not apply. Each `Expect:` line gives the exact output lines or `True`.
    - Architecture: the helpers sit in `adapters.agent_launch`, which the two runtime wrappers use. The keyword is wired only in `entry.wiring`, and the `AgentRuntime` interface does not change. `agent_launch` stays free of `process` imports, which is why `leftovers_fault` takes three plain values.
    - Scope: it matches the feature's S0002 line (agent_launch, both runtimes, wiring). The story needs no change to another story's test (decision 16 says "S0002: none"). It stays out of S0001's program and S0003's git removal.
+4. factory: started tests as self.
