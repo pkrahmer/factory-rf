@@ -5,6 +5,7 @@ from datetime import UTC, date, datetime
 
 import pytest
 
+from acceptance_support import report_of
 from bill_support import completed_records
 from factory.domain.acceptance import (
     NO_REASON,
@@ -36,23 +37,6 @@ JOURNAL = [
     JournalRecord(number=4, speaker=HUMAN, kind="comment"),
 ]
 CLOSED_COST = "done (pull request closed by the human); cost: "
-
-
-def _document(entries: list[tuple[str, JournalKind, str]]) -> WorkItemDocument:
-    """A report whose journal holds the entries; the human's lines carry a date, as rendered."""
-    journal = [
-        JournalRecord(number=number, speaker=speaker, kind=kind)
-        for number, (speaker, kind, _) in enumerate(entries, 1)
-    ]
-    lines = [
-        f"{number}. 2026-10-12 {speaker}: {text}"
-        if speaker == HUMAN
-        else f"{number}. {speaker}: {text}"
-        for number, (speaker, _, text) in enumerate(entries, 1)
-    ]
-    body = "# Acceptance of Todo service\n\n## Journal\n\n" + "\n".join(lines) + "\n"
-    state = AcceptanceState(stage="approval", stories=["F0002-S0001"], journal=journal)
-    return WorkItemDocument(state=state, body=body)
 
 
 def _report(state: AcceptanceState | None = None, body: str = BODY) -> WorkItemDocument:
@@ -141,7 +125,7 @@ def test_the_refusal_reason_joins_the_human_comments_after_the_last_result_with_
 
 
 def test_the_refusal_reason_ignores_earlier_comments_human_closes_and_factory_records() -> None:
-    document = _document(
+    document = report_of(
         [
             (FACTORY, "started", "started."),
             (HUMAN, "comment", "Before the result."),
@@ -181,7 +165,7 @@ def test_the_refusal_reason_ignores_earlier_comments_human_closes_and_factory_re
 def test_the_refusal_reason_without_a_later_comment_or_without_a_result(
     entries: list[tuple[str, JournalKind, str]], expected: str
 ) -> None:
-    assert refusal_reason(_document(entries), ROLE) == expected
+    assert refusal_reason(report_of(entries), ROLE) == expected
 
 
 @pytest.mark.parametrize(
@@ -200,7 +184,7 @@ def test_the_refusal_reason_strips_each_comment_and_skips_blank_ones(
     entries: list[tuple[str, JournalKind, str]] = [(ROLE, "result", "not accepted")]
     entries += [(HUMAN, "comment", text) for text in texts]
 
-    assert refusal_reason(_document(entries), ROLE) == expected
+    assert refusal_reason(report_of(entries), ROLE) == expected
 
 
 def test_a_refusal_books_the_acceptance_done_and_refused_and_keeps_the_other_fields() -> None:

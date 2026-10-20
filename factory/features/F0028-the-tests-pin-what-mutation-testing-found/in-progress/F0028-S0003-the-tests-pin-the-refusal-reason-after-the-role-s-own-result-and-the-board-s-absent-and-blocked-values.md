@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 314
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T01:42:04.769232Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:42:04.775662Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T01:42:19.956328Z'
+  stage: intake
+  run: 468894a97ae0416ba39133122923cb6d
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:42:40.007053Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T01:44:39.925146Z'
+  stage: tests
+  run: a649c5fdcddc48eb8445d70a43d0e745
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:45:00.637659Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T01:46:52.457193Z'
+  stage: doing
+  run: d9152193dd8446e3b903e552ce38b726
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:47:12.807308Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T01:47:42.672299Z'
+  stage: review
+  run: 9fb4b0c9f13a43a8b15b2da9b50b9aa6
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:48:02.947600Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T01:48:15.616855Z'
+  stage: docs
+  run: c20d14232455491d9b990a29e314eece
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:48:35.980364Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T01:48:52.441084Z'
+  stage: smoke-test
+  run: 47807578dbd4407996861b40393d6b27
+---
+
 # The tests pin the refusal reason after the role's own result, and the board's absent and blocked values
 
 ## Description
@@ -66,3 +150,98 @@ EOF
 Expect: four lines, `Too wide. Cut the second story.`, `features`, `work items` and `F0001-S0001  Domain model  backlog  stage=-  blocked=-  claim=-  running_since=-  pull_request=-`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete functions (`refusal_reason`, `book_refusal`, `work_item_row`, `render_board`) with the behaviour pinned, the two test modules and the shared `tests/acceptance_support.py`; no `src/` change, as the feature's decision 1 says.
+   Criteria: each is testable by one test function or one parametrized test with exact expected values. Every Interface rule has one: the three rows of criterion 1 cover "after the role's own last result" with a later result of another role, a later question of the role and a later result of the role itself; criteria 2 and 3 cover the whole body, both with and without a `## Recommendation`; criteria 4 and 5 cover the absent values and the `-` and `blocked=<reason>` rendering. The failing side of each rule is a row.
+   Smoke test: a runnable `uv run -q python` heredoc that uses only the domain imports. Its `Expect:` line gives the four output lines, which can be checked.
+   Architecture: the tests sit in `tests/domain/` and test `factory.domain` only; the shared helper moves to a module at the `tests/` root under the standing leave in CLAUDE.md, which keeps the earlier tests' names and checks.
+   Scope: inside F0028's Scope (S0003 line) and not in its Out of scope; the dead guard at `acceptance.py:332` stays (decision 4).
+4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 5. The code already behaves the way the story describes, so `make test` is green on purpose and the tests are not red. The coder has nothing to change in `src/`.
+
+   - criterion 1: tests/domain/test_acceptance_refusal_edges.py::test_the_refusal_reason_starts_after_the_roles_own_last_result (rows `other-role-result`, `role-question`, `role-result`)
+   - criterion 2: tests/domain/test_acceptance_refusal_edges.py::test_a_refusal_books_the_reason_after_the_roles_own_last_result
+   - criterion 3: tests/domain/test_acceptance_refusal_edges.py::test_a_refusal_writes_the_whole_body_with_the_recommendation_before_the_journal
+   - criterion 4: tests/domain/test_board_absent_values.py::test_a_work_item_without_a_state_shows_every_state_value_as_absent
+   - criterion 5: tests/domain/test_board_absent_values.py::test_a_board_line_writes_an_absent_value_as_a_dash_and_a_blocked_row_with_its_reason (rows `absent`, `blocked`). Each row checks the whole `render_board([], [row])` output, not just the line.
+   - criterion 6: the factory's `make check`.
+   - criterion 7: there are no docs to change.
+
+   Files created: tests/acceptance_support.py, tests/domain/test_acceptance_refusal_edges.py, tests/domain/test_board_absent_values.py.
+
+   Earlier test file changed under the standing leave in CLAUDE.md (*Tests*): tests/domain/test_acceptance_booking.py. I moved its `_document` helper to tests/acceptance_support.py, where it is named `report_of` because it is now imported from another module. The booking tests import it from there and call `report_of` where they called `_document`. Every test keeps its name and checks the same thing.
+
+   Run: `make test` was green ("test: green") and `make lint` was green. The test run could import every module. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (38.0 s)
+6. factory: started doing as self.
+7. coder: Built nothing. No file under `src/factory/` changes. The tester's tests (tests/domain/test_acceptance_refusal_edges.py, tests/domain/test_board_absent_values.py, with the shared tests/acceptance_support.py) already pass against the current `factory.domain.acceptance` and `factory.domain.board`. The Interface says no module under `src/` changes, and the description says the coder has nothing to change.
+
+   Main choice: leave `src/` untouched. I rejected "tidying" `refusal_reason`, `book_refusal` or `render_board` while I was in there, because this story pins existing behaviour and a code change would be scope beyond the description (R13).
+
+   Refactor step: there is no diff of mine to refactor.
+
+   Check: `make check` passed in the foreground (`test: green (39.9 s)`, total coverage 99.14 %, `check: green`).
+
+   The journal changed nothing in the task's meaning, so `## Description` stays as it is.
+
+   Noticed but not touched: the dead guard at `acceptance.py:332` stays, as decision 4 of the feature says. `_work_item_line`'s time-zone survivor is equivalent in a container that runs in UTC, as the description says.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the diff, `tests/acceptance_support.py`, `tests/domain/test_acceptance_booking.py`, `tests/domain/test_acceptance_refusal_edges.py` and `tests/domain/test_board_absent_values.py`, and checked them against the work item.
+   - Criterion 1: `test_the_refusal_reason_starts_after_the_roles_own_last_result` has three rows (`other-role-result`, `role-question`, `role-result`). They hold the criterion's exact entries and expected reasons, and they cover the failing side of the Interface rule: a later `result` of another speaker and a later record of the role of another kind leave the reason unchanged.
+   - Criterion 2: `test_a_refusal_books_the_reason_after_the_roles_own_last_result` compares the whole body with the criterion's text, character for character.
+   - Criterion 3: `test_a_refusal_writes_the_whole_body_with_the_recommendation_before_the_journal` has the criterion's state and body, and checks the whole body, ending in one newline.
+   - Criterion 4: `test_a_work_item_without_a_state_shows_every_state_value_as_absent` checks the `BoardRow` for equality and the exact `render_board` output.
+   - Criterion 5: one parametrized test with the rows `absent` and `blocked`; each checks the whole `render_board([], [row])` output.
+   - The Interface states no numeric limits, so there is no boundary to test on both sides.
+   - Coder's entry 7: the factory's `make check` was green.
+   - Architecture and security: nothing under `src/` changes, and the diff adds no suppression marker.
+   - Hygiene: the description and the docs criterion (`none`) match what was built.
+
+   `ROLE` and `ON` repeat the module constants that other acceptance test modules also hold. I did not count that as a copied helper: the project's test modules each declare these constants themselves.
+
+   Earlier tests:
+   - tests/domain/test_acceptance_booking.py: changed under the standing leave to move a shared test helper in `CLAUDE.md` (*Tests*), which the story's Interface also names. Its `_document` moved to `tests/acceptance_support.py` as `report_of`. Its three call sites now use `report_of`, and every test keeps its name and what it checks.
+10. factory: started docs as self.
+11. documenter: No findings. The docs criterion is `none`, so I wrote nothing and changed no file.
+
+    Cross-read against the diff, which is tests only (tests/acceptance_support.py, the two new test modules, and the helper move in tests/domain/test_acceptance_booking.py), with nothing under `src/` changed:
+    - `docs/operator-guide.md`, the close/refusal paragraph (line 1234): it says the reason is the human's comments after the reviewer's last result, which matches the pinned behaviour. Current.
+    - `docs/operator-guide.md`, the board line example (line 1161): it uses the `stage=… blocked=- claim=… pull_request=…` form that the new tests pin. Current.
+
+    Stale text I noticed that is not mine to fix: none.
+
+    I did not run `make check`, because I changed no file. The factory's check after this stage decides.
+
+    `check`: check: green (not run again: passed on tree e11d2b1585e1 at 2026-10-20T01:45:59Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings.
+
+    I ran the one command under `## Smoke test` exactly as written, from the repository root: the `uv run -q python` heredoc. It exited with status 0.
+
+    ```
+    Too wide. Cut the second story.
+    features
+    work items
+    F0001-S0001  Domain model  backlog  stage=-  blocked=-  claim=-  running_since=-  pull_request=-
+    ```
+
+    Expect: met. The output is four lines, and each is exactly the line the `Expect:` line names, in the same order.
+
+    Checked against the acceptance criteria:
+    - Criterion 1, first row: the reason `Too wide. Cut the second story.` matches. A later `result` of another role (`tester`) did not move the reason's start.
+    - Criteria 4 and 5: the row for a work item without a state renders every state value as `-`, which is the line both criteria give.
+    - No other criterion is contradicted. The smoke test does not cover criteria 2, 3 and 6, or the `blocked=question` row of criterion 5. Its output does not contradict any of them.
+
+    I fixed nothing and changed no file. Nothing is open.
