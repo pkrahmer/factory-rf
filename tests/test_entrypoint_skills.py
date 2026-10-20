@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from test_entrypoint import Layout, _texts
+from entrypoint_support import Layout, texts
 
 
 def _nothing(home: Path) -> None:
@@ -44,7 +44,7 @@ def test_each_start_leaves_skills_and_commands_empty_and_read_only_to_the_agent(
     result = image_layout.run()
 
     assert result.exit_status == 0
-    assert _texts(result.stderr) + _texts(result.stdout) == [
+    assert texts(result.stderr) + texts(result.stdout) == [
         f"installed agents and settings into {image_layout.claude_home}",
         f"prepared {image_layout.state}/runs",
         "starting instance unset",

@@ -11,6 +11,7 @@ from ruamel.yaml import YAML
 from acceptance_walk import AcceptanceWalk
 from compose_support import COMPOSE
 from confine_support import Layout, build_layout
+from entrypoint_support import Layout as ImageLayout
 from factory.adapters import claude_runtime
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.clock import ManualClock
@@ -43,7 +44,6 @@ from git_support import (
 from human_clone import HumanClone
 from proof_support import World, build_world, start_story
 from run_process_recorder import Recorder
-from test_entrypoint import Layout as ImageLayout
 from tmp_path_support import reopen
 from wiring_support import HOSTED_URL
 

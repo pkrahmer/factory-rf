@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from test_entrypoint import AGENT_TEXT, Layout
+from entrypoint_support import AGENT_TEXT, Layout
 from test_image import DOCKERFILE, _path_settings
 
 CREDENTIALS_TEXT = '{"token": "stand-in"}\n'
