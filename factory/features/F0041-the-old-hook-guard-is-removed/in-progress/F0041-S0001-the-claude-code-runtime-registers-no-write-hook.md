@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T10:19:15.641081Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T10:18:54.869827Z'
   stage: doing
   run: 14b76600145d4660911f550c95545059
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:19:15.641081Z'
+  stage: tests
 ---
 
 # The Claude Code runtime registers no write hook
@@ -250,3 +259,4 @@ Expect: `7`
     2. `tests/test_claude_agent_no_hook.py`: delete `test_the_write_paths_rule_says_only_the_kernel_refuses` and `_KERNEL_ONLY`. Also delete the imports only they used: `section_text` and `_WRITE_PATHS_RULE` from `test_claude_agent_refusal`. The file then keeps only `test_no_shipped_agent_names_a_hook`. Criterion 5's first half is then tested by `tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line`, whose `_WRITE_PATHS_RULE` already holds the kernel-only sentence word for word.
 
     No source file changed in this round: `src/factory/adapters/claude_runtime.py` and the seven agent files stay as in the coder's entry 7. Nothing else is open.
+12. factory: started tests as self.
