@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T02:47:27.129022Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T02:47:06.435004Z'
   stage: review
   run: 6a4615b4541c4864a376b5735c8cfc58
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:47:27.129022Z'
+  stage: doing
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -160,3 +169,4 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
    - The coder's `duplicates: 5 new` comes from no change in this diff, which touches nothing under `src/`.
 
    Earlier tests: none. The diff only adds test files (status `A`), and no test file on `main` is changed, renamed or deleted.
+10. factory: started doing as self.
