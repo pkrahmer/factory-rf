@@ -18,7 +18,7 @@ def work_tree_id(self, left_out: Sequence[str] = ()) -> TreeId:
 - The temporary index is a copy of the checkout's own index with its modification time (`shutil.copy2`, not `shutil.copyfile`), so git's racily-clean rule applies to the copy as it does to the own index.
 - Unchanged: a checkout without an index starts from an empty temporary index; `add --all`, `update-index --force-remove --` and `write-tree` as today; the checkout's index, `HEAD`, refs and work tree stay as they are.
 
-Tests (the tester writes them): `tests/adapters/test_git_cli_work_tree_tick.py` (new). The test makes the race certain instead of waiting for it: it sets `core.trustctime false` in the checkout's configuration through `run_git` (a change's ctime is never the cached one otherwise), and sets the modification times of the file and of `.git/index` with `os.utime(..., ns=...)` to one fixed past value. Earlier tests changed: none.
+Tests (the tester writes them): `tests/adapters/test_git_cli_work_tree_tick.py` (new). The test makes the race certain instead of waiting for it: it sets `core.trustctime false` in the checkout's configuration (`tmp_path / CHECKOUT`, as `tests/adapters/test_git_cli_work_tree.py` reaches it) through `run_git` (a change's ctime is never the cached one otherwise), and sets the modification times of the file and of `.git/index` with `os.utime(..., ns=...)` to one fixed past value. Earlier tests changed: none.
 
 ## Acceptance criteria
 
