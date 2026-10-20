@@ -3,15 +3,11 @@ stage: doing
 blocked: null
 round: 0
 attempts: 0
-crashes: 0
+crashes: 1
 pull_request: 365
 comments_read: [6301863943]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T21:34:45.521313Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -61,6 +57,11 @@ journal:
   speaker: factory
   kind: started
   at: '2026-10-20T21:34:45.521313Z'
+  stage: doing
+- number: 10
+  speaker: factory
+  kind: crash
+  at: '2026-10-20T21:56:45.235257Z'
   stage: doing
 ---
 
@@ -290,3 +291,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/entry/test_wiring_agent_home.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_agent_home.py'.
 9. factory: started doing as self.
+10. factory: crash 1: the run of stage doing ended without a result. Its work is discarded back to commit 21fd3807889fa6bf762ec01334b91bf35bd687bc.
