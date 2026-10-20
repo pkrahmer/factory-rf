@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T01:22:29.172170Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-20T01:22:29.172170Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T01:22:47.563770Z'
+  stage: smoke-test
+  run: d84a6cf9c8e048668f4f4c940ac65273
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -287,3 +289,21 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test, round 1. From the repository root I ran the one command under `## Smoke test` exactly as written. It exited 0.
+
+    Command 1 (`uv run -q python -` with the inline script that runs three URLs through `read_settings`):
+    ```
+    True
+    True
+    FACTORY_REPOSITORY_URL: holds a password; use the token file
+    ```
+    Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a password; use the token file`. **Met.** The output is the same as the expected text, line for line.
+
+    Acceptance criteria re-read:
+    - Criterion 1: the output confirms three of the four edges. A `:` and `@` in the path are accepted, a second `://` in the path is accepted, and `u@x:y@` is refused with the exact fault. The fourth edge, an `@` in the user name with no password (`https://u@x@github.com/...`), is not exercised by the smoke test. Nothing in the output contradicts it, and the tester's parametrized test covers it.
+    - Criterion 2: the third line has the form `<variable>: <fault>`, as `str()` of a refusal should. The other messages are not exercised, and nothing contradicts them.
+    - Criteria 3 and 4 are outside what a smoke test can contradict. `make check` is the factory's gate and was last green on tree 5038ae5c5988 (journal 19). The docs criterion is `none`.
+
+    Findings: none.
+
+    Open: nothing for this stage. The non-blocking note from the reviewer and the documenter still stands: the module docstring of `tests/settings_support.py` does not mention the shared `raising` reader.
