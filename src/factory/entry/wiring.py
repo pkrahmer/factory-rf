@@ -17,7 +17,7 @@ from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.landlock import abi_version
-from factory.adapters.make_commands import MakeProjectCommands
+from factory.adapters.make_commands import CommandUser, MakeProjectCommands
 from factory.adapters.opencode_runtime import RUNTIME_FOLDERS, OpencodeRuntime
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
@@ -61,8 +61,9 @@ from factory.application.preflight import (
     tool_item,
 )
 from factory.application.project_agents import ProjectAgentDefinitions
-from factory.application.project_commands import RecordingProjectCommands
+from factory.application.project_commands import ProjectCommands, RecordingProjectCommands
 from factory.application.recovery import RecoveryHandler
+from factory.application.sealed_runs import SealedProjectCommands
 from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
 from factory.domain.agent_runs import CONFINE_COMMAND, scrub_environment
@@ -105,6 +106,7 @@ __all__ = [
     "machine_extras",
     "machine_log",
     "production_environment",
+    "project_command_environment",
     "read_environment_settings",
     "read_hosting_token",
     "repository_name",
@@ -254,17 +256,14 @@ def build_boundaries(
     clock = SystemClock()
     git = GitCli(settings.checkout, git_options(settings))
     log = machine_log(state, clock)
+    sudo_executable = which("sudo") or SUDO_EXECUTABLE
+    leftovers = leftovers_command() if end_leftovers else None
     return Boundaries(
         git=git,
         hosting=hosting,
-        agent_runtime=_agent_runtime(
-            settings,
-            which("sudo") or SUDO_EXECUTABLE,
-            confine_executable,
-            leftovers_command() if end_leftovers else None,
-        ),
+        agent_runtime=_agent_runtime(settings, sudo_executable, confine_executable, leftovers),
         project_commands=RecordingProjectCommands(
-            MakeProjectCommands(settings.checkout),
+            _project_commands(settings, git, log, sudo_executable, leftovers),
             git,
             JsonLinesRecordLog(state / _COMMAND_RECORDS_PATH, CommandRecord),
             clock,
@@ -294,6 +293,26 @@ def build_boundaries(
 def leftovers_command() -> list[str]:
     """The words that start the leftovers program with this interpreter, isolated."""
     return [sys.executable, "-I", "-m", LEFTOVERS_MODULE]
+
+
+def _project_commands(
+    settings: InstanceSettings,
+    git: GitCli,
+    log: FactoryLog,
+    sudo_executable: str,
+    leftovers: list[str] | None,
+) -> ProjectCommands:
+    if settings.agent_user is None:
+        return MakeProjectCommands(settings.checkout)
+    # A project command runs code an agent wrote, so it runs with the agent's rights, which
+    # reach neither the hosting token nor a writable git folder.
+    user = CommandUser(
+        os_user=settings.agent_user,
+        sudo_executable=sudo_executable,
+        environment=project_command_environment(settings, production_environment()),
+        leftovers=leftovers,
+    )
+    return SealedProjectCommands(MakeProjectCommands(settings.checkout, user=user), git, log)
 
 
 def _agent_runtime(
@@ -352,6 +371,19 @@ def agent_run_environment(settings: InstanceSettings, base: Mapping[str, str]) -
         # The agent home is the `.claude` folder inside the agent user's own home.
         environment["HOME"] = str(settings.agent_home.parent)
     return environment
+
+
+def project_command_environment(
+    settings: InstanceSettings, base: Mapping[str, str]
+) -> dict[str, str]:
+    """The environment of a project command run as the agent user: no bytecode, uv copying."""
+    # Bytecode folders, and files hard-linked from uv's cache in the agent's home, would leave
+    # the checkout holding files the factory's own cleanup cannot remove or replace.
+    return {
+        **agent_run_environment(settings, base),
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "UV_LINK_MODE": "copy",
+    }
 
 
 def build_handlers(
