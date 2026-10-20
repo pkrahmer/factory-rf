@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T08:54:16.740346Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -76,6 +80,11 @@ journal:
   at: '2026-10-20T08:53:55.882229Z'
   stage: review
   run: 34c2194e5880482e9707cc99b7e85400
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-20T08:54:16.740346Z'
+  stage: doing
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -272,3 +281,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests: none changed. The diff only adds test files (tests/domain/test_sessions.py, tests/adapters/test_process_session.py).
 
     Not raised: the `ProcessLookupError` branch of `_kill_one` and the skipped unreadable `/proc` folder are race branches. A stand-in that raises `ProcessLookupError` for a live process would make the rounds loop forever, so they stay uncovered, as intake accepted.
+13. factory: started doing as self.
