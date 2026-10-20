@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T05:11:59.780037Z'
   stage: acceptance
   run: ab943626c888415aa0c0b498ac8c79b0
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T05:13:19.589714Z'
+  stage: done
 stories: [F0035-S0001]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of Smoke tests never pass -q to pytest
@@ -154,3 +159,4 @@ none. No finding is worth a story inside this feature's scope. The duplicates-ba
    6. Decisions for the human: the feature's decisions 1 to 4 are listed. No story question was asked and no default was taken. No earlier test was changed; the merge only adds a test file.
    7. Slow checks: there are none beyond `make check`, which is green (6103 tests, 99.14 % coverage, 40.7 s). The slowest tests are the existing time-limit tests at about 5 s. Disk did not change since the start record.
    8. Cost: 6 runs, 3.6 min, $0.90, no rework. No run stands out; the tester was the largest at $0.20. 0 questions and 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 3.0 min, 18 turns, 41684 tokens in (609838 more from cache), 9286 out, $0.64
