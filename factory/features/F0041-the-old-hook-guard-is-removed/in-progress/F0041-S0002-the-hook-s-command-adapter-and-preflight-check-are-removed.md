@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T11:28:34.337832Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-10-20T11:28:34.337832Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T11:29:16.655212Z'
+  stage: review
+  run: 2256e0a7cf644f38b81f2fcb64e5d211
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -405,3 +407,32 @@ Expect: `5`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 19. factory: started review as self.
+20. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item: no findings.
+
+    - Acceptance criteria: each criterion has one parametrized test, and each test checks what its criterion says.
+      - Criterion 1: `tests/test_hook_removed.py::test_the_hook_s_code_is_gone_and_the_kernel_s_guard_is_kept` covers both missing modules, the four removed names, the two `__all__` entries, `CONFINE_COMMAND == "factory-confine"` and the four kept names.
+      - Criterion 2: `test_the_guard_settings_have_no_temporary_folder` checks the four fields in order, a build without `temporary_directory`, and the `ValidationError` with it. The constructor is reached through `type[BaseModel]`.
+      - Criterion 3: `tests/application/test_agent_environment_item.py::test_the_agent_environment_checks_the_home_only` has all five rows with their exact details, including the "whatever PATH holds or whether it is there" side.
+      - Criterion 4: `tests/entry/test_wiring_agent_environment.py` tests the pass and the missing-home failure through `machine_extras`, with an agent `PATH` that holds only `factory-confine`.
+      - Criterion 5: `tests/application/test_undo.py::test_the_guard_refuses_exactly_what_the_undo_puts_back` now judges with `refusal`.
+      - The factory's last `make check` was red on two rows of `tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode` (entry 16). The coder's rerun was green (entry 18). This diff does not touch that test or what it reads; the flake is still open outside this story.
+    - Architecture: the layers hold. The domain loses a constant, an error and a field. `agent_environment_item` in the application layer now checks `HOME` only, through the existing `_home_fault`. `_path_fault` stays for `confinement_item`. The wiring drops the adapter import and the re-exports. Neither deleted module is still referenced in `src` or `tests`. The `temporary_directory` names that remain belong to `InstanceSettings` and the confinement rules, not `GuardSettings`.
+    - Security: the diff adds no silencing marker and no secret.
+    - Quality: the comments in `confinement_item`, `_probe_request` and `production_environment` are rewritten as the Interface says, and no dead code is left. `pyproject.toml:17` still declares `factory-guard` and now points to a deleted module; removing it is the human's change 1, as the Description says.
+    - Work item: the Description matches what was built, and the docs criterion (none, S0003) still holds.
+
+    Earlier tests (item 6):
+    - `tests/adapters/test_claude_guard.py` (D): the human's leave, decision 10 (deleted whole).
+    - `tests/adapters/test_claude_guard_temporary.py` (D): the human's leave, decision 10 (deleted whole).
+    - `tests/entry/test_guard.py` (D): the human's leave, decision 10 (deleted whole).
+    - `tests/guard_support.py` (D): the human's leave, decision 10 (deleted whole).
+    - `tests/application/test_undo.py` (M): the human's leave, decision 10. `judge` is replaced by `refusal`, and `_payload`, `json` and `Path` are removed. Within the leave.
+    - `tests/test_model_configuration.py` (M): the human's leave, decision 10 (the two `claude_guard` `EXCEPTIONS` rows removed). Within the leave.
+    - `tests/application/test_agent_environment_item.py` (M): the human's leave, decision 10, as the human's story narrows it in its Interface and criterion 3 (one parametrized test in place of decision 10's two names). Within the leave.
+    - `tests/application/test_agent_run_probe.py` (M): the human's leave, decision 10. It now uses `confinement_item(lambda: LANDLOCK_MINIMUM_ABI, environment, find)` and expects `finds == ["factory-confine"]`, exactly as the decision says.
+    - `tests/entry/test_wiring_extras_path.py` (M): the human's leave, decision 10 (the two `environment-*` rows removed), plus the standing leave to move a shared test helper (`_item` moved to `tests/wiring_support.py` as `machine_item`). The test keeps its name and what it checks.
+    - `tests/entry/test_wiring_handlers.py` (M): the human's leave, decision 10. It now places and finds `factory-confine`, with the parameter `confine_present` and the ids `confine-present`/`confine-absent`, exactly as the decision says.
+    - `tests/wiring_support.py` (M): the standing leave to move a shared test helper (it receives `machine_item`).
+
+    Notes:
+    - `tests/test_hook_removed.py:91`: criterion 2's rows are module-level functions (`_fields`, `_builds`, `_refuses_a_temporary_folder`) passed as callables. Rows of data with one assertion body would read more plainly.
