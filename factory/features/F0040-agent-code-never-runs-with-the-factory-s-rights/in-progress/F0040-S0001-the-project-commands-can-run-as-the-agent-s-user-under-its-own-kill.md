@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T18:47:48.303084Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -183,6 +179,12 @@ journal:
   kind: started
   at: '2026-10-20T18:47:48.303084Z'
   stage: review
+- number: 32
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T18:49:19.656560Z'
+  stage: review
+  run: 5c44d24e543b4b2592596ca8384bbc98
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -246,8 +248,9 @@ Tests (the tester writes them): `tests/adapters/test_make_commands_user.py`, wit
 9. The leftovers (rows of one parametrized test, a stand-in `sudo` that runs what follows `--`, a `CommandUser` whose `os_user` is a user no test runs as (`OTHER_USER` of `tests/leftovers_runtime_support.py`) and whose `leftovers` is a stand-in program): after `check` that passes, the stand-in `sudo` records a second call whose arguments are `["-n", "-u", <that user>, "--", *<the stand-in's words>, "--user", <that user>]` and whose working directory is `/`, and the result is `passed`; after `slow` killed at its limit of 3 seconds, the same second call follows and the result is `time_limit`; a stand-in program that exits 1 with `factory-leftovers: 1 processes left after 50 rounds: 7` raises `ProjectCommandError` whose `detail` is `cannot end the agent's processes: factory-leftovers: 1 processes left after 50 rounds: 7`; a leftovers call that cannot be started (the `check` recipe removes the stand-in `sudo` before the leftovers call) raises `ProjectCommandError` whose `detail` starts with `cannot end the agent's processes: [Errno 2] No such file or directory`; after a `failed` command (stand-in `sudo` exiting 1 with `boom`, running nothing) the second call is recorded and the result is `failed`; after a refused command (status 1, `sudo: a password is required`) the second call is recorded too, and the error is the `refused the command` one; when the command is refused and the leftovers stand-in exits 1 with a fault, the error is the `refused the command` one, not the leftovers one; a `CommandUser` without `leftovers`, and one whose `os_user` is the test's own user, make one call only.
 10. The `sudo` itself starts with none of the factory's environment: in the run of criterion 1, the environment the stand-in `sudo` records for its call holds no `FACTORY_TOKEN_FILE` (the process request's `env` is `{}`, not the factory's).
 11. A failing status with no output is no refusal (a further row of criterion 6's parametrized test): the stand-in `sudo` exiting 1 with empty standard error and running nothing gives `failed` with `exit_status` 1 and raises nothing.
-12. `make check` stays green.
-13. docs: `docs/project-guide/processes-and-checks.md`, *Project commands*: the keyword `user` and `CommandUser`, the chain it starts (the same as an agent run's, through `launch`), the environment of the command (only the `CommandUser`'s, less the three make variables), the user's own `timeout` as the kill and the 30 seconds of grace, the `time_limit` result of a command killed by it, the refusal and its `ProjectCommandError`, the leftovers program after every command run as another user and its fault, and that without `user` nothing changes. `docs/project-guide/agents.md`, *The shared launch module*: that the make class also starts its commands through `launch` and `killed_at_limit`; *Ending the agent's leftover processes*: that a project command run as the agent's user is followed by the same program. `docs/decisions.md`: none in this story; S0002 writes the entry that replaces *The project commands run as the factory's user and are left for v2*.
+12. The factory's own kill waits 30 seconds beyond the limit (`SUDO_GRACE`): a stand-in `sudo` that runs nothing, waits 5 seconds and exits 0 with no output, run with `time_limit` 3 seconds, gives `passed` with `exit_status` 0 after at least 5 seconds and less than 25 seconds (a request whose time limit is `time_limit` alone would end it as `time_limit` at 3 seconds).
+13. `make check` stays green.
+14. docs: `docs/project-guide/processes-and-checks.md`, *Project commands*: the keyword `user` and `CommandUser`, the chain it starts (the same as an agent run's, through `launch`), the environment of the command (only the `CommandUser`'s, less the three make variables), the user's own `timeout` as the kill and the 30 seconds of grace, the `time_limit` result of a command killed by it, the refusal and its `ProjectCommandError`, the leftovers program after every command run as another user and its fault, and that without `user` nothing changes. `docs/project-guide/agents.md`, *The shared launch module*: that the make class also starts its commands through `launch` and `killed_at_limit`; *Ending the agent's leftover processes*: that a project command run as the agent's user is followed by the same program. `docs/decisions.md`: none in this story; S0002 writes the entry that replaces *The project commands run as the factory's user and are left for v2*.
 
 ## Smoke test
 
@@ -533,3 +536,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 31. factory: started review as self.
+32. reviewer: Review of round 1. I read `git diff main...HEAD -- . ':!factory'` and the work item. The diff changes `src/factory/adapters/make_commands.py` and adds `tests/adapters/test_make_commands_user.py`. I checked the code and the tests against the Interface and criteria 1 to 11. Group 1 (acceptance criteria) fails on one rule, so I stopped there and did not report groups 2 to 5.
+
+    Findings:
+    1. criterion 12 added: it needs its test. Where: `tests/adapters/test_make_commands_user.py`, for the code at `src/factory/adapters/make_commands.py`, `_start` (`time_limit=started.time_limit`). Problem: the Interface and the Description say the request that starts `sudo` has the time limit `time_limit` plus 30 seconds (`SUDO_GRACE`), and no test pins it. If the grace were left out, `run_process` would kill the call at the limit itself and give `exit_status` `None`. That is still `time_limit`, so criterion 4 and the `time-limit` row of criterion 9 would pass all the same. Fix: the tester adds a test where the stand-in `sudo` runs nothing, waits 5 seconds and exits 0 with no output. It runs with `time_limit` 3 seconds and expects `passed`, `exit_status` 0, and an elapsed time of at least 5 and less than 25 seconds. Supporting it may need a planned wait in the stand-in `sudo` of this story's own module. The code should already pass it, because `launch` adds `SUDO_GRACE` and `_start` uses `started.time_limit`.
+
+    I wrote the criterion into the work item before the two closing ones and renumbered them: `make check` is now 13 and docs is 14. Nothing else in the work item changed.
+
+    What I checked and found sound: the own-user path keeps its behaviour, and `tests/adapters/test_make_commands.py` is unchanged. In `_run_as` the order is: the kill at the limit, then the refusal on the merged output, then the leftovers call whatever the result, with a refusal winning over a leftovers fault. The module reuses `launch`, `killed_at_limit`, `SUDO_PREFIX`, `leftovers_launch`, `leftovers_fault` and `LEFTOVERS_FAULT` and copies none of them. Nothing in the diff silences a check. The factory's `make check` after the coder was green (entry 30). I ran `make duplicates` and got `5 new, 33 known, 3 gone`: all five new findings are in `claude_runtime`, `opencode_runtime` and `clock.py`, none in the diff. The Description and the docs criterion still match what was built.
+
+    Earlier tests: none. The diff only adds `tests/adapters/test_make_commands_user.py`; no test file that `main` holds is changed.
+
+    Notes:
+    - `tests/adapters/test_make_commands_user.py:33` (`SUDO_SCRIPT`, `_write_sudo`) is a third local stand-in `sudo`, beside `write_sudo` in `tests/leftovers_runtime_support.py` and the one in `tests/adapters/test_claude_runtime_os_user.py`. It is not a plain copy: it also records the environment and working directory and plays a plan.
