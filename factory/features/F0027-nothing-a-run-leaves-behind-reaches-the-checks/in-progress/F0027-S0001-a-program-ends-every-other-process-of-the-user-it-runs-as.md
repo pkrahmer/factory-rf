@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T12:38:57.511311Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -141,6 +145,11 @@ journal:
   at: '2026-10-20T12:38:36.920945Z'
   stage: review
   run: 0baa1133ec314d56bcf5647138349400
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:38:57.511311Z'
+  stage: docs
 ---
 
 # A program ends every other process of the user it runs as
@@ -536,3 +545,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - `tests/domain/test_leftovers.py:45,48` and `tests/entry/test_leftovers.py:96`: each builds `Identity(uid=0, user="root", pid=11)` on its own. It could be a shared constant beside `AGENT` in `tests/leftovers_support.py`.
     - `tests/test_process_search.py:100`: the line number is the literal 32. The other entries in that test find their line by searching for it. A later edit above `def main(` in `src/factory/entry/leftovers.py` must update this number.
+25. factory: started docs as self.
