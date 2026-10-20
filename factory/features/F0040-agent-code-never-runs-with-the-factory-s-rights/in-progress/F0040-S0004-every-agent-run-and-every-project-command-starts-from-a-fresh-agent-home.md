@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T22:19:02.099363Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -133,6 +137,11 @@ journal:
   at: '2026-10-20T22:18:40.275746Z'
   stage: review
   run: 0580084891864710992cd41d356e9a49
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:19:02.099363Z'
+  stage: doing
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -432,3 +441,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests:
     - tests/test_wrapper_search.py: the human's leave, the feature's decision 14, named in the story's Interface. The only change adds `factory.adapters.agent_home` to the expected importers, which is within that leave.
+24. factory: started doing as self.
