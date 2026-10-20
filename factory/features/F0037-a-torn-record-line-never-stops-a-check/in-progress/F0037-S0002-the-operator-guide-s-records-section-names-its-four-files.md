@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 372
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T23:39:04.833339Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T23:39:04.833339Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T23:39:26.680027Z'
+  stage: smoke-test
+  run: b40d68fcb35b48faa18b5a8c863c4c87
 ---
 
 # The operator guide's records section names its four files
@@ -177,3 +179,40 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test run from the repository root, commands as written, in order. No findings.
+
+    1. `grep -c "nothing reads them to decide anything" docs/operator-guide.md; grep -c "Like the other records it is not committed" docs/operator-guide.md`
+    ```
+    0
+    0
+    ```
+    Expect `0`, then `0`: met.
+
+    2. `sed -n '/^### The records/,/^| Field/p' docs/operator-guide.md | grep -c "known-results.jsonl\|disk.jsonl\|stops.jsonl"`
+    ```
+    1
+    ```
+    Expect a number of at least `1`: met. All three names are on one line, the new first paragraph, and `grep -c` counts lines.
+
+    3. `uv run python -m factory.entry.check_documents`
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 87ms
+    Bytecode compiled 4164 files in 356ms
+    documents ok
+    ```
+    Expect `documents ok`: met. The lines above it are uv setting up a fresh virtual environment, not output from the check.
+
+    Criteria, checked against `git diff main...HEAD`:
+    - Criterion 1: the diff touches only `docs/operator-guide.md` and this work item with its `.costs.jsonl` file. Nothing under `src/` or `tests/` changed.
+    - Criterion 2: I did not run `make check`, because this stage runs only the smoke test. Entries 7 and 11 record `check: green` on tree 4c5c6c3d981c, and the factory runs the checks itself.
+    - Criterion 3, *The records*: the new first paragraph comes before the `project-commands.jsonl` paragraph. It names the four files, says none is committed, and points to "The stop records on main" for the publishing to `main`. It points to "The known results", "The stop records" and "The disk record". It states the damage rule once, including that the record after a cut line is skipped with it and that a whole non-UTF-8 line costs only itself.
+    - Criterion 3, closing paragraph of the `project-commands.jsonl` part: the four-files sentence is gone, and the telemetry sentence now speaks of `project-commands.jsonl` alone.
+    - Criterion 3, *The disk record*: the sentence now says the file is not committed and that the factory uses only its last record that reads whole, to name the previous measure at a feature acceptance.
+    - Criterion 3, no other passage: the diff changes only those three places.
+
+    Nothing is open.
