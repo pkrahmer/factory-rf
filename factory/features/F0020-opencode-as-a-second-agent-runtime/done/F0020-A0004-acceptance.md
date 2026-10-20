@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T07:14:36.497543Z'
   stage: acceptance
   run: 38ae93fa682041f897f42ac3a356dd7e
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T07:15:56.233686Z'
+  stage: done
 stories: [F0020-S0001, F0020-S0002, F0020-S0003, F0020-S0004, F0020-S0005, F0020-S0006, F0020-S0007, F0020-S0008, F0020-S0010, F0020-S0011, F0020-S0012, F0020-S0013, F0020-S0014, F0020-S0015, F0020-S0016]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of opencode as a second agent runtime
@@ -292,3 +297,4 @@ None. The only item left that a story could take is the literal waiting step at 
       Neither story asked a question. S0016's ten earlier test modules each name their leave in the reviewer's entry 9 (the standing leave or decision 19), with 86 test ids before and after.
    7. Slow checks: there is nothing beyond `make check`. `make test` took 56.9 s for 6124 tests. The slowest, 4.4 s to 5.1 s, wait past a limit by design. Used disk did not grow against `disk start`.
    8. Cost: 163 runs, 205.1 min, $56.87 in all. S0015 and S0016 cost 12 runs and $2.13, with no question and no rework. The seven stories the acceptances proposed (S0010 to S0016) cost $9.37. 13 questions were answered (12 questions, 1 round cap), and the stories waited 0.3 h, unchanged since the third acceptance. S0004 and S0005 needed the human most, three times each.
+3. factory: done (pull request merged); cost: 1 runs, 4.5 min, 21 turns, 85493 tokens in (998845 more from cache), 17926 out, $1.24
