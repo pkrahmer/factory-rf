@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T00:00:19.948515Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-20T00:00:19.948515Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T00:01:03.144287Z'
+  stage: review
+  run: c20e8281da314f5ba6f588f4ab709746
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -265,3 +267,20 @@ Expect: `exit 0`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 16. factory: started review as self.
+17. reviewer: no findings
+
+    Round 1 review of `git diff main...HEAD -- . ':!factory'`: eight test files and nothing under `src/`. I read the code, not the journal's account of it.
+
+    - Group 1 holds. Criterion 1: every test function name and parametrize id in the changed modules is the same as before, and the `image_layout` fixture in `tests/conftest.py` changed only its import. Criterion 2: `tests/test_entrypoint_support.py::test_the_entrypoint_layout_lives_in_its_support_module_alone` checks all three conditions. Its search texts are split, and it leaves itself out of the search. Criterion 3: the expected line in `tests/test_shared_test_helpers.py::test_the_image_layout_fixture_returns_the_entrypoints_layout` is now `from entrypoint_support import Layout as ImageLayout\n`, so the old line would fail it. The factory's `make check` after the coder was green (entry 15).
+    - Groups 2 to 4 hold. No layer, wrapper or security change, and no marker that silences a check. `tests/entrypoint_support.py` matches the code removed from `tests/test_entrypoint.py` line for line, and `texts` has the old `_texts` body.
+    - Last round's finding is fixed. The search in round 0 was a copy of `_writing`; it is now one shared helper, `modules_matching` in `tests/search_support.py`, and both modules use it. `_writing` is gone. `tests/test_shared_fixtures.py:9` (`_defining`) has a similar search, but it is outside this diff.
+    - Group 5 holds. The Description matches what was built, and the docs criterion (`docs: none`) still fits.
+
+    Rejected: counting `TESTS` as a duplicate. It is still defined in `tests/test_shared_test_helpers.py` as well as in `tests/search_support.py`, but it is one path constant that the unchanged criterion-3 test still reads, not copied logic.
+
+    Earlier tests:
+    - `tests/conftest.py`: the standing leave to move a shared test helper (import line only).
+    - `tests/test_entrypoint.py`: the standing leave to move a shared test helper. Its copies were removed and it imports from `entrypoint_support`. The Interface names the local rename from `texts` to `lines`, and the test checks the same thing.
+    - `tests/test_agent_home_ownership.py`: the standing leave to move a shared test helper (import line only).
+    - `tests/test_entrypoint_skills.py`: the standing leave to move a shared test helper (import changed, `_texts` calls renamed to `texts`).
+    - `tests/test_shared_test_helpers.py`: the standing leave to move a shared test helper for replacing `_writing` with `modules_matching`, where names, ids and patterns are unchanged. The one changed expected line has the human's leave, the S0007 bullet in decision 14 of `feature.md`.
