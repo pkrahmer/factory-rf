@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T14:25:31.446490Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-20T14:25:09.544112Z'
   stage: doing
   run: 94006955e53142ba9061a32b24248581
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-20T14:25:31.446490Z'
+  stage: tests
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -360,3 +369,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Noticed, not touched: as in entry 10, `_end_leftovers`, `_remove_temporary_folder` and `_request_of` are near-copies in the two runtimes. Merging them would be a restructuring beyond this story.
 
     I did not run `make check` this round, because no code changed. Entry 10 recorded it green.
+15. factory: started tests as self.
