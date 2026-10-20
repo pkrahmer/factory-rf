@@ -13,12 +13,11 @@ from factory.application.boundaries import Boundaries
 from factory.application.sealed_runs import run_sealed
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.errors import AgentRuntimeError, GitError
-from git_support import run_git, write_files
+from git_support import CLEAN_IGNORED, run_git, write_files
 from human_clone import HumanClone
 from root_support import AS_ROOT
 from sealed_run_support import COMPLETED, run_request
 
-CLEAN = "git clean --quiet --force --force -d -X"
 STANDIN = "standin\n"
 WRITES = {
     ".venv/lib/standin.pth": STANDIN,
@@ -127,7 +126,7 @@ def test_a_returned_run_leaves_no_ignored_path_and_a_raised_one_leaves_them(
                 run_sealed(sealed_boundaries, run_request(checkout))
             assert type(error.value) is raised
             if isinstance(error.value, GitError):
-                assert error.value.command == CLEAN
+                assert error.value.command == CLEAN_IGNORED
             else:
                 assert isinstance(error.value, AgentRuntimeError)
                 assert error.value.detail == "boom"

@@ -5,7 +5,7 @@ from pydantic import BaseModel, ValidationError
 
 from factory.domain.leftovers import Identity, leftover_pids, leftovers_refusal
 from factory.domain.sessions import ProcessEntry
-from leftovers_support import AGENT, process_entry
+from leftovers_support import AGENT, ROOT, process_entry
 
 
 @pytest.mark.parametrize(
@@ -40,12 +40,8 @@ def test_leftover_pids_are_the_user_s_other_living_processes(
 @pytest.mark.parametrize(
     ("identity", "user", "expected"),
     [
-        pytest.param(
-            Identity(uid=0, user="root", pid=11), "root", "refuses to run as root", id="root-root"
-        ),
-        pytest.param(
-            Identity(uid=0, user="root", pid=11), "agent", "refuses to run as root", id="root-agent"
-        ),
+        pytest.param(ROOT, "root", "refuses to run as root", id="root-root"),
+        pytest.param(ROOT, "agent", "refuses to run as root", id="root-agent"),
         pytest.param(AGENT, "factory", "runs as agent, not factory", id="other-user"),
         pytest.param(AGENT, "Agent", "runs as agent, not Agent", id="case-differs"),
         pytest.param(AGENT, "agent", None, id="same-user"),

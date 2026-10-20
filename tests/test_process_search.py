@@ -90,6 +90,13 @@ def test_the_only_suppression_markers_are_the_four_in_the_process_wrapper() -> N
         if '"/dev/shm"' in line.split("#")[0]
     )
 
+    leftovers_lines = (SRC / "entry" / "leftovers.py").read_text(encoding="utf-8").splitlines()
+    main_line = next(
+        number
+        for number, line in enumerate(leftovers_lines, start=1)
+        if line.startswith("def main(")
+    )
+
     assert markers == {
         "adapters/process.py": {
             import_line: {"noqa: S404", "nosec B404"},
@@ -97,5 +104,5 @@ def test_the_only_suppression_markers_are_the_four_in_the_process_wrapper() -> N
             exec_line: {"noqa: S606", "nosec B606"},
         },
         "domain/confinement.py": {shm_line: {"noqa: S108", "nosec B108"}},
-        "entry/leftovers.py": {32: {"noqa: PLR0913"}},
+        "entry/leftovers.py": {main_line: {"noqa: PLR0913"}},
     }

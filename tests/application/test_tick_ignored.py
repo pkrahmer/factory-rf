@@ -9,7 +9,7 @@ from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.tick import IdleHandler, Tick
 from factory.domain.identifiers import branch_name
-from git_support import CHECKOUT, write_files
+from git_support import CHECKOUT, CLEAN_IGNORED, write_files
 from log_support import log_lines
 from root_support import AS_ROOT
 from tick_support import handlers_of
@@ -80,4 +80,4 @@ def test_the_restore_removes_the_ignored_paths(
         assert [line for line in log_lines(tmp_path) if path in line] == []
     else:
         [stop] = [stop for stop in boundaries.health.read().stops if stop.reason == stopped]
-        assert stop.detail.startswith("git clean --quiet --force --force -d -X failed (exit 1)")
+        assert stop.detail.startswith(f"{CLEAN_IGNORED} failed (exit 1)")
