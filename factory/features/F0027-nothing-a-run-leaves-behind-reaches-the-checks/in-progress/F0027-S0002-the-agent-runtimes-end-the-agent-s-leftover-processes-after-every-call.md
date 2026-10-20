@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T14:23:17.051768Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-20T14:23:17.051768Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T14:24:29.530329Z'
+  stage: review
+  run: ab2ad42fc7074a59b37a38b308f02623
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -161,8 +163,9 @@ Tests (the tester writes them): `tests/adapters/test_agent_launch_leftovers.py`,
 8. A call with an error of its own keeps it (rows of one parametrized test, `os_user` `factory-test-other`, the program exiting 1 with a `factory-leftovers:` line). The stand-in `sudo` refusing the run with `sudo: a password is required` and no reply raises `AgentRuntimeError` whose `detail` starts with `<sudo> refused the agent run: sudo: a password is required`, and the program was still started. The stand-in `factory-confine` refusing with a `factory-confine:` line and no reply raises the wrapper's error, and the program was still started.
 9. The opencode runtime's order (rows of one parametrized test, the stand-in `opencode` printing its events, the stand-in `sudo`, a stand-in `factory-confine`, `leftovers=[<stand-in program>]`): with `os_user` `factory-test-other` the records are run, program (`--user factory-test-other`, in `/`), removal. With the factory's own user they are run and removal. The program exiting 1 with a `factory-leftovers:` line raises `AgentRuntimeError` with `cannot end the agent's processes: <that line>`.
 10. `build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())` (rows of one parametrized test): by default the agent runtime's `leftovers` is `[sys.executable, "-I", "-m", "factory.entry.leftovers"]`, and with `end_leftovers=False` it is `None`. With `agent_runtime` `opencode` (F0020-S0008) the built `OpencodeRuntime`'s `leftovers` is the same list, and `None` with `end_leftovers=False`. `leftovers_command()` gives the same list as the default. Neither builds or starts a process.
-11. `make check` stays green.
-12. docs: `docs/operator-guide.md`, *The agent runs as a second user*: a paragraph after the one on the command line. After every call of a run as `agent`, the runtime runs `sudo -n -u agent -- /opt/factory/.venv/bin/python -I -m factory.entry.leftovers --user agent` from `/`. It ends every process of `agent` still running, a process started in a new session or with `nohup` included, before the run's temporary folder is removed and before the factory looks at the work tree. The `agent` user must therefore serve agent runs only. An operator's shell opened as `agent` (`docker exec -it -u agent <container> ...`, for `claude setup-token` or an opencode login) is ended by the next agent call, so run it while the instance is stopped. A failure stops the run with the error `cannot end the agent's processes: <line>` (the stage ends with a counted error; at the preflight's probe, `preflight_failed`). A run without `FACTORY_AGENT_USER` ends no processes. The table of morning observations, the row *A `time_limit` under `sudo`*, and the paragraph of the same name: after a run, `ps -o user,pid,ppid,stat,args -U agent` lists no process. `docs/project-guide/agents.md`, *The agent runtime*: `Starters.leftovers`, `leftovers_due`, `leftovers_launch`, `leftovers_fault`, the order after a call (the call, the program, the removal), when the program's result is read, and that a runtime built without `leftovers` starts none. `docs/project-guide/write-guard.md`, *The end of a run's processes*: who starts it and when. `docs/project-guide/watching.md`, *Boundaries*: `build_boundaries`' keyword `end_leftovers` and `leftovers_command()`. `docs/decisions.md`: an entry *Every agent call is followed by the end of the agent's leftover processes*, dated with the story, with the reasons of the feature's decisions 10 to 12, which says that it closes the window F0014 decision 21 left open (a process swapping `.git` after the seal's check).
+11. The opencode runtime keeps a call's own error (rows of one parametrized test, `os_user` `factory-test-other`, the program exiting 1 with a `factory-leftovers:` line, the stand-in `opencode` printing its events). The stand-in `sudo` refusing the run with `sudo: a password is required` raises `AgentRuntimeError` whose `detail` starts with `<sudo> refused the agent run: sudo: a password is required`, and the program was still started. The stand-in `factory-confine` refusing with a `factory-confine:` line raises the wrapper's error, and the program was still started.
+12. `make check` stays green.
+13. docs: `docs/operator-guide.md`, *The agent runs as a second user*: a paragraph after the one on the command line. After every call of a run as `agent`, the runtime runs `sudo -n -u agent -- /opt/factory/.venv/bin/python -I -m factory.entry.leftovers --user agent` from `/`. It ends every process of `agent` still running, a process started in a new session or with `nohup` included, before the run's temporary folder is removed and before the factory looks at the work tree. The `agent` user must therefore serve agent runs only. An operator's shell opened as `agent` (`docker exec -it -u agent <container> ...`, for `claude setup-token` or an opencode login) is ended by the next agent call, so run it while the instance is stopped. A failure stops the run with the error `cannot end the agent's processes: <line>` (the stage ends with a counted error; at the preflight's probe, `preflight_failed`). A run without `FACTORY_AGENT_USER` ends no processes. The table of morning observations, the row *A `time_limit` under `sudo`*, and the paragraph of the same name: after a run, `ps -o user,pid,ppid,stat,args -U agent` lists no process. `docs/project-guide/agents.md`, *The agent runtime*: `Starters.leftovers`, `leftovers_due`, `leftovers_launch`, `leftovers_fault`, the order after a call (the call, the program, the removal), when the program's result is read, and that a runtime built without `leftovers` starts none. `docs/project-guide/write-guard.md`, *The end of a run's processes*: who starts it and when. `docs/project-guide/watching.md`, *Boundaries*: `build_boundaries`' keyword `end_leftovers` and `leftovers_command()`. `docs/decisions.md`: an entry *Every agent call is followed by the end of the agent's leftover processes*, dated with the story, with the reasons of the feature's decisions 10 to 12, which says that it closes the window F0014 decision 21 left open (a process swapping `.git` after the seal's check).
 
 ## Smoke test
 
@@ -324,3 +327,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 11. factory: started review as self.
+12. reviewer: 1. criterion 11 added: it needs its test. Where: `## Acceptance criteria` of this work item. What is wrong: `src/factory/adapters/opencode_runtime.py` `_call` has its own copy of the precedence rule from the Interface: a call that `sudo`, the wrapper or the login shell refused keeps its own error, and the program still runs. It raises `refusal` before `leftovers_error`. Criterion 8 pins this rule only for the `claude -p` runtime. Criterion 9 pins only the order and the fault for opencode. So in opencode, swapping the two raises, or skipping the program after a refused call, fails no test. What would fix it: the tester adds the test for criterion 11 to `tests/adapters/test_opencode_runtime_leftovers.py`, with a `sudo` row and a `factory-confine` row in one parametrized test, using `write_sudo(..., refusal=...)` and `write_confine(layout, Played())` as the claude test does. Nothing under `src/` changes. The closing criteria are renumbered to 12 (`make check`) and 13 (docs).
+
+    Checked and found in order:
+    - Criteria 1 to 10 each have a test that checks what its criterion says.
+    - The fault rule is tested on both sides: status 0 with and without a `sudo:` line; status 1 with and without a `factory-leftovers:` line; timed out with status `None` and with status 0.
+    - The due rule is tested on every side: no program, no user, own user and another user.
+    - Entry 10 records `check: green` after the coder.
+    - I stopped at group 1 and did not report on groups 2 to 5.
+
+    Earlier tests: the diff only adds test files (every test path has status `A`). No test file on `main` was changed, so no leave was needed.
