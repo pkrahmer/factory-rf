@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 333
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T04:29:51.402537Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T04:29:30.709095Z'
   stage: review
   run: 6ad11c4e0f7c4194bf0ca7671d6c9591
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:29:51.402537Z'
+  stage: docs
 ---
 
 # The project guide names the shared test helpers
@@ -138,3 +147,4 @@ Expect: `1`
    description corrected: "The shared helpers live in 35 modules at the root of `tests/` besides `conftest.py`" -> "The shared helpers live in 36 modules at the root of `tests/` besides `conftest.py`". Intake (entry 3) settled this, and listing `tests/*.py` without the `test_` modules gives 37 with `conftest.py`.
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
