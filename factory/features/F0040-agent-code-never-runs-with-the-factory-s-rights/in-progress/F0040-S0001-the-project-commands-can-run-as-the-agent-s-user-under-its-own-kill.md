@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655, 6298783444]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T19:04:03.239712Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -274,6 +278,11 @@ journal:
   at: '2026-10-20T19:03:42.165850Z'
   stage: review
   run: d12f37f467e04a9c8e06e1e1c14c47e6
+- number: 49
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:04:03.239712Z'
+  stage: docs
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -773,3 +782,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_make_commands_user.py:33` (`SUDO_SCRIPT`, `_write_sudo`): this is a third local stand-in `sudo`, beside `write_sudo` in `tests/leftovers_runtime_support.py` and the one in `tests/adapters/test_claude_runtime_os_user.py`.
     - `tests/adapters/test_make_commands_user.py:22` (`LEFTOVERS_FAULT`): restates `factory.adapters.agent_launch.LEFTOVERS_FAULT` instead of importing it.
     - `tests/adapters/test_make_commands_user.py:305`: criterion 8 says `.user` "is `u`", but the test compares with `==`.
+49. factory: started docs as self.
