@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 316
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T02:07:59.036664Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T02:07:59.036664Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T02:08:21.204914Z'
+  stage: smoke-test
+  run: d01ed9b81ff543c684807bdf4538b457
 ---
 
 # The acceptance tests pin the reviewer's role and the close's commit subjects
@@ -216,3 +218,25 @@ Expect: three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: clo
     `secrets`: secrets: green (0.1 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings.
+
+    What I did: from the repository root I ran the one command under `## Smoke test` exactly as written. It is the `uv run -q python - <<'EOF' … EOF` script. It exited with status 0.
+
+    Command 1 (the domain script):
+
+    ```
+    not accepted
+    Too wide.
+    work item F0002-A0001: closed, refused
+    ```
+
+    Met its `Expect:` line: yes. It printed three lines, `not accepted`, `Too wide.` and `work item F0002-A0001: closed, refused`, as expected.
+
+    Against the acceptance criteria:
+    - Criteria 1 and 2 (the findings and the refusal ignore a later `result` of another speaker): the output agrees with both. The script's journal ends with a `tester` result of `red`. The findings are still the reviewer's `not accepted`, and the reason is still only the human's `Too wide.`.
+    - Criterion 3 (the close's commit subjects): agrees. `commit_subject` gives `work item F0002-A0001: closed, refused`. The script does not exercise the branch subject `close recorded`; the tester's test pins that one.
+    - Criteria 4 and 5: the smoke test contradicts neither. I did not run `make check` again. Entry 7 records `check: green`, and the factory runs its own checks.
+
+    Findings: none.
+
+    Open: nothing.
