@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 309
 comments_read: [6280599340]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T00:43:08.420957Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-20T00:43:08.420957Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T00:43:28.356920Z'
+  stage: smoke-test
+  run: 8c0fa44d03a640ee9df9a392617ecff3
 ---
 
 # The image makes opencode's configuration folder, read-only to the agent
@@ -258,3 +260,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     exit 0. Judge it against the Expect line; command 1 stands as you ran it.
 15. factory: started smoke-test as self.
+16. smoke-tester: No findings. Command 1 ran again in this round and met its `Expect:` line. For command 2 I judged the output the human posted in entry 14, because they chose option (a). I did not run command 2 again in this round: in entry 13 Claude Code's safety check refused it twice. Nothing was fixed.
+
+    Command 1 met its `Expect:` line (`3`):
+    ```
+    $ grep -c -F -e 'mkdir -p /home/agent/.config/opencode' -e 'chown factory:factory-work /home/agent/.config/opencode' -e 'chown agent:factory-work /home/agent/.config ' image/Dockerfile
+    3
+    ```
+
+    Command 2 met its `Expect:` line (`fresh 1`, `made 0`, `1`). This is the output from entry 14. The human ran the block exactly as written, saved unchanged to a file and run with bash, as the `agent` user. They ran it in a throwaway container of today's image `factory-self-factory` (`docker run --rm --network none -u agent`), which does not have this story's Dockerfile change, as the `Expect:` line says. The run exited 0.
+    ```
+    fresh 1
+    made 0
+    1
+    ```
+
+    Checked against the acceptance criteria. The smoke test contradicts none of them:
+    - Criterion 1: `image/Dockerfile` lines 32–38 make `/home/agent/.config/opencode` owned by `factory:factory-work` and `/home/agent/.config` owned by `agent:factory-work`, both with mode `0755`. The configuration folder has no group or other write bit.
+    - Criterion 2: the new `RUN` is its own instruction. It comes right after the `RUN` that holds `useradd ... agent` and before `WORKDIR /opt/factory`.
+    - Criterion 3: the smoke test does not touch `RUNTIME_FOLDERS`. The run's rules in command 2 list only the three runtime folders, and the `made` home still started, which agrees with the criterion.
+    - Criteria 4 and 5: the smoke test does not cover them. Entries 7 and 11 record `make check` as green and the docs as written.
+
+    Open: whether opencode starts in a recreated instance built from the new image is the human's change 1, as the Description says.
