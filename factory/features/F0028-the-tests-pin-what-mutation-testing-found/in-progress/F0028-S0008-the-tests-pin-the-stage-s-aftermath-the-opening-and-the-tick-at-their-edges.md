@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 319
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T02:37:00.474977Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T02:36:39.100594Z'
   stage: doing
   run: 78d05e7caecb46adad01bd79ae2b4137
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:37:00.474977Z'
+  stage: review
 ---
 
 # The tests pin the stage's aftermath, the opening and the tick at their edges
@@ -164,3 +173,4 @@ Expect: four lines, `None`, `Stalled (attempt 1 of 2): the agent gave no valid d
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
