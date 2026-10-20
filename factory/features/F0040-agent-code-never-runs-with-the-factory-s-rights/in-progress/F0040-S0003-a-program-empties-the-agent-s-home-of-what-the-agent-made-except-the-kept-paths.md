@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T20:57:04.021829Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-20T20:56:42.409778Z'
   stage: review
   run: 397d4de8577644b09d9c00b3aed5e4d5
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:57:04.021829Z'
+  stage: doing
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -284,3 +293,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests:
     - `tests/entry/test_wiring.py`: changed under the human's leave in the feature's decision 14, which the story's Interface repeats. Only the expected set gains `factory.entry.fresh_home`; nothing else in the test changed.
+13. factory: started doing as self.
