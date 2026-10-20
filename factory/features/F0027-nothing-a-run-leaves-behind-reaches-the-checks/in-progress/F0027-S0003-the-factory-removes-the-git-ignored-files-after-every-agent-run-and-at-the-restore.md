@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T15:22:23.269871Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-20T15:22:23.269871Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T15:23:45.290070Z'
+  stage: review
+  run: c5672a9e30c841f49e8cb5c11b01da61
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -367,3 +369,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 18. factory: started review as self.
+19. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (4 source files, 4 new and 3 changed test files) against the work item. The source matches the Interface. `Git.remove_ignored()` carries the Interface's docstring. `GitCli.remove_ignored()` runs `clean --quiet --force --force -d -X` through `_run`. `run_sealed` calls it after the `try`/`finally`. `_restore_checkout` calls it between `reset_to("HEAD")` and the switch to `main`. The layers hold, and the change adds no suppression marker. Criteria 1 to 7 each have one parametrized test that checks what the criterion says, failing sides included. The branch row of criterion 6 also pins the order: after the switch, `src/x.dat` would no longer be ignored. `make check` was green after the coder (entry 17). `make duplicates` reports 5 new findings, all in `claude_runtime`/`opencode_runtime` and `adapters/clock.py`, none in code this diff touches. Round 0, so the copied test helpers below are findings:
+
+    1. `tests/application/test_sealed_runs_ignored.py` `_request` and `COMPLETED` are copies of `_request` (`tests/application/test_sealed_runs.py:137`) and `COMPLETED` (`tests/application/test_sealed_runs.py:32`). Fix: the tester moves both to one shared module under `tests/` under the standing leave, and both modules import them from there.
+    2. `tests/adapters/test_git_cli_ignored.py` `_head` is a copy of `_head` in `tests/adapters/test_git_cli_restoring.py:12`. Fix: move it to `tests/git_support.py` under the standing leave and use it from both modules.
+    3. `AS_ROOT` in `tests/adapters/test_git_cli_ignored.py`, `tests/application/test_sealed_runs_ignored.py` and `tests/application/test_tick_ignored.py` is a copy of `AS_ROOT` in `tests/adapters/test_git_cli_nested.py:13` and `tests/application/test_nested_repositories.py:39`. Fix: one shared mark in a module at the `tests/` root, used by the new modules and by the earlier modules that hold the copy, under the standing leave.
+
+    Earlier tests:
+    - `tests/application/test_git_interface.py`: changed under the human's leave, the story's Interface under the feature's decision 16 (`OPERATIONS` gains `"remove_ignored"`, the test is renamed to twenty-five). The change is within that leave.
+    - `tests/application/test_interfaces.py`: changed under the same leave (the Git test renamed to twenty-five). The change is within that leave.
+    - `tests/application/test_tick.py`: changed under the same leave (`test_the_restore_discards_changes_and_names_them_in_one_line`, the `ignored.log` assertion inverted). The change is within that leave.
