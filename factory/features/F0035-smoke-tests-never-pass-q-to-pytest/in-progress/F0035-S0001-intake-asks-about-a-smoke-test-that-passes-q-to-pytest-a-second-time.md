@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 330
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T05:00:28.018083Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T05:00:28.018083Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T05:02:23.916118Z'
+  stage: tests
+  run: 1d03ba10977f455d9b31ec52e877d9b3
 ---
 
 # Intake asks about a smoke test that passes -q to pytest a second time
@@ -88,3 +90,16 @@ Expect: `1` (the human's change 1 is on `main`)
    - Architecture: nothing under `src/` changes. It is an agent text, a test at the `tests/` root (the module is outside the layers) and docs, which fits CLAUDE.md. `docs/project-guide/agents.md` has the *The seven agents* section that criterion 5 names.
    - Scope: it matches the feature's Scope list. The feature's Out of scope (code check, `template/`, demo, smoke tester, archived stories) is untouched. It changes no existing test: `tests/test_claude_agent_texts.py` passes unchanged, and the Lessons are not edited (feature decision 1).
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 3. They read the agent file through `agent_body` (tests/shipped_agents.py) and `section_text` (factory.domain.sections), as the Interface says.
+   - criterion 1: tests/test_claude_agent_texts_smoke_pytest.py::test_intake_stage_holds_the_pytest_quiet_rule. The Interface's sentences, verbatim, are in intake's *Stage* section.
+   - criterion 2: tests/test_claude_agent_texts_smoke_pytest.py::test_pytest_quiet_rule_ends_step_two_of_intake. Exactly one *Stage* line starts with `2. The factory has already checked the story's form`. That line holds the join text from "each `Expect:` line says something..." to "passes no `-q` ", and it ends with `Such a command is a question.`.
+   - criterion 3: tests/test_claude_agent_texts_smoke_pytest.py::test_only_intake_carries_the_pytest_quiet_rule. It is one parametrized test with a row for each of the seven shipped agents: intake 1, the six others 0.
+   - criterion 4 (`make check`) is the factory's gate, and criterion 5 (docs) is the documenter's. Neither has a test.
+   Files created: tests/test_claude_agent_texts_smoke_pytest.py. No earlier test file was changed.
+   Import errors: none. Every module the tests use already exists.
+   `make test`: the criterion 1 and criterion 2 tests fail, and so does the `intake` row of the criterion 3 test. In each case the sentences are not yet in claude/agents/intake.md. The six rows with a count of 0 pass already, as expected.
+   `make lint`: green.
+   No criterion needed interpreting.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/test_claude_agent_texts_smoke_pytest.py::test_only_intake_carries_the_pytest_quiet_rule[intake]
