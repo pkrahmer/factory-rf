@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 330
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T05:00:28.018083Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T04:09:46.942220Z'
   stage: intake
   run: d2927e3a98e5442a800f42227aef9e14
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T05:00:28.018083Z'
+  stage: tests
 ---
 
 # Intake asks about a smoke test that passes -q to pytest a second time
@@ -78,3 +87,4 @@ Expect: `1` (the human's change 1 is on `main`)
    - Smoke test: both commands are runnable `grep -c` calls. Each `Expect:` is checkable. The first lists seven exact lines and the second expects `1`. I ran the second: `factory/story-form.md` already holds the human's sentence, so it prints 1. The first prints 0 for intake until the coder has run, which is expected.
    - Architecture: nothing under `src/` changes. It is an agent text, a test at the `tests/` root (the module is outside the layers) and docs, which fits CLAUDE.md. `docs/project-guide/agents.md` has the *The seven agents* section that criterion 5 names.
    - Scope: it matches the feature's Scope list. The feature's Out of scope (code check, `template/`, demo, smoke tester, archived stories) is untouched. It changes no existing test: `tests/test_claude_agent_texts.py` passes unchanged, and the Lessons are not edited (feature decision 1).
+4. factory: started tests as self.
