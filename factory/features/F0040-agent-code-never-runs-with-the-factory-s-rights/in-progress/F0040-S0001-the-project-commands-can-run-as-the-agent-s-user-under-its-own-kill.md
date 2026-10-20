@@ -1,17 +1,13 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
-crashes: 1
+crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T18:32:01.120120Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-20T18:32:01.120120Z'
   stage: tests
+- number: 20
+  speaker: tester
+  kind: result
+  at: '2026-10-20T18:34:30.670749Z'
+  stage: tests
+  run: 474769da2d1442fb8ac944f69f601002
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -355,3 +357,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Someone who may write the work item has to make those edits.
 19. factory: started tests as self.
+20. tester: I made the test change the coder named in entry 18, as the human answered in entry 16. Everything is in `tests/adapters/test_make_commands_user.py`, the only file I changed:
+    - In `test_a_command_run_as_another_user_is_followed_by_the_leftovers_program`, the other user is now `OTHER_USER` from `tests/leftovers_runtime_support.py` instead of `"agent"`. That covers the `CommandUser`'s `os_user` in every row except `own-user`, and the expected arguments of the leftovers `sudo` call (`-u OTHER_USER ... --user OTHER_USER`). The import line now also imports `OTHER_USER`.
+    - The last line of the `check` recipe in `CHECK_RECIPES` is now `@echo "check: green (0.1 s)"`. `test_the_command_runs_through_sudo_timeout_and_env_with_only_the_user_s_environment` checks this line through `result.targets`. The leftovers rows build their Makefile from the same constant, and the change does not affect them.
+
+    I changed nothing else. In particular, criterion 1's expected first `sudo` call still names `"agent"`. The human's answer covers only the leftovers rows, and that call makes no own-user check.
+
+    The criterion → test mapping is the one in entry 11. Criteria 1 and 9 are the tests changed here.
+
+    `make test` is green: the whole suite passes against the coder's implementation, with coverage at 99.17 %. `make lint` is green. Every test module was imported.
+
+    Still open, outside the tester's write paths: the work item's criteria 1 and 9 still have the old wording. Entry 18 lists the new wording.
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (58.5 s)

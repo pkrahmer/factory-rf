@@ -12,7 +12,7 @@ from pydantic import BaseModel, ConfigDict
 from confine_support import read_records, write_script
 from factory.adapters.make_commands import CommandUser, MakeProjectCommands
 from factory.domain.errors import ProjectCommandError
-from leftovers_runtime_support import LEFTOVERS_LINE, SUDO_LINE, own_user, write_program
+from leftovers_runtime_support import LEFTOVERS_LINE, OTHER_USER, SUDO_LINE, own_user, write_program
 
 LIMIT = timedelta(seconds=30)
 SHORT_LIMIT = timedelta(seconds=3)
@@ -24,7 +24,7 @@ LEFTOVERS_FAULT = "cannot end the agent's processes: "
 CHECK_RECIPES = (
     '@echo "home=$$HOME token=$${FACTORY_TOKEN_FILE:-unset}"',
     '@echo "to-stderr" >&2',
-    '@echo "check: green"',
+    '@echo "check: green (0.1 s)"',
 )
 
 # Records its arguments, environment and working directory; then, unless it starts the
@@ -370,7 +370,7 @@ def test_a_command_run_as_another_user_is_followed_by_the_leftovers_program(
     )
     if row.removes_sudo:
         _write_makefile(project, removes=sudo.path)
-    os_user = own_user() if row.own else "agent"
+    os_user = own_user() if row.own else OTHER_USER
     user = _user(
         str(sudo.path),
         os_user=os_user,
@@ -397,5 +397,5 @@ def test_a_command_run_as_another_user_is_followed_by_the_leftovers_program(
         assert len(calls) == 1
         return
     assert len(calls) == 2
-    assert calls[1].arguments == ["-n", "-u", "agent", "--", str(program), "--user", "agent"]
+    assert calls[1].arguments == ["-n", "-u", OTHER_USER, "--", str(program), "--user", OTHER_USER]
     assert calls[1].working_directory == Path("/")
