@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 330
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T05:05:56.256239Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T05:05:56.256239Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T05:06:22.309073Z'
+  stage: docs
+  run: 60f3b2954d1d4c50bd7d4f26847a238e
 ---
 
 # Intake asks about a smoke test that passes -q to pytest a second time
@@ -157,3 +159,16 @@ Expect: `1` (the human's change 1 is on `main`)
    - Work item hygiene: the Description matches what was built, and the coder's journal entry names the main choice (on the same line) and what was rejected (a separate line or sub-bullet). Criterion 5 (docs) still describes what the documenter needs: one sentence in `docs/project-guide/agents.md` and an entry in `docs/decisions.md`.
    - Earlier tests: none. The diff only adds `tests/test_claude_agent_texts_smoke_pytest.py` (status A), and no test file on `main` is changed, renamed or deleted.
 10. factory: started docs as self.
+11. documenter: Files changed (documents only, so I did not run `make check`; the factory's checks decide):
+    - `docs/project-guide/agents.md`, *The seven agents*: one paragraph after the list of an agent file's sections. Intake's Stage step 2 asks about a smoke test command that passes pytest a `-q` the project's pytest configuration already sets, because at `-qq` pytest prints no summary line. The paragraph names the test that pins it.
+    - `docs/decisions.md`: new entry *A smoke test passes no -q that the pytest configuration already sets*, dated 2026-10-20 with F0035-S0001. It gives the decisions, the reason (the smoke tests of F0022-S0005 and F0023-S0004 on 2026-10-19) and the two rejected options (a check in code, a Lessons line).
+
+    Cross-read against the diff and found current: `README.md`, `docs/operator-guide.md` (nothing the operator does changes, as the docs criterion says). The diff is `claude/agents/intake.md` step 2, one line, which matches the Interface word for word; I found no contradiction between code and criteria. The rest of `docs/project-guide/agents.md` describes the Lessons and the pinned tests, and none of that changed.
+
+    Stale text noticed, not touched: none.
+
+    No findings.
+
+    `check`: check: green (not run again: passed on tree 692d1fffd52d at 2026-10-20T05:03:52Z)
+    `secrets`: secrets: green (1.0 s)
+    `documents`: documents ok
