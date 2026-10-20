@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T09:00:49.409526Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-10-20T09:00:28.227572Z'
   stage: tests
   run: 46fbb358a62c4a6589846ebb159b3210
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-20T09:00:49.409526Z'
+  stage: doing
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -344,3 +353,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (147.2 s)
+17. factory: started doing as self.
