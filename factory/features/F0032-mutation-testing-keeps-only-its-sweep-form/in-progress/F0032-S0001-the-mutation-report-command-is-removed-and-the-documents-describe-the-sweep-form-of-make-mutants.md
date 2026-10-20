@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 307
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T00:23:59.472345Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T00:23:38.659673Z'
   stage: docs
   run: 128f4479dbc540d5a7e7c2862941b481
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:23:59.472345Z'
+  stage: smoke-test
 ---
 
 # The mutation report command is removed and the documents describe the sweep form of `make mutants`
@@ -205,3 +214,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 8e7782634823 at 2026-10-20T00:20:55Z)
     `secrets`: secrets: green (1.6 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
