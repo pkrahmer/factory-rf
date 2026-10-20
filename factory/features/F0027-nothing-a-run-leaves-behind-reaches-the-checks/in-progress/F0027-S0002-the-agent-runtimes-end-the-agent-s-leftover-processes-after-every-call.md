@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T14:39:59.136469Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-20T14:39:37.981931Z'
   stage: review
   run: 3665e1b83b6c418883f5cf1fb09d3b86
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-20T14:39:59.136469Z'
+  stage: docs
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -467,3 +476,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     1. `tests/adapters/test_opencode_runtime_leftovers.py:59`: `# noqa: PLR0913` on the test with five columns. It gives its reason and follows `tests/adapters/opencode_stand_in.py:120` and `:237`. One row model, or fewer columns, would make it unnecessary.
     2. `tests/adapters/test_claude_runtime_leftovers.py:8-9`: imports `BUDGET_STOP` from `test_claude_runtime_login` and `REPLY` from `test_claude_runtime_os_user`, which are other stories' test modules. Under the standing leave, they could move to a shared module under `tests/`.
+21. factory: started docs as self.
