@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T02:52:37.538629Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-20T02:52:16.936068Z'
   stage: doing
   run: d3b9d3ee326949c1addcf29f3b75b245
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:52:37.538629Z'
+  stage: review
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -236,3 +245,4 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+16. factory: started review as self.
