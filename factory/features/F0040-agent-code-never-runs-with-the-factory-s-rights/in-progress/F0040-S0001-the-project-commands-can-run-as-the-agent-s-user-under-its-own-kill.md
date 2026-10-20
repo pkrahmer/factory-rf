@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T17:56:03.673041Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-20T17:55:42.908407Z'
   stage: intake
   run: cacfa625b24b4076ab7f54b2b58e6895
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-20T17:56:03.673041Z'
+  stage: tests
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -179,3 +188,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: runnable, no pytest involved, and the `Expect:` line is checkable. The recipe there is unchanged and still matches its expectation.
    - Architecture: the change sits in `factory.adapters.make_commands` and reuses `agent_launch` (adapters importing adapters, no layer reversed). The class inherits `ProjectCommands`.
    - Scope: within F0040's scope for S0001 (`make_commands.py`, `CommandUser`, the leftovers program) and not in its "Out of scope". The wiring and the seal are S0002's.
+7. factory: started tests as self.
