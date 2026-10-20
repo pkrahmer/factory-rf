@@ -39,6 +39,11 @@ The build order; start one at a time, the next when the one before is archived i
 
 - S0001: A project's own agent file replaces the shipped one for its role
 - S0002: The agents load a project's skills, and no run can add one to the agent's home
+- S0003: The opencode runtime leaves out Skill wherever it stands in an agent's tools (proposed by an acceptance)
+- S0004: The documents name a nested skills folder and the upgrade of a reused agent home (proposed by an acceptance)
+- S0005: The probe, project agent and entrypoint tests share their helpers (proposed by an acceptance)
+- S0006: The documents record the proof run of a project's skill and coder (proposed by an acceptance)
+- S0007: The entrypoint tests take their layout from a support module (proposed by an acceptance)
 
 ## The human's changes
 
