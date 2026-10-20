@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 315
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T01:57:52.420115Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T01:57:31.926040Z'
   stage: review
   run: fbe07127019d444c848523f1cf0e01cf
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:57:52.420115Z'
+  stage: docs
 ---
 
 # The tests pin seven small rules on both sides
@@ -192,3 +201,4 @@ Expect: four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`
 
    Earlier tests:
    - tests/domain/test_evaluation.py: changed under the standing leave in `CLAUDE.md` (*Tests*) to move a shared test helper. The change moves `MAIN`, `BRANCH_COMMIT`, `MERGE_COMMIT`, `PULL_REQUEST`, `OTHER_INSTANCE`, `AT`, `DEFINITION`, `_id`, `_snapshot`, `_journal`, `_blocked`, `_at_approval`, `_claimed`, `_view`, `_factory_comment`, `_Lookup`, `_ClaimStatus`, `_facts` and `_evaluate` unchanged to `tests/evaluation_support.py` and imports them from there. The diff touches only the module's head, so every test there keeps its name and what it checks.
+10. factory: started docs as self.
