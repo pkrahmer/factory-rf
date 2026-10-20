@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 330
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T05:02:44.293061Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T05:02:44.293061Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T05:04:45.903970Z'
+  stage: doing
+  run: 37468963f7d0449894750fe830c5af56
 ---
 
 # Intake asks about a smoke test that passes -q to pytest a second time
@@ -113,3 +115,11 @@ Expect: `1` (the human's change 1 is on `main`)
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_agent_texts_smoke_pytest.py::test_only_intake_carries_the_pytest_quiet_rule[intake]
 6. factory: started doing as self.
+7. coder: Added the Interface's sentences to the end of step 2 in the *Stage* section of `claude/agents/intake.md`. They follow one space after "can be checked against." on the same line. Step 2 still starts the same way and keeps its number 0 to 6 order. No other file changed.
+      - Main choice: I added the text exactly as the Interface gives it, on the existing line. I rejected a separate line or sub-bullet under step 2, because criterion 2 needs the rule on the step's own line and it must end with "Such a command is a question."
+      - Refactor: the diff is one appended line, so there was nothing to change.
+      - `make check`: green (`check: green`). This includes tests/test_claude_agent_texts_smoke_pytest.py and the unchanged tests/test_claude_agent_texts.py.
+      - Noticed, not touched: the template/ copies of the agent files, if any, are out of scope under the feature's Out of scope list. Criterion 5's docs in `docs/project-guide/agents.md` and `docs/decisions.md` are the documenter's.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
