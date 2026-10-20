@@ -25,7 +25,7 @@ None: nothing changes under `src/factory/`, in any test, the image, the template
    - *The health check and the restart policy*: "The probe of 2026-10-17 saw the health check run under Podman: it reported `starting`, then the text of the stop `repository_unavailable`, with exit 1. The morning observation that remains is `docker compose ps` over a container with a stop standing." becomes "Under Podman the health check reports `starting`, then the text of a stop in force, with exit 1. Not yet checked on a running instance: `docker compose ps` over a container with a stop in force."
    - *Container runtimes*: "(probe of 2026-10-17, Podman 5.8.3 on Windows)" becomes "(seen with Podman 5.8.3 on Windows)".
    - " (F0012-S0017)", " (seen by the coder of the tiny story, 2026-10-18)" and " (F0019-S0004 showed it)" are removed.
-   - Every section the guide cites in double quotes is still a heading of the guide. `make documents` ends with `documents ok`.
+   - No heading of the guide is renamed or removed; `### The init` is the one heading added. `make documents` ends with `documents ok`.
 
 ## Smoke test
 
