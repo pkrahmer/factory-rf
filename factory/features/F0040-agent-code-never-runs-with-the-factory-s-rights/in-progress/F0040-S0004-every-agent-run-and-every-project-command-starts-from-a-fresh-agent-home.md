@@ -5,7 +5,7 @@ round: 0
 attempts: 0
 crashes: 2
 pull_request: 365
-comments_read: [6301863943]
+comments_read: [6301863943, 6302567860]
 handed_over: null
 claim: null
 journal:
@@ -79,6 +79,11 @@ journal:
   at: '2026-10-20T22:05:33.875549Z'
   stage: doing
   blocked: crash_cap
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-10-20T22:05:57.745354Z'
+  stage: doing
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -311,3 +316,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 11. factory: started doing as self.
 12. factory: crash 2: the run of stage doing ended without a result. Its work is discarded back to commit 4d52128a80c2fda680856cf61e34e6b71521ab75.
 13. factory: Stage doing crashed 2 times, which is the crash cap of 2. The factory has not rerun it. Write a comment here and the stage reruns with the crash counter reset to 0 (your comment is copied into the journal). Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
+14. 2026-10-20 human: Note from the human's side (2026-10-21), for the coder and the reviewer: at 21:36 UTC this stage's tests left `src/factory/{,entry,domain,adapters}/__pycache__` at mode 755 (owner `agent`), and the factory's `git clean -X` after the run failed with `checkout_restore_failed` (repaired by hand). The cause is a child started as `[sys.executable, "-I", "-m", "factory.entry.fresh_home"]`: in the tests `sys.executable` is the checkout's Python, and `-I` ignores `PYTHONDONTWRITEBYTECODE`, so under the tests' umask 022 it writes bytecode into `src/`. Start the program with `-I -B` (the command this story builds, and any test that starts it), as F0027-S0004 did for the test helpers.
