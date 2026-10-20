@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368, 6300375333]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T20:09:53.580798Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-10-20T20:09:28.911300Z'
   stage: doing
   run: 697550a9a820455f9b9c8009ae27eebf
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:09:53.580798Z'
+  stage: tests
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -376,3 +385,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Main choice: none this round. I hand the test back rather than change it (R9). The alternative, changing the test myself, is not allowed.
 
     Description: the journal changed no meaning of the task beyond criterion 8, which entry 12 already added, so I rewrote nothing. Noticed but did not touch: the `make duplicates` findings that entry 10 recorded.
+22. factory: started tests as self.
