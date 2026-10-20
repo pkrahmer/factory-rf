@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 1
 pull_request: 357
-comments_read: [6297503471, 6297615750]
+comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
 claim: null
 journal:
@@ -92,6 +92,11 @@ journal:
   stage: doing
   run: 5e98650ff66a4116b559cf7bc1ffb85c
   blocked: question
+- number: 16
+  speaker: human
+  kind: comment
+  at: '2026-10-20T18:30:36.914481Z'
+  stage: doing
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -314,3 +319,7 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - I would choose (a).
 
     Noticed, not touched: criterion 9's words still say "a `leftovers` program that does not exist". The human's answer in entry 9 rewords that. The work item is outside my write paths, so I did not change it.
+16. 2026-10-20 human: Answers (2026-10-20):
+    1. (a). The leftovers rows use `OTHER_USER` from `tests/leftovers_runtime_support.py` as the other user, in the call and in the expected `sudo` arguments; criterion 9 says "a user no test runs as" instead of `agent`. The own-user rule stays as the Interface states it.
+    2. (a). Criterion 1's recipe ends with `@echo "check: green (0.1 s)"`, and the criterion changes the same way; `target_times` stays as it is.
+    Both are changes to this story's own new test module. Criterion 9's wording for the missing program follows the answer of entry 9.
