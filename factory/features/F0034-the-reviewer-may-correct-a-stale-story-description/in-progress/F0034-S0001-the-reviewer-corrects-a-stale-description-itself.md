@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 328
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T03:55:18.972306Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T03:54:58.544764Z'
   stage: intake
   run: 1b5acae23a004518ba612ac527dedc42
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:55:18.972306Z'
+  stage: tests
 ---
 
 # The reviewer corrects a stale Description itself
@@ -79,3 +88,4 @@ Expect: `1`
    Smoke test: both greps are runnable. The expected counts (seven lines with 0 or 1, and `1`) can be checked against the output.
    Architecture: nothing under `src/` changes, so the layers are untouched. The change is an agent file under `claude/`, which the coder writes. The tests are under `tests/` at the root, as for the other agent-text modules.
    Scope: it matches the feature's Scope and touches nothing in its Out of scope. No other agent changes, and there is no pipeline change. The story edits no test another story wrote, and the new test module is its own.
+4. factory: started tests as self.
