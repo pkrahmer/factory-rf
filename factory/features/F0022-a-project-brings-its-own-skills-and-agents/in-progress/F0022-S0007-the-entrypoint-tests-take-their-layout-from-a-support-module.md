@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T00:01:57.047988Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-20T00:01:57.047988Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T00:02:21.578589Z'
+  stage: smoke-test
+  run: 3928de28ad3245a6bf70804cdd750bf0
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -315,3 +317,31 @@ Expect: `exit 0`
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test, round 1: I ran the three commands from the repository root exactly as written, in order. Each one met its `Expect:` line. I fixed nothing.
+
+    1. `grep -rlF --include='*.py' 'class Layout:' tests | sort`
+    ```
+    tests/confine_support.py
+    tests/entrypoint_support.py
+    ```
+    Met: two lines, `tests/confine_support.py` and then `tests/entrypoint_support.py`.
+
+    2. `grep -rlF 'from test_entrypoint import' tests | wc -l`
+    ```
+    0
+    ```
+    Met: `0`.
+
+    3. `uv run pytest tests/test_entrypoint.py tests/test_agent_home_ownership.py tests/test_entrypoint_skills.py tests/test_shared_test_helpers.py >/dev/null 2>&1; echo "exit $?"`
+    ```
+    exit 0
+    ```
+    Met: `exit 0`.
+
+    Checked against the acceptance criteria. Nothing contradicts any of them:
+    - Criterion 2: `grep -rn 'def _texts(output' tests` finds nothing. `uv run pytest -q tests/test_entrypoint_support.py` passes.
+    - Criterion 3: `tests/conftest.py:14` holds `from entrypoint_support import Layout as ImageLayout`, and command 3 ran `test_shared_test_helpers.py` green.
+    - Criterion 1: I did not compare the collected ids again. The tester did this in entry 5, and the smoke commands do not target it.
+    - Criterion 4: I did not run `make check`. The factory's `make check` was green on this tree (entry 19).
+
+    Findings: none.
