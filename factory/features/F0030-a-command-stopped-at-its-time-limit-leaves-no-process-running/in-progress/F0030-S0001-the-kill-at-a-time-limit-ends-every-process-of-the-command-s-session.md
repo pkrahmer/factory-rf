@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T08:54:16.740346Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-10-20T08:54:16.740346Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-20T08:54:33.642183Z'
+  stage: doing
+  run: 5483606cbdb640c2be49271dbead69c2
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -282,3 +284,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Not raised: the `ProcessLookupError` branch of `_kill_one` and the skipped unreadable `/proc` folder are race branches. A stand-in that raises `ProcessLookupError` for a live process would make the rounds loop forever, so they stay uncovered, as intake accepted.
 13. factory: started doing as self.
+14. coder: Round 1. All three of the reviewer's findings (entry 12) are test changes. None of them needs a code change, so I changed nothing under `src/` and am handing the work item to the tester.
+
+    The tester should make these changes:
+    1. Criterion 1, the accepted side of the field-count limit: add the row `"5 (x) S 1 5 5"` with pid 5. It has exactly four fields after the last `)` and should give `ProcessEntry(pid=5, session=5, ended=False)`.
+    2. Criterion 1, one parametrized test: merge `tests/domain/test_sessions.py::test_status_line_gives_the_entry` and `::test_unreadable_status_line_is_refused` into one parametrized test of `parse_stat`. Each row should carry either the expected entry or the expected `ValueError`.
+    3. The new criterion 8 needs its test. Add one test of `run_process` to `tests/adapters/test_process_session.py`, using criterion 4's child with the grandchild in a group of its own (`process_group=0`) and `ROOMY_LIMIT`. It should replace `os.kill` through `monkeypatch` with a stand-in that raises `PermissionError` for the grandchild's id and calls the real `os.kill` for every other id. The test then checks four things:
+       - the call returns within `ROOMY_BOUND_SECONDS`;
+       - the result has `timed_out=True`;
+       - `is_gone(pid, within=0)` is false for the grandchild;
+       - after undoing the replacement, the test kills the grandchild itself.
+
+    Built: nothing new this round. The code from entries 7 and 10 stays as it is: `src/factory/domain/sessions.py` and `_kill_session`, `_read_process_table` and `_kill_one` in `src/factory/adapters/process.py`.
+
+    Main choice: I end with `tests` and leave the code alone. `_kill_one` (`src/factory/adapters/process.py`) already adds the id to `refused` on a `PermissionError`, and the rounds already exclude refused ids through `left_to_kill`, so the new criterion should pass once its test exists. I rejected a speculative code change, since no failing test asks for one.
+
+    The journal changed the meaning of the task: the reviewer added criterion 8 and renumbered `make check` and docs as 9 and 10. The `## Description` already holds that text, so I did not rewrite it.
+
+    Noticed, not touched: the possible racy-index cause of the `tests/adapters/test_git_cli_work_tree.py` flake, described in entry 10, outside this work item.
