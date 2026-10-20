@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 310
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T00:45:06.475085Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T00:45:06.475085Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T00:45:23.180804Z'
+  stage: intake
+  run: 1d563ba381564419a9c0bb21a8ca5c60
 ---
 
 # The operator guide plans a sweep for a fresh `mutants/` folder only
@@ -62,3 +64,9 @@ Expect: three lines `found` (the example, the stop line and the sweep's command 
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: no module under src/ changes and the tester writes no test module. The Makefile `mutants` recipe (the human's change 1 of F0032) is named as the reference. Nothing to sign, so nothing is missing.
+   - Criteria: only the two closing ones exist, and the story says so on purpose. The docs criterion states each required wording and each removal. The failing sides are the removals, which the first smoke test checks: no `mutmut-stats.json`, no "repairs it", no "keeps them only when that run ends". The story states no Interface rule or comment, so no behaviour lacks a criterion.
+   - Smoke test: both blocks are plain grep and shell commands, and neither runs `make mutants`. I checked the guide as it stands now. It has the "repairs it" and "keeps them only" wording at line 92, so the first block would fail today and pass after the rewrite. The example (line 95) and the sweep command (line 85) are already there. Each `Expect:` line can be checked against the output. `grep -c ... || true` prints 0 when nothing matches, which is the expected `0`.
+   - Architecture: documents only, with no layer or code touched. It stays within the documenter's write paths (`docs/*`).
+   - Scope: it fits F0032's goal, the documents describing the sweep form. It touches only the operator guide's two paragraphs, which F0032-S0001 left stale. Nothing from the feature's "Out of scope" is changed. It is a follow-up to S0001, proposed by the acceptance, and the human started it.
