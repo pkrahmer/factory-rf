@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T07:35:50.761829Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-20T07:35:50.761829Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T07:36:26.209885Z'
+  stage: docs
+  run: b8551fdf234142d293b6e0dbe035f7be
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -329,3 +331,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - `tests/test_time_limits.py:15-40`: each row is a `bool` worked out when the tests are collected, so a failing row prints only `assert False`. Rows that carry the two compared values would say which relation broke.
 18. factory: started docs as self.
+19. documenter: Docs for F0029-S0002 (round 1). No findings: the diff is tests only (11 modules changed, `tests/time_limits.py` and `tests/test_time_limits.py` new), matching the Interface and criteria. I ran no `make check`: I changed only documents.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`, *Starting a process*: a paragraph after the line on the tests and their helpers. A test whose child must act before its limit takes `ROOMY_LIMIT` (10 s) and `ROOMY_BOUND_SECONDS` (25) from `tests/time_limits.py`. A child that need not start to be killed may keep a shorter limit.
+    - `docs/decisions.md`: new entry *A test whose child must act before its time limit gets ten seconds*, dated with the story. It gives the decision, the reasons and the three rejected options from the docs criterion.
+
+    Cross-read and found current: `README.md` and `docs/operator-guide.md` (the criterion says none; nothing an operator or newcomer does changes). The rest of `processes-and-checks.md` still matches the unchanged `src/`.
+
+    Stale text not mine to fix: none seen. The docs criterion names no other file, so the human-owned `docs/operator-playbook.md` is untouched.
+
+    Skills: no project skill applied.
+
+    `check`: check: green (not run again: passed on tree c52b3cc6f7ce at 2026-10-20T07:32:51Z)
+    `secrets`: secrets: green (1.2 s)
+    `documents`: documents ok
