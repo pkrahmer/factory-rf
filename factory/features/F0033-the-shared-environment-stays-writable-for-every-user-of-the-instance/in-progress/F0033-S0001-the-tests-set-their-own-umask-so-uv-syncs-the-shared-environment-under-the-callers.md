@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 322
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T03:14:31.463815Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T03:14:31.463815Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T03:14:53.247221Z'
+  stage: smoke-test
+  run: e183c21577f64cc3965fb6bfeefa94c2
 ---
 
 # The tests set their own umask, so uv syncs the shared environment under the caller's
@@ -209,3 +211,31 @@ Expect: `1`
     `secrets`: secrets: green (0.9 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Ran the two smoke-test commands from the repository root, in order and as written. Both met their `Expect:` line. No findings.
+
+    Command 1:
+    ```bash
+    umask 002
+    uv run pytest -p no:cacheprovider --no-header tests/test_tests_umask.py 2>&1 | tail -n 1 | grep -c -E '^5 passed in '
+    ```
+    ```
+    1
+    ```
+    Met `Expect: 1`. To see the line it counted, I ran the same pytest command again without the `grep`, still under `umask 002`. Its last line was `5 passed in 1.95s`: criterion 1's test plus the four rows of criterion 2.
+
+    Command 2:
+    ```bash
+    grep -c -F 'os.umask(TESTS_UMASK)' tests/conftest.py
+    ```
+    ```
+    1
+    ```
+    Met `Expect: 1`.
+
+    Checked against the acceptance criteria:
+    - Criteria 1 and 2: their tests pass when pytest is started under `umask 002`, which differs from the tests' `0o022`. That is the case the hook exists for.
+    - Criteria 3 and 4: the smoke test does not contradict either. Criterion 3 (`make check`) was green in entries 7 and 11. Criterion 4 (docs) was written in entry 11.
+
+    Open:
+    - The human's change 1, which drops `umask 022` from the `Makefile`'s `test` recipe, is still to come after the merge, as the Description says.
+    - The documenter asked in entry 11 for the human to confirm their one-clause reasons for the rejected alternatives in `docs/decisions.md`. That question still stands.
