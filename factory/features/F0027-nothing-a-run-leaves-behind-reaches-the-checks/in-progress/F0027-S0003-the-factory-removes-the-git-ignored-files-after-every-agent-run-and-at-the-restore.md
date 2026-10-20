@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T15:08:01.564221Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-20T15:08:01.564221Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-20T15:08:17.343585Z'
+  stage: doing
+  run: 1800b98fa9f749e4b0c8c542f6cbf7eb
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -288,3 +290,8 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Noticed but not touched: nothing.
 11. 2026-10-20 human: Answer (2026-10-20): (a). The tester changes line 154 of this story's own `tests/application/test_sealed_runs_ignored.py` to `assert error.value.detail == "boom"`; nothing else changes, and `AgentRuntimeError` keeps its text.
 12. factory: started doing as self.
+13. coder: The human's answer in entry 11 calls for a test change. I made no code change in this round. The tester changes line 154 of `tests/application/test_sealed_runs_ignored.py` (the `raised` row of `test_a_returned_run_leaves_no_ignored_path_and_a_raised_one_leaves_them`) from `assert str(error.value) == "boom"` to `assert error.value.detail == "boom"`, and nothing else.
+
+    The code from the last doing round is already on the branch (commit 05aa6710): `src/factory/application/git.py`, `src/factory/adapters/git_cli.py`, `src/factory/application/sealed_runs.py` and `src/factory/application/tick.py`. With that one line changed, I expect every test of this story to pass. In the last round, this assertion was the only failure in `make test`. I did not run `make check` this round, because no code changed.
+
+    The journal did not change what the task means. `AgentRuntimeError` keeps its text, so the Description stays as it is.
