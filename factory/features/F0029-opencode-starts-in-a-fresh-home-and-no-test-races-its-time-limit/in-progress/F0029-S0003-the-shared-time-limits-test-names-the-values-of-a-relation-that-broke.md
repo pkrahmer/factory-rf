@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 367
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T22:52:50.030439Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T22:52:29.377963Z'
   stage: review
   run: 197e98e6e8d64995a6498309ced3184e
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:52:50.030439Z'
+  stage: docs
 ---
 
 # The shared time limits' test names the values of a relation that broke
@@ -180,3 +189,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Earlier tests:
    - `tests/test_time_limits.py` (M, written by F0029-S0002): changed under the human's leave in `feature.md`, decision 9, S0003 (the human, 2026-10-20). The change stays within that leave: same test name, nine row ids and relations, the message, the new test, and the `timedelta` import removed.
+10. factory: started docs as self.
