@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T10:10:39.673061Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T10:10:39.673061Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T10:17:13.100666Z'
+  stage: doing
+  run: 250a42fcd2924d998e1c5e25411af3ab
 ---
 
 # The Claude Code runtime registers no write hook
@@ -173,3 +175,25 @@ Expect: `7`
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_agent_no_hook.py::test_no_shipped_agent_names_a_hook[intake]
 6. factory: started doing as self.
+7. coder: I removed the Claude Code runtime's write hook and the R14 clause that described it. `make check` is green: 99.17 % coverage and `check: green`.
+
+   What I built:
+   - `src/factory/adapters/claude_runtime.py`:
+     - Removed `GUARDED_TOOLS`, `_hook_settings`, the `guard` and `hooks` fields of `_RunFiles` (with their paths in `of` and `remove`), `ClaudeCodeRuntime._guard_settings`, and the now-unused imports `shlex`, `GUARD_COMMAND` and `GuardSettings`.
+     - `_arguments` no longer adds `--settings`. `_write_files` writes the instructions file, plus the confine rules file when the run is confined, and nothing else.
+     - The `SWITCHES` comment now says that Python the agent starts would leave bytecode in the working copy. `__all__` is unchanged.
+     - `request.guard` still reaches the kernel rules through `_confinement`/`device_confinement`; that code is untouched.
+   - `claude/agents/{acceptance-reviewer,coder,documenter,intake,reviewer,smoke-tester,tester}.md`: deleted " a hook also refuses an edit outside the write paths," from the R14 line. The word `hook` now occurs 0 times in each file.
+
+   Main choice: delete the hook code outright instead of keeping it behind a switch that is always off. The Interface lists these symbols as removed, and the kernel confinement is the guard now.
+
+   Refactor: I read the diff and found nothing to change. It contains only deletions and one comment edit.
+
+   Noticed but not touched:
+   - `make duplicates` reports `5 new, 33 known, 3 gone`.
+     - Four of the "new" findings are claude_runtime/opencode_runtime similar-code pairs (`call_refusal`, `cleanup_launch`, `version_printed`, the `confine_executable` branch) that were already there. They most likely count as new only because deleting lines shifted their line numbers relative to `security/duplicates-baseline.txt`.
+     - The fifth is dead code (`ManualWaiter` in `src/factory/adapters/clock.py`) that this story did not touch.
+   - `factory-guard`, its adapter and `GUARD_COMMAND` remain, as the story says, until S0002.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone

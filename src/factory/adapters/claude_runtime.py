@@ -1,7 +1,6 @@
 """The agent runtime that runs an agent as one `claude -p` call under the operator's login."""
 
 import json
-import shlex
 import tempfile
 import time
 import uuid
@@ -53,11 +52,9 @@ from factory.adapters.agent_launch import (
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.application.agent_runtime import AgentRuntime
 from factory.domain.agent_runs import (
-    GUARD_COMMAND,
     AgentRunRequest,
     AgentRunResult,
     EndReason,
-    GuardSettings,
     PermissionDenial,
     TokenCounts,
     resumed_result,
@@ -84,13 +81,12 @@ __all__ = [
 ]
 
 # Without these, `claude` would keep its own memory and read git instructions the factory
-# does not give, and a Python hook would leave bytecode in the working copy.
+# does not give, and Python the agent starts would leave bytecode in the working copy.
 SWITCHES = {
     "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1",
     "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS": "1",
     "PYTHONDONTWRITEBYTECODE": "1",
 }
-GUARDED_TOOLS = "Edit|Write"
 BUDGET_SUBTYPE = "error_max_budget_usd"
 # Claude Code keeps its `.claude.json` in this folder rather than in the home's root, so a
 # confined run keeps it inside the runtime's own folder, which the rules allow.
@@ -142,8 +138,6 @@ class _RunFiles(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     instructions: Path
-    guard: Path
-    hooks: Path
     rules: Path
     temporary: Path
 
@@ -151,14 +145,12 @@ class _RunFiles(BaseModel):
     def of(cls, state_directory: Path, temporary_root: Path, session: str) -> "_RunFiles":
         return cls(
             instructions=state_directory / f"instructions-{session}.md",
-            guard=state_directory / f"guard-{session}.json",
-            hooks=state_directory / f"hooks-{session}.json",
             rules=state_directory / f"confine-{session}.json",
             temporary=temporary_folder(temporary_root, session),
         )
 
     def remove(self) -> None:
-        for path in (self.instructions, self.guard, self.hooks, self.rules):
+        for path in (self.instructions, self.rules):
             path.unlink(missing_ok=True)
 
 
@@ -185,12 +177,6 @@ def _decision_schema(request: AgentRunRequest) -> str:
     return json.dumps(schema)
 
 
-def _hook_settings(guard_file: Path) -> str:
-    command = f"{GUARD_COMMAND} --settings {shlex.quote(str(guard_file))}"
-    hook = {"type": "command", "command": command}
-    return json.dumps({"hooks": {"PreToolUse": [{"matcher": GUARDED_TOOLS, "hooks": [hook]}]}})
-
-
 def _session_arguments(request: AgentRunRequest, new_session: str) -> list[str]:
     if request.resume_session is not None:
         return ["--resume", request.resume_session]
@@ -204,8 +190,6 @@ def _arguments(request: AgentRunRequest, new_session: str, files: _RunFiles) -> 
         arguments += ["--effort", agent.effort]
     arguments += ["--tools", ",".join(agent.tools), *_session_arguments(request, new_session)]
     arguments += ["--append-system-prompt-file", str(files.instructions)]
-    if request.guard is not None:
-        arguments += ["--settings", str(files.hooks)]
     arguments += [
         "--permission-mode",
         "auto",
@@ -473,9 +457,6 @@ class ClaudeCodeRuntime(AgentRuntime):
     def _write_files(self, request: AgentRunRequest, files: _RunFiles) -> None:
         try:
             written = {files.instructions: request.agent.instructions}
-            if request.guard is not None:
-                written[files.guard] = self._guard_settings(request.guard, files).model_dump_json()
-                written[files.hooks] = _hook_settings(files.guard)
             if self._starters.confine_executable is not None:
                 written[files.rules] = _confinement(request, files.temporary).model_dump_json()
             for path, text in written.items():
@@ -483,11 +464,6 @@ class ClaudeCodeRuntime(AgentRuntime):
                 path.chmod(RUN_FILE_MODE)
         except OSError as exc:
             raise self._state_error(exc) from exc
-
-    def _guard_settings(self, guard: GuardSettings, files: _RunFiles) -> GuardSettings:
-        # Only a confined run has a temporary folder of its own for the hook to allow.
-        temporary = files.temporary if self._starters.confine_executable is not None else None
-        return guard.model_copy(update={"temporary_directory": temporary})
 
     def _call(
         self,
