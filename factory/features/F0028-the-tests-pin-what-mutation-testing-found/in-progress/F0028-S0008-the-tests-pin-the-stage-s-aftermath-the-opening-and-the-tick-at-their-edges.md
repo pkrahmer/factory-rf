@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T02:29:31.613661Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T02:29:31.607110Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:29:31.613661Z'
+  stage: intake
+---
+
 # The tests pin the stage's aftermath, the opening and the tick at their edges
 
 ## Description
@@ -63,3 +90,6 @@ EOF
 Expect: four lines, `None`, `Stalled (attempt 1 of 2): the agent gave no valid decision and entry: the entry is empty. Retrying on the next tick.`, `git fetch failed (exit 128): fatal: the remote end hung up` and `idle:-`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
