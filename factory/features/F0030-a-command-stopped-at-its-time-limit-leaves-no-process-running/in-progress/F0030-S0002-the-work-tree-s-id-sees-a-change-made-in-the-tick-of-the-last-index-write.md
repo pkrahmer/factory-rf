@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 369
 comments_read: [6303767591]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T23:06:51.630055Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-20T23:06:51.630055Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-20T23:09:40.110337Z'
+  stage: tests
+  run: 6e4ca5bc08ed4d87a635e0cfecb7fe38
 ---
 
 # The work tree's id sees a change made in the tick of the last index write
@@ -126,3 +128,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the change is inside `factory.adapters`, in the git wrapper, as `CLAUDE.md` requires. The new test module sits under `tests/adapters/`, mirroring the package.
    - Scope: journal entry 4 carries the human's answer to my question 1. F0030's `feature.md` now lists S0002 and names its files under *Scope*. The story is in scope. The story changes no earlier test and adds no dependency or suppression marker.
 7. factory: started tests as self.
+8. tester: I wrote the test for criterion 1. It fails in the row the story expects, and `make lint` is green.
+
+   - criterion 1: tests/adapters/test_git_cli_work_tree_tick.py::test_a_change_in_the_tick_of_the_last_index_write_is_seen, with rows `same-size` (`two\n`) and `other-size` (`three\n`).
+   - criterion 2 (`make check` stays green): no test of its own. The factory's checks cover it.
+   - criterion 3 (docs): no test. This is the documenter's work.
+
+   What the test does: it uses the `checkout` fixture and sets `core.trustctime false` through `run_git`. It writes `kept.log` as `one\n`, sets the file's modification time to a fixed past value P, and commits with `GitCli.commit("kept")`. It then rewrites the file with the row's text and sets the modification times of both the file and `.git/index` to P with `os.utime(..., ns=...)`. Finally it checks that `work_tree_id()` equals `HEAD^{tree}` after `GitCli.commit("edit")`.
+
+   Files created: tests/adapters/test_git_cli_work_tree_tick.py. I changed no earlier test.
+
+   Modules the test run could not import: none. `factory.adapters.git_cli` already exists. The test fails for the right reason, a wrong result: `[same-size]` fails with an AssertionError because the id names the old tree. `[other-size]` passes, as the story says it does before the change. Skills: none used.
+
+   `lint`: lint: green (0.5 s)
+   `test`: FAILED tests/adapters/test_git_cli_work_tree_tick.py::test_a_change_in_the_tick_of_the_last_index_write_is_seen[same-size] - AssertionError: assert 'eef991509a20...d5ba5d5c0dd69' == '11bdcc0ae77a.....
