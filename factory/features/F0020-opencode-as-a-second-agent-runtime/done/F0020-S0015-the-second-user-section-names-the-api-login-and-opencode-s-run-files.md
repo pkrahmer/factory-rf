@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T00:10:03.153747Z'
   stage: smoke-test
   run: 73a5384ced1940f3a4a71edcfb0da62c
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T00:11:22.447619Z'
+  stage: approval
 ---
 
 # The second-user section names the API login and opencode's run files
@@ -225,3 +230,4 @@ Expect: `documents ok`
       - The diff touches only those two paragraphs. No other passage changes.
 
     Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 3.0 min, 28 turns, 107308 tokens in (399862 more from cache), 7468 out, $0.86
