@@ -2,21 +2,14 @@
 
 import pytest
 
-from factory.domain.journal import JournalRecord
+from domain.test_story_form import FORM, SMOKE, _state
 from factory.domain.paths import LifecycleFolder
 from factory.domain.story_form import FormFinding, check_story_form
 from factory.domain.work_item import WorkItemDocument, WorkItemState
 
-FORM = (
-    "# Story form\n\n## Description\n\n## Interface\n\n## Acceptance criteria\n\n"
-    "## Smoke test\n\n## Journal\n"
-)
 START = "# A story\n\n## Description\n\nText.\n\n## Interface\n\n"
 CRITERIA = "1. It works.\n2. make check stays green.\n3. docs: none."
-SMOKE = "```bash\nuv run factory\n```\nExpect: it works."
-STARTED = WorkItemState(
-    stage="done", journal=[JournalRecord(number=1, speaker="factory", kind="result")]
-)
+STARTED = _state(1, "done")
 ENTRY_UNDER_HEADING = (
     "None.\n\n## Acceptance criteria\n\n"
     + CRITERIA

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T01:33:43.882534Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T01:33:43.882534Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-20T01:35:25.889550Z'
+  stage: tests
+  run: ec55b5a1c2a446d696b022e2bfe7097a
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -189,3 +191,21 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
        - Main choice: send the work back with `tests` and touch neither the code nor the tests. I rejected making the edits myself, because the coder never edits tests (R9).
        - Noticed, not touched: nothing new.
 12. factory: started tests as self.
+13. tester: Round 1, the test change approved in the coder's entry 11 (the reviewer's findings in entry 9). I made those three changes and nothing else:
+       1. `tests/domain/test_story_form_edges.py`: I removed the copied `FORM` and `SMOKE` and now import them from `domain.test_story_form`. The module keeps its own `CRITERIA`.
+       2. `tests/domain/test_story_form_edges.py`: `STARTED` is now `_state(1, "done")`, imported from `domain.test_story_form`. I dropped the import of `JournalRecord`, which nothing uses now.
+       3. `tests/domain/test_section_edges.py`: I removed the copied `TICKS` and now import it from `domain.test_sections`.
+
+    No earlier test module changed, and no test was renamed or now checks something different. The criterion → test mapping is the same as in entry 5:
+       - criterion 1: tests/domain/test_section_edges.py::test_section_text_starts_on_the_line_right_after_the_heading
+       - criterion 2: tests/domain/test_section_edges.py::test_an_empty_fenced_block_closes_on_the_line_after_its_opening
+       - criterion 3: tests/domain/test_section_edges.py::test_the_journal_starts_right_after_its_heading_and_not_above_it
+       - criterion 4: tests/domain/test_story_form_edges.py::test_items_count_from_the_line_right_after_their_heading_and_not_above_it
+       - criteria 5 and 6: these need no test function.
+
+    Files changed: tests/domain/test_section_edges.py and tests/domain/test_story_form_edges.py. I created no new files. Modules the test run could not import: none.
+
+    `make lint` is green. `make test` is green with 99.14 % coverage; the tests pass now because the code already behaves this way. Nothing is open.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (38.4 s)
