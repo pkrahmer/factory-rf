@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 352
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T12:44:15.091299Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T12:44:15.091299Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T12:44:37.468597Z'
+  stage: intake
+  run: de23a64954744dd6a27d5bb15150110f
 ---
 
 # The follow-mode test reads only the Python sources
@@ -86,3 +88,9 @@ Expect: `1`
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete code: `_files_naming(root, text)`, `_names_the_replaced_phrases(root, path) -> bool`, both test names in `tests/entry/test_watch.py`, and the child environment change in `tests/test_tests_umask.py`. It says nothing under `src/` changes. I checked the current helper (line 279) and the `rglob("*")` use (line 290), and the interface matches them.
+   Criteria: each is testable by one function or one parametrized test. 1 is the real-tree scan. 2 has five rows, with both sides: `entry/run.py` is found, and `documents.py`, the mode-000 `.pyc`, `notes.txt` and the temporary name are not. 3 is the umask child's environment. Every Interface behaviour has a criterion: the `*.py` pattern, the `documents.py` exclusion and the root parameter. The `__pycache__` clause removal follows from the `.pyc` row. 4 and 5 are the closing two.
+   Smoke test: runnable. pytest's `addopts` is `-q`, and the command passes none, so the summary line exists for `tail -n 1`. `-k 'follow_mode_scan or knows_the_follow_mode'` matches the two named tests, so 2 + 5 = 7 passed. The two `grep -c` commands are checkable. `rglob("\*")` matches no other line of the module, since line 276 uses `rglob("factory-last-line")`. Each Expect states an exact output.
+   Architecture: tests only, under `tests/entry/` and `tests/`, where they belong. No layer or interface is touched.
+   Scope: within F0041 (feature scope lists S0004) and not in its Out of scope. The change to another story's tests has the human's leave in decision 14 of `feature.md`, and the story names those tests.
