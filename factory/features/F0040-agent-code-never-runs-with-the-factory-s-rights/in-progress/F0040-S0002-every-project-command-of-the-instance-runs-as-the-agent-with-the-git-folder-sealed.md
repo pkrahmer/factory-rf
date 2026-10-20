@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368, 6300375333]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T20:08:56.552238Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-20T20:08:56.552238Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-20T20:09:28.911300Z'
+  stage: doing
+  run: 697550a9a820455f9b9c8009ae27eebf
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -362,3 +364,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Noticed but did not touch: the `make duplicates` findings that entry 10 recorded.
 19. 2026-10-20 human: Answer (2026-10-20): (a). The tester changes lines 96–97 of this story's own `test_the_built_project_commands_run_as_the_agent_user_inside_a_seal` to look up the concrete classes (`_held(sealed, GitCli) is boundaries.git`, `_held(sealed, TimestampedFactoryLog) is boundaries.log`). The tester runs `make check`, not only `make lint` and `make test`, before handing on.
 20. factory: started doing as self.
+21. coder: No code changed this round, and nothing new was built. `src/factory/application/sealed_runs.py` and `src/factory/entry/wiring.py` are still as entry 10 left them. `make check` stays red only because of the `type-abstract` errors in the test, which entry 18 quoted.
+
+    Test change for the tester, following the human's answer (a) in entry 19: in `tests/entry/test_wiring_project_command_user.py::test_the_built_project_commands_run_as_the_agent_user_inside_a_seal`, change lines 96–97 so they look up the concrete classes instead of the abstract interfaces:
+    - `_held(sealed, Git) is boundaries.git` becomes `_held(sealed, GitCli) is boundaries.git`, importing `GitCli` from `factory.adapters.git_cli`.
+    - `_held(sealed, FactoryLog) is boundaries.log` becomes `_held(sealed, TimestampedFactoryLog) is boundaries.log`, importing `TimestampedFactoryLog` from `factory.adapters.factory_log`.
+    - Drop the `Git` and `FactoryLog` imports if nothing else in the file uses them.
+
+    These are the classes the wiring builds (`src/factory/entry/wiring.py:257` for `GitCli`, `:223` for `TimestampedFactoryLog`), so the identity checks keep passing at runtime and `mypy --strict` accepts them. As entry 19 says, the tester runs `make check` before handing on.
+
+    Main choice: none this round. I hand the test back rather than change it (R9). The alternative, changing the test myself, is not allowed.
+
+    Description: the journal changed no meaning of the task beyond criterion 8, which entry 12 already added, so I rewrote nothing. Noticed but did not touch: the `make duplicates` findings that entry 10 recorded.
