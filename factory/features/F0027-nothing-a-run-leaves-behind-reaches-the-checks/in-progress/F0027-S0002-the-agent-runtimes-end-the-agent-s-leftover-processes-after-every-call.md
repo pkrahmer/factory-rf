@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T14:38:04.534578Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-20T14:38:04.534578Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T14:39:37.981931Z'
+  stage: review
+  run: 3665e1b83b6c418883f5cf1fb09d3b86
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -437,3 +439,31 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 19. factory: started review as self.
+20. reviewer: no findings
+
+    What I checked (round 1). I read the diff myself and did not rely on the work item's account of it.
+    - Group 1, acceptance criteria:
+      - Criteria 1 to 11 each have a test that checks what the criterion says. Criterion 11, which the round 0 review added, is `tests/adapters/test_opencode_runtime_leftovers.py::test_a_call_refused_by_sudo_or_the_wrapper_keeps_its_own_error_and_still_starts_the_program`. It is one parametrized test with a `sudo` row and a `factory-confine` row. It checks that the refusal's detail starts with `<refuser> refused the agent run: <line>` while the program exits 1, and that the program was still started.
+      - Both sides of each stated rule are tested: due (no program, no user, own user, another user), fault (status 0 with and without a `sudo:` line, status 1 with and without a `factory-leftovers:` line, timed out with status `None` and with status 0), the result (exit 0, 1, 3), and `end_leftovers` (default and `False`, for both runtimes).
+      - Entry 18 records `check: green` after the coder.
+    - Group 2, architecture:
+      - The shared helpers are in `factory.adapters.agent_launch`, which still does not import `factory.adapters.process`.
+      - Both runtimes start the program only through their own `_start`, from `/`. The program's arguments are a list, with `sudo -n` and an empty environment.
+      - The wiring is only in `factory.entry.wiring`. `AgentRuntime` and `AgentRunRequest` are unchanged. No new module calls a command-line tool.
+    - Group 3, security: no secrets, and no shell or SQL built from strings. No `nosec` or `nosemgrep` marker and no baseline entry. The only new marker is the ruff `noqa: PLR0913` in a test, which gives its reason (see Notes).
+    - Group 4, quality:
+      - Public names carry docstrings, and both constructor docstrings and the `build_boundaries` docstring describe the new keyword.
+      - I ran `make duplicates`: 5 new.
+        - Four are similar code between `claude_runtime` and `opencode_runtime`. Of these, the only duplication this diff adds is the 8-line `_end_leftovers` in each runtime. The other three are earlier copies whose keys moved because lines shifted.
+        - The fifth is `ManualWaiter` in `clock.py`, which this diff does not touch.
+      - I do not count `_end_leftovers` as a finding. Sharing it would mean `agent_launch` handling a `ProcessResult`, which the Interface rules out (`leftovers_fault` takes three values for that reason). The Interface itself puts the start in each runtime's `_call` through its own `_start`, the same pattern as the existing `_remove_temporary_folder` and `_request_of`.
+      - `due_leftovers_launch` tests `None` again only to narrow the types, and its comment says so.
+    - Group 5, hygiene:
+      - The journal gives the main choice and what was rejected: the fault is worked out after the program ends but raised after the refusal check, rather than keeping the `ProcessResult` until then.
+      - The Description matches what was built, and the docs criterion (13) still says what the reader must know.
+
+    Earlier tests: every test path in `git diff --name-status main...HEAD` has status `A`, so no test file on `main` was changed and no leave was needed.
+
+    Notes:
+    1. `tests/adapters/test_opencode_runtime_leftovers.py:59`: `# noqa: PLR0913` on the test with five columns. It gives its reason and follows `tests/adapters/opencode_stand_in.py:120` and `:237`. One row model, or fewer columns, would make it unnecessary.
+    2. `tests/adapters/test_claude_runtime_leftovers.py:8-9`: imports `BUDGET_STOP` from `test_claude_runtime_login` and `REPLY` from `test_claude_runtime_os_user`, which are other stories' test modules. Under the standing leave, they could move to a shared module under `tests/`.
