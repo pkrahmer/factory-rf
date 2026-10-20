@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 355
-comments_read: [6293770931]
+comments_read: [6293770931, 6294082194]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: 6de6bf1d786e49b18be61c17e5eba147
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-10-20T15:07:42.103869Z'
+  stage: doing
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -272,3 +277,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Refactor: I read the diff and found nothing to change. The only edit was shortening the docstring of `run_sealed`, which was over the line limit.
 
     Noticed but not touched: nothing.
+11. 2026-10-20 human: Answer (2026-10-20): (a). The tester changes line 154 of this story's own `tests/application/test_sealed_runs_ignored.py` to `assert error.value.detail == "boom"`; nothing else changes, and `AgentRuntimeError` keeps its text.
