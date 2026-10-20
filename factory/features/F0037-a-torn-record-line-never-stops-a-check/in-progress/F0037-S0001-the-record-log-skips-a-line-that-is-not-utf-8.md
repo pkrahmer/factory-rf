@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 339
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T06:38:30.484221Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T06:38:09.994305Z'
   stage: intake
   run: 89a0c1911e4340a6a5f75b12274dd9e0
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:38:30.484221Z'
+  stage: tests
 ---
 
 # The record log skips a line that is not UTF-8
@@ -111,3 +120,4 @@ Expect: one line, `['check: green ✓']`, and no traceback.
    Smoke test: the command is runnable, since the Python snippet uses no pytest and so no `-q` issue. The `Expect:` line gives an exact printed list and no traceback, which can be checked against the output.
    Architecture: the change is inside the adapters layer, plus a docstring in application. No new dependency or wiring, and the callers are untouched, matching CLAUDE.md.
    Scope: it matches feature.md's Scope and decisions 1 to 5. The append-after-torn-line case (decision 4) and `KnownResults._read` are left out as the feature's Out of scope says. The existing test file is not changed, and the moves of the rig fall under the standing leave.
+4. factory: started tests as self.
