@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 340
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T06:58:37.774868Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T06:58:16.758120Z'
   stage: docs
   run: 750024268d8d459fb715560b3ba8527f
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:58:37.774868Z'
+  stage: smoke-test
 ---
 
 # The opencode tests take their reply and waiting steps from the stand-in module
@@ -219,3 +228,4 @@ Expect: a line that starts `2 passed`
     `check`: check: green (not run again: passed on tree 1dd3e18ccca0 at 2026-10-20T06:55:35Z)
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
