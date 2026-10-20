@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 359
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T19:22:12.826808Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T19:22:12.826808Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T19:22:45.277299Z'
+  stage: intake
+  run: f668b26a4b434b01a304b0dcb5019f2d
 ---
 
 # The documents say what an ignored path the factory cannot remove does
@@ -72,3 +74,9 @@ Expect: `1`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None: documents only" names the three files (`docs/operator-guide.md`, `docs/project-guide/watching.md`, `docs/decisions.md`). That fits a documents-only story. No signature is stated apart from the `build_boundaries` one in the docs criterion, which I compared with `src/factory/entry/wiring.py:236`. The code has `(settings, token, *, hosting=None, which=shutil.which, confine_executable=CONFINE_COMMAND, end_leftovers=True)`, so the criterion's text is the code's.
+   - Criteria: criterion 1 (nothing under `src/` or `tests/` changes) and criterion 2 (`make check` green) are checkable. Criterion 3 lists the exact texts to add, and each bullet names a phrase or a signature that can be searched for. The phrases are `a bytecode folder`, `records it as a crash`, `chmod -R g+w`, `git clean -X` and the `Seen on 2026-10-20` bullet. The Interface states no behaviour and no rule, so there is no failing side to cover.
+   - Smoke test: three `grep` commands, each runnable from the repository root with a checkable `Expect:` line (`found`, `found`, `1`). None runs pytest.
+   - Architecture: nothing in `src/` changes. The documents are in the documenter's write paths (`docs/*`), and `README.md` is correctly left out. The sections the docs criterion names exist: *The project's make targets* (`docs/operator-guide.md:74`), *Boundaries* (`docs/project-guide/watching.md:260`) and the decision entry *The factory removes the git-ignored paths after every agent run and at the restore* (`docs/decisions.md:934`). The `umask=0002` bullet and the `checkout_restore_failed` row (line 858) are also in the operator guide.
+   - Scope: the story is within F0027's scope, since the feature lists `docs/operator-guide.md`, `docs/project-guide/` and `docs/decisions.md` as documentation. The story is proposed by F0027-A0001 (the feature's acceptance), and none of it is in the feature's "Out of scope". The S0004 and S0005 references to the Makefile quick fix match the feature's change 5.
