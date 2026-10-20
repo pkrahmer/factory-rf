@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 367
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T22:52:07.634926Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T22:51:46.932024Z'
   stage: doing
   run: e82aa699027b45be8f0cf59b79c9984e
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:52:07.634926Z'
+  stage: review
 ---
 
 # The shared time limits' test names the values of a relation that broke
@@ -154,3 +163,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `check`: check: green
    `duplicates`: duplicates: 6 new, 33 known, 3 gone
+8. factory: started review as self.
