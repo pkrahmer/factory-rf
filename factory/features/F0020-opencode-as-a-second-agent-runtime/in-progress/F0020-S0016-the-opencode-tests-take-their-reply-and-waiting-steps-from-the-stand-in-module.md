@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 340
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T06:51:09.726987Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T06:50:48.639266Z'
   stage: intake
   run: 1ccb9a95cc1c4c2f8b18c2d3576c5ae8
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:51:09.726987Z'
+  stage: tests
 ---
 
 # The opencode tests take their reply and waiting steps from the stand-in module
@@ -87,3 +96,4 @@ Expect: a line that starts `2 passed`
    Smoke test: the greps are runnable and each `Expect:` is checkable. The pytest command passes no `-q`, and `pyproject.toml` sets `addopts = "-q --strict-markers"`. At a single `-q` pytest prints its summary line, so the `2 passed` expectation can be met. A step in the stand-in module differs from the searched text (`over_budget` uses `stdout(*lines)`), so it does not make the stand-in match twice.
    Architecture: this is test helpers only, within `tests/adapters/`, `tests/entry/` and the `tests/` root. It follows the pattern of `tests/test_shared_test_helpers.py` (`modules_matching`, split texts). It uses the standing leave of `CLAUDE.md` (*Tests*) for the reply. Decision 19 of the feature gives the human's leave for the waiting step.
    Scope: within F0020 (the decision 19 entry for S0016 exists) and outside "Out of scope". No test changes name or meaning.
+4. factory: started tests as self.
