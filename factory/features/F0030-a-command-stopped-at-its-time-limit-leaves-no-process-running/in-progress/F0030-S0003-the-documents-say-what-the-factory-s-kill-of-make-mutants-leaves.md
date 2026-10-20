@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 370
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T23:17:18.803537Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:17:18.809188Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T23:17:41.930418Z'
+  stage: intake
+  run: d65e6712d1194de1a83ae0e3facf57b7
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:18:02.794422Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T23:19:25.268417Z'
+  stage: tests
+  run: cd12312e9ca446d4bd8aa33bd28f45db
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:19:46.233770Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T23:22:24.078013Z'
+  stage: doing
+  run: 717c1b8f65f44442950c7db8780e0224
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:22:44.931261Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T23:23:00.234486Z'
+  stage: review
+  run: 612e4700a0e94a5ba5e12ab6ae44fa03
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:23:21.309563Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T23:23:49.840895Z'
+  stage: docs
+  run: e05f9553ec9140e197e2698f648d55b7
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:24:10.263623Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T23:24:28.821129Z'
+  stage: smoke-test
+  run: af0aa7f4aee4455da75254b3d0f7512a
+---
+
 # The documents say what the factory's kill of make mutants leaves
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -31,3 +115,92 @@ Expect: `1`
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None: documents only" names the two files, `docs/project-guide/processes-and-checks.md` and `docs/decisions.md`, and says no module under `src/factory/` changes. Nothing to sign, which is right for a documents-only story. I checked the target text: the decision (4) line in the entry *Mutation testing per story* (`docs/decisions.md:814`) and the entry *A command stopped at its time limit loses every process of its session* (`docs/decisions.md:900`) both exist.
+   - Criteria: criterion 1 (nothing under `src/` or `tests/` changes) can be checked by a diff of those folders. Criterion 2 is `make check`. Criterion 3 is the docs criterion and is the only place the new text is stated. It fixes the wording the smoke test greps (`the temporary folder stays`, `runs on until it ends by itself`) and the exact parenthetical for decision (4). It also fixes where each sentence goes. Each sentence is one unit of text with a stated location, so it can be checked without further decisions. The story states no limit, validation or error, so there is no failing side to cover.
+   - Smoke test: both commands are plain `grep -c` calls with no pytest. Today the first prints 0 and the second prints 0, because the exact phrase `since F0030-S0001 the factory's kill reaches mutmut` is absent (line 506 has a different "since F0030-S0001"). So both `Expect: 1` lines can only be met after the edit. Neither `Expect:` line is met yet. One gap: the phrase `runs on until it ends by itself` has no grep of its own. The criterion states it, so the docs check and the reviewer cover it. I did not treat this as a question.
+   - Architecture: documents only. The documenter writes `docs/*`, and `README.md` is correctly left alone. No layer is touched, and no `src/` or `tests/` file.
+   - Scope: this is S0003 in the feature's Stories and Scope list ("documents only", proposed by the acceptance). It follows the feature's *The human's changes* and decision 14, which the human answered on 2026-10-20. It does not touch the `Makefile`'s `mutants` recipe, `factory/pipeline.yml` or the TERM question, which are in *Out of scope*.
+4. factory: started tests as self.
+5. tester: No tests written. This story only changes documents. Its Interface says "None: documents only" and that no test changes. Criterion 1 says nothing under `src/` or `tests/` changes.
+   - criterion 1 (nothing under `src/` or `tests/` changes): no test function. I left `src/` and `tests/` alone, so the tester's part of this criterion is met. `git status` shows no change of mine.
+   - criterion 2 (`make check` stays green): no test function. This is the stage check the coder and the documenter run.
+   - criterion 3 (docs): no test function. The docs stage writes the text. The story's smoke test (`grep -c` on the two phrases) checks it, along with `make documents` and the reviewer.
+   Files created: none. Modules the test runner could not import: none. Since there are no new tests, there is no red test that `make test` needed to show failing, so I did not run it. `make lint`: green. Nothing for the coder to implement against: the coder's entry should also say that nothing under `src/` or `tests/` changed.
+
+   `lint`: lint: green (0.5 s)
+   `test`: test: green (63.0 s)
+6. factory: started doing as self.
+7. coder: I built nothing. This story changes documents only. Its Interface says "None: documents only", and criterion 1 says nothing under `src/` or `tests/` changes. I changed no file under `src/`, `tests/` or anywhere else. `git status --short` shows only the factory's `.costs.jsonl` sidecar.
+   - Main choice: I left both documents, `docs/project-guide/processes-and-checks.md` and `docs/decisions.md`, to the docs stage. `CLAUDE.md` says the documenter keeps the project guide and the decision log true from each story's docs criterion, and that the coder does not write them. Rejected: writing criterion 3's text myself in the doing stage. That would take over the documenter's work.
+   - Refactor: no diff, so nothing to change.
+   - Description: no journal entry changed what the task means, so `## Description` stays as written.
+   - Noticed but not touched: the tester pointed out that the phrase `runs on until it ends by itself` has no grep in the smoke test. The docs check and the reviewer cover it.
+
+   `make check`: check: green (test: green, 64.2 s; coverage 99.14 %).
+
+   `check`: check: green
+   `duplicates`: duplicates: 6 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar. That is what a documents-only story should look like before the docs stage, because the documenter writes the text of criterion 3.
+   - Criterion 1 (nothing under `src/` or `tests/` changes): met. The diff touches neither folder, and the tester (entry 5) and the coder (entry 7) each wrote an entry saying so, as the criterion asks.
+   - Criterion 2 (`make check` stays green): the factory's check after the coder was green (entry 7: `check: green`).
+   - Criterion 3 (docs): this criterion is for the docs stage. It states where each sentence goes and fixes the exact wording that the smoke test greps (`the temporary folder stays`, `since F0030-S0001 the factory's kill reaches mutmut`). It also fixes the phrase `runs on until it ends by itself`, which has no grep of its own, so the docs check has to cover it. The criterion still describes what the reader must know.
+   - Interface: "None: documents only". It states no rule and no limit, so no failing side needs a test.
+   - Architecture, security, quality: there is no code in the diff to judge. The coder's `duplicates: 6 new` comes from code already on `main`, not from this diff, which changes nothing under `src/factory`.
+   - Work item hygiene: the coder's journal entry states the main choice (both documents are left to the docs stage) and what was rejected (writing criterion 3's text in the doing stage). The `## Description` still matches what was built: no code, documents still to come.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
+11. documenter: Docs written from criterion 3. Only documents changed, so I did not run `make check`; the factory's checks run after this stage.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`, paragraph *The temporary folder*: states that a factory kill at the time limit runs no `EXIT` trap, so `the temporary folder stays` under the caller's `TMPDIR` and the operator removes it by hand. It also states that a process started through `factory.adapters.process` is in a session of its own and `runs on until it ends by itself`, and names the 2026-10-20 case (the fake `claude` of `test_call_over_its_time_limit_is_killed_with_unknown_measures`, up to 60 s). I also marked the existing sentence as covering a stop by `MUTANTS_SECONDS`, to tell it apart from the kill.
+    - `docs/decisions.md`, entry *Mutation testing per story*: decision (4) gains the parenthetical that points to the new entry.
+    - `docs/decisions.md`, entry *A command stopped at its time limit loses every process of its session*: the Decision bullet gains the sentence on tests that mutmut runs, placed after the `setsid` sentence.
+
+    Smoke test, run by hand: the first grep prints `1`, the second prints `1`. The phrase `runs on until it ends by itself` is also in the text. I wrote no code, test, `Makefile` or `README.md` change, as the criterion asks.
+
+    Cross-read: `README.md` and `docs/operator-guide.md` I did not open beyond the story's scope. The criterion says `README.md` needs no change. Nothing in the diff changes any other document's truth, since the branch changes no code.
+
+    Stale text noticed and not touched: none.
+
+    Findings for the coder: none.
+
+    `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test run from the repository root, both commands as written and in order. No findings.
+
+    1. `grep -c "the temporary folder stays" docs/project-guide/processes-and-checks.md`
+    ```
+    1
+    ```
+    Expect: `1`. Met.
+
+    2. `grep -c "since F0030-S0001 the factory's kill reaches mutmut" docs/decisions.md`
+    ```
+    1
+    ```
+    Expect: `1`. Met.
+
+    Acceptance criteria checked against the branch diff (`git diff main...HEAD`):
+    - Criterion 1 (nothing under `src/` or `tests/` changes): met. The diff touches only `docs/decisions.md`, `docs/project-guide/processes-and-checks.md`, the work item and its `.costs.jsonl` sidecar. The tester (entry 5) and the coder (entry 7) each wrote an entry saying so.
+    - Criterion 2 (`make check` stays green): the factory's check is green (entries 7 and 11). I did not run it again, because the smoke test does not ask for it and no code changed.
+    - Criterion 3 (docs), checked line by line:
+      - *The temporary folder* now says that a factory kill at the time limit ends with SIGKILL and runs no `EXIT` trap. It says mutmut and `make`'s session are gone, that "the temporary folder stays", that the folder is under the caller's `TMPDIR` and that the operator removes it by hand.
+      - The paragraph says a process started through `factory.adapters.process` is in a session of its own (`start_new_session`) and "runs on until it ends by itself".
+      - It names the 2026-10-20 case: the kill at 50 s during the stats run, and the fake `claude` of `test_call_over_its_time_limit_is_killed_with_unknown_measures` running for up to 60 s.
+      - It says a stop by `MUTANTS_SECONDS` still runs the trap.
+      - Decision (4) in `docs/decisions.md` has the exact parenthetical right after "does not reach mutmut".
+      - The Decision bullet of *A command stopped at its time limit loses every process of its session* has the new sentence right after the `setsid` sentence.
+      - `README.md` is unchanged.
+
+    Nothing in the smoke test contradicts any criterion.
+
+    Open: none.
