@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 332
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T04:20:05.123454Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T04:20:05.123454Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T04:21:11.433893Z'
+  stage: doing
+  run: 5c1f6aa0bef042bbb6f6eb4bffcb9a52
 ---
 
 # The project guide names the recovery's commit subjects
@@ -102,3 +104,11 @@ Expect: `work item F0001-S0001: crash of stage doing recorded` (the form the gui
    `lint`: lint: green (0.0 s)
    `test`: test: green (40.6 s)
 6. factory: started doing as self.
+7. coder: Built nothing: no files changed. The Interface says no module under `src/factory/` changes, and the tester wrote no test. The one real change is criterion 2: naming the two recovery subjects in `docs/project-guide/watching.md`, step 4. That is the documenter's job; per `CLAUDE.md` the coder does not write the project guide.
+   Main choice: hand forward an empty diff. The alternative I rejected was editing `watching.md` myself, which would cross into the docs stage's files.
+   Refactor: no diff, so nothing to change.
+   `make check`: green (`check: green`, total coverage 99.14 %).
+   Noticed but did not touch: nothing. The journal did not change the meaning of the task, so `## Description` stays as it is.
+
+   `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
