@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 324
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T03:31:15.499172Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T03:30:55.059394Z'
   stage: review
   run: 56efb09215c14b76b0ebdf1527978a7b
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:31:15.499172Z'
+  stage: docs
 ---
 
 # The protected paths refuse a .claude folder at any depth
@@ -168,3 +177,4 @@ Expect: four lines, `.claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is o
    Earlier tests:
    - `tests/domain/test_write_paths.py`: changed under the human's leave, the feature's decision 3. Only the rename and the added second tuple item.
    - `tests/application/test_undo.py`: changed under the standing leave to move a shared test helper (`CLAUDE.md`, *Tests*). `_pipeline`, `_start`, `_undo` and their constants moved to `tests/undo_support.py` as `pipeline_text`, `start_stage` and `undo_stage`. Every test keeps its name and its assertions; only the calls were renamed, and one line was rewrapped.
+10. factory: started docs as self.
