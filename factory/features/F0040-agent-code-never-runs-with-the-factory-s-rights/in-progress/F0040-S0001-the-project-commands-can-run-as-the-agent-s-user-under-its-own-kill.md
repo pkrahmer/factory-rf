@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655, 6298783444]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T18:59:01.510264Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -250,6 +246,12 @@ journal:
   kind: started
   at: '2026-10-20T18:59:01.510264Z'
   stage: review
+- number: 44
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T18:59:30.775828Z'
+  stage: review
+  run: 4891d7f5e75b45c99ac1ca39cdbff446
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -697,3 +699,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 41. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 42. 2026-10-20 human: Go on (2026-10-20). The coder fixes the one finding of entry 40, the docstring of `MakeProjectCommands.run` as the reviewer words it, and nothing else. The next review checks that fix and the groups as before. It adds no new criterion: a further point goes into the notes for the acceptance, not into a round. The three notes of entry 40 (the third stand-in `sudo`, the restated `LEFTOVERS_FAULT`, `==` for `.user`) are left to the acceptance.
 43. factory: started review as self.
+44. reviewer: Review after the human's answer in entry 42 (round 0 again). I read the work item, `git diff main...HEAD -- . ':!factory'` and its name-status. The diff still changes only `src/factory/adapters/make_commands.py` and adds `tests/adapters/test_make_commands_user.py`. No commit since entry 40 touches `src/` or `tests/`: the human's comment started review again directly, so no coder ran between entry 42 and this review, and the docstring finding of entry 40 is still open.
+
+    Groups 1 to 3 pass as entry 40 found:
+    - Every criterion from 1 to 12 has its test.
+    - The factory's `make check` after the coder was green (entry 38).
+    - The layers hold, and nothing in the diff silences a check.
+
+    As the human asked in entry 42, I added no criterion. Group 4 (quality) fails on that one point.
+
+    Findings:
+    1. `src/factory/adapters/make_commands.py:101`, the docstring of `MakeProjectCommands.run`: it still says "Run `make --no-print-directory <command>` and judge it by its exit status alone", which is not true with a `user`. With a `user`, a failing status whose output is only `sudo:` lines raises `ProjectCommandError`, a 137 at the limit becomes `time_limit` with `exit_status` `None`, and a leftovers fault raises `ProjectCommandError`. Fix (the coder, nothing else): reword it to cover both cases. Without a user, the run is judged by its exit status. With a user, it runs through `sudo` as that user; a kill at the limit is `time_limit`, and a refusal by `sudo` or a leftovers fault raises `ProjectCommandError`.
+
+    Earlier tests: none. The diff only adds `tests/adapters/test_make_commands_user.py` (status `A`) and changes no test file that `main` holds.
+
+    Notes (left to the acceptance, per entry 42):
+    - `tests/adapters/test_make_commands_user.py:33` (`SUDO_SCRIPT`, `_write_sudo`): a third local stand-in `sudo`, beside `write_sudo` in `tests/leftovers_runtime_support.py` and the one in `tests/adapters/test_claude_runtime_os_user.py`.
+    - `tests/adapters/test_make_commands_user.py:22` (`LEFTOVERS_FAULT`): restates `factory.adapters.agent_launch.LEFTOVERS_FAULT` instead of importing it.
+    - `tests/adapters/test_make_commands_user.py:305`: criterion 8 says `.user` "is `u`", but the test compares with `==`.
