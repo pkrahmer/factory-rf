@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 336
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T04:52:52.835564Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T04:52:52.835564Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T04:53:15.857717Z'
+  stage: smoke-test
+  run: 83b49602feff4027be84e0b45d98de80
 ---
 
 # The guide's list of shared test helpers names every fixture
@@ -189,3 +191,27 @@ Expect: `0` (every shared helper module at the root of `tests/` is still named, 
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: no findings. I ran both commands from the repository root exactly as written, in order.
+
+    Command 1 checks that every `@pytest.fixture` of both conftests is named in its line of the guide. Output:
+    ```
+    0
+    ```
+    Met its `Expect:` line: it printed `0` and no `missing:` line.
+
+    Command 2 checks that every shared helper module at the root of `tests/` is still named. Output:
+    ```
+    0
+    ```
+    Met its `Expect:` line: it printed `0`.
+
+    Checked against the acceptance criteria:
+    - Criterion 2 (docs): `git diff main...HEAD -- docs` changes only `docs/project-guide/README.md`.
+      - The `conftest.py` line names all 25 fixtures of `tests/conftest.py`, and `reopened_tmp_path` is marked autouse. `grep` finds 25 `@pytest.fixture` decorators, each followed by a `def`, so the command's extraction missed none.
+      - The new `application/handlers/conftest.py` line names its 5 fixtures. It says they serve only the tests under `tests/application/handlers/`, and that its `work_item` is a published work item of those tests, not the root's started story.
+      - The opening paragraph has gained the one sentence the criterion asks for.
+      - Every other line of the section is unchanged.
+      - `README.md`, `docs/operator-guide.md` and `docs/decisions.md` are unchanged.
+    - Criterion 1 (`make check` stays green): the smoke test does not contradict it. I did not run `make check` here; the factory's checks cover it.
+
+    Findings: none.
