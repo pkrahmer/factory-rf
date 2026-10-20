@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T18:49:41.283056Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -194,6 +190,12 @@ journal:
   kind: started
   at: '2026-10-20T18:49:41.283056Z'
   stage: doing
+- number: 34
+  speaker: coder
+  kind: result
+  at: '2026-10-20T18:50:02.355728Z'
+  stage: doing
+  run: c7d3d773cbcf4ef7a3d45b79bb515db0
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -559,3 +561,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - `tests/adapters/test_make_commands_user.py:33` (`SUDO_SCRIPT`, `_write_sudo`) is a third local stand-in `sudo`, beside `write_sudo` in `tests/leftovers_runtime_support.py` and the one in `tests/adapters/test_claude_runtime_os_user.py`. It is not a plain copy: it also records the environment and working directory and plays a plan.
 33. factory: started doing as self.
+34. coder: Round 2. The reviewer's only finding (entry 32) is a new criterion 12, and it needs only a test. I changed no code (R9, stage step 2).
+
+    What the tester should add to `tests/adapters/test_make_commands_user.py`, this story's own module:
+    - Criterion 12: one test where the stand-in `sudo` runs nothing, waits 5 seconds and exits 0 with no output, run with `time_limit` 3 seconds. It expects `passed`, `exit_status` 0, and between 5 and 25 seconds elapsed (at least 5, less than 25).
+    - The stand-in `sudo` (`SUDO_SCRIPT` / `_write_sudo`) will probably need a planned wait for this.
+
+    I read the code but have not run the new test, because it does not exist yet. I expect it to pass:
+    - `src/factory/adapters/make_commands.py:168` gives the process request `time_limit=started.time_limit`.
+    - That is the `Launch` from `launch` of `factory.adapters.agent_launch`, and `launch` adds `SUDO_GRACE` (30 seconds) to the limit.
+
+    There was no refactor this round, since I made no code change; the pass of entry 22 still holds. The Description still matches what was built. The reviewer wrote criterion 12 into the work item and renumbered the closing two, so nothing in the Description needs rewriting. The main design choice is unchanged from entry 22: the refusal is judged on the merged output and names the last `sudo:` line, and I rejected reusing `call_refusal`.
+
+    Noticed, not touched: the reviewer's note that `_write_sudo` in this module is a third local stand-in `sudo`, beside `write_sudo` in `tests/leftovers_runtime_support.py` and the one in `tests/adapters/test_claude_runtime_os_user.py`. It is not a plain copy, since it also records the environment and working directory and plays a plan. Whether to share it is the tester's call under the standing leave.
