@@ -38,8 +38,9 @@ from factory.domain.errors import AgentRuntimeError
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 SUDO_LINE = "sudo: a password is required"
-# For a removal that need not start to be ended; a child that must act first takes ROOMY_LIMIT.
+# Short: the hanging shell it limits need not start to be killed.
 SHORT_LIMIT = timedelta(seconds=3)
+# The stand-ins wait far longer than any limit here.
 WAIT_SECONDS = 30
 ELAPSED_BOUND = 20
 

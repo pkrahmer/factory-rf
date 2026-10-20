@@ -61,8 +61,7 @@ def test_command_reaching_its_time_limit_is_killed(tmp_path: Path) -> None:
     commands = _commands(tmp_path, ("slow", f"@sleep 60 & echo $$! > {pid_file}; wait"))
     start = time.monotonic()
 
-    # The roomy limit: under `make test`'s parallel workers the shell may need seconds to write the
-    # pid file, and a kill before that leaves no pid to check.
+    # ROOMY_LIMIT: the shell must start its grandchild and write the pid file before the kill.
     result = commands.run("slow", time_limit=ROOMY_LIMIT)
 
     assert time.monotonic() - start < ROOMY_BOUND_SECONDS

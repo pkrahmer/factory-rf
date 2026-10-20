@@ -97,8 +97,7 @@ def test_grandchild_is_killed_with_the_child_at_the_time_limit(tmp_path: Path) -
 
     start = time.monotonic()
 
-    # The roomy limit: under `make test`'s parallel workers the child may need seconds to start its
-    # grandchild and write the pid file, and a kill before that leaves no pid.
+    # ROOMY_LIMIT: the child must start its grandchild and write the pid file before the kill.
     run_process(
         ProcessRequest(argv=python_argv(code, str(pid_file)), cwd=tmp_path, time_limit=ROOMY_LIMIT)
     )

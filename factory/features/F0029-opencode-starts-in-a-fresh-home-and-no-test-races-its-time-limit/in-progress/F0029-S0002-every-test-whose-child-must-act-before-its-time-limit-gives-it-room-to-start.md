@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T07:27:39.275045Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T07:27:39.275045Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-20T07:30:49.231721Z'
+  stage: tests
+  run: 6e6c935b9dfa4b4d9fac6934bed47e11
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -233,3 +235,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: none of the findings asks for a code change, so I did not run `make check` this round. Criterion 7 (docs) is still the documenter's work. No journal entry changed the meaning of the task, so the Description is unchanged.
 12. factory: started tests as self.
+13. tester: Round 1, a test change the human approved: I made the three comment changes that the coder's entry 11 names (the reviewer's findings 1 to 3), using the feature's decision 9 word for word. No assertion, limit or test name changed, and nothing else changed.
+    1. `tests/adapters/test_claude_runtime_confinement.py`: the comment over `SHORT_LIMIT` is now `# Short: the hanging shell it limits need not start to be killed.` `WAIT_SECONDS` and `ELAPSED_BOUND` now sit below `SHORT_LIMIT` under their own comment, `# The stand-ins wait far longer than any limit here.`
+    2. `tests/adapters/test_process.py`, `test_grandchild_is_killed_with_the_child_at_the_time_limit`: the comment is now `# ROOMY_LIMIT: the child must start its grandchild and write the pid file before the kill.`
+    3. `tests/adapters/test_make_commands.py`, `test_command_reaching_its_time_limit_is_killed`: the comment is now `# ROOMY_LIMIT: the shell must start its grandchild and write the pid file before the kill.`
+
+    Earlier tests changed: the three files above, under the feature's decision 9, which the story's Interface cites. Files created: none. The criterion → test mapping in entry 5 is unchanged: criterion 1 tests/test_time_limits.py::test_the_roomy_limit_leaves_room_and_stays_below_every_wait; criteria 2 to 5 are the tests that entry lists. Every module imported.
+
+    `test`: test: green (80.6 s), coverage 99.16 %
+    `lint`: lint: green (0.0 s)
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (80.6 s)
