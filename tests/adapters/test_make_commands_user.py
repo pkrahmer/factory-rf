@@ -98,8 +98,9 @@ def _write_sudo(
     return Sudo(path=path, folder=folder)
 
 
-def _write_makefile(directory: Path) -> None:
-    check = "".join(f"\t{recipe}\n" for recipe in CHECK_RECIPES)
+def _write_makefile(directory: Path, *, removes: Path | None = None) -> None:
+    recipes = (*CHECK_RECIPES, f"@rm -f '{removes}'") if removes is not None else CHECK_RECIPES
+    check = "".join(f"\t{recipe}\n" for recipe in recipes)
     makefile = f"check:\n{check}\nslow:\n\t@sleep 60\n"
     (directory / "Makefile").write_text(makefile, encoding="utf-8")
 
@@ -295,9 +296,11 @@ class LeftoversRow:
     program_stderr: str = ""
     with_leftovers: bool = True
     own: bool = False
+    removes_sudo: bool = False
     second_call: bool = True
     status: str | None = "passed"
     detail: str | None = None
+    whole_detail: bool = True
 
 
 LEFTOVERS_ROWS = [
@@ -313,6 +316,16 @@ LEFTOVERS_ROWS = [
             detail=f"{LEFTOVERS_FAULT}{LEFTOVERS_LINE}",
         ),
         id="program-fault",
+    ),
+    pytest.param(
+        LeftoversRow(
+            removes_sudo=True,
+            second_call=False,
+            status=None,
+            detail=f"{LEFTOVERS_FAULT}[Errno 2] No such file or directory",
+            whole_detail=False,
+        ),
+        id="leftovers-cannot-start",
     ),
     pytest.param(
         LeftoversRow(sudo_exit_status=1, sudo_stderr="boom\n", status="failed"), id="failed"
@@ -355,6 +368,8 @@ def test_a_command_run_as_another_user_is_followed_by_the_leftovers_program(
         stderr=row.sudo_stderr,
         program=program,
     )
+    if row.removes_sudo:
+        _write_makefile(project, removes=sudo.path)
     os_user = own_user() if row.own else "agent"
     user = _user(
         str(sudo.path),
@@ -367,7 +382,9 @@ def test_a_command_run_as_another_user_is_followed_by_the_leftovers_program(
         with pytest.raises(ProjectCommandError) as caught:
             commands.run(row.command, time_limit=row.time_limit)
         detail = caught.value.detail
-        if row.detail.startswith(LEFTOVERS_FAULT):
+        if not row.whole_detail:
+            assert detail.startswith(row.detail)
+        elif row.detail.startswith(LEFTOVERS_FAULT):
             assert detail == row.detail
         else:
             assert detail == f"{sudo.path} {row.detail}"

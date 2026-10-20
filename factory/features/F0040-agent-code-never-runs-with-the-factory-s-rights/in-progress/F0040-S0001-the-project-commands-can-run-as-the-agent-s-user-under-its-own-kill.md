@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T18:01:13.260396Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-10-20T18:01:13.260396Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-20T18:03:52.603417Z'
+  stage: tests
+  run: 4fc54d6de4254eefa8607d4a076403cd
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -235,3 +237,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `make test`: the module could not be imported, an ImportError for `factory.adapters.make_commands.CommandUser`, which is the failure to expect before the code exists. `make lint` is green.
 9. 2026-10-20 human: Answer (2026-10-20): (a). The row means "the leftovers call cannot be started": the `check` recipe removes the stand-in `sudo` before the leftovers call, and the expected detail stays `cannot end the agent's processes: [Errno 2] No such file or directory`. Change the criterion's words to say so. My earlier answer 2 was imprecise; this replaces it.
 10. factory: started tests as self.
+11. tester: I wrote the missing row of criterion 9 the way the human answered in entry 9 (option a). The row is `leftovers-cannot-start` in `test_a_command_run_as_another_user_is_followed_by_the_leftovers_program`. Its `check` recipe ends with `@rm -f '<stand-in sudo>'`, so the leftovers launch cannot start. The test expects `ProjectCommandError` with a `detail` that starts with `cannot end the agent's processes: [Errno 2] No such file or directory`, and exactly one recorded `sudo` call. To support it, `_write_makefile` gained an optional `removes` path, and `LeftoversRow` gained `removes_sudo` and `whole_detail`, the latter for checking only the start of the detail.
+
+    The human asked for the criterion's words to change. The work item is outside the tester's write paths (`tests/*`), so I did not edit it. Criterion 9's words still say "a `leftovers` program that does not exist". Whoever may write the work item should reword it to: "the stand-in `sudo` removed by the `check` recipe before the leftovers call".
+
+    Mapping, all in `tests/adapters/test_make_commands_user.py`:
+    - criterion 1: `test_the_command_runs_through_sudo_timeout_and_env_with_only_the_user_s_environment`
+    - criterion 2: `test_the_limit_is_given_to_timeout_in_whole_seconds_rounded_up`
+    - criterion 3: `test_the_outer_make_variables_of_the_user_s_environment_are_left_out`
+    - criterion 4: `test_a_command_killed_by_its_own_timeout_is_a_time_limit_result`
+    - criterion 5: `test_an_exit_before_the_limit_is_a_failed_command_with_its_status`
+    - criterion 6: `test_only_sudo_lines_and_a_failing_status_are_a_refusal`
+    - criterion 7: `test_the_checks_before_the_start_refuse_without_calling_sudo`, `test_a_sudo_that_does_not_exist_is_a_project_command_error`
+    - criterion 8: `test_the_user_property_returns_what_the_constructor_was_given`
+    - criterion 9: `test_a_command_run_as_another_user_is_followed_by_the_leftovers_program` (rows: passed, time-limit, program-fault, leftovers-cannot-start, failed, refused, refusal-wins-over-the-fault, no-leftovers, own-user)
+    - criteria 10 and 11: no test (`make check`, docs).
+
+    Files: `tests/adapters/test_make_commands_user.py` (created in the earlier run of this stage, extended now). No earlier test file was changed.
+
+    `make test`: the module cannot be imported, an ImportError for `CommandUser` from `factory.adapters.make_commands`. That is the expected failure before the code exists. `make lint` is green.
+
+    `lint`: lint: green (0.6 s)
+    `test`: ERROR tests/adapters/test_make_commands_user.py - ImportError while importing test module '/work/checkout/tests/adapters/test_make_commands_user.py'.
