@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 359
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T19:22:12.819821Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:22:12.826808Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T19:22:45.277299Z'
+  stage: intake
+  run: f668b26a4b434b01a304b0dcb5019f2d
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:23:07.138994Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T19:25:45.153723Z'
+  stage: tests
+  run: 0446e2f5433f418b8e017213cc9a4b04
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:26:07.043117Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T19:27:44.959372Z'
+  stage: doing
+  run: 143d6c883881486fb2bb669f99e2bb41
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:28:05.653811Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T19:28:24.595247Z'
+  stage: review
+  run: 6694a237cae54ab0aefa7c9d068b268f
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:28:45.447152Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T19:29:24.691883Z'
+  stage: docs
+  run: f64e060ee1354d6197750143c143ef61
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:29:45.652800Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T19:30:07.368145Z'
+  stage: smoke-test
+  run: 51b918897b3f4be993b3287c24eba699
+---
+
 # The documents say what an ignored path the factory cannot remove does
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -43,3 +127,107 @@ Expect: `1`
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None: documents only" names the three files (`docs/operator-guide.md`, `docs/project-guide/watching.md`, `docs/decisions.md`). That fits a documents-only story. No signature is stated apart from the `build_boundaries` one in the docs criterion, which I compared with `src/factory/entry/wiring.py:236`. The code has `(settings, token, *, hosting=None, which=shutil.which, confine_executable=CONFINE_COMMAND, end_leftovers=True)`, so the criterion's text is the code's.
+   - Criteria: criterion 1 (nothing under `src/` or `tests/` changes) and criterion 2 (`make check` green) are checkable. Criterion 3 lists the exact texts to add, and each bullet names a phrase or a signature that can be searched for. The phrases are `a bytecode folder`, `records it as a crash`, `chmod -R g+w`, `git clean -X` and the `Seen on 2026-10-20` bullet. The Interface states no behaviour and no rule, so there is no failing side to cover.
+   - Smoke test: three `grep` commands, each runnable from the repository root with a checkable `Expect:` line (`found`, `found`, `1`). None runs pytest.
+   - Architecture: nothing in `src/` changes. The documents are in the documenter's write paths (`docs/*`), and `README.md` is correctly left out. The sections the docs criterion names exist: *The project's make targets* (`docs/operator-guide.md:74`), *Boundaries* (`docs/project-guide/watching.md:260`) and the decision entry *The factory removes the git-ignored paths after every agent run and at the restore* (`docs/decisions.md:934`). The `umask=0002` bullet and the `checkout_restore_failed` row (line 858) are also in the operator guide.
+   - Scope: the story is within F0027's scope, since the feature lists `docs/operator-guide.md`, `docs/project-guide/` and `docs/decisions.md` as documentation. The story is proposed by F0027-A0001 (the feature's acceptance), and none of it is in the feature's "Out of scope". The S0004 and S0005 references to the Makefile quick fix match the feature's change 5.
+4. factory: started tests as self.
+5. tester: This story only changes documents, and its Interface says "None: documents only". So I wrote no tests and changed nothing under `src/` or `tests/`.
+
+   - criterion 1 (nothing under `src/` or `tests/` changes): no test function. It is kept by this stage and the coder's adding nothing there. I changed nothing under `src/` or `tests/` and created no files.
+   - criterion 2 (`make check` stays green): no test function. The factory runs `make check` after the coder.
+   - criterion 3 (the docs): no test function. It is the documenter's work, and the story's smoke test checks it with three `grep` commands (`a bytecode folder`, `records it as a crash`, the `build_boundaries` signature in `docs/project-guide/watching.md`). I did not repeat those checks in pytest, because the criteria say no test changes.
+
+   Files created: none. Modules the test run could not import: none. `make test` ran once and is green (`test: green`, coverage 99.17 %). There are no red tests, because nothing is left for the coder to implement in code. `make lint` is green.
+
+   I did not have to interpret any criterion, so nothing is left open.
+
+   `lint`: lint: green (0.8 s)
+   `test`: test: green (70.4 s)
+6. factory: started doing as self.
+7. coder: This story changes only documents, so I built nothing. Nothing under `src/` or `tests/` changes, and I created no files; the working tree holds only the factory's `.costs.jsonl` sidecar.
+
+   - **What I built:** nothing. The tester wrote no tests, the Interface is "None: documents only", and nothing in the work item needs code.
+   - **Main choice:** I left all three documents to the documenter: `docs/operator-guide.md`, `docs/project-guide/watching.md` and `docs/decisions.md`. `CLAUDE.md` says the documenter keeps these true from each story's docs criterion and the coder does not write them.
+   - **Rejected:** writing the docs criterion's texts myself in this stage. That would be the documenter's work and outside the coder's part.
+   - **Refactor:** there is no diff to read, so nothing needed changing.
+   - **Description:** no journal entry changed the meaning of the task, so I did not rewrite it.
+   - **Noticed but not touched:** the docs criterion's `build_boundaries` signature matches `src/factory/entry/wiring.py`, as the intake entry checked. The documenter can copy it as it stands.
+
+   `make check`: check: green (test: green (70.9 s), coverage 99.17 %).
+
+   `check`: check: green (not run again: passed on tree 416ad76bbc59 at 2026-10-20T19:16:27Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The only changes are the work item and its `.costs.jsonl` sidecar under `factory/`, so criterion 1 holds: nothing under `src/` or `tests/` changes, and entries 5 (tester) and 7 (coder) both say so.
+   - Criterion 2: the coder's entry 7 records `check: green`. The `duplicates: 5 new` record does not come from this diff, because nothing under `src/` changed.
+   - Criterion 3 (docs) is the documenter's to write. I compared the facts it asks for with the code on this branch, and they are right:
+     - The `build_boundaries` signature, and what `which` and `confine_executable` do, match `src/factory/entry/wiring.py:235-249`.
+     - `export UV_COMPILE_BYTECODE := 1` is in `Makefile:15`.
+     - The stale texts the criterion names to change are where it says: the "stricter umask" sentence at `docs/operator-guide.md:78`, the `umask=0002` bullet at `docs/operator-guide.md:140`, and the old signature at `docs/project-guide/watching.md:268`.
+   - Hygiene: the Description matches what was built, which is nothing yet; the documenter writes from criterion 3. The journal gives the main decision (the documents are the documenter's work) and what was rejected (the coder writing them).
+   - Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
+11. documenter: I wrote the three documents the docs criterion names. The diff has no findings: nothing under `src/` or `tests/` changed, and I checked the `build_boundaries` signature against the criterion and the reviewer's check of `src/factory/entry/wiring.py`.
+
+    Files changed:
+    - `docs/operator-guide.md`, *The project's make targets*: the ignored-state paragraph now names `a bytecode folder` as the usual cause. It says a Python that writes bytecode under a umask stricter than `002` (factory-rf's tests under `022`) leaves a folder the factory cannot remove, when the process lacks `PYTHONDONTWRITEBYTECODE=1` (an emptied environment drops it, and `-I` ignores it). It also says the `Makefile` exports `UV_COMPILE_BYTECODE=1`, so uv compiles `.venv`'s bytecode at its sync. The sentence that only a stricter umask makes the removal fail stays.
+    - `docs/operator-guide.md`, the `checkout_restore_failed` row in the stops table (about line 858): when an agent run left the path, the stage ends without a result, and once the checkout is repaired the factory `records it as a crash` and runs it again. The repair is `chmod -R g+w <path>` as root on the path git names, or removing it as root. A second run that leaves the same path again reaches `crash_cap`. The other `checkout_restore_failed` row (about line 438) only points to this one.
+    - `docs/operator-guide.md`, the `umask=0002` bullet under the `sudo` rule: the restore's commands now include the removal of ignored paths (`git clean -X`).
+    - `docs/project-guide/watching.md`, *Boundaries*: the `build_boundaries` signature now has `which=shutil.which` and `confine_executable=CONFINE_COMMAND`, with one sentence each. `which` finds the `sudo` the runtime starts. `confine_executable` is the wrapper every run starts through, and `None` starts no wrapper.
+    - `docs/decisions.md`, the entry *The factory removes the git-ignored paths after every agent run and at the restore*: a new `Seen on 2026-10-20` bullet. It records the two crashes of F0027's acceptance from an agent-made bytecode folder. It records the human's `UV_COMPILE_BYTECODE=1` quick fix (fd0fcd0b), which hides the cause without removing it. It records that the test helpers' `-B` (S0004) removes the cause. It also records why the answer lies in how the files are written: a repair of modes after every agent call was rejected in F0033's entry, so what an agent's commands write must be group-writable from the start.
+
+    `README.md`: unchanged, as the criterion says.
+
+    Cross-read and found current: `docs/decisions.md` (the F0033 entry I cite, *The tests set their own umask, and uv syncs under the caller's*, says what I cite it for), the rest of the *Boundaries* section in `watching.md`, and the stops section of the operator guide, which still holds the `checkout_restore_failed` wording the new row text extends.
+
+    Stale text I saw and did not touch: none.
+
+    I did not run the story's three `grep` smoke commands, so they are untested; the new text should satisfy them. I ran no `make check`, because I changed only documents; the factory's checks decide.
+
+    `check`: check: green (not run again: passed on tree 416ad76bbc59 at 2026-10-20T19:16:27Z)
+    `secrets`: secrets: green (2.2 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: I ran the three smoke-test commands from the repository root in the order written. All three met their `Expect:` lines, and nothing contradicts an acceptance criterion. No findings.
+
+    1. `grep -q "a bytecode folder" docs/operator-guide.md && echo found`
+       ```
+       found
+       ```
+       Expected `found`. **Met.**
+
+    2. `grep -q "records it as a crash" docs/operator-guide.md && echo found`
+       ```
+       found
+       ```
+       Expected `found`. **Met.**
+
+    3. `grep -c "confine_executable=CONFINE_COMMAND, end_leftovers=True)" docs/project-guide/watching.md`
+       ```
+       1
+       ```
+       Expected `1`. **Met.**
+
+    I then read the acceptance criteria again and compared them with `git diff main...HEAD`:
+    - Criterion 1: the diff changes only `docs/decisions.md`, `docs/operator-guide.md` and `docs/project-guide/watching.md`, plus the work item and its `.costs.jsonl` sidecar. Nothing under `src/` or `tests/` changes, and entries 5 (tester) and 7 (coder) both say so.
+    - Criterion 2: I did not run `make check` in this stage. The earlier entries record `check: green` on tree 416ad76bbc59, and this diff touches only documents.
+    - Criterion 3, `docs/operator-guide.md`, all three items are present:
+      - The ignored-state paragraph (line 78) names `a bytecode folder`, the umask stricter than `002` (the tests under `022`), `PYTHONDONTWRITEBYTECODE=1` (dropped by an emptied environment, ignored under `-I`) and the `Makefile`'s `UV_COMPILE_BYTECODE=1`.
+      - The `checkout_restore_failed` row (line 858) says the stage ends without a result and that the factory "records it as a crash" and runs it again. It gives the repair as `chmod -R g+w <path>` as root, or removing the path as root, and says a second run reaches the crash cap.
+      - The `umask=0002` bullet (line 140) now lists `git clean -X` beside `git reset --hard` and `git clean -fd`.
+    - Criterion 3, `docs/project-guide/watching.md`: the signature matches the code's text, with one sentence on `which` (finds the `sudo` the runtime starts) and one on `confine_executable` (`None` starts no wrapper).
+    - Criterion 3, `docs/decisions.md`: the entry gains a "Seen on 2026-10-20" bullet that covers everything the criterion asks for:
+      - the two crashes from the bytecode folder
+      - the human's `UV_COMPILE_BYTECODE=1` quick fix (fd0fcd0b), which hides the cause without removing it
+      - S0004's `-B`, which removes the cause
+      - why the answer is in how files are written, citing the rejected repair of modes in F0033's entry
+    - `README.md` is unchanged, as the criterion says.
+
+    Nothing is open.
