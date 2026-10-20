@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T10:31:08.699012Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-20T10:30:47.332736Z'
   stage: doing
   run: 24b0d16f24fb43a991f78cd3131f534b
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:31:08.699012Z'
+  stage: review
 ---
 
 # The Claude Code runtime registers no write hook
@@ -314,3 +323,4 @@ Expect: `7`
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+16. factory: started review as self.
