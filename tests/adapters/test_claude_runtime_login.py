@@ -231,7 +231,7 @@ def test_the_login_stands_in_no_argument_no_run_file_and_no_result(
     [claude_call] = read_calls(tmp_path / "bin")
     assert claude_call.environment[LOGIN_VARIABLE] == LOGIN
     assert all(LOGIN not in argument for argument in claude_call.arguments)
-    assert len(claude_call.files) == 3
+    assert len(claude_call.files) == 1
     assert all(LOGIN not in text for text in claude_call.files.values())
     for sudo_call in _sudo_calls(tmp_path / "sudo-bin"):
         assert all(LOGIN not in argument for argument in sudo_call.arguments)

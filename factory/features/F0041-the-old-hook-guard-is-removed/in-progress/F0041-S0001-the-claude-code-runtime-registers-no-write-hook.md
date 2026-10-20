@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T10:03:42.595272Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T10:03:42.595272Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T10:10:18.890686Z'
+  stage: tests
+  run: 756a8d825aa54820a33adf661ecee2cd
 ---
 
 # The Claude Code runtime registers no write hook
@@ -130,3 +132,34 @@ Expect: `7`
    - Architecture: the change stays inside `factory.adapters` (the Claude wrapper) plus the shipped agent files under `claude/`. No new dependency, layer or interface. `factory-guard` and `GUARD_COMMAND` stay until S0002, as the Description says.
    - Scope: it is within F0041's S0001 scope, and nothing in "Out of scope" is touched. The test changes are covered by the human's leave in decision 9, including the two tests added in the human's answers of 2026-10-20.
 4. factory: started tests as self.
+5. tester: I wrote the tests for every criterion and changed the earlier tests that the Interface names, under the leave of the feature's decision 9. `make lint` is green. One `make test` run fails, as it should: the failures are wrong results against the current runtime and agent files, for example `tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line[...]` for every agent. There were no import errors.
+
+   - criterion 1: tests/adapters/test_claude_runtime_no_hook.py::test_no_run_registers_a_hook (rows `unconfined-guarded`, `unconfined-unguarded`, `confined-guarded`)
+   - criterion 2: tests/adapters/test_claude_runtime.py::test_call_passes_every_flag_in_order (`--settings <hooks file>` removed from the expected list)
+   - criterion 3: tests/adapters/test_claude_runtime.py::test_call_sees_the_instructions_file_and_no_guard_or_hooks_file (renamed from `test_call_sees_instructions_guard_and_hooks_files`, rows `state` and `state dir`)
+   - criterion 4: tests/adapters/test_claude_runtime_file_modes.py::test_the_files_of_a_run_are_0640_when_the_agent_starts (row `with-guard` now expects `["instructions-"]`)
+   - criterion 5, first half: tests/test_claude_agent_no_hook.py::test_the_write_paths_rule_says_only_the_kernel_refuses (also tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line, whose `_WRITE_PATHS_RULE` is updated)
+   - criterion 5, second half: tests/test_claude_agent_no_hook.py::test_no_shipped_agent_names_a_hook
+   - criterion 6: `make check`, the coder's step.
+   - criterion 7: docs, none.
+
+   Files created: tests/adapters/test_claude_runtime_no_hook.py, tests/test_claude_agent_no_hook.py.
+
+   Earlier test files changed under decision 9, exactly as the Interface lists them:
+   - tests/adapters/test_claude_runtime.py: `RUN_FILES`, the two tests above, and the now-unused `shlex` import removed.
+   - tests/adapters/test_claude_runtime_resume.py: `RUN_FILES`, and `len(first.files) == 1`.
+   - tests/adapters/test_claude_runtime_login.py: `len(claude_call.files) == 1`.
+   - tests/adapters/test_claude_runtime_file_modes.py: row `with-guard`.
+   - tests/adapters/claude_stand_in.py: the `--settings` block in `SCRIPT` removed.
+   - tests/test_claude_agent_refusal.py: `_WRITE_PATHS_RULE` loses the hook clause. The string literals are rewrapped to stay within the line length; the text is otherwise unchanged.
+   - tests/adapters/test_claude_runtime_guard_temporary.py is deleted from the working tree. `git rm` was refused by the write guard on `.git/index.lock`, so I used a plain `rm`; the factory's commit records the deletion.
+
+   How the tests are built:
+   - In criterion 1, the `guard=None` row uses `run_request(layout).model_copy(update={"guard": None})`.
+   - Criterion 1's rows take `REPLY` from `tests/adapters/test_claude_runtime_os_user.py`, as the deleted guard-temporary test did.
+   - The first test for criterion 5 reuses `_WRITE_PATHS_RULE` from `test_claude_agent_refusal` rather than keeping a second copy of the text. It also checks that this text holds the kernel-only sentence the criterion quotes.
+
+   Modules the test run could not import: none. Every module exists; the tests fail on their results.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/test_claude_agent_no_hook.py::test_no_shipped_agent_names_a_hook[intake]

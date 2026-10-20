@@ -9,15 +9,14 @@ _WRITE_PATHS_RULE = (
     "R14. The pipeline's own files — `factory/pipeline.yml`, `factory/story-form.md`, every "
     "feature's `feature.md`, `backlog/`, `done/` and `.claude/` — change only with the human's "
     "commit or on their explicit instruction. You write only within your write paths in the "
-    "pipeline definition (`{work_item}` there is your own work item, outside its front matter "
-    "and journal), nothing else: the kernel refuses every other write, by any tool and any "
-    "command you run, a hook also refuses an edit outside the write paths, and the factory "
-    "undoes any other write after the stage. A refused write fails with `Permission denied` "
-    "(`EACCES`, `PermissionError: [Errno 13]`, `cannot create ...: Permission denied`): that is "
-    "the write guard, not a fault of the machine; never retry it by another route, and when the "
-    "work needs that path, end with `question` and name it. Make temporary files only in "
-    "`$TMPDIR` (`mktemp`, `tempfile`), the run's own folder, which the factory removes after the "
-    "run; `/tmp` itself is refused."
+    "pipeline definition (`{work_item}` there is your own work item, outside its front matter and "
+    "journal), nothing else: the kernel refuses every other write, by any tool and any command you "
+    "run, and the factory undoes any other write after the stage. A refused write fails with "
+    "`Permission denied` (`EACCES`, `PermissionError: [Errno 13]`, `cannot create ...: Permission "
+    "denied`): that is the write guard, not a fault of the machine; never retry it by another "
+    "route, and when the work needs that path, end with `question` and name it. Make temporary "
+    "files only in `$TMPDIR` (`mktemp`, `tempfile`), the run's own folder, which the factory "
+    "removes after the run; `/tmp` itself is refused."
 )
 
 _OLD_ENDING = (

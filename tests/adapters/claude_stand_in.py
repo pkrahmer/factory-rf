@@ -26,17 +26,6 @@ for argument in arguments:
             files[argument] = Path(argument).read_text(encoding="utf-8")
     except (OSError, ValueError):
         pass
-if "--settings" in arguments:
-    try:
-        settings = Path(arguments[arguments.index("--settings") + 1])
-        hooks = json.loads(settings.read_text(encoding="utf-8"))
-        for group in hooks["hooks"]["PreToolUse"]:
-            for hook in group["hooks"]:
-                words = shlex.split(hook["command"])
-                guard = words[words.index("--settings") + 1]
-                files[guard] = Path(guard).read_text(encoding="utf-8")
-    except (OSError, ValueError, KeyError, IndexError, TypeError):
-        pass
 calls = here / "calls.jsonl"
 index = len(calls.read_text(encoding="utf-8").splitlines()) if calls.exists() else 0
 record = {
