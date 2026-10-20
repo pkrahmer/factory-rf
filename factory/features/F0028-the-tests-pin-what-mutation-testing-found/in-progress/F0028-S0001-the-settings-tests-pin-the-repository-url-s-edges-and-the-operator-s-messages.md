@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T01:10:30.772873Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T01:10:30.772873Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T01:12:37.875032Z'
+  stage: tests
+  run: d7339cc599c448bfb4fce20241f162e5
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -98,3 +100,13 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
    Architecture: the story touches only `tests/domain/`, which mirrors the package layout. It reads `BASE` from `tests/settings_support.py`, and credential-like URLs are built by concatenation to keep `make secrets` quiet.
    Scope: it matches S0001 in feature.md's Scope, and nothing in Out of scope is touched (internal-guard messages and the equivalent `split("/", 2)` variant are excluded). The story changes no earlier test.
 4. factory: started tests as self.
+5. tester: Wrote the tests for the password rule's edges and the operator's messages, as the Interface specifies. Each criterion has one parametrized test:
+   criterion 1: tests/domain/test_settings_url_edges.py::test_the_password_rule_judges_only_the_authority (rows: `:` and `@` in the path accepted, a second `://` in the path accepted, an `@` in the user name with no password accepted, `u@x:y@` refused with variable `FACTORY_REPOSITORY_URL` and the exact fault)
+   criterion 2: tests/domain/test_settings_url_edges.py::test_a_refused_setting_names_its_variable_and_its_fault (8 rows: `a/b,c/d`, `a b`, the password URL, `FACTORY_INSTANCE` `Factory-1`, `FACTORY_AGENT_USER` `Agent`, ceiling 20 below cool-down 30, image-id file unreadable with `PermissionError("denied")`, image-id file `"  \n"`; each row checks `variable`, `fault` and `str(error)`)
+   criterion 3: `make check`, the factory's gate; criterion 4: docs none, nothing to test.
+   File created: tests/domain/test_settings_url_edges.py. It uses `BASE` from tests/settings_support.py unchanged. URLs holding a credential are built by concatenation. No earlier test was changed.
+   Imports: the test run imported every module. As the story says, the code already behaves this way, so these tests pass now rather than failing: the single `make test` run finished `test: green`. The coder has nothing to implement.
+   The first `make lint` failed for two reasons. Ruff's S105 flagged a fault constant whose name held `PASSWORD`, so the fault text now stands in the rows, as the Interface asks. Some lines were too long; I fixed them with `ruff format`. After that, `make lint` is green. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (39.9 s)
