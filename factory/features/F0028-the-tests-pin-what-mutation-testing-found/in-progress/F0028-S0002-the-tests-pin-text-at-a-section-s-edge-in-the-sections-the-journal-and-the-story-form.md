@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T01:33:43.882534Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T01:33:22.691166Z'
   stage: doing
   run: 4d10ab4bb0dd4a14bc86cbcbf1a081cf
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:33:43.882534Z'
+  stage: tests
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -179,3 +188,4 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
        - What I built: nothing. No paths changed in this round.
        - Main choice: send the work back with `tests` and touch neither the code nor the tests. I rejected making the edits myself, because the coder never edits tests (R9).
        - Noticed, not touched: nothing new.
+12. factory: started tests as self.
