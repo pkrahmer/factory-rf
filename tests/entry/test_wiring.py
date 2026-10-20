@@ -18,4 +18,9 @@ def test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer() -> None:
     importers = {name for name, tree in entry.items() if imports(tree, "factory.adapters")}
 
     assert "factory.entry.check_story" in entry
-    assert importers == {"factory.entry.wiring", "factory.entry.confine", "factory.entry.leftovers"}
+    assert importers == {
+        "factory.entry.wiring",
+        "factory.entry.confine",
+        "factory.entry.leftovers",
+        "factory.entry.fresh_home",
+    }

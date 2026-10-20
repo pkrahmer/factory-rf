@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T20:46:30.195974Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-20T20:46:30.195974Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-20T20:50:13.512303Z'
+  stage: tests
+  run: b24f1ab9600447d4a037680e3a509a92
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -191,3 +193,33 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the pure rule is in the domain, the walk in an adapter, and the command line in the entry. The `test_wiring` leave is granted by the feature's decision 14. `settings` reuses `inside_home` downward, which the layers allow.
    - Scope: within F0040's Scope (S0003 lines) and not in its Out of scope. No `pyproject.toml`, dependency or `factory/` change.
 7. factory: started tests as self.
+8. tester: Wrote the tests for every acceptance criterion. They fail for the right reasons: the three new test modules cannot import their modules, and the wiring test fails on its assertion because `factory.entry.fresh_home` does not exist yet. `make lint` is green. I skipped the type check, as the stage says.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_agent_home.py::test_a_path_is_inside_a_home_only_when_relative_without_empty_dot_or_parent_segments
+   - criterion 2: tests/domain/test_agent_home.py::test_the_opencode_folders_setting_refuses_a_path_outside_the_home. It goes here because `tests/domain/test_settings*.py` must stay unchanged.
+   - criterion 3: tests/domain/test_agent_home.py::test_kept_paths_are_the_logins_inside_the_home_then_state_files_then_folders (rows: valid, `/abs` in `folders`, `../x` in `state_files`)
+   - criterion 4: tests/domain/test_agent_home.py::test_the_fate_of_an_entry_follows_kept_paths_folders_and_ownership
+   - criterion 5: tests/domain/test_agent_home.py::test_an_empty_folder_is_removed_only_when_owned_and_above_no_kept_path
+   - criterion 6: tests/adapters/test_home_files.py::test_clear_home_keeps_kept_paths_and_foreign_entries_and_removes_the_rest
+   - criterion 7: tests/adapters/test_home_files.py::test_an_own_folder_closed_to_its_owner_is_removed_whole. It uses the default `owned`, since the test user owns its files.
+   - criterion 8: tests/adapters/test_home_files.py::test_an_own_link_is_removed_and_never_followed (three rows, `kept` `[".config/sso"]`)
+   - criterion 9: tests/adapters/test_home_files.py::test_a_fault_at_an_entry_is_recorded_and_the_walk_goes_on
+   - criterion 10: tests/entry/test_fresh_home.py::test_main_clears_the_named_home_or_refuses_its_arguments_untouched. It compares stderr by `splitlines()`, so it does not decide whether there is a trailing newline.
+   - criterion 11: tests/entry/test_fresh_home.py::test_main_writes_each_fault_and_returns_one
+   - criterion 12: tests/adapters/test_home_files.py::test_the_modes_of_foreign_entries_stay_as_they_are
+   - criterion 13: tests/adapters/test_home_files.py::test_an_own_folder_holding_a_foreign_entry_stays_and_an_own_empty_one_goes
+   - criteria 14 and 15: not test criteria.
+
+   Files created:
+   - tests/domain/test_agent_home.py
+   - tests/adapters/test_home_files.py
+   - tests/entry/test_fresh_home.py
+   - tests/home_files_support.py: shared helpers `build_home`, `listing`, `owned_but` and `refusing`, which the adapter and entry tests both use.
+
+   Earlier test file changed: tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer now also expects `factory.entry.fresh_home` in the set. The story's Interface names this change under the feature's decision 14. Nothing else in that test changed.
+
+   Modules the test run could not import: `factory.domain.agent_home`, `factory.adapters.home_files`, `factory.entry.fresh_home`.
+
+   `lint`: lint: green (0.5 s)
+   `test`: ERROR tests/entry/test_fresh_home.py - ImportError while importing test module '/work/checkout/tests/entry/test_fresh_home.py'.
