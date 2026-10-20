@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 336
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T04:51:58.638978Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T04:51:58.638978Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T04:52:31.565651Z'
+  stage: docs
+  run: 502588708921445e84bd94f4dfe0a3df
 ---
 
 # The guide's list of shared test helpers names every fixture
@@ -157,3 +159,23 @@ Expect: `0` (every shared helper module at the root of `tests/` is still named, 
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: Documenter: no findings. Only documents changed, so I did not run `make check`; the factory's checks run after this stage.
+
+    Changed:
+    - `docs/project-guide/README.md`, *Shared test helpers*: the `conftest.py` line now names all 25 fixtures of `tests/conftest.py`, with what each holds. It groups them by use, and `reopened_tmp_path` is marked autouse. The line stays one line, because the story's smoke test greps a single line.
+    - `docs/project-guide/README.md`, same section: a new line `application/handlers/conftest.py` names its 5 fixtures (`snapshot_of`, `state_with`, `event_of`, `pull_request`, `work_item`). It says they serve only the handlers' tests under `tests/application/handlers/`. It also says its `work_item` is a published work item of those tests, not the root's started story.
+    - `docs/project-guide/README.md`, opening paragraph: one added sentence. A story that adds a fixture to either conftest names it in that conftest's line through its docs criterion.
+
+    Checks I ran:
+    - Smoke test 1 prints `0`, with no `missing:` line. It printed 19 before the edit.
+    - Smoke test 2 prints `0`, so every shared helper module at the root of `tests/` is still named.
+
+    Cross-read and current: `README.md`, `docs/operator-guide.md` and `docs/decisions.md`. The docs criterion says none for these. The diff against `main` outside `factory/` is empty, so no name or behaviour changed that they could contradict. Every other line of the guide's *Shared test helpers* section is unchanged.
+
+    Stale text noticed but not mine to fix: none.
+
+    Skills set aside: none.
+
+    `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
