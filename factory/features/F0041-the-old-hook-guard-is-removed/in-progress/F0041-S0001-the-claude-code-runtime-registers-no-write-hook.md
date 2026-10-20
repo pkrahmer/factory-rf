@@ -1,3 +1,131 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 347
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T10:02:54.030477Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:02:54.035685Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T10:03:21.172686Z'
+  stage: intake
+  run: af1895c5d780472585064a41fbbbb25b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:03:42.595272Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T10:10:18.890686Z'
+  stage: tests
+  run: 756a8d825aa54820a33adf661ecee2cd
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:10:39.673061Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T10:17:13.100666Z'
+  stage: doing
+  run: 250a42fcd2924d998e1c5e25411af3ab
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:17:34.623152Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T10:18:20.181771Z'
+  stage: review
+  run: 74c29e440fa24b90af01183cfe70e973
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:18:41.054908Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-20T10:18:54.869827Z'
+  stage: doing
+  run: 14b76600145d4660911f550c95545059
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:19:15.641081Z'
+  stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-20T10:24:47.078402Z'
+  stage: tests
+  run: c4049a4943874ceca6245b25ff1185f6
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:25:08.060565Z'
+  stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-20T10:30:47.332736Z'
+  stage: doing
+  run: 24b0d16f24fb43a991f78cd3131f534b
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:31:08.699012Z'
+  stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T10:31:39.390415Z'
+  stage: review
+  run: 8a0cf9d0cc0245d2a9980cb544aa0e4f
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:32:00.054665Z'
+  stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T10:32:27.479605Z'
+  stage: docs
+  run: c75b7c7c5cc24b27b211d45ed13336e2
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:32:48.223390Z'
+  stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T10:33:17.989683Z'
+  stage: smoke-test
+  run: 900b703af60c47babfd5ae74e4ad557e
+---
+
 # The Claude Code runtime registers no write hook
 
 ## Description
@@ -82,3 +210,210 @@ grep -c -F 'a hook also refuses' claude/agents/*.md | grep -c ':0$'
 Expect: `7`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names concrete symbols in `src/factory/adapters/claude_runtime.py` (removed `GUARDED_TOOLS`, `_hook_settings`, `_RunFiles.guard` and `_RunFiles.hooks`, `_guard_settings`, the `GUARD_COMMAND` import). It gives the unchanged `_arguments` and `_write_files` behaviour, the `SWITCHES` comment and `__all__`. It also lists the seven agent files with the exact words deleted from R14, and the test files that change under the feature's decision 9 leave.
+   - Criteria: each is testable by one parametrized test or one named existing test. Criterion 1 has its rows: guard settings, guard `None` and confined. Criteria 2 to 4 pin the argument order, the call's files and the file modes. Criterion 5 covers the R14 text and the absence of the word `hook`. The failing side is covered too: no `--settings` and no `guard-*` or `hooks-*` file, with and without guard settings. The Interface line that `request.guard` still reaches `run_confinement` is exercised by the confined row, which ends `completed`, and by the existing confinement tests. The word `hook` appears in each shipped agent only on line 43 (R14), once, which I checked with grep, so criterion 5's second half is meetable.
+   - Smoke test: both blocks are runnable. The first runs a stand-in `claude` through the real runtime unconfined and confined and prints one line per run. The second counts the agents without the old clause. Each `Expect:` gives exact output to compare against. No pytest command is involved, so there is no `-q` issue.
+   - Architecture: the change stays inside `factory.adapters` (the Claude wrapper) plus the shipped agent files under `claude/`. No new dependency, layer or interface. `factory-guard` and `GUARD_COMMAND` stay until S0002, as the Description says.
+   - Scope: it is within F0041's S0001 scope, and nothing in "Out of scope" is touched. The test changes are covered by the human's leave in decision 9, including the two tests added in the human's answers of 2026-10-20.
+4. factory: started tests as self.
+5. tester: I wrote the tests for every criterion and changed the earlier tests that the Interface names, under the leave of the feature's decision 9. `make lint` is green. One `make test` run fails, as it should: the failures are wrong results against the current runtime and agent files, for example `tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line[...]` for every agent. There were no import errors.
+
+   - criterion 1: tests/adapters/test_claude_runtime_no_hook.py::test_no_run_registers_a_hook (rows `unconfined-guarded`, `unconfined-unguarded`, `confined-guarded`)
+   - criterion 2: tests/adapters/test_claude_runtime.py::test_call_passes_every_flag_in_order (`--settings <hooks file>` removed from the expected list)
+   - criterion 3: tests/adapters/test_claude_runtime.py::test_call_sees_the_instructions_file_and_no_guard_or_hooks_file (renamed from `test_call_sees_instructions_guard_and_hooks_files`, rows `state` and `state dir`)
+   - criterion 4: tests/adapters/test_claude_runtime_file_modes.py::test_the_files_of_a_run_are_0640_when_the_agent_starts (row `with-guard` now expects `["instructions-"]`)
+   - criterion 5, first half: tests/test_claude_agent_no_hook.py::test_the_write_paths_rule_says_only_the_kernel_refuses (also tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line, whose `_WRITE_PATHS_RULE` is updated)
+   - criterion 5, second half: tests/test_claude_agent_no_hook.py::test_no_shipped_agent_names_a_hook
+   - criterion 6: `make check`, the coder's step.
+   - criterion 7: docs, none.
+
+   Files created: tests/adapters/test_claude_runtime_no_hook.py, tests/test_claude_agent_no_hook.py.
+
+   Earlier test files changed under decision 9, exactly as the Interface lists them:
+   - tests/adapters/test_claude_runtime.py: `RUN_FILES`, the two tests above, and the now-unused `shlex` import removed.
+   - tests/adapters/test_claude_runtime_resume.py: `RUN_FILES`, and `len(first.files) == 1`.
+   - tests/adapters/test_claude_runtime_login.py: `len(claude_call.files) == 1`.
+   - tests/adapters/test_claude_runtime_file_modes.py: row `with-guard`.
+   - tests/adapters/claude_stand_in.py: the `--settings` block in `SCRIPT` removed.
+   - tests/test_claude_agent_refusal.py: `_WRITE_PATHS_RULE` loses the hook clause. The string literals are rewrapped to stay within the line length; the text is otherwise unchanged.
+   - tests/adapters/test_claude_runtime_guard_temporary.py is deleted from the working tree. `git rm` was refused by the write guard on `.git/index.lock`, so I used a plain `rm`; the factory's commit records the deletion.
+
+   How the tests are built:
+   - In criterion 1, the `guard=None` row uses `run_request(layout).model_copy(update={"guard": None})`.
+   - Criterion 1's rows take `REPLY` from `tests/adapters/test_claude_runtime_os_user.py`, as the deleted guard-temporary test did.
+   - The first test for criterion 5 reuses `_WRITE_PATHS_RULE` from `test_claude_agent_refusal` rather than keeping a second copy of the text. It also checks that this text holds the kernel-only sentence the criterion quotes.
+
+   Modules the test run could not import: none. Every module exists; the tests fail on their results.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/test_claude_agent_no_hook.py::test_no_shipped_agent_names_a_hook[intake]
+6. factory: started doing as self.
+7. coder: I removed the Claude Code runtime's write hook and the R14 clause that described it. `make check` is green: 99.17 % coverage and `check: green`.
+
+   What I built:
+   - `src/factory/adapters/claude_runtime.py`:
+     - Removed `GUARDED_TOOLS`, `_hook_settings`, the `guard` and `hooks` fields of `_RunFiles` (with their paths in `of` and `remove`), `ClaudeCodeRuntime._guard_settings`, and the now-unused imports `shlex`, `GUARD_COMMAND` and `GuardSettings`.
+     - `_arguments` no longer adds `--settings`. `_write_files` writes the instructions file, plus the confine rules file when the run is confined, and nothing else.
+     - The `SWITCHES` comment now says that Python the agent starts would leave bytecode in the working copy. `__all__` is unchanged.
+     - `request.guard` still reaches the kernel rules through `_confinement`/`device_confinement`; that code is untouched.
+   - `claude/agents/{acceptance-reviewer,coder,documenter,intake,reviewer,smoke-tester,tester}.md`: deleted " a hook also refuses an edit outside the write paths," from the R14 line. The word `hook` now occurs 0 times in each file.
+
+   Main choice: delete the hook code outright instead of keeping it behind a switch that is always off. The Interface lists these symbols as removed, and the kernel confinement is the guard now.
+
+   Refactor: I read the diff and found nothing to change. It contains only deletions and one comment edit.
+
+   Noticed but not touched:
+   - `make duplicates` reports `5 new, 33 known, 3 gone`.
+     - Four of the "new" findings are claude_runtime/opencode_runtime similar-code pairs (`call_refusal`, `cleanup_launch`, `version_printed`, the `confine_executable` branch) that were already there. They most likely count as new only because deleting lines shifted their line numbers relative to `security/duplicates-baseline.txt`.
+     - The fifth is dead code (`ManualWaiter` in `src/factory/adapters/clock.py`) that this story did not touch.
+   - `factory-guard`, its adapter and `GUARD_COMMAND` remain, as the story says, until S0002.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: Findings:
+
+   1. `tests/adapters/claude_stand_in.py:15` (in `SCRIPT`): `import shlex` is still there, but the `--settings` block that was its only user is gone. That leaves a dead import. The feature's decision 9 grants the leave for "the block … goes, with its `shlex` import". Fix: the tester deletes the `import shlex` line from `SCRIPT`.
+   2. `tests/test_claude_agent_no_hook.py:16-20`: `test_the_write_paths_rule_says_only_the_kernel_refuses` repeats the assertion of `tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line`, which is `_WRITE_PATHS_RULE in rules.splitlines()` over `SHIPPED_NAMES`. It does this by importing the private `_WRITE_PATHS_RULE` from that other test module. It also asserts the constant check `_KERNEL_ONLY in _WRITE_PATHS_RULE` once per agent row. Fix: the tester deletes this test and `_KERNEL_ONLY`, and names `test_rules_hold_the_write_paths_rule_as_one_line` as criterion 5's first-half test. Its `_WRITE_PATHS_RULE` now holds the kernel-only sentence word for word. The file keeps only `test_no_shipped_agent_names_a_hook`.
+
+   What I checked and found sound:
+   - `src/factory/adapters/claude_runtime.py` removes exactly the symbols the Interface lists. `_arguments` keeps the order of every other flag.
+   - `_write_files` writes only the instructions file and, when confined, the confine rules.
+   - `request.guard` still reaches `_confinement`.
+   - The `SWITCHES` comment no longer names a hook, and `__all__` is unchanged.
+   - The R14 line in all seven agents loses exactly the clause `a hook also refuses an edit outside the write paths, `.
+   - The criterion 1 rows (`unconfined-guarded`, `unconfined-unguarded`, `confined-guarded`) match the criterion. Criteria 2 to 4 are pinned by the renamed and updated tests.
+   - The coder's `make check` was green (journal entry 7).
+   - The 5 new `make duplicates` findings: four are claude/opencode similar-code pairs that already existed and now count as new because the line numbers moved. The fifth is `ManualWaiter`, which this diff does not touch.
+
+   Earlier tests:
+   - tests/adapters/claude_stand_in.py: human's leave, the feature's decision 9. It falls short of that leave, see finding 1.
+   - tests/adapters/test_claude_runtime.py: human's leave, the feature's decision 9.
+   - tests/adapters/test_claude_runtime_file_modes.py: human's leave, the feature's decision 9.
+   - tests/adapters/test_claude_runtime_guard_temporary.py (deleted): human's leave, the feature's decision 9.
+   - tests/adapters/test_claude_runtime_login.py: human's leave, the feature's decision 9 and the human's answer of 2026-10-20 (pre-check `F0041-S0001-1.md`).
+   - tests/adapters/test_claude_runtime_resume.py: human's leave, the feature's decision 9 and the human's answer of 2026-10-20 (pre-check `F0041-S0001-1.md`).
+   - tests/test_claude_agent_refusal.py: human's leave, the feature's decision 9. Only `_WRITE_PATHS_RULE` changed, and every test keeps its name.
+10. factory: started doing as self.
+11. coder: Both review findings change only tests, so I changed no code and am handing them to the tester. I checked both against the working tree:
+
+    1. `tests/adapters/claude_stand_in.py`: delete the `import shlex` line from `SCRIPT` (line 15). Its only user was the `--settings` block, which is gone. The feature's decision 9 gives the leave for this.
+    2. `tests/test_claude_agent_no_hook.py`: delete `test_the_write_paths_rule_says_only_the_kernel_refuses` and `_KERNEL_ONLY`. Also delete the imports only they used: `section_text` and `_WRITE_PATHS_RULE` from `test_claude_agent_refusal`. The file then keeps only `test_no_shipped_agent_names_a_hook`. Criterion 5's first half is then tested by `tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line`, whose `_WRITE_PATHS_RULE` already holds the kernel-only sentence word for word.
+
+    No source file changed in this round: `src/factory/adapters/claude_runtime.py` and the seven agent files stay as in the coder's entry 7. Nothing else is open.
+12. factory: started tests as self.
+13. tester: I made the two test changes named in the coder's entry 11, which come from the reviewer's entry 9. They fall under the leave the human gave in the feature's decision 9.
+
+    1. `tests/adapters/claude_stand_in.py`: I deleted the `import shlex` line from `SCRIPT`. Its only user was the `--settings` block, which was already removed.
+    2. `tests/test_claude_agent_no_hook.py`: I deleted `test_the_write_paths_rule_says_only_the_kernel_refuses`, `_KERNEL_ONLY`, and the two imports only they used (`section_text`, and `_WRITE_PATHS_RULE` from `test_claude_agent_refusal`). The file now keeps only `test_no_shipped_agent_names_a_hook`.
+
+    Criteria and their tests after this change:
+    - criterion 1: tests/adapters/test_claude_runtime_no_hook.py::test_no_run_registers_a_hook
+    - criterion 2: tests/adapters/test_claude_runtime.py::test_call_passes_every_flag_in_order
+    - criterion 3: tests/adapters/test_claude_runtime.py::test_call_sees_the_instructions_file_and_no_guard_or_hooks_file
+    - criterion 4: tests/adapters/test_claude_runtime_file_modes.py::test_the_files_of_a_run_are_0640_when_the_agent_starts
+    - criterion 5, first half: tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line (its `_WRITE_PATHS_RULE` holds the sentence that only the kernel refuses writes, word for word)
+    - criterion 5, second half: tests/test_claude_agent_no_hook.py::test_no_shipped_agent_names_a_hook
+    - criteria 6 and 7: `make check` and docs, not tests.
+
+    I created no new files in this round. Every module imported. `make test` is green (99.17 % coverage) and `make lint` is green.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (154.7 s)
+14. factory: started doing as self.
+15. coder: This round needed no code change. Both review findings from entry 9 were changes to tests only, and the tester made them in entry 13. I checked both in the working tree:
+    - `import shlex` is gone from `tests/adapters/claude_stand_in.py`.
+    - `tests/test_claude_agent_no_hook.py` keeps only `test_no_shipped_agent_names_a_hook`.
+
+    `make check` is green: 99.17 % coverage, and it ends with `check: green`.
+
+    What I built is unchanged from entry 7:
+    - `src/factory/adapters/claude_runtime.py` no longer registers the hook. It writes no guard or hooks file and passes no `--settings`.
+    - The R14 line in the seven agent files under `claude/agents/` no longer has the hook clause.
+
+    Main choice, also unchanged: I deleted the hook code outright. I rejected keeping it behind a switch that is always off.
+
+    Refactor: nothing to change this round, because the source diff is the same as in round 0.
+
+    Noticed but not touched:
+    - From entry 7, `make duplicates` reported 5 new findings. Four are claude/opencode similar-code pairs that already existed; they count as new because deleting lines moved their line numbers. The fifth is `ManualWaiter` in `src/factory/adapters/clock.py`, which this story does not touch.
+    - `factory-guard`, its adapter and `GUARD_COMMAND` stay until S0002.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+16. factory: started review as self.
+17. reviewer: no findings
+
+    What I checked, reading the diff rather than the earlier entries:
+    - `src/factory/adapters/claude_runtime.py`: every symbol the Interface lists is removed: `GUARDED_TOOLS`, `_hook_settings`, `_RunFiles.guard`/`hooks` and their paths in `of` and `remove`, `_guard_settings`, and the `GUARD_COMMAND` import. The imports `shlex` and `GuardSettings`, which nothing used any more, are removed too.
+      - `_arguments` no longer adds `--settings`, and every other flag keeps its order.
+      - `_write_files` writes the instructions file always and the confine rules only when `confine_executable` is set.
+      - `_confinement(request, ...)` still takes `request.guard` unchanged.
+      - The `SWITCHES` comment no longer names a hook, and `__all__` is unchanged.
+      - No `grep` hit for `guard-`, `hooks-`, `_hook_settings` or `GUARDED_TOOLS` is left in `src/`.
+    - `claude/agents/*.md`: all seven R14 lines lose exactly the clause `a hook also refuses an edit outside the write paths, `, and nothing else changes. `hook` now occurs 0 times in each file.
+    - Criteria:
+      - 1: `tests/adapters/test_claude_runtime_no_hook.py::test_no_run_registers_a_hook` has the three rows the criterion names. Each asserts no `--settings`, no `guard-`/`hooks-` file and the end `completed`.
+      - 2: `test_call_passes_every_flag_in_order` drops the two words.
+      - 3: `test_call_sees_the_instructions_file_and_no_guard_or_hooks_file` has the rows `state` and `state dir`.
+      - 4: the file-modes row `with-guard` expects `["instructions-"]`.
+      - 5: the first half is `tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line`, over `SHIPPED_NAMES` in the `Rules` section; its `_WRITE_PATHS_RULE` now holds the kernel-only sentence word for word. The second half is `tests/test_claude_agent_no_hook.py::test_no_shipped_agent_names_a_hook`.
+      - 6: the coder's `make check` was green (journal entry 15).
+    - Both round-0 findings are resolved: `import shlex` is gone from `SCRIPT` in `tests/adapters/claude_stand_in.py`, and the duplicate test with `_KERNEL_ONLY` is removed.
+    - The Description still matches what was built, and the docs criterion (none, S0003) still holds.
+    - `make duplicates` reports 5 new findings. Four are claude/opencode similar-code pairs that were already there and moved lines. The fifth is `ManualWaiter`, which this diff does not touch. None is new code.
+
+    Notes:
+    - `tests/test_claude_agent_no_hook.py:1`: the module docstring says "The rule on write paths of every shipped agent names no hook", but the test checks the whole agent body. "No shipped agent names a hook" would say what it tests.
+
+    Earlier tests:
+    - tests/adapters/claude_stand_in.py: human's leave, the feature's decision 9 (the `--settings` block and its `shlex` import).
+    - tests/adapters/test_claude_runtime.py: human's leave, the feature's decision 9.
+    - tests/adapters/test_claude_runtime_file_modes.py: human's leave, the feature's decision 9 (row `with-guard`).
+    - tests/adapters/test_claude_runtime_guard_temporary.py (deleted): human's leave, the feature's decision 9.
+    - tests/adapters/test_claude_runtime_login.py: human's leave, the feature's decision 9, extended by the human's answer of 2026-10-20 (pre-check `F0041-S0001-1.md`).
+    - tests/adapters/test_claude_runtime_resume.py: human's leave, the feature's decision 9, extended by the human's answer of 2026-10-20 (pre-check `F0041-S0001-1.md`).
+    - tests/test_claude_agent_refusal.py: human's leave, the feature's decision 9. Only `_WRITE_PATHS_RULE` changed (its text rewrapped), and every test keeps its name.
+18. factory: started docs as self.
+19. documenter: I changed no file. The docs criterion says `none`, and the story's Description leaves the documents to S0003 once S0002 has removed the guard command whole (the feature's decision 1).
+
+    Cross-read: I read the diff (the runtime, the seven agent files, the tests) against `README.md` and `docs/`. The Interface and the code agree: no `--settings`, only the instructions file and the confine file, R14 without the hook clause. I found no finding for the coder. I skipped `make check`, since I changed no file.
+
+    Stale text I noticed and did not touch, because S0003 owns it (decision 1):
+    - `docs/project-guide/agents.md:47` still shows `[--settings <state_directory>/hooks-<session>.json]` in the `claude -p` flag list.
+    - `docs/project-guide/agents.md:51` still says "`--settings` when the request has no guard".
+    - `docs/project-guide/agents.md:56` still lists `guard-<session>.json` and `hooks-<session>.json` as run files.
+    - `docs/project-guide/write-guard.md:63` still says `ClaudeCodeRuntime` registers `factory-guard` as a `PreToolUse` hook on `Edit|Write`.
+    - `docs/project-guide/write-guard.md:67` and `:75` still describe the `--settings` file the runtime writes.
+    - Other passages that mention the hook, which I did not check line by line: `docs/operator-guide.md`, `docs/decisions.md`, `docs/project-guide/README.md`, `watching.md` and `git-and-hosting.md`. `docs/decisions.md` may mention it as history that should stay.
+
+    Open from the review: the reviewer's journal entry 9 (the last I could read) reports a dead `import shlex` in `SCRIPT` in `tests/adapters/claude_stand_in.py`. I did not check whether it has been fixed. That is a test file, so it is not mine to touch.
+
+    `check`: check: green (not run again: passed on tree c11ce4d93265 at 2026-10-20T10:28:04Z)
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok
+20. factory: started smoke-test as self.
+21. smoke-tester: Ran both smoke-test commands from the repository root as written, in order. I fixed nothing.
+
+    Command 1 (the stand-in `claude`, run once unconfined and once through `factory-confine`, both with guard settings):
+    ```
+    unconfined False instructions written completed
+    confined False confine instructions refused completed
+    ```
+    Exit status 0. This **met** its `Expect:` line exactly. Neither run passed `--settings` or wrote a guard or hooks file. In the confined run the kernel alone refused the write to the checkout's root, and both runs ended `completed`.
+
+    Command 2:
+    ```
+    7
+    ```
+    This **met** its `Expect:` line (`7`): none of the seven shipped agents still holds "a hook also refuses".
+
+    Against the acceptance criteria: nothing in the smoke test contradicts any criterion. Criteria 1, 3 and 4 are each covered for one row by command 1: no `--settings`, no `guard-` or `hooks-` file, and only `instructions-` (plus `confine-` when confined) in the state directory. For criterion 5 I also ran `grep -i hook claude/agents/*.md`, which matched nothing. Each agent's R14 line now reads "the kernel refuses every other write, by any tool and any command you run, and the factory undoes any other write after the stage." I did not run `make check` (criterion 6); the factory checks it. Criterion 7 is docs: none.
+
+    Findings: none.

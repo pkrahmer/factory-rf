@@ -29,7 +29,7 @@ from run_process_recorder import Recorder
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 LIMIT = timedelta(seconds=30)
-RUN_FILES = ("instructions-*.md", "guard-*.json", "hooks-*.json")
+RUN_FILES = ("instructions-*.md",)
 VERSION_LINE = "2.1.289 (Claude Code)\n"
 
 
@@ -177,7 +177,7 @@ def test_resumed_call_sees_the_same_run_files_and_none_is_left(tmp_path: Path) -
     runtime.run(_request(tmp_path))
     first, second = _calls(tmp_path)
 
-    assert len(first.files) == 3
+    assert len(first.files) == 1
     assert second.files == first.files
     assert _left_over(tmp_path / "state") == []
 

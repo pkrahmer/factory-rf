@@ -1,7 +1,6 @@
 """The `claude -p` runtime, against a stand-in executable written into a temporary directory."""
 
 import json
-import shlex
 import time
 import uuid
 from datetime import timedelta
@@ -29,7 +28,7 @@ SWITCHES = {
     "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS": "1",
     "PYTHONDONTWRITEBYTECODE": "1",
 }
-RUN_FILES = ("instructions-*.md", "guard-*.json", "hooks-*.json")
+RUN_FILES = ("instructions-*.md",)
 
 
 def _reply(**changes: object) -> str:
@@ -150,8 +149,6 @@ def test_call_passes_every_flag_in_order(tmp_path: Path) -> None:
         session,
         "--append-system-prompt-file",
         str(state / f"instructions-{session}.md"),
-        "--settings",
-        str(state / f"hooks-{session}.json"),
         "--permission-mode",
         "auto",
         "--permission-prompts",
@@ -227,34 +224,19 @@ def test_call_gets_only_the_requests_environment_and_the_switches(
 
 
 @pytest.mark.parametrize("state_name", ["state", "state dir"])
-def test_call_sees_instructions_guard_and_hooks_files(tmp_path: Path, state_name: str) -> None:
+def test_call_sees_the_instructions_file_and_no_guard_or_hooks_file(
+    tmp_path: Path, state_name: str
+) -> None:
     state = tmp_path / state_name
     request = _request(tmp_path)
     _runtime(tmp_path, [Step(stdout=_reply())], state=state).run(request)
 
     call = _only_call(tmp_path)
     session = _after(call.arguments, "--session-id")
-    instructions = state / f"instructions-{session}.md"
-    guard = state / f"guard-{session}.json"
-    hooks = state / f"hooks-{session}.json"
 
-    assert call.files[str(instructions)] == request.agent.instructions
-    assert GuardSettings.model_validate_json(call.files[str(guard)]) == request.guard
-    assert json.loads(call.files[str(hooks)]) == {
-        "hooks": {
-            "PreToolUse": [
-                {
-                    "matcher": "Edit|Write",
-                    "hooks": [
-                        {
-                            "type": "command",
-                            "command": f"factory-guard --settings {shlex.quote(str(guard))}",
-                        }
-                    ],
-                }
-            ]
-        }
-    }
+    assert call.files[str(state / f"instructions-{session}.md")] == request.agent.instructions
+    assert str(state / f"guard-{session}.json") not in call.files
+    assert str(state / f"hooks-{session}.json") not in call.files
 
 
 def test_run_files_are_removed_after_a_result(tmp_path: Path) -> None:

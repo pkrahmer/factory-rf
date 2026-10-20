@@ -79,7 +79,7 @@ def _request(tmp_path: Path, *, guard: bool) -> AgentRunRequest:
 @pytest.mark.usefixtures("open_umask")
 @pytest.mark.parametrize(
     ("guard", "prefixes"),
-    [(True, ["guard-", "hooks-", "instructions-"]), (False, ["instructions-"])],
+    [(True, ["instructions-"]), (False, ["instructions-"])],
     ids=["with-guard", "without-guard"],
 )
 def test_the_files_of_a_run_are_0640_when_the_agent_starts(
