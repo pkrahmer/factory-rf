@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T01:27:41.154801Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T01:27:19.968405Z'
   stage: intake
   run: 4fd899352ddf48b7acfa9f0ff62261ba
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:27:41.154801Z'
+  stage: tests
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -88,3 +97,4 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
    - Smoke test: the heredoc is runnable with `uv run -q python`. The `Expect:` line names three outputs that can be compared exactly.
    - Architecture: nothing under `src/` changes. The tests sit in `tests/domain/`, mirroring `factory.domain`, and the story follows the standing leave and tests-only rules in `CLAUDE.md`. It changes no earlier test.
    - Scope: it matches S0002 in `feature.md`. The `_item_text` survivor is left out as equivalent (decision 3), and no out-of-scope item is touched.
+4. factory: started tests as self.
