@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 317
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T02:10:34.448619Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T02:10:13.588548Z'
   stage: intake
   run: 6e1a6ed050a241bca744d33090cc35d5
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:10:34.448619Z'
+  stage: tests
 ---
 
 # The tests pin the subjects of a story's recovery and handler commits
@@ -85,3 +94,4 @@ Expect: two lines, `work item F0001-S0001: crash of stage doing recorded` and `w
    Smoke test: the command is runnable. It uses commit_subject and MOVED_BACK_MARKER, which the Interface's subjects imply. The Expect line gives two exact output lines that can be compared.
    Architecture: tests only, under tests/application/ as CLAUDE.md prescribes. They use real git and the fake hosting service, with no mocks of the code under test.
    Scope: within the feature's Scope, which lists these two modules for S0006. The 15 subjects match decision 8. The story is not in Out of scope, and it changes no earlier test.
+4. factory: started tests as self.
