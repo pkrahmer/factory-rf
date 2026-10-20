@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 359
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T19:28:45.447152Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T19:28:45.447152Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T19:29:24.691883Z'
+  stage: docs
+  run: f64e060ee1354d6197750143c143ef61
 ---
 
 # The documents say what an ignored path the factory cannot remove does
@@ -161,3 +163,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Hygiene: the Description matches what was built, which is nothing yet; the documenter writes from criterion 3. The journal gives the main decision (the documents are the documenter's work) and what was rejected (the coder writing them).
    - Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: I wrote the three documents the docs criterion names. The diff has no findings: nothing under `src/` or `tests/` changed, and I checked the `build_boundaries` signature against the criterion and the reviewer's check of `src/factory/entry/wiring.py`.
+
+    Files changed:
+    - `docs/operator-guide.md`, *The project's make targets*: the ignored-state paragraph now names `a bytecode folder` as the usual cause. It says a Python that writes bytecode under a umask stricter than `002` (factory-rf's tests under `022`) leaves a folder the factory cannot remove, when the process lacks `PYTHONDONTWRITEBYTECODE=1` (an emptied environment drops it, and `-I` ignores it). It also says the `Makefile` exports `UV_COMPILE_BYTECODE=1`, so uv compiles `.venv`'s bytecode at its sync. The sentence that only a stricter umask makes the removal fail stays.
+    - `docs/operator-guide.md`, the `checkout_restore_failed` row in the stops table (about line 858): when an agent run left the path, the stage ends without a result, and once the checkout is repaired the factory `records it as a crash` and runs it again. The repair is `chmod -R g+w <path>` as root on the path git names, or removing it as root. A second run that leaves the same path again reaches `crash_cap`. The other `checkout_restore_failed` row (about line 438) only points to this one.
+    - `docs/operator-guide.md`, the `umask=0002` bullet under the `sudo` rule: the restore's commands now include the removal of ignored paths (`git clean -X`).
+    - `docs/project-guide/watching.md`, *Boundaries*: the `build_boundaries` signature now has `which=shutil.which` and `confine_executable=CONFINE_COMMAND`, with one sentence each. `which` finds the `sudo` the runtime starts. `confine_executable` is the wrapper every run starts through, and `None` starts no wrapper.
+    - `docs/decisions.md`, the entry *The factory removes the git-ignored paths after every agent run and at the restore*: a new `Seen on 2026-10-20` bullet. It records the two crashes of F0027's acceptance from an agent-made bytecode folder. It records the human's `UV_COMPILE_BYTECODE=1` quick fix (fd0fcd0b), which hides the cause without removing it. It records that the test helpers' `-B` (S0004) removes the cause. It also records why the answer lies in how the files are written: a repair of modes after every agent call was rejected in F0033's entry, so what an agent's commands write must be group-writable from the start.
+
+    `README.md`: unchanged, as the criterion says.
+
+    Cross-read and found current: `docs/decisions.md` (the F0033 entry I cite, *The tests set their own umask, and uv syncs under the caller's*, says what I cite it for), the rest of the *Boundaries* section in `watching.md`, and the stops section of the operator guide, which still holds the `checkout_restore_failed` wording the new row text extends.
+
+    Stale text I saw and did not touch: none.
+
+    I did not run the story's three `grep` smoke commands, so they are untested; the new text should satisfy them. I ran no `make check`, because I changed only documents; the factory's checks decide.
+
+    `check`: check: green (not run again: passed on tree 416ad76bbc59 at 2026-10-20T19:16:27Z)
+    `secrets`: secrets: green (2.2 s)
+    `documents`: documents ok
