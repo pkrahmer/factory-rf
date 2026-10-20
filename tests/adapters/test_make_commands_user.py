@@ -28,12 +28,13 @@ CHECK_RECIPES = (
 )
 
 # Records its arguments, environment and working directory; then, unless it starts the
-# leftovers program, writes its planned warning and either exits as planned or runs what
-# follows `--`.
+# leftovers program, writes its planned warning and either exits as planned, after its
+# planned wait, or runs what follows `--`.
 SUDO_SCRIPT = r"""
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 here = Path(__file__).resolve().parent
@@ -52,6 +53,7 @@ if rest[0] != plan["program"]:
     sys.stderr.flush()
     if plan["exit_status"] is not None:
         sys.stderr.write(plan["stderr"])
+        time.sleep(plan["wait_seconds"])
         sys.exit(plan["exit_status"])
 os.execvp(rest[0], rest)
 """
@@ -86,6 +88,7 @@ def _write_sudo(
     stderr: str = "",
     warning: str = "",
     program: Path | None = None,
+    wait_seconds: float = 0,
 ) -> Sudo:
     path = write_script(folder / "sudo", SUDO_SCRIPT)
     plan = {
@@ -93,6 +96,7 @@ def _write_sudo(
         "stderr": stderr,
         "warning": warning,
         "program": str(program),
+        "wait_seconds": wait_seconds,
     }
     (folder / "sudo-plan.json").write_text(json.dumps(plan), encoding="utf-8")
     return Sudo(path=path, folder=folder)
@@ -207,6 +211,21 @@ def test_a_command_killed_by_its_own_timeout_is_a_time_limit_result(
     assert result.status == "time_limit"
     assert result.exit_status is None
     assert SHORT_LIMIT.total_seconds() <= elapsed < UPPER_BOUND_SECONDS
+
+
+def test_the_factory_s_own_kill_waits_the_grace_beyond_the_limit(
+    tmp_path: Path, project: Path
+) -> None:
+    sudo = _write_sudo(tmp_path / "sudo-bin", exit_status=0, wait_seconds=5)
+    commands = MakeProjectCommands(project, user=_user(str(sudo.path)))
+    start = time.monotonic()
+
+    result = commands.run("check", time_limit=SHORT_LIMIT)
+
+    elapsed = time.monotonic() - start
+    assert result.status == "passed"
+    assert result.exit_status == 0
+    assert 5 <= elapsed < UPPER_BOUND_SECONDS
 
 
 @pytest.mark.parametrize("exit_status", [137, 1])

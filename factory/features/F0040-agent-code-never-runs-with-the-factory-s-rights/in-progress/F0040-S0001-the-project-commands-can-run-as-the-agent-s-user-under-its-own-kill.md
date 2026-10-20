@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T18:50:23.240230Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -205,6 +201,12 @@ journal:
   kind: started
   at: '2026-10-20T18:50:23.240230Z'
   stage: tests
+- number: 36
+  speaker: tester
+  kind: result
+  at: '2026-10-20T18:52:56.757199Z'
+  stage: tests
+  run: dec3ebe3f248460e80945361dbf56fa2
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -584,3 +586,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: the reviewer's note that `_write_sudo` in this module is a third local stand-in `sudo`, beside `write_sudo` in `tests/leftovers_runtime_support.py` and the one in `tests/adapters/test_claude_runtime_os_user.py`. It is not a plain copy, since it also records the environment and working directory and plays a plan. Whether to share it is the tester's call under the standing leave.
 35. factory: started tests as self.
+36. tester: Round 2, a test change the human approved (the coder's entry 34 names it): I added the test for criterion 12, which the reviewer added in entry 32. It needs only a test.
+
+    - criterion 12: tests/adapters/test_make_commands_user.py::test_the_factory_s_own_kill_waits_the_grace_beyond_the_limit. The stand-in `sudo` runs nothing, waits 5 seconds and exits 0 with no output. The command runs with `time_limit` 3 seconds. The test expects `passed`, `exit_status` 0, and at least 5 and less than 25 seconds elapsed.
+
+    To support it, the module's stand-in `sudo` (`SUDO_SCRIPT` and `_write_sudo`) now takes a planned wait, `wait_seconds`, default 0. It sleeps that long before its planned exit. Every earlier row has a wait of 0, so they behave as before. The sleep is in the stand-in's process, not in the test: the criterion calls for it.
+
+    Files changed: only `tests/adapters/test_make_commands_user.py`, this story's own module. I created no file and changed no test file another story wrote. I did not merge the stand-in `sudo` into a shared helper (the reviewer's note in entry 32): it is not a plain copy of `write_sudo` in `tests/leftovers_runtime_support.py`, so the standing leave does not call for the move.
+
+    Modules the test run could not import: none. The code already exists, so the new test passes; that is the result the coder expected in entry 34. `make test`: test: green (60.2 s, coverage 99.17 %). `make lint`: green.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (58.2 s)
