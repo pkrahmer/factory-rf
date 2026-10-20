@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T20:03:44.283805Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-20T20:03:23.706620Z'
   stage: doing
   run: c396c95ec24040208e4158c5a1664f09
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:03:44.283805Z'
+  stage: tests
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -290,3 +299,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - **Test:** the tester should extend `tests/entry/test_wiring_project_command_user.py::test_the_built_project_commands_run_as_the_agent_user_inside_a_seal`. In its rows with `agent_user="agent"` (agent-user, no-leftovers, no-sudo-found), it should assert that the sealed object's held `Git` is `boundaries.git` and its held `FactoryLog` is `boundaries.log`. The reviewer suggested comparing by identity through `_held`, for example `_held(sealed, GitCli) is boundaries.git`.
     - **Description:** entry 12 already changed the Description, adding criterion 8 and renumbering the closing criteria to 9 and 10. I rewrote nothing.
     - **Not touched:** nothing new beyond what entry 10 noted about `make duplicates`.
+15. factory: started tests as self.
