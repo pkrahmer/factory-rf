@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 359
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T19:26:07.043117Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T19:26:07.043117Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T19:27:44.959372Z'
+  stage: doing
+  run: 143d6c883881486fb2bb669f99e2bb41
 ---
 
 # The documents say what an ignored path the factory cannot remove does
@@ -114,3 +116,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.8 s)
    `test`: test: green (70.4 s)
 6. factory: started doing as self.
+7. coder: This story changes only documents, so I built nothing. Nothing under `src/` or `tests/` changes, and I created no files; the working tree holds only the factory's `.costs.jsonl` sidecar.
+
+   - **What I built:** nothing. The tester wrote no tests, the Interface is "None: documents only", and nothing in the work item needs code.
+   - **Main choice:** I left all three documents to the documenter: `docs/operator-guide.md`, `docs/project-guide/watching.md` and `docs/decisions.md`. `CLAUDE.md` says the documenter keeps these true from each story's docs criterion and the coder does not write them.
+   - **Rejected:** writing the docs criterion's texts myself in this stage. That would be the documenter's work and outside the coder's part.
+   - **Refactor:** there is no diff to read, so nothing needed changing.
+   - **Description:** no journal entry changed the meaning of the task, so I did not rewrite it.
+   - **Noticed but not touched:** the docs criterion's `build_boundaries` signature matches `src/factory/entry/wiring.py`, as the intake entry checked. The documenter can copy it as it stands.
+
+   `make check`: check: green (test: green (70.9 s), coverage 99.17 %).
+
+   `check`: check: green (not run again: passed on tree 416ad76bbc59 at 2026-10-20T19:16:27Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
