@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T19:49:12.389059Z'
   stage: acceptance
   run: 14b086e6da5949b7a09a176a610b971a
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T19:50:34.148281Z'
+  stage: done
 stories: [F0027-S0001, F0027-S0002, F0027-S0003, F0027-S0004, F0027-S0005, F0027-S0006]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of Nothing a run leaves behind reaches the checks
@@ -278,3 +283,4 @@ Not in the stories' line: F0027-A0001 cost $3.89, two crashes and one `crash_cap
    7 Slow checks: `make check` is green (test 59.2 s, coverage 99.17 %). The slowest tests are not F0027's (11.5 s and 10.1 s). F0027's 115 cases take 4.4 s. `make duplicates` reports 5 new, unchanged since F0027-A0001. Used disk is unchanged at 0.5 GB (`.venv`). Free space fell 1.0 GB on the shared host file system, which the feature does not explain (likely F0040-S0002 running meanwhile; not verified).
    8 Cost: $17.62 over 57 runs. S0002 was the dearest ($5.21), and the three follow-ups cost $3.44 with no rework. There were 5 questions over 1.2 h, and S0003 needed the human most (2 questions). Not in that line: F0027-A0001's $3.89 and its two crashes, whose cause S0004 removed.
    Set aside: a compound shell command that wrote the smoke script was refused by the permission prompt, so I wrote the script with the write tool into `$TMPDIR` instead. A later `rm` of that script was refused the same way; it stays in `$TMPDIR`, which the factory removes. `factory-check-story` says ok for S0007.
+3. factory: done (pull request merged); cost: 1 runs, 6.0 min, 39 turns, 127002 tokens in (2829056 more from cache), 29827 out, $2.18
