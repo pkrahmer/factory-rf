@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T00:01:23.518814Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-20T00:01:03.144287Z'
   stage: review
   run: c20e8281da314f5ba6f588f4ab709746
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:01:23.518814Z'
+  stage: docs
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -284,3 +293,4 @@ Expect: `exit 0`
     - `tests/test_agent_home_ownership.py`: the standing leave to move a shared test helper (import line only).
     - `tests/test_entrypoint_skills.py`: the standing leave to move a shared test helper (import changed, `_texts` calls renamed to `texts`).
     - `tests/test_shared_test_helpers.py`: the standing leave to move a shared test helper for replacing `_writing` with `modules_matching`, where names, ids and patterns are unchanged. The one changed expected line has the human's leave, the S0007 bullet in decision 14 of `feature.md`.
+18. factory: started docs as self.
