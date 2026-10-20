@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 339
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T06:37:49.212370Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:37:49.218814Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T06:38:09.994305Z'
+  stage: intake
+  run: 89a0c1911e4340a6a5f75b12274dd9e0
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:38:30.484221Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T06:41:31.002285Z'
+  stage: tests
+  run: d65d9c7d431d4648be497ea5d9b826f7
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:41:51.815602Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T06:44:18.860290Z'
+  stage: doing
+  run: 985c272fe06b48b6960dbab5eda845bf
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:44:39.523330Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T06:45:38.771956Z'
+  stage: review
+  run: 6e393c52a5de40c59b322308166cdd52
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:45:59.225915Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T06:46:41.950821Z'
+  stage: docs
+  run: 283565fdb73e48eb882d9b0c7212208b
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:47:02.924069Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T06:47:23.541024Z'
+  stage: smoke-test
+  run: 3da534ebf06146878daf4867d939a879
+---
+
 # The record log skips a line that is not UTF-8
 
 ## Description
@@ -73,3 +157,109 @@ PY
 Expect: one line, `['check: green ✓']`, and no traceback.
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: `JsonLinesRecordLog.read` in `src/factory/adapters/record_log_jsonl.py` and the `RecordLog.read` docstring in `application/files.py` are named with exact signatures and text. I read the current code, and the constructor `(path, model)` and `ResultRecord` fields match the story's use. The rules are bytes, split at `\n` alone, strict per-line decode, `\r` kept, and `OSError` propagating.
+   Criteria: each is one parametrized test with concrete rows. Every Interface rule has both sides. Torn lines cover 2-, 3- and 4-byte cuts and an ASCII cut. The skip covers a line at the start, the middle and the end, and a decoding-with-replacement trap. U+2028, U+2029 and U+0085 cover whole-record reading, with a `\r\n` row. A directory raises and a missing file gives `[]`. Criterion 5 covers `KnownResults` on a torn log. The `make check` and docs criteria are last.
+   Smoke test: the command is runnable, since the Python snippet uses no pytest and so no `-q` issue. The `Expect:` line gives an exact printed list and no traceback, which can be checked against the output.
+   Architecture: the change is inside the adapters layer, plus a docstring in application. No new dependency or wiring, and the callers are untouched, matching CLAUDE.md.
+   Scope: it matches feature.md's Scope and decisions 1 to 5. The append-after-torn-line case (decision 4) and `KnownResults._read` are left out as the feature's Out of scope says. The existing test file is not changed, and the moves of the rig fall under the standing leave.
+4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 5, one parametrized test per criterion. The rows are the ones each criterion names.
+
+   - criterion 1: tests/adapters/test_record_log_jsonl_torn.py::test_a_torn_last_line_is_skipped_and_the_whole_lines_before_it_count
+   - criterion 2: tests/adapters/test_record_log_jsonl_torn.py::test_a_line_that_does_not_decode_is_skipped_wherever_it_stands
+   - criterion 3: tests/adapters/test_record_log_jsonl_torn.py::test_a_record_holding_a_line_break_other_than_a_line_feed_reads_back_whole (the rows are U+2028, U+2029 and U+0085 through `append`, plus the `\r\n` line written directly)
+   - criterion 4: tests/adapters/test_record_log_jsonl_torn.py::test_an_error_of_reading_propagates_and_a_missing_file_reads_empty
+   - criterion 5: tests/application/test_known_results_torn.py::test_a_torn_last_line_of_the_known_results_neither_raises_nor_logs
+   - criteria 6 and 7 (`make check`, docs) have no test of their own.
+
+   Files created: tests/adapters/test_record_log_jsonl_torn.py, tests/application/test_known_results_torn.py and tests/torn_record_support.py. The last is a shared helper with `KEY`, `result_record`, `line_of` and `torn_inside`, which both new modules use, so neither holds a copy.
+
+   The rig (`Rig`, `_rig`, `_answering`, `_result`, `TIME_LIMIT`) is imported from `application.test_known_results`. I did not move it, so no earlier test file changed. tests/adapters/test_record_log_jsonl.py is unchanged.
+
+   Rejected: separate test functions for the `\r\n` row and for the missing-file row. The criteria make them rows of the parametrized tests above.
+
+   `make lint` is green.
+
+   `make test` fails, with these failures in the tail it printed:
+   - the u2029 and u0085 rows of criterion 3 (`splitlines` cuts the record today)
+   - both rows of criterion 5 (the `UnicodeDecodeError` from `read`)
+
+   The other new tests fail against the current `read_text`/`splitlines` reading in the same way. Every module imported; the runner reported no import errors. I skipped the type check, as the stage allows.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/application/test_known_results_torn.py::test_a_torn_last_line_of_the_known_results_neither_raises_nor_logs[only-a-torn-line]
+6. factory: started doing as self.
+7. coder: Built: `src/factory/adapters/record_log_jsonl.py`. `JsonLinesRecordLog.read` now reads the file's bytes and splits them at `b"\n"` alone. `_parse` takes a line's bytes and decodes them as strict UTF-8. A line that does not decode is skipped, and so are a blank line and a line that does not validate, as before. A `\r` before the `\n` stays in the text, and the JSON parser accepts it as whitespace. I also changed `src/factory/application/files.py`: the `RecordLog.read` docstring now has the Interface's exact text. `make check` is green.
+
+   Main choice: each line is decoded on its own, inside `_parse`, so one bad line costs only itself. I rejected decoding the whole file with `errors="replace"` and then splitting. It would turn the `0xc3 0x28` case into a record that validates. It would also need `splitlines` or a str split, which brings back the U+2028/U+2029/U+0085 problem.
+
+   Refactor pass: I read the diff (three small hunks) and found nothing to change.
+
+   Noticed but not touched:
+   - A record appended after a torn line still shares the torn line and is skipped with it (the feature's decision 4, left for a later story).
+   - `KnownResults._read` still catches only `OSError`. The story leaves it unchanged, and with this change it no longer needs to catch more.
+
+   The journal did not change the task's meaning, so `## Description` is unchanged.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   What I read: the work item, and `git diff main...HEAD -- . ':!factory'`. It changes `src/factory/adapters/record_log_jsonl.py` and `src/factory/application/files.py`, and adds `tests/adapters/test_record_log_jsonl_torn.py`, `tests/application/test_known_results_torn.py` and `tests/torn_record_support.py`.
+
+   - Acceptance criteria: criteria 1 to 5 each have one parametrized test, with the rows the criterion names.
+     - Criterion 1 has the é 1/2, € 1/3, € 2/3, 😀 3/4, ASCII-cut and only-torn rows.
+     - Criterion 2 has the unchanged row, `0xff` before B, `0xc3 0x28` inside B's string, `0xff` before A, and the empty line.
+     - Criterion 3 has U+2028, U+2029 and U+0085 written through `append`, and the `\r\n` row written directly. Each row checks that the file holds exactly one `\n`.
+     - Criterion 4 has the directory row raising `IsADirectoryError` and the missing-file row giving `[]`.
+     - Criterion 5 has the after-a-pass and only-a-torn-line rows. Both check one call of the project commands and an empty factory log, and the first checks that the second run is reused with `last_line` `check: green`.
+     - Every Interface rule is tested on its failing side as well as its passing side. The Interface states no numeric limit.
+     - The coder's journal entry (7) records `check: green`.
+   - Architecture: the change stays inside the adapter, plus the docstring the Interface gives in `application/files.py`. There is no new import, wiring or dependency, and no other module calls a tool.
+   - Security: there is no marker, secret, shell or string-built query. The read is strict decoding per line, and an `OSError` still propagates.
+   - Quality: `read` splits the bytes at `b"\n"`, and `_parse` decodes each line as strict UTF-8 and skips one that fails. The comments say why. I found no dead code.
+     - `make duplicates` reports 5 new findings, all in `claude_runtime`/`opencode_runtime` and `clock.py`. This diff touches none of those files.
+     - The new shared module `tests/torn_record_support.py` is used by both new test modules. The rig is imported from `application.test_known_results`, as other test modules already import from test modules. No helper is copied.
+   - Work item hygiene: the coder's entry names the main choice (decode each line on its own) and the rejected one (decode the whole file with `errors="replace"`). The Description matches what was built, and the docs criterion (7) still says what the reader needs to know.
+
+   Earlier tests: none. The diff adds test files and changes, renames or deletes no test file that `main` already holds.
+10. factory: started docs as self.
+11. documenter: Docs for F0037-S0001, written from the docs criterion. I changed only documents, so I did not run `make check`; the factory's checks decide. I ran no example. The diff matches the Interface and the criteria, so I have no findings.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`: the `RecordLog[R]` paragraph now says `read()` skips a blank line, a line that is not UTF-8 and a line that does not validate. It also says `JsonLinesRecordLog` reads bytes, splits at `\n` alone and decodes each line on its own, which keeps U+2028, U+2029 and U+0085 records whole, and that a record appended after a torn line shares its line and is skipped.
+    - `docs/operator-guide.md`, *The records*: the last sentence now says a line of any of the four record files that a kill cut, or that is not UTF-8, is skipped on read, so a damaged file needs no repair. I left the rule on deleting `stops.jsonl` as it was.
+    - `docs/decisions.md`: new entry *A record line that is not UTF-8 is skipped*. It rejects a wider `except` in `KnownResults._read` and decoding with replacement, and leaves decision 4 (append after a torn line) as its open point.
+
+    Cross-read and found current: `README.md` (the criterion says none), `docs/project-guide/README.md`, and the `Boundaries` and *Known results* passages in `docs/project-guide/watching.md` and `processes-and-checks.md`.
+
+    Stale or unrelated, not touched: nothing found. `watching.md` says `parse_stop_records` skips lines that do not validate. That function takes text and not bytes, so it stays correct.
+
+    `check`: check: green (not run again: passed on tree 943e65a3b707 at 2026-10-20T06:43:13Z)
+    `secrets`: secrets: green (1.7 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: no findings.
+
+    I ran the one command under `## Smoke test` exactly as written, from the repository root. The temporary folder came from `mktemp -d` in `$TMPDIR` and its `trap` removed it. I fixed nothing.
+
+    Command 1: the Python snippet. It appends one whole `ResultRecord` with `last_line` `check: green ✓`, then appends that record's line again without a line feed, cut after the first of the 3 bytes of `✓`, then prints the `last_line`s that `read()` returns.
+
+    ```
+    ['check: green ✓']
+    exit: 0
+    ```
+
+    Expect: one line, `['check: green ✓']`, and no traceback. **Met.** The output is that one line, with no traceback, and the exit status is 0.
+
+    Acceptance criteria re-read: the smoke test contradicts none of them.
+    - The output agrees with criterion 1: a torn last line, cut inside a multibyte character, is skipped and the whole line before it counts.
+    - It agrees with the Interface: `read()` reads bytes, splits at `\n` and decodes each line strictly, and raises nothing.
+    - The smoke test does not reach criteria 2 to 5 (a bad line in the middle, U+2028/U+2029/U+0085, `OSError`, `KnownResults`) or 6 and 7 (`make check`, docs). Their tests and the earlier stages' entries cover them, and nothing here contradicts them.
+
+    Open: nothing for this story. Decision 4 (a record appended after a torn line is skipped with it) stays out of scope, as the Description says.

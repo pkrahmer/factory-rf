@@ -26,14 +26,21 @@ class JsonLinesRecordLog[R: BaseModel](RecordLog[R]):
     def read(self) -> list[R]:
         if not self._path.exists():
             return []
-        lines = self._path.read_text(encoding="utf-8").splitlines()
+        # Split the bytes at the line feed alone: `str.splitlines` would also cut a record
+        # at U+2028, U+2029 or U+0085 inside its text.
+        lines = self._path.read_bytes().split(b"\n")
         return [record for line in lines if (record := self._parse(line)) is not None]
 
-    def _parse(self, line: str) -> R | None:
-        if not line.strip():
+    def _parse(self, line: bytes) -> R | None:
+        try:
+            text = line.decode("utf-8", errors="strict")
+        except UnicodeDecodeError:
+            # A kill during a write can cut the last line inside a multibyte character.
+            return None
+        if not text.strip():
             return None
         try:
-            return self._model.model_validate_json(line)
+            return self._model.model_validate_json(text)
         except ValidationError:
             # A kill during a write can tear the last line; the others still count.
             return None

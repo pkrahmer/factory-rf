@@ -874,3 +874,12 @@ Date: 2026-10-20 (F0035-S0001; F0035 decisions 1 to 4). This repository's `pypro
 - Decision: this repository's `factory/story-form.md` holds the same rule in this project's words, naming `pyproject.toml` (the human's change). `template/` is unchanged: it ships no pytest configuration and no story form.
 - Reasons: the smoke tests of F0022-S0005 and F0023-S0004 on 2026-10-19; a question at intake costs nothing against a smoke test run paid for twice.
 - Rejected: a check in code (`factory-check-story`; the factory knows no pytest, and a project's pytest configuration is the project's own); a line in intake's *Lessons* (`tests/test_claude_agent_texts.py` pins those lines exactly, and that would change another story's test).
+
+## A record line that is not UTF-8 is skipped
+
+Date: 2026-10-20 (F0037-S0001; F0037 decisions 1, 2, 3 and 5). A kill during an append can cut the last line of a record file inside a multibyte character. `JsonLinesRecordLog.read` decoded the whole file, so it raised `UnicodeDecodeError`, and `KnownResults._read` caught only `OSError`: every check and report of every stage failed with an error until a human repaired `known-results.jsonl`.
+
+- Decision: `JsonLinesRecordLog.read` reads the file's bytes, splits them at `b"\n"` alone and decodes each line on its own as strict UTF-8. A line that does not decode is skipped, like a blank line and a line that does not validate; every other line counts, in file order. Splitting at the line feed alone also keeps whole a record whose text holds U+2028, U+2029 or U+0085, which `str.splitlines` cut in two. An `OSError` of reading still propagates. `KnownResults`, `DiskRecorder` and `StopPublisher` are unchanged.
+- Reasons: the fault is in the reader of the file, which serves all four record files, so one fix covers them.
+- Rejected: a wider `except` in `KnownResults._read` (decision 2; it would fix one of the four callers and hide other faults); decoding with replacement (decision 3; a line cut or damaged inside a JSON string could then validate as a record with a wrong text).
+- Open (decision 4): a record appended after a torn line lands on the torn line's line and is skipped with it. A later story may start a new line first.

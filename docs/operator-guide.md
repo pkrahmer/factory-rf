@@ -556,7 +556,7 @@ Missing parent directories are created. If the file cannot be written, the line 
 | `exit_status` | The exit status; `null` for `time_limit`. |
 | `targets` | For each target that ended green, `{"target": ..., "seconds": ...}`, in the order printed (for `check`, the time of each of its targets). |
 
-The records are telemetry beside the factory log, not a work item's state: they are not committed and nothing reads them to decide anything. You may delete the file at any time; the next run starts a new one. A command that raises an error (a missing `make`, a time limit of 0) leaves no record. When a line cannot be written, the factory log gets `cannot write the record of <command>: <error>` and the run goes on. A line cut off by a kill is skipped when the file is read.
+The records are telemetry beside the factory log, not a work item's state: they are not committed and nothing reads them to decide anything. You may delete the file at any time; the next run starts a new one. A command that raises an error (a missing `make`, a time limit of 0) leaves no record. When a line cannot be written, the factory log gets `cannot write the record of <command>: <error>` and the run goes on. A line of any of the four record files that a kill cut, or that is not UTF-8, is skipped when the factory reads the file, so a damaged record file needs no repair.
 
 To count the `check` runs of each commit, with the most-run commits first:
 
