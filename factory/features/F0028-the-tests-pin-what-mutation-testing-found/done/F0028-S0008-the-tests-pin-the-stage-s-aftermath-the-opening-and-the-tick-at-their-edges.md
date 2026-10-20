@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T02:38:45.680076Z'
   stage: smoke-test
   run: 484dd0a90dbb4b328f174e3e5502cd4d
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T02:40:05.182143Z'
+  stage: approval
 ---
 
 # The tests pin the stage's aftermath, the opening and the tick at their edges
@@ -255,3 +260,4 @@ Expect: four lines, `None`, `Stalled (attempt 1 of 2): the agent gave no valid d
     - Criteria 6 and 7: the earlier entries record `make check` as green and docs as none. The smoke test gives nothing against them.
 
     Nothing was changed. Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 5.5 min, 45 turns, 153850 tokens in (1319346 more from cache), 16372 out, $1.65
