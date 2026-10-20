@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T15:32:00.926500Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-10-20T15:32:00.926500Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T15:33:12.183547Z'
+  stage: review
+  run: 8bcf73d86ccc43a8ac53415173a314e9
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -490,3 +492,40 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 26. factory: started review as self.
+27. reviewer: Round 1. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item: 4 source files, 4 new test files, 2 new support modules, and 8 changed test and support files.
+
+    no findings
+
+    - Source: it matches the Interface.
+      - `Git.remove_ignored()` is an `@abstractmethod` whose body is the Interface's docstring.
+      - `GitCli.remove_ignored()` runs `clean --quiet --force --force -d -X` through `_run`. A comment says why there is a second `--force`.
+      - `run_sealed` calls it after the `try`/`finally`, so only a run that returned gets it. A comment says why. The preflight's probe run goes through `run_sealed` (`src/factory/application/preflight.py:251`), so it gets the removal as well.
+      - `Tick._restore_checkout` calls it between `reset_to("HEAD")` and `checkout("main", ...)`, with a comment on the order.
+      - `GitCli` is the only class that implements `Git`.
+    - Layers hold, no marker silences a check, and no string is built into a shell command.
+    - Criteria 1 to 7: each has one parametrized test, and each test checks what its criterion says, failing sides included:
+      - the `0o555` rows in criteria 3, 4 and 6;
+      - the raised run in criterion 4;
+      - the link rows on both sides (criteria 1 and 2);
+      - in criterion 5, the `in-write-path` row against the coder's `src/*`.
+    - `make check` was green after the coder (entry 25). `make duplicates` reports 5 new findings, none in code this diff touches.
+    - The round-0 findings (entry 19) are resolved:
+      - `COMPLETED` and `_request` now live in `tests/sealed_run_support.py`, unchanged apart from the rename to `run_request`.
+      - `_head` is now `tests/git_support.py::head_of`.
+      - `AS_ROOT` is now `tests/root_support.py`.
+    - The Description and the docs criterion still match what was built.
+
+    Earlier tests:
+    - `tests/adapters/test_git_cli_nested.py`: the standing leave to move a shared test helper (its `AS_ROOT` copy now comes from `root_support`). Same names, same checks.
+    - `tests/adapters/test_git_cli_restoring.py`: the standing leave (`_head` moved to `git_support.head_of`). Same names, same checks.
+    - `tests/application/test_nested_repositories.py`: the standing leave (`AS_ROOT`, `COMPLETED` and `run_request` now come from the shared modules). Same names, same checks.
+    - `tests/application/test_sealed_runs.py`: the standing leave (`COMPLETED` and `_request` moved to `sealed_run_support`). Same names, same checks.
+    - `tests/application/test_sealed_runs_runner.py`: the standing leave (it imports `COMPLETED` and `run_request` from `sealed_run_support`). Same names, same checks.
+    - `tests/application/test_git_interface.py`: the human's leave, the story's Interface under the feature's decision 16 (`OPERATIONS` gains `"remove_ignored"`, the test is renamed to twenty-five). Within that leave.
+    - `tests/application/test_interfaces.py`: the same leave (the Git test renamed to twenty-five). Within that leave.
+    - `tests/application/test_tick.py`: the same leave (the `ignored.log` assertion inverted in `test_the_restore_discards_changes_and_names_them_in_one_line`). Within that leave.
+    - `tests/git_support.py`: none needed. It only adds `head_of` and leaves everything it held as it was.
+
+    Notes:
+    - `tests/adapters/test_git_cli_ignored.py:40`: `_status` is a near-copy of `_status` in `tests/adapters/test_git_cli_restoring.py:12`. It leaves out `--untracked-files=all`, as criterion 2's `git status --porcelain` asks.
+    - `tests/adapters/test_git_cli_ignored.py:13` and `tests/application/test_sealed_runs_ignored.py:21`: the constant `CLEAN` is defined twice.
