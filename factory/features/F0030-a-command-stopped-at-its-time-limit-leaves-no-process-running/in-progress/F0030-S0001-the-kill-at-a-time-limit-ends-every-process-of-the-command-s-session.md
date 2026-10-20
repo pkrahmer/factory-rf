@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T09:21:52.976299Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-10-20T09:21:52.976299Z'
   stage: review
+- number: 28
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T09:22:25.786802Z'
+  stage: review
+  run: b2aaeddedac14b709ee4a35cf7ce0e89
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -523,3 +525,30 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 27. factory: started review as self.
+28. reviewer: Round 2 review of `git diff main...HEAD -- . ':!factory'` against the work item. The diff covers `src/factory/domain/sessions.py`, `src/factory/adapters/process.py`, `tests/domain/test_sessions.py` and `tests/adapters/test_process_session.py`.
+
+    The finding from entry 20 is fixed. `tests/adapters/test_process_session.py::test_process_the_kill_cannot_reach_does_not_hold_the_call` is now one parametrized test of `run_process` with two rows:
+    - `may-not-signal` (criterion 8).
+    - `ended-in-between` (criterion 9). Its `os.kill` stand-in kills the grandchild for real and then raises `ProcessLookupError`. The `except ProcessLookupError` in `_kill_one` (`src/factory/adapters/process.py`) is what keeps the call from raising, so removing it would fail this row.
+
+    Criteria 1 to 9 each have a test that checks what the criterion says:
+    - Every limit in the Interface is tested on both sides: the field count, with the `four-fields` and `three-fields` rows; `pid` at 0 and 1; `session` at -1 and 0.
+    - The sides of each rule are rows of one parametrized test.
+    - Criterion 7 is met because none of the four named test files is changed.
+    - The factory's `make check` after the coder was green (entry 26).
+    - `make duplicates` still reports 5 new findings, none of them in this diff.
+
+    Architecture holds. `factory.domain.sessions` is pure, and the adapter imports it downward. Reading `/proc` and sending signals stay in `process.py`, which reuses the existing `_decode`. No suppression marker was added under `src/`.
+
+    Quality and hygiene:
+    - Private helpers carry no docstrings.
+    - The comments explain why.
+    - The Description still matches what was built.
+    - The docs criterion (11) still describes what the reader must know.
+
+    No findings.
+
+    Notes:
+    - `tests/domain/test_sessions.py:41`: `# noqa: PT011` remains. A `match` pattern on each refused row would make the marker unnecessary. This is carried over from entry 20 and is not a finding.
+
+    Earlier tests: none changed. The diff only adds test files (`tests/domain/test_sessions.py`, `tests/adapters/test_process_session.py`).
