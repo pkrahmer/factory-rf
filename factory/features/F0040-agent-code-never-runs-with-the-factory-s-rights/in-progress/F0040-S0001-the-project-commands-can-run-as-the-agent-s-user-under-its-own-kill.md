@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 357
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T17:53:17.876419Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-20T17:53:17.876419Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-20T17:53:39.283900Z'
+  stage: intake
+  run: 76bef9f7888d49d4b58b516b7c704c25
+  blocked: question
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -134,3 +137,16 @@ Expect: three lines, `passed True ['-n', '-u', 'agent', '--', 'timeout', '--sign
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: Questions (the format check passed; no findings from it). The Interface states rules that no criterion tests, so two coders could read them differently and both pass:
+
+   1. Interface: "a refusal of the command itself wins and is raised instead" of a leftovers fault. No criterion covers it. Should criterion 9 get a row: sudo refused (status 1, `sudo: a password is required`) with a leftovers stand-in that exits 1 with a fault, expecting `ProjectCommandError` with the `refused the command` detail and not the leftovers one? I would add it.
+
+   2. Interface: "A leftovers program that cannot be started raises `ProjectCommandError(command, "cannot end the agent's processes: <the operating system's message>")`". Criterion 9 only has a stand-in that starts and exits 1. Should a row use a `leftovers` whose program does not exist, expecting a detail that starts with `cannot end the agent's processes: [Errno 2] No such file or directory`? I would add it.
+
+   3. Interface: the leftovers program follows every started command "whatever its result (passed, failed, `time_limit` or refused)". Criterion 9 tests passed and `time_limit` only. Should it also have rows for `failed` (stand-in `sudo` exit 1 with `boom`) and for refused (second `sudo` call recorded even when the command was refused)? I would add both.
+
+   4. Interface: "`leftovers_fault(exit_status=..., timed_out=..., stderr=...)` gives a fault". Criterion 9 tests only the exit-status-1 fault. The `timed_out` branch of the leftovers call is untested. Should a row cover a leftovers stand-in that runs past its limit, or is the exit-status row enough? I would accept the exit-status row alone if you say so, but then the Interface should not suggest more.
+
+   5. Interface: the process request has `env` `{}`, `cwd` the directory, `merge_stderr` true. Only the environment effect (token unset) and the cwd, implicitly through the Makefile, are tested. Should a criterion name a check that `merge_stderr` holds, for example a recipe writing to stderr that appears in `output_tail`? I would add that to criterion 1's recipe or as its own row.
+
+   Everything else I checked is fine: the Interface names concrete modules and signatures. The smoke test commands are runnable, use no pytest, and each `Expect:` line is checkable. The placement in `factory.adapters` fits the architecture, and the story stays inside the feature's scope.
