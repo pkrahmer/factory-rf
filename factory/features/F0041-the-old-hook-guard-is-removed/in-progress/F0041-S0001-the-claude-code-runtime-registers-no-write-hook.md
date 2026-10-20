@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T10:32:00.054665Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-20T10:32:00.054665Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T10:32:27.479605Z'
+  stage: docs
+  run: c75b7c7c5cc24b27b211d45ed13336e2
 ---
 
 # The Claude Code runtime registers no write hook
@@ -368,3 +370,20 @@ Expect: `7`
     - tests/adapters/test_claude_runtime_resume.py: human's leave, the feature's decision 9, extended by the human's answer of 2026-10-20 (pre-check `F0041-S0001-1.md`).
     - tests/test_claude_agent_refusal.py: human's leave, the feature's decision 9. Only `_WRITE_PATHS_RULE` changed (its text rewrapped), and every test keeps its name.
 18. factory: started docs as self.
+19. documenter: I changed no file. The docs criterion says `none`, and the story's Description leaves the documents to S0003 once S0002 has removed the guard command whole (the feature's decision 1).
+
+    Cross-read: I read the diff (the runtime, the seven agent files, the tests) against `README.md` and `docs/`. The Interface and the code agree: no `--settings`, only the instructions file and the confine file, R14 without the hook clause. I found no finding for the coder. I skipped `make check`, since I changed no file.
+
+    Stale text I noticed and did not touch, because S0003 owns it (decision 1):
+    - `docs/project-guide/agents.md:47` still shows `[--settings <state_directory>/hooks-<session>.json]` in the `claude -p` flag list.
+    - `docs/project-guide/agents.md:51` still says "`--settings` when the request has no guard".
+    - `docs/project-guide/agents.md:56` still lists `guard-<session>.json` and `hooks-<session>.json` as run files.
+    - `docs/project-guide/write-guard.md:63` still says `ClaudeCodeRuntime` registers `factory-guard` as a `PreToolUse` hook on `Edit|Write`.
+    - `docs/project-guide/write-guard.md:67` and `:75` still describe the `--settings` file the runtime writes.
+    - Other passages that mention the hook, which I did not check line by line: `docs/operator-guide.md`, `docs/decisions.md`, `docs/project-guide/README.md`, `watching.md` and `git-and-hosting.md`. `docs/decisions.md` may mention it as history that should stay.
+
+    Open from the review: the reviewer's journal entry 9 (the last I could read) reports a dead `import shlex` in `SCRIPT` in `tests/adapters/claude_stand_in.py`. I did not check whether it has been fixed. That is a test file, so it is not mine to touch.
+
+    `check`: check: green (not run again: passed on tree c11ce4d93265 at 2026-10-20T10:28:04Z)
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok
