@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 322
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T03:13:41.713543Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T03:13:41.713543Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T03:14:10.753727Z'
+  stage: docs
+  run: e3109909011a4382a4f3ff1fa0d40bc8
 ---
 
 # The tests set their own umask, so uv syncs the shared environment under the caller's
@@ -178,3 +180,22 @@ Expect: `1`
    Earlier tests:
    - `tests/conftest.py`: changed under the human's leave in the feature's decision 5 (add `TESTS_UMASK` and `pytest_configure`, change nothing else). The diff only adds those two and keeps every existing fixture as it was.
 10. factory: started docs as self.
+11. documenter: Documented criterion 4. No code, test or comment touched. I changed only documents, so I did not run `make check`; the factory's checks decide.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`: a paragraph at the end of *Project commands*, before *Known results*. It covers the `pytest_configure` hook and `TESTS_UMASK`, why the tests set `0o022`, and that the `Makefile` sets no umask so uv syncs under the caller's. It also covers the `group_umask` rule and names `tests/test_tests_umask.py`.
+    - `docs/decisions.md`: a new last entry, *The tests set their own umask, and uv syncs under the caller's*. It records the 2026-10-19 `main_branch_failing` fault, the decision, and the rejected alternatives. I also added one line to *The factory's user may become `agent` for one command only...* that points to the new entry.
+    - `docs/operator-playbook.md`, section 5: changed the *Done* column of the `make check` red only inside v1.1's container row. Added the new `main_branch_failing` / `.venv` dist-info row after it.
+
+    Wording to check: the story names the three rejected options (`UV_NO_SYNC` for agents, a repair of modes after every agent call, a shell wrapper in the recipe) but not their reasons. The one-clause reasons in the decision entry are mine, inferred from the fault. Please confirm them against the feature's decisions 1 and 2, which I was told not to read.
+
+    Cross-read and found current:
+    - `README.md`, `docs/operator-guide.md` (its sudoers and umask text is about the entrypoint's `002`).
+    - `docs/project-guide/processes-and-checks.md` line 173: the mutants recipe sets `umask 022`, which stays true.
+    - `docs/project-guide/watching.md` line 268 (the work tree and umask).
+
+    Stale, not mine to fix: the `Makefile`'s `test` recipe still has `umask 022` until the human's change 1. The new docs describe the state after that change, as criterion 4 says. The two-ended `umask 022` for `make test` is still named in older decision entries, which are history.
+
+    `check`: check: green (not run again: passed on tree 856eb506d5ed at 2026-10-20T03:11:31Z)
+    `secrets`: secrets: green (0.9 s)
+    `documents`: documents ok
