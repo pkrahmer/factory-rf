@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 360
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T19:39:12.932071Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T19:39:12.932071Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T19:39:32.383152Z'
+  stage: docs
+  run: 9bb0bfe5e17446559e238ebfb3235378
 ---
 
 # The feature's tests share their constants and find the marker's line
@@ -190,3 +192,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - `tests/leftovers_support.py`: standing leave to move a shared test helper (it is the shared place and only gains `ROOT`).
    - `tests/test_process_search.py`: the human's leave, F0027 `feature.md` decision 16, S0006 line (granted 2026-10-20). The change stays within that leave.
 10. factory: started docs as self.
+11. documenter: No findings. The docs criterion says none, since only tests changed. I did the cross-read and fixed one stale line.
+
+    Changed:
+    - `docs/project-guide/write-guard.md` (line 180): it said `tests/leftovers_support.py` holds the shared `AGENT` identity and `process_entry`. The file now also holds `ROOT`, so the line names both identities.
+
+    Cross-read and found current:
+    - I searched `README.md` and `docs/` (excluding `docs/runs/`) for `CLEAN`, `CLEAN_IGNORED`, `PLR0913`, `leftovers_support`, `git_support` and the literal line number `32`.
+    - `docs/project-guide/README.md` lists the helpers in `git_support.py`. It names functions by their use and does not claim to be complete, so the new constant does not make it wrong.
+    - `docs/project-guide/stages.md` and `docs/project-guide/git-and-hosting.md` on `git_support.py` are current.
+    - `docs/project-guide/work-items.md` mentions `PLR0913` only for a different function, so it is unrelated.
+    - No document names the `entry/leftovers.py` marker line.
+
+    Stale text I noticed but did not touch: none.
+
+    I changed only documents, so I did not run `make check`. The factory's checks after this stage decide.
+
+    `check`: check: green (not run again: passed on tree 0f2f62dfc845 at 2026-10-20T19:36:53Z)
+    `secrets`: secrets: green (0.8 s)
+    `documents`: documents ok
