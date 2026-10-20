@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 318
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T02:27:41.167643Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T02:27:41.167643Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T02:27:54.321361Z'
+  stage: smoke-test
+  run: 1e1567f13b6d49a5834b51939c92e26d
 ---
 
 # The tests pin the expiry note's key at the crash cap and the stalls at their edges
@@ -199,3 +201,17 @@ Expect: two lines, `Stalled (attempt 1 of 2): merging the main branch conflicts 
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: no findings.
+
+    I ran the one command under `## Smoke test` from the repository root, as written:
+
+    ```
+    Stalled (attempt 1 of 2): merging the main branch conflicts and the merge was aborted. Retrying on the next tick.
+    Stalled (attempt 1 of 2): the agent left the work item's branch. Retrying on the next tick.
+    ```
+
+    Result: met its `Expect:` line. The output is two lines, and each matches the expected sentence exactly.
+
+    Against the acceptance criteria: the two sentences are exactly the notes criterion 2 pins for the merge-conflict and left-branch stalls. Neither has a detail after the reason's sentence. No criterion is contradicted. The smoke test does not touch criteria 1, 3 and 4 (the expiry key, the branch restart and the red-check undo); their tests and the green `make check` are recorded in entries 5, 7 and 9. Criterion 6 (docs: none) still holds.
+
+    Findings: none. Open: nothing.
