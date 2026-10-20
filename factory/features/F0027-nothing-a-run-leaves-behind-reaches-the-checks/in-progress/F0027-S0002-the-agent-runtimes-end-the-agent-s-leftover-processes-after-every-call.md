@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 353
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T12:57:37.423128Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T12:57:37.423128Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T13:04:31.476327Z'
+  stage: tests
+  run: 404645227610452188e7003a563fcea7
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -200,3 +202,35 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the helpers sit in `adapters.agent_launch`, which the two runtime wrappers use. The keyword is wired only in `entry.wiring`, and the `AgentRuntime` interface does not change. `agent_launch` stays free of `process` imports, which is why `leftovers_fault` takes three plain values.
    - Scope: it matches the feature's S0002 line (agent_launch, both runtimes, wiring). The story needs no change to another story's test (decision 16 says "S0002: none"). It stays out of S0001's program and S0003's git removal.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 10. They are red on purpose and form the coder's specification.
+
+   - criterion 1: tests/adapters/test_agent_launch_leftovers.py::test_the_program_is_due_only_with_a_program_and_a_user_other_than_the_own
+   - criterion 2: tests/adapters/test_agent_launch_leftovers.py::test_the_program_starts_through_sudo_as_the_user_with_an_empty_environment
+   - criterion 3: tests/adapters/test_agent_launch_leftovers.py::test_the_program_s_fault_names_its_line_its_status_or_its_time_limit
+   - criterion 4: tests/adapters/test_claude_runtime_leftovers.py::test_after_the_call_the_program_runs_as_the_user_from_the_root_before_the_removal
+   - criterion 5: tests/adapters/test_claude_runtime_leftovers.py::test_a_run_without_a_user_and_the_version_start_neither_sudo_nor_the_program
+   - criterion 6: tests/adapters/test_claude_runtime_leftovers.py::test_a_resumed_run_starts_the_program_after_each_of_its_calls
+   - criterion 7: tests/adapters/test_claude_runtime_leftovers.py::test_a_failed_program_after_a_good_call_is_a_runtime_error_after_the_removal
+   - criterion 8: tests/adapters/test_claude_runtime_leftovers.py::test_a_call_refused_by_sudo_or_the_wrapper_keeps_its_own_error_and_still_starts_the_program
+   - criterion 9: tests/adapters/test_opencode_runtime_leftovers.py::test_after_the_call_the_program_runs_as_the_user_from_the_root_before_the_removal
+   - criterion 10: tests/entry/test_wiring_leftovers.py::test_the_built_runtime_starts_the_leftovers_program_unless_it_is_turned_off
+   - criteria 11 and 12 (make check, docs) have no test of their own.
+
+   Files created:
+   - tests/leftovers_runtime_support.py: shared stand-ins for the two runtime test files. The stand-in `sudo` records its arguments and working directory. When its plan says so it refuses the agent's run with a line, but never the program or the removal; otherwise it runs what follows `--`. The stand-in leftovers program records its arguments and exits with a planned status and standard-error text. `kinds()` sorts each `sudo` record into run, program or removal. `OTHER_USER` is `factory-test-other`. `own_user()` comes from `pwd.getpwuid(os.getuid())`.
+   - tests/adapters/test_agent_launch_leftovers.py, tests/adapters/test_claude_runtime_leftovers.py, tests/adapters/test_opencode_runtime_leftovers.py, tests/entry/test_wiring_leftovers.py.
+
+   The runtime tests use the existing stand-ins: `claude_stand_in`, `opencode_stand_in`, and `write_confine` / `run_request` from `confine_support`. They never use the real leftovers command. I changed no earlier test file.
+
+   In criterion 8 the refusal's detail is checked with `startswith`, as the criterion words it for `sudo`. The same check applies to the wrapper's `<confine> refused the agent run: <LINE>`.
+
+   `make test` result: what the test runner could not import:
+   - `test_agent_launch_leftovers.py`: `leftovers_due`, `leftovers_fault` and `leftovers_launch` are missing from `factory.adapters.agent_launch`.
+   - `test_wiring_leftovers.py`: `leftovers_command` is missing from `factory.entry.wiring`.
+
+   The claude and opencode runtime tests fail with `TypeError`: the runtimes do not take the `leftovers` keyword yet.
+
+   `make lint` is green. The type check was skipped, as the stage says.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/entry/test_wiring_leftovers.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_leftovers.py'.
