@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 304
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T00:01:57.047988Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-20T00:01:35.639390Z'
   stage: docs
   run: d68a4ff832d24e4e9a54b23033b0d68d
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:01:57.047988Z'
+  stage: smoke-test
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -305,3 +314,4 @@ Expect: `exit 0`
     `check`: check: green (not run again: passed on tree 7897e571521e at 2026-10-19T23:58:37Z)
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
