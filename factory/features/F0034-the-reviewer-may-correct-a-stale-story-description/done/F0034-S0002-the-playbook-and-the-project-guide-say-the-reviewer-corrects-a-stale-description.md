@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T04:16:16.802675Z'
   stage: smoke-test
   run: a5aa493e820648e9880dde38a690f4ef
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T04:17:35.182389Z'
+  stage: approval
 ---
 
 # The playbook and the project guide say the reviewer corrects a stale Description
@@ -215,3 +220,4 @@ Expect: two lines, `0` (the count of three is gone) and a number of at least `1`
     Criterion 1 (`make check` green): I did not run `make check` in this stage. The factory's record in entry 11 shows `check: green`, reused from tree 450879e8d6a9. The docs stage's `secrets` and `documents` checks were green.
 
     The smoke test contradicts no criterion. Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 2.5 min, 28 turns, 96679 tokens in (382823 more from cache), 7727 out, $0.82
