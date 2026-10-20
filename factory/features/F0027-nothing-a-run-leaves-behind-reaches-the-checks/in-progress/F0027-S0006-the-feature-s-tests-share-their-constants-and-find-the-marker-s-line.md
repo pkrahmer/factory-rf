@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 360
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T19:39:53.470485Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T19:39:32.383152Z'
   stage: docs
   run: 9bb0bfe5e17446559e238ebfb3235378
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:39:53.470485Z'
+  stage: smoke-test
 ---
 
 # The feature's tests share their constants and find the marker's line
@@ -211,3 +220,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 0f2f62dfc845 at 2026-10-20T19:36:53Z)
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
