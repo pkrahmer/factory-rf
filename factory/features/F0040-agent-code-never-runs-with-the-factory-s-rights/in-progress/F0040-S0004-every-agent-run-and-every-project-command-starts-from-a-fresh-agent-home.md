@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658, 6303178244]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T22:28:21.118987Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -192,6 +188,12 @@ journal:
   kind: started
   at: '2026-10-20T22:28:21.118987Z'
   stage: review
+- number: 34
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T22:29:22.687078Z'
+  stage: review
+  run: 8a48e0f1a05f4d1dabd16a70c2078f1b
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -288,7 +290,7 @@ def agent_home_of(settings: InstanceSettings, sudo_executable: str) -> SudoAgent
     """The agent's home of the instance, or `None` when its agents run as no second user."""
 ```
 
-- `fresh_home_command()` is `[sys.executable, "-I", "-m", FRESH_HOME_MODULE]`.
+- `fresh_home_command()` is `[sys.executable, "-I", "-B", "-m", FRESH_HOME_MODULE]`.
 - `agent_home_of` is `None` without `settings.agent_user`. Otherwise its `home` is `settings.agent_home.parent`, its `os_user` the agent user, its `program` `fresh_home_command()`, and its `kept` `kept_paths(home, login_files=[settings.claude_login_file, settings.api_login_file], state_files=[claude LOGIN_STATE_FILE, opencode LOGIN_STATE_FILE], folders=[UV_CACHE_FOLDER, *settings.opencode_folders])`, whatever the instance's runtime.
 - `build_boundaries` builds `agent_home_of(settings, <the sudo which finds, or SUDO_EXECUTABLE>)` once, sets it as `Boundaries.agent_home`, and passes the same object as `home` to the `SealedProjectCommands` it builds (S0002).
 
@@ -300,16 +302,16 @@ Tests (the tester writes them): `tests/application/test_agent_home_resets.py` (w
 2. `run_sealed` with a recording home: the home records one `reset`, during which `.git` is already sealed (not group-writable), and the fake runtime receives the request after it. With a `run` that calls the runtime twice, the home still records one `reset`, before the first call.
 3. A reset that raises `AgentRuntimeError("x")` in `run_sealed`: the error propagates, the fake runtime receives no request, and `check_seal` is not reached (rows of one parametrized test with criterion 2's case: with `agent_home` `None` the run happens as today).
 4. `SealedProjectCommands(inner, git, log, home)` (rows of one parametrized test): the home records one `reset` per `run`, after the seal and before the inner command; a reset that raises `AgentRuntimeError("x")` raises `ProjectCommandError` whose `command` is the command run and whose `detail` is `x`, and the inner command is not called; without `home` the inner command runs as in S0002.
-5. `SudoAgentHome(home, [".claude-token", ".config/sso"], os_user="agent", sudo_executable=<stand-in>, program=[sys.executable, "-I", "-m", "factory.entry.fresh_home"])` over a home under `tmp_path` holding `.claude/CLAUDE.md`, `.claude-token` and `.config/sso/login`: the stand-in records the arguments `["-n", "-u", "agent", "--", "timeout", "--signal=KILL", "60s", "env", "-i", <python>, "-I", "-m", "factory.entry.fresh_home", "--home", <home>, "--keep", ".claude-token", "--keep", ".config/sso"]` in the working directory `/`; afterwards `.claude/CLAUDE.md` is gone and the two kept paths are there; `reset` returns.
+5. `SudoAgentHome(home, [".claude-token", ".config/sso"], os_user="agent", sudo_executable=<stand-in>, program=[sys.executable, "-I", "-B", "-m", "factory.entry.fresh_home"])` over a home under `tmp_path` holding `.claude/CLAUDE.md`, `.claude-token` and `.config/sso/login`: the stand-in records the arguments `["-n", "-u", "agent", "--", "timeout", "--signal=KILL", "60s", "env", "-i", <python>, "-I", "-B", "-m", "factory.entry.fresh_home", "--home", <home>, "--keep", ".claude-token", "--keep", ".config/sso"]` in the working directory `/`; afterwards `.claude/CLAUDE.md` is gone and the two kept paths are there; `reset` returns.
 6. The faults of `reset` (rows of one parametrized test, the stand-in exiting with a planned status and standard error, running nothing): 1 with `sudo: unable to resolve host x` then `factory-fresh-home: .cache/a: Permission denied` raises `AgentRuntimeError` whose `detail` is `cannot reset the agent's home <home>: factory-fresh-home: .cache/a: Permission denied`; 1 with `sudo: a password is required` gives `...: sudo: a password is required`; 3 with nothing gives `...: exit status 3`; standard error `a`, `b` and a blank line, none starting with `FRESH_HOME_PREFIX`, gives `...: b`. A `sudo_executable` that does not exist gives `cannot reset the agent's home <home>: ` followed by the operating system's message.
 7. The time limit (rows of one parametrized test): `FRESH_HOME_TIME_LIMIT` is 60 seconds. With the limit set to 3 seconds for the test (`monkeypatch.setattr` on the module) and `program` a stand-in that sleeps 60 seconds, run by the stand-in `sudo` through the real `timeout`, `reset` raises `AgentRuntimeError` whose `detail` is `cannot reset the agent's home <home>: no end within 3 s`, after at least 3 and less than 25 seconds; with a `program` that ends at once with status 0 under the same limit, `reset` returns.
 8. `LOGIN_STATE_FILE` is `.claude/.credentials.json` in `factory.adapters.claude_runtime` and `.local/share/opencode/auth.json` in `factory.adapters.opencode_runtime`.
 9. `agent_home_of` (rows of one parametrized test): settings with `agent_user="agent"`, `agent_home=/home/agent/.claude`, `claude_login_file=/home/agent/.claude-token`, `api_login_file=/home/agent/.anthropic-api-key` and `opencode_folders=[".config/sso"]`, with `/usr/bin/sudo`, give a `SudoAgentHome` whose `home` is `/home/agent`, `os_user` `agent`, `program` `fresh_home_command()` and `kept` `[".claude-token", ".anthropic-api-key", ".claude/.credentials.json", ".local/share/opencode/auth.json", ".cache/uv", ".config/sso"]`; with `api_login_file` `/run/key` (outside the home) `kept` lacks `.anthropic-api-key`; with `FACTORY_AGENT_RUNTIME` set to opencode the same `kept`; without `agent_user` the result is `None`.
-10. `build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())` with `agent_user="agent"`: `boundaries.agent_home` is a `SudoAgentHome` equal in `home`, `kept`, `os_user` and `program` to `agent_home_of(settings, ...)`, and the `SealedProjectCommands` inside `boundaries.project_commands` holds that same object; with no `sudo` on `PATH`, it is built with `SUDO_EXECUTABLE`; without `agent_user`, `boundaries.agent_home` is `None`. `fresh_home_command()` is `[sys.executable, "-I", "-m", "factory.entry.fresh_home"]`, and `UV_CACHE_FOLDER` is `.cache/uv`.
+10. `build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())` with `agent_user="agent"`: `boundaries.agent_home` is a `SudoAgentHome` equal in `home`, `kept`, `os_user` and `program` to `agent_home_of(settings, ...)`, and the `SealedProjectCommands` inside `boundaries.project_commands` holds that same object; with no `sudo` on `PATH`, it is built with `SUDO_EXECUTABLE`; without `agent_user`, `boundaries.agent_home` is `None`. `fresh_home_command()` is `[sys.executable, "-I", "-B", "-m", "factory.entry.fresh_home"]`, and `UV_CACHE_FOLDER` is `.cache/uv`.
 11. The `Launch` that `reset` starts has `env` empty and a time limit of `FRESH_HOME_TIME_LIMIT` plus `SUDO_GRACE` (90 seconds by default), observed in one test through a seam of the tester's choice (the stand-in `sudo` may record its environment).
 12. A call that the factory itself ended at its limit (`run_process` replaced through the seam of criterion 11 by one that returns `timed_out` true, `exit_status` `None`, standard error empty): `reset` raises `AgentRuntimeError` whose `detail` is `cannot reset the agent's home <home>: no end within 60 s`.
 13. `make check` stays green.
-14. docs: `docs/operator-guide.md`, *The agent runs as a second user*: the paragraph on the agent's home is rewritten. Before every agent run and every project command the factory runs `sudo -n -u agent -- timeout --signal=KILL 60s env -i /opt/factory/.venv/bin/python -I -m factory.entry.fresh_home --home /home/agent --keep ...` from `/`, which removes every file and folder `agent` made in `/home/agent`: the transcripts of earlier runs in `~/.claude/projects/`, `.claude.json`, opencode's sessions, the caches in `~/.cache` other than uv's and in `~/.semgrep`, and any `CLAUDE.md`, `rules/` or other file a run planted. It keeps the two mounted login files, `~/.claude/.credentials.json` and `~/.local/share/opencode/auth.json` (a login made by hand), the folders of `FACTORY_OPENCODE_FOLDERS` and uv's package cache `~/.cache/uv`, and it never touches the factory's own files. The last run's transcript stays until the next agent run or project command starts, for the operator to read: after a run that moves the work item forward, that is the stage's own checks right after it; after a run that asks, stalls or fails, it is the next run. A failure before an agent run stops it with `agent runtime failed: cannot reset the agent's home /home/agent: <line>` (at the preflight's agent-run probe, `preflight_failed`); before a project command it is `project command <command> failed: cannot reset the agent's home /home/agent: <line>` (a counted error at a stage, `preflight_failed` at the preflight's `lint` on `main`). The first reset after the upgrade removes what the volume `claude-home` gathered so far (on `self`, about 222 MB of transcripts); copy them out before the rebuild if you want them. The paragraphs on the manual login (the login is kept), on *What opencode keeps in the agent's home* (now: nothing but `auth.json` and the folders of `FACTORY_OPENCODE_FOLDERS` survives a run) and the `FACTORY_OPENCODE_FOLDERS` row of the settings table (a named folder is kept between runs, and a run can write it) say the same. A row in the morning observations: after a run that ended with a question (no checks follow it), `ls -A /home/agent/.claude` lists only the factory's files, the kept login and what that one run made; after a forward move and its checks, only the factory's files and the kept login. `docs/project-guide/agents.md`, *The fresh home*: who starts the program, when (after the seal, before the run, once per stage run, and before each project command), `AgentHome`, `SudoAgentHome`, its faults, the kept paths, `LOGIN_STATE_FILE` and `UV_CACHE_FOLDER`, and that the kept uv cache is the one thing a run leaves that a later run or check reads. `docs/project-guide/processes-and-checks.md`: `SealedProjectCommands`' `home`. `docs/project-guide/watching.md`, *Boundaries*: `Boundaries.agent_home` and `agent_home_of`. `docs/decisions.md`: a new entry *Every agent run and every project command starts from a fresh agent home*, dated with the story, with the reasons of the feature's decisions 8 to 13, and the sentence *The agent's home stays writable by the agent (L69) ... Left for v2* in the entry of 2026-10-16 marked closed by it.
+14. docs: `docs/operator-guide.md`, *The agent runs as a second user*: the paragraph on the agent's home is rewritten. Before every agent run and every project command the factory runs `sudo -n -u agent -- timeout --signal=KILL 60s env -i /opt/factory/.venv/bin/python -I -B -m factory.entry.fresh_home --home /home/agent --keep ...` from `/`, which removes every file and folder `agent` made in `/home/agent`: the transcripts of earlier runs in `~/.claude/projects/`, `.claude.json`, opencode's sessions, the caches in `~/.cache` other than uv's and in `~/.semgrep`, and any `CLAUDE.md`, `rules/` or other file a run planted. It keeps the two mounted login files, `~/.claude/.credentials.json` and `~/.local/share/opencode/auth.json` (a login made by hand), the folders of `FACTORY_OPENCODE_FOLDERS` and uv's package cache `~/.cache/uv`, and it never touches the factory's own files. The last run's transcript stays until the next agent run or project command starts, for the operator to read: after a run that moves the work item forward, that is the stage's own checks right after it; after a run that asks, stalls or fails, it is the next run. A failure before an agent run stops it with `agent runtime failed: cannot reset the agent's home /home/agent: <line>` (at the preflight's agent-run probe, `preflight_failed`); before a project command it is `project command <command> failed: cannot reset the agent's home /home/agent: <line>` (a counted error at a stage, `preflight_failed` at the preflight's `lint` on `main`). The first reset after the upgrade removes what the volume `claude-home` gathered so far (on `self`, about 222 MB of transcripts); copy them out before the rebuild if you want them. The paragraphs on the manual login (the login is kept), on *What opencode keeps in the agent's home* (now: nothing but `auth.json` and the folders of `FACTORY_OPENCODE_FOLDERS` survives a run) and the `FACTORY_OPENCODE_FOLDERS` row of the settings table (a named folder is kept between runs, and a run can write it) say the same. A row in the morning observations: after a run that ended with a question (no checks follow it), `ls -A /home/agent/.claude` lists only the factory's files, the kept login and what that one run made; after a forward move and its checks, only the factory's files and the kept login. `docs/project-guide/agents.md`, *The fresh home*: who starts the program, when (after the seal, before the run, once per stage run, and before each project command), `AgentHome`, `SudoAgentHome`, its faults, the kept paths, `LOGIN_STATE_FILE` and `UV_CACHE_FOLDER`, and that the kept uv cache is the one thing a run leaves that a later run or check reads. `docs/project-guide/processes-and-checks.md`: `SealedProjectCommands`' `home`. `docs/project-guide/watching.md`, *Boundaries*: `Boundaries.agent_home` and `agent_home_of`. `docs/decisions.md`: a new entry *Every agent run and every project command starts from a fresh agent home*, dated with the story, with the reasons of the feature's decisions 8 to 13, and the sentence *The agent's home stays writable by the agent (L69) ... Left for v2* in the entry of 2026-10-16 marked closed by it.
 
 ## Smoke test
 
@@ -331,7 +333,7 @@ home = d / "home"
 sudo = d / "sudo"
 sudo.write_text(f"#!{sys.executable}\nimport os, sys\nat = sys.argv.index('--')\nos.execvp(sys.argv[at + 1], sys.argv[at + 1:])\n", encoding="utf-8")
 sudo.chmod(0o755)
-program = [sys.executable, "-I", "-m", "factory.entry.fresh_home"]
+program = [sys.executable, "-I", "-B", "-m", "factory.entry.fresh_home"]
 SudoAgentHome(home, [".claude-token"], os_user="agent", sudo_executable=str(sudo), program=program).reset()
 print(sorted(path.relative_to(home).as_posix() for path in home.rglob("*")))
 try:
@@ -594,3 +596,34 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_sudo_agent_home.py::test_a_reset_the_factory_ended_at_its_limit_raises` and `::test_the_reset_call_has_no_environment_and_the_limit_plus_the_sudo_grace` each build a `ProcessResult` inline. A small builder would read more simply. This is a quality point on a test file the diff adds, so it does not send the work item back.
 32. 2026-10-20 human: Answer (2026-10-21): A. In the next review run the reviewer adds `-B` after `-I` in exactly the five places listed (the Interface's `fresh_home_command()` bullet, criteria 5 and 10, docs criterion 14, the first smoke test's `program`) and changes nothing else in the work item; then it passes to `docs` if nothing else is found. The note on the inline `ProcessResult` stays a note.
 33. factory: started review as self.
+34. reviewer: Review, round 1, rerun after the human's answer A (entry 32). I read the work item and `git diff main...HEAD -- . ':!factory'` again. Since my last review (entry 31), nothing under review has changed. The only new commit is the merge from `origin/main`, and it touches only `docs/runs/`.
+
+    no findings
+
+    Checklist:
+    - **Criteria:** criteria 1 to 12 each have a test that checks what the criterion says, and every rule's failing side is covered.
+      - The faults of criterion 6 and both ways a call reaches its limit (criteria 7 and 12) are rows or tests in `tests/adapters/test_sudo_agent_home.py`.
+      - The reset raising before the run (criterion 3) and before a command (criterion 4) are rows in `tests/application/test_agent_home_resets.py`.
+      - The factory's `make check` after the coder was green (entry 29).
+    - **Architecture:**
+      - `AgentHome` (`src/factory/application/agent_home.py`) is an ABC whose method body is its docstring alone.
+      - `SudoAgentHome` inherits it and starts its process only through `launch` and `run_process`.
+      - The wiring stays in `factory.entry.wiring`.
+      - In `run_sealed` and `SealedProjectCommands.run`, the reset comes after the seal and before the `try`, as the Interface says.
+    - **Security:** the diff adds no marker that silences a check, and the call is built as an argument list, never as a shell string.
+    - **Quality:** `_failure_line` (`src/factory/adapters/agent_home.py`) does not copy `make_commands._last_line`, which filters make's own lines. `agent_home_of` reuses the existing `kept_paths`.
+
+    Work item, the change the human allowed in entry 32: I added `-B` after `-I` in exactly the five places named, and changed nothing else.
+    - `## Interface`: the `fresh_home_command()` bullet now reads `[sys.executable, "-I", "-B", "-m", FRESH_HOME_MODULE]`.
+    - Criterion 5: `program=[...]` and the expected sudo arguments.
+    - Criterion 10: `fresh_home_command()`.
+    - Docs criterion 14: `... /opt/factory/.venv/bin/python -I -B -m factory.entry.fresh_home ...`.
+    - The first smoke test's `program`.
+
+    The work item now matches the code (`src/factory/entry/wiring.py`, `fresh_home_command()`) and the tests. `sed -i` was refused at first because it needs a temporary file in the work item's folder, so I made the edits in place with the Edit tool.
+
+    Earlier tests:
+    - `tests/test_wrapper_search.py`: the human's leave, the feature's decision 14, named in the story's Interface. The only change adds `factory.adapters.agent_home` to the expected importers.
+
+    Notes:
+    - `tests/adapters/test_sudo_agent_home.py::test_the_reset_call_has_no_environment_and_the_limit_plus_the_sudo_grace` and `::test_a_reset_the_factory_ended_at_its_limit_raises` each build a `ProcessResult` inline. A small builder would read more simply. Per the human's answer in entry 32, this stays a note.
