@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 352
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T12:44:58.151476Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T12:44:37.468597Z'
   stage: intake
   run: de23a64954744dd6a27d5bb15150110f
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T12:44:58.151476Z'
+  stage: tests
 ---
 
 # The follow-mode test reads only the Python sources
@@ -94,3 +103,4 @@ Expect: `1`
    Smoke test: runnable. pytest's `addopts` is `-q`, and the command passes none, so the summary line exists for `tail -n 1`. `-k 'follow_mode_scan or knows_the_follow_mode'` matches the two named tests, so 2 + 5 = 7 passed. The two `grep -c` commands are checkable. `rglob("\*")` matches no other line of the module, since line 276 uses `rglob("factory-last-line")`. Each Expect states an exact output.
    Architecture: tests only, under `tests/entry/` and `tests/`, where they belong. No layer or interface is touched.
    Scope: within F0041 (feature scope lists S0004) and not in its Out of scope. The change to another story's tests has the human's leave in decision 14 of `feature.md`, and the story names those tests.
+4. factory: started tests as self.
