@@ -18,7 +18,7 @@ REPLY: Step        # Step(stdout=REPLY_EVENTS), as S0013 wrote it
 WAITING: Step      # Step(stdout_before_wait=stdout(step_start()), wait_seconds=WAIT_SECONDS)
 ```
 
-- The earlier modules that hold their own copy drop it and import the shared name: `tests/adapters/test_opencode_confinement.py`, `test_opencode_left_out_tools.py`, `test_opencode_provider_limit.py`, `test_opencode_resumed_words.py`, `test_opencode_runtime.py`, `test_opencode_runtime_folders.py` and `test_opencode_runtime_launch.py`, and `tests/entry/test_wiring_opencode.py` (the reply), and `test_opencode_confinement.py`, `test_opencode_provider_limit.py` and `test_opencode_limit_wait_on_stderr.py` (the waiting step). A module that uses the reply only as `Step(stdout=REPLY)` may use `REPLY`; one that combines the events with others uses `REPLY_EVENTS`. This is the standing leave: every test keeps its name and checks the same thing, and the tester's entry names each file it changed.
+- The earlier modules that hold their own copy drop it and import the shared name: `tests/adapters/test_opencode_confinement.py`, `test_opencode_left_out_tools.py`, `test_opencode_provider_limit.py`, `test_opencode_resumed_words.py`, `test_opencode_runtime.py`, `test_opencode_runtime_folders.py` and `test_opencode_runtime_launch.py`, and `tests/entry/test_wiring_opencode.py` (the reply), and `test_opencode_confinement.py`, `test_opencode_provider_limit.py` and `test_opencode_limit_wait_on_stderr.py` (the waiting step). A module that uses the reply only as `Step(stdout=REPLY)` may use `REPLY`; one that uses the text itself (in a `Step` with other fields, in `Played` of `tests/confine_support.py`, as a test parameter) uses `REPLY_EVENTS`. The imports a module no longer needs once its copy is gone (`text`, `result_text`, `step_finish`, `step_start`, `WAIT_SECONDS`) go with it. The reply's copies fall under the standing leave of `CLAUDE.md` (*Tests*), as copies of the shared `REPLY`. The waiting step has no shared copy yet, so its move has the feature's leave (`feature.md`, decision 19, S0016). Every test keeps its name and checks the same thing, and the tester's entry names each file it changed.
 - New test module, at the `tests/` root beside `tests/test_shared_test_helpers.py` and in its style: `tests/test_opencode_shared_steps.py`. It searches every `*.py` under `tests/` except itself, and the texts it searches for are split so that it does not find itself.
 
 ## Acceptance criteria
@@ -27,19 +27,19 @@ WAITING: Step      # Step(stdout_before_wait=stdout(step_start()), wait_seconds=
    - row `reply`: the text `stdout(step_start(), text(result_text()), step_finish())`;
    - row `waiting`: the text `Step(stdout_before_wait=stdout(step_start()), wait_seconds=WAIT_SECONDS)`.
    On the branch before the move, the `reply` row finds nine modules and the `waiting` row three, so both rows fail.
-2. Every test of the modules named in the Interface keeps its name and passes. The tester's entry lists the test ids the modules held before and after the move, and they are the same.
+2. Every test of the modules named in the Interface keeps its name and passes. The tester's entry gives the number of test ids each module collects before and after the move (86 in all on `main` before the story), and says that the two sorted lists of ids are the same.
 3. `make check` stays green.
 4. docs: none. The change is to test helpers only. `docs/project-guide/` names no test constant.
 
 ## Smoke test
 
 ```bash
-grep -rlF 'stdout(step_start(), text(result_text()), step_finish())' tests | sort
+grep -rlF --include='*.py' 'stdout(step_start(), text(result_text()), step_finish())' tests | sort
 ```
 Expect: one line, `tests/adapters/opencode_stand_in.py`
 
 ```bash
-grep -rlF 'Step(stdout_before_wait=stdout(step_start()), wait_seconds=WAIT_SECONDS)' tests | sort
+grep -rlF --include='*.py' 'Step(stdout_before_wait=stdout(step_start()), wait_seconds=WAIT_SECONDS)' tests | sort
 ```
 Expect: one line, `tests/adapters/opencode_stand_in.py`
 

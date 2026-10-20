@@ -56,3 +56,7 @@ Checked against `factory/pipeline.yml`: the documenter writes `README.md` and `d
 9. **S0006 takes L9 with M4.** M4 lists "decision 008 of factory-v2" itself, so the low finding is the same edit, and " (R2)" in *Configuration*, a planning code the review did not list, goes with it. "A commit that also changes another file clears the stop as before" loses "as before" too. (S0006)
 10. **Smoke tests use `make documents 2>&1 | tail -n 1` and `git diff --name-only origin/main`.** The first is the docs stage's own check; the second pins that each story touches only the files it names. Neither was run here: the throwaway container has no network for `uv`'s sync and the copy has no `.git`; `python -m factory.entry.check_documents` printed `documents ok` on today's copy. (Feature)
 11. **The number and the name.** F0038 is the first number above every folder in `factory/features/` (F0018 to F0026, F0031) and `planning/overnight/stories/` (F0027 to F0037). (Feature)
+
+## Folded in by the human (2026-10-20)
+
+F0034-S0003 "the project guide names every passage of v1.1's own in the shipped agents" (proposed by F0034-A0002) is folded into this feature: its text lies in `folded/`. The round-2 pre-check before this feature starts takes it up as one more story or as criteria of the guide story it fits.
