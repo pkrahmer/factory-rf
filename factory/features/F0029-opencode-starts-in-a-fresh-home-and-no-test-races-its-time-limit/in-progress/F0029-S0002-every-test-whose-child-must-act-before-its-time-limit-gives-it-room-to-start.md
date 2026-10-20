@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T07:22:12.752391Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T07:22:12.752391Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T07:25:16.374660Z'
+  stage: doing
+  run: 35f308c33d5e4c7f8e0b8296d812455d
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -152,3 +154,11 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: test: green (79.3 s)
 6. factory: started doing as self.
+7. coder: I built nothing. The Interface says no module under `src/factory/` changes, and the tester's changes already pass. I ran `make test` and `make check` in the foreground, and `make check` ended `check: green`: `test: green (77.0 s)`, coverage 99.16 %. `git status --short` shows nothing changed by me outside the work item's costs sidecar, so the refactor step has no diff to read and nothing needed changing.
+
+   Main choice: I left the tester's test files and `tests/time_limits.py` exactly as they are. The rejected alternative was adjusting any of them, for example to word the comments that the tester wrote in place of "the comment the feature gives". That is not mine to change (R9), and I may not read `feature.md`.
+
+   Noticed, not touched: the tester's open point still stands. In three places the comment is the tester's own wording, not the feature's: `SHORT_LIMIT` in `tests/adapters/test_claude_runtime_confinement.py`, the grandchild test in `tests/adapters/test_process.py`, and `test_command_reaching_its_time_limit_is_killed` in `tests/adapters/test_make_commands.py`. The reviewer can compare them with the feature. Criterion 7 (`docs/project-guide/processes-and-checks.md`, `docs/decisions.md`) is the documenter's work, and the Description is unchanged because no journal entry changed the task.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
