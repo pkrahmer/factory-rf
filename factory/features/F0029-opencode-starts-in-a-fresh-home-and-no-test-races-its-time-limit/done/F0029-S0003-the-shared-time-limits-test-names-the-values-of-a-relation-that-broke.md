@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T22:53:40.458817Z'
   stage: smoke-test
   run: 845521c8d9d1424e95424e7c1e732ef9
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T22:55:01.610397Z'
+  stage: approval
 ---
 
 # The shared time limits' test names the values of a relation that broke
@@ -239,3 +244,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Criterion 4: docs: none. The smoke test does not touch it.
 
     Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 4.3 min, 28 turns, 109960 tokens in (395097 more from cache), 7964 out, $0.91
