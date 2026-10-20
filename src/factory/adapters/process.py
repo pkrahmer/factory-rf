@@ -13,9 +13,13 @@ from typing import IO, Annotated, Literal, NoReturn
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from factory.domain.sessions import ProcessEntry, left_to_kill, parse_stat
+
 Stream = Literal["stdout", "stderr"]
 
 _READ_SIZE = 65536
+_PROCESS_TABLE = Path("/proc")
+_ROUND_PAUSE_SECONDS = 0.05
 
 
 class ProcessRequest(BaseModel):
@@ -51,10 +55,41 @@ def _seconds(time_limit: timedelta | None) -> float | None:
     return None if time_limit is None else time_limit.total_seconds()
 
 
-def _kill_group(process: subprocess.Popen[bytes]) -> None:
-    # The child leads its own session, so its group holds everything it started.
+def _read_process_table() -> list[ProcessEntry]:
+    entries: list[ProcessEntry] = []
+    for folder in _PROCESS_TABLE.iterdir():
+        if not folder.name.isdigit():
+            continue
+        try:
+            stat = (folder / "stat").read_bytes()
+        except OSError:
+            # The process ended between the listing and the read.
+            continue
+        entries.append(parse_stat(int(folder.name), _decode(stat)))
+    return entries
+
+
+def _kill_one(pid: int, refused: set[int]) -> None:
+    try:
+        os.kill(pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    except PermissionError:
+        # Another user's process, such as root's `sudo`: the agent's own `timeout` ends it.
+        refused.add(pid)
+
+
+def _kill_session(process: subprocess.Popen[bytes]) -> None:
+    # The child leads its own session. A descendant may take a group of its own, as
+    # `timeout` does, but it keeps the session; only `setsid` leaves it. The child is not
+    # reaped yet, so the session's id cannot belong to an unrelated process meanwhile.
     with contextlib.suppress(ProcessLookupError):
         os.killpg(process.pid, signal.SIGKILL)
+    refused: set[int] = set()
+    while left := left_to_kill(_read_process_table(), session=process.pid, refused=refused):
+        for pid in left:
+            _kill_one(pid, refused)
+        time.sleep(_ROUND_PAUSE_SECONDS)
 
 
 def _start(request: ProcessRequest) -> subprocess.Popen[bytes]:
@@ -71,7 +106,7 @@ def _start(request: ProcessRequest) -> subprocess.Popen[bytes]:
 
 
 def run_process(request: ProcessRequest) -> ProcessResult:
-    """Run `request.argv` without a shell and kill its whole process group at the time limit.
+    """Run `request.argv` without a shell and kill every process of its session at the time limit.
 
     A failure to start the program, such as `FileNotFoundError`, is raised to the caller.
     """
@@ -83,8 +118,8 @@ def run_process(request: ProcessRequest) -> ProcessResult:
             out, err = process.communicate(timeout=_seconds(request.time_limit))
         except subprocess.TimeoutExpired:
             timed_out = True
-            _kill_group(process)
-            # Once the group is dead the pipes close, so this collects what was written.
+            _kill_session(process)
+            # Once the session is dead the pipes close, so this collects what was written.
             out, err = process.communicate()
     return ProcessResult(
         exit_status=None if timed_out else process.returncode,
@@ -173,8 +208,8 @@ def _wait_for_exit(process: subprocess.Popen[bytes], deadline: float | None) -> 
 def run_streaming(request: ProcessRequest, on_line: Callable[[Stream, str], bool]) -> ProcessResult:
     """Run `request.argv` as `run_process` does and hand `on_line` each line as it arrives.
 
-    `on_line` returning True kills the process group at once and passes no further line; so
-    does the time limit. An exception from `on_line` kills the group and propagates.
+    `on_line` returning True kills the session at once and passes no further line; so
+    does the time limit. An exception from `on_line` kills the session and propagates.
     """
     start = time.monotonic()
     time_limit = _seconds(request.time_limit)
@@ -187,12 +222,12 @@ def run_streaming(request: ProcessRequest, on_line: Callable[[Stream, str], bool
             if not (stopped or timed_out):
                 timed_out = _wait_for_exit(process, deadline)
         except BaseException:
-            _kill_group(process)
+            _kill_session(process)
             raise
         finally:
             reader.close()
         if stopped or timed_out:
-            _kill_group(process)
+            _kill_session(process)
     return ProcessResult(
         exit_status=None if stopped or timed_out else process.returncode,
         stdout=_decode(reader.read_bytes["stdout"]),
