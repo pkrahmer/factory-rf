@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655, 6298783444]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T18:59:01.510264Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -240,6 +244,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T18:58:41.984106Z'
+  stage: review
+- number: 43
+  speaker: factory
+  kind: started
+  at: '2026-10-20T18:59:01.510264Z'
   stage: review
 ---
 
@@ -687,3 +696,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_make_commands_user.py:305`: criterion 8 says `.user` "is `u`", but the test compares with `==`, not `is`.
 41. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 42. 2026-10-20 human: Go on (2026-10-20). The coder fixes the one finding of entry 40, the docstring of `MakeProjectCommands.run` as the reviewer words it, and nothing else. The next review checks that fix and the groups as before. It adds no new criterion: a further point goes into the notes for the acceptance, not into a round. The three notes of entry 40 (the third stand-in `sudo`, the restated `LEFTOVERS_FAULT`, `==` for `.user`) are left to the acceptance.
+43. factory: started review as self.
