@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T11:22:39.882138Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   stage: doing
   run: afaf1f24cd2240d4be9576c38d742368
   reason: check_red
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-20T11:22:39.882138Z'
+  stage: doing
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -356,3 +365,4 @@ Expect: `5`
     FAILED tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode[--follow]
     FAILED tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode[factory-last-line]
     make: *** [Makefile:75: test] Error 1
+17. factory: started doing as self.
