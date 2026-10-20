@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655, 6298783444]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T19:04:03.239712Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -283,6 +279,12 @@ journal:
   kind: started
   at: '2026-10-20T19:04:03.239712Z'
   stage: docs
+- number: 50
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T19:04:51.310008Z'
+  stage: docs
+  run: 70e9193890814428b50583d95dbe9767
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -783,3 +785,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_make_commands_user.py:22` (`LEFTOVERS_FAULT`): restates `factory.adapters.agent_launch.LEFTOVERS_FAULT` instead of importing it.
     - `tests/adapters/test_make_commands_user.py:305`: criterion 8 says `.user` "is `u`", but the test compares with `==`.
 49. factory: started docs as self.
+50. documenter: I wrote the docs the docs criterion asks for and found no finding for the coder. I read the story, `git diff main...HEAD -- . ':!factory' ':!docs' ':!README.md'` (`src/factory/adapters/make_commands.py` and the new `tests/adapters/test_make_commands_user.py`) and the docs. The code matches the Interface: `CommandUser`, the `user` keyword and property, the chain through `launch`, the kill judged before the refusal, the leftovers call that follows every command that started, and the refusal that wins over a leftovers fault.
+
+    Files changed (documents only, so I did not run `make check`; the factory's checks run after this stage):
+    - `docs/project-guide/processes-and-checks.md`, *Project commands*:
+      - The constructor signature now shows `user=None`.
+      - A new section, *Running as another user*, covers `CommandUser`, the `user` property, the sudo chain, the environment (only the `CommandUser`'s, less the three make variables), the user's own `timeout` as the kill with 30 s of grace, the `time_limit` result, the `sudo` refusal, the leftovers program and its fault, and the test module.
+      - It also says that without `user` nothing changes.
+      - The rules of `run` are now under their own heading, *Rules of `run`*.
+    - `docs/project-guide/agents.md`:
+      - *The shared launch module* now says the make class also starts its commands through `launch` and judges the kill with `killed_at_limit`.
+      - *Ending the agent's leftover processes* now says a project command run as another user is followed by the same program, and that its fault is a `ProjectCommandError`.
+    - `docs/decisions.md`: none, as the criterion says. S0002 writes the entry that replaces *The project commands run as the factory's user and are left for v2*.
+
+    I wrote no runnable example. The chain is described in words and matches the story's smoke test, which the reviewer and the smoke-test stage run.
+
+    I cross-read these and found them current, or untouched by the diff: the rest of `processes-and-checks.md` (the `ProjectCommands` interface, `CheckResult`, `RecordingProjectCommands`, `KnownResults`), `docs/project-guide/watching.md` (the `build_boundaries` mention), and the `docs/decisions.md` F0030 entry on the kill at the limit. The F0030 entry describes the no-user case, which is unchanged.
+
+    Stale text I did not touch:
+    - The *Project commands* paragraph says "every process of its session is killed" for a command ended by `time_limit`. That holds for the factory's own kill and not under `user`; the new section says so. The decision log entry that S0002 replaces is the right place for the rest.
+    - The three notes the reviewer left for the acceptance (a third local stand-in `sudo` in the tests, a restated `LEFTOVERS_FAULT`, and `==` instead of `is` for `.user`) are test matters and not mine.
+
+    `check`: check: green (not run again: passed on tree 3f8b7912b126 at 2026-10-20T19:01:35Z)
+    `secrets`: secrets: green (1.2 s)
+    `documents`: documents ok
