@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 1
 crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T09:06:40.419006Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-10-20T09:06:40.419006Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T09:08:11.383537Z'
+  stage: review
+  run: 1e6ad97c27c7494487e2c5d245e6d764
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -179,8 +181,9 @@ Tests (the tester writes them): `tests/domain/test_sessions.py` and `tests/adapt
 6. The `mutants` recipe's form (rows of one parametrized test of `MakeProjectCommands.run` on a `Makefile` written in `tmp_path`, with `SHELL := /bin/bash`, `.SHELLFLAGS := -eu -o pipefail -c` and a target `slow` whose one line is `timeout <flag> 60 sh -c 'echo $$$$ > grandchild.pid; exec sleep 60' 2>&1 | tee run.txt`, and `ROOMY_LIMIT`): row `own-group`, without a flag, as the recipe runs mutmut; row `foreground`, with `--foreground`. In both rows the result's status is `time_limit`, the call returns within `ROOMY_BOUND_SECONDS`, and the process whose pid `grandchild.pid` holds is gone when it has returned (`is_gone(pid, within=0)`).
 7. The runs under `sudo` are unchanged: `tests/adapters/test_claude_runtime_sudo_time_limit.py`, `tests/adapters/test_claude_runtime_os_user.py`, `tests/adapters/test_process.py` and `tests/adapters/test_process_streaming.py` pass unchanged.
 8. A process of the session that the factory may not signal is left, not waited for (one test of `run_process` with criterion 4's child, the grandchild in a group of its own, and `ROOMY_LIMIT`; `os.kill` replaced for the call through `monkeypatch` by a stand-in that raises `PermissionError` for the grandchild's id and calls the real `os.kill` for every other id): the call returns within `ROOMY_BOUND_SECONDS` with `timed_out=True`, and the grandchild is still running when it has returned (`is_gone(pid, within=0)` false); the test undoes the replacement and then kills it itself.
-9. `make check` stays green.
-10. docs: `docs/project-guide/processes-and-checks.md`. *Starting a process*: at the `time_limit`, at a stop and at an error of the callback, the factory kills the child's process group and then every process of the child's session that it may signal, in rounds, until none is left, and only then returns. The session holds what the command started even when a descendant took a group of its own (as `timeout` without `--foreground` does). A process that called `setsid` is outside it, and another user's process (root's `sudo`, the agent's under `sudo`) is left to the agent's own `timeout`. Name `factory.domain.sessions` and its tests. *Project commands*, the line "the process group is killed": every process of its session is killed. *Mutation testing*, the paragraph on the stop at `MUTANTS_SECONDS`: a `make mutants` run through the factory's project commands (`MakeProjectCommands.run`) and killed at its time limit leaves no mutmut running, as it stays in the session; a caller that kills `make` itself, such as a shell's `timeout`, reaches only `make`'s group. `docs/decisions.md`: an entry *A command stopped at its time limit loses every process of its session*, dated with the story, saying that it corrects F0024 decision 4 ("the factory waits until `timeout` ends it"). Reasons: `timeout` moves mutmut into a group of its own, and the factory waited only for its child and its pipe (F0024's acceptance, section 2); a session survives a new group and a dead parent, which a walk of parent ids does not. Rejected: `timeout --foreground` in the recipe alone (it mends one recipe, and every other project command keeps the fault); a cgroup per command (not available to the factory's user under rootless Podman); the factory as subreaper (`PR_SET_CHILD_SUBREAPER`: it would reap every orphan of every run); a time limit of the rounds' own (no process outlives SIGKILL except in the kernel, and that would hold the call already). The entry *The container runtime's init reaps the processes a killed run leaves* (2026-10-18), whose cause ends with a project command that `run_process` "kills the group and waits only for its child", gets a line naming the new entry; the init still reaps what the kill leaves. `README.md`: none, nothing a newcomer does changes.
+9. A process of the session that ends between the read of `/proc` and its kill is skipped (a row beside criterion 8's in one parametrized test of `run_process`, with the same child, grandchild and `ROOMY_LIMIT`; the stand-in for `os.kill` calls the real `os.kill` for the grandchild's id and then raises `ProcessLookupError`, as if it had ended in between, and calls the real `os.kill` for every other id): the call returns, raising nothing, within `ROOMY_BOUND_SECONDS` with `timed_out=True`, and the grandchild is gone when it has returned (`is_gone(pid, within=0)`).
+10. `make check` stays green.
+11. docs: `docs/project-guide/processes-and-checks.md`. *Starting a process*: at the `time_limit`, at a stop and at an error of the callback, the factory kills the child's process group and then every process of the child's session that it may signal, in rounds, until none is left, and only then returns. The session holds what the command started even when a descendant took a group of its own (as `timeout` without `--foreground` does). A process that called `setsid` is outside it, and another user's process (root's `sudo`, the agent's under `sudo`) is left to the agent's own `timeout`. Name `factory.domain.sessions` and its tests. *Project commands*, the line "the process group is killed": every process of its session is killed. *Mutation testing*, the paragraph on the stop at `MUTANTS_SECONDS`: a `make mutants` run through the factory's project commands (`MakeProjectCommands.run`) and killed at its time limit leaves no mutmut running, as it stays in the session; a caller that kills `make` itself, such as a shell's `timeout`, reaches only `make`'s group. `docs/decisions.md`: an entry *A command stopped at its time limit loses every process of its session*, dated with the story, saying that it corrects F0024 decision 4 ("the factory waits until `timeout` ends it"). Reasons: `timeout` moves mutmut into a group of its own, and the factory waited only for its child and its pipe (F0024's acceptance, section 2); a session survives a new group and a dead parent, which a walk of parent ids does not. Rejected: `timeout --foreground` in the recipe alone (it mends one recipe, and every other project command keeps the fault); a cgroup per command (not available to the factory's user under rootless Podman); the factory as subreaper (`PR_SET_CHILD_SUBREAPER`: it would reap every orphan of every run); a time limit of the rounds' own (no process outlives SIGKILL except in the kernel, and that would hold the call already). The entry *The container runtime's init reaps the processes a killed run leaves* (2026-10-18), whose cause ends with a project command that `run_process` "kills the group and waits only for its child", gets a line naming the new entry; the init still reaps what the kill leaves. `README.md`: none, nothing a newcomer does changes.
 
 ## Smoke test
 
@@ -387,3 +390,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 19. factory: started review as self.
+20. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`, which covers `src/factory/domain/sessions.py`, `src/factory/adapters/process.py`, `tests/domain/test_sessions.py` and `tests/adapters/test_process_session.py`, against the work item.
+
+    All three findings from entry 12 are fixed:
+    - The `four-fields` row is in.
+    - The two `parse_stat` functions are merged into `test_status_line_is_read`.
+    - Criterion 8 is pinned by `test_process_the_factory_may_not_signal_is_left_not_waited_for`.
+
+    Criteria 1 to 8 each have a test that checks what the criterion says. The factory's `make check` after the coder was green (entry 18).
+
+    Architecture holds:
+    - `factory.domain.sessions` is pure.
+    - The adapter imports it downward.
+    - Reading `/proc` and sending signals stay in `process.py`, the one module that starts processes.
+    - No new suppression marker under `src/`.
+    - No existing helper reads `/proc` or kills a pid, so nothing is copied.
+
+    Findings:
+    1. criterion 9 added: it needs its test. The Interface says that in the rounds of `_kill_session` "a `ProcessLookupError` is skipped" (`_kill_one`, src/factory/adapters/process.py:73-76). No test reaches that path: if the `except ProcessLookupError` were removed, every test would still pass, and `run_process` would raise when a process ends between the `/proc` read and the kill. It can be pinned without a change under `src/`, the same way as criterion 8. The `os.kill` stand-in calls the real `os.kill` for the grandchild's id and then raises `ProcessLookupError`. The call must return without raising, within `ROOMY_BOUND_SECONDS`, with `timed_out=True` and the grandchild gone. It is a row beside criterion 8's in one parametrized test. The old criteria 9 (`make check`) and 10 (docs) are now 10 and 11. Entry 12 left this branch out on the grounds that such a stand-in would loop forever. That holds only for a stand-in that always raises for a live process. One that kills first and then raises ends in the next round.
+
+    Not raised: the skipped unreadable `/proc` folder (the `OSError` in `_read_process_table`). Pinning it would mean replacing `Path.read_bytes` or the module's private `_PROCESS_TABLE`, which comes close to mocking the code under test.
+
+    Notes:
+    - tests/domain/test_sessions.py:41: `# noqa: PT011` silences ruff's broad-`pytest.raises` rule. It is the only such marker under `tests/`. Giving each refused row a `match` pattern would make the marker unnecessary.
+
+    Earlier tests: none changed. The diff only adds test files (`tests/domain/test_sessions.py`, `tests/adapters/test_process_session.py`).
