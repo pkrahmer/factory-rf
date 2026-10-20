@@ -85,7 +85,7 @@ licenses:
 test:
 	$(start)
 	mkdir -p .reports
-	uv run pytest -q --no-header --tb=short -p no:cacheprovider -n auto --dist load \
+	uv run pytest -q --no-header --tb=short -p no:cacheprovider -n auto --dist worksteal \
 	  --junit-xml=.reports/junit.xml --cov --cov-report=term-missing:skip-covered || [ $$? -eq 5 ]
 	$(green)
 
