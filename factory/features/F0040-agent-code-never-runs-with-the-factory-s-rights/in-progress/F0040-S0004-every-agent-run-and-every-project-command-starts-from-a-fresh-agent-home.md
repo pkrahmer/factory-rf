@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T21:34:45.521313Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-20T21:34:24.801464Z'
   stage: tests
   run: 574b3ee09f054dc58f3907a7dd327276
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-20T21:34:45.521313Z'
+  stage: doing
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -280,3 +289,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/entry/test_wiring_agent_home.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_agent_home.py'.
+9. factory: started doing as self.
