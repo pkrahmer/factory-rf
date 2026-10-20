@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T02:43:57.777739Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T02:43:37.333351Z'
   stage: tests
   run: 741c9dffdf9046a19ea6163a6645bbaa
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:43:57.777739Z'
+  stage: doing
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -111,3 +120,4 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (47.6 s)
+6. factory: started doing as self.
