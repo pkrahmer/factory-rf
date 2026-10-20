@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 330
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T05:05:06.304214Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T05:04:45.903970Z'
   stage: doing
   run: 37468963f7d0449894750fe830c5af56
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T05:05:06.304214Z'
+  stage: review
 ---
 
 # Intake asks about a smoke test that passes -q to pytest a second time
@@ -123,3 +132,4 @@ Expect: `1` (the human's change 1 is on `main`)
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
