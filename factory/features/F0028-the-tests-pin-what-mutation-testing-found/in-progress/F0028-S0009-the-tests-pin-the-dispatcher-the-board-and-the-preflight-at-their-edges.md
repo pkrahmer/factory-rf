@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T02:53:56.875799Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-20T02:53:36.726145Z'
   stage: docs
   run: 7ab78e89c6d4450e842fd289d62ea008
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:53:56.875799Z'
+  stage: smoke-test
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -291,3 +300,4 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
     `check`: check: green (not run again: passed on tree 75f1d0344314 at 2026-10-20T02:51:24Z)
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
