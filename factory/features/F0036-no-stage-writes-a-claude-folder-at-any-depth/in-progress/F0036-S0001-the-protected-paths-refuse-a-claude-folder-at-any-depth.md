@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 324
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T03:24:18.843640Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T03:24:18.843640Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T03:27:06.720805Z'
+  stage: tests
+  run: 6e1303b306d44e72b4e112e92d60f1fd
 ---
 
 # The protected paths refuse a .claude folder at any depth
@@ -99,3 +101,21 @@ Expect: four lines, `.claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is o
    - Architecture: the change is a constant in `factory.domain`, and `refusal`, the hook, the undo and the kernel's confinement are not touched. That matches the layering in CLAUDE.md.
    - Scope: matches `feature.md`: the pattern, the tests under decision 3 and the three docs. The kernel guard, `~/.claude` and R14 are out of scope and untouched. The test rename has the human's leave through decision 3.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 4. They fail on purpose until `*/.claude/*` is added to `PROTECTED_PATHS`.
+
+   - criterion 1: tests/domain/test_write_paths.py::test_the_protected_paths_are_the_engines_twelve_patterns (renamed from `..._eleven_patterns` under the feature's decision 3; `"*/.claude/*"` added as the tuple's second item; nothing else in the module changed)
+   - criterion 2: tests/domain/test_nested_claude_paths.py::test_a_claude_folder_is_protected_at_any_depth_and_only_as_a_whole_segment (12 rows: 6 true, 6 false, as the criterion lists them)
+   - criterion 3: tests/domain/test_nested_claude_paths.py::test_the_guard_refuses_a_nested_claude_folder_although_a_write_path_matches_it (4 rows; the guard has root `/work`, write paths `["src/*"]` and `list(PROTECTED_PATHS)`)
+   - criterion 4: tests/application/test_undo_nested_claude.py::test_the_undo_removes_a_nested_claude_folder_and_keeps_the_rest (real bare remote; write paths `["src/*"]`)
+   - criteria 5 and 6: not tests (`make check`, docs).
+
+   Files created: tests/domain/test_nested_claude_paths.py, tests/application/test_undo_nested_claude.py, tests/undo_support.py.
+
+   Earlier test files changed:
+   - tests/domain/test_write_paths.py: the rename above, under the feature's decision 3.
+   - tests/application/test_undo.py: moved under the standing leave in CLAUDE.md (*Tests*), as the Interface allows. Its `_pipeline`, `_start` and `_undo` now live in tests/undo_support.py as `pipeline_text`, `start_stage` and `undo_stage`. The constants they need moved with them (INSTANCE, BRANCH, IN_PROGRESS, PATH, SECOND, PIPELINE_FILE, GUIDE, GUIDE_TEXT, KEPT, KEPT_TEXT, BODY, INTAKE_ROLE, BASE_FILES), and test_undo.py imports them from there. Every test in that module keeps its name and checks the same thing, and all of them pass after the move.
+
+   Run of `make test`: 8 failed of 6083 (taken from `.reports/junit.xml`), none of them collection errors, so no module failed to import. They fail on wrong results: the twelve-pattern tuple, the four nested true rows of criterion 2, the two refusal rows of criterion 3, and the undo test. The root `.claude/` rows and the false rows already pass. `make lint` is green. Type check skipped, as this stage says. No criterion needed interpreting.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/domain/test_nested_claude_paths.py::test_a_claude_folder_is_protected_at_any_depth_and_only_as_a_whole_segment[a/b/c/.claude/d-True]
