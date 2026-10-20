@@ -1,11 +1,11 @@
 ---
 stage: smoke-test
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 309
-comments_read: []
+comments_read: [6280599340]
 handed_over: null
 claim: null
 journal:
@@ -81,6 +81,11 @@ journal:
   stage: smoke-test
   run: 915e795973264a59885bcd8c92f7e733
   blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-10-20T00:42:50.141058Z'
+  stage: smoke-test
 ---
 
 # The image makes opencode's configuration folder, read-only to the agent
@@ -234,3 +239,12 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     (b) The human changes the `## Smoke test` so the safety check can read it, for example a script file run with `bash <file>`, or no `trap rm -rf` (the stage's `$TMPDIR` is removed anyway), and the stage runs again.
     (c) The human accepts command 1 alone for this story and leaves the mechanism to change 1 on a recreated instance, which the story already names as the human's.
     I would choose (b): the smoke test stays repeatable by the pipeline. As far as this run shows, the `trap` line plus the `sh -c` is what the check refuses.
+14. 2026-10-20 human: (a). I ran command 2 exactly as written (the block saved unchanged to a file and run with bash), as the agent user, in a throwaway container of today's image `factory-self-factory` (`docker run --rm --network none -u agent`, without the story's Dockerfile change, as the Expect line says). Its output:
+
+    ```
+    fresh 1
+    made 0
+    1
+    ```
+
+    exit 0. Judge it against the Expect line; command 1 stands as you ran it.
