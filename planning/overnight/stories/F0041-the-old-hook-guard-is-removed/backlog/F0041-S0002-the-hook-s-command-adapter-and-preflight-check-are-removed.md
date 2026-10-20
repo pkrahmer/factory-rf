@@ -12,7 +12,7 @@ Deleted modules: `src/factory/adapters/claude_guard.py` (`adapters`) and `src/fa
 
 ```python
 class GuardSettings(BaseModel):
-    """Where an agent may write: the root, the write paths, the protected paths and the tool paths."""
+    """Where an agent may write: the root, write paths, protected paths and tool paths."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
