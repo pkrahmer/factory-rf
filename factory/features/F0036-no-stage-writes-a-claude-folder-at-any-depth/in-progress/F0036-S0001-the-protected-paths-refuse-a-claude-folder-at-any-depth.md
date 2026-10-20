@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 324
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T03:32:08.928877Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T03:32:08.928877Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T03:32:31.685469Z'
+  stage: smoke-test
+  run: f6f0e08c2bd646bab03bb8d7d95010c0
 ---
 
 # The protected paths refuse a .claude folder at any depth
@@ -206,3 +208,24 @@ Expect: four lines, `.claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is o
     `secrets`: secrets: green (1.6 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings. I ran the one command under `## Smoke test` from the repository root, exactly as written. It exited 0.
+
+    Command 1, the `uv run python -c` call of `refusal` over four paths:
+    ```
+    .claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is owned by the human; a change there is a question.
+    src/.claude/skills/x/SKILL.md -> src/.claude/skills/x/SKILL.md is owned by the human; a change there is a question.
+    src/.claudex/a.md -> allowed
+    src/a.py -> allowed
+    ```
+    Met its `Expect:` line: there are four lines, and each one matches the expected text exactly.
+
+    Checked against the acceptance criteria:
+    - The output agrees with criterion 3: the nested `.claude/` is refused under the write path `src/*` with the human-owned text, and `src/.claudex/a.md` and `src/a.py` are allowed.
+    - It also agrees with criterion 2: `.claude` is protected at the root and nested, and only as a whole segment.
+    - I also printed the constant and four of criterion 2's paths through `matches_any`. This was a read-only check, not part of the smoke test:
+      - `PROTECTED_PATHS` has 12 items, starting `('.claude/*', '*/.claude/*', 'CLAUDE.md')`, as criterion 1 says.
+      - `src/.claude` False, `src/x.claude/a` False, `claude/agents/coder.md` False, `a/b/c/.claude/d` True, as criterion 2 says.
+    - No criterion is contradicted.
+    - Not exercised here: criterion 4 (the undo) and criteria 5 and 6. The smoke test does not target them. Criterion 4 has its own test, and the earlier stages recorded `check: green` and the docs.
+
+    Findings: none. Nothing was changed.
