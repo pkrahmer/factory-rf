@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T11:06:23.813000Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T11:06:02.441951Z'
   stage: review
   run: 2583ef78fa3f495d955026a291a932b2
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T11:06:23.813000Z'
+  stage: doing
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -238,3 +247,4 @@ Expect: `5`
    - tests/wiring_support.py (M): the standing leave to move a shared test helper (it receives `machine_item`).
    - tests/application/test_agent_run_probe.py (M): the human's leave, decision 10; beyond it (finding 1).
    - tests/entry/test_wiring_handlers.py (M): the human's leave, decision 10; beyond it (finding 2).
+10. factory: started doing as self.
