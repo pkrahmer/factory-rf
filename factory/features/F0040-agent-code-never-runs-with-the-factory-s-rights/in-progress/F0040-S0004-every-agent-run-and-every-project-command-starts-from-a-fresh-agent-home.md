@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 365
-comments_read: []
+comments_read: [6301863943]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 8be7a808014e42b3804a43ff0c745088
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-20T21:28:03.828993Z'
+  stage: intake
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -200,3 +205,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    3. Criterion 9 says `kept` holds both runtimes' `LOGIN_STATE_FILE` "whatever the instance's runtime", but its table has no row with the opencode runtime. Should a row set `FACTORY_AGENT_RUNTIME` to opencode and expect the same `kept`? I would choose yes.
    4. Criterion 10 does not cover three Interface statements. `build_boundaries` uses "the sudo which finds, or `SUDO_EXECUTABLE`". Building starts no process. The criterion for the same object also lacks a case with no `sudo` found. Should I add a row with `sudo` absent from `PATH` and `SudoAgentHome` built with `SUDO_EXECUTABLE`? I would choose yes. The "starts no process" clause I would drop as untestable, unless you want it kept.
    5. Criterion 7's upper bound of 25 seconds is checkable, but the lower bound of 3 seconds with a 60-second sleeper relies on the real `timeout`. That is fine if `timeout` is in the test environment. Please confirm that `make check` machines have it. If not, say so.
+4. 2026-10-20 human: Answers (2026-10-21):
+   1. Yes: a row with standard error `a`, `b`, a blank line, expecting the detail `...: b`.
+   2. Yes: one test pins the `Launch` fields, `env` empty and the call's time limit `FRESH_HOME_TIME_LIMIT` plus `SUDO_GRACE` (90 s by default). The seam is the tester's and the coder's choice; the stand-in `sudo` of the existing tests, which records its environment, may serve for `env`.
+   3. Yes: a row with `FACTORY_AGENT_RUNTIME` set to opencode and the same `kept`.
+   4. Yes: a row with no `sudo` on `PATH`, so `SudoAgentHome` is built with `SUDO_EXECUTABLE`. Drop "building starts no process" from the Interface.
+   5. Confirmed: GNU `timeout` (coreutils 9.1) is at `/usr/bin/timeout` in the image where `make check` runs.
