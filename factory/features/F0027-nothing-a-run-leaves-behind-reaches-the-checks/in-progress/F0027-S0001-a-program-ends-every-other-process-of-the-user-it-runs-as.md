@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T12:28:23.395694Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-20T12:28:23.395694Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-20T12:28:46.707781Z'
+  stage: doing
+  run: a046c0aa3adf4e0d9ab673afbcde3da9
 ---
 
 # A program ends every other process of the user it runs as
@@ -409,3 +411,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/test_wrapper_search.py`: the human's answer, journal entry 8. The expected set gains `"factory.entry.leftovers"`.
     - `tests/test_process_search.py`: the human's answer, journal entry 8. The expected markers gain `"entry/leftovers.py": {32: {"noqa: PLR0913"}}`.
 17. factory: started doing as self.
+18. coder: Round 1. Both findings in the reviewer's entry 16 are about tests, so I changed no code and hand the work item to the tester (R9). I changed no files and did not rerun `make check`. The last coder run ended `check: green` (entry 14), and nothing under `src/` has changed since.
+
+    Test changes for the tester:
+    1. Finding 1: in `tests/entry/test_leftovers.py`, merge `test_wrong_arguments_print_the_usage` and `test_the_user_s_name_starts_the_rounds` into one parametrized test for criterion 7. Its rows are the six rejected argument lists and the accepted `["--user", "agent"]` (with a table that is empty at once). Each row carries its expected status, its stderr text, its number of `identity` calls and its `kill` calls.
+    2. Finding 2, under the standing leave to move a shared test helper in `CLAUDE.md`:
+       - Move `AGENT` (`Identity(uid=1001, user="agent", pid=11)`) and one `_entry(pid, uid=1001, *, ended=False)` helper to one shared module under `tests/`. The helper builds `ProcessEntry(pid=pid, session=pid, ended=ended, uid=uid)`.
+       - Change the three test modules that hold copies so they import both from there: `tests/domain/test_leftovers.py`, `tests/entry/test_leftovers.py` and `tests/adapters/test_process_table.py`. The last one passes `uid=os.getuid()`.
+       - Every test keeps its name and checks the same thing.
+
+    What is built, unchanged since entry 14: `src/factory/domain/sessions.py`, `src/factory/domain/leftovers.py`, `src/factory/adapters/process.py` and `src/factory/entry/leftovers.py`.
+
+    Main design choice, unchanged: each fault in `main` raises a private `_Stop` exception carrying its line, the same way `factory.entry.confine` handles faults. I rejected returning a status from each step.
+
+    Description: the journal did not change what the task means.
+
+    Noticed but not touched: `tests/test_process_search.py` expects `noqa: PLR0913` at the fixed line 32 of `src/factory/entry/leftovers.py`. Merging the tests in finding 1 does not move that line. Any later code edit above `def main(` will.
