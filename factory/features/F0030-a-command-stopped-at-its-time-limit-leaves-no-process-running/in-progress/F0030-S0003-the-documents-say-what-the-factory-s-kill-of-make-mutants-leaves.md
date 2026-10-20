@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 370
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T23:23:21.309563Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T23:23:00.234486Z'
   stage: review
   run: 612e4700a0e94a5ba5e12ab6ae44fa03
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:23:21.309563Z'
+  stage: docs
 ---
 
 # The documents say what the factory's kill of make mutants leaves
@@ -133,3 +142,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Work item hygiene: the coder's journal entry states the main choice (both documents are left to the docs stage) and what was rejected (writing criterion 3's text in the doing stage). The `## Description` still matches what was built: no code, documents still to come.
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
