@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T02:41:00.512972Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T02:40:39.939138Z'
   stage: intake
   run: 7c6cb461e5814572bcc0cdcb2bdd4ef8
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:41:00.512972Z'
+  stage: tests
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -83,3 +92,4 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
    - Smoke test: one runnable Python snippet that uses `feature_rows`, `error_report_text` and `StoryFile`. Its `Expect:` gives two exact lines, which the output can be compared to. The `acceptance=None` in the first line comes from the domain call, which has no acceptance report. Criterion 2 expects `"incomplete"` from the reader, so the two do not conflict.
    - Architecture: tests only, under `tests/application/`, mirroring the package. It uses the shared fixtures and helpers and copies none of them. No fake git, no mock of the code under test. Nothing under `src/` changes.
    - Scope: inside F0028's scope (the `S0009` line of `feature.md`) and not in its "Out of scope". It changes no earlier test. The only shared-helper move is S0008's, which `feature.md` records. The docs criterion is `none`, as in the feature's decision.
+4. factory: started tests as self.
