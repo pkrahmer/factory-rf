@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 367
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T22:53:23.829247Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T22:53:03.204061Z'
   stage: docs
   run: 6e7720c4b98b43489b77c3f98f0ed8df
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:53:23.829247Z'
+  stage: smoke-test
 ---
 
 # The shared time limits' test names the values of a relation that broke
@@ -206,3 +215,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree fb0e305c50f3 at 2026-10-20T22:50:35Z)
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
