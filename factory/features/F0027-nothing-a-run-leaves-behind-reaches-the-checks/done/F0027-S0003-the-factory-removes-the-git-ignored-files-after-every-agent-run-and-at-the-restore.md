@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-10-20T15:36:03.141967Z'
   stage: smoke-test
   run: 90d954a2d35f4d639e9b94b4fe0f2a90
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-10-20T15:37:23.986091Z'
+  stage: approval
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -611,3 +616,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The smoke test did not exercise criteria 3, 5, 6 and 7 (the paths that cannot be removed, the stage's checks and the restore). The tests cover them, and the factory's checks judge criterion 8 (`make check`).
 
     Findings: none.
+32. factory: done (pull request merged); cost: 14 runs, 26.1 min, 134 turns, 446785 tokens in (3964992 more from cache), 57664 out, $4.99
