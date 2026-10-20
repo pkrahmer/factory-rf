@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 324
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T03:27:27.006774Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T03:27:27.006774Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T03:29:33.118668Z'
+  stage: doing
+  run: 37545a74d07547ca96709345c76d0a51
 ---
 
 # The protected paths refuse a .claude folder at any depth
@@ -129,3 +131,13 @@ Expect: four lines, `.claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is o
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/domain/test_nested_claude_paths.py::test_a_claude_folder_is_protected_at_any_depth_and_only_as_a_whole_segment[a/b/c/.claude/d-True]
 6. factory: started doing as self.
+7. coder: Added `"*/.claude/*"` to `PROTECTED_PATHS` in `src/factory/domain/write_paths.py`, right after `.claude/*`, so the tuple now matches the Interface's twelve patterns. Nothing else changed. `make check` is green: the 8 tests the tester wrote to fail now pass, and the coverage line reads `test: green (46.5 s)`, `check: green`.
+
+   - Main choice: I added the one pattern the Interface names and left `matches_any` (`fnmatchcase`, with `*` crossing `/`) alone. The pattern needs a `/` before `.claude` and a `/` after it, so `.claudex`, `x.claude`, `claude/` without the dot, and a path ending in `.claude` don't match it. The root folder stays covered by `.claude/*`.
+   - Rejected: a segment-aware matcher, such as a regex in `matches_any` or a function just for `.claude`. It would change `matches_any`, which the Interface says stays unchanged, and the glob already gets the whole-segment behaviour right.
+   - Refactor: the diff is one line, so there was nothing to change.
+   - Description: the journal didn't change what the task means, so I left `## Description` alone.
+   - Noticed, not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
