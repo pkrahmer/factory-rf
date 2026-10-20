@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 362
 comments_read: [6300047368]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T20:01:37.225727Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-20T20:01:37.225727Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T20:02:50.540867Z'
+  stage: review
+  run: 423d1778351543d2ad6520eb5e73611c
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -126,8 +128,9 @@ Tests (the tester writes them): `tests/application/test_sealed_project_commands.
 5. `project_command_environment(settings, {"PATH": "/p", "HOME": "/home/factory", "LANG": "C.UTF-8"})` with `agent_user` `agent` and `agent_home` `/home/agent/.claude` gives `{"PATH": "/p", "HOME": "/home/agent", "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1", "UV_LINK_MODE": "copy"}`; without `agent_user` it gives the same with `HOME` `/home/factory`.
 6. The wiring (rows of one parametrized test, `build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())`, `which` answering `/usr/bin/sudo` for `sudo`): with `agent_user="agent"`, `boundaries.project_commands` is a `RecordingProjectCommands` around a `SealedProjectCommands` around a `MakeProjectCommands` whose `user` is `CommandUser(os_user="agent", sudo_executable="/usr/bin/sudo", environment=project_command_environment(settings, production_environment()), leftovers=leftovers_command())`. With `end_leftovers=False`, the user's `leftovers` is `None`. Without `agent_user`, it is a `RecordingProjectCommands` around a `MakeProjectCommands` whose `user` is `None`. With `which` finding no `sudo`, the user's `sudo_executable` is `SUDO_EXECUTABLE`.
 7. `SealedProjectCommands` inherits `ProjectCommands`.
-8. `make check` stays green.
-9. docs: `docs/operator-guide.md`: the paragraph **Left for v2.** under the hosting-service token is replaced. Every project command (`make check`, `lint`, `test`, `secrets`, `duplicates`, `documents`, and the preflight's `lint` on `main`) runs as `agent` through `sudo -n -u agent -- timeout --signal=KILL <limit>s env -i ... make --no-print-directory <command>`, with the agent run's environment, `PYTHONDONTWRITEBYTECODE=1` and `UV_LINK_MODE=copy`, so code an agent wrote never runs as `factory` and no output tail can hold the hosting token. The git folder is sealed before every command and checked after it, and every command is followed by the leftovers program as `agent` (**The end of the agent's processes.** says so for project commands too). What stays: the agent's own login files (`/home/agent/.claude-token`, `/home/agent/.anthropic-api-key`) are readable by `agent`, by design, so a test can still print the agent's login into the output tail, as an agent run could write it into its work. In *The agent runs as a second user*, the same chain for project commands, and in *The stops you will see here* or the preflight's section: a missing `sudo` rule now also turns the preflight's `lint` into a `preflight_failed` (`the probe on main could not run: project command lint failed: <sudo> refused the command: ...`). `docs/project-guide/processes-and-checks.md`, *Project commands*: `SealedProjectCommands`, its order and its errors, its log line, and the wiring with and without an agent user. `docs/project-guide/watching.md`, *Boundaries*: what `build_boundaries` builds as project commands. `docs/decisions.md`: the entry *The project commands run as the factory's user and are left for v2* is marked replaced, and a new entry *The project commands run as the agent user, with the git folder sealed*, dated with the story, with the reasons of the feature's decisions 1 to 7.
+8. In criterion 6's rows with `agent_user="agent"`, the built `SealedProjectCommands` holds the very `git` and `log` objects the boundaries hold (`boundaries.git`, `boundaries.log`, compared by identity), so the seal is taken on the checkout the commands run in and the log line reaches the factory log.
+9. `make check` stays green.
+10. docs: `docs/operator-guide.md`: the paragraph **Left for v2.** under the hosting-service token is replaced. Every project command (`make check`, `lint`, `test`, `secrets`, `duplicates`, `documents`, and the preflight's `lint` on `main`) runs as `agent` through `sudo -n -u agent -- timeout --signal=KILL <limit>s env -i ... make --no-print-directory <command>`, with the agent run's environment, `PYTHONDONTWRITEBYTECODE=1` and `UV_LINK_MODE=copy`, so code an agent wrote never runs as `factory` and no output tail can hold the hosting token. The git folder is sealed before every command and checked after it, and every command is followed by the leftovers program as `agent` (**The end of the agent's processes.** says so for project commands too). What stays: the agent's own login files (`/home/agent/.claude-token`, `/home/agent/.anthropic-api-key`) are readable by `agent`, by design, so a test can still print the agent's login into the output tail, as an agent run could write it into its work. In *The agent runs as a second user*, the same chain for project commands, and in *The stops you will see here* or the preflight's section: a missing `sudo` rule now also turns the preflight's `lint` into a `preflight_failed` (`the probe on main could not run: project command lint failed: <sudo> refused the command: ...`). `docs/project-guide/processes-and-checks.md`, *Project commands*: `SealedProjectCommands`, its order and its errors, its log line, and the wiring with and without an agent user. `docs/project-guide/watching.md`, *Boundaries*: what `build_boundaries` builds as project commands. `docs/decisions.md`: the entry *The project commands run as the factory's user and are left for v2* is marked replaced, and a new entry *The project commands run as the agent user, with the git folder sealed*, dated with the story, with the reasons of the feature's decisions 1 to 7.
 
 ## Smoke test
 
@@ -253,3 +256,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 11. factory: started review as self.
+12. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`: `src/factory/application/sealed_runs.py`, `src/factory/entry/wiring.py` and two new test files. I read them against the work item.
+
+    What holds:
+    - **Code:** `SealedProjectCommands.run` seals the git folder, runs the inner command, then calls `check_seal` and `remove_nested_repositories` in a `finally`, as `run_sealed` does. So a failed check removes nothing, and an error from the inner command becomes the context of `RepositoryUnsealed`. The log line is written only when something was removed. `project_command_environment` and the wiring match the Interface.
+    - **Criteria 1 to 7:** each has a passing test that checks what the criterion says. The journal reports the coder's `make check` as green.
+    - **Architecture:** `sealed_runs` imports only application interfaces and domain types, and only `factory.entry.wiring` wires.
+    - **Security:** no silencing markers, no secrets, and no commands built from strings.
+
+    I accept the coder's choice not to share code between `SealedProjectCommands` and `run_sealed`. Only the three git calls would be shared, since `run_sealed` also runs `remove_ignored` and returns a `SealedRun`.
+
+    `make duplicates` reports 5 new findings. All are in files this diff does not touch (`claude_runtime`, `opencode_runtime`, `adapters/clock.py`), so none counts against this story.
+
+    Findings:
+    1. criterion 8 added: it needs its test. The Interface says `build_boundaries` builds the `SealedProjectCommands` with "the same `git` and `log` the boundaries hold". No criterion covered this, and `tests/entry/test_wiring_project_command_user.py::test_the_built_project_commands_run_as_the_agent_user_inside_a_seal` checks only `MakeProjectCommands.user`. The current code passes the right objects (`src/factory/entry/wiring.py:266`). But wiring that built a second `GitCli` on another folder, or a second log, would pass every test while sealing the wrong checkout. The fix is for the tester to assert, in the test's agent-user rows, that the sealed object holds `boundaries.git` and `boundaries.log`, compared by identity (for example `_held(sealed, GitCli) is boundaries.git`). No change under `src/` is needed. I added the criterion as 8 and renumbered the closing ones to 9 (`make check`) and 10 (docs).
+
+    Earlier tests: none. The diff only adds test files (`tests/application/test_sealed_project_commands.py`, `tests/entry/test_wiring_project_command_user.py`).
