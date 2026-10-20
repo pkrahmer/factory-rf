@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T09:51:29.242644Z'
   stage: acceptance
   run: 05f94b0e90d543a8957ce45fb4757a74
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T10:02:03.832603Z'
+  stage: done
 stories: [F0037-S0001]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of A torn record line never stops a check
@@ -233,3 +238,4 @@ Human interventions: 0 questions answered, 0.0 h waited. No story needed the hum
    6 Decisions for the human: feature decisions 1, 2, 3 and 5 as taken. Decision 4 (`append` starting a new line after a torn one) is open and is a product question for you. No earlier test was changed.
    7 Slow checks: nothing beyond `make check` is offered. Disk use is unchanged since the previous record. The slowest tests are 10–11.5 s time-limit tests from other features; the feature's 19 new test cases take 0.12 s together.
    8 Cost: 6 runs, 5.6 min, $1.72. The tester's run was the largest ($0.51), with no rework round. 0 questions, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 6.4 min, 32 turns, 75662 tokens in (1725890 more from cache), 20335 out, $1.36
