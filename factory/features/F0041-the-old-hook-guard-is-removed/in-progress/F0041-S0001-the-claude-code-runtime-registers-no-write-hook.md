@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T10:18:41.054908Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T10:18:41.054908Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-20T10:18:54.869827Z'
+  stage: doing
+  run: 14b76600145d4660911f550c95545059
 ---
 
 # The Claude Code runtime registers no write hook
@@ -242,3 +244,9 @@ Expect: `7`
    - tests/adapters/test_claude_runtime_resume.py: human's leave, the feature's decision 9 and the human's answer of 2026-10-20 (pre-check `F0041-S0001-1.md`).
    - tests/test_claude_agent_refusal.py: human's leave, the feature's decision 9. Only `_WRITE_PATHS_RULE` changed, and every test keeps its name.
 10. factory: started doing as self.
+11. coder: Both review findings change only tests, so I changed no code and am handing them to the tester. I checked both against the working tree:
+
+    1. `tests/adapters/claude_stand_in.py`: delete the `import shlex` line from `SCRIPT` (line 15). Its only user was the `--settings` block, which is gone. The feature's decision 9 gives the leave for this.
+    2. `tests/test_claude_agent_no_hook.py`: delete `test_the_write_paths_rule_says_only_the_kernel_refuses` and `_KERNEL_ONLY`. Also delete the imports only they used: `section_text` and `_WRITE_PATHS_RULE` from `test_claude_agent_refusal`. The file then keeps only `test_no_shipped_agent_names_a_hook`. Criterion 5's first half is then tested by `tests/test_claude_agent_refusal.py::test_rules_hold_the_write_paths_rule_as_one_line`, whose `_WRITE_PATHS_RULE` already holds the kernel-only sentence word for word.
+
+    No source file changed in this round: `src/factory/adapters/claude_runtime.py` and the seven agent files stay as in the coder's entry 7. Nothing else is open.
