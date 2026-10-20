@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 358
 comments_read: [6299016224]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T19:10:57.833074Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-20T19:10:36.879912Z'
   stage: intake
   run: a376326046fc4faa8a4fbddc4170ad12
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:10:57.833074Z'
+  stage: tests
 ---
 
 # The tests start their own Python children without bytecode
@@ -134,3 +143,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: the three commands are runnable. None runs pytest, so no `-q` issue arises. Each `Expect:` (`True`, `False`, `0`) can be checked against the output.
    - Architecture: only test helpers change. The new module sits at the `tests/` root because it tests no package module. The layers are untouched.
    - Scope: it is within F0027. Decision 16 grants the leave for exactly these helpers and stand-ins, and the story is listed as S0004 in the feature. No "Out of scope" item is touched.
+7. factory: started tests as self.
