@@ -7,16 +7,9 @@ import pytest
 
 from factory.domain.errors import SettingsInvalid
 from factory.domain.settings import read_settings
-from settings_support import BASE
+from settings_support import BASE, raising
 
 URL_VARIABLE = "FACTORY_REPOSITORY_URL"
-
-
-def _raising(error: OSError) -> Callable[[Path], str]:
-    def read_file(_path: Path) -> str:
-        raise error
-
-    return read_file
 
 
 def _returning(text: str) -> Callable[[Path], str]:
@@ -97,7 +90,7 @@ def test_the_password_rule_judges_only_the_authority(url: str, accepted: bool) -
         ),
         pytest.param(
             {},
-            _raising(PermissionError("denied")),
+            raising(PermissionError("denied")),
             "FACTORY_IMAGE_ID_FILE",
             "cannot read /opt/factory/image-id: denied",
             id="image-unreadable",

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T01:16:45.387101Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T01:16:45.387101Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-20T01:18:27.941458Z'
+  stage: tests
+  run: 275b27715ce7411a94af41504626122b
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -171,3 +173,27 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
     Noticed but did not touch: `tests/application/test_preflight_run.py:239` calls a different `_raising`, one that wraps a `ProjectCommandError` for `RecordingCommands`. It has another signature and is not part of this move.
     The journal did not change the meaning of the task, so `## Description` stays as it is. I did not run `make check` this round because nothing changed in the working tree.
 12. factory: started tests as self.
+13. tester: Round 1, a test change: the move the coder named in entry 11, made under the standing leave in `CLAUDE.md` to move a shared test helper. No answer from the human was needed.
+
+    What changed:
+    - The file reader that raises a given `OSError` moved into `tests/settings_support.py` as `raising(error: OSError) -> Callable[[Path], str]`. It is public because two test modules import it, and it has a docstring.
+    - `tests/domain/test_settings.py` lost its copy of `_raising` and now imports `raising` from `settings_support`. This is an earlier test file, changed under that standing leave. Its one call site was renamed and every test keeps its name and checks the same thing.
+    - `tests/domain/test_settings_url_edges.py` lost its copy the same way and imports `raising` too.
+    - `BASE` is unchanged, so the Interface's "uses `BASE` of `tests/settings_support.py` as it is" still holds.
+    - Not touched: the unrelated `_raising` in `tests/application/test_preflight_run.py`, as the coder noted.
+
+    The criteria map to the same test functions as before:
+    - criterion 1: `tests/domain/test_settings_url_edges.py::test_the_password_rule_judges_only_the_authority`
+    - criterion 2: `tests/domain/test_settings_url_edges.py::test_a_refused_setting_names_its_variable_and_its_fault`
+    - criterion 3: `make check`, the factory's gate
+    - criterion 4: docs none, nothing to test
+
+    Files changed: `tests/settings_support.py`, `tests/domain/test_settings.py`, `tests/domain/test_settings_url_edges.py`. No files created.
+
+    Imports: the test run imported every module. These tests pin behaviour the code already has, so they pass rather than fail. The coder has nothing to build.
+
+    `lint`: lint: green (0.1 s)
+    `test`: test: green (39.8 s)
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (40.1 s)
