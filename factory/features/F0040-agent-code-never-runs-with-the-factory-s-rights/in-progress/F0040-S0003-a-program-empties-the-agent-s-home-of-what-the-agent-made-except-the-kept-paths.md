@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T21:14:08.785950Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-10-20T21:14:08.785950Z'
   stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-10-20T21:16:50.714599Z'
+  stage: doing
+  run: 045e208ff1e74b089dcd258996455e0a
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -508,3 +510,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.5 s)
     `test`: test: green (60.9 s)
 28. factory: started doing as self.
+29. coder: Round 2, after the tester's entry 27. I made no code change. `make check` is green: `check: green`, coverage 99.14 %. That run includes the new criterion 16 test, `tests/adapters/test_home_files.py::test_own_entry_judges_the_entry_itself_by_its_owner`, which passes against the existing `own_entry` (`lstat().st_uid == os.geteuid()`).
+
+    What I built: nothing new this round. The work from entries 10 and 14 stands:
+    - `src/factory/domain/agent_home.py`
+    - `src/factory/domain/settings.py`, which now uses `inside_home`
+    - `src/factory/adapters/home_files.py`
+    - `src/factory/entry/fresh_home.py`
+
+    Main choice: I left `own_entry` as it is and sent the work item straight to review. The other option was to make the link case explicit in the code, for example with a separate `is_symlink` branch. I rejected it because `lstat` already judges the link itself, which is what the Interface asks for, and an extra branch would add nothing.
+
+    Refactor pass: I reread the three new modules and found nothing to change.
+
+    What the journal changed: nothing open. The reviewer already wrote criterion 16 and the human's corrections from entry 17 into the Description (entry 23).
+
+    Noticed but not touched (both are about tests, so they are the tester's or the human's to weigh):
+    - The two `home` fixtures in `tests/adapters/test_home_files.py` and `tests/entry/test_fresh_home.py` overlap.
+    - In `tests/domain/test_agent_home.py`, `match=refused` is read as a regex and has no `re.escape`.
+    - Coverage reports one missed line in `fresh_home.py`: line 69, the `if __name__ == "__main__"` line.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 33 known, 3 gone
