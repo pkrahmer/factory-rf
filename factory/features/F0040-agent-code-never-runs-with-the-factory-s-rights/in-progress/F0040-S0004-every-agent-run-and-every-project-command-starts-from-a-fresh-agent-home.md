@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T22:22:42.840459Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -155,6 +159,11 @@ journal:
   at: '2026-10-20T22:22:22.141635Z'
   stage: tests
   run: 55288076fd7148dba4a4c7a715bd3f17
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:22:42.840459Z'
+  stage: doing
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -495,3 +504,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.6 s)
     `test`: test: green (62.2 s)
+28. factory: started doing as self.
