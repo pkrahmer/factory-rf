@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T14:23:17.051768Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-20T14:22:55.305197Z'
   stage: doing
   run: bc6e3e6aa2ae45b79f07e920b0c8303f
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-20T14:23:17.051768Z'
+  stage: review
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -314,3 +323,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
+11. factory: started review as self.
