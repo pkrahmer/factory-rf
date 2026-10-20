@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 369
 comments_read: [6303767591]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T23:10:01.027845Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-20T23:10:01.027845Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-20T23:12:47.316179Z'
+  stage: doing
+  run: 1f303dc15dcf414aa89670a2f7e73325
 ---
 
 # The work tree's id sees a change made in the tick of the last index write
@@ -152,3 +154,14 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.5 s)
    `test`: FAILED tests/adapters/test_git_cli_work_tree_tick.py::test_a_change_in_the_tick_of_the_last_index_write_is_seen[same-size] - AssertionError: assert 'eef991509a20...d5ba5d5c0dd69' == '11bdcc0ae77a.....
 9. factory: started doing as self.
+10. coder: I copied the temporary index with its timestamps. `make check` is green, and the new test passes in both rows.
+
+    - What I built: in `src/factory/adapters/git_cli.py`, `GitCli.work_tree_id` now copies the checkout's own index with `shutil.copy2` instead of `shutil.copyfile`, so the copy keeps the index's modification time. Git's racily-clean rule then applies to the copy as it does to the own index. I added to the comment above the copy why it keeps that time. The signature and the other rules are unchanged: an empty temporary index when the checkout has none, then `add --all`, `update-index --force-remove --` and `write-tree`.
+    - Main choice: `copy2`, as the Interface names it. I rejected copying with `copyfile` and then setting the time with `shutil.copystat` or `os.utime`: it does the same thing in two steps instead of one.
+    - Refactor: I read my diff once. It is one call plus the comment, and nothing needed changing.
+    - Description: unchanged. The journal (entries 3 to 6) settled only the story's scope in F0030, not what the task means.
+    - Noticed, not touched: the docs criterion (`docs/project-guide/git-and-hosting.md` and the `docs/decisions.md` entry) is the documenter's work.
+    - Skills: none used.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 33 known, 3 gone

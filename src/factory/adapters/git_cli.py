@@ -419,10 +419,12 @@ class GitCli(Git):
         with tempfile.TemporaryDirectory() as folder:
             index = Path(folder) / "index"
             # A copy of the own index lets git rehash only changed files and keeps a tracked
-            # file that `.gitignore` matches, as a commit keeps it.
+            # file that `.gitignore` matches, as a commit keeps it. The copy keeps the index's
+            # modification time: git rehashes a file whose time is not older than the index's,
+            # and a copy made now would hide a change made in the tick of the last index write.
             own_index = self._directory / ".git" / "index"
             if own_index.is_file():
-                shutil.copyfile(own_index, index)
+                shutil.copy2(own_index, index)
             self._run(["add", "--all"], index=index)
             listing = self._run(["ls-files", "-z"], index=index).stdout
             dropped = [path for path in listing.split("\0") if path and matches_any(path, left_out)]
