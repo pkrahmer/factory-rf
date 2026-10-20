@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T17:55:16.703186Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T17:54:58.705534Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-20T17:55:16.703186Z'
   stage: intake
 ---
 
@@ -161,3 +170,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    3. Yes: rows for `failed` (stand-in `sudo` exits 1 with `boom`) and for refused (the second `sudo` call is recorded even when the command was refused).
    4. The exit-status row is enough. `leftovers_fault`'s `timed_out` branch is F0027-S0002's and is tested in `tests/adapters/test_agent_launch_leftovers.py`; this story reuses it. Make the Interface say so (it reuses `leftovers_fault` as tested there) rather than suggest more, and keep the tests free of a stand-in that waits out a time limit.
    5. Yes: criterion 1's recipe also writes a line to stderr, and that line appears in `output_tail` (`merge_stderr`).
+5. factory: started intake as self.
