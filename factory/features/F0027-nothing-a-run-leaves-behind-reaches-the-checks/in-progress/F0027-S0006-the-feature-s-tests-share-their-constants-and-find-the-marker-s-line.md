@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 360
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T19:39:12.932071Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T19:38:52.083861Z'
   stage: review
   run: c2dc8e3caa424f40ac1afa444386c091
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:39:12.932071Z'
+  stage: docs
 ---
 
 # The feature's tests share their constants and find the marker's line
@@ -180,3 +189,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - `tests/git_support.py`: standing leave to move a shared test helper (it is the shared place and only gains `CLEAN_IGNORED`).
    - `tests/leftovers_support.py`: standing leave to move a shared test helper (it is the shared place and only gains `ROOT`).
    - `tests/test_process_search.py`: the human's leave, F0027 `feature.md` decision 16, S0006 line (granted 2026-10-20). The change stays within that leave.
+10. factory: started docs as self.
