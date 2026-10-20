@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T11:30:29.237965Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-10-20T11:30:29.237965Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T11:30:58.378273Z'
+  stage: smoke-test
+  run: b8f0404cbfc84dfba77b72ea16f9aa59
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -481,3 +483,34 @@ Expect: `5`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok
 23. factory: started smoke-test as self.
+24. smoke-tester: I ran both smoke test commands from the repository root, exactly as written and in order (TMPDIR was the run's own folder, so `tempfile.mkdtemp()` made its folder there). Both met their `Expect:` lines. Nothing in the output contradicts any acceptance criterion. I fixed nothing.
+
+    **Command 1** (`uv run python - <<'EOF' …`), exit 0:
+
+    ```
+    None None
+    False False False ['root', 'write_paths', 'protected_paths', 'tool_paths']
+    agent-environment True -
+    agent-environment False the agent run has no HOME
+    ```
+
+    Met: it printed the four expected lines. Both `find_spec` calls give `None`. `GUARD_COMMAND`, `GuardSettingsInvalid` and `wiring.judge` are absent. `GuardSettings` has exactly the four fields. With HOME a folder the item passes; without HOME it fails with `the agent run has no HOME`.
+
+    **Command 2** (`ls … 2>&1 | grep -c 'No such file'`):
+
+    ```
+    5
+    ```
+
+    Met: all five removed files are gone.
+
+    **Checked against the acceptance criteria:**
+    - The output agrees with criteria 1 to 3.
+    - Outside the smoke test, I also checked the rest of criterion 1 with one `uv run python -c` call: `hasattr(wiring, "read_guard_settings")` is `False`, neither `"judge"` nor `"read_guard_settings"` is in `wiring.__all__`, and `CONFINE_COMMAND` is `factory-confine`.
+    - A grep of `src` and `tests` for `factory-guard`, `claude_guard` and `GUARD_COMMAND` finds only:
+      - the new tests that check these names are gone;
+      - a stale untracked bytecode file, `src/factory/adapters/__pycache__/claude_guard.cpython-312.pyc`. It is not a finding, because `find_spec` already gives `None` for the module.
+
+    The smoke test does not cover criteria 4 to 6 (the wiring's item through `machine_extras`, the undo test, and `make check`). The tests and the factory's checks cover those; the smoke test contradicts none of them.
+
+    **Findings:** none.
