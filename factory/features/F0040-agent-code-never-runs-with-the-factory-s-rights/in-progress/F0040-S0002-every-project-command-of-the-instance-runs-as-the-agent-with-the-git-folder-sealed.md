@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T19:52:55.086528Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T19:52:37.077355Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:52:55.086528Z'
   stage: intake
 ---
 
@@ -145,3 +154,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    1. Add it: a row in criterion 2's parametrized test where the inner run raises `ValueError`, which propagates after `check_seal` and the removal.
    2. Drop "or the removal" from the Interface: `GitCli.remove_nested_repositories` raises no `RepositoryUnsealed`, so only `check_seal` can.
    3. The order is `check_seal` first, as in `run_sealed`'s `finally`: a failed seal removes nothing. Criterion 3's row (the inner run replaces `.git`) also asserts that the nested repository is still there.
+5. factory: started intake as self.
