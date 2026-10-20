@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T14:24:52.396848Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-20T14:24:52.396848Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-20T14:25:09.544112Z'
+  stage: doing
+  run: 94006955e53142ba9061a32b24248581
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -347,3 +349,14 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: the diff only adds test files (every test path has status `A`). No test file on `main` was changed, so no leave was needed.
 13. factory: started doing as self.
+14. coder: Criterion 11 needs only its test, so I changed no code this round. The reviewer added the criterion in entry 12: the opencode runtime keeps a refused call's own error, and the program still runs. It is already in `## Acceptance criteria`, and the closing criteria are now 12 and 13. The code already does what it asks: `_call` in `src/factory/adapters/opencode_runtime.py` raises the refusal before the program's fault, and it starts the program in both cases.
+
+    What the tester needs to add: the test for criterion 11 in `tests/adapters/test_opencode_runtime_leftovers.py`. It should be one parametrized test with a `sudo` row (`write_sudo(..., refusal=...)`) and a `factory-confine` row (`write_confine(layout, Played())`), built like the claude test for criterion 8.
+
+    What I built: unchanged from entry 10 (`src/factory/adapters/agent_launch.py`, `src/factory/adapters/claude_runtime.py`, `src/factory/adapters/opencode_runtime.py`, `src/factory/entry/wiring.py`). The main choice there still stands: the program's fault is worked out right after the program ends but raised only after the call's refusal check. I rejected keeping the whole `ProcessResult` in `_call` until after that check.
+
+    Description: it already holds criterion 11, so I did not rewrite it. Entry 12 changed nothing else in the task's meaning.
+
+    Noticed, not touched: as in entry 10, `_end_leftovers`, `_remove_temporary_folder` and `_request_of` are near-copies in the two runtimes. Merging them would be a restructuring beyond this story.
+
+    I did not run `make check` this round, because no code changed. Entry 10 recorded it green.
