@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 357
-comments_read: []
+comments_read: [6297503471]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 76bef9f7888d49d4b58b516b7c704c25
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-20T17:54:58.705534Z'
+  stage: intake
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -150,3 +155,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    5. Interface: the process request has `env` `{}`, `cwd` the directory, `merge_stderr` true. Only the environment effect (token unset) and the cwd, implicitly through the Makefile, are tested. Should a criterion name a check that `merge_stderr` holds, for example a recipe writing to stderr that appears in `output_tail`? I would add that to criterion 1's recipe or as its own row.
 
    Everything else I checked is fine: the Interface names concrete modules and signatures. The smoke test commands are runnable, use no pytest, and each `Expect:` line is checkable. The placement in `factory.adapters` fits the architecture, and the story stays inside the feature's scope.
+4. 2026-10-20 human: Answers (2026-10-20):
+   1. Yes: criterion 9 gains the row where sudo refuses (status 1, `sudo: a password is required`) and the leftovers stand-in exits 1 with a fault; expected `ProjectCommandError` with the `refused the command` detail, not the leftovers one.
+   2. Yes: a row with a `leftovers` program that does not exist, expecting a detail that starts with `cannot end the agent's processes: [Errno 2] No such file or directory`.
+   3. Yes: rows for `failed` (stand-in `sudo` exits 1 with `boom`) and for refused (the second `sudo` call is recorded even when the command was refused).
+   4. The exit-status row is enough. `leftovers_fault`'s `timed_out` branch is F0027-S0002's and is tested in `tests/adapters/test_agent_launch_leftovers.py`; this story reuses it. Make the Interface say so (it reuses `leftovers_fault` as tested there) rather than suggest more, and keep the tests free of a stand-in that waits out a time limit.
+   5. Yes: criterion 1's recipe also writes a line to stderr, and that line appears in `output_tail` (`merge_stderr`).
