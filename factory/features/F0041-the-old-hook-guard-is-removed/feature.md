@@ -10,6 +10,7 @@ Since F0019 "the write guard by the kernel", every agent run starts through `fac
 - The rule R14 of the seven shipped agents under `claude/agents/` loses its hook clause (S0001).
 - `src/factory/adapters/claude_guard.py` and `src/factory/entry/guard.py` are deleted; `GUARD_COMMAND` (`factory.domain.agent_runs`), `GuardSettingsInvalid` (`factory.domain.errors`), `GuardSettings.temporary_directory`, the wiring's re-exports `judge` and `read_guard_settings`, and the preflight's search for `factory-guard` in the item `agent-environment` go (S0002).
 - The tests of the hook and of its wiring: deleted or changed under decisions 9 and 10 (S0001, S0002).
+- `tests/entry/test_watch.py`: the follow-mode search reads only the Python sources, under decision 14 (S0004, proposed by the acceptance).
 - `README.md`, `docs/operator-guide.md`, `docs/project-guide/` and `docs/decisions.md` (S0003).
 - The human's changes: the console script and the mutmut deselect in `pyproject.toml`, the R12 bullet in `CLAUDE.md`, and the operator's check after the merge.
 
@@ -32,6 +33,7 @@ The build order; start one at a time, the next when the one before is archived i
 - S0001: The Claude Code runtime registers no write hook
 - S0002: The hook's command, adapter and preflight check are removed
 - S0003: The documents describe the kernel's guard and the undo as the write guard
+- S0004: The follow-mode test reads only the Python sources (proposed by the acceptance)
 
 ## The human's changes
 
@@ -78,11 +80,15 @@ Checked against `factory/pipeline.yml`: the tester writes `tests/*`, the coder `
    - F0027 "nothing a run leaves behind reaches the checks" (S0003, removing the git-ignored files after each run) and F0030 "a command stopped at its time limit leaves no process running" (`process.py`): no overlap.
 12. **The operator guide's section *`factory-guard` on the agent run's `PATH`* is rewritten, not deleted** (the human, 2026-10-20). It becomes *The agent run's `PATH` and `HOME`*: it keeps the allow list of six names, the `PATH` of the factory's script directory (where `factory-confine` is installed) followed by `/usr/local/bin:/usr/bin:/bin`, the `HOME`, and the rule that an agent's tools must be in one of those four directories, and it names no hook. The bullet "No hook." of *What differs from Claude Code* keeps its second fact, that the denied commands of `settings.json` become `deny` permissions in opencode's run configuration. Deleting both would drop the only account of the agent run's environment. (S0003)
 13. **Five older entries of `docs/decisions.md` are marked superseded** (the human, 2026-10-20): the three S0003 named first, and also *The preflight runs the factory's own arguments once for each image build, and finds a refused `sudo` before any claim* (its item `agent-environment` searched for `factory-guard`) and *One test checks the configuration of every model; six models ignore unknown keys* (it named the hook's two models). The smoke test's count becomes `6`. (S0003)
+14. **The leave for S0004** to change a test that F0006-S0006 wrote and F0011-S0005 changed (decision 21 of F0011), proposed by the acceptance (granted, the human, 2026-10-20):
+   - `tests/entry/test_watch.py`: `test_no_source_file_knows_the_follow_mode` keeps its name and its rows `--follow` and `factory-last-line` and asserts `_files_naming(SRC, text) == []`; the new helper `_files_naming(root, text)` reads only the files `root.rglob("*.py")` gives; `_names_the_replaced_phrases` takes the root (`_names_the_replaced_phrases(root, path)`) and keeps only its `documents.py` clause. The new test `test_the_follow_mode_scan_reads_only_python_sources` (S0004's criterion 2) joins the module. No other test of the module changes.
+   - `tests/test_tests_umask.py` (F0033-S0001): `test_the_tests_umask_holds_whatever_umask_pytest_was_started_under` adds `"PYTHONDONTWRITEBYTECODE": "1"` to its child's environment, beside `PATH`, `HOME` and `TMPDIR`; it keeps its name, its four rows and its assertions.
 
 ## The human's answers (2026-10-20)
 
 - Order: F0041 is built before F0040 "agent code never runs with the factory's rights".
 - The leaves of decisions 9 and 10 are granted as listed.
+- S0002 built `tests/application/test_agent_environment_item.py` as one test, as its criterion 3 asks, not the two tests decision 10 named; the human accepts it as built (2026-10-20, from the acceptance's point 6).
 - Decision 9: the two tests `tests/adapters/test_claude_runtime_login.py::test_the_login_stands_in_no_argument_no_run_file_and_no_result` and `tests/adapters/test_claude_runtime_resume.py::test_resumed_call_sees_the_same_run_files_and_none_is_left` join its leave (pre-check `F0041-S0001-1.md`).
 - Decision 12: the operator guide's factory-guard section is rewritten as *The agent run's `PATH` and `HOME`*, not deleted; the `PATH` and `HOME` facts and opencode's deny-permissions fact stay.
 - Decision 13: the preflight-probe entry and the six-models entry of `docs/decisions.md` are marked superseded too; the smoke count becomes `6`.
