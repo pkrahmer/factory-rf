@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T01:29:59.714867Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T01:29:39.335978Z'
   stage: tests
   run: c0bcf80516a1406482af751d23fe8f40
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:29:59.714867Z'
+  stage: doing
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -118,3 +127,4 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.8 s)
+6. factory: started doing as self.
