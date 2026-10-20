@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T01:50:30.248029Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T01:50:30.241730Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:50:30.248029Z'
+  stage: intake
+---
+
 # The tests pin seven small rules on both sides
 
 ## Description
@@ -62,3 +89,6 @@ EOF
 Expect: four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
