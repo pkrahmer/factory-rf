@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 328
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T03:57:40.847703Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T03:57:20.291505Z'
   stage: tests
   run: a0c12a0503ad410d8ab44a40ea4c705b
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:57:40.847703Z'
+  stage: doing
 ---
 
 # The reviewer corrects a stale Description itself
@@ -104,3 +113,4 @@ Expect: `1`
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_agent_texts_description.py::test_description_correction_sits_between_added_criterion_and_stage[before-stage]
+6. factory: started doing as self.
