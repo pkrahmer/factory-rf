@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 344
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T08:32:30.154147Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T08:32:30.154147Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T08:32:55.098749Z'
+  stage: intake
+  run: 666dcf1c80fe48529683aa97ad662cf0
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -119,3 +121,9 @@ Expect: `pid=77 session=70 ended=True`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names `factory.domain.sessions` (`ENDED_STATES`, `ProcessEntry`, `parse_stat`, `left_to_kill`) with signatures, and `_kill_group` → `_kill_session` in `factory.adapters.process` with the call sites, the rounds, the 0.05 s wait and the unchanged parts. Concrete enough for two coders to build the same thing.
+   - Criteria: each is testable by a parametrized test function. Every `parse_stat` rule has a row on both sides (the state set, the last `)`, the missing `)`, three fields, `x`, `-1`). `left_to_kill` has a row per clause (session, ended, refused, ordering, duplicates, empty). The `ProcessEntry` limits are tested at 0 and 1 for `pid`, and at -1 and 0 for `session`. The time-limit, stop and error paths are covered for both runners, with the `setsid` edge pinned. The sudo paths are pinned by existing tests (criterion 7). Three adapter clauses have no row of their own: the suppressed `ProcessLookupError`, the skipped unreadable `/proc` folder, and the `refused` handling of a `PermissionError`. All three need a mock or a second user, and the story says so for `refused`, so I accepted them as covered by the end-to-end rows.
+   - Smoke test: the commands are runnable. Neither block runs pytest, so the `-q` in `addopts` does not matter. Each `Expect:` is checkable against the output (`time_limit gone` and `0`; `pid=77 session=70 ended=True`).
+   - Architecture: the pure parsing and selection sit in the domain with no I/O. The `/proc` reading and the signals sit in the adapter, which is the only module that starts processes, and no new wrapper, dependency or suppression marker is added.
+   - Scope: within F0030's Scope. It touches none of the Out-of-scope items (the `Makefile` recipe, the TERM before the KILL, `setsid` processes, other users' processes, the pipeline file). It changes no earlier test.
