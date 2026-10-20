@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 369
 comments_read: [6303767591]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T23:13:47.891146Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-20T23:13:27.298735Z'
   stage: review
   run: 8d5828725ea346e39a041130e63d2d06
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:13:47.891146Z'
+  stage: docs
 ---
 
 # The work tree's id sees a change made in the tick of the last index write
@@ -186,3 +195,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Work item hygiene: the Description matches what was built (only the copy changed, signature and other rules as before). The coder's entry gives the main choice and what was rejected (`copyfile` plus `copystat`/`utime`). The docs criterion still names what the documenter must write.
 
     Earlier tests: none. The diff only adds `tests/adapters/test_git_cli_work_tree_tick.py`, with status `A`.
+13. factory: started docs as self.
