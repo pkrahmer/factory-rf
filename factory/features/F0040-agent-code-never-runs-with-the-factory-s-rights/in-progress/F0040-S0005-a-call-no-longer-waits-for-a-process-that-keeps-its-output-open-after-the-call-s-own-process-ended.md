@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 363
 comments_read: [6300695093]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T20:38:59.344152Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-20T20:38:37.251527Z'
   stage: review
   run: 2b9854b100ff4e84b1321bfbd9fec8dd
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:38:59.344152Z'
+  stage: docs
 ---
 
 # A call no longer waits for a process that keeps its output open after the call's own process ended
@@ -276,3 +285,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
       - Criterion 9 (docs) still names everything the reader must know after this story.
 
     Earlier tests: none. The diff only adds `tests/adapters/test_process_drain.py` (status `A`). It changes no earlier test file and copies no helper: it imports `Recorder`, `is_gone` and `python_argv` from `tests/process_support.py`.
+13. factory: started docs as self.
