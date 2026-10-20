@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T15:02:43.317932Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-20T15:02:21.894103Z'
   stage: tests
   run: 43cea450362e46c887bc19beb33c6aca
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:02:43.317932Z'
+  stage: doing
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -232,3 +241,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/application/test_tick.py::test_the_restore_discards_changes_and_names_them_in_one_line - AssertionError: assert not True
+9. factory: started doing as self.
