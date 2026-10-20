@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T02:43:57.777739Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T02:43:57.777739Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T02:46:00.024179Z'
+  stage: doing
+  run: 3fa5923a279b468ebb1cb02ba2d46720
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -121,3 +123,12 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
    `lint`: lint: green (0.0 s)
    `test`: test: green (47.6 s)
 6. factory: started doing as self.
+7. coder: I built nothing, because the story needs no code. The Interface says no module under `src/factory/` changes, and the tester's three new tests pass against the code as it is: `tests/application/test_dispatcher_without_state.py`, `tests/application/test_board_in_progress.py` and `tests/application/test_agent_run_probe_factory_user.py`. The tester skipped the type check, so I ran `make check` to cover the new tests under `mypy --strict`. Every target is green and it ends with `check: green` (`test: green (46.9 s)`, coverage 99.14 %).
+
+   - Main choice: leave `src/` alone, as the Interface says. The alternative I rejected was any change to the code. That would go beyond the description (R13), and nothing is failing.
+   - Refactor: there was nothing to read. `git diff main -- . ':!factory' ':!tests'` is empty, and there are no new files outside `factory/` and `tests/`.
+   - Description: no journal entry changed the meaning of the task, so it stays as written.
+   - Noticed, not touched: none.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
