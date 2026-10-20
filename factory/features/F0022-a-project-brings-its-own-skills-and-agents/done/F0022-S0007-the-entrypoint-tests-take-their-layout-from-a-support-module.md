@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-20T00:02:21.578589Z'
   stage: smoke-test
   run: 3928de28ad3245a6bf70804cdd750bf0
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-20T00:03:43.489800Z'
+  stage: approval
 ---
 
 # The entrypoint tests take their layout from a support module
@@ -345,3 +350,4 @@ Expect: `exit 0`
     - Criterion 4: I did not run `make check`. The factory's `make check` was green on this tree (entry 19).
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 7.3 min, 58 turns, 192013 tokens in (1057262 more from cache), 18374 out, $1.93
