@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T07:31:10.248415Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-20T07:30:49.231721Z'
   stage: tests
   run: 6e6c935b9dfa4b4d9fac6934bed47e11
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:31:10.248415Z'
+  stage: doing
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -247,3 +256,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.0 s)
     `test`: test: green (80.6 s)
+14. factory: started doing as self.
