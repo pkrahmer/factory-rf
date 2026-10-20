@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 331
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T04:15:09.330803Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T04:15:09.330803Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T04:15:33.738366Z'
+  stage: docs
+  run: 1336af79a1ac485280e06ccf29a4ec3f
 ---
 
 # The playbook and the project guide say the reviewer corrects a stale Description
@@ -148,3 +150,22 @@ Expect: two lines, `0` (the count of three is gone) and a number of at least `1`
       The three *Role* paragraphs the docs criterion names are at `claude/agents/reviewer.md:66`, `:68` and `:70`. So the criterion still tells the documenter what to write.
    6. Earlier tests: the diff changes no test file. None needed.
 10. factory: started docs as self.
+11. documenter: Files changed:
+    - `docs/operator-playbook.md`: three edits.
+      - Section 3, the bullet on a stale Description, now says the reviewer rewrites it when the human's answers, the Interface or the criteria settle it (F0034). It says an answer is enough, and that the reviewer names each correction as `description corrected:`. "Until a story gives the reviewer that edit" is gone.
+      - The section 5 row on the refused push now ends with "the reviewer rewrites a stale Description (F0034)" in place of "(a story to draft)".
+      - The section 7 row "A stale Description corrected through the journal" now has the state `built (F0034, the reviewer may correct a stale story Description)`.
+    - `docs/project-guide/agents.md`, *The seven agents*: "Three passages are v1.1's own text" is now "Six passages". The three listed ones stay. The other three are the reviewer's *Role* paragraphs: the `Notes:` from round 1 on, the added criterion (F0021-S0005), and the correction of a stale Description (F0034-S0001). The smoke test expects the count of three to be gone, so I rewrote the sentence's opening. The criterion's wording would have kept it.
+    - `docs/project-guide/agents.md`, *Replaced from v1*: the renaming table's lead-in now says "except the six passages", the same count.
+
+    Not changed: item 17 of *What changed against the draft*, as the criterion says. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none, since F0034-S0001 already wrote them.
+
+    I checked the new text against `claude/agents/reviewer.md`, *Role*, lines 66 to 70. I ran the smoke-test greps: the three old strings are gone, the new section 7 state appears once, and `Three passages are v1.1` appears 0 times in `agents.md`. I ran `make check` neither before nor after the edits.
+
+    Cross-read and found current: `README.md`, `docs/operator-guide.md`, `docs/decisions.md` (*The reviewer corrects a stale Description*). `agents.md` has no other mention of the old count.
+
+    Stale text I saw but did not touch: none. Findings: none.
+
+    `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok
