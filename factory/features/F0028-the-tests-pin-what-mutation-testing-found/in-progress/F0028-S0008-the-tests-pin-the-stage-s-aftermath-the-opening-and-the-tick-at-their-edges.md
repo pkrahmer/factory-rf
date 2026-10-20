@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 319
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T02:30:09.113580Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T02:30:09.113580Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T02:34:09.004690Z'
+  stage: tests
+  run: 7c2013ef472c400b98ddde529d926ffa
 ---
 
 # The tests pin the stage's aftermath, the opening and the tick at their edges
@@ -111,3 +113,30 @@ Expect: four lines, `None`, `Stalled (attempt 1 of 2): the agent gave no valid d
    Architecture: tests only, under `tests/` mirroring `application/`, with shared helpers in a root support module as CLAUDE.md allows. Nothing is built in a layer and no code changes.
    Scope: it is within F0028 (S0008 in the feature's scope and stories list) and touches nothing in "Out of scope"; the equivalent mutants (decision 10) are left out as the Description says.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 5. The story pins behaviour the code already has, so the tests pass now instead of failing first. `make test` ended `test: green (48.5 s)` and `make lint` is green. I skipped the type check as the stage says. The coder's `make check` will cover it.
+
+   Mapping:
+   - criterion 1: tests/application/test_after_agent_edges.py::test_an_empty_entry_stalls_as_no_result (rows `empty` with entry `""`, `role-name-only` with entry `tester:`)
+   - criterion 2: tests/application/test_after_agent_edges.py::test_only_findings_beyond_the_count_before_the_run_are_new (rows `as-many-as-before` with TWICE: no stall, rule 1; `one-more-than-before` with THRICE: `form_invalid` and the exact note naming line 27)
+   - criterion 3: tests/application/test_opening_journal_edges.py::test_a_body_with_sections_and_no_journal_gets_the_journal_at_its_end
+   - criterion 4: tests/application/test_tick_stop_details.py::test_a_repository_stop_carries_the_errors_text_as_its_detail (rows `fetch` and `restore`. The failing gits are `GitCli` subclasses `FailingFetch` and `FailingReset`, built on `tmp_path / CHECKOUT` with `GitOptions(kill_points=kill_points, identity=TEST_IDENTITY)`, and the tick runs on `replace(boundaries, git=...)`)
+   - criterion 5: tests/application/test_tick_stop_details.py::test_the_error_cap_of_an_event_without_a_work_item_is_written_to_the_factory_log
+   - criterion 6 (`make check`) and criterion 7 (docs: none): no test.
+
+   Files created: tests/tick_support.py, tests/application/test_after_agent_edges.py, tests/application/test_opening_journal_edges.py, tests/application/test_tick_stop_details.py.
+
+   Earlier test files changed under the standing leave of CLAUDE.md (*Tests*), as the Interface names them. Every test keeps its name and checks the same thing:
+   - tests/application/test_tick.py: its `_factory` was removed and it now imports `handlers_of` from `tick_support`.
+   - tests/application/test_tick_stale_branch.py: its copy of `_factory` was removed and it now imports `handlers_of`.
+   - tests/application/test_dispatcher.py: its `Failing` was moved to `tick_support` and it now imports it from there.
+   - Unused imports in these three files were dropped.
+   - `test_tick.py` still has its own `Failing` class. It has no arguments, records into `.events` and raises `RuntimeError`. The Interface names only the dispatcher's `Failing` for the move, so I left this one alone.
+
+   Modules the test run could not import: none. Everything under test already exists.
+
+   Rejected: building the failing gits by mocking `GitCli`. The Interface asks for subclasses, and the code under test is not mocked.
+
+   Open: nothing.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (46.3 s)

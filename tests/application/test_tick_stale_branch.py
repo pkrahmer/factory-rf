@@ -1,7 +1,6 @@
 """The tick deletes the branch a killed discard left behind, between the restore and evaluation."""
 
 import os
-from collections.abc import Mapping
 from pathlib import Path
 
 import pytest
@@ -11,8 +10,8 @@ from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
 from factory.application.handlers.closed import ClosedHandler
-from factory.application.tick import HandlerFactory, IdleHandler, Tick, TickOutcome
-from factory.domain.events import Event, EventKind
+from factory.application.tick import IdleHandler, Tick, TickOutcome
+from factory.domain.events import Event
 from factory.domain.identifiers import branch_name
 from factory.domain.journal import HUMAN, JournalRecord
 from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
@@ -25,6 +24,7 @@ from factory.domain.work_item import (
 )
 from git_support import CHECKOUT, PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
+from tick_support import handlers_of
 
 INSTANCE = "factory-1"
 WORK_ITEM = "F0001-S0001"
@@ -47,13 +47,6 @@ class Recording(Handler):
 
 def _definition(boundaries: Boundaries) -> PipelineDefinition:
     return boundaries.pipeline_reader.parse(PIPELINE_YAML)
-
-
-def _factory(handlers: Mapping[EventKind, Handler]) -> HandlerFactory:
-    def build(_definition: PipelineDefinition) -> Mapping[EventKind, Handler]:
-        return handlers
-
-    return build
 
 
 def _discard_killed_after_push(
@@ -119,7 +112,7 @@ def test_the_next_tick_deletes_the_branch_a_killed_discard_left_and_stays_idle(
     boundaries: Boundaries, checkout: GitCli
 ) -> None:
     recording = Recording()
-    tick = Tick(boundaries, INSTANCE, _factory({"idle": IdleHandler(), "run": recording}))
+    tick = Tick(boundaries, INSTANCE, handlers_of({"idle": IdleHandler(), "run": recording}))
 
     outcome = tick.run()
 
@@ -135,7 +128,7 @@ def test_a_story_started_again_after_the_cleanup_starts_from_the_first_stage(
     boundaries: Boundaries, human: HumanClone
 ) -> None:
     recording = Recording()
-    tick = Tick(boundaries, INSTANCE, _factory({"idle": IdleHandler(), "run": recording}))
+    tick = Tick(boundaries, INSTANCE, handlers_of({"idle": IdleHandler(), "run": recording}))
     tick.run()
     human.start(BACKLOG_PATH)
 
@@ -156,7 +149,7 @@ def test_a_tick_that_ends_at_a_repository_stop_deletes_nothing(
     human.push_file(BRANCH, "marker.txt", "x\n")
     checkout.fetch()
     before = remote_commit(remote, BRANCH)
-    tick = Tick(boundaries, INSTANCE, _factory({"idle": IdleHandler(), "run": Recording()}))
+    tick = Tick(boundaries, INSTANCE, handlers_of({"idle": IdleHandler(), "run": Recording()}))
 
     outcome = tick.run()
 
@@ -188,7 +181,7 @@ def test_a_tick_that_ends_at_the_restore_stop_deletes_nothing(
     locked.mkdir()
     (locked / "file.txt").write_text("cannot be removed\n", encoding="utf-8")
     locked.chmod(0o555)
-    tick = Tick(boundaries, INSTANCE, _factory({"idle": IdleHandler(), "run": Recording()}))
+    tick = Tick(boundaries, INSTANCE, handlers_of({"idle": IdleHandler(), "run": Recording()}))
     try:
         outcome = tick.run()
     finally:
@@ -216,7 +209,7 @@ def test_a_tick_that_ends_at_the_fetch_stop_tries_no_deletion(
     human.push_file(BRANCH, "marker.txt", "x\n")
     checkout.fetch()
     away = remote.rename(tmp_path / "away.git")
-    tick = Tick(boundaries, INSTANCE, _factory({"idle": IdleHandler(), "run": Recording()}))
+    tick = Tick(boundaries, INSTANCE, handlers_of({"idle": IdleHandler(), "run": Recording()}))
 
     outcome = tick.run()
 
