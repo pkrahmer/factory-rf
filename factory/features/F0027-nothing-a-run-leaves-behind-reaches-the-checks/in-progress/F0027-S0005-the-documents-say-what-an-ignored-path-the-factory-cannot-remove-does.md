@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 359
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T19:29:45.652800Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T19:29:24.691883Z'
   stage: docs
   run: f64e060ee1354d6197750143c143ef61
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:29:45.652800Z'
+  stage: smoke-test
 ---
 
 # The documents say what an ignored path the factory cannot remove does
@@ -183,3 +192,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 416ad76bbc59 at 2026-10-20T19:16:27Z)
     `secrets`: secrets: green (2.2 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
