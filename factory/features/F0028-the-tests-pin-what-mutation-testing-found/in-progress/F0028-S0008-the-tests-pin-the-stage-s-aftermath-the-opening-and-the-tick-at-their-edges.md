@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 319
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T02:29:31.607110Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:29:31.613661Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T02:29:48.567204Z'
+  stage: intake
+  run: 6647a6b51df04e93904184cb58c50319
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:30:09.113580Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T02:34:09.004690Z'
+  stage: tests
+  run: 7c2013ef472c400b98ddde529d926ffa
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:34:29.411930Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T02:36:39.100594Z'
+  stage: doing
+  run: 78d05e7caecb46adad01bd79ae2b4137
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:37:00.474977Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T02:37:35.584012Z'
+  stage: review
+  run: 2be74335efb64a88bcdb9ef5a6ead627
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:37:56.287735Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T02:38:08.344475Z'
+  stage: docs
+  run: 59c0279c1f414f01bb5bb57d78480f0d
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:38:29.813542Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T02:38:45.680076Z'
+  stage: smoke-test
+  run: 484dd0a90dbb4b328f174e3e5502cd4d
+---
+
 # The tests pin the stage's aftermath, the opening and the tick at their edges
 
 ## Description
@@ -63,3 +147,111 @@ EOF
 Expect: four lines, `None`, `Stalled (attempt 1 of 2): the agent gave no valid decision and entry: the entry is empty. Retrying on the next tick.`, `git fetch failed (exit 128): fatal: the remote end hung up` and `idle:-`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures (`AfterAgent.process`, `WorkItemOpening.prepare(work_item, path)`, `Tick.run()`), states that no module under `src/factory/` changes, and names the test files, the support modules and the shared helper move (`handlers_of`, `Failing` in `tests/tick_support.py`) under the standing leave, with the three earlier test files the tester must name.
+   Criteria: all five behaviour criteria are each testable by one test function with exact expected values. The empty entry has both rows (`""` and `tester:`). The form findings have the old-only side (`TWICE`, no stall, rule 1) and the new-finding side (`THRICE`, `form_invalid`). The opening has the missing-journal case. The tick has both stops with exact details, and the error cap has its log line. Criteria 6 (`make check`) and 7 (`docs: none`) close the list. The Interface states no limit or rejected input without a failing-side criterion. I did not run the numbers (for example "line 27") against the code; the tester will find out if they are wrong.
+   Smoke test: it is a runnable `uv run -q python` heredoc using existing domain functions, and its `Expect:` line lists four checkable output lines.
+   Architecture: tests only, under `tests/` mirroring `application/`, with shared helpers in a root support module as CLAUDE.md allows. Nothing is built in a layer and no code changes.
+   Scope: it is within F0028 (S0008 in the feature's scope and stories list) and touches nothing in "Out of scope"; the equivalent mutants (decision 10) are left out as the Description says.
+4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 5. The story pins behaviour the code already has, so the tests pass now instead of failing first. `make test` ended `test: green (48.5 s)` and `make lint` is green. I skipped the type check as the stage says. The coder's `make check` will cover it.
+
+   Mapping:
+   - criterion 1: tests/application/test_after_agent_edges.py::test_an_empty_entry_stalls_as_no_result (rows `empty` with entry `""`, `role-name-only` with entry `tester:`)
+   - criterion 2: tests/application/test_after_agent_edges.py::test_only_findings_beyond_the_count_before_the_run_are_new (rows `as-many-as-before` with TWICE: no stall, rule 1; `one-more-than-before` with THRICE: `form_invalid` and the exact note naming line 27)
+   - criterion 3: tests/application/test_opening_journal_edges.py::test_a_body_with_sections_and_no_journal_gets_the_journal_at_its_end
+   - criterion 4: tests/application/test_tick_stop_details.py::test_a_repository_stop_carries_the_errors_text_as_its_detail (rows `fetch` and `restore`. The failing gits are `GitCli` subclasses `FailingFetch` and `FailingReset`, built on `tmp_path / CHECKOUT` with `GitOptions(kill_points=kill_points, identity=TEST_IDENTITY)`, and the tick runs on `replace(boundaries, git=...)`)
+   - criterion 5: tests/application/test_tick_stop_details.py::test_the_error_cap_of_an_event_without_a_work_item_is_written_to_the_factory_log
+   - criterion 6 (`make check`) and criterion 7 (docs: none): no test.
+
+   Files created: tests/tick_support.py, tests/application/test_after_agent_edges.py, tests/application/test_opening_journal_edges.py, tests/application/test_tick_stop_details.py.
+
+   Earlier test files changed under the standing leave of CLAUDE.md (*Tests*), as the Interface names them. Every test keeps its name and checks the same thing:
+   - tests/application/test_tick.py: its `_factory` was removed and it now imports `handlers_of` from `tick_support`.
+   - tests/application/test_tick_stale_branch.py: its copy of `_factory` was removed and it now imports `handlers_of`.
+   - tests/application/test_dispatcher.py: its `Failing` was moved to `tick_support` and it now imports it from there.
+   - Unused imports in these three files were dropped.
+   - `test_tick.py` still has its own `Failing` class. It has no arguments, records into `.events` and raises `RuntimeError`. The Interface names only the dispatcher's `Failing` for the move, so I left this one alone.
+
+   Modules the test run could not import: none. Everything under test already exists.
+
+   Rejected: building the failing gits by mocking `GitCli`. The Interface asks for subclasses, and the code under test is not mocked.
+
+   Open: nothing.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (46.3 s)
+6. factory: started doing as self.
+7. coder: Built nothing. The story pins behaviour the code already has, and its Interface says no module under `src/factory/` changes. The tester's tests (tests/application/test_after_agent_edges.py, tests/application/test_opening_journal_edges.py, tests/application/test_tick_stop_details.py, plus the shared tests/tick_support.py) pass against the code as it stands. I ran `make check` in the foreground and it ended `test: green (48.1 s)` and `check: green`, with total coverage at 99.14 %.
+
+   Main choice: I left `src/` alone. The alternative I rejected was making changes so the diff has something in it, which would go beyond the description (R13).
+
+   Refactor: there is no coder diff to review, so nothing was changed.
+
+   Description: the journal did not change what the task means, so the Description stays as it is.
+
+   Noticed but not touched: as the tester's entry says, `tests/application/test_tick.py` still has its own argument-free `Failing` class that records `.events`. It is separate from the shared `Failing` in `tests/tick_support.py`. The Interface did not name it for the move.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the work item and `git diff main...HEAD -- . ':!factory'`: three new test modules, the new shared `tests/tick_support.py`, and three earlier test files changed. Nothing under `src/` changed.
+
+   Acceptance criteria:
+   - Criterion 1 is `test_an_empty_entry_stalls_as_no_result` in `tests/application/test_after_agent_edges.py`. Its two rows are `""` and `tester:`. Each checks for exactly one factory post and asserts its exact first line.
+   - Criterion 2 is `test_only_findings_beyond_the_count_before_the_run_are_new`. The `TWICE` row checks no stall and `rule == 1`. The `THRICE` row checks `form_invalid` and the exact note about line 27 in the last post. Both sides of the count are covered.
+   - Criterion 3 is in `tests/application/test_opening_journal_edges.py` and asserts the exact body.
+   - Criterion 4 is `test_a_repository_stop_carries_the_errors_text_as_its_detail` in `tests/application/test_tick_stop_details.py`. Its two rows use the `GitCli` subclasses `FailingFetch` and `FailingReset`, built as the Interface says, and the tick runs on `replace(boundaries, git=...)`. `reset_to` is what `tick.py:183` calls during the restore.
+   - Criterion 5 is in the same file. It checks the outcomes error, error, reported and the exact `error cap` log line.
+
+   The coder's journal entry says `make check` ended with `check: green`.
+
+   Architecture and security: only tests changed. The diff adds no markers that silence a check, no secrets, and no shell built from strings.
+
+   Quality: the helpers are moved to one shared place, not copied again. The failing gits are small subclasses, not mocks. Everything has module and class docstrings.
+
+   Work item hygiene: the journal explains the main choice (leave `src/` alone) and what was rejected. The Description matches what was built, and "docs: none" still holds.
+
+   Earlier tests:
+   - `tests/application/test_dispatcher.py`: changed under the standing leave to move a shared test helper. `Failing` moved to `tests/tick_support.py` and is imported from there. Every test keeps its name and checks the same thing.
+   - `tests/application/test_tick.py`: changed under the standing leave to move a shared test helper. `_factory` was replaced by the shared `handlers_of`, and two imports that are no longer used were dropped. Every test keeps its name and checks the same thing.
+   - `tests/application/test_tick_stale_branch.py`: changed under the standing leave to move a shared test helper. Its copy of `_factory` was replaced by `handlers_of`, and the imports that are no longer used were dropped. Every test keeps its name and checks the same thing.
+10. factory: started docs as self.
+11. documenter: Docs: none, as the docs criterion says. I changed no file. The diff is tests only (`tests/application/test_after_agent_edges.py`, `test_opening_journal_edges.py`, `test_tick_stop_details.py`, the new `tests/tick_support.py`, and the helper move in `test_dispatcher.py`, `test_tick.py` and `test_tick_stale_branch.py`). Nothing under `src/factory/` changed.
+
+    Cross-read and found current: `docs/operator-guide.md`. Its stop table (lines 846 and 849) gives `fetch_failed` and `checkout_restore_failed` with git's message as the detail. Line 1401 gives the error-cap log line `error cap reached on <event>: <last error>` for an event without a work item. Both match what the new tests pin.
+
+    I did not run `make check`, because I changed no file outside the documents (none at all). The factory's checks run after this stage.
+
+    Nothing stale noticed. No findings.
+
+    `check`: check: green (not run again: passed on tree d2877c496152 at 2026-10-20T02:35:43Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: no findings.
+
+    I ran the one command under `## Smoke test` from the repository root, exactly as written. It exited 0.
+
+    ```
+    None
+    Stalled (attempt 1 of 2): the agent gave no valid decision and entry: the entry is empty. Retrying on the next tick.
+    git fetch failed (exit 128): fatal: the remote end hung up
+    idle:-
+    ```
+
+    It met its `Expect:` line. It printed four lines, each the one expected and in the expected order: `None`, the stall note, the `FetchFailed` text, and `idle:-`.
+
+    The acceptance criteria compared with this output:
+    - Criterion 1: the stall note's text is exactly the first line criterion 1 expects. `agent_entry` returns `None` for an entry that is only `tester:`, which agrees with the `no_result` stall that criterion pins.
+    - Criterion 4: `str(FetchFailed(...))` is exactly the `fetch_failed` detail that criterion 4 expects. `GitError` has the same form, so the `git reset failed (exit 128): ...` detail fits too.
+    - Criterion 5: an event without a work item has the key `idle:-`, which agrees with the log line `error cap reached on idle:-: RuntimeError: handler failed`.
+    - Criteria 2 and 3 are not touched by the smoke test, and nothing in its output contradicts them.
+    - Criteria 6 and 7: the earlier entries record `make check` as green and docs as none. The smoke test gives nothing against them.
+
+    Nothing was changed. Open: nothing.

@@ -15,13 +15,12 @@ from factory.adapters.git_cli import GitCli
 from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
-from factory.application.tick import HandlerFactory, IdleHandler, Tick, TickOutcome
+from factory.application.tick import IdleHandler, Tick, TickOutcome
 from factory.domain.errors import PushFailed, WorkItemFormatError
 from factory.domain.events import Event, EventKind
 from factory.domain.git import GitOptions, PushOutcome
 from factory.domain.hosting import PullRequestComment, PullRequestView
 from factory.domain.identifiers import branch_name
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 from git_support import (
     CHECKOUT,
@@ -33,6 +32,7 @@ from git_support import (
 from human_clone import HumanClone
 from log_support import log_lines
 from source_search import SRC
+from tick_support import handlers_of
 
 INSTANCE = "factory-1"
 WORK_ITEM = "F0001-S0001"
@@ -156,15 +156,8 @@ class _CountingHosting(FakeHostingService):
 pytestmark = pytest.mark.usefixtures("installed_agents")
 
 
-def _factory(handlers: Mapping[EventKind, Handler]) -> HandlerFactory:
-    def build(_definition: PipelineDefinition) -> Mapping[EventKind, Handler]:
-        return handlers
-
-    return build
-
-
 def _tick(boundaries: Boundaries, handlers: Mapping[EventKind, Handler]) -> Tick:
-    return Tick(boundaries, INSTANCE, _factory(handlers))
+    return Tick(boundaries, INSTANCE, handlers_of(handlers))
 
 
 def _push_state(human: HumanClone, state: WorkItemState, *, path: str = PATH) -> None:
@@ -654,7 +647,7 @@ def test_the_tick_keeps_its_status_across_ticks_and_a_restart_counts_from_one(
     assert len(tick.status.errors) == 1
     assert tick.status.errors[0].count == 2
 
-    restarted = Tick(boundaries, INSTANCE, _factory(handlers))
+    restarted = Tick(boundaries, INSTANCE, handlers_of(handlers))
     restarted.run()
 
     assert len(restarted.status.errors) == 1

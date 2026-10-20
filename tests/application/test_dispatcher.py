@@ -20,6 +20,7 @@ from factory.domain.tick_status import ErrorCount, TickStatus, find_error, recor
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, initial_state
 from git_support import remote_commit
 from human_clone import HumanClone
+from tick_support import Failing
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = "work-item/F0001-S0001"
@@ -38,18 +39,6 @@ class Succeeding(Handler):
 
     def handle(self, event: Event) -> None:
         self.calls.append(event)
-
-
-class Failing(Handler):
-    """Records every event it is handed and raises the given error."""
-
-    def __init__(self, error: BaseException | None = None) -> None:
-        self.calls: list[Event] = []
-        self._error = error if error is not None else ValueError("boom")
-
-    def handle(self, event: Event) -> None:
-        self.calls.append(event)
-        raise self._error
 
 
 class FailingOnce(Handler):
