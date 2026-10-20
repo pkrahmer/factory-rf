@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 331
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T04:10:46.013567Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T04:10:46.013567Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T04:11:45.967525Z'
+  stage: tests
+  run: 4729b9ed095a4a68b0b625a693feef3c
 ---
 
 # The playbook and the project guide say the reviewer corrects a stale Description
@@ -82,3 +84,12 @@ Expect: two lines, `0` (the count of three is gone) and a number of at least `1`
    Architecture: documents only, within the documenter's write paths (README.md, docs/*). The playbook is named by the docs criterion, as CLAUDE.md *Docs* allows. No layer is touched.
    Scope: within F0034's goal of bringing the docs in line with the reviewer's new rule. The out-of-scope items (agent texts, tests, decisions, archived stories) are respected, and item 17 stays as it is. Two things to note. The feature's Scope and Stories lists name only S0001 and the playbook; agents.md and S0002 are not in them. S0002 was proposed by the acceptance reviewer and reached backlog through the human's merge, so I took it as approved. I did not ask.
 4. factory: started tests as self.
+5. tester: No tests written. The Interface says no module under src/factory/ changes and the tester writes no test module. This story only changes documents, so no criterion has an executable form.
+   criterion 1 (`make check` stays green): no test of its own. The factory's checks cover it.
+   criterion 2 (docs: operator-playbook.md sections 3/5/7, project-guide/agents.md *The seven agents*): no test. The documenter writes it, and the docs stage's `make documents` and the story's smoke test check it.
+   Files created: none.
+   Modules the test run could not import: none. No new test exists, so the branch has no red tests and the existing suite is unchanged.
+   `make lint`: green. I did not run `make test`, because no test changed and the factory runs it after this stage. Nothing was interpreted and nothing is open.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (45.9 s)
