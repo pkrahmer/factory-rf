@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 305
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T00:06:51.277228Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T00:06:51.277228Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T00:07:53.088847Z'
+  stage: doing
+  run: adee967a81d64392892fc6fabc934758
 ---
 
 # The second-user section names the API login and opencode's run files
@@ -112,3 +114,11 @@ Expect: `documents ok`
    `lint`: lint: green (0.0 s)
    `test`: test: green (37.1 s)
 6. factory: started doing as self.
+7. coder: No code written: this story only changes docs. Its Interface is "None", and the tester left no red tests.
+   - Criterion 1: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. This stage changed no file. `git status --short` shows only the factory's own costs sidecar.
+   - Criterion 2: I ran `make check` in the foreground and it was green (`test: green (40.0 s)`, coverage 99.13 %, `check: green`).
+   - Criterion 3 is for the documenter: it changes `docs/operator-guide.md`, section *The agent runs as a second user*. The coder does not write docs.
+   Main choice: hand forward with no change. The alternative I rejected was editing the operator guide in this stage, because docs are outside the coder's work under `CLAUDE.md` *Docs*. Refactor step: there is no diff, so there was nothing to refactor. The journal did not change what the task means, so `## Description` is unchanged. I noticed nothing that I left untouched.
+
+   `check`: check: green (not run again: passed on tree 7897e571521e at 2026-10-19T23:58:37Z)
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
