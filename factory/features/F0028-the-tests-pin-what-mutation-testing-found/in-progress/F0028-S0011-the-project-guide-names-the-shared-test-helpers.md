@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 333
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T04:29:07.104269Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T04:28:46.461155Z'
   stage: doing
   run: 9028c0d354e44dd5bc2d6251896287dd
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:29:07.104269Z'
+  stage: review
 ---
 
 # The project guide names the shared test helpers
@@ -116,3 +125,4 @@ Expect: `1`
 
    `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
