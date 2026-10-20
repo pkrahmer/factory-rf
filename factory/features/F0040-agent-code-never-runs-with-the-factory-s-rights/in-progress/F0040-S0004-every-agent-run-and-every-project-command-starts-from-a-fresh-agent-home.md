@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T22:19:02.099363Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -142,6 +138,12 @@ journal:
   kind: started
   at: '2026-10-20T22:19:02.099363Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-20T22:19:23.255457Z'
+  stage: doing
+  run: c3050a69108c46ad92ef585ed1301b0d
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -442,3 +444,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests:
     - tests/test_wrapper_search.py: the human's leave, the feature's decision 14, named in the story's Interface. The only change adds `factory.adapters.agent_home` to the expected importers, which is within that leave.
 24. factory: started doing as self.
+25. coder: Round 1. The reviewer added criterion 12 (entry 23, finding 1). It needs only a test, so I changed no code and am sending the work item to the tests stage.
+
+    **The test to write:** add one test to `tests/adapters/test_sudo_agent_home.py` for criterion 12, the factory's own kill at the limit:
+    - Replace `factory.adapters.agent_home.run_process` through the same seam criterion 11 uses (monkeypatch with the shared `Recorder`). Make it return `timed_out` true, `exit_status` `None` and empty standard error.
+    - Expect `reset` to raise `AgentRuntimeError` whose `detail` is `cannot reset the agent's home <home>: no end within 60 s`.
+
+    The code already covers this case: `src/factory/adapters/agent_home.py:80` checks `result.timed_out or killed_at_limit(...)`. Today no test reaches the `timed_out` side. I checked: the file's test functions cover criteria 1, 5, 6, 7 and 11, and none returns `timed_out` true.
+
+    **Finding 2** (`-B` is missing in the work item's `## Interface`, criteria 5 and 10, the docs criterion and the first smoke test's `program`): this needs no change to code or tests. The code (`src/factory/entry/wiring.py`, `fresh_home_command()`) and the tests already use `-I -B`. The fix is in the work item, which is outside my write paths (entries 17 and 21), so I did not touch it. A stage that can write the work item, or the human, should add `-B` after `-I` in those five places.
+
+    **What the journal changed:** criterion 12 is new, and the closing criteria are now 13 and 14. The reviewer already carried both into the Description.
+
+    **Not run:** I did not run `make check` this round because nothing in the working tree changed. The last green run is entry 21's.
+
+    **Built earlier and unchanged:**
+    - `src/factory/application/agent_home.py`
+    - `src/factory/adapters/agent_home.py`
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py` (`LOGIN_STATE_FILE`)
+    - `src/factory/application/boundaries.py`
+    - `src/factory/application/sealed_runs.py`
+    - `src/factory/entry/wiring.py`
+
+    The main choice, kept from entry 17: the reset comes before the `try`/`finally`, so a failed reset neither starts the run nor checks the seal. I rejected putting it inside the `try`, because the seal check could then hide the reset's own error.
+
+    **Noticed, not touched:** `leftovers_command()` in `src/factory/entry/wiring.py` still starts its program with `-I` and no `-B`. That is outside this story.
