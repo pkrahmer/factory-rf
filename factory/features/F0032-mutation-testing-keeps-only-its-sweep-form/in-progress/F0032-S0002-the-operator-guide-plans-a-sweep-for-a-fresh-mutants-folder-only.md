@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 310
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T00:47:39.504841Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T00:47:18.993393Z'
   stage: tests
   run: 51429150e793416ab9f001636ba38e8e
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:47:39.504841Z'
+  stage: doing
 ---
 
 # The operator guide plans a sweep for a fresh `mutants/` folder only
@@ -89,3 +98,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: test: green (40.4 s)
+6. factory: started doing as self.
