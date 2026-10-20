@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 373
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T23:41:06.493786Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T23:41:06.493786Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T23:41:25.673543Z'
+  stage: intake
+  run: 2120597f6a7d4b2da8c6e571a0ef5da1
 ---
 
 # The decision log says why an un-ignored path is accepted
@@ -60,3 +62,9 @@ Expect: `0`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: none, documents only (`docs/decisions.md`). That is consistent with the story, which changes no module or signature, and no Interface comment states a behaviour that needs a criterion.
+   Criteria: three. (1) Nothing under `src/` or `tests/` changes, checked by the second smoke test. (2) `make check` stays green. (3) The docs criterion names the bullet's opening words, its position (after `Rejected:`, before the `Test children (F0027-S0004)` bullet) and its content: a nested `.gitignore` with `!__pycache__/`, and the four reasons it is accepted. I confirmed that the entry and both neighbouring bullets exist in `docs/decisions.md` (the entry heading is at line 934, its `Rejected:` bullet at line 940, and the next bullet follows at line 941). The story states no rule with a failing side, because it adds a record and no behaviour.
+   Smoke test: both commands are runnable. `grep -c ... docs/decisions.md` expects `1`, and `git diff --name-only origin/main -- src tests | wc -l` expects `0`. Neither runs pytest, so the `-q` rule does not apply. Each `Expect:` line can be checked against the output.
+   Architecture: a decision-log bullet belongs in `docs/decisions.md`, which the documenter stage keeps. Nothing in the layers is touched.
+   Scope: it follows F0027 `feature.md` decision 7, which accepts that an agent can un-ignore a path and adds no rule, and it adds nothing beyond that. It is not in the feature's Out of scope. It adds no test and changes no test another story wrote.
