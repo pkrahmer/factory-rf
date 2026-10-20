@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 310
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T00:45:41.555771Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T00:45:23.180804Z'
   stage: intake
   run: 1d563ba381564419a9c0bb21a8ca5c60
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:45:41.555771Z'
+  stage: tests
 ---
 
 # The operator guide plans a sweep for a fresh `mutants/` folder only
@@ -70,3 +79,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: both blocks are plain grep and shell commands, and neither runs `make mutants`. I checked the guide as it stands now. It has the "repairs it" and "keeps them only" wording at line 92, so the first block would fail today and pass after the rewrite. The example (line 95) and the sweep command (line 85) are already there. Each `Expect:` line can be checked against the output. `grep -c ... || true` prints 0 when nothing matches, which is the expected `0`.
    - Architecture: documents only, with no layer or code touched. It stays within the documenter's write paths (`docs/*`).
    - Scope: it fits F0032's goal, the documents describing the sweep form. It touches only the operator guide's two paragraphs, which F0032-S0001 left stale. Nothing from the feature's "Out of scope" is changed. It is a follow-up to S0001, proposed by the acceptance, and the human started it.
+4. factory: started tests as self.
