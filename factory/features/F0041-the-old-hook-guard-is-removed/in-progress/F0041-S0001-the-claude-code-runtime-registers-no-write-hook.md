@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T10:32:48.223390Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-20T10:32:27.479605Z'
   stage: docs
   run: c75b7c7c5cc24b27b211d45ed13336e2
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-20T10:32:48.223390Z'
+  stage: smoke-test
 ---
 
 # The Claude Code runtime registers no write hook
@@ -387,3 +396,4 @@ Expect: `7`
     `check`: check: green (not run again: passed on tree c11ce4d93265 at 2026-10-20T10:28:04Z)
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
