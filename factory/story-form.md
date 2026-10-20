@@ -16,7 +16,7 @@ Numbered 1, 2, 3 and on; each one behaviour a test can check, with its input and
 
 ## Smoke test
 
-Shell blocks the smoke tester runs from the root of the checkout in the container (Linux, nothing listening), each followed by a line `Expect:` that says exactly what the built code prints. A block that needs a file, a repository or a process works in a temporary directory it removes (`d=$(mktemp -d); trap 'rm -rf "$d"' EXIT`) and stops what it started.
+Shell blocks the smoke tester runs from the root of the checkout in the container (Linux, nothing listening), each followed by a line `Expect:` that says exactly what the built code prints. A block that needs a file, a repository or a process works in a temporary directory it removes (`d=$(mktemp -d); trap 'rm -rf "$d"' EXIT`) and stops what it started. A block that runs pytest never passes `-q`: `pyproject.toml` already sets it, and at `-qq` pytest prints no summary line.
 
 ## Journal
 
