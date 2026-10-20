@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T14:41:37.398438Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-20T14:41:15.876075Z'
   stage: docs
   run: 2148f39cd6a14b29954fec85c9c6abec
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-20T14:41:37.398438Z'
+  stage: smoke-test
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -502,3 +511,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree b8c2cdbccc63 at 2026-10-20T14:34:53Z)
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
+23. factory: started smoke-test as self.
