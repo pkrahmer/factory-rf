@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 358
 comments_read: [6299016224]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T19:19:19.130690Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-20T19:18:58.396494Z'
   stage: review
   run: d41857ebf8cb4fe99cc73d74389a131e
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:19:19.130690Z'
+  stage: docs
 ---
 
 # The tests start their own Python children without bytecode
@@ -223,3 +232,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/git_support.py`: decision 16, S0004 (`write_executable` shebang ` -B`).
     - `tests/adapters/test_git_cli_branches.py`: decision 16, S0004 (hook shebang ` -B`).
     - `tests/adapters/test_git_cli_writing.py`: decision 16, S0004 (hook shebang ` -B`).
+13. factory: started docs as self.
