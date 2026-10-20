@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 373
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T23:47:15.032762Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T23:47:15.032762Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T23:47:33.565438Z'
+  stage: docs
+  run: 3fcdfbb2172f4ae1807f82b96482dc78
 ---
 
 # The decision log says why an un-ignored path is accepted
@@ -137,3 +139,14 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Earlier tests: none. No test file on `main` is changed, renamed or deleted.
 10. factory: started docs as self.
+11. documenter: Changed one file: `docs/decisions.md`. In the entry *The factory removes the git-ignored paths after every agent run and at the restore* I added the bullet `Accepted: an agent can un-ignore a path ...`, after `Rejected:` and before `Test children (F0027-S0004)`. It records F0027 decision 7. A nested `.gitignore` with `!__pycache__/` in a write path leaves the path untracked and not ignored, so `remove_ignored()` keeps it. That is accepted for four reasons: the path is committed and shows in the pull request's diff; the undo removes it outside the stage's write paths; no `.gitignore` takes effect inside an ignored tool path, because git does not read the rules of an ignored folder; and an agent cannot write the root `.gitignore` or `.git/info/exclude`. The bullet ends by saying no rule is added and a later story should ask first. That last sentence is my addition, to guard against the failure the story describes.
+
+    Ran the first smoke command: `grep -c "Accepted: an agent can un-ignore a path" docs/decisions.md` prints `1`. I did not run the second smoke command (`git diff --name-only origin/main -- src tests | wc -l`). `git diff main...HEAD` showed no change under `src/` or `tests/` before my edit, and I changed only `docs/decisions.md`. I did not run `make check`, because I changed only a document and the factory runs it next.
+
+    Cross-read and found current: the same decision-log entry (its date line and the neighbouring bullets) against the story. README, the operator guide and the project guide need no change, as the docs criterion says, since no behaviour changed.
+
+    Stale text seen but not touched: none.
+
+    `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
+    `secrets`: secrets: green (1.3 s)
+    `documents`: documents ok
