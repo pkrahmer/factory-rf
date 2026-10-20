@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 315
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T01:51:08.331366Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T01:50:47.406238Z'
   stage: intake
   run: 430878f612d64237b197c6dd864c4240
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:51:08.331366Z'
+  stage: tests
 ---
 
 # The tests pin seven small rules on both sides
@@ -100,3 +109,4 @@ Expect: four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`
    - Smoke test: the script is runnable with the imports shown, and the `Expect:` line gives four checkable lines (`0:00:01 None`, `ses_a`, `no agent files`, `False`).
    - Architecture: all behaviour lives in `factory.domain`, with tests under `tests/domain/` and one shared module at the `tests/` root. No layer is crossed.
    - Scope: within F0028's Scope entry for S0004, and none of it is in the feature's Out of scope. The two guards of decision 4 are pinned by criteria 8 and 9, as decided there.
+4. factory: started tests as self.
