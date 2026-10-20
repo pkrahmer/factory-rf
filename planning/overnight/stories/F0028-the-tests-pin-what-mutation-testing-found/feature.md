@@ -30,6 +30,7 @@ The other three behaviours turned out equivalent (decision 10). Every story adds
 - `tests/application/test_recovery_expiry_key.py` and `tests/application/test_stall_edges.py`: the expiry note's key in `factory.application.recovery`; the stalls without a detail, the branch started again after the agent left it, and the red check's undo, in `factory.application.stalls` and `stage` (S0007).
 - `tests/application/test_after_agent_edges.py`, `test_opening_journal_edges.py` and `test_tick_stop_details.py`: the empty entry and the counted form findings of `factory.application.stage`, the journal of `opening`, the stop details and the error cap's log line of `tick` (S0008).
 - `tests/application/test_dispatcher_without_state.py`, `test_board_in_progress.py` and `test_agent_run_probe_factory_user.py`: the error stop of a work item without a state in `factory.application.dispatcher`, the stories in progress in `board`, the opencode login hint without an agent user in `preflight` (S0009).
+- `tests/tick_support.py`: the shared `handlers_of` and `Failing`, moved by S0008 under the standing leave (S0008, S0009).
 
 ## Out of scope
 
@@ -101,7 +102,7 @@ The application's twelve modules hold about 3,600 mutants, `stage` and `prefligh
 
    The count of each story's targeted mutants: S0005 11, S0006 15, S0007 7, S0008 8, S0009 6. (S0005 to S0009)
 9. **Every application criterion was re-checked against today's code** after F0022, F0023, F0024, F0026 and F0020's follow-ups were merged, in the same way as decision 2. The image has no pytest, so each criterion ran as a prototype test through a small stand-in for pytest's fixtures and parametrize. It ran once on a copy of today's `src/`, which printed the expected values in the criteria, and once per rebuilt mutant applied alone. All 39 rebuilt mutants the criteria target are killed by their story's prototype. Every other prototype row passes on the code as it is.
-   - The lines are today's. The second report's `acceptance:399`, `dispatcher:135`, `stage:365` and `stage:416` are today's 400, 196, 362 and 413, with the same code; the third report's lines are today's.
+   - The lines are today's. The second report's `acceptance:399`, `dispatcher:135`, `stage:365` and `stage:416` are today's 400, 135, 362 and 413, with the same code; the third report's lines are today's.
    - The rows the reports proposed changed in three places. A completed run whose entry is `None` cannot be built (`AgentRunResult` refuses it), so S0008's empty entries are `""` and `tester:`. The opening's row of a body whose last line ends in spaces is equivalent (decision 10), so S0008 does not have it. An archived story without a state cannot be read (decision 10), so S0005 does not have it.
 
    (S0005 to S0009)
@@ -118,7 +119,7 @@ The application's twelve modules hold about 3,600 mutants, `stage` and `prefligh
     - (c) A test that passes a status: it would pin an interface no caller uses.
 
     Recommended: (a). (The human, 2026-10-19: (a), keep it and remove it with the next story that changes `tick.py`.) F0028 changes no code (decision 1), the parameter misleads nobody who reads its one line, and (b) would cost a coder stage and a review for one line. (Feature)
-13. **S0005 to S0009 move no helper and change no earlier test.** Each builds on what is shared already:
+13. **S0005 to S0009 change no earlier test beyond the standing leave.** S0008's tester moves `_factory` of `tests/application/test_tick.py` (and its copy in `test_tick_stale_branch.py`) and `Failing` of `tests/application/test_dispatcher.py` to a new `tests/tick_support.py`, as `handlers_of` and `Failing`, under `CLAUDE.md`'s standing leave; S0009 imports them from there (pre-check round 1, 2026-10-20). Each builds on what is shared already:
     - from `tests/conftest.py`, the fixtures `walk`, `kill_points` and `installed_agents`;
     - the support modules `tests/acceptance_walk.py`, `tests/crash_support.py`, `tests/stage_run_support.py` and `tests/log_support.py`;
     - the fixtures of `tests/application/handlers/conftest.py`.
