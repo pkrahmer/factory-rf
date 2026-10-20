@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T22:45:08.050814Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T22:45:08.045041Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:45:08.050814Z'
+  stage: intake
+---
+
 # The shared time limits' test names the values of a relation that broke
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -65,3 +92,5 @@ Expect: `30 gt 30`
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
