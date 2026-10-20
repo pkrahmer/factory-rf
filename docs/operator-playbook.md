@@ -47,7 +47,7 @@ Since F0026 (the board shows only real crashes), the board shows a stage of its 
 
 **Never edit a running story's work item, on `main` or on its branch.** The intake and the reviewer rewrite the story on its branch. A human's edit of the same file on `main` conflicts at the next stage start, and the stage stalls twice and reaches the attempts cap (F0019-S0004). The human may not push to a work item's branch either: a push while a stage runs makes its result push fail and counts as a crash, and the session's permission system refuses it. Instead:
 - An answer that changes the Interface, a criterion or the smoke test gives the reviewer leave for exactly those edits, in exact words. The reviewer makes them on its next run.
-- A stale Description is the reviewer's to rewrite. Until a story gives the reviewer that edit, the correction goes into your answer: the answer, in the journal, is the correction (as for F0026-S0002, the watch's `main`).
+- A stale Description is the reviewer's to rewrite when the human's answers, the Interface or the criteria settle what it should say (F0034). An answer that settles the meaning is therefore enough; the reviewer names each correction in its entry as `description corrected:`.
 - If you did edit the work item on `main`, revert that edit on `main`.
 
 **At a cap.**
@@ -124,7 +124,7 @@ Then merge: `gh pr merge <n> --merge`, never with `--delete-branch`; a merged st
 | `make mutants` red on a structural test | a test that reads the source ran against mutated code | the human adds it to `[tool.mutmut]`'s deselect list |
 | The board showed `crash:` at every acceptance | `factory-watch` judged its own instance's claim as a crash | fixed by F0026 (the board shows only real crashes) |
 | An answer meant as "one more round" at the round cap | any answer sets the round count to 0 | known now: a round-cap answer grants two more rounds (section 3) |
-| A push to a work item's branch, to fix its Description, refused | the session's permission system | the correction went into the answer in the journal; the reviewer is to rewrite a stale Description (a story to draft) |
+| A push to a work item's branch, to fix its Description, refused | the session's permission system | the correction went into the answer in the journal; the reviewer rewrites a stale Description (F0034) |
 | `gh pr merge` refused once: "Head branch is out of date" | transient; the repository has no branch protection | merged on the second try |
 | A helper's copy of the repository took `image/secrets/` | the copy took `image/` whole | deleted at once, unopened; a helper's copy always leaves out `image/secrets/` |
 
@@ -145,7 +145,7 @@ Then merge: `gh pr merge <n> --merge`, never with `--delete-branch`; a merged st
 | A criterion that only pins built behaviour needs the human's yes | the reviewer's leave to add a criterion | built (F0021) |
 | The board's false crash at a long stage | the board judges its own instance's claim by the lease | built (F0026, the board shows only real crashes) |
 | Waiting out a provider's spend limit and resuming | an end reason, a wait and a resume outside the time limit and the attempts, up to a ceiling | built (F0020, opencode as a second agent runtime) |
-| A stale Description corrected through the journal | the reviewer may rewrite a stale Description | a small story to draft |
+| A stale Description corrected through the journal | the reviewer may rewrite a stale Description | built (F0034, the reviewer may correct a stale story Description) |
 | The approval checklist | an optional auto-merge on the checks the engine knows (stage decisions, `make check`, the diff's paths) | later, when F0021's counts show routine approvals |
 | One round only at the round cap | an answer that sets a smaller budget | not planned (the human accepts two rounds); revisit when F0021's counts show extra rounds at the cap |
 | The heartbeat | partly the factory's own (disk, stops); Docker's health, the host drive and the usage windows stay outside it | not planned |
