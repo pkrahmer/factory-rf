@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T04:53:15.857717Z'
   stage: smoke-test
   run: 83b49602feff4027be84e0b45d98de80
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T04:54:35.133330Z'
+  stage: approval
 ---
 
 # The guide's list of shared test helpers names every fixture
@@ -215,3 +220,4 @@ Expect: `0` (every shared helper module at the root of `tests/` is still named, 
     - Criterion 1 (`make check` stays green): the smoke test does not contradict it. I did not run `make check` here; the factory's checks cover it.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 3.3 min, 30 turns, 98457 tokens in (438327 more from cache), 8293 out, $0.80
