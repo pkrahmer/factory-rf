@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 333
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T04:26:22.853231Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T04:26:02.479132Z'
   stage: intake
   run: d18535864ede4cf0be303c436846c294
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:26:22.853231Z'
+  stage: tests
 ---
 
 # The project guide names the shared test helpers
@@ -68,3 +77,4 @@ Expect: `1`
    - Smoke test: both commands run as written. The first loops over `tests/*.py` skipping `test_*` and counts the names missing from the index. The second counts the heading. Each `Expect:` line is checkable output (`0`, `1`).
    - Architecture: documentation only, so no layer is touched. It follows `CLAUDE.md`'s standing leave on shared test helpers and its Docs section, where the documenter keeps the guide.
    - Scope: it is within F0028 and not in its "Out of scope". The feature's scope lists `tests/tick_support.py` and the other support modules that this story names in the guide. The feature says the stories' docs criteria are `none`. That sentence is overridden by this proposed story, which the acceptance reviewer proposed and the human started. I did not raise it.
+4. factory: started tests as self.
