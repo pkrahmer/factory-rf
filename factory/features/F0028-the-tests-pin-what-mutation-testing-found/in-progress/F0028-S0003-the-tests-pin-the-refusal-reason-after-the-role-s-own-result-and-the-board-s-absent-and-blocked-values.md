@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 314
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T01:45:00.637659Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T01:45:00.637659Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T01:46:52.457193Z'
+  stage: doing
+  run: d9152193dd8446e3b903e552ce38b726
 ---
 
 # The tests pin the refusal reason after the role's own result, and the board's absent and blocked values
@@ -144,3 +146,17 @@ Expect: four lines, `Too wide. Cut the second story.`, `features`, `work items` 
    `lint`: lint: green (0.0 s)
    `test`: test: green (38.0 s)
 6. factory: started doing as self.
+7. coder: Built nothing. No file under `src/factory/` changes. The tester's tests (tests/domain/test_acceptance_refusal_edges.py, tests/domain/test_board_absent_values.py, with the shared tests/acceptance_support.py) already pass against the current `factory.domain.acceptance` and `factory.domain.board`. The Interface says no module under `src/` changes, and the description says the coder has nothing to change.
+
+   Main choice: leave `src/` untouched. I rejected "tidying" `refusal_reason`, `book_refusal` or `render_board` while I was in there, because this story pins existing behaviour and a code change would be scope beyond the description (R13).
+
+   Refactor step: there is no diff of mine to refactor.
+
+   Check: `make check` passed in the foreground (`test: green (39.9 s)`, total coverage 99.14 %, `check: green`).
+
+   The journal changed nothing in the task's meaning, so `## Description` stays as it is.
+
+   Noticed but not touched: the dead guard at `acceptance.py:332` stays, as decision 4 of the feature says. `_work_item_line`'s time-zone survivor is equivalent in a container that runs in UTC, as the description says.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
