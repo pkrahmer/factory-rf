@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 355
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T14:51:29.572073Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-20T14:51:29.572073Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-20T14:51:49.232501Z'
+  stage: intake
+  run: 4f9a20ed0c8b4eff98a707432a740d10
+  blocked: question
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -161,3 +164,12 @@ Expect: `0`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: 1. The Interface says "A symbolic link is removed as a link and its target is untouched" for `GitCli.remove_ignored()`, and no criterion tests that. Criterion 1 has no row with a symbolic link that an ignore rule matches. Criterion 2 only covers a link that no rule matches (`.mypy_cache` against the folder rule `.mypy_cache/`), which stays. Two coders could read the clause differently and both pass the tests. Options: (a) add a row to criterion 1: a symbolic link `src/stray.pyc` (matched by `*.pyc`) that points to a file outside the repository. Afterwards the link is gone and the target's file is still there with its content. (b) Drop the sentence from the Interface. I would choose (a).
+
+   Everything else checks out:
+   - Interface: it names the modules and signatures.
+   - Criteria: apart from question 1, every clause has its own test, on the failing side as well. The failing side is the mode `0o555` folder in criteria 3, 4 and 6, and the raised run in criterion 4. The empty case is the third row of criterion 3.
+   - Smoke test: the commands are runnable, and no pytest command is involved, so there is no `-q` issue. Each Expect line can be checked against the output.
+   - Architecture and scope: both are within the layers in CLAUDE.md and within the feature's scope.
+
+   Format check: passed.
