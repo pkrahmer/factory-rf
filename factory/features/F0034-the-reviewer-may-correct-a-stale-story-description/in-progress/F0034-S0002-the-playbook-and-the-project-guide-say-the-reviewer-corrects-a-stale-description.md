@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 331
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T04:10:07.270666Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T04:10:07.270666Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T04:10:25.216923Z'
+  stage: intake
+  run: 4ae475764ccd4370b7542e4f433bc9e2
 ---
 
 # The playbook and the project guide say the reviewer corrects a stale Description
@@ -64,3 +66,9 @@ Expect: two lines, `0` (the count of three is gone) and a number of at least `1`
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: no module under src/ changes. The story names the files and sections it reads (claude/agents/reviewer.md *Role*, docs/decisions.md). No behaviour is stated there, so no rule needs a criterion.
+   Criteria: only the two closing ones, `make check` and `docs:`. The docs criterion names each edit by file, section and exact wording: the section 3 bullet, the section 5 row, the section 7 row, the two counts in agents.md, and item 17 left unchanged. This is a documentation-only story and states no rule with a failing side.
+   Smoke test: runnable. I grepped the current files and each searched string exists today: playbook lines 50, 127 and 148, and agents.md lines 248 and 305. The three commands therefore show a change after the edit. Each Expect line is checkable: three `gone` lines, `1`, and `0` plus a count of at least 1.
+   Architecture: documents only, within the documenter's write paths (README.md, docs/*). The playbook is named by the docs criterion, as CLAUDE.md *Docs* allows. No layer is touched.
+   Scope: within F0034's goal of bringing the docs in line with the reviewer's new rule. The out-of-scope items (agent texts, tests, decisions, archived stories) are respected, and item 17 stays as it is. Two things to note. The feature's Scope and Stories lists name only S0001 and the playbook; agents.md and S0002 are not in them. S0002 was proposed by the acceptance reviewer and reached backlog through the human's merge, so I took it as approved. I did not ask.
