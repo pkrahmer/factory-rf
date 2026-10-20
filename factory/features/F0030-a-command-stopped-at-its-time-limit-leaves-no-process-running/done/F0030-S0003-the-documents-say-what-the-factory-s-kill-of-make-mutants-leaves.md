@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T23:24:28.821129Z'
   stage: smoke-test
   run: af0aa7f4aee4455da75254b3d0f7512a
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T23:25:48.726699Z'
+  stage: approval
 ---
 
 # The documents say what the factory's kill of make mutants leaves
@@ -204,3 +209,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Nothing in the smoke test contradicts any criterion.
 
     Open: none.
+14. factory: done (pull request merged); cost: 6 runs, 2.8 min, 29 turns, 97472 tokens in (429949 more from cache), 7514 out, $0.80
