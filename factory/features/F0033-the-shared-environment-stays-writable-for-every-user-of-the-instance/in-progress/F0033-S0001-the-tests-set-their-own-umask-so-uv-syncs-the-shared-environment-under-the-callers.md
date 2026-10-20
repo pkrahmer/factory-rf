@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 322
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T03:10:25.606843Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T03:10:25.606843Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T03:12:25.649242Z'
+  stage: doing
+  run: ce6f409e5c2c45b1855eebad87eec620
 ---
 
 # The tests set their own umask, so uv syncs the shared environment under the caller's
@@ -121,3 +123,20 @@ Expect: `1`
    `lint`: lint: green (0.0 s)
    `test`: test: green (47.0 s)
 6. factory: started doing as self.
+7. coder: I wrote no code. The story says that nothing under `src/` changes and that the coder writes nothing, under the feature's decision 4. The tester already wrote the hook in `tests/conftest.py` under decision 5: `TESTS_UMASK = 0o022` and `pytest_configure() -> None`, which calls only `os.umask(TESTS_UMASK)`. They also wrote the new tests in `tests/test_tests_umask.py`.
+
+   What I did:
+   - I read the diff against `main`, which covers only those two test files.
+   - I checked the hook against the `## Interface`. It matches: no parameter, one `os.umask` call, and no earlier umask restored.
+   - I ran `make check` in the foreground. It is green (`test: green (45.4 s)`, total coverage 99.14 %, `check: green`).
+
+   Main choice: leave the tester's hook exactly as it is, since I never edit tests. The rejected alternative was moving the hook to a module under `src/`. That would contradict the Interface ("No module under `src/factory/` changes"), and the hook belongs to the test run, not to the package.
+
+   Refactor: nothing to change. There is no diff of mine, and the hook is already minimal.
+
+   Description: no journal entry changed the meaning of the task, so the Description stays as it is.
+
+   Noticed, not touched: criterion 4's docs (`docs/project-guide/processes-and-checks.md`, `docs/decisions.md`, `docs/operator-playbook.md` section 5) are the documenter's. The `Makefile`'s `umask 022` in the `test` recipe stays until the human's change 1 drops it.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
