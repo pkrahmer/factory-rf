@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 332
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T04:21:31.858957Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T04:21:11.433893Z'
   stage: doing
   run: 5c1f6aa0bef042bbb6f6eb4bffcb9a52
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:21:31.858957Z'
+  stage: review
 ---
 
 # The project guide names the recovery's commit subjects
@@ -112,3 +121,4 @@ Expect: `work item F0001-S0001: crash of stage doing recorded` (the form the gui
 
    `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
