@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 326
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T03:41:10.029071Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T03:41:10.029071Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T03:41:27.407684Z'
+  stage: intake
+  run: 49b54f3a9c26444ab5ba0ef4ca0942c2
 ---
 
 # The decision log gives the feature's reasons for the rejected umask fixes
@@ -59,3 +61,9 @@ Expect: `0`
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: no module under `src/` changes and no test module is written; the story names the documents to compare against (F0033 `feature.md`, *Goal* second paragraph, decisions 1 and 2). The Interface states no behaviour of code, so there is nothing to leave untested. Docs-only.
+   - Criteria: criterion 1 is `make check` and criterion 2 is the docs criterion, which names the exact edits to the entry in `docs/decisions.md`. The edits are the reverse-direction sentence, the three reasons in *Rejected*, the phrase to remove, and what stays. No rule has a failing side, since there is no behaviour. The Description's no-criterion claim matches the form's two closing ones. I read the current entry in `docs/decisions.md`. It exists, and the old wrong reason ("the fault would come back with the next recipe that calls `uv`") is there as described.
+   - Smoke test: both blocks are runnable `sed`/`grep` commands against `docs/decisions.md`. Each `Expect:` line is checkable: three `found` lines, and `0`. The three search strings match the criterion's wording (`needs a new step as \`agent\``, `would not get the tests`, `644\` files that an agent`).
+   - Architecture: nothing under `src/` or the layers is touched. Only the decision log changes, which is the documenter's file under CLAUDE.md's Docs section.
+   - Scope: within F0033. The reasons come from the feature's decisions 1 and 2 and its Goal. The story touches no *Out of scope* item, no code, no `Makefile` and no earlier story's test.
