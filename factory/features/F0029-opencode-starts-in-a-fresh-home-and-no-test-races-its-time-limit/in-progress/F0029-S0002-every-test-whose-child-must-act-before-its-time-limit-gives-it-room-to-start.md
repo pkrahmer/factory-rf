@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T07:35:50.761829Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-20T07:35:30.090180Z'
   stage: review
   run: 026fedc98ef94073b2f632ba5fb1bca2
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:35:50.761829Z'
+  stage: docs
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -319,3 +328,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Notes:
     - `tests/test_time_limits.py:15-40`: each row is a `bool` worked out when the tests are collected, so a failing row prints only `assert False`. Rows that carry the two compared values would say which relation broke.
+18. factory: started docs as self.
