@@ -536,7 +536,7 @@ Date: 2026-10-18 (F0017-S0001; F0017 decisions 1, 4 and 6). On 2026-10-18 v1's c
 
 ## make mutants runs under a temporary root of its own
 
-Date: 2026-10-18 (F0017, the human's change 1; F0017 decision 7).
+Date: 2026-10-18 (F0017, the human's change 1; F0017 decision 7). *The mutants target keeps only its sweep form* keeps the temporary root and drops the `chmod -R g+w mutants` and the removal of `.git` folders.
 
 - Cause: mutmut stops a mutant's pytest at its time limit; a stopped process runs no teardown and leaves its numbered folder's `.lock`, and pytest removes a locked folder only when the lock is older than three days. On 2026-10-18 v1's container held 58 such folders, 2.4 GB.
 - Decision: the `mutants` recipe runs mutmut with `TMPDIR` set to a folder made by `mktemp -d`, and the recipe's `EXIT` trap opens that folder for its owner and removes it when the recipe ends, also after `mutants: stopped after ...` and after a failed run.
@@ -781,7 +781,7 @@ Date: 2026-10-19 (F0023-S0002). After an agent the factory ran every check and r
 
 ## A mutation run's report is a line of its own, and a partial run is never complete
 
-Date: 2026-10-19 (F0024-S0001; F0024 decisions 2, 3 and 8). `make mutants` ended with mutmut's own listing of every survivor in `mutants/`, earlier features' modules included, and no line said how far the run got. The factory reads only the last line, and the acceptance reviewer worked out the score by hand.
+Date: 2026-10-19 (F0024-S0001; F0024 decisions 2, 3 and 8). Superseded by *The mutants target keeps only its sweep form*, which removes the command and its rules. `make mutants` ended with mutmut's own listing of every survivor in `mutants/`, earlier features' modules included, and no line said how far the run got. The factory reads only the last line, and the acceptance reviewer worked out the score by hand.
 
 - Decision: `python -m factory.entry.check_mutants` reads the text of `mutmut results --all true` and prints the survivors of the named modules only, then one last line that counts every status.
 - Decision: a run is partial while a chosen mutant is `not checked` or the recipe stopped mutmut; the last line then says `partial`, and the exit status is 1, never 0. A partial run is not a pass and is not taken for a complete one.
@@ -816,5 +816,17 @@ Date: 2026-10-19 (F0024-S0003; superseded by *Mutation testing runs only as swee
 Date: 2026-10-19 (F0031-S0001; the human's decision of 2026-10-19). This supersedes *Mutation testing per story*. No stage and no agent runs `make mutants` or mutmut: the shipped acceptance reviewer's check 3 says `By sweep, not run here.`, the reviewer no longer reads a mutation report, and the template's `CLAUDE.md` and `Makefile` name the target as a sweep by hand.
 
 - Why: every acceptance of 2026-10-19 ran `make mutants` one to four times at up to 540 s each, and every large feature still ended partial (F0019 to F0023). A sweep in idle time, on a fresh copy, needs neither a stage's time limit nor a `mutants/` shared by two users.
-- Decision: sweeps start with a fresh `mutants/` in a throwaway container. The `mutants` target and `factory.entry.check_mutants` stay for them.
+- Decision: sweeps start with a fresh `mutants/` in a throwaway container. The `mutants` target and `factory.entry.check_mutants` stay for them. *The mutants target keeps only its sweep form* removes `factory.entry.check_mutants`; the target stays.
 - Rejected: a longer limit for the acceptance; the report after the coder (taken out the same day); check 3 dropped and the checks renumbered, because the eight report sections, check 7's pinned start and the reports already written keep their numbers.
+
+## The mutants target keeps only its sweep form
+
+Date: 2026-10-20 (F0032-S0001; F0032 decisions 1 to 7; the human's decisions of 2026-10-19). This supersedes the story-branch form and the report of *Mutation testing per story* and *A mutation run's report is a line of its own, and a partial run is never complete*. Mutation testing runs only as sweeps outside the factory, with `mutants/` made anew for every run.
+
+- Decision: the recipe removes `mutants/` with `rm -rf mutants` before mutmut starts. mutmut then makes it anew, copies the other files under `src/` afresh and runs its stats again.
+- Decision: the modules come from `MODULES` (dotted modules or packages, each run by `<name>.*`) or from `FEATURE`; `MODULES` wins. There is no story-branch form.
+- Decision: no stop unless asked. `MUTANTS_SECONDS` is empty by default; a given value stops mutmut by `timeout` and fails the run with `mutants: stopped after <n> s, ...`.
+- Decision: `MUTANTS_CHILDREN` passes `--max-children`, because mutmut's default is every core the machine reports, also in a container limited to fewer.
+- Decision: `factory.entry.check_mutants` and `factory.domain.mutants` are removed with their tests. `factory.entry.inputs` stays: `check_duplicates` reads its files through it.
+- Reasons: the human decided on 2026-10-19 that nothing is kept between runs and that no stage runs mutation testing. A fresh `mutants/` leaves the command no job: there are no survivors of earlier runs to filter out, the rerun list is every module's pattern, and no stage reads `partial` any more; a stopped run says so in its own line, and mutmut's own listing, without the `not checked` lines, is this run's survivors.
+- Rejected: keeping `check_mutants` for its summary line (it would need to match packages, and its `--names` would be dead); refusing a run while `mutants/` exists (a forgotten folder would stop a night's sweep with nothing done); 540 s as the default stop (it came from an agent's shell limit that no longer applies; the sweeps used 5,400 to 9,400 s).

@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 307
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T00:22:48.913854Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T00:22:48.913854Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T00:23:38.659673Z'
+  stage: docs
+  run: 128f4479dbc540d5a7e7c2862941b481
 ---
 
 # The mutation report command is removed and the documents describe the sweep form of `make mutants`
@@ -170,3 +172,36 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - `tests/domain/test_mutants.py` (deleted): the human's leave, decision 9 in the feature's `feature.md`, which the story's Interface names.
    - `tests/entry/test_check_mutants.py` (deleted): the human's leave, the same decision 9 in the feature's `feature.md`, named in the story's Interface.
 10. factory: started docs as self.
+11. documenter: I rewrote the mutation-testing documents for the sweep form. I found no finding for the coder: the `Makefile` recipe, the Interface and the removed modules agree.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`: *Mutation testing* is rewritten in the `Makefile`'s own terms.
+      - Nothing is kept between runs: `rm -rf mutants`, mutmut's stats run again, and the other files under `src/` are copied afresh.
+      - It covers `MODULES` and `FEATURE` (`MODULES` wins), the two end lines, `MUTANTS_SECONDS` with its stop line, `MUTANTS_CHILDREN`, the `TMPDIR`/`EXIT` trap/`umask 022`, and the result without the `not checked` lines, plus `uv run mutmut show <name>`.
+      - *The report of a mutation run*, the story-branch form, `--names`, `chmod -R g+w mutants`, the `.git` removal and "`mutants/` holds the latest run" are gone.
+    - `docs/project-guide/README.md`: the index line for `processes-and-checks.md` no longer names `factory.domain.mutants`, `factory.entry.check_mutants` or the removed subsection. It still names `factory.entry.inputs`.
+    - `docs/operator-guide.md`, *Mutation testing by sweep*:
+      - `check_mutants` is gone.
+      - The sweep command `make mutants MODULES=factory.application MUTANTS_SECONDS=7200 MUTANTS_CHILDREN=2` is added.
+      - Every run pays the stats: 165 s on 20 cores, 4.5 to 19 minutes on two cores.
+      - The 540 s stop and the `partial` ends are gone.
+      - The stats-wall paragraph says a `MUTANTS_SECONDS` below the stats checks no mutant, and its example now has `MODULES=<module>`.
+    - `docs/decisions.md`:
+      - New entry *The mutants target keeps only its sweep form*, dated 2026-10-20, from the feature's decisions 1 to 7. It has the decisions, the reasons and the three rejected options.
+      - One line naming the new entry is added to each of: *A mutation run's report is a line of its own, and a partial run is never complete*, *make mutants runs under a temporary root of its own*, and *Mutation testing runs only as sweeps outside the factory*. The last one now says that `check_mutants` is removed and the target stays.
+      - The F0017 line says the temporary root stays and that `chmod` and the `.git` removal go.
+
+    `README.md`: nothing to change, it does not name mutation testing.
+
+    Checks I ran: a grep of `docs/operator-guide.md`, `docs/project-guide/`, `Makefile` and `CLAUDE.md` finds no `check_mutants`, `factory.domain.mutants` or *The report of a mutation run*. I did not run the examples, because they run `make mutants` and the story says no stage runs it. I checked every variable, end line and stop line against the `Makefile` recipe by reading it. I did not run `make check`, because I changed only documents. The factory's checks decide.
+
+    Cross-read and found current: `docs/project-guide/agents.md`, `watching.md`, `git-and-hosting.md` and `write-guard.md`. Their mentions of mutation are unrelated or still true, for example the commit-prefix sentence in `watching.md`.
+
+    Stale text I noticed and left, because it is not mine to fix:
+    - `docs/operator-playbook.md` (the human's file): the incident table rows at lines 115 and 117 mention `mutants/seed/.git` and `make mutants` running under `umask`. They are history and mostly still true. The `chmod`/`.git` handling they describe is gone from the recipe.
+    - `docs/decisions.md`, *Mutation testing per story*: its text still describes the story-branch form and `chmod -R g+w mutants`. It is a history entry, already marked superseded, and the new entry says what replaced it.
+    - The decision log has no stale-but-unrelated text that I noticed.
+
+    `check`: check: green (not run again: passed on tree 8e7782634823 at 2026-10-20T00:20:55Z)
+    `secrets`: secrets: green (1.6 s)
+    `documents`: documents ok
