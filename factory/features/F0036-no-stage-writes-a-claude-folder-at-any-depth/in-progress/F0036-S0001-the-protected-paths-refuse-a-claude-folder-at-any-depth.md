@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 324
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T03:23:42.725278Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:23:42.734186Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T03:23:58.352026Z'
+  stage: intake
+  run: e3b8550ffd324a878a0f60a647c856d5
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:24:18.843640Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T03:27:06.720805Z'
+  stage: tests
+  run: 6e1303b306d44e72b4e112e92d60f1fd
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:27:27.006774Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T03:29:33.118668Z'
+  stage: doing
+  run: 37545a74d07547ca96709345c76d0a51
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:29:53.436383Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T03:30:55.059394Z'
+  stage: review
+  run: 56efb09215c14b76b0ebdf1527978a7b
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:31:15.499172Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T03:31:48.083955Z'
+  stage: docs
+  run: 6575417ad3904b6a81348430f66738c0
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:32:08.928877Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T03:32:31.685469Z'
+  stage: smoke-test
+  run: f6f0e08c2bd646bab03bb8d7d95010c0
+---
+
 # The protected paths refuse a .claude folder at any depth
 
 ## Description
@@ -51,3 +135,97 @@ uv run python -c 'from pathlib import Path; from factory.domain.agent_runs impor
 Expect: four lines, `.claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is owned by the human; a change there is a question.`, `src/.claude/skills/x/SKILL.md -> src/.claude/skills/x/SKILL.md is owned by the human; a change there is a question.`, `src/.claudex/a.md -> allowed`, `src/a.py -> allowed`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names `src/factory/domain/write_paths.py` and the full twelve-pattern `PROTECTED_PATHS` tuple. The unchanged modules are listed, and the three test files are named with their changes.
+   - Criteria: each is testable by one test function or one parametrized test. Criterion 1 pins the tuple. Criterion 2 covers the pattern's true and false sides: the root, nested depths, `.claudex`, `x.claude`, `claude/` without the dot, and a path that only ends in `.claude`. Criterion 3 covers the refusal text on the refused side and `None` on the allowed side, with the write path `src/*` matching. Criterion 4 covers the undo's removal of a new nested file, the two kept files and the `deleted` list. The docs criterion lists every edit by file. `make check` is present.
+   - Smoke test: one runnable `uv run python -c` command. Its Expect line gives four exact output lines that can be compared with the output.
+   - Architecture: the change is a constant in `factory.domain`, and `refusal`, the hook, the undo and the kernel's confinement are not touched. That matches the layering in CLAUDE.md.
+   - Scope: matches `feature.md`: the pattern, the tests under decision 3 and the three docs. The kernel guard, `~/.claude` and R14 are out of scope and untouched. The test rename has the human's leave through decision 3.
+4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 to 4. They fail on purpose until `*/.claude/*` is added to `PROTECTED_PATHS`.
+
+   - criterion 1: tests/domain/test_write_paths.py::test_the_protected_paths_are_the_engines_twelve_patterns (renamed from `..._eleven_patterns` under the feature's decision 3; `"*/.claude/*"` added as the tuple's second item; nothing else in the module changed)
+   - criterion 2: tests/domain/test_nested_claude_paths.py::test_a_claude_folder_is_protected_at_any_depth_and_only_as_a_whole_segment (12 rows: 6 true, 6 false, as the criterion lists them)
+   - criterion 3: tests/domain/test_nested_claude_paths.py::test_the_guard_refuses_a_nested_claude_folder_although_a_write_path_matches_it (4 rows; the guard has root `/work`, write paths `["src/*"]` and `list(PROTECTED_PATHS)`)
+   - criterion 4: tests/application/test_undo_nested_claude.py::test_the_undo_removes_a_nested_claude_folder_and_keeps_the_rest (real bare remote; write paths `["src/*"]`)
+   - criteria 5 and 6: not tests (`make check`, docs).
+
+   Files created: tests/domain/test_nested_claude_paths.py, tests/application/test_undo_nested_claude.py, tests/undo_support.py.
+
+   Earlier test files changed:
+   - tests/domain/test_write_paths.py: the rename above, under the feature's decision 3.
+   - tests/application/test_undo.py: moved under the standing leave in CLAUDE.md (*Tests*), as the Interface allows. Its `_pipeline`, `_start` and `_undo` now live in tests/undo_support.py as `pipeline_text`, `start_stage` and `undo_stage`. The constants they need moved with them (INSTANCE, BRANCH, IN_PROGRESS, PATH, SECOND, PIPELINE_FILE, GUIDE, GUIDE_TEXT, KEPT, KEPT_TEXT, BODY, INTAKE_ROLE, BASE_FILES), and test_undo.py imports them from there. Every test in that module keeps its name and checks the same thing, and all of them pass after the move.
+
+   Run of `make test`: 8 failed of 6083 (taken from `.reports/junit.xml`), none of them collection errors, so no module failed to import. They fail on wrong results: the twelve-pattern tuple, the four nested true rows of criterion 2, the two refusal rows of criterion 3, and the undo test. The root `.claude/` rows and the false rows already pass. `make lint` is green. Type check skipped, as this stage says. No criterion needed interpreting.
+
+   `lint`: lint: green (0.0 s)
+   `test`: FAILED tests/domain/test_nested_claude_paths.py::test_a_claude_folder_is_protected_at_any_depth_and_only_as_a_whole_segment[a/b/c/.claude/d-True]
+6. factory: started doing as self.
+7. coder: Added `"*/.claude/*"` to `PROTECTED_PATHS` in `src/factory/domain/write_paths.py`, right after `.claude/*`, so the tuple now matches the Interface's twelve patterns. Nothing else changed. `make check` is green: the 8 tests the tester wrote to fail now pass, and the coverage line reads `test: green (46.5 s)`, `check: green`.
+
+   - Main choice: I added the one pattern the Interface names and left `matches_any` (`fnmatchcase`, with `*` crossing `/`) alone. The pattern needs a `/` before `.claude` and a `/` after it, so `.claudex`, `x.claude`, `claude/` without the dot, and a path ending in `.claude` don't match it. The root folder stays covered by `.claude/*`.
+   - Rejected: a segment-aware matcher, such as a regex in `matches_any` or a function just for `.claude`. It would change `matches_any`, which the Interface says stays unchanged, and the glob already gets the whole-segment behaviour right.
+   - Refactor: the diff is one line, so there was nothing to change.
+   - Description: the journal didn't change what the task means, so I left `## Description` alone.
+   - Noticed, not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   What I checked:
+   - Acceptance criteria: each of criteria 1 to 4 has a test, and each test checks what its criterion says. Criterion 1 is `tests/domain/test_write_paths.py::test_the_protected_paths_are_the_engines_twelve_patterns`. Criterion 2 is `tests/domain/test_nested_claude_paths.py::test_a_claude_folder_is_protected_at_any_depth_and_only_as_a_whole_segment`, with the 12 rows the criterion lists. Criterion 3 is `tests/domain/test_nested_claude_paths.py::test_the_guard_refuses_a_nested_claude_folder_although_a_write_path_matches_it`, 4 rows with the guard set up as the criterion says. Criterion 4 is `tests/application/test_undo_nested_claude.py::test_the_undo_removes_a_nested_claude_folder_and_keeps_the_rest`, run against a real bare remote.
+   - Both sides of the Interface's rules are tested: a whole `.claude` segment against `.claudex`, `x.claude` and `claude`, and "at least one segment after it" (`src/.claude` gives false, `src/.claude/...` gives true). The refused side is tested while a write path still matches.
+   - The coder's journal entry 7 records `check: green`.
+   - Code: `src/factory/domain/write_paths.py:23` adds `"*/.claude/*"` right after `.claude/*`. `matches_any` uses `fnmatchcase`, so the pattern only matches a path with `/.claude/` inside it, which is the whole-segment rule. `refusal`, the hook, the undo and the kernel's confinement are unchanged. `factory.application.write_paths` reads `PROTECTED_PATHS` as before.
+   - Architecture: a constant in `factory.domain`, no new imports.
+   - Security: no silencing markers, no secrets.
+   - Quality: `tests/undo_support.py` is a move of the helpers out of `tests/application/test_undo.py`, not a copy. It overlaps nothing in `tests/write_path_support.py`; both modules held a `PIPELINE_FILE` constant before this story too.
+   - Work item hygiene: the coder's entry gives the main choice (keep `matches_any` as it is) and what was rejected (a segment-aware matcher). The Description matches what was built, and the docs criterion still says what the reader must know.
+
+   Earlier tests:
+   - `tests/domain/test_write_paths.py`: changed under the human's leave, the feature's decision 3. Only the rename and the added second tuple item.
+   - `tests/application/test_undo.py`: changed under the standing leave to move a shared test helper (`CLAUDE.md`, *Tests*). `_pipeline`, `_start`, `_undo` and their constants moved to `tests/undo_support.py` as `pipeline_text`, `start_stage` and `undo_stage`. Every test keeps its name and its assertions; only the calls were renamed, and one line was rewrapped.
+10. factory: started docs as self.
+11. documenter: No findings. I changed only documents, so I did not run `make check` (the factory's checks decide), and I ran no example, because I wrote none.
+
+    Files changed:
+    - `docs/operator-guide.md` (*A project's own skills*): replaced the sentences on the root-only protection with the rule. `.claude/` is protected at any depth (`.claude/*` and `*/.claude/*`), so no stage writes one anywhere in the repository. The hook refuses it in a Claude Code run, the undo removes it after every run, and the kernel cannot refuse it inside a folder a write path opens.
+    - `docs/project-guide/write-guard.md` (*Protected paths and the refusal*): "eleven" became "twelve", `*/.claude/*` is listed after `.claude/*`, and a sentence says a `.claude` segment is protected at any depth and only as a whole segment, and that the kernel's targets do not change.
+    - `docs/decisions.md`: new entry *No stage writes a .claude folder at any depth* (decisions, reasons, and the rejected Landlock rule and R14 rewording). The F0022 skills entry's open point now names it.
+
+    The diff matches the Interface and the criteria. `PROTECTED_PATHS` has the twelve patterns with `*/.claude/*` second, and `refusal`, the hook and the undo are unchanged.
+
+    Cross-read and found current: `README.md` (the criterion says none), and the rest of `docs/operator-guide.md` and `docs/project-guide/`. I searched them for "eleven" and `.claude/*`; the other "eleven" hits are unrelated, such as the eleven stall causes.
+
+    Stale text I saw and did not touch: none. I did not edit `docs/runs/`, which the human owns. I did not read the feature's `feature.md`, so I took the entry's decision numbers (1, 2 and 4) from the docs criterion.
+
+    `check`: check: green (not run again: passed on tree b1fcf2631b53 at 2026-10-20T03:28:39Z)
+    `secrets`: secrets: green (1.6 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings. I ran the one command under `## Smoke test` from the repository root, exactly as written. It exited 0.
+
+    Command 1, the `uv run python -c` call of `refusal` over four paths:
+    ```
+    .claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is owned by the human; a change there is a question.
+    src/.claude/skills/x/SKILL.md -> src/.claude/skills/x/SKILL.md is owned by the human; a change there is a question.
+    src/.claudex/a.md -> allowed
+    src/a.py -> allowed
+    ```
+    Met its `Expect:` line: there are four lines, and each one matches the expected text exactly.
+
+    Checked against the acceptance criteria:
+    - The output agrees with criterion 3: the nested `.claude/` is refused under the write path `src/*` with the human-owned text, and `src/.claudex/a.md` and `src/a.py` are allowed.
+    - It also agrees with criterion 2: `.claude` is protected at the root and nested, and only as a whole segment.
+    - I also printed the constant and four of criterion 2's paths through `matches_any`. This was a read-only check, not part of the smoke test:
+      - `PROTECTED_PATHS` has 12 items, starting `('.claude/*', '*/.claude/*', 'CLAUDE.md')`, as criterion 1 says.
+      - `src/.claude` False, `src/x.claude/a` False, `claude/agents/coder.md` False, `a/b/c/.claude/d` True, as criterion 2 says.
+    - No criterion is contradicted.
+    - Not exercised here: criterion 4 (the undo) and criteria 5 and 6. The smoke test does not target them. Criterion 4 has its own test, and the earlier stages recorded `check: green` and the docs.
+
+    Findings: none. Nothing was changed.

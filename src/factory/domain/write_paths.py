@@ -20,6 +20,7 @@ from factory.domain.pipeline_definition import (
 
 PROTECTED_PATHS: tuple[str, ...] = (
     ".claude/*",
+    "*/.claude/*",
     "CLAUDE.md",
     "Makefile",
     "pyproject.toml",
