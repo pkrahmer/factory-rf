@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 314
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T01:48:02.947600Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T01:48:02.947600Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T01:48:15.616855Z'
+  stage: docs
+  run: c20d14232455491d9b990a29e314eece
 ---
 
 # The tests pin the refusal reason after the role's own result, and the board's absent and blocked values
@@ -199,3 +201,16 @@ Expect: four lines, `Too wide. Cut the second story.`, `features`, `work items` 
    Earlier tests:
    - tests/domain/test_acceptance_booking.py: changed under the standing leave to move a shared test helper in `CLAUDE.md` (*Tests*), which the story's Interface also names. Its `_document` moved to `tests/acceptance_support.py` as `report_of`. Its three call sites now use `report_of`, and every test keeps its name and what it checks.
 10. factory: started docs as self.
+11. documenter: No findings. The docs criterion is `none`, so I wrote nothing and changed no file.
+
+    Cross-read against the diff, which is tests only (tests/acceptance_support.py, the two new test modules, and the helper move in tests/domain/test_acceptance_booking.py), with nothing under `src/` changed:
+    - `docs/operator-guide.md`, the close/refusal paragraph (line 1234): it says the reason is the human's comments after the reviewer's last result, which matches the pinned behaviour. Current.
+    - `docs/operator-guide.md`, the board line example (line 1161): it uses the `stage=… blocked=- claim=… pull_request=…` form that the new tests pin. Current.
+
+    Stale text I noticed that is not mine to fix: none.
+
+    I did not run `make check`, because I changed no file. The factory's check after this stage decides.
+
+    `check`: check: green (not run again: passed on tree e11d2b1585e1 at 2026-10-20T01:45:59Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
