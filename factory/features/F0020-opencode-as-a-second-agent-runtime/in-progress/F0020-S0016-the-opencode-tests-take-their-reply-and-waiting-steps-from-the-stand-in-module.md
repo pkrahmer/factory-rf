@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T06:50:18.121511Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T06:50:18.115344Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:50:18.121511Z'
+  stage: intake
+---
+
 # The opencode tests take their reply and waiting steps from the stand-in module
 
 <!-- proposed by feature acceptance of 2026-10-19; refine before starting -->
@@ -49,3 +76,6 @@ uv run pytest --no-cov tests/test_opencode_shared_steps.py 2>&1 | tail -1
 Expect: a line that starts `2 passed`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
