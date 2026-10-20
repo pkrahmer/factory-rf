@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 351
 comments_read: [6290619339]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T12:26:57.916670Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-20T12:26:57.916670Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T12:28:02.192694Z'
+  stage: review
+  run: 9f7bec2470a84d9f9f6885214d920742
 ---
 
 # A program ends every other process of the user it runs as
@@ -386,3 +388,14 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 15. factory: started review as self.
+16. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. I read `src/factory/domain/sessions.py`, `src/factory/domain/leftovers.py`, `src/factory/adapters/process.py` and `src/factory/entry/leftovers.py`, plus the tests. The code matches the Interface: the argument check comes before `identity`, the refusal before the first `kill`, there is one `kill` and one listing per round, 49 pauses, and every fault line is as specified. The layers hold. The domain does no I/O. The one `# noqa: PLR0913` has its reason beside it and the human's leave (entry 8). The factory's `make check` after the coder was green (entry 14). `make duplicates` reported 5 new findings. All are in `claude_runtime`/`opencode_runtime` and `adapters/clock.py`, which this diff does not touch, so none is in scope.
+
+    Findings:
+    1. `tests/entry/test_leftovers.py`, `test_wrong_arguments_print_the_usage` and `test_the_user_s_name_starts_the_rounds`: criterion 7 asks for one parametrized test. Here its rejected argument lists and its accepted `["--user", "agent"]` are two separate test functions. Fix: one parametrized test whose rows are the six bad lists and the accepted list, each row with its expected status, output, `identity` calls and `kill` calls.
+    2. `tests/entry/test_leftovers.py:19` (`AGENT`) and `:23` (`_entry`) copy `AGENT` and `_entry` from `tests/domain/test_leftovers.py:9` and `:12`. Both build `Identity(uid=1001, user="agent", pid=11)` and `ProcessEntry(pid=pid, session=pid, ended=ended, uid=uid)`. `tests/adapters/test_process_table.py:15` holds the same `_entry` again, with `uid=os.getuid()`. Fix: the tester moves `AGENT` and one `_entry(pid, uid=1001, *, ended=False)` to a shared module under `tests/`, and the three new modules import them from there.
+
+    Earlier tests changed:
+    - `tests/domain/test_sessions.py`: the human's leave, the story's Interface (feature decision 16). Only the named `uid=1001` / `"uid": 0` additions and the reformatting they caused; every test keeps its name and rows.
+    - `tests/entry/test_wiring.py`: the human's leave, the story's Interface (feature decision 16). The expected set gains `"factory.entry.leftovers"`.
+    - `tests/test_wrapper_search.py`: the human's answer, journal entry 8. The expected set gains `"factory.entry.leftovers"`.
+    - `tests/test_process_search.py`: the human's answer, journal entry 8. The expected markers gain `"entry/leftovers.py": {32: {"noqa: PLR0913"}}`.
