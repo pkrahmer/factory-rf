@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T01:32:08.858923Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T01:32:08.858923Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T01:32:50.900415Z'
+  stage: review
+  run: 2aace54dd999463a89d244885da995e8
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -148,3 +150,12 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'`, which adds two test files and changes nothing under `src/`. Groups 1 to 3 pass. Each of criteria 1 to 4 is covered by one parametrized test whose rows match the literal inputs and outputs in the criteria. The rows would catch a reader that starts one line late or one line early, and both failing sides are tested: entry 2 raises `no journal entry 2`, and the backlog row gives `FormFinding(line=25, ...)`. The coder's journal entry 7 says the factory's `make check` was green, and nothing touches the architecture or security. Group 4 (quality) fails. Because this is round 0, copies inside a test file the diff adds are findings, not notes.
+
+   1. `tests/domain/test_story_form_edges.py:10-13` and `:16`: `FORM` and `SMOKE` are character-for-character copies of `FORM` and `SMOKE` in `tests/domain/test_story_form.py:11-14` and `:20`. Fix: import them, e.g. `from domain.test_story_form import FORM, SMOKE`, as `tests/domain/test_contract_provider_limit.py:3` already imports from another test module. Only `CRITERIA` differs ("3. docs: none."), so the new module keeps its own `CRITERIA`, and no earlier test changes.
+   2. `tests/domain/test_story_form_edges.py:17-19`: `STARTED` builds by hand the same state that the existing helper `_state` in `tests/domain/test_story_form.py:59` gives for `_state(1, "done")`. The Interface says to build the state the way `_state` does. Fix: import `_state` and set `STARTED = _state(1, "done")`.
+   3. `tests/domain/test_section_edges.py:10`: `TICKS = "`" * 3` is a copy of `TICKS` in `tests/domain/test_sections.py:23`, which criterion 2 names as the source. Fix: `from domain.test_sections import TICKS`.
+
+   What I rejected: moving these constants to a shared module under `tests/`. The standing leave would allow it, but the story says "No earlier test changes", and importing them needs no change to an earlier test. These findings are for the tester; the coder hands them on and touches no test (R9).
+
+   Earlier tests: none changed. The diff only adds `tests/domain/test_section_edges.py` and `tests/domain/test_story_form_edges.py`, both with status `A`.
