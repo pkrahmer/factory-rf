@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 309
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T00:37:55.917014Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T00:37:55.917014Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T00:38:36.219675Z'
+  stage: review
+  run: 84e911b752d7472ab6ba18f36198bec7
 ---
 
 # The image makes opencode's configuration folder, read-only to the agent
@@ -154,3 +156,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'`, which covers `image/Dockerfile` (+7) and `tests/test_opencode_config_folder.py` (new), against the work item.
+   - Acceptance criteria:
+     - Criterion 1 is one test parametrized over the rows `configuration` and `parent`. Each row checks the `mkdir -p`, the last `chown` and `chmod` through `_path_settings` of `tests/test_image.py`, and `int(mode, 8) & 0o022 == 0`. The Dockerfile gives `factory:factory-work` / `0755` to `/home/agent/.config/opencode` and `agent:factory-work` / `0755` to `/home/agent/.config`. These match the test.
+     - Criterion 2 checks over `dockerfile_instructions()` that there is exactly one mkdir `RUN`. That `RUN` comes right after the one `useradd ... agent` `RUN` and before both `WORKDIR /opt/factory` and `USER factory`. The Dockerfile has the new `RUN` at lines 35–38, right after the user `RUN` that ends at line 31, and `WORKDIR` follows at line 39.
+     - Criterion 3 rests on the existing `[default]` row of `tests/adapters/test_opencode_runtime_folders.py`, which this diff leaves alone. Nothing under `src/` changes.
+     - Journal entry 7 records the factory's `make check` as `check: green`.
+     - The Interface sets no limit on an input and names no refused input. The one rule it states (no group or other write bit) is a property of the image, pinned by the mode check.
+   - Architecture: this is an image-only change, and no layer, wrapper or `RUNTIME_FOLDERS` changes. `image/entrypoint.sh` and `image/compose.yml` are unchanged, and neither touches `/home/agent/.config`.
+   - Security: no marker that silences a check, no secret, no shell built from strings. The configuration folder is not writable by the agent's group or by others, and `factory` is in `factory-work` as its primary group.
+   - Quality: the new test reuses `_commands`, `_path_settings`, `DOCKERFILE` and `dockerfile_instructions` and copies no existing helper. The Dockerfile comment explains why the folder exists.
+   - Work item hygiene:
+     - The coder's entry gives the main choice (a `RUN` of its own) and what was rejected (merging it into the user-adding `RUN`).
+     - The Description matches what was built.
+     - The docs criterion still says what the operator guide, `agents.md` and `decisions.md` must state after this story.
+
+   Earlier tests: none. The diff only adds `tests/test_opencode_config_folder.py` and changes, renames or deletes no test file that `main` holds.
