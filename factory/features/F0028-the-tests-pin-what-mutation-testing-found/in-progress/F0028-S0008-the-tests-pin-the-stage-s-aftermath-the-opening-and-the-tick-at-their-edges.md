@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 319
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T02:38:29.813542Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T02:38:08.344475Z'
   stage: docs
   run: 59c0279c1f414f01bb5bb57d78480f0d
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T02:38:29.813542Z'
+  stage: smoke-test
 ---
 
 # The tests pin the stage's aftermath, the opening and the tick at their edges
@@ -222,3 +231,4 @@ Expect: four lines, `None`, `Stalled (attempt 1 of 2): the agent gave no valid d
     `check`: check: green (not run again: passed on tree d2877c496152 at 2026-10-20T02:35:43Z)
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
