@@ -46,7 +46,7 @@ class OpencodeRuntime(AgentRuntime):
     def leftovers(self) -> list[str] | None: ...
 ```
 
-- Both keep `leftovers` in their `Starters` and read the factory process's own user once per call with `factory.adapters.own_processes.own_identity().user`.
+- Both keep `leftovers` in their `Starters` and read the factory process's own user once per call with `factory.adapters.process.own_identity().user`.
 - In `_call`, after the call's process returned (a call that cannot be started raises `cannot start <program>: <error>` as today, and nothing follows it): when `leftovers_due(...)`, start `leftovers_launch(...)` through the runtime's `_start` with the working directory `/`. Then, as today, the temporary folder's removal (when confined). The order of the processes a call starts is the call, the program, the removal.
 - The program's result is read only when the call returned and the reading of its end raised no refusal (`call_refusal` today; `read_call_end` once F0039-S0001 is merged, which raises the refusal itself). Then a `leftovers_fault` that is not `None` raises `AgentRuntimeError(<the fault>)`, after the removal. So the order in `_call` is: the call, the program, the removal, the reading of the call's end, the program's fault. When the call gives a refusal, the call's own `AgentRuntimeError` is raised as today, and the program's result is not read.
 - A run stopped by its budget is resumed in a second `_call`, so the program runs twice, once after each call. A run with `resume_session` makes one call, and a second one only when its budget stops it.
