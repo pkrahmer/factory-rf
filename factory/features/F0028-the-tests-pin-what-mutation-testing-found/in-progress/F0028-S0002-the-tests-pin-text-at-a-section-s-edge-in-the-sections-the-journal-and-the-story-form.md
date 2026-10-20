@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T01:33:11.476192Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T01:33:11.476192Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-20T01:33:22.691166Z'
+  stage: doing
+  run: 4d10ab4bb0dd4a14bc86cbcbf1a081cf
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -169,3 +171,11 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
 
    Earlier tests: none changed. The diff only adds `tests/domain/test_section_edges.py` and `tests/domain/test_story_form_edges.py`, both with status `A`.
 10. factory: started doing as self.
+11. coder: Round 1: all three of the reviewer's findings in entry 9 are test changes. The source under `src/factory/` needs no change, so I changed nothing and am sending the work item back to the tester (R9). The tester should make these changes and no others:
+       1. `tests/domain/test_story_form_edges.py`: remove the copied `FORM` and `SMOKE` and import them with `from domain.test_story_form import FORM, SMOKE`. Keep this module's own `CRITERIA`.
+       2. `tests/domain/test_story_form_edges.py`: replace the hand-built `STARTED` with `_state(1, "done")`, imported from `domain.test_story_form`.
+       3. `tests/domain/test_section_edges.py`: remove the copied `TICKS` and import it with `from domain.test_sections import TICKS`.
+       - No earlier test module changes. The reviewer rejected moving these into a shared module, and I agree, because importing them is enough.
+       - What I built: nothing. No paths changed in this round.
+       - Main choice: send the work back with `tests` and touch neither the code nor the tests. I rejected making the edits myself, because the coder never edits tests (R9).
+       - Noticed, not touched: nothing new.
