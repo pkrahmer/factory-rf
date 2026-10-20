@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T11:34:44.722075Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T11:34:44.716396Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T11:34:44.722075Z'
+  stage: intake
+---
+
 # The documents describe the kernel's guard and the undo as the write guard
 
 ## Description
@@ -46,3 +73,6 @@ make documents 2>&1 | tail -n 1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
