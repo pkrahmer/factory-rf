@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 332
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T04:18:50.209103Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T04:18:50.209103Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T04:19:44.646398Z'
+  stage: tests
+  run: 15c1ed54eecc482c8e3d856096aa90c1
 ---
 
 # The project guide names the recovery's commit subjects
@@ -81,3 +83,12 @@ Expect: `work item F0001-S0001: crash of stage doing recorded` (the form the gui
    Scope: it is within F0028's goal, which pins what the recovery commits. The feature's "Out of scope" lists "The documents" only for the stories that add tests. This story is the documenter's follow-up proposed by feature acceptance, and its change is limited to the two subjects in step 4.
    Open: none.
 4. factory: started tests as self.
+5. tester: No test written. The Interface says no module under `src/factory/` changes and the tester writes no test module, and neither criterion describes behaviour a test could check:
+   criterion 1 (`make check` stays green): the factory's own check covers it; no test function.
+   criterion 2 (docs: `docs/project-guide/watching.md`, step 4, names the two recovery subjects): the documenter does this and the reviewer checks it by reading the guide; no test function. `tests/application/test_recovery_subjects.py` (from F0028-S0006) already pins the subjects in code. I did not change it.
+   Files created: none. Modules the test run could not import: none, because no new test refers to code that is missing.
+   I did not run `make test`. With no new tests there are none that should fail, so there was no red run to confirm. `make lint`: green.
+   Open: none.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (40.6 s)
