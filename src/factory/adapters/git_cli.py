@@ -409,6 +409,11 @@ class GitCli(Git):
         except OSError as error:
             raise GitError("discard", None, str(error)) from error
 
+    def remove_ignored(self) -> None:
+        """Remove every untracked path that `.gitignore` or `.git/info/exclude` matches."""
+        # The second `--force` also removes an ignored folder that holds a repository.
+        self._run(["clean", "--quiet", "--force", "--force", "-d", "-X"])
+
     def work_tree_id(self, left_out: Sequence[str] = ()) -> TreeId:
         """Stage the work tree in a temporary index, drop the paths left out, write its tree."""
         with tempfile.TemporaryDirectory() as folder:

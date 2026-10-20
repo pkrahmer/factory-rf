@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 355
 comments_read: [6293770931]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T15:02:43.317932Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-10-20T15:02:43.317932Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-10-20T15:06:21.296569Z'
+  stage: doing
+  run: 6de6bf1d786e49b18be61c17e5eba147
+  blocked: question
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -242,3 +245,30 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/application/test_tick.py::test_the_restore_discards_changes_and_names_them_in_one_line - AssertionError: assert not True
 9. factory: started doing as self.
+10. coder: I wrote the code, but `make check` is red because of one test that cannot pass. I did not change that test.
+
+    The failing test is `tests/application/test_sealed_runs_ignored.py::test_a_returned_run_leaves_no_ignored_path_and_a_raised_one_leaves_them[raised]`. Line 154 asserts `str(error.value) == "boom"`. But `AgentRuntimeError.__init__` (`src/factory/domain/errors.py:90`) passes `f"agent runtime failed: {detail}"` to its base class. `tests/domain/test_errors.py::test_agent_runtime_error_names_its_detail` pins that text: `str(error) == "agent runtime failed: boom"`. From the `make test` run:
+    ```
+        assert str(error.value) == "boom"
+    E   AssertionError: assert 'agent runtime failed: boom' == 'boom'
+    ```
+    The rest of that row already passes. The error propagates unchanged and its type matches. `.venv/lib/standin.pth` and `tests/hidden/conftest.py` are still there. Every other new test and every changed test passes. Lint, types and layers are green.
+
+    Options:
+    - (a) The tester changes line 154 to `assert error.value.detail == "boom"`. That checks the error the run raised, with the detail the criterion names.
+    - (b) The tester changes line 154 to `assert str(error.value) == "agent runtime failed: boom"`.
+    - (c) Change `AgentRuntimeError` so its text is the bare detail. That breaks the earlier `test_errors.py` test and every message built on that text.
+
+    I would choose (a). Once you answer, I end the next round with `tests` and name that one line.
+
+    What I built:
+    - `src/factory/application/git.py`: the abstract `Git.remove_ignored()`, with the Interface's docstring.
+    - `src/factory/adapters/git_cli.py`: `GitCli.remove_ignored()`, which runs `clean --quiet --force --force -d -X` through `_run`, so a non-zero exit is a `GitError` with that command.
+    - `src/factory/application/sealed_runs.py`: `run_sealed` calls `git.remove_ignored()` after the `try`/`finally`. So it runs only when the run returned and both the seal check and the nested removal passed. A run that raised leaves its ignored paths to the restore.
+    - `src/factory/application/tick.py`: `_restore_checkout` calls `remove_ignored()` between `reset_to("HEAD")` and the switch to `main`. Its `GitError` reaches the existing `checkout_restore_failed` handler.
+
+    Main choice: I put the removal after the `finally` block instead of inside it. Inside, it would also run after a raised run. The Interface leaves that case to the restore, and a second git error inside `finally` would hide the run's own error. I did not consider removing the paths from Python, as `remove_nested_repositories` does. The Interface asks for git's own rules: every nested `.gitignore` and `.git/info/exclude`.
+
+    Refactor: I read the diff and found nothing to change. The only edit was shortening the docstring of `run_sealed`, which was over the line limit.
+
+    Noticed but not touched: nothing.

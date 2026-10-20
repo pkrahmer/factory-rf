@@ -181,6 +181,8 @@ class Tick:
             self._boundaries.log.line(f"discarded uncommitted changes: {', '.join(changes)}")
         # Cleaning in place first, so that the switch to main never meets a local change.
         git.reset_to("HEAD")
+        # Before the switch, while the branch's own `.gitignore` files still name what they hid.
+        git.remove_ignored()
         git.checkout(MAIN_BRANCH, start_point=_MAIN_REF)
         # A local branch of a work item may hold a rejected push; the next stage starts
         # from the remote's branch instead.
