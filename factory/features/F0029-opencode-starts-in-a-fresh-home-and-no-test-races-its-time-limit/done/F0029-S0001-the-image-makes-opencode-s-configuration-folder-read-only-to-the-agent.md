@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-10-20T00:43:28.356920Z'
   stage: smoke-test
   run: 8c0fa44d03a640ee9df9a392617ecff3
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-20T00:44:47.786857Z'
+  stage: approval
 ---
 
 # The image makes opencode's configuration folder, read-only to the agent
@@ -282,3 +287,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Criteria 4 and 5: the smoke test does not cover them. Entries 7 and 11 record `make check` as green and the docs as written.
 
     Open: whether opencode starts in a recreated instance built from the new image is the human's change 1, as the Description says.
+17. factory: done (pull request merged); cost: 7 runs, 4.7 min, 42 turns, 135137 tokens in (710720 more from cache), 14966 out, $1.28
