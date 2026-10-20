@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 367
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T22:49:01.382584Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T22:49:01.382584Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T22:51:46.932024Z'
+  stage: doing
+  run: e82aa699027b45be8f0cf59b79c9984e
 ---
 
 # The shared time limits' test names the values of a relation that broke
@@ -138,3 +140,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.6 s)
    `test`: test: green (63.2 s)
 6. factory: started doing as self.
+7. coder: Built nothing. The Interface says no module under `src/factory/` changes, and the tester's change to `tests/test_time_limits.py` already passes against the code as it is. I edited no file.
+
+   Main choice: I handed forward with an empty diff and did not add anything under `src/`. The alternative was to look for production code for this story, and I rejected it because the Interface says "the coder has nothing to build". Anything I added would go beyond the description (R13).
+
+   Refactor: there was no diff of my own to read, so nothing needed changing.
+
+   Description: the journal does not change what the task means, so I did not rewrite it.
+
+   Noticed but did not touch: nothing.
+
+   `make check`: check: green (test: green (61.3 s), total coverage 99.14 %).
+
+   `check`: check: green
+   `duplicates`: duplicates: 6 new, 33 known, 3 gone
