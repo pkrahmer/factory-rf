@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 1
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T18:30:55.149296Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-20T18:30:55.149296Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-20T18:31:39.944499Z'
+  stage: doing
+  run: 3c805c88c44e4ccd8079d73a7cf18cf3
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -333,3 +335,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     2. (a). Criterion 1's recipe ends with `@echo "check: green (0.1 s)"`, and the criterion changes the same way; `target_times` stays as it is.
     Both are changes to this story's own new test module. Criterion 9's wording for the missing program follows the answer of entry 9.
 17. factory: started doing as self.
+18. coder: Per the human's answers in entry 16, two changes to `tests/adapters/test_make_commands_user.py` are needed. (1) In `test_a_command_run_as_another_user_is_followed_by_the_leftovers_program`, replace `"agent"` with `OTHER_USER` from `tests/leftovers_runtime_support.py`, both as the `CommandUser`'s `os_user` and in the expected `sudo` arguments (`-u` and `--user`), in every row except `own-user`. (2) In `test_the_command_runs_through_sudo_timeout_and_env_with_only_the_user_s_environment`, change the recipe's last line from `@echo "check: green"` to `@echo "check: green (0.1 s)"`.
+
+    I changed no code this round. The implementation in `src/factory/adapters/make_commands.py` was committed by the previous doing run, as entry 15 describes. When the tests come back I will run `make test` and then `make check`, and do the refactor pass. Neither has been run on this code yet.
+
+    Not done: I tried to reword the work item's criteria 1 and 9 to match the answers of entries 9 and 16, and the write guard refused it (`PermissionError: [Errno 13]`). I did not try another route. The new wording should be:
+    - Criterion 1: the recipe ends with `@echo "check: green (0.1 s)"`.
+    - Criterion 9: "a user no test runs as (`OTHER_USER`)" instead of `agent`.
+    - Criterion 9: "a leftovers call that cannot be started (the stand-in `sudo` removed by the `check` recipe before the leftovers call)" instead of "a `leftovers` program that does not exist".
+
+    Someone who may write the work item has to make those edits.
