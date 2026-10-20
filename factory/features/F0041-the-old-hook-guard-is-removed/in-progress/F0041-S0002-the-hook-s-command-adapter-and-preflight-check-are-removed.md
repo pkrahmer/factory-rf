@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T11:05:02.966727Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T11:05:02.966727Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T11:06:02.441951Z'
+  stage: review
+  run: 2583ef78fa3f495d955026a291a932b2
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -219,3 +221,20 @@ Expect: `5`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. Groups 1 to 5 pass. Criteria 1 to 5 each have one parametrized test that checks what its criterion says, and the coder's `make check` was green (entry 7). The layers hold. No silencing markers. No references to the hook are left in `src`/`tests`, apart from `pyproject.toml:17`, which is the human's change 1. The 5 new `make duplicates` findings are in `claude_runtime`/`opencode_runtime`/`clock`, which this diff does not touch. Item 6 fails: two earlier tests were changed differently from the change the human's leave (the feature's decision 10) spells out.
+
+   1. `tests/application/test_agent_run_probe.py::test_the_probe_runs_once_for_each_image_build`: decision 10 says the first extra item becomes `confinement_item(lambda: LANDLOCK_MINIMUM_ABI, environment, find)` and the last line expects `finds == ["factory-confine"]`. The tester kept `agent_environment_item` instead, with a new `is_directory` counter (`homes == [tmp_path]`), which goes beyond the leave. Fix: the tester makes exactly decision 10's change (keep `find`/`finds`, call `confinement_item`, expect `["factory-confine"]`).
+   2. `tests/entry/test_wiring_handlers.py::test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home`: decision 10 says the test places and finds `factory-confine` instead of `factory-guard`, with the parameter `confine_present` and the ids `confine-present`/`confine-absent`. The tester dropped the parametrization and the `shutil.which` check, so the test no longer checks that a script in the scripts folder is found on the PATH. Fix: the tester restores the parametrized test with `confine_present`, writes `factory-confine` into `scripts` and asserts `shutil.which("factory-confine", path=environment["PATH"])` as before.
+
+   Earlier tests (item 6):
+   - tests/adapters/test_claude_guard.py (D): the human's leave, decision 10 (deleted whole).
+   - tests/adapters/test_claude_guard_temporary.py (D): the human's leave, decision 10 (deleted whole).
+   - tests/entry/test_guard.py (D): the human's leave, decision 10 (deleted whole).
+   - tests/guard_support.py (D): the human's leave, decision 10 (deleted whole).
+   - tests/application/test_undo.py (M): the human's leave, decision 10 (`judge` replaced by `refusal`, `_payload`/`json` removed); within it.
+   - tests/test_model_configuration.py (M): the human's leave, decision 10 (two `EXCEPTIONS` rows removed); within it.
+   - tests/application/test_agent_environment_item.py (M): the human's leave, decision 10, as the story narrows it ("rewritten for criterion 3", one parametrized test). The single test replaces the two names decision 10 gave; the story's criterion 3 asks for that.
+   - tests/entry/test_wiring_extras_path.py (M): the human's leave, decision 10 (two `agent-environment` rows removed), plus the standing leave to move a shared test helper (`_item` moved to `tests/wiring_support.py` as `machine_item`; the test keeps its name and its checks); within both.
+   - tests/wiring_support.py (M): the standing leave to move a shared test helper (it receives `machine_item`).
+   - tests/application/test_agent_run_probe.py (M): the human's leave, decision 10; beyond it (finding 1).
+   - tests/entry/test_wiring_handlers.py (M): the human's leave, decision 10; beyond it (finding 2).
