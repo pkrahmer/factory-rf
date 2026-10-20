@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 373
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T23:46:27.226146Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T23:46:27.226146Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T23:46:54.179360Z'
+  stage: review
+  run: 30abd1fe4c804bcdb33771de684e3dd3
 ---
 
 # The decision log says why an un-ignored path is accepted
@@ -117,3 +119,11 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
    `duplicates`: duplicates: 6 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar, both under `factory/`.
+   - Acceptance criteria: criterion 1 (nothing under `src/` or `tests/` changes) holds, because the diff touches neither folder. The tester's entry 5 and the coder's entry 7 each say so, as the criterion asks. Criterion 2: the coder's entry records `check: green` (coverage 99.14 %). Criterion 3 is the docs criterion and is left to the documenter. The story states no rule or limit, so there is no failing side to test.
+   - Architecture, security, quality: nothing under review, since no code changed. The `duplicates: 6 new` in entry 7 does not come from this branch, because the branch has no `src/` diff.
+   - Work item hygiene: the Description matches what was built (nothing yet; the bullet comes in the docs stage). The coder's journal gives the main choice, leaving `docs/decisions.md` to the documenter, and what was rejected. The docs criterion still holds against `docs/decisions.md`: the entry *The factory removes the git-ignored paths after every agent run and at the restore* is at line 934, and its `Rejected:` bullet is followed directly by the `Test children (F0027-S0004)` bullet. So the place the criterion names for the new `Accepted: an agent can un-ignore a path` bullet exists.
+
+   Earlier tests: none. No test file on `main` is changed, renamed or deleted.
