@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-20T07:37:51.496755Z'
   stage: smoke-test
   run: 29f59b278807423f87e3d11eaa583cd2
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-20T07:42:17.829449Z'
+  stage: approval
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -384,3 +389,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Criteria 6 (`make check`) and 7 (docs) are outside what these commands cover, and the factory's checks gate them.
 
     Findings: none. I changed nothing. The working tree holds only the factory's `.costs.jsonl` sidecar change.
+22. factory: done (pull request merged); cost: 10 runs, 12.5 min, 68 turns, 274594 tokens in (1718302 more from cache), 32773 out, $2.96
