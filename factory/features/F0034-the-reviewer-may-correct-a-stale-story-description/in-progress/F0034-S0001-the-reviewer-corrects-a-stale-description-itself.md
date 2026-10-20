@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 328
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T04:00:04.353575Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T04:00:04.353575Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T04:00:32.818794Z'
+  stage: review
+  run: ebe8227366a241c0b854d905185fca22
 ---
 
 # The reviewer corrects a stale Description itself
@@ -135,3 +137,18 @@ Expect: `1`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   Read: the work item, and `git diff main...HEAD -- . ':!factory'`, which changes two files: `claude/agents/reviewer.md` (+2 lines) and `tests/test_claude_agent_texts_description.py` (new).
+   1. Acceptance criteria. The paragraph in `claude/agents/reviewer.md:70` matches the Interface's text exactly. It sits after the added-criterion paragraph with one blank line on each side, before `## Stage`, and the diff changes no other line of the file.
+      - Criterion 1: `test_reviewer_role_holds_the_description_correction` checks the whole paragraph inside `section_text(..., "Role")`.
+      - Criterion 2: `test_description_correction_sits_between_added_criterion_and_stage` has two parametrized rows that check the joins. Because each row is a substring check including `"\n\n"`, an extra blank line fails it too.
+      - Criterion 3: `test_only_the_reviewer_names_a_description_correction` has one row per name in `SHIPPED_NAMES`. That list holds exactly the seven files in `claude/agents/`: reviewer 1, the other six 0.
+      - Criterion 4: `test_reviewer_checklist_keeps_its_work_item_hygiene_item` counts item 5's exact line once in *Role*.
+      - The Interface states no limit and no rejected input; the side where nothing settles the Description lies inside the text that criterion 1 pins.
+      - Journal entry 7 records `check: green` after the coder.
+   2. Architecture: nothing under `src/` changes.
+   3. Security: there is no code, no new suppression marker and no secret.
+   4. Quality: the new test module follows the pattern of `tests/test_claude_agent_texts_review_leave.py` and uses `agent_body`, `SHIPPED_NAMES` and `section_text`. It copies no helper. The two sides of criterion 2 are rows of one parametrized test.
+   5. Work item hygiene: the Description matches what was built (one paragraph, only the reviewer, checklist item 5 unchanged). The journal gives the coder's choice and what was rejected. The docs criterion (6) still names what the documenter must write.
+   6. Earlier tests: none. The diff's only test file has status `A` (`tests/test_claude_agent_texts_description.py`), and it changes no test file that `main` already holds.
