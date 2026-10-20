@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T04:45:32.917644Z'
   stage: acceptance
   run: 80df6fd3301a41fbaa835869ee729db2
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T04:46:51.827625Z'
+  stage: done
 stories: [F0034-S0001, F0034-S0002]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The reviewer may correct a stale story Description
@@ -149,3 +154,4 @@ Two stories: 12 runs, 6.2 min, 64 turns, 200976 tokens in (940397 more from cach
    6 Decisions: the feature's decisions 1 to 4, plus two taken in S0002 (intake took S0002 as approved scope; the documenter followed the smoke test over the criterion's wording). No human answers. Earlier tests changed: none.
    7 Slow checks: nothing beyond `make check`, which is green (99.14 %, test 40.6 s, 6094 tests). The slowest tests are runtime time-limit tests at 5.01 s, none from this feature. Disk is unchanged from the previous record (0.5 GB used on `/work`).
    8 Cost: 12 runs, 6.2 min, $1.77 (S0001 $0.95, S0002 $0.82). Every stage ran on its first attempt. In S0002 the tester and the coder each ran a full stage that built nothing, the fixed cost of a documents-only story. 0 questions, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 4.9 min, 30 turns, 70582 tokens in (1353521 more from cache), 19218 out, $1.22
