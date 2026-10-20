@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 318
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T02:27:07.589535Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T02:27:07.589535Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T02:27:20.954414Z'
+  stage: docs
+  run: 3752fcd76d2640b2b65e22f9695fea86
 ---
 
 # The tests pin the expiry note's key at the crash cap and the stalls at their edges
@@ -174,3 +176,16 @@ Expect: two lines, `Stalled (attempt 1 of 2): merging the main branch conflicts 
    5. Work item hygiene: the Description matches what was built (tests only, as in F0025-S0003). Journal entry 7 gives the main choice (change no code) and what was rejected. The docs criterion "none" still holds.
    6. Earlier tests: `git diff --name-status main...HEAD` shows only `A` for test files, so no earlier test file was changed, renamed or deleted.
 10. factory: started docs as self.
+11. documenter: I changed no files. The docs criterion says `none`, and the diff (`git diff main...HEAD -- . ':!factory' ':!docs' ':!README.md'`) adds only `tests/application/test_recovery_expiry_key.py` and `tests/application/test_stall_edges.py`, with nothing under `src/`.
+
+    Cross-read against that diff, all found current:
+    - `docs/project-guide/watching.md` (steps 3 and 4b of recovery): it says the expiry note's key is `<id>:expiry:<the expiry entry's number>`. That matches criterion 1, including at the crash cap, where the crash-cap question follows under its own number.
+    - `docs/operator-guide.md` (expiry, around lines 1453–1462; stall reasons, line 733): the expiry entry and the one-sentence stall causes match the pinned texts. Those are the merge-conflict and left-branch notes, which carry no detail.
+    - `docs/project-guide/stages.md` (stall reasons, line 217; branch check, line 246): `left_branch` and `merge_conflict` match what the tests pin.
+    - `docs/project-guide/git-and-hosting.md` (post key format, line 75): matches.
+
+    I found no stale text. I did not run `make check`, because I changed no file. No finding for the coder: the code behaves as the Interface says.
+
+    `check`: check: green (not run again: passed on tree c2e932948e4b at 2026-10-20T02:25:04Z)
+    `secrets`: secrets: green (0.2 s)
+    `documents`: documents ok
