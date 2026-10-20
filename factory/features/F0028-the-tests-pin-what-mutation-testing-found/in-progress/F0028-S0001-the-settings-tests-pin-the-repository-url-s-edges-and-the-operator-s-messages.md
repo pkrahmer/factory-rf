@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 312
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T01:18:48.363491Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-20T01:18:48.363491Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-20T01:20:40.966952Z'
+  stage: doing
+  run: fcfe061039f34d0195f28f67ce72a973
 ---
 
 # The settings tests pin the repository URL's edges and the operator's messages
@@ -207,3 +209,12 @@ Expect: three lines, `True`, `True` and `FACTORY_REPOSITORY_URL: holds a passwor
     `lint`: lint: green (0.0 s)
     `test`: test: green (40.1 s)
 14. factory: started doing as self.
+15. coder: Round 1: I built nothing, and no module under `src/factory/` changes, as the Interface says. The reviewer's one finding was the copied `_raising` helper. The tester fixed it in entry 13 by moving the helper to `tests/settings_support.py` as `raising`. I checked that no copy is left: `tests/domain/test_settings.py:12` and `tests/domain/test_settings_url_edges.py:10` both import it from `settings_support`. That closes the finding, so there is no code left for me to change.
+    I ran `make check` on the committed state and it passed: `test: green (39.7 s)`, `check: green`.
+    Main choice: I left `factory.domain.settings` untouched. The alternative I rejected was tidying its authority split while I was here, because that is the exact code these tests pin and the change would go beyond the description.
+    Refactor: my diff is empty, so there was nothing to refactor.
+    The journal did not change the meaning of the task, so `## Description` stays as it is.
+    Noticed but did not touch: nothing new. The unrelated `_raising` in `tests/application/test_preflight_run.py`, which I noted in entry 11, has a different signature and is outside this move.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
