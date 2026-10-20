@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T15:08:42.639513Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-10-20T15:08:17.343585Z'
   stage: doing
   run: 1800b98fa9f749e4b0c8c542f6cbf7eb
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:08:42.639513Z'
+  stage: tests
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -295,3 +304,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The code from the last doing round is already on the branch (commit 05aa6710): `src/factory/application/git.py`, `src/factory/adapters/git_cli.py`, `src/factory/application/sealed_runs.py` and `src/factory/application/tick.py`. With that one line changed, I expect every test of this story to pass. In the last round, this assertion was the only failure in `make test`. I did not run `make check` this round, because no code changed.
 
     The journal did not change what the task means. `AgentRuntimeError` keeps its text, so the Description stays as it is.
+14. factory: started tests as self.
