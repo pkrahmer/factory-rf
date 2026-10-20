@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 351
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T12:08:54.145691Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,13 @@ journal:
   kind: started
   at: '2026-10-20T12:08:54.145691Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-20T12:13:33.890021Z'
+  stage: doing
+  run: df2fb0b4ce6d4a7498cb90bbe49fa758
+  blocked: question
 ---
 
 # A program ends every other process of the user it runs as
@@ -251,3 +254,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_leftovers.py - ImportError while importing test module...
 6. factory: started doing as self.
+7. coder: I stopped before review. The code is built, but two structural tests that earlier stories wrote conflict with the Interface. Neither of them is in the list of test changes the Interface allows, so I need your decision (R9).
+
+   Built, and left in the working tree:
+   - `src/factory/domain/sessions.py`: `ProcessEntry.uid`, and `parse_stat(..., *, uid)`.
+   - `src/factory/domain/leftovers.py` (new): the constants, `Identity`, `leftover_pids` and `leftovers_refusal`.
+   - `src/factory/adapters/process.py`: `read_process_table(proc)` is now public, sorted by `pid`, and reads the owner of each folder. `own_identity` and `signal_every_other` are added, and `_kill_session` uses the reader.
+   - `src/factory/entry/leftovers.py` (new): `main`. A private `_Stop` exception carries each fault line, as in `factory.entry.confine`. I chose that over returning status codes from each step.
+
+   Results of `make check`: lint, types, layers, sast, secrets and licenses are green. `make test` fails in exactly two tests, and every story test passes.
+
+   1. `tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module` fails with `Extra items in the left set: 'factory.entry.leftovers'`. The Interface requires `main`'s defaults to be `own_identity`, `signal_every_other` and `read_process_table` of `factory.adapters.process`, so the module has to import it. The Interface names the change to `test_wiring.py` but not this one.
+      - Options: (a) the tester adds `"factory.entry.leftovers"` to the expected set of this test, and its name and everything else stay; (b) the entry reaches those functions through another adapter module, which only hides the import.
+      - I would choose (a).
+   2. `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper` fails with `Left contains 1 more item: {'entry/leftovers.py': {32: {'noqa: PLR0913'}}}`. The Interface fixes `main` at six parameters (`argv` and five keywords). ruff's PLR0913 allows five, and `make lint` fails without the marker. For now the code carries `# noqa: PLR0913` with a comment that says why.
+      - Options: (a) you allow this one marker, and the tester adds `"entry/leftovers.py": {<the def line>: {"noqa: PLR0913"}}` to the expected markers; (b) a per-file ignore for `src/factory/entry/leftovers.py` in the ruff configuration in `pyproject.toml`, which leaves the test alone but hides the exception from it; (c) the Interface changes so the four injected calls go into one object, which means rewriting the story's tests in `tests/entry/test_leftovers.py` and its smoke test.
+      - I would choose (a): the exception stays visible on the one line it covers.
+
+   Once you answer, I will end with `tests` and name the test changes. If you choose (b) or (c), I will make the code change instead.
+
+   The refactor step is not done yet; it comes after the answer. I noticed but did not touch: the name of `test_only_the_three_wrappers_import_the_process_module` already says three while its set lists five modules.
