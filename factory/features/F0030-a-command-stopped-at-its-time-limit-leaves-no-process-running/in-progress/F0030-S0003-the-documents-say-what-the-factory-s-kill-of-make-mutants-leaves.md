@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 370
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T23:24:10.263623Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T23:24:10.263623Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T23:24:28.821129Z'
+  stage: smoke-test
+  run: af0aa7f4aee4455da75254b3d0f7512a
 ---
 
 # The documents say what the factory's kill of make mutants leaves
@@ -173,3 +175,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test run from the repository root, both commands as written and in order. No findings.
+
+    1. `grep -c "the temporary folder stays" docs/project-guide/processes-and-checks.md`
+    ```
+    1
+    ```
+    Expect: `1`. Met.
+
+    2. `grep -c "since F0030-S0001 the factory's kill reaches mutmut" docs/decisions.md`
+    ```
+    1
+    ```
+    Expect: `1`. Met.
+
+    Acceptance criteria checked against the branch diff (`git diff main...HEAD`):
+    - Criterion 1 (nothing under `src/` or `tests/` changes): met. The diff touches only `docs/decisions.md`, `docs/project-guide/processes-and-checks.md`, the work item and its `.costs.jsonl` sidecar. The tester (entry 5) and the coder (entry 7) each wrote an entry saying so.
+    - Criterion 2 (`make check` stays green): the factory's check is green (entries 7 and 11). I did not run it again, because the smoke test does not ask for it and no code changed.
+    - Criterion 3 (docs), checked line by line:
+      - *The temporary folder* now says that a factory kill at the time limit ends with SIGKILL and runs no `EXIT` trap. It says mutmut and `make`'s session are gone, that "the temporary folder stays", that the folder is under the caller's `TMPDIR` and that the operator removes it by hand.
+      - The paragraph says a process started through `factory.adapters.process` is in a session of its own (`start_new_session`) and "runs on until it ends by itself".
+      - It names the 2026-10-20 case: the kill at 50 s during the stats run, and the fake `claude` of `test_call_over_its_time_limit_is_killed_with_unknown_measures` running for up to 60 s.
+      - It says a stop by `MUTANTS_SECONDS` still runs the trap.
+      - Decision (4) in `docs/decisions.md` has the exact parenthetical right after "does not reach mutmut".
+      - The Decision bullet of *A command stopped at its time limit loses every process of its session* has the new sentence right after the `setsid` sentence.
+      - `README.md` is unchanged.
+
+    Nothing in the smoke test contradicts any criterion.
+
+    Open: none.
