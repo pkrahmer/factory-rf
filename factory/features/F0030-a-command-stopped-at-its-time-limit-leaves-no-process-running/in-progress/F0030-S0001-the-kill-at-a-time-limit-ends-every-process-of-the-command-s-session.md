@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T09:22:46.618552Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-10-20T09:22:46.618552Z'
   stage: docs
+- number: 30
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T09:23:39.736294Z'
+  stage: docs
+  run: ccb1df347d224b208064a983e1437fe9
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -562,3 +564,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: none changed. The diff only adds test files (`tests/domain/test_sessions.py`, `tests/adapters/test_process_session.py`).
 29. factory: started docs as self.
+30. documenter: docs, round 2. I found no code that contradicts the Interface or the criteria, so there are no findings. I changed documents only, so I did not run `make check`. The factory's checks run after this stage. The docs criterion (11) was not yet written, so I wrote it.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`:
+      - The *Project commands* line now says every process of the session is killed, not the process group.
+      - *Starting a process* now says the kill at the time limit, at a stop and at a callback error reaches the child's group and then its session.
+      - A new paragraph, *Killing a session*, covers the rounds, the 0.05 s pause, and why a session and not a group. It also covers the limits: `setsid` is outside the rule, another user's process is left to the agent's own `timeout`, and an ended or unreadable process is skipped. It names `factory.domain.sessions` and its tests.
+      - *Mutation testing*, the `MUTANTS_SECONDS` bullet: a `make mutants` run through `MakeProjectCommands.run` that is killed at its time limit leaves no mutmut running. A shell's `timeout` on `make` reaches only make's group.
+    - `docs/decisions.md`:
+      - New entry *A command stopped at its time limit loses every process of its session*. It corrects F0024 decision 4 and gives the reasons and the rejected options from the criterion.
+      - The cause line of *The container runtime's init reaps the processes a killed run leaves* now names the new entry and says the init still reaps what the kill leaves.
+    - `README.md`: unchanged, as the criterion says (nothing a newcomer does changes).
+
+    Cross-read and found current: `docs/operator-guide.md` ("A `time_limit` under `sudo`": the `PermissionError` and agent `timeout` path is unchanged), `docs/project-guide/write-guard.md` (the wrapper keeps its process group), and the line on `replace_process` in `processes-and-checks.md`.
+
+    I did not run the examples I wrote. They are prose with no commands. The story's smoke test block belongs to the smoke-test stage.
+
+    Stale text I saw but did not touch: none.
+
+    `check`: check: green (not run again: passed on tree fd1fd5adbafa at 2026-10-20T09:18:43Z)
+    `secrets`: secrets: green (1.0 s)
+    `documents`: documents ok
