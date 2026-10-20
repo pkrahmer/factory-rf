@@ -74,6 +74,7 @@ licenses:
 test:
 	$(start)
 	mkdir -p .reports
+	# The tests set their own umask (tests/conftest.py); uv syncs .venv under the caller's.
 	uv run pytest -q --no-header --tb=short -p no:cacheprovider -n auto --dist load 	  --junit-xml=.reports/junit.xml --cov --cov-report=term-missing:skip-covered
 	$(green)
 
