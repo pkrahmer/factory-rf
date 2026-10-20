@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 348
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T11:07:02.024362Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T11:06:40.957227Z'
   stage: doing
   run: d450c74b3b664639853a415122d50039
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T11:07:02.024362Z'
+  stage: tests
 ---
 
 # The hook's command, adapter and preflight check are removed
@@ -260,3 +269,4 @@ Expect: `5`
     Main choice: send this to tests rather than adjust code. I rejected adjusting code, because neither finding concerns the code and the coder never edits tests (R9).
 
     Noticed but not touched, still open: `pyproject.toml:17` still declares `factory-guard`, which is the human's change 1 after this story. A leftover `mutants/` folder holds copies of the old guard tests; every mutmut run deletes it first. I did not run `make check` this round, because nothing in the code changed since entry 7, when it passed.
+12. factory: started tests as self.
