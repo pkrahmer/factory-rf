@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368, 6300375333]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T20:08:56.552238Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T20:08:38.340056Z'
+  stage: doing
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:08:56.552238Z'
   stage: doing
 ---
 
@@ -352,3 +361,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed but did not touch: the `make duplicates` findings that entry 10 recorded.
 19. 2026-10-20 human: Answer (2026-10-20): (a). The tester changes lines 96–97 of this story's own `test_the_built_project_commands_run_as_the_agent_user_inside_a_seal` to look up the concrete classes (`_held(sealed, GitCli) is boundaries.git`, `_held(sealed, TimestampedFactoryLog) is boundaries.log`). The tester runs `make check`, not only `make lint` and `make test`, before handing on.
+20. factory: started doing as self.
