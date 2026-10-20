@@ -73,7 +73,7 @@ The modules changed, each losing its copy and taking the shared one:
 3. The shared helpers read and write as the copies did: after `human.start(BACKLOG_PATH)` (`stage_run_support`) and `push_state(human, state)` with a `WorkItemState` of stage `doing` and pull request 1, `remote_document(boundaries, checkout).state` equals that state, and `pushed_state(boundaries, remote)` equals it too; `error_posts(hosting, number)` of a pull request on which the factory posted one comment whose `PostKey` has the kind `error` and one whose kind is `cost_table` (`work_item="F0001-S0001"`, `n="1"`) is the one `error` post.
 4. Every earlier test keeps its name and checks the same thing: the tests that `pytest --collect-only` lists in the sixteen test modules the Interface names are, after the story, the same ids as before it, and all of them pass.
 5. `make check` stays green.
-6. docs: none. The four documents describe no test helper, and nothing an operator, a newcomer or an agent outside `tests/` reads changes.
+6. docs: `docs/project-guide/README.md`, *Shared test helpers*: one line for the new module in the list, in its alphabetical place after `bill_support.py`, in the form of the other lines: `` - `branch_reading.py`: the work item on a work item's branch and the factory's posts on its pull request (`remote_document`, `error_posts`, `push_state`). ``; and, as the section asks of a story that adds a fixture, the line of `conftest.py` names `disk_settings` (settings whose checkout and state directory lie under `tmp_path`) and `disk_records` (the disk record log in `tmp_path`) under *Paths and settings*. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none, nothing an operator or a newcomer sees changes and no decision is taken.
 
 ## Smoke test
 
@@ -88,5 +88,11 @@ TMPDIR="$d" uv run pytest --no-header --tb=short -p no:cacheprovider tests/test_
 echo "exit $?"
 ```
 Expect: one line, `exit 0`
+
+```bash
+grep -c '^- `branch_reading.py`: ' docs/project-guide/README.md
+grep -c '^- `conftest.py`: .*`disk_settings`.*`disk_records`' docs/project-guide/README.md
+```
+Expect: two lines, `1` and `1` (before the story, `0` and `0`)
 
 ## Journal

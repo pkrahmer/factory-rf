@@ -38,7 +38,7 @@ Left as they are: the `_definition` helpers with a text parameter or another def
 3. The guard finds a copy by its body, under any name, and nothing else (rows of one parametrized test, each a source text the guard's functions read): `def _definition(boundaries: Boundaries) -> PipelineDefinition:\n    return boundaries.pipeline_reader.parse(PIPELINE_YAML)\n` is a copy of the definition; `def read_it(boundaries):\n    """Read it."""\n    return boundaries.pipeline_reader.parse(PIPELINE_YAML)\n` is one; `def _definition(boundaries, text):\n    return boundaries.pipeline_reader.parse(text)\n` is not; `def _log_lines(tmp_path):\n    return []\n` is a copy of the log reading; `class Rig:\n    def log_lines(self):\n        return []\n` is not; `def _log_lines(state_directory):\n    return []\n` is not.
 4. Every earlier test keeps its name and checks the same thing: the tests that `pytest --collect-only` lists in the twenty modules the Interface names are, after the story, the same ids as before it, and all of them pass.
 5. `make check` stays green.
-6. docs: none. The four documents describe no test helper, and nothing an operator, a newcomer or an agent outside `tests/` reads changes.
+6. docs: `docs/project-guide/README.md`, *Shared test helpers*: one line for the new module in the list, in its alphabetical place after `crash_support.py`, in the form of the other lines: `` - `definition_support.py`: `pipeline_definition`, the test remote's pipeline definition read through the boundaries' reader, which the `definition` fixture returns too, for helpers that take no fixtures. `` `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none, nothing an operator or a newcomer sees changes and no decision is taken.
 
 ## Smoke test
 
@@ -65,5 +65,10 @@ TMPDIR="$d" uv run pytest --no-header --tb=short -p no:cacheprovider tests/test_
 echo "exit $?"
 ```
 Expect: one line, `exit 0`
+
+```bash
+grep -c '^- `definition_support.py`: `pipeline_definition`' docs/project-guide/README.md
+```
+Expect: one line, `1` (before the story, `0`)
 
 ## Journal
