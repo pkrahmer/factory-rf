@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 309
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T00:38:56.687297Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T00:38:36.219675Z'
   stage: review
   run: 84e911b752d7472ab6ba18f36198bec7
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:38:56.687297Z'
+  stage: docs
 ---
 
 # The image makes opencode's configuration folder, read-only to the agent
@@ -174,3 +183,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
      - The docs criterion still says what the operator guide, `agents.md` and `decisions.md` must state after this story.
 
    Earlier tests: none. The diff only adds `tests/test_opencode_config_folder.py` and changes, renames or deletes no test file that `main` holds.
+10. factory: started docs as self.
