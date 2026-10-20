@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 352
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T12:53:30.768414Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T12:53:30.768414Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T12:53:56.014595Z'
+  stage: review
+  run: c8f857fa43014dc594f6876e59bca6f8
 ---
 
 # The follow-mode test reads only the Python sources
@@ -162,3 +164,20 @@ Expect: `1`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the diff (`tests/entry/test_watch.py`, `tests/test_tests_umask.py`; nothing under `src/`) and checked it against the Interface, the criteria and decision 14 of `feature.md`.
+   - Criterion 1: `test_no_source_file_knows_the_follow_mode` keeps its name and its rows `--follow` and `factory-last-line`, and asserts `_files_naming(SRC, text) == []`.
+   - Criterion 2: `test_the_follow_mode_scan_reads_only_python_sources` is one parametrized test with five rows in `tmp_path/src/factory`. It covers the found side (`entry/run.py` → `[path]`) and the four not-found sides.
+     - The `bytecode` row is mode 000 and named `watch.*`, not `documents.*`. So for a user who is not root, it fails under the old `rglob("*")` scan with a `PermissionError`. The removed `__pycache__` clause would not have excluded it either.
+     - The `document-check` row tests the root-relative `_names_the_replaced_phrases(root, path)`.
+   - Criterion 3: the umask child's env adds `"PYTHONDONTWRITEBYTECODE": "1"` beside `PATH`, `HOME` and `TMPDIR`. Its name, its four rows and its assertions are unchanged.
+   - Criterion 4: the coder's entry 7 records `make check` green (`check: green`, coverage 99.16 %).
+   - Architecture and security: not touched. The diff has no suppression markers.
+   - Work item: the Description, the Interface and the docs criterion (`docs: none`, decisions.md stays) match what was built. The coder's entry 7 explains why nothing under `src/` changed.
+
+   Rejected: counting the docstring on the private `_files_naming` as a finding. The Interface prescribes it, and the docstring rule in `CLAUDE.md` covers `src/factory/` only.
+
+   Earlier tests:
+   - tests/entry/test_watch.py: changed under the human's leave, `feature.md` decision 14 (named in the story). Only the follow-mode helpers and test changed, and one test was added.
+   - tests/test_tests_umask.py: changed under the human's leave, `feature.md` decision 14 (named in the story). Only the env entry was added.
