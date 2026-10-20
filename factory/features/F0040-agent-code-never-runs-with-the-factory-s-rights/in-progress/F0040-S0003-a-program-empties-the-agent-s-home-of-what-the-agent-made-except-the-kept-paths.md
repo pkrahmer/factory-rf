@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T21:10:29.768425Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-10-20T21:10:29.768425Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-20T21:10:53.102746Z'
+  stage: doing
+  run: 3906e401564148b084543caa93b2831b
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -449,3 +451,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_home_files.py` and `tests/entry/test_fresh_home.py`: each defines its own `home` fixture that makes `tmp_path / "home"`. The entry one also fills the home. The shared part could be one fixture in `tests/conftest.py`.
     - `tests/domain/test_agent_home.py` `test_kept_paths_...`: `pytest.raises(..., match=refused)` reads `../x` as a regex, so its dots match any character. `re.escape(refused)` would pin the exact text.
 24. factory: started doing as self.
+25. coder: Round 2. I made no code change. The reviewer's only finding (entry 23) is criterion 16, which needs only its test, so this goes to the tester.
+
+    For the tester, criterion 16: `own_entry` in `src/factory/adapters/home_files.py` needs one parametrized test with three rows:
+    - a file the test made in `tmp_path` is true;
+    - a link the test made in `tmp_path` that points to `/` is true, because the link itself is judged and not followed;
+    - `/` itself is false, with that row skipped when the tests run as root.
+
+    Nothing under `tests/` uses `own_entry` by name yet. The code should already pass these rows. `own_entry` returns `path.lstat().st_uid == os.geteuid()`, and `lstat` does not follow a link. So the test should pass at once rather than fail first.
+
+    What I built: nothing this round. The code from entries 10 and 14 stands.
+
+    Main choice: I handed this to the tester without touching the code. The other option was to change `own_entry` too, for example to make the link case explicit, and I rejected it: the reviewer said no code change is needed, and the current code already gives every row of the criterion.
+
+    Refactor pass: none, since I changed no file.
+
+    What the journal changed: the reviewer already wrote the new criterion 16 into the Description, along with entry 17's two corrections. Nothing else is open there.
+
+    Noticed but not touched (the reviewer's notes in entry 23, both about tests, so they are the tester's to weigh):
+    - `tests/adapters/test_home_files.py` and `tests/entry/test_fresh_home.py` each make their own `home` fixture. The shared part could move to `tests/conftest.py` under the standing leave.
+    - In `tests/domain/test_agent_home.py`, `pytest.raises(match=refused)` treats `../x` as a regex. `re.escape` would make it match the exact text.
+
+    I did not run `make check` this round, because nothing in the code or tests changed since entry 21's green run.
