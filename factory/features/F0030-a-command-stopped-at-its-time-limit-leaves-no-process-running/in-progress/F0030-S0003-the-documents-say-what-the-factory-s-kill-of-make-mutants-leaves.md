@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 370
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T23:22:44.931261Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T23:22:24.078013Z'
   stage: doing
   run: 717c1b8f65f44442950c7db8780e0224
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:22:44.931261Z'
+  stage: review
 ---
 
 # The documents say what the factory's kill of make mutants leaves
@@ -110,3 +119,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `check`: check: green
    `duplicates`: duplicates: 6 new, 33 known, 3 gone
+8. factory: started review as self.
