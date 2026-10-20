@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 353
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T13:04:52.411497Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T13:04:31.476327Z'
   stage: tests
   run: 404645227610452188e7003a563fcea7
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T13:04:52.411497Z'
+  stage: doing
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -234,3 +243,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: ERROR tests/entry/test_wiring_leftovers.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_leftovers.py'.
+6. factory: started doing as self.
