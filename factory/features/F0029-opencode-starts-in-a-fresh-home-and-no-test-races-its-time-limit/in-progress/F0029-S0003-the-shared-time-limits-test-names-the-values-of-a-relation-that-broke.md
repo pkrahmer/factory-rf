@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 367
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T22:52:50.030439Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T22:52:50.030439Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T22:53:03.204061Z'
+  stage: docs
+  run: 6e7720c4b98b43489b77c3f98f0ed8df
 ---
 
 # The shared time limits' test names the values of a relation that broke
@@ -190,3 +192,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Earlier tests:
    - `tests/test_time_limits.py` (M, written by F0029-S0002): changed under the human's leave in `feature.md`, decision 9, S0003 (the human, 2026-10-20). The change stays within that leave: same test name, nine row ids and relations, the message, the new test, and the `timedelta` import removed.
 10. factory: started docs as self.
+11. documenter: Docs criterion is `none`, so I wrote nothing new and changed no file. I ran no `make check`, because I changed no file.
+
+    The diff outside `factory/` and `docs/` is one file, `tests/test_time_limits.py`: the nine rows now carry `(left, relation, right)`, plus the new test for the failure message. No module under `src/` changed.
+
+    Cross-read and found current:
+    - `docs/project-guide/processes-and-checks.md` (line 125) names `ROOMY_LIMIT` (10 s) and `ROOMY_BOUND_SECONDS` (25) from `tests/time_limits.py`. Both are unchanged, and the text matches the code.
+    - `docs/decisions.md` (line 896) says the same about those constants and is current.
+    - `README.md` and `docs/operator-guide.md` do not mention the test or its failure message.
+
+    Stale text noticed and not touched: none.
+
+    `check`: check: green (not run again: passed on tree fb0e305c50f3 at 2026-10-20T22:50:35Z)
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok
