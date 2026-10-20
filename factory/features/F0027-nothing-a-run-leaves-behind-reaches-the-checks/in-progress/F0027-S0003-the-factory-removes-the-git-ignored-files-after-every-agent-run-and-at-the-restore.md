@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T15:24:08.644965Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-10-20T15:23:45.290070Z'
   stage: review
   run: c5672a9e30c841f49e8cb5c11b01da61
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-20T15:24:08.644965Z'
+  stage: doing
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -379,3 +388,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/application/test_git_interface.py`: changed under the human's leave, the story's Interface under the feature's decision 16 (`OPERATIONS` gains `"remove_ignored"`, the test is renamed to twenty-five). The change is within that leave.
     - `tests/application/test_interfaces.py`: changed under the same leave (the Git test renamed to twenty-five). The change is within that leave.
     - `tests/application/test_tick.py`: changed under the same leave (`test_the_restore_discards_changes_and_names_them_in_one_line`, the `ignored.log` assertion inverted). The change is within that leave.
+20. factory: started doing as self.
