@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 320
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T02:40:24.203732Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T02:40:24.203732Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T02:40:39.939138Z'
+  stage: intake
+  run: 7c6cb461e5814572bcc0cdcb2bdd4ef8
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -75,3 +77,9 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: names concrete modules and signatures (`Dispatcher.dispatch(event)`, `BoardReader.read(definition)`, `agent_run_probe_item(boundaries, settings, environment)`), the three test modules, and the shared helpers they use (`Failing` in `tests/tick_support.py`, `probe_settings`, `ENVIRONMENT`). No source change, so there is no new signature to check. `Failing` reaches `tests/tick_support.py` through S0008, which must be archived first (the feature's build order and decision 13).
+   - Criteria: each is one test, with exact values. 1 gives the outcomes, the draft pull request and the post key for a work item without a state, so the stop opens a draft. 2 gives the exact `FeatureRow` with one story in each folder, so the in-progress count is pinned. 3 is one parametrized test with exact texts for `agent_user=None` and for `"agent"`, so both sentences and both sides of the default are covered. Every behaviour the Interface states has a criterion. No rule has an untested failing side: the story adds no limit or validation, only behaviour on the side that was never reached.
+   - Smoke test: one runnable Python snippet that uses `feature_rows`, `error_report_text` and `StoryFile`. Its `Expect:` gives two exact lines, which the output can be compared to. The `acceptance=None` in the first line comes from the domain call, which has no acceptance report. Criterion 2 expects `"incomplete"` from the reader, so the two do not conflict.
+   - Architecture: tests only, under `tests/application/`, mirroring the package. It uses the shared fixtures and helpers and copies none of them. No fake git, no mock of the code under test. Nothing under `src/` changes.
+   - Scope: inside F0028's scope (the `S0009` line of `feature.md`) and not in its "Out of scope". It changes no earlier test. The only shared-helper move is S0008's, which `feature.md` records. The docs criterion is `none`, as in the feature's decision.
