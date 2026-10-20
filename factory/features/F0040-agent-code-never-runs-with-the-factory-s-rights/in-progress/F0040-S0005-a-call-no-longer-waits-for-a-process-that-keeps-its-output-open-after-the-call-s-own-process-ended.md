@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 363
 comments_read: [6300695093]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T20:30:59.250139Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-20T20:30:59.250139Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-20T20:36:58.514521Z'
+  stage: doing
+  run: 448b1ddcfa644395b12c03c125e790cf
 ---
 
 # A call no longer waits for a process that keeps its output open after the call's own process ended
@@ -210,3 +212,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/adapters/test_process_drain.py::test_pipes_that_close_within_the_drain_give_the_whole_output[no-descendant-run_streaming] - AttributeError: <module 'factory.adapters.process' from '/wor...
 9. factory: started doing as self.
+10. coder: Added the drain bound to `src/factory/adapters/process.py`, the only file changed. The tester's `tests/adapters/test_process_drain.py` passes unchanged, along with every earlier test. `make check` is green (test: green, 61.8 s).
+
+    What I built:
+    - `PIPE_DRAIN = timedelta(seconds=5)` and `ProcessResult.output_abandoned: bool = False`.
+    - `_read_bounded(reader, process, deadline, ended_at)` is one read loop for both functions:
+      - While the child lives, it reads in steps of at most `_END_POLL_SECONDS` (0.05 s). It checks the child's end with `os.waitid(P_PID, pid, WEXITED | WNOHANG | WNOWAIT)`.
+      - Once the child has ended (or from the given `ended_at`), it reads for at most `PIPE_DRAIN`, which it reads from the module at each call.
+      - It returns `closed`, `stopped`, `timed_out` or `abandoned`. The deadline is checked in every turn, so a limit during the drain is still `timed_out`.
+    - `_read_to_exit` reads, then waits for the exit as before when the pipes closed in time.
+    - `_deadline(start, time_limit)` is shared by both functions.
+    - `run_process` now reads through `_LineReader` with a callback that never stops (`_keep_reading`) instead of `communicate()`. After `_kill_session` it reads again with `ended_at` set to the kill, so that read is bounded by `PIPE_DRAIN` too. `output_abandoned` is true when that read ran out.
+    - `run_streaming` only gains `output_abandoned` for the `abandoned` outcome. A kill, a stop or an exception still ends with no read after the kill. A last line without a line feed is not passed when the drain runs out, because `_pass_last_line` runs only at end of file.
+    - The pipes are still closed by `Popen.__exit__`. It closes them first and then waits for the child, which has ended already, so the result carries the child's own exit status.
+
+    Main choice: I detect the child's end with `waitid(..., WNOWAIT)` rather than `process.poll()`. `poll()` would reap the child, and then a limit during the drain would call `os.killpg(process.pid)` on an id that could already belong to an unrelated process. `_kill_session`'s comment relies on the child not being reaped yet; `WNOWAIT` keeps that true.
+
+    Rejected:
+    - Keeping `communicate()` with a timeout loop: it cannot notice the child's end while a pipe stays open.
+    - A byte-only `_PipeReader` base class with `_LineReader` overriding hooks: ruff's ARG002 flagged the unused hook arguments, and one reader with a never-stopping callback is simpler.
+
+    Refactor pass: I pulled the repeated "read, then wait for the exit" logic of both functions into `_read_to_exit`. Nothing else needed changing.
+
+    Not touched or noticed:
+    - I did not run the story's smoke test: the shell refused the command, which also cleans up its holders with `kill`. The same holder and timed-out cases are covered by criteria 1 and 3 in the test file.
+    - `ProcessResult` is not among the models `factory.domain.contract` names, so no contract schemas were regenerated.
+    - The docs criterion (9) is left to the documenter.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 33 known, 3 gone
