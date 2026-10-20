@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 349
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T11:46:41.058877Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T11:46:41.058877Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T11:48:05.328182Z'
+  stage: docs
+  run: 6750faa06fe2490bb62cb0b038fc6578
 ---
 
 # The documents describe the kernel's guard and the undo as the write guard
@@ -166,3 +168,42 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: Documents only; nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed, so I did not run `make check` (the factory runs it after me). I ran `make documents` (`documents ok`) and the smoke test's greps: 0 matches for `factory-guard`, `PreToolUse`, `claude_guard`, `guard_support` and `GUARD_COMMAND` outside `docs/decisions.md`; the new entry's title is 1 as a heading and 6 lines in all.
+
+    Files changed, and why:
+    - `README.md`: "Six commands exist", and the closing clause names only `factory-confine`.
+    - `docs/operator-guide.md`:
+      - The opening paragraph names `factory-confine` alone.
+      - The section is now *The agent run's `PATH` and `HOME`*. It has no hook and no guard command. It keeps the allow list of six names, the `PATH` made of the console-script directory followed by `/usr/local/bin:/usr/bin:/bin`, the `HOME`, and the rule about the four directories. No other section linked to the old title.
+      - The run's files are `instructions-<session>.md` and `confine-<session>.json`; an opencode run's `opencode-<run>.json` replaces the instructions file.
+      - The row `agent-environment` checks only that `HOME` is an existing directory, with the two `HOME` faults.
+      - The `confinement` row says to install `factory-confine` in the factory's environment.
+      - "No hook." became the bullet about denied commands that keep their `deny` permissions in the run's configuration file.
+      - The kernel's targets, the tool paths and the `preflight_failed` row now say the undo judges the exact write paths, and "there is no fallback" no longer names a hook.
+      - *A project's own skills* says the undo removes a nested `.claude/` write under either runtime and the kernel cannot refuse it inside a folder a write path opens.
+    - `docs/project-guide/write-guard.md`:
+      - I deleted *The guard command* with its test list.
+      - The write paths decision is now described for the undo and, through the targets, the kernel.
+      - I dropped the guard-hook sentence on how it resolves a path.
+      - *The undo* says the kernel refuses during the run and the undo reverts a protected path inside an allowed folder or a file the targets widened to its folder.
+      - *The kernel's write guard* no longer points at the deleted section.
+      - Beyond the criterion's list, I changed "the same source the guard uses" and "The guard does not know this second rule" so they name the kernel, because they referred to the removed hook.
+    - `docs/project-guide/agents.md`: no `--settings` in the argument block or the sentence after it; no guard or hooks files; the environment paragraph names no `factory-guard`; `RUN_FILE_MODE` applies to the instructions and rules files.
+    - `docs/project-guide/watching.md`: `production_environment()` uses the console-script directory (`factory-confine` among them); the preflight step names `agent_environment_item(environment, is_directory)`. I also removed the sentence "`GUARD_COMMAND` is defined in `factory.domain.agent_runs`", since that constant no longer exists.
+    - `docs/project-guide/README.md`: no `guard_support.py`; the `write-guard.md` line names no guard modules and no *The guard command*; "There are twelve" `extra="ignore"` models, listed as in the criterion.
+    - `docs/decisions.md`: a new entry, *The Claude Code hook is removed; the kernel and the undo are the write guard*, dated 2026-10-20 with the reasons and the rejected reduced hook. The five superseded entries each gain a line that names it.
+
+    One thing to check: I did not read `feature.md`, so the new entry's wording rests on the story's description and criterion. I took the cross-check figures (405 transcripts, 264 runs) and decision 6 (the undo reverts a protected path inside an allowed folder) from the criterion. I did not restate the content of the feature's decisions 2, 3 and 5.
+
+    Cross-read and found current: `docs/project-guide/git-and-hosting.md` (its "hook" mentions are git remote hooks).
+
+    Stale text seen and left alone, unrelated to this story:
+    - `docs/decisions.md` keeps `factory-guard` and "the hook" in older entries by design; they are history, and only the five named entries got the superseding line.
+    - `docs/decisions.md` line 850 uses "the hook in `tests/conftest.py`" in an unrelated sense.
+    - `docs/operator-guide.md` line 457 still describes the probe with "a guard that gives no write path", which is the `GuardSettings` name and not the hook.
+
+    No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 148931ef7750 at 2026-10-20T11:43:14Z)
+    `secrets`: secrets: green (1.9 s)
+    `documents`: documents ok
