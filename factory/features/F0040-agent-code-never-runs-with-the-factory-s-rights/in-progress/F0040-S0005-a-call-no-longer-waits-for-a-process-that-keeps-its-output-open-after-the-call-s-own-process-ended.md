@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 363
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T20:22:56.751052Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-20T20:22:56.751052Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-20T20:23:18.746506Z'
+  stage: intake
+  run: ca51d3ed10314fa49b28fa6ede541688
+  blocked: question
 ---
 
 # A call no longer waits for a process that keeps its output open after the call's own process ended
@@ -109,3 +112,12 @@ Expect: two lines, `0 False True ['done'] True`, then `None True True ['started'
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: The format check passed. The Interface, the architecture and the scope are fine, and the smoke test is runnable with checkable `Expect:` lines. I cannot accept the criteria yet: five Interface clauses have no criterion of their own, and nobody will test them otherwise. Each question below has my recommended answer, which is to add one criterion for it, before the two closing ones.
+
+   1. "The time limit counts as before: a call whose limit comes before the child's end, or during the drain, is a `timed_out` call". Criterion 3 covers only the limit before the child's end. Add a criterion for a limit that falls during the drain: the child exits at once beside a holder, `time_limit` is 1 second and `PIPE_DRAIN` is 2 seconds. Expected result: `timed_out` true, `exit_status` as the interface says, and the session killed. Please state what `exit_status` and `output_abandoned` are in that case, because the Interface leaves both open for a limit during the drain. For `run_process`, the kill is followed by a bounded read, so `exit_status` would be `None`. Is that the intent?
+   2. "`run_streaming` ... the last line without a line feed is not passed" to `on_line` when the drain runs out. Criterion 1 checks only that `done` arrived. Add a criterion: the child prints `a\nb` (no final line feed) beside a holder, and `on_line` got `a` but not `b`. Is `b` still in `stdout`, given "every byte read until then"?
+   3. "`run_streaming` after ... a stop by `on_line` or an exception from it: unchanged, `output_abandoned` false". Criterion 4 covers only the kill at the time limit. Add rows for a stop by `on_line` returning True or False (whichever stops it; please name which) and for an exception from `on_line`, each beside a holder, each with `output_abandoned` false.
+   4. "While a pipe is open, both functions check at least every 0.05 seconds whether the child has ended." No criterion tests this. Either add one or state that the timing criteria (1 and 2) cover it. A test can show that the end is noticed well within the drain: for example, a child that exits at once beside a grandchild that writes at 1.5 seconds with `PIPE_DRAIN` at 2 seconds must be read in full, which fails if the end was noticed late. Please say which you want.
+   5. "The bound holds also for a request without `time_limit`." Criterion 1 includes the no-limit row for `run_process` only. Add the no-limit row for `run_streaming`, or say that `run_process` alone is intended.
+
+   Also, a wording point in criterion 2: "before the drain of 2 seconds could have run out after it" is unclear. Please state the checkable condition, for example: the call returns after at least 1 and less than 15 seconds, with `late` in the output.
