@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 339
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T06:47:02.924069Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T06:46:41.950821Z'
   stage: docs
   run: 283565fdb73e48eb882d9b0c7212208b
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:47:02.924069Z'
+  stage: smoke-test
 ---
 
 # The record log skips a line that is not UTF-8
@@ -232,3 +241,4 @@ Expect: one line, `['check: green ✓']`, and no traceback.
     `check`: check: green (not run again: passed on tree 943e65a3b707 at 2026-10-20T06:43:13Z)
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
