@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-20T10:33:17.989683Z'
   stage: smoke-test
   run: 900b703af60c47babfd5ae74e4ad557e
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-20T10:50:01.013166Z'
+  stage: approval
 ---
 
 # The Claude Code runtime registers no write hook
@@ -417,3 +422,4 @@ Expect: `7`
     Against the acceptance criteria: nothing in the smoke test contradicts any criterion. Criteria 1, 3 and 4 are each covered for one row by command 1: no `--settings`, no `guard-` or `hooks-` file, and only `instructions-` (plus `confine-` when confined) in the state directory. For criterion 5 I also ran `grep -i hook claude/agents/*.md`, which matched nothing. Each agent's R14 line now reads "the kernel refuses every other write, by any tool and any command you run, and the factory undoes any other write after the stage." I did not run `make check` (criterion 6); the factory checks it. Criterion 7 is docs: none.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 16.3 min, 66 turns, 275617 tokens in (1424472 more from cache), 23123 out, $2.67
