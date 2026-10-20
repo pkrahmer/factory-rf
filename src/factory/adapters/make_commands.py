@@ -124,35 +124,22 @@ class MakeProjectCommands(ProjectCommands):
             time_limit=time_limit,
         )
         result = self._start(command, started, self._directory)
-        refusal = self._refusal(user, result, time_limit)
-        leftovers_error = self._end_leftovers(user, command)
-        if refusal is not None:
-            raise ProjectCommandError(command, refusal)
-        if leftovers_error is not None:
-            raise ProjectCommandError(command, leftovers_error)
-        if self._killed_at_limit(user, result, time_limit):
-            return _check_result(command, result.model_copy(update={"exit_status": None}))
-        return _check_result(command, result)
-
-    @staticmethod
-    def _killed_at_limit(user: CommandUser, result: ProcessResult, time_limit: timedelta) -> bool:
-        return killed_at_limit(
+        killed = killed_at_limit(
             os_user=user.os_user,
             exit_status=result.exit_status,
             duration=result.duration,
             time_limit=time_limit,
         )
-
-    def _refusal(
-        self, user: CommandUser, result: ProcessResult, time_limit: timedelta
-    ) -> str | None:
         # A `sudo:` warning before a kill at the limit is no refusal.
-        if result.exit_status in (0, None) or self._killed_at_limit(user, result, time_limit):
-            return None
-        line = _refusal_line(result.stdout.splitlines())
-        if line is None:
-            return None
-        return f"{user.sudo_executable} refused the command: {line}"
+        refusal = None if killed else _refusal(user, result)
+        leftovers_error = self._end_leftovers(user, command)
+        if refusal is not None:
+            raise ProjectCommandError(command, refusal)
+        if leftovers_error is not None:
+            raise ProjectCommandError(command, leftovers_error)
+        if killed:
+            return _check_result(command, result.model_copy(update={"exit_status": None}))
+        return _check_result(command, result)
 
     def _end_leftovers(self, user: CommandUser, command: str) -> str | None:
         # Never for the factory's own user: the program would end the factory itself.
@@ -185,6 +172,15 @@ class MakeProjectCommands(ProjectCommands):
             return run_process(request)
         except OSError as exc:
             raise ProjectCommandError(command, str(exc)) from exc
+
+
+def _refusal(user: CommandUser, result: ProcessResult) -> str | None:
+    if result.exit_status in (0, None):
+        return None
+    line = _refusal_line(result.stdout.splitlines())
+    if line is None:
+        return None
+    return f"{user.sudo_executable} refused the command: {line}"
 
 
 def _check_result(command: str, result: ProcessResult) -> CheckResult:

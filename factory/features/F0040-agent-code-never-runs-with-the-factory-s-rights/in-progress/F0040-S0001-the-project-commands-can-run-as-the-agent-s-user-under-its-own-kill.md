@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 357
 comments_read: [6297503471, 6297615750, 6298194655]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T18:34:51.818290Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-20T18:34:51.818290Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-20T18:37:49.684731Z'
+  stage: doing
+  run: fa55110294684fd3ae4b93697cc0d27b
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -381,3 +383,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.7 s)
     `test`: test: green (58.5 s)
 21. factory: started doing as self.
+22. coder: I built the user-switched project commands in `src/factory/adapters/make_commands.py`. The code was written in an earlier doing run (entry 15). This round I made the refactor pass and ran `make check`, which is green: every test of `tests/adapters/test_make_commands_user.py` and of the rest of the suite passes, with coverage at 99.17 %.
+
+    What is in the module:
+    - `CommandUser`, plus the `user` keyword and property of `MakeProjectCommands`.
+    - `run` checks the limit and the command name first, then splits in two:
+      - `_run_as_own_user` works as before, with the factory's environment less the three make variables.
+      - `_run_as` builds the call with `launch` from the user's environment, less the same three variables.
+    - `_run_as` judges the result in this order:
+      1. It judges `killed_at_limit` once.
+      2. A command not killed at the limit is a refusal if its status is not 0 and every non-blank line of the merged output starts with `sudo:`. The refusal names the last such line (`_refusal`, `_refusal_line`).
+      3. The leftovers program then runs whatever the result was (`_end_leftovers`). It is built with `leftovers_launch` and runs from `/`, with standard error kept separate so that `leftovers_fault` can read it. A leftovers program that cannot be started gives `LEFTOVERS_FAULT` followed by the operating system's message.
+      4. A refusal wins over a leftovers fault.
+      5. A command killed at the limit becomes `time_limit`, with `exit_status` `None`.
+    - One `_start` helper turns a `Launch` into a `ProcessRequest` and turns an `OSError` into a `ProjectCommandError`. Both paths and the leftovers call use it.
+    - Nothing from `agent_launch` is copied.
+
+    Main choice: I judge the refusal on the command's merged output, because the Interface says "whose output holds" and the command runs with `merge_stderr`. I rejected reusing the runtimes' `call_refusal`. It takes the first `sudo:` line rather than the last, and it needs `Starters`.
+
+    Refactor this round: `_run_as` used to call `killed_at_limit` twice, once in the refusal check and once for the result. It now judges it once and passes the answer on, and the refusal check became the module function `_refusal`. Behaviour is unchanged and `make check` is green after the change.
+
+    Noticed, not touched:
+    - The work item's Description and criteria 1 and 9 still have their old wording. The human's answers in entries 9 and 16 change three things:
+      - The recipe in criterion 1 ends with `check: green (0.1 s)`.
+      - The other user in criterion 9 is `OTHER_USER`, "a user no test runs as".
+      - The row in criterion 9 for the missing program is "the leftovers call cannot be started (the stand-in `sudo` removed by the `check` recipe)".
+    - The write guard refused an earlier run's edit of the work item (entry 18), so I did not try again. Someone who may write the work item needs to make these edits.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
