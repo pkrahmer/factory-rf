@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 307
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T00:19:53.171300Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T00:19:32.263066Z'
   stage: tests
   run: 5023b3d483074ed3affc9963113d4022
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:19:53.171300Z'
+  stage: doing
 ---
 
 # The mutation report command is removed and the documents describe the sweep form of `make mutants`
@@ -111,3 +120,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/entry/test_mutation_report_removed.py::test_the_mutation_report_is_removed_and_the_input_reader_stays[report-rules]
+6. factory: started doing as self.
