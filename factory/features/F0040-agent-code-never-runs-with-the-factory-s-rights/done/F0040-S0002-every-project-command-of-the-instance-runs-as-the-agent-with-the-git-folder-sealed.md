@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-10-20T20:20:23.185714Z'
   stage: smoke-test
   run: e8fab14fd143402dbae542ca1396756a
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-10-20T20:21:44.808064Z'
+  stage: approval
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -536,3 +541,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Nothing in the output contradicts any criterion. The command did not exercise criteria 3, 5, 6 and 8 (the unsealed and missing-`.git` rows, the environment, the wiring and identity checks); the tests cover those. I did not run `make check` (criterion 9) in this stage; the factory runs the stage's checks.
 
     Findings: none.
+32. factory: done (pull request merged); cost: 14 runs, 16.1 min, 114 turns, 366496 tokens in (2756082 more from cache), 45461 out, $3.88
