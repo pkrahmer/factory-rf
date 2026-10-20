@@ -4,3 +4,5 @@
 {"event":"cleared","scope":"repository","reason":"checkout_restore_failed","at":"2026-10-20T16:44:33.116816Z","instance":"self"}
 {"event":"raised","scope":"repository","reason":"checkout_restore_failed","at":"2026-10-20T16:53:45.175813Z","instance":"self"}
 {"event":"cleared","scope":"repository","reason":"checkout_restore_failed","at":"2026-10-20T17:25:57.148062Z","instance":"self"}
+{"event":"raised","scope":"repository","reason":"checkout_restore_failed","at":"2026-10-20T18:08:04.011190Z","instance":"self"}
+{"event":"cleared","scope":"repository","reason":"checkout_restore_failed","at":"2026-10-20T18:27:11.611080Z","instance":"self"}
