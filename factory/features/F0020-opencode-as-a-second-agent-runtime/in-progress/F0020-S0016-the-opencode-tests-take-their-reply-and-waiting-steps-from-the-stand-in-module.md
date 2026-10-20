@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 340
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T06:54:21.832751Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T06:54:21.832751Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T06:56:37.354158Z'
+  stage: doing
+  run: 69b77b7222704902846825ffcd88754c
 ---
 
 # The opencode tests take their reply and waiting steps from the stand-in module
@@ -144,3 +146,18 @@ Expect: a line that starts `2 passed`
    `lint`: lint: green (0.0 s)
    `test`: test: green (45.5 s)
 6. factory: started doing as self.
+7. coder: I changed no files. This story changes test helpers only, and the tester already made the whole move. Their entry lists it: `REPLY_EVENTS`, `REPLY` and `WAITING` now live in `tests/adapters/opencode_stand_in.py`, eight earlier modules (`test_opencode_limit_wait_on_stderr.py` among them, for the waiting step) import them instead of keeping copies, and the structural test is `tests/test_opencode_shared_steps.py`. Nothing under `src/factory/` changes, as the Interface says, so the doing stage had nothing to build.
+
+   What I checked:
+   - `make check` ends with `check: green` (`test: green (46.3 s)`, coverage 99.16 %). That includes `mypy --strict` over the changed tests, which the tester left for this stage.
+   - The diff against `main`, outside `factory/`, touches only the 11 files under `tests/` that the tester's entry lists.
+   - Both smoke-test greps print one line each, `tests/adapters/opencode_stand_in.py`.
+
+   Main choice: I left the tester's move as it is and did not change any test, since a coder never edits tests. I rejected re-deriving or tidying the move. Refactor: I made no diff of my own, so there was nothing to refactor.
+
+   Noticed, not touched: the tester's note still stands. `tests/adapters/test_opencode_runtime.py` keeps an inline waiting step with a literal `wait_seconds=30`. It is not the searched text and the Interface does not name it.
+
+   The journal did not change the meaning of the task, so `## Description` is unchanged.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
