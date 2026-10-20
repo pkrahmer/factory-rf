@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T23:39:26.680027Z'
   stage: smoke-test
   run: b40d68fcb35b48faa18b5a8c863c4c87
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T23:40:46.510192Z'
+  stage: approval
 ---
 
 # The operator guide's records section names its four files
@@ -216,3 +221,4 @@ Expect: `documents ok`
     - Criterion 3, no other passage: the diff changes only those three places.
 
     Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 4.1 min, 29 turns, 91965 tokens in (412149 more from cache), 7745 out, $0.79
