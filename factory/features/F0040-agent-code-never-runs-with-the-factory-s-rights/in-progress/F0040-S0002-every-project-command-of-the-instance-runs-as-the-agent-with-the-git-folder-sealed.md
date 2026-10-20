@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368, 6300375333]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T20:18:33.364905Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-10-20T20:18:33.364905Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T20:19:35.733156Z'
+  stage: docs
+  run: 7e5b81a172334eb7a56c9f6a694b677a
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -472,3 +474,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - `tests/application/test_sealed_project_commands.py:12`: imports `RecordingLog` from another test module (`application.test_checkout_preparer_seal`) rather than from a shared place under `tests/`. `test_nested_repositories.py` already does the same; it is a candidate for the standing leave to move a shared helper.
 28. factory: started docs as self.
+29. documenter: Documented the story from its docs criterion. I read the story and the diff (`sealed_runs.py`, `wiring.py`, two test files). I found no contradiction between the Interface and the code. I ran no example, since I wrote none. `make documents` is green. Only documents changed, so I did not run `make check`.
+
+    Files changed:
+    - `docs/operator-guide.md`: replaced **Left for v2.** with **The project commands run as `agent`**. It gives the `sudo -n -u agent -- timeout ... env -i ... make` chain, the environment, the seal, the leftovers program, the case without an agent user, and what stays (the agent's own login files). It also adds one sentence to *The agent runs as a second user*, and the missing-`sudo` case to the `preflight_failed` row of the stops table.
+    - `docs/project-guide/processes-and-checks.md`: new subsection *Sealed project commands* (order, errors, log line, wiring with and without an agent user, tests). It also replaces the sentence that said the wiring was "a later story's".
+    - `docs/project-guide/watching.md`: *Boundaries* now says what `build_boundaries` builds as `project_commands`.
+    - `docs/decisions.md`: marked *The project commands run as the factory's user and are left for v2* as replaced. Added *The project commands run as the agent user, with the git folder sealed*.
+
+    Open for the human: I could not read the feature's `feature.md`, so I wrote the new decision entry's reasons from the story's Description, the earlier decisions and the existing docs. Please check that it matches the feature's decisions 1 to 7.
+
+    Cross-read and found current: `README.md`, the rest of `docs/operator-guide.md` (the preflight probe section and the token section), `docs/project-guide/README.md`, `agents.md`.
+
+    Stale text I saw and did not touch: none relating to this story. The `make duplicates` findings that entries 10 and 25 recorded are code, not docs. `security/duplicates-baseline.txt` is out of date (3 known findings gone), and that file is not mine. The reviewer's note about `RecordingLog` imported from another test module is a test matter.
+
+    `check`: check: green (not run again: passed on tree 183a97b9b171 at 2026-10-20T20:15:57Z)
+    `secrets`: secrets: green (2.5 s)
+    `documents`: documents ok

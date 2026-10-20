@@ -10,7 +10,7 @@ The factory reaches a project's build only through the `ProjectCommands` interfa
 
 ### Running as another user
 
-`user` is an optional `CommandUser` (`factory.adapters.make_commands`; frozen, no unknown keys): `os_user`, `sudo_executable`, `environment` (a `dict[str, str]`) and `leftovers` (words, `None` by default). `MakeProjectCommands.user` returns what the constructor was given. Without `user` nothing above or below changes: the factory's own environment, no `sudo`, the factory's own kill at `time_limit`. The wiring that hands the instance's agent user to the class is a later story's (F0040-S0002).
+`user` is an optional `CommandUser` (`factory.adapters.make_commands`; frozen, no unknown keys): `os_user`, `sudo_executable`, `environment` (a `dict[str, str]`) and `leftovers` (words, `None` by default). `MakeProjectCommands.user` returns what the constructor was given. Without `user` nothing above or below changes: the factory's own environment, no `sudo`, the factory's own kill at `time_limit`. The wiring hands the instance's agent user to the class (*Sealed project commands* below).
 
 With `user`, `run` starts the same chain as an agent run, built by `launch` of `factory.adapters.agent_launch` (`agents.md`, *The shared launch module*):
 
@@ -25,6 +25,20 @@ With `user`, `run` starts the same chain as an agent run, built by `launch` of `
 - The checks of `time_limit` and of the command's name, and an `executable` or `sudo_executable` that cannot be started, are the same as below and come before anything starts.
 
 Tests: `tests/adapters/test_make_commands_user.py` (a real `Makefile`, a stand-in `sudo` that records its arguments, environment and working directory, and a stand-in leftovers program; never the real command).
+
+### Sealed project commands
+
+`SealedProjectCommands(inner, git, log)` (`factory.application.sealed_runs`) inherits `ProjectCommands` and runs another implementation's commands with the checkout's git folder sealed, as `run_sealed` does for an agent run. `run(command, *, time_limit)` works in this order:
+
+1. `git.seal()`. A `RepositoryUnsealed` propagates and nothing runs.
+2. `inner.run(command, time_limit=time_limit)`.
+3. Also when the inner run raised: `git.check_seal()`, then `git.remove_nested_repositories()`.
+
+The inner result is returned unchanged. A `RepositoryUnsealed` of the check propagates, also over an error of the inner run, which becomes its `__context__`; a failed check removes nothing. A `ProjectCommandError` or `ValueError` of the inner run propagates when the seal holds. The removed repositories are logged in one line, `removed nested repositories after <command>: a/.git, b/c/.git` (the paths as `remove_nested_repositories` gave them, in its order); none removed, no line. It does not call `remove_ignored`: that stays with the agent run.
+
+Wiring (`build_boundaries`, `factory.entry.wiring`): with `settings.agent_user` set, `boundaries.project_commands` is `RecordingProjectCommands(SealedProjectCommands(MakeProjectCommands(checkout, user=CommandUser(...)), git, log), git, records, clock, log)`, with the boundaries' own `git` and `log`. The `CommandUser` holds the agent user, the `sudo` that `which` finds (else `SUDO_EXECUTABLE`), `project_command_environment(settings, production_environment())` (the agent run's environment with `PYTHONDONTWRITEBYTECODE=1` and `UV_LINK_MODE=copy`, nothing else) and the leftovers program the agent runtime gets (`None` with `end_leftovers=False`). Without `agent_user` it is `RecordingProjectCommands(MakeProjectCommands(checkout), ...)`, as before. Building starts no process. The records, `KnownResults` and the time limits are unchanged, and the preflight's `lint` goes through the same object.
+
+Tests: `tests/application/test_sealed_project_commands.py` (a real clone and a recording `ProjectCommands`), `tests/entry/test_wiring_project_command_user.py` (reads the built objects; no real `sudo`).
 
 ### Rules of `run`
 
