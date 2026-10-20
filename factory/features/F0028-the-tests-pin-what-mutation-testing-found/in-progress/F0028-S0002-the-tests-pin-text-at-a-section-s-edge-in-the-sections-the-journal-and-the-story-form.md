@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 313
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T01:26:59.742643Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T01:26:59.742643Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T01:27:19.968405Z'
+  stage: intake
+  run: 4fd899352ddf48b7acfa9f0ff62261ba
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -80,3 +82,9 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: it names concrete functions in `factory.domain.sections`, `journal` and `story_form` (`section_text`, `code_blocks`, `entry_text`, `check_story_form`). It also names the test modules, the literal bodies and the state builders. No signature changes, and each comment states one behaviour.
+   - Criteria: each is testable by one parametrized test with literal inputs and outputs. Each behaviour in the Interface has a criterion: text on the line after a heading, the empty fenced block, entry 1 right under `## Journal`, and a numbered line above a heading. Each rule has its failing side: entry 2 raises `WorkItemFormatError` with `no journal entry 2`, a numbered line above a heading yields no criterion or entry, and the backlog row yields the `FormFinding`. I counted lines for the `FormFinding(line=25, ...)` row: the common start is 8 lines, the entry lands on line 25, and `line` is `start + 1`.
+   - Smoke test: the heredoc is runnable with `uv run -q python`. The `Expect:` line names three outputs that can be compared exactly.
+   - Architecture: nothing under `src/` changes. The tests sit in `tests/domain/`, mirroring `factory.domain`, and the story follows the standing leave and tests-only rules in `CLAUDE.md`. It changes no earlier test.
+   - Scope: it matches S0002 in `feature.md`. The `_item_text` survivor is left out as equivalent (decision 3), and no out-of-scope item is touched.
