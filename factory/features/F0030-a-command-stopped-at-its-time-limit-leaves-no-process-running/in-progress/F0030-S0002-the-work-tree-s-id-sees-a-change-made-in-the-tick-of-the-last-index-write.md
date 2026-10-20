@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T23:04:13.782804Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T23:04:13.776606Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:04:13.782804Z'
+  stage: intake
+---
+
 # The work tree's id sees a change made in the tick of the last index write
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -52,3 +79,5 @@ Expect: `True` (before this story the same block printed `False`)
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
