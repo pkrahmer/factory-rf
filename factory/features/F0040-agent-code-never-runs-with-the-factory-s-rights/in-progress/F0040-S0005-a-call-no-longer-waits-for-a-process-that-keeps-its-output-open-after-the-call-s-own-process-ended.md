@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 363
 comments_read: [6300695093]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T20:38:59.344152Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-20T20:38:59.344152Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T20:40:00.937981Z'
+  stage: docs
+  run: bea50bb2589e48e3915a87dc7356bcca
 ---
 
 # A call no longer waits for a process that keeps its output open after the call's own process ended
@@ -286,3 +288,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: none. The diff only adds `tests/adapters/test_process_drain.py` (status `A`). It changes no earlier test file and copies no helper: it imports `Recorder`, `is_gone` and `python_argv` from `tests/process_support.py`.
 13. factory: started docs as self.
+14. documenter: Documented the drain bound in `docs/project-guide/processes-and-checks.md`, `docs/operator-guide.md` and `docs/decisions.md`. No findings: the code matches the Interface and the criteria. I did not run `make check`, because I changed only documents; the factory's check after this stage decides. I did not run the story's smoke test either, because the coder's entry says the shell refuses its `kill` cleanup, and I wrote no new runnable example.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`, *Starting a process*:
+      - The `run_process` paragraph now mentions the bounded read after the kill.
+      - The `ProcessResult` paragraph describes `output_abandoned`.
+      - The `run_streaming` paragraph says `output_abandoned` is false after a kill, a stop or an exception. It also says a last line without a line feed is not passed when the drain runs out, and its bytes stay in `stdout`.
+      - A new paragraph, *Reading after the child's end*, covers `PIPE_DRAIN` (read at each call, 0.05 s steps, `waitid` with `WNOWAIT`) and the limit falling during the drain. It also covers the read after the kill and the request without `time_limit`.
+      - *Known limits* is replaced as the criterion asks: a holder delays the call for at most `PIPE_DRAIN`, this module does not kill it, and the leftovers program ends it after the call.
+      - The bullet on the kill rounds said a survivor "would hold `communicate()`". `run_process` no longer uses `communicate()`, so I corrected it.
+    - `docs/operator-guide.md`, **A `time_limit` under `sudo`.**: a sentence saying a call under `sudo` returns at most 5 seconds after the inner kill, also when a process of `agent` that left the group still holds the output.
+    - `docs/decisions.md`: a new entry, *A call stops reading five seconds after its own process ended*, dated 2026-10-20 (F0040-S0005). It gives the reasons of the feature's decision 17, including `waitid`/`WNOWAIT` over `poll()`, and the options rejected.
+
+    Cross-read and found current: `docs/project-guide/README.md`, `agents.md` and `git-and-hosting.md` (their mentions of `run_process` and `ProcessResult` stay true, since signatures and callers are unchanged); the rest of the operator guide's `sudo` and leftovers text; `README.md`.
+
+    Stale text noticed and left alone:
+    - The intro paragraph of `docs/operator-guide.md` is one very long status list. It is unrelated to this story.
+
+    I did not touch the `.costs.jsonl` change in the work item folder; the factory writes it.
+
+    `check`: check: green (not run again: passed on tree 5c76883181b4 at 2026-10-20T20:35:46Z)
+    `secrets`: secrets: green (2.1 s)
+    `documents`: documents ok
