@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 372
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T23:35:44.232889Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T23:35:23.683947Z'
   stage: tests
   run: cf89ece99aee4987a94151bd9854ab1f
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:35:44.232889Z'
+  stage: doing
 ---
 
 # The operator guide's records section names its four files
@@ -97,3 +106,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.5 s)
    `test`: test: green (63.3 s)
+6. factory: started doing as self.
