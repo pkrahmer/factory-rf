@@ -24,6 +24,7 @@ A story's `## Description` is the current meaning of its task (rule R5), and the
 The build order; start one at a time, the next when the one before is archived in `done/`.
 
 - S0001: The reviewer corrects a stale Description itself
+- S0002: The playbook and the project guide say the reviewer corrects a stale Description (proposed by A0001)
 
 ## The human's changes
 
