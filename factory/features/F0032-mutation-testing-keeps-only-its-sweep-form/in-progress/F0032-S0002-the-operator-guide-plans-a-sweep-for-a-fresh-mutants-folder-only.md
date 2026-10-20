@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 310
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T00:45:06.469893Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:45:06.475085Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T00:45:23.180804Z'
+  stage: intake
+  run: 1d563ba381564419a9c0bb21a8ca5c60
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:45:41.555771Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T00:47:18.993393Z'
+  stage: tests
+  run: 51429150e793416ab9f001636ba38e8e
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:47:39.504841Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T00:49:32.567005Z'
+  stage: doing
+  run: 4968fe66c125459f9cb3735c51e848c6
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:49:52.683436Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T00:50:16.943705Z'
+  stage: review
+  run: d35387a372704b1e902edb26dd2dc636
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:50:37.353096Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T00:50:58.252619Z'
+  stage: docs
+  run: fd5660baab9641c5a94f605c7ee6ea89
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:51:18.954380Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T00:51:50.026779Z'
+  stage: smoke-test
+  run: d836ceffbe954de1bcc0856b8ab0c897
+---
+
 # The operator guide plans a sweep for a fresh `mutants/` folder only
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -33,3 +117,86 @@ Expect: three lines `found` (the example, the stop line and the sweep's command 
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: no module under src/ changes and the tester writes no test module. The Makefile `mutants` recipe (the human's change 1 of F0032) is named as the reference. Nothing to sign, so nothing is missing.
+   - Criteria: only the two closing ones exist, and the story says so on purpose. The docs criterion states each required wording and each removal. The failing sides are the removals, which the first smoke test checks: no `mutmut-stats.json`, no "repairs it", no "keeps them only when that run ends". The story states no Interface rule or comment, so no behaviour lacks a criterion.
+   - Smoke test: both blocks are plain grep and shell commands, and neither runs `make mutants`. I checked the guide as it stands now. It has the "repairs it" and "keeps them only" wording at line 92, so the first block would fail today and pass after the rewrite. The example (line 95) and the sweep command (line 85) are already there. Each `Expect:` line can be checked against the output. `grep -c ... || true` prints 0 when nothing matches, which is the expected `0`.
+   - Architecture: documents only, with no layer or code touched. It stays within the documenter's write paths (`docs/*`).
+   - Scope: it fits F0032's goal, the documents describing the sweep form. It touches only the operator guide's two paragraphs, which F0032-S0001 left stale. Nothing from the feature's "Out of scope" is changed. It is a follow-up to S0001, proposed by the acceptance, and the human started it.
+4. factory: started tests as self.
+5. tester: No tests written, as the story asks. The Interface says no module under `src/factory/` changes and the tester writes no test module. The story has only the two closing criteria, and neither one calls for a new test.
+   - criterion 1 (`make check` stays green): no new test. The existing suite covers it, and the factory's checks confirm it.
+   - criterion 2 (docs, `docs/operator-guide.md` *Mutation testing by sweep*): no test. The documenter writes it, the smoke test's grep commands check it, and `make documents` gates it.
+   Files created: none. Modules the test run could not import: none. `make test` passed at 99.14 % coverage and `make lint` passed, both on the unchanged branch. There are no red tests on purpose this time, because there is no code to write. Nothing is open.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (40.4 s)
+6. factory: started doing as self.
+7. coder: No code written, as the story asks. Its Interface says no module under `src/factory/` changes. The tester wrote no test module, so no test was failing and there was nothing to make pass. `make check` is green on the unchanged branch (coverage 99.14 %, `check: green`).
+   - Built: nothing. My diff against `main` is empty apart from the factory's own files.
+   - Main choice: I left `docs/operator-guide.md` alone, even though it is the story's only real change. Under CLAUDE.md *Docs* that guide belongs to the documenter, and the coder does not write it. The documenter makes the two paragraph rewrites in criterion 2 (*How long it takes* and *A run that never gets past mutmut's stats*). The alternative I rejected was rewriting the paragraphs myself in this stage: that would put the coder in the documenter's place.
+   - Refactor: nothing to refactor, because there is no diff.
+   - Description: no journal entry changed the meaning of the task, so the Description stands.
+   - Noticed, not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar. That is what the story asks for: its Interface says no module under `src/factory/` changes and the tester writes no test module. The one real change is the operator guide, which belongs to the documenter's stage.
+   - 1, acceptance criteria: there are only the two closing criteria. Criterion 1 is met: the coder's `make check` in entry 7 was green, with coverage at 99.14 %. Criterion 2 is the documenter's next step. The story states no Interface rule or limit, so nothing has an untested failing side.
+   - 2 to 4, architecture, security and quality: there is no code, so none of these apply. `make duplicates` reported 5 new findings in entry 7, but with an empty diff under `src/` they cannot come from this story.
+   - 5, work item hygiene: the journal gives the main choice and what was rejected (entry 7: the coder left `docs/operator-guide.md` to the documenter). The Description matches what was built, which is nothing yet. The docs criterion still says what the reader must know. I checked it against the guide as it stands. *How long it takes* (`docs/operator-guide.md:90`) still gives the 165 s twice, the per-story minutes of F0019 and F0021, and the `mutants/mutmut-stats.json` measurement. The guide does not yet contain the stop line `mutants: stopped after`. The example `make mutants MODULES=<module> MUTANTS_SECONDS=1500` is at line 95. So the criterion names the right removals and additions for the documenter.
+   - 6, earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
+11. documenter: Documentation done; no findings. I did not run `make check`, because I changed only a document and the factory's checks run right after this stage.
+
+    Files changed:
+    - `docs/operator-guide.md`, *Mutation testing by sweep*: I rewrote the two paragraphs the docs criterion names.
+      - *How long it takes* now gives the cost of one run once. The stats take 165 s on 20 cores (28 s listing, 131 s clean run, 5 s generating) or 4.5 to 19 minutes on two cores, plus 0.13 to 0.25 s per mutant on 20 cores. It states that no stop is set unless `MUTANTS_SECONDS` is given, and that every run removes `mutants/` first. The `mutmut-stats.json` measurement, the per-story minutes of F0019 and F0021 and the second 165 s are gone.
+      - *A run that never gets past mutmut's stats* now says that every run starts with the stats over the whole suite in one process. It says a `MUTANTS_SECONDS` below the stats checks no mutant and the run fails with `mutants: stopped after <n> s, so the mutants it did not reach are not checked`. It says the value must cover the stats plus the mutants' time. The example `make mutants MODULES=<module> MUTANTS_SECONDS=1500` is kept. "Repairs it" and "keeps them only when that run ends" are gone.
+
+    Checks:
+    - The first smoke-test block gives `0` then `1`. For the second block I confirmed by hand that the example, the stop line and the sweep command are all in the guide. The stop line also matches the `Makefile`, line 125.
+    - Cross-read and found current: `README.md`, `docs/decisions.md` (the sweep-form entry), `docs/project-guide/processes-and-checks.md` line 157, and `docs/operator-playbook.md` lines 103 to 123. All of them already describe the fresh `mutants/`.
+
+    Stale text noticed, not mine to fix:
+    - The `Makefile`'s `mutants` recipe still accepts `FEATURE=<id>`. I did not check the `Makefile` against `CLAUDE.md` for this. `CLAUDE.md` *Checks* still describes `FEATURE=` and a "mutmut's own listing" ending, while the decision log says the sweep form keeps `MODULES` only. That is F0032's concern, and `CLAUDE.md` is the human's file.
+
+    `check`: check: green (not run again: passed on tree e77b3d64b793 at 2026-10-20T00:48:45Z)
+    `secrets`: secrets: green (0.8 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings. I ran both blocks from the repository root exactly as written.
+
+    Command 1:
+    ```
+    0
+    1
+    ```
+    It met `Expect: 0, then 1`. The kept-stats wording is gone and the guide gives the 165 s once.
+
+    Command 2:
+    ```
+    found
+    found
+    found
+    ```
+    It met `Expect: three lines found`.
+
+    Check against the acceptance criteria: I read both paragraphs of `docs/operator-guide.md` and found nothing that contradicts a criterion.
+    - *How long it takes* is line 90. It gives the stats once (165 s on 20 cores, 4.5 to 19 minutes on two cores in the sweeps of 2026-10-19) and the cost per mutant (0.13 to 0.25 s on 20 cores). It has no `mutmut-stats.json` measurement and no per-story minutes of F0019 or F0021.
+    - *A run that never gets past mutmut's stats* is lines 92 to 95. It contains each of these:
+      - every run starts with the stats over the whole suite in one process;
+      - a `MUTANTS_SECONDS` below the stats checks no mutant;
+      - the stop line in full;
+      - the value must cover the stats plus the mutants' time;
+      - the `make mutants MODULES=<module> MUTANTS_SECONDS=1500` example.
+    - Neither paragraph says "repairs" or that mutmut keeps the stats when a run ends. The other matches for "repair" in the guide are on lines 68, 542 and 853, in unrelated sections.
+
+    Criterion 1 (`make check` green): I did not run it in this stage. The factory's own checks cover it: entry 11 records `check: green` on the tree before the docs change, and the only change since is to the document.
+
+    Against `main`, the branch changes only `docs/operator-guide.md` (4 lines) and the work item's own files. Nothing is open.
