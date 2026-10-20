@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 363
 comments_read: [6300695093]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T20:26:48.795037Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-20T20:26:27.866780Z'
   stage: intake
   run: a2860186deba4903acdaa9053f0577f5
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:26:48.795037Z'
+  stage: tests
 ---
 
 # A call no longer waits for a process that keeps its output open after the call's own process ended
@@ -161,3 +170,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: accepted. It is runnable. Each `Expect:` line is checkable: the status, `timed_out`, `output_abandoned`, the output and the timing bound. No pytest command, so no `-q` question.
    - Architecture: accepted. The change sits in `factory.adapters.process`, the one module that starts processes. No layer, interface or caller changes.
    - Scope: accepted. It matches the feature's S0005 scope line and decision 17, and no earlier test changes.
+7. factory: started tests as self.
