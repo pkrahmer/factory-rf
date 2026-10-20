@@ -10,7 +10,7 @@
 
 No module under `src/factory/` changes; the coder has nothing to build.
 
-`tests/test_time_limits.py` (F0029-S0002's test, changed by the tester under a leave the human gives in `feature.md` before this story starts):
+`tests/test_time_limits.py` (F0029-S0002's test, changed by the tester under the leave of `feature.md`, decision 9, S0003):
 
 ```python
 @pytest.mark.parametrize(
@@ -31,20 +31,21 @@ def test_the_roomy_limit_leaves_room_and_stays_below_every_wait(
 - The test keeps its name and its nine row ids: `limit`, `bound`, `room`, `claude-confinement-wait`, `stand-in-wait`, `resume-session-wait`, `events-wait`, `sudo-past-limit`, `sudo-within-bound`.
 - Each row's `left`, `relation` and `right` state the same relation the row's `bool` states today, with the same constants read from the same modules.
 - A row that does not hold fails with the message `<left> <relation name> <right>`, such as `30 gt 30`.
+- `test_a_relation_that_breaks_names_its_values` (new, in the same module) calls the test above directly, as criterion 2 says. `timedelta` leaves the module's imports, as nothing else there uses it.
 
-The leave: changing `tests/test_time_limits.py`, written by F0029-S0002, needs a leave in `feature.md` beyond the standing leave of `CLAUDE.md`; the human adds it when refining this story.
+The leave: `feature.md`, decision 9, S0003, lets the tester change `tests/test_time_limits.py`, written by F0029-S0002, beyond the standing leave of `CLAUDE.md`, as this Interface says and in nothing else.
 
 ## Acceptance criteria
 
 1. Every relation still holds: `test_the_roomy_limit_leaves_room_and_stays_below_every_wait` passes with its nine rows, ids as listed in the Interface.
-2. A relation that breaks names its values (rows of one parametrized test): calling `test_the_roomy_limit_leaves_room_and_stays_below_every_wait` directly with `left=30, relation=operator.gt, right=30` raises `AssertionError` whose message is `30 gt 30`; with `left=11.5, relation=operator.lt, right=25` it returns without raising.
+2. A relation that breaks names its values (rows of one parametrized test, `test_a_relation_that_breaks_names_its_values`): calling `test_the_roomy_limit_leaves_room_and_stays_below_every_wait` directly with `left=30, relation=operator.gt, right=30` raises `AssertionError` whose message's first line is `30 gt 30` (inside pytest, its assertion rewriting adds its own explanation on the lines below); with `left=11.5, relation=operator.lt, right=25` it returns without raising.
 3. `make check` stays green.
 4. docs: none. No operator, newcomer or agent reads the test's failure message from the documents; `docs/project-guide/processes-and-checks.md` names `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS`, which stay as they are.
 
 ## Smoke test
 
 ```bash
-uv run pytest --no-header -p no:cacheprovider tests/test_time_limits.py 2>&1 | tail -1 | cut -d' ' -f1-2
+uv run pytest --no-header -p no:cacheprovider tests/test_time_limits.py::test_the_roomy_limit_leaves_room_and_stays_below_every_wait 2>&1 | tail -1 | cut -d' ' -f1-2
 ```
 Expect: `9 passed`
 

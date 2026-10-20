@@ -8,7 +8,7 @@ Two faults found on 2026-10-19 (the night log, `docs/runs/2026-10-12-overnight/n
 
 - `image/Dockerfile`: one `RUN` that makes `/home/agent/.config/opencode`, owned by `factory:factory-work` with mode `0755`, and keeps `/home/agent/.config` the agent's (`agent:factory-work`, `0755`) (S0001).
 - `tests/test_opencode_config_folder.py` (new) (S0001).
-- `tests/time_limits.py` (new): `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS`; `tests/test_time_limits.py` (new) (S0002).
+- `tests/time_limits.py` (new): `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS`; `tests/test_time_limits.py` (new) (S0002), its failure message (S0003).
 - The earlier tests of decision 9, each changed only in its limit, its elapsed bound and the comments that name them; two rewritten so that what they check no longer races the clock (S0002).
 - `docs/operator-guide.md`, `docs/project-guide/` and `docs/decisions.md`, from each story's docs criterion.
 
@@ -27,6 +27,7 @@ The build order; start one at a time, the next when the one before is archived i
 
 - S0001: The image makes opencode's configuration folder, read-only to the agent
 - S0002: Every test whose child must act before its time limit gives it room to start
+- S0003: The shared time limits' test names the values of a relation that broke (proposed by the acceptance)
 
 ## The human's changes
 
@@ -68,5 +69,6 @@ Checked against `factory/pipeline.yml`: the coder writes `src/*`, `image/*`, `te
    - S0002, `tests/adapters/test_process.py`: `test_child_is_killed_at_the_time_limit` (1 s, `< 6`) and `test_grandchild_is_killed_with_the_child_at_the_time_limit` (3 s) get `ROOMY_LIMIT`, the first one's bound becomes `ROOMY_BOUND_SECONDS`, and the second one's comment ("Three seconds, not one") becomes `# ROOMY_LIMIT: the child must start its grandchild and write the pid file before the kill.`
    - S0002, `tests/adapters/test_process_streaming.py`: `test_child_is_killed_at_the_time_limit_and_no_later_line_is_passed` and `test_child_that_closed_its_streams_is_killed_at_the_time_limit` get `ROOMY_LIMIT` for 3 s, and `ROOMY_BOUND_SECONDS` for `RETURNS_WITHIN_SECONDS`; the constant stays for its other tests.
    - S0002, `tests/adapters/test_make_commands.py`: `test_command_reaching_its_time_limit_is_killed` gets `ROOMY_LIMIT` for 3 s, `ROOMY_BOUND_SECONDS` for 8, and its comment becomes the one given for the grandchild above, with "the shell" for "the child". `test_time_limit_of_one_second_runs` is rewritten as S0002's criterion 5 says. `make_commands.run_process` is replaced by `Recorder` of `tests/run_process_recorder.py`, with one passed result, so the 1-second limit is shown to be taken and handed to the process unchanged. `make` and its shell are not raced against the second any more.
+   - S0003, `tests/test_time_limits.py` (F0029-S0002): `test_the_roomy_limit_leaves_room_and_stays_below_every_wait` takes `left`, `relation` and `right` for its one `holds`, and fails with the message `<left> <relation name> <right>`. It keeps its name, its nine row ids and the relation each row checks, with the same constants from the same modules. A new test in the module, `test_a_relation_that_breaks_names_its_values`, checks the message (S0003's criterion 2), and the import of `timedelta` goes. (The human, 2026-10-20.)
 10. **No production code changes in S0002.** Its coder has nothing to build, as in F0017-S0001; the tester's tests are green from the start, and the doing stage's `check` is the gate. (S0002)
 11. **The number and the name.** F0029 is the first number above every folder in `factory/features/` (F0018 to F0026) and `planning/overnight/stories/` (F0001 to F0028; F0028 went to another draft, `F0028-the-tests-pin-what-mutation-testing-found`, so this one was renumbered from F0028). The folder name says what the feature makes true, both faults in one sentence. (Feature)
