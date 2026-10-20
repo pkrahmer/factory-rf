@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T04:10:07.270666Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T04:10:07.264353Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:10:07.270666Z'
+  stage: intake
+---
+
 # The playbook and the project guide say the reviewer corrects a stale Description
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -34,3 +61,6 @@ grep -c -F 'Three passages are v1.1' docs/project-guide/agents.md; grep -c -F 'F
 Expect: two lines, `0` (the count of three is gone) and a number of at least `1` (the guide names the Description paragraph's story)
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
