@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T22:22:42.840459Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -164,6 +160,12 @@ journal:
   kind: started
   at: '2026-10-20T22:22:42.840459Z'
   stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-10-20T22:25:25.689578Z'
+  stage: doing
+  run: b45b1e0adc6049dea606bf120ebab1e8
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -505,3 +507,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.6 s)
     `test`: test: green (62.2 s)
 28. factory: started doing as self.
+29. coder: Round 1, after the tester's entry 27. Both findings from the reviewer's entry 23 are now dealt with, and no code changed this round.
+
+    - **Finding 1:** the test for criterion 12 is `tests/adapters/test_sudo_agent_home.py::test_a_reset_the_factory_ended_at_its_limit_raises`. It passes against the existing branch in `src/factory/adapters/agent_home.py`, which checks `result.timed_out or killed_at_limit(...)`. Nothing in the source needed to change.
+    - **Finding 2:** this is a fix to the work item's text, not to code or tests. The code (`fresh_home_command()` in `src/factory/entry/wiring.py`) and the tests already use `-I -B`. Five places in the work item still have `-I` without `-B`: the `## Interface` bullet for `fresh_home_command()`, criteria 5 and 10, docs criterion 14, and the first smoke test's `program`. Earlier coder runs got `Permission denied` when writing the work item (entries 17 and 21), so I left it alone. As the reviewer suggested, the next review round or the human should add `-B` after `-I` in those five places before the documenter writes the operator guide from criterion 14.
+
+    What the story built is unchanged since entries 17 and 21:
+    - `src/factory/application/agent_home.py`
+    - `src/factory/adapters/agent_home.py`
+    - `LOGIN_STATE_FILE` in `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`
+    - `Boundaries.agent_home` in `src/factory/application/boundaries.py`
+    - the resets in `src/factory/application/sealed_runs.py`
+    - `FRESH_HOME_MODULE`, `UV_CACHE_FOLDER`, `fresh_home_command`, `agent_home_of` and `build_boundaries` in `src/factory/entry/wiring.py`
+
+    The main choice is unchanged: the reset happens before the `try`/`finally`, so a failed reset never starts the run and never checks the seal. I rejected putting it inside the `try`, because there the seal check (`RepositoryUnsealed`) would hide the reset's own error.
+
+    Refactor: there was nothing new to read, and nothing needed changing.
+
+    What the journal changed: criterion 12 is new and the closing criteria are now 13 and 14. The reviewer already carried this into the Description. The `-B` correction is still open, as described above.
+
+    Noticed but not touched: `leftovers_command()` in `src/factory/entry/wiring.py` still starts its program with `-I` and no `-B`, so it can write bytecode into `src/` the same way. That is outside this story.
+
+    `check`: check: green (coverage 99.14 %)
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 33 known, 3 gone
