@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 372
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T23:35:44.232889Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-20T23:35:44.232889Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-20T23:37:22.631660Z'
+  stage: doing
+  run: 838d93c382454abe8b11867ebe69316a
 ---
 
 # The operator guide's records section names its four files
@@ -107,3 +109,14 @@ Expect: `documents ok`
    `lint`: lint: green (0.5 s)
    `test`: test: green (63.3 s)
 6. factory: started doing as self.
+7. coder: No code written. This story only changes the docs, and the documenter makes its one change, in `docs/operator-guide.md` *The records*.
+   - Criterion 1 (nothing under `src/` or `tests/` changes): I changed nothing under `src/` or `tests/`. `git status --short` shows only the factory's `.costs.jsonl` sidecar for this work item.
+   - Criterion 2: I ran `make check` and it ended with `check: green` (`test: green (64.1 s)`, coverage 99.14 %).
+   - Criterion 3 (docs): left to the docs stage, because the coder does not write `docs/`.
+   Main choice: I left the guide untouched instead of making the docs edit in this stage. The story's Interface names the documenter as the only writer, and `CLAUDE.md` says the coder does not write the docs.
+   Refactor: there is no diff, so there is nothing to refactor.
+   Noticed but not touched: intake did not check the code behind the story's claims, that `KnownResults` reads `known-results.jsonl` to decide a check, that `StopPublisher.publish` reads `stops.jsonl`, and that the disk record uses only its last record that reads whole. I did not check them either. The documenter should confirm them in the code before writing them.
+   The journal did not change the meaning of the task.
+
+   `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
+   `duplicates`: duplicates: 6 new, 33 known, 3 gone
