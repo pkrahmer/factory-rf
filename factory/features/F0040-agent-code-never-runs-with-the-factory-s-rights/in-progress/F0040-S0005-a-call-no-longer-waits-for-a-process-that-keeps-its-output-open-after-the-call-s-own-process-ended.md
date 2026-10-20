@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 363
 comments_read: [6300695093]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T20:30:59.250139Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-20T20:30:38.346446Z'
   stage: tests
   run: 10078964ed704f87964d2e57d9be6693
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-20T20:30:59.250139Z'
+  stage: doing
 ---
 
 # A call no longer waits for a process that keeps its output open after the call's own process ended
@@ -200,3 +209,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/adapters/test_process_drain.py::test_pipes_that_close_within_the_drain_give_the_whole_output[no-descendant-run_streaming] - AttributeError: <module 'factory.adapters.process' from '/wor...
+9. factory: started doing as self.
