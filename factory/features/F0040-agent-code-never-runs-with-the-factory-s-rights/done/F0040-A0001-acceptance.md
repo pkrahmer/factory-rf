@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T22:42:46.715609Z'
   stage: acceptance
   run: 035e5b461c4c4381abb2d0b8e5245434
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T22:44:07.309983Z'
+  stage: done
 stories: [F0040-S0001, F0040-S0002, F0040-S0003, F0040-S0004, F0040-S0005]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of Agent code never runs with the factory's rights
@@ -245,3 +250,4 @@ The pattern across S0001, S0003 and S0004 is a reviewer adding a criterion that 
    6 Decisions for the human: the feature's 17 decisions and the answers in the story journals are gathered in one list. Two earlier tests were changed, both under decision 14's leave (`tests/entry/test_wiring.py`, `tests/test_wrapper_search.py`); no other earlier test file was modified. Also listed: the default ACL on the checkout, a change the human made on the machine (S0004 entry 15).
    7 Slow checks: none offered beyond `make check`, which is green (test 62.0 s, coverage 99.14 %). F0040's 170 new tests take 51.5 s, the slowest 5.0 s. Disk: `/work` uses 0.0 GB against 0.5 GB at `disk start`, and nothing grew that the feature does not explain.
    8 Cost: 74 runs, $25.43. The dearest story was S0001 ($7.77, 22 runs: 4 of the 13 human interventions, the round cap and 1 crash). S0004 hit the crash cap: two crashes of `doing` from `__pycache__` with mode 755. Reviewers adding criteria that only needed a test cost 6 extra rounds across three stories. 13 questions answered (11 questions, 1 round cap, 1 crash cap); the stories waited 0.3 h.
+3. factory: done (pull request merged); cost: 1 runs, 8.8 min, 54 turns, 178655 tokens in (5469616 more from cache), 46408 out, $3.45
