@@ -3,15 +3,11 @@ stage: doing
 blocked: null
 round: 0
 attempts: 0
-crashes: 0
+crashes: 1
 pull_request: 357
 comments_read: [6297503471, 6297615750]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T18:04:13.374294Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,11 @@ journal:
   speaker: factory
   kind: started
   at: '2026-10-20T18:04:13.374294Z'
+  stage: doing
+- number: 13
+  speaker: factory
+  kind: crash
+  at: '2026-10-20T18:27:14.750353Z'
   stage: doing
 ---
 
@@ -269,3 +270,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.6 s)
     `test`: ERROR tests/adapters/test_make_commands_user.py - ImportError while importing test module '/work/checkout/tests/adapters/test_make_commands_user.py'.
 12. factory: started doing as self.
+13. factory: crash 1: the run of stage doing ended without a result. Its work is discarded back to commit 2a269f88a37eed2ae92923253c2460275795a257.
