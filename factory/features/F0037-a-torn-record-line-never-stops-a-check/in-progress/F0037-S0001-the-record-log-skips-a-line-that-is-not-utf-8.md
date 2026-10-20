@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 339
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-20T06:45:59.225915Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-20T06:45:59.225915Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-20T06:46:41.950821Z'
+  stage: docs
+  run: 283565fdb73e48eb882d9b0c7212208b
 ---
 
 # The record log skips a line that is not UTF-8
@@ -216,3 +218,17 @@ Expect: one line, `['check: green ✓']`, and no traceback.
 
    Earlier tests: none. The diff adds test files and changes, renames or deletes no test file that `main` already holds.
 10. factory: started docs as self.
+11. documenter: Docs for F0037-S0001, written from the docs criterion. I changed only documents, so I did not run `make check`; the factory's checks decide. I ran no example. The diff matches the Interface and the criteria, so I have no findings.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`: the `RecordLog[R]` paragraph now says `read()` skips a blank line, a line that is not UTF-8 and a line that does not validate. It also says `JsonLinesRecordLog` reads bytes, splits at `\n` alone and decodes each line on its own, which keeps U+2028, U+2029 and U+0085 records whole, and that a record appended after a torn line shares its line and is skipped.
+    - `docs/operator-guide.md`, *The records*: the last sentence now says a line of any of the four record files that a kill cut, or that is not UTF-8, is skipped on read, so a damaged file needs no repair. I left the rule on deleting `stops.jsonl` as it was.
+    - `docs/decisions.md`: new entry *A record line that is not UTF-8 is skipped*. It rejects a wider `except` in `KnownResults._read` and decoding with replacement, and leaves decision 4 (append after a torn line) as its open point.
+
+    Cross-read and found current: `README.md` (the criterion says none), `docs/project-guide/README.md`, and the `Boundaries` and *Known results* passages in `docs/project-guide/watching.md` and `processes-and-checks.md`.
+
+    Stale or unrelated, not touched: nothing found. `watching.md` says `parse_stop_records` skips lines that do not validate. That function takes text and not bytes, so it stays correct.
+
+    `check`: check: green (not run again: passed on tree 943e65a3b707 at 2026-10-20T06:43:13Z)
+    `secrets`: secrets: green (1.7 s)
+    `documents`: documents ok
