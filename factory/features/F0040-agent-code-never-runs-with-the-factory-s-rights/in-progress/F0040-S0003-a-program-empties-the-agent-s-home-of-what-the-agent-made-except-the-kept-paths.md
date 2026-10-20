@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 364
-comments_read: [6301083856]
+comments_read: [6301083856, 6301399721]
 handed_over: null
 claim: null
 journal:
@@ -98,6 +98,11 @@ journal:
   stage: tests
   run: 1784501eddbd4da9a61630a40e0a0b8b
   blocked: question
+- number: 17
+  speaker: human
+  kind: comment
+  at: '2026-10-20T21:01:42.871479Z'
+  stage: tests
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -342,3 +347,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Files created: none. I changed only test files this story wrote: tests/adapters/test_home_files.py and tests/entry/test_fresh_home.py.
 
     Modules the test run could not import: none. The code exists, so the new tests passed at once instead of failing first. `make test`: test: green (64.1 s). `make lint`: lint: green.
+17. 2026-10-20 human: Answer (2026-10-21): (a). Criterion 10 gains the rows `["--home", "//"]` and `["--home", "/home/.."]`; each returns 2 with `factory-fresh-home: --home <spelling> is not an absolute folder other than /` and leaves the home's files in place. The Interface reads "resolves to `/`" instead of "is `/`". No link row.
