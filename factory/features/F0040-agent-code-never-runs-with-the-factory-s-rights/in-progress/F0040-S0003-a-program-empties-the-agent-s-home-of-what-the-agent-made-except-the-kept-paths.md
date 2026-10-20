@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T21:02:01.860621Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-20T21:01:42.871479Z'
+  stage: tests
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-20T21:02:01.860621Z'
   stage: tests
 ---
 
@@ -348,3 +357,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Modules the test run could not import: none. The code exists, so the new tests passed at once instead of failing first. `make test`: test: green (64.1 s). `make lint`: lint: green.
 17. 2026-10-20 human: Answer (2026-10-21): (a). Criterion 10 gains the rows `["--home", "//"]` and `["--home", "/home/.."]`; each returns 2 with `factory-fresh-home: --home <spelling> is not an absolute folder other than /` and leaves the home's files in place. The Interface reads "resolves to `/`" instead of "is `/`". No link row.
+18. factory: started tests as self.
