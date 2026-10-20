@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T23:54:02.588733Z'
   stage: acceptance
   run: 60340e761e5d421cb87eeb9742b7b99f
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T23:55:22.988506Z'
+  stage: done
 stories: [F0027-S0001, F0027-S0002, F0027-S0003, F0027-S0004, F0027-S0005, F0027-S0006, F0027-S0007]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of Nothing a run leaves behind reaches the checks
@@ -195,3 +200,4 @@ None. The only items left are wording in the human's own files (`CLAUDE.md`, `fe
    6 Decisions: decisions 2, 4, 8 and 11 are still open, built as recommended. Decision 7 is now recorded and confirmed by the smoke test. Keeping `UV_COMPILE_BYTECODE` (change 5) and updating the stale wording in `CLAUDE.md` and `feature.md` are the human's calls. S0007 changed no earlier test, and no test was changed without a leave.
    7 Slow checks: `make check` is green (test 63.6 s, coverage 99.14 %). The slowest tests are not F0027's (11.5 s and 10.1 s). F0027's 103 cases take 3.7 s. `make duplicates` reports 6 new, 33 known, 3 gone. Disk on `/work` grew by 0.5 GB. That is the checkout's `.venv` (511 MB), built anew by this stage's `make check` after the restore removed the ignored paths, which the feature explains.
    8 Cost: $18.40 over 63 runs. The rise of $0.78 since A0002 is S0007 alone, one pass with no question. S0002 is still the most expensive story ($5.21), and S0004 to S0007 together cost $4.22. There were 5 questions over 1.2 h, unchanged, and S0003 needed the human most (2 questions).
+3. factory: done (pull request merged); cost: 1 runs, 3.8 min, 22 turns, 69276 tokens in (1071188 more from cache), 14459 out, $1.06
