@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T09:24:00.756180Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-10-20T09:24:00.756180Z'
   stage: smoke-test
+- number: 32
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T09:24:36.116108Z'
+  stage: smoke-test
+  run: 3768366f4bd74485b60babb31f33b950
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -596,3 +598,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
 31. factory: started smoke-test as self.
+32. smoke-tester: Smoke test, round 2. From the repository root I ran both commands under `## Smoke test` as written, in order. Neither starts a server. I changed nothing.
+
+    Command 1: the `mutants` recipe's form in a temporary `Makefile`, which is `timeout 77` without `--foreground` with its output piped through `tee`, killed by `MakeProjectCommands.run("slow", time_limit=10 s)`, followed by a count of `sleep 77` processes. I ran the block in one bash shell so that its `trap` removes the temporary directory.
+
+    ```
+    time_limit gone
+    0
+    ```
+
+    Met its `Expect:` line (two lines, `time_limit gone` and `0`). The grandchild was in `timeout`'s own group and was gone when the call returned, and no `sleep 77` was left running.
+
+    Command 2: `parse_stat` on a name holding a space and parentheses, in state `Z`.
+
+    ```
+    pid=77 session=70 ended=True
+    ```
+
+    Met its `Expect:` line (`pid=77 session=70 ended=True`).
+
+    Against the acceptance criteria: nothing the smoke test showed contradicts any of them. Command 1 matches criterion 6's `own-group` row and the story's main rule, and command 2 matches criterion 1's row for a name with parentheses and the `Z` state. The smoke test does not cover criteria 7–11 (sudo runs, permission and race handling, `make check`, docs), and it shows nothing against them.
+
+    Findings: none. Open: nothing.
