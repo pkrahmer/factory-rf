@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 305
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T00:09:00.189530Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T00:08:38.155102Z'
   stage: review
   run: 7bc3a2e2539449f6bbc632dd8c8c62a1
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:09:00.189530Z'
+  stage: docs
 ---
 
 # The second-user section names the API login and opencode's run files
@@ -147,3 +156,4 @@ Expect: `documents ok`
    - `duplicates: 5 new` (entry 7) comes from code already on `main`. This branch changes nothing under `src/`, so those findings are outside this review.
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
