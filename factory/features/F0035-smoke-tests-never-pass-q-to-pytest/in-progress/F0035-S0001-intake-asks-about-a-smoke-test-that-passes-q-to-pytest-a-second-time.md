@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 330
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T05:06:42.713224Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T05:06:22.309073Z'
   stage: docs
   run: 60f3b2954d1d4c50bd7d4f26847a238e
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T05:06:42.713224Z'
+  stage: smoke-test
 ---
 
 # Intake asks about a smoke test that passes -q to pytest a second time
@@ -172,3 +181,4 @@ Expect: `1` (the human's change 1 is on `main`)
     `check`: check: green (not run again: passed on tree 692d1fffd52d at 2026-10-20T05:03:52Z)
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
