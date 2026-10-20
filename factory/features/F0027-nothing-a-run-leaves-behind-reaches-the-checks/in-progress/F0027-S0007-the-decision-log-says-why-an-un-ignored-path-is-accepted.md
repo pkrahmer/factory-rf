@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 373
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T23:41:47.276206Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T23:41:25.673543Z'
   stage: intake
   run: 2120597f6a7d4b2da8c6e571a0ef5da1
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:41:47.276206Z'
+  stage: tests
 ---
 
 # The decision log says why an un-ignored path is accepted
@@ -68,3 +77,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: both commands are runnable. `grep -c ... docs/decisions.md` expects `1`, and `git diff --name-only origin/main -- src tests | wc -l` expects `0`. Neither runs pytest, so the `-q` rule does not apply. Each `Expect:` line can be checked against the output.
    Architecture: a decision-log bullet belongs in `docs/decisions.md`, which the documenter stage keeps. Nothing in the layers is touched.
    Scope: it follows F0027 `feature.md` decision 7, which accepts that an agent can un-ignore a path and adds no rule, and it adds nothing beyond that. It is not in the feature's Out of scope. It adds no test and changes no test another story wrote.
+4. factory: started tests as self.
