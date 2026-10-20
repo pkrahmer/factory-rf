@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 324
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T03:24:18.843640Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-20T03:23:58.352026Z'
   stage: intake
   run: e3b8550ffd324a878a0f60a647c856d5
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:24:18.843640Z'
+  stage: tests
 ---
 
 # The protected paths refuse a .claude folder at any depth
@@ -89,3 +98,4 @@ Expect: four lines, `.claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is o
    - Smoke test: one runnable `uv run python -c` command. Its Expect line gives four exact output lines that can be compared with the output.
    - Architecture: the change is a constant in `factory.domain`, and `refusal`, the hook, the undo and the kernel's confinement are not touched. That matches the layering in CLAUDE.md.
    - Scope: matches `feature.md`: the pattern, the tests under decision 3 and the three docs. The kernel guard, `~/.claude` and R14 are out of scope and untouched. The test rename has the human's leave through decision 3.
+4. factory: started tests as self.
