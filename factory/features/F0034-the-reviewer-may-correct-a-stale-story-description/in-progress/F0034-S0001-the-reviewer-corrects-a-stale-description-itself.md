@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 328
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T03:54:43.215728Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T03:54:43.215728Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T03:54:58.544764Z'
+  stage: intake
+  run: 1b5acae23a004518ba612ac527dedc42
 ---
 
 # The reviewer corrects a stale Description itself
@@ -71,3 +73,9 @@ Expect: `1`
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: one file, `claude/agents/reviewer.md`, section *Role*. The anchor paragraph (line 68, ending `A criterion that needs a code change stays a finding or a question.`) and the `## Stage` heading (line 70) exist as the Interface describes. The new paragraph's text is given in full. The helpers it names exist (`agent_body` in `tests/shipped_agents.py`, and the sibling module `tests/test_claude_agent_texts_review_leave.py`).
+   Criteria: 1 and 2 are the paragraph's text and its place, with exact boundaries. 3 is one parametrized test with a row per agent (reviewer 1, the six others 0). 4 is the unchanged item 5, which occurs once. 5 and 6 are the closing criteria. Each is testable by one test function. Every clause of the paragraph (the correction, the entry format, "not a finding" with `docs`, and the finding-or-question side where nothing settles it) lies inside the exact text that criterion 1 pins. The failing side of "only when settled" is therefore pinned by that text.
+   Smoke test: both greps are runnable. The expected counts (seven lines with 0 or 1, and `1`) can be checked against the output.
+   Architecture: nothing under `src/` changes, so the layers are untouched. The change is an agent file under `claude/`, which the coder writes. The tests are under `tests/` at the root, as for the other agent-text modules.
+   Scope: it matches the feature's Scope and touches nothing in its Out of scope. No other agent changes, and there is no pipeline change. The story edits no test another story wrote, and the new test module is its own.
