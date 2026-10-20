@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 360
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T19:35:35.121381Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T19:35:13.894185Z'
   stage: tests
   run: 8efe07e8c21c4f259f5b4efa1fce45e1
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T19:35:35.121381Z'
+  stage: doing
 ---
 
 # The feature's tests share their constants and find the marker's line
@@ -119,3 +128,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.6 s)
    `test`: test: green (59.6 s)
+6. factory: started doing as self.
