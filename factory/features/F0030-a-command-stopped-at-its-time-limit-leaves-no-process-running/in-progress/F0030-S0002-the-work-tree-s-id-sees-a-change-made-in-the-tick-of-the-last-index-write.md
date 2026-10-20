@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 369
 comments_read: [6303767591]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T23:06:51.630055Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-20T23:06:31.331049Z'
   stage: intake
   run: bd118f63e5884337bf761844911254ee
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-20T23:06:51.630055Z'
+  stage: tests
 ---
 
 # The work tree's id sees a change made in the tick of the last index write
@@ -116,3 +125,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: runnable. The block builds a throwaway repo and calls the real `GitCli`. Its `Expect:` line is `True`, which the output can be checked against. It runs no pytest, so the `-q` question does not arise.
    - Architecture: the change is inside `factory.adapters`, in the git wrapper, as `CLAUDE.md` requires. The new test module sits under `tests/adapters/`, mirroring the package.
    - Scope: journal entry 4 carries the human's answer to my question 1. F0030's `feature.md` now lists S0002 and names its files under *Scope*. The story is in scope. The story changes no earlier test and adds no dependency or suppression marker.
+7. factory: started tests as self.
