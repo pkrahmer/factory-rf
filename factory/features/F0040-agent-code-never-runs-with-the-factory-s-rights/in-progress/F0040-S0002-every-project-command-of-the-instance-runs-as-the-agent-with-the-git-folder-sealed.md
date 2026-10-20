@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368, 6300375333]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T20:17:33.296287Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-10-20T20:17:33.296287Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T20:18:11.474951Z'
+  stage: review
+  run: 71dfafd65081477390c8257e2cd979bd
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -436,3 +438,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 26. factory: started review as self.
+27. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`. The diff changes `src/factory/application/sealed_runs.py` and `src/factory/entry/wiring.py` and adds two test files. I read them against the work item.
+
+    What holds:
+    - **Code:** `SealedProjectCommands.run` (`src/factory/application/sealed_runs.py:63-79`) seals first, so a failed seal runs nothing. It runs the inner command and, in a `finally`, calls `check_seal` and then `remove_nested_repositories`, so a failed check removes nothing and an error from the inner command becomes the context of `RepositoryUnsealed`. It writes one log line only when something was removed and returns the inner result unchanged. This has the same shape as `run_sealed`, minus `remove_ignored`, which the Interface leaves out for project commands.
+    - **Wiring:** `project_command_environment` (`src/factory/entry/wiring.py:376`) is `agent_run_environment` plus `PYTHONDONTWRITEBYTECODE=1` and `UV_LINK_MODE=copy`, and nothing else. `_project_commands` (`wiring.py:298`) builds `SealedProjectCommands(MakeProjectCommands(..., user=CommandUser(...)), git, log)` with the boundaries' own `git` and `log`. It gets the same `sudo_executable` and `leftovers` values the agent runtime gets. Without an agent user it builds `MakeProjectCommands(settings.checkout)` as before.
+    - **Criteria 1–8:** each has a test that checks what the criterion says. All limits are tested on both sides:
+      - criterion 2: returns, `ProjectCommandError`, `ValueError`;
+      - criterion 3: seal broken after the run, broken after the run with a context, `.git` missing before the run, and the nested repository kept exactly when the inner command ran;
+      - criterion 4: two nested repositories and none;
+      - criterion 5: with and without `agent_user`;
+      - criteria 6 and 8: agent user, no leftovers, no sudo found, no agent user, with `git` and `log` compared by identity.
+      
+      Each rule's sides are rows of one parametrized test. The last `make check` was green (entries 23 and 25).
+    - **Architecture:** `sealed_runs` imports only the application interfaces (`Git`, `FactoryLog`, `ProjectCommands`) and domain types. Wiring stays in `factory.entry.wiring`. `SealedProjectCommands` inherits `ProjectCommands`.
+    - **Security:** no secrets, no silencing markers, and no command built from strings.
+    - **Quality:** the `make duplicates` new findings (entry 25) are all in files this diff does not touch. I accept the coder's choice not to share code with `run_sealed` (entry 10): only the three git calls would be shared.
+    - **Hygiene:** the Description, Interface and docs criterion match what was built. Entries 18 and 19 record the human's answer on the `type-abstract` test fix.
+
+    no findings
+
+    Earlier tests: none. The diff only adds test files: `tests/application/test_sealed_project_commands.py` and `tests/entry/test_wiring_project_command_user.py`, both status `A`.
+
+    Notes:
+    - `tests/application/test_sealed_project_commands.py:12`: imports `RecordingLog` from another test module (`application.test_checkout_preparer_seal`) rather than from a shared place under `tests/`. `test_nested_repositories.py` already does the same; it is a candidate for the standing leave to move a shared helper.
