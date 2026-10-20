@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 330
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-20T04:09:30.540216Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-20T04:09:30.540216Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-20T04:09:46.942220Z'
+  stage: intake
+  run: d2927e3a98e5442a800f42227aef9e14
 ---
 
 # Intake asks about a smoke test that passes -q to pytest a second time
@@ -70,3 +72,9 @@ Expect: `1` (the human's change 1 is on `main`)
 
 1. 2026-10-20 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: one file, `claude/agents/intake.md`, Stage step 2 (line 53, which ends today with "can be checked against."). The Interface gives the exact sentences to append on the same line. Step numbers 0 to 6 stay, and no other agent file gains the text. The test module and the helpers it uses (`agent_body`, `section_text`) are named.
+   - Criteria: 1 (sentences present), 2 (they end step 2, with a start and an end anchor), 3 (a parametrized count for each of the seven agents, intake 1 and the others 0) and 4 (`make check`) are each one test function. Rules with a failing side: the rule is a question for a command that passes `-q`, and the Interface's only rule is that sentence. Criteria 1 and 2 pin "Such a command is a question", and the 0 rows of criterion 3 cover the side where the rule is absent. Criterion 5 (docs) is the documenter's.
+   - Smoke test: both commands are runnable `grep -c` calls. Each `Expect:` is checkable. The first lists seven exact lines and the second expects `1`. I ran the second: `factory/story-form.md` already holds the human's sentence, so it prints 1. The first prints 0 for intake until the coder has run, which is expected.
+   - Architecture: nothing under `src/` changes. It is an agent text, a test at the `tests/` root (the module is outside the layers) and docs, which fits CLAUDE.md. `docs/project-guide/agents.md` has the *The seven agents* section that criterion 5 names.
+   - Scope: it matches the feature's Scope list. The feature's Out of scope (code check, `template/`, demo, smoke tester, archived stories) is untouched. It changes no existing test: `tests/test_claude_agent_texts.py` passes unchanged, and the Lessons are not edited (feature decision 1).
