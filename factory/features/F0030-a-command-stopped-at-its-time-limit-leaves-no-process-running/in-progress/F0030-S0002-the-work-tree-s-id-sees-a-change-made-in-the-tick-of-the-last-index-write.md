@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 369
 comments_read: [6303767591]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T23:13:08.135749Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-20T23:13:08.135749Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T23:13:27.298735Z'
+  stage: review
+  run: 8d5828725ea346e39a041130e63d2d06
 ---
 
 # The work tree's id sees a change made in the tick of the last index write
@@ -175,3 +177,12 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 6 new, 33 known, 3 gone
 11. factory: started review as self.
+12. reviewer: no findings
+
+    - Acceptance criteria: criterion 1 is `tests/adapters/test_git_cli_work_tree_tick.py::test_a_change_in_the_tick_of_the_last_index_write_is_seen`, one parametrized test with rows `same-size` (`two\n`) and `other-size` (`three\n`). Each row sets `core.trustctime false` through `run_git`, commits `kept.log` with its modification time at P through `GitCli.commit`, rewrites it, sets the times of the file and of `.git/index` to P, and compares `work_tree_id()` with `HEAD^{tree}` after `commit("edit")`. That makes the racily-clean case certain. The tester's run in entry 8 showed `same-size` failing before the change. The coder's `make check` in entry 10 is green. The Interface adds no new limit or refused input: its one rule, `copy2`, is pinned by the `same-size` row, and the other rules are listed as unchanged.
+    - Architecture: the one change is in the git wrapper (`src/factory/adapters/git_cli.py:427`, `shutil.copyfile` -> `shutil.copy2`). There is no new import or process call.
+    - Security: there is no new marker, secret or command string.
+    - Quality: the comment added above the copy says why the copy keeps the index's time. The test module reuses `CHECKOUT`, `run_git` and `write_files` from `tests/git_support.py`. Nothing else under `tests/` sets file times, so `_set_past_time` copies no existing helper.
+    - Work item hygiene: the Description matches what was built (only the copy changed, signature and other rules as before). The coder's entry gives the main choice and what was rejected (`copyfile` plus `copystat`/`utime`). The docs criterion still names what the documenter must write.
+
+    Earlier tests: none. The diff only adds `tests/adapters/test_git_cli_work_tree_tick.py`, with status `A`.
