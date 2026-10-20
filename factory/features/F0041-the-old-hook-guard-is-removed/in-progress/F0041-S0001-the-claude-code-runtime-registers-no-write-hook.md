@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 347
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T10:32:48.223390Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-20T10:32:48.223390Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T10:33:17.989683Z'
+  stage: smoke-test
+  run: 900b703af60c47babfd5ae74e4ad557e
 ---
 
 # The Claude Code runtime registers no write hook
@@ -397,3 +399,21 @@ Expect: `7`
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Ran both smoke-test commands from the repository root as written, in order. I fixed nothing.
+
+    Command 1 (the stand-in `claude`, run once unconfined and once through `factory-confine`, both with guard settings):
+    ```
+    unconfined False instructions written completed
+    confined False confine instructions refused completed
+    ```
+    Exit status 0. This **met** its `Expect:` line exactly. Neither run passed `--settings` or wrote a guard or hooks file. In the confined run the kernel alone refused the write to the checkout's root, and both runs ended `completed`.
+
+    Command 2:
+    ```
+    7
+    ```
+    This **met** its `Expect:` line (`7`): none of the seven shipped agents still holds "a hook also refuses".
+
+    Against the acceptance criteria: nothing in the smoke test contradicts any criterion. Criteria 1, 3 and 4 are each covered for one row by command 1: no `--settings`, no `guard-` or `hooks-` file, and only `instructions-` (plus `confine-` when confined) in the state directory. For criterion 5 I also ran `grep -i hook claude/agents/*.md`, which matched nothing. Each agent's R14 line now reads "the kernel refuses every other write, by any tool and any command you run, and the factory undoes any other write after the stage." I did not run `make check` (criterion 6); the factory checks it. Criterion 7 is docs: none.
+
+    Findings: none.
