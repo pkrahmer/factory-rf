@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 357
 comments_read: [6297503471]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T17:56:03.673041Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-10-20T17:56:03.673041Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-20T17:59:35.256447Z'
+  stage: tests
+  run: 1341da8ddf744e1db88bcfd600b6e72b
+  blocked: question
 ---
 
 # The project commands can run as the agent's user, under its own kill
@@ -189,3 +192,30 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the change sits in `factory.adapters.make_commands` and reuses `agent_launch` (adapters importing adapters, no layer reversed). The class inherits `ProjectCommands`.
    - Scope: within F0040's scope for S0001 (`make_commands.py`, `CommandUser`, the leftovers program) and not in its "Out of scope". The wiring and the seal are S0002's.
 7. factory: started tests as self.
+8. tester: I wrote the tests for every criterion except one row of criterion 9, which I can't write as stated without choosing what it means.
+
+   The question is about criterion 9, the row "a `leftovers` program that does not exist raises `ProjectCommandError` whose `detail` starts with `cannot end the agent's processes: [Errno 2] No such file or directory`".
+
+   The leftovers call is `[<sudo>, "-n", "-u", "agent", "--", <program>, "--user", "agent"]`, so the factory only starts the stand-in `sudo`, and that `sudo` exists. When the program after `--` is missing, the stand-in's `execvp` fails inside the `sudo` process. The factory then sees exit status 1 and a traceback on standard error. `leftovers_fault` turns that into `cannot end the agent's processes: exit status 1`, not `[Errno 2] ...`. A real `sudo` would behave the same way (`sudo: ...: command not found`, status 1). So the factory only gets an `OSError` of its own, and that detail, when the first word of the leftovers launch (the `sudo`) cannot be started. In this setup that same `sudo` has just run the command.
+
+   Options:
+   (a) The row means "the leftovers call cannot be started". The test makes `sudo` disappear between the two calls: the `check` recipe removes the stand-in `sudo` file, so the leftovers launch fails with `[Errno 2]` and the expected detail is unchanged. The criterion's words would change to "the stand-in `sudo` removed by the command's recipe before the leftovers call".
+   (b) Keep a program that does not exist after a `sudo` that runs it, and expect `cannot end the agent's processes: exit status 1`. That tests `leftovers_fault`'s status branch again, not the start failure.
+   (c) Drop the row.
+   I would choose (a): it is the only one that tests the Interface rule "a leftovers program that cannot be started raises ... <the operating system's message>".
+
+   Done so far, all in `tests/adapters/test_make_commands_user.py` (created):
+   - criterion 1: `test_the_command_runs_through_sudo_timeout_and_env_with_only_the_user_s_environment`
+   - criterion 2: `test_the_limit_is_given_to_timeout_in_whole_seconds_rounded_up` (30 s → `30s`, 1.5 s → `2s`)
+   - criterion 3: `test_the_outer_make_variables_of_the_user_s_environment_are_left_out` (`MAKELEVEL`, `MAKEFLAGS`, `MFLAGS`)
+   - criterion 4: `test_a_command_killed_by_its_own_timeout_is_a_time_limit_result` (no warning / `sudo:` warning)
+   - criterion 5: `test_an_exit_before_the_limit_is_a_failed_command_with_its_status` (137, 1)
+   - criterion 6: `test_only_sudo_lines_and_a_failing_status_are_a_refusal` (four rows)
+   - criterion 7: `test_the_checks_before_the_start_refuse_without_calling_sudo` (limit 0, `Check`) and `test_a_sudo_that_does_not_exist_is_a_project_command_error`
+   - criterion 8: `test_the_user_property_returns_what_the_constructor_was_given`
+   - criterion 9: `test_a_command_run_as_another_user_is_followed_by_the_leftovers_program`. Its rows are passed, time limit, program fault, failed, refused, the refusal winning over the fault, no leftovers, and the own user. The missing-program row is left out pending this question.
+   - criteria 10 and 11 are not tests.
+
+   The stand-in `sudo` is local to the module: it records its arguments, environment and working directory, then plays a warning and either exits as planned or runs what follows `--`. It always runs the leftovers program. That program is `write_program` from `tests/leftovers_runtime_support.py`. I changed no earlier test file.
+
+   `make test`: the module could not be imported, an ImportError for `factory.adapters.make_commands.CommandUser`, which is the failure to expect before the code exists. `make lint` is green.
