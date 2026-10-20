@@ -1,0 +1,42 @@
+# The project guide names every passage of v1.1's own in the shipped agents
+
+## Description
+
+`docs/project-guide/agents.md`, *The seven agents*, says the shipped bodies carry v1's texts, "the sentences are not rewritten in other words", and that "Six passages are v1.1's own text and not v1's". *Replaced from v1* repeats the count ("except the six passages"). The count is short. `git log -- claude/agents/` after `830029c9` (F0010-S0017, which carried v1's texts in) shows more passages of v1.1's own outside `## Lessons`: R14's write-guard sentences in every `## Rules` (F0019-S0006; F0041-S0001 took out its clause on the hook), rule R15 on a project's skills and agents (F0022-S0002), `intake`'s sentence in its *Stage* step 2 on a smoke test that passes `-q` (F0035-S0001), the `acceptance-reviewer`'s comparison of the Disk now line with the previous record in its check 7 (F0012-S0017), and its check 3 *Mutation testing*, "By sweep, not run here", with the words F0031-S0001 changed in its check 7, its recommendation, its proposals paragraph and its stage steps 1 and 3. The guide describes R14, R15 and the `-q` sentence elsewhere, but does not count them as v1.1's own, and it does not mention the acceptance reviewer's check 3 or its disk comparison at all. An agent that changes an agent text reads the guide to learn which sentences are v1's and must keep v1's words; a closed count that the next passage makes wrong tells it wrongly. This story makes the guide list every passage of v1.1's own, each with the story that wrote it, with no count (folded in from F0034-S0003, proposed by the acceptance of F0034). The agent texts, the tests and the other documents stay as they are.
+
+## Interface
+
+None: nothing changes under `src/factory/`, in any test, the image, the template, a demo or an agent file. The documenter changes only `docs/project-guide/agents.md`. It checks the list against `git log -p 830029c9.. -- claude/agents/` and against the shipped bodies under `claude/agents/` as they are: every sentence there that is not in v1's text and is not under `## Lessons` is one of the passages.
+
+## Acceptance criteria
+
+1. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. The tester and the coder each end with an entry saying so.
+2. `make check` stays green.
+3. docs: `docs/project-guide/agents.md`, and no other file:
+   - *The seven agents*: the sentence "Six passages are v1.1's own text and not v1's." and the two sentences after it (to "... (F0034-S0001).") become one sentence, that the passages below are v1.1's own text and not v1's, and a list with one bullet per passage, each naming the agent or agents, the section, what the passage says in a few words, and the story that wrote it. The list holds: the sentence before the `reviewer`'s checklist, the checklist's sixth item *Earlier tests* and the `acceptance-reviewer`'s added sentence in its check 6 (F0016-S0002); the reviewer's `Notes:` from round 1 on and its added criterion (F0021-S0005); the reviewer's correction of a stale Description, named as `description corrected:` (F0034-S0001); R14's write-guard sentences in every `## Rules` (the kernel refuses every other write, a refused write fails with `Permission denied`, temporary files only in `$TMPDIR`; F0019-S0006, and F0041-S0001 took out the clause on the hook); R15 in every `## Rules` (F0022-S0002); `intake`'s sentence in its *Stage* step 2 on a smoke test that passes `-q` (F0035-S0001); the `acceptance-reviewer`'s comparison of the Disk now line with the previous record in its check 7 (F0012-S0017); its check 3 *Mutation testing* with the words F0031-S0001 changed around it (F0031-S0001); and any other passage the Interface's `git log` shows. No sentence of the guide gives a count of the passages.
+   - *Replaced from v1*: "except the six passages of v1.1's own text that *The seven agents* names" becomes "except the passages of v1.1's own text that *The seven agents* lists".
+   - `make documents` ends with `documents ok`.
+
+## Smoke test
+
+```bash
+grep -c -E '(Three|Six|Seven|Eight|Nine|Ten|three|six|seven|eight|nine|ten) passages' docs/project-guide/agents.md || true
+```
+Expect: `0`
+
+```bash
+for s in F0016-S0002 F0021-S0005 F0034-S0001 F0019-S0006 F0041-S0001 F0022-S0002 F0035-S0001 F0012-S0017 F0031-S0001; do grep -q -F "$s" docs/project-guide/agents.md && echo "named: $s" || echo "missing: $s"; done
+```
+Expect: nine lines, `named: F0016-S0002`, `named: F0021-S0005`, `named: F0034-S0001`, `named: F0019-S0006`, `named: F0041-S0001`, `named: F0022-S0002`, `named: F0035-S0001`, `named: F0012-S0017`, `named: F0031-S0001`
+
+```bash
+git diff --name-only origin/main -- src tests image template demo claude | wc -l; git diff --name-only origin/main -- README.md docs
+```
+Expect: two lines, `0` and `docs/project-guide/agents.md`
+
+```bash
+make documents 2>&1 | tail -n 1
+```
+Expect: `documents ok`
+
+## Journal
