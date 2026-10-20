@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 339
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T06:44:39.523330Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T06:44:18.860290Z'
   stage: doing
   run: 985c272fe06b48b6960dbab5eda845bf
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:44:39.523330Z'
+  stage: review
 ---
 
 # The record log skips a line that is not UTF-8
@@ -174,3 +183,4 @@ Expect: one line, `['check: green ✓']`, and no traceback.
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
