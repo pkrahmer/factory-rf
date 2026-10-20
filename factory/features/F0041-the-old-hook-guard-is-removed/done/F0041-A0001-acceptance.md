@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T11:59:36.117516Z'
   stage: acceptance
   run: a82fde26e244405c88c049797f9f59e4
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T12:00:56.123117Z'
+  stage: done
 stories: [F0041-S0001, F0041-S0002, F0041-S0003]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The old hook guard is removed
@@ -208,3 +213,4 @@ Human interventions: 0 questions answered, 0.0 h waited. No story needed the hum
    6. Decisions: the feature's decisions 1 to 13 are listed. Every changed earlier test has a named leave. For the human to confirm: `test_agent_environment_item.py` became one test, as S0002's criterion 3 asks, not the two tests decision 10 named. F0041-S0004 needs a new leave.
    7. Slow checks: nothing beyond `make check` besides the `duplicates` record and `make documents` (ok). The slowest tests are the opencode sudo time-limit rows (11.5 s); none was written by this feature. Disk: no growth.
    8. Cost: $7.12 over 27 runs. S0002 stands out ($3.30, 11 runs) for one review round over two tests changed beyond decision 10's wording and one stall from the flake. 0 questions, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 7.7 min, 41 turns, 115704 tokens in (2950269 more from cache), 25394 out, $2.02
