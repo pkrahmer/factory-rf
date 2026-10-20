@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T08:33:16.751420Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T08:33:16.751420Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T08:39:42.082635Z'
+  stage: tests
+  run: 929b95205b9d44c9bfeacfb879bb3808
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -137,3 +139,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the pure parsing and selection sit in the domain with no I/O. The `/proc` reading and the signals sit in the adapter, which is the only module that starts processes, and no new wrapper, dependency or suppression marker is added.
    - Scope: within F0030's Scope. It touches none of the Out-of-scope items (the `Makefile` recipe, the TERM before the KILL, `setsid` processes, other users' processes, the pipeline file). It changes no earlier test.
 4. factory: started tests as self.
+5. tester: I wrote the tests for every acceptance criterion. Each limit is tested on both sides, and every rule's cases are rows of one parametrized test.
+
+   - criterion 1: tests/domain/test_sessions.py::test_status_line_gives_the_entry (the readable lines and the states Z, X, S, R, D, T) and tests/domain/test_sessions.py::test_unreadable_status_line_is_refused (no `)`, three fields, fourth field `x`, fourth field `-1`, all raising `ValueError`). They are two functions because one checks a returned value and the other a raised error.
+   - criterion 2: tests/domain/test_sessions.py::test_entry_limits (pid 0 and 1, session -1 and 0, built through `type[BaseModel]`)
+   - criterion 3: tests/domain/test_sessions.py::test_what_is_left_to_kill (rows: kept, other-session, ended, refused, ascending, twice, none, all with `session=10`)
+   - criterion 4: tests/adapters/test_process_session.py::test_time_limit_ends_every_process_of_the_session (`run_process` and `run_streaming` × group, own-group and own-session; the own-session rows expect `is_gone(pid, within=0)` to be false)
+   - criterion 5: tests/adapters/test_process_session.py::test_stop_and_error_of_the_callback_end_every_process_of_the_session (rows stop and raise; the call must return in less than `ROOMY_LIMIT`)
+   - criterion 6: tests/adapters/test_process_session.py::test_time_limit_of_a_make_target_ends_what_timeout_started (rows own-group and foreground)
+   - criterion 7: no new test. It is met by the existing tests/adapters/test_claude_runtime_sudo_time_limit.py, test_claude_runtime_os_user.py, test_process.py and test_process_streaming.py, which I did not change.
+   - criterion 8 (`make check`) and criterion 9 (docs): no test, as neither is a test's to check.
+
+   Files created: tests/domain/test_sessions.py and tests/adapters/test_process_session.py. I changed no earlier test file.
+
+   A fixture, `pid_file`, kills any grandchild still running when a test ends; this covers the own-session rows and any row that fails. The child gets the grandchild's placement as `Popen` keyword arguments in its argv: `{}`, `{'process_group': 0}` or `{'start_new_session': True}`.
+
+   One run of `make test`:
+   - tests/domain/test_sessions.py cannot be collected because `factory.domain.sessions` does not exist yet (ImportError). That is the only module the run could not import.
+   - The rows where the grandchild has a group of its own fail as intended, because today's group kill leaves the grandchild running. The visible failures were callback stop, callback raise and the make own-group row. `tail -5` cut off the rest of the list, so I have not seen whether the two own-group rows of the time-limit test failed too.
+   - The rows that today's group kill already handles (group, foreground) are expected to pass.
+
+   `make lint` is green. I skipped `make types`, as the stage says to while the module under test does not exist.
+
+   `lint`: lint: green (0.0 s)
+   `test`: ERROR tests/domain/test_sessions.py - ImportError while importing test module...
