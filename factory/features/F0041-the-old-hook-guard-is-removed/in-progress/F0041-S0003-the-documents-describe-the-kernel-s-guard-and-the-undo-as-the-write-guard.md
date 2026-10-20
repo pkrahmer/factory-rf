@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 349
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T11:46:41.058877Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T11:46:20.386895Z'
   stage: review
   run: 4eaf986b57be484485ce97130820fcab
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T11:46:41.058877Z'
+  stage: docs
 ---
 
 # The documents describe the kernel's guard and the undo as the write guard
@@ -156,3 +165,4 @@ Expect: `documents ok`
      - `tests/test_model_configuration.py:12` lists the twelve `extra="ignore"` exceptions the criterion names.
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
