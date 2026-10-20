@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 318
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T02:20:44.341832Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-20T02:20:44.341832Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-20T02:23:42.686193Z'
+  stage: tests
+  run: ea222def836f4daab836f908d105afdf
 ---
 
 # The tests pin the expiry note's key at the crash cap and the stalls at their edges
@@ -95,3 +97,21 @@ Expect: two lines, `Stalled (attempt 1 of 2): merging the main branch conflicts 
    Architecture: the story changes only tests, under `tests/application/` and mirroring the package layers. It reuses the shared support modules and adds no copy of a helper.
    Scope: it matches the feature's scope entry for S0007 and decisions 1, 8, 9 and 13. Nothing falls in the feature's "Out of scope".
 4. factory: started tests as self.
+5. tester: Wrote one test per criterion against the Interface. The new tests build on `tests/crash_support.py` and `tests/stage_run_support.py` and leave both unchanged. No earlier test file was changed.
+
+   criterion 1: tests/application/test_recovery_expiry_key.py::test_the_expiry_note_is_keyed_by_the_expiry_record (rows `at-the-cap`, crashes=1 → expiry n=3 then crash_cap n=4; `below-the-cap`, crashes=0 → expiry n=3 only)
+   criterion 2: tests/application/test_stall_edges.py::test_a_stall_without_a_detail_says_only_its_reason (rows `merge-conflict` and `left-branch`; each checks the first line of the one factory post and the `entry_text` of the last journal record at `report.commit`)
+   criterion 3: tests/application/test_stall_edges.py::test_a_stall_after_the_agent_left_drops_its_commit_on_the_branch
+   criterion 4: tests/application/test_stall_edges.py::test_a_red_check_stall_undoes_what_the_check_wrote
+   criterion 5 (`make check`) and criterion 6 (docs: none): no test.
+
+   The runtime that leaves the branch is `CommitThenLeaveRuntime` in test_stall_edges.py. It wraps the `agent_runtime` fixture the way `CommittingRuntime` does. It writes and commits `tests/test_a.py` ("the agent's commit") on the work branch, checks out `elsewhere` at `HEAD`, then plays the queued run. The setup for the left-branch case is one helper, `_left_branch`, used by both criterion 2's row and criterion 3.
+
+   Files created: tests/application/test_recovery_expiry_key.py, tests/application/test_stall_edges.py.
+
+   Modules the test run could not import: none. As the story says, no `src/` change is needed. All the new tests pass already, so the branch has no red tests this time: `make test` ended with `test: green (44.6 s)`. That was the run before I removed the unused `remote` fixture parameters and an unused `Path` import that lint flagged; there was no second run. `make lint` is green. I skipped the type check, as this stage says.
+
+   Open: nothing. The coder has no code to write; their `make check` covers mypy over the new tests.
+
+   `lint`: lint: green (0.0 s)
+   `test`: test: green (39.9 s)
