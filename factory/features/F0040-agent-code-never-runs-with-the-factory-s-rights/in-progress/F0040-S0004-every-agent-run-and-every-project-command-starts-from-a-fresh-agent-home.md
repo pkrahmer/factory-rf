@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T22:19:43.795650Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -144,6 +148,11 @@ journal:
   at: '2026-10-20T22:19:23.255457Z'
   stage: doing
   run: c3050a69108c46ad92ef585ed1301b0d
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:19:43.795650Z'
+  stage: tests
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -469,3 +478,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The main choice, kept from entry 17: the reset comes before the `try`/`finally`, so a failed reset neither starts the run nor checks the seal. I rejected putting it inside the `try`, because the seal check could then hide the reset's own error.
 
     **Noticed, not touched:** `leftovers_command()` in `src/factory/entry/wiring.py` still starts its program with `-I` and no `-B`. That is outside this story.
+26. factory: started tests as self.
