@@ -1,17 +1,13 @@
 ---
 stage: smoke-test
-blocked: null
+blocked: question
 round: 2
 attempts: 0
 crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T21:19:49.193564Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -200,6 +196,13 @@ journal:
   kind: started
   at: '2026-10-20T21:19:49.193564Z'
   stage: smoke-test
+- number: 35
+  speaker: smoke-tester
+  kind: question
+  at: '2026-10-20T21:20:37.198129Z'
+  stage: smoke-test
+  run: 672256875d5a494d8d5b9f1e47b351d1
+  blocked: question
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -601,3 +604,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
 34. factory: started smoke-test as self.
+35. smoke-tester: Smoke test, round 2. I ran it from the repository root. The first five lines ran as written. The sixth did not: the session's permission classifier refused the script as a whole, and the call carrying `uv run python -I -m factory.entry.fresh_home --home /` was the dangerous part. I did not retry it as written or by another route. Before deciding what to do, I read `src/factory/entry/fresh_home.py`. `_parse`/`_home` refuses a `--home` that resolves to `/` before `clear_home` is reached. I then checked the same refusal in-process in a way that cannot remove anything: `main(["--home", "/"], stderr=StringIO(), owned=lambda p: False)`.
+
+    Commands 1–5 (temporary home, program run with three `--keep`, listing):
+    ```
+    status 0
+    ./.claude
+    ./.claude-token
+    ./.claude/.credentials.json
+    ./.config
+    ./.config/sso
+    ./.config/sso/login
+    ```
+    (The first `uv run` also printed uv's one-time venv creation lines: "Creating virtual environment at: .venv", the hardlink warning, "Installed 106 packages". These come from the tool, not from the program.)
+    Met its `Expect:`: yes. `status 0`, and exactly the six expected lines. `.claude/CLAUDE.md`, `.claude/projects/…` and `.cache/…` are gone; the kept paths stay.
+
+    Command 6 (`--home /`), not run as written. The in-process substitute gave:
+    ```
+    factory-fresh-home: --home / is not an absolute folder other than /
+    status 2
+    ```
+    Met its `Expect:`: the substitute matches it exactly. The command itself was not run.
+
+    Acceptance criteria re-read: nothing I saw contradicts any of them (criteria 6, 10 and 14 are the ones this smoke test touches). No findings against the work item.
+
+    Open, and the question to the human: the last smoke-test command could not be run as written in this session. Options:
+    (a) accept the in-process check above as the evidence for that line and approve;
+    (b) allow the command (a permission rule for it) and rerun the smoke test;
+    (c) change `## Smoke test` so its last line uses something the classifier accepts, for example `--home //` or `--home /home/..`, which the program also refuses (criterion 10).
+    I would choose (a): the code refuses `/` before any removal, and the substitute could not have removed anything even if it hadn't.
