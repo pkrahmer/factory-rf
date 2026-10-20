@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 322
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T03:13:41.713543Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T03:13:21.394593Z'
   stage: review
   run: d5fd15dba9b14ca0b5f77090360134fe
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:13:41.713543Z'
+  stage: docs
 ---
 
 # The tests set their own umask, so uv syncs the shared environment under the caller's
@@ -168,3 +177,4 @@ Expect: `1`
 
    Earlier tests:
    - `tests/conftest.py`: changed under the human's leave in the feature's decision 5 (add `TESTS_UMASK` and `pytest_configure`, change nothing else). The diff only adds those two and keeps every existing fixture as it was.
+10. factory: started docs as self.
