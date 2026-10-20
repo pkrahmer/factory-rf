@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 342
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T07:36:47.343824Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-20T07:36:26.209885Z'
   stage: docs
   run: b8551fdf234142d293b6e0dbe035f7be
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:36:47.343824Z'
+  stage: smoke-test
 ---
 
 # Every test whose child must act before its time limit gives it room to start
@@ -346,3 +355,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree c52b3cc6f7ce at 2026-10-20T07:32:51Z)
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
