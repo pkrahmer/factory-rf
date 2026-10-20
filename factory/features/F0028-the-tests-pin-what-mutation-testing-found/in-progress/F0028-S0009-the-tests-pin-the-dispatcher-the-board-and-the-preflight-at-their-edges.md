@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 320
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T02:52:37.538629Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-20T02:52:37.538629Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T02:53:03.161365Z'
+  stage: review
+  run: efbc83cff0f546aaac1455a843a30015
 ---
 
 # The tests pin the dispatcher, the board and the preflight at their edges
@@ -246,3 +248,18 @@ Expect: two lines, `[FeatureRow(feature='F0001', title='Example feature', backlo
     `check`: check: green
     `duplicates`: duplicates: 5 new, 33 known, 3 gone
 16. factory: started review as self.
+17. reviewer: Round 1. I reviewed `git diff main...HEAD -- . ':!factory'`. It adds three test modules under `tests/application/`, moves the opencode login-hint text into `tests/probe_support.py`, and makes `tests/application/test_agent_run_probe_opencode.py` use that shared text. Nothing under `src/` changes. I read the diff against the criteria and the shared helpers.
+
+    - Criterion 1, `tests/application/test_dispatcher_without_state.py`: the test matches the criterion exactly. It covers the push of `note.txt`, the snapshot with `state=None`, the event with `remote_state="a" * 40`, the dispatcher with `Failing()`, the three outcomes, the one draft (number 1, on the branch, with its title) and the one `PostKey`.
+    - Criterion 2, `tests/application/test_board_in_progress.py`: the test pushes the backlog and done stories, starts `F0001-S0001`, fetches, and asserts the exact `FeatureRow` with 1/1/1 and `incomplete`.
+    - Criterion 3, `tests/application/test_agent_run_probe_factory_user.py`: one parametrized test with the rows `no-user` and `agent`. It builds the expected text as `opencode_died(named) + opencode_sso_hint(named)`. I joined the two by hand and got exactly the text the criterion gives for both rows.
+    - Last round's finding (the copied hint text) is fixed. A search of `tests/` for the hint's wording now finds only `tests/probe_support.py`.
+    - The Interface states no limit or validation, so there is no failing side left untested. The coder's `make check` was green (entry 15).
+    - Architecture and security: nothing under `src/` changed, and the diff adds no marker that silences a check.
+    - Work item: the journal records the main choice (no code change) and the helper move. The Description and the docs criterion (`none`) still match what was built.
+
+    no findings
+
+    Earlier tests:
+    - `tests/application/test_agent_run_probe_opencode.py`: changed under the standing leave in `CLAUDE.md` to move a shared test helper. Only `DIED` and `SSO_HINT` now come from `tests/probe_support.py`. They give the same strings as before (I compared them), and every test keeps its name and rows.
+    - `tests/probe_support.py`: the shared place the helpers moved to, under the same standing leave. It only adds `opencode_died` and `opencode_sso_hint` and updates the module docstring. `ENVIRONMENT` and `COMPLETED` are unchanged.
