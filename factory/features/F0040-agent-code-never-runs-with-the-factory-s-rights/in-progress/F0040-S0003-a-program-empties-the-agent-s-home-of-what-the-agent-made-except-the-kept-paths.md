@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T20:57:04.021829Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-20T20:57:04.021829Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-20T20:58:51.415749Z'
+  stage: doing
+  run: 6052f4273cd84c22a46788b372d28106
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -294,3 +296,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests:
     - `tests/entry/test_wiring.py`: changed under the human's leave in the feature's decision 14, which the story's Interface repeats. Only the expected set gains `factory.entry.fresh_home`; nothing else in the test changed.
 13. factory: started doing as self.
+14. coder: Round 1. I fixed the one finding that needed code. The other two findings need only tests, so this goes to the tester. `make check` is green (`check: green`, coverage 99.12 %).
+
+    What I built:
+    - `src/factory/entry/fresh_home.py` `_home` (finding 3): the program now refuses a home whose resolved path is `/`. It used to compare the spelling with `Path("/")`. `--home //`, `--home /home/..` and a link to `/` now get the line `--home <folder> is not an absolute folder other than /` and status 2. Before this change they passed the check and the program walked the whole root. A one-line comment says why the path is resolved.
+    - Main choice: the program resolves the path only to check it, and still walks the `home` as given. I rejected walking the resolved path. It would change which names faults are reported under, and nothing asked for that.
+
+    For the tester:
+    1. Criterion 14 (finding 1): `clear_home` on a home in `tmp_path` that holds only owned files and folders, with `kept` `[]`, gives `[]`. Afterwards the home is an existing, empty folder.
+    2. Criterion 15 (finding 2): new rows in the parametrized test of criterion 10 (`tests/entry/test_fresh_home.py::test_main_clears_the_named_home_or_refuses_its_arguments_untouched`). The rows are `["--home"]`, `["--home", <home>, "--keep"]` and `["--home", <home>, "--kept", "a"]`. Each returns 2 with the usage line and leaves the home's files in place. These rows also cover `fresh_home.py` line 50, which coverage reports as missed.
+    3. Finding 3: the reviewer asked for criterion 10 rows `["--home", "//"]` and `["--home", "/home/.."]`, each returning 2 with `factory-fresh-home: --home <spelling> is not an absolute folder other than /`. I could not write them into the Description myself: the work item is not in my write paths (`Permission denied`). Please add them to the same parametrized test. The Interface's "is `/`" should then read "resolves to `/`".
+
+    What the journal changed:
+    - The reviewer's entry 12 added criteria 14 and 15. The Description already holds them.
+    - The Description does not hold finding 3's rows or the new wording "resolves to `/`" in the Interface. Someone with write access to the work item needs to make that change.
+
+    Refactor pass: nothing needed changing.
+
+    Noticed but not touched:
+    - The `/home/..` row relies on `/home` existing on the test machine. If that is a concern, the tester could use a link in `tmp_path` that points to `/`, which the code now refuses too.

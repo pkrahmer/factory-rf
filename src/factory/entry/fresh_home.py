@@ -53,7 +53,8 @@ def _parse(arguments: list[str]) -> tuple[Path, list[str]]:
 
 def _home(folder: str) -> Path:
     home = Path(folder)
-    if not home.is_absolute() or home == Path("/") or not home.is_dir():
+    # Resolved, since `//`, `/home/..` or a link name the root as well as `/` does.
+    if not home.is_absolute() or home.resolve() == Path("/") or not home.is_dir():
         raise _Refusal(f"{_HOME_OPTION} {folder} is not an absolute folder other than /")
     return home
 
