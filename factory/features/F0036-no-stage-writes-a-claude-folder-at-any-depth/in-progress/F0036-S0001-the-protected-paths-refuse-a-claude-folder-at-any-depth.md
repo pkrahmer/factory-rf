@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T03:23:42.734186Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T03:23:42.725278Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T03:23:42.734186Z'
+  stage: intake
+---
+
 # The protected paths refuse a .claude folder at any depth
 
 ## Description
@@ -51,3 +78,6 @@ uv run python -c 'from pathlib import Path; from factory.domain.agent_runs impor
 Expect: four lines, `.claude/skills/x/SKILL.md -> .claude/skills/x/SKILL.md is owned by the human; a change there is a question.`, `src/.claude/skills/x/SKILL.md -> src/.claude/skills/x/SKILL.md is owned by the human; a change there is a question.`, `src/.claudex/a.md -> allowed`, `src/a.py -> allowed`
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
