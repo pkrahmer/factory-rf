@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 315
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-20T01:56:53.572061Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-20T01:56:53.572061Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-20T01:57:31.926040Z'
+  stage: review
+  run: fbe07127019d444c848523f1cf0e01cf
 ---
 
 # The tests pin seven small rules on both sides
@@ -170,3 +172,23 @@ Expect: four lines, `0:00:01 None`, `ses_a`, `no agent files` and `False`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   I read the work item and `git diff main...HEAD -- . ':!factory'`. The diff has seven new test modules under `tests/domain/`, the new shared module `tests/evaluation_support.py` and a change to `tests/domain/test_evaluation.py`. Nothing under `src/` changes, as the Interface says.
+   - Criteria 1 to 9: each has one parametrized test, and its rows are exactly the inputs and values the criterion gives. Each rule is tested on both sides:
+     - 1: the key and the state both match, then only one matches; the test also checks that every other field stays as it was.
+     - 2: 1 s and 0 s, for both forms.
+     - 3: a second session of `None` and one that is set, each with `time_limit` and a duration of 120 s.
+     - 4: the other symbol or the blank line is first, then absent.
+     - 5: an error with a name and one without.
+     - 6: no state, a comment numbered 1, then a result after the comment. The last row checks only `reason_given`, which is all the criterion asks of it.
+     - 7: the five details of the human tier.
+     - 8: `question_posted` without a state and with one.
+     - 9: all four claim statuses.
+   - The coder's journal entry (7) says `make check` was green.
+   - Architecture and security: only test code changes. No marker silences a check, and the fake commit ids are low-entropy.
+   - Quality: I checked the neighbouring test modules (`test_send_back.py`, `test_resumed_result.py`, `test_evaluation_reject.py`). The new modules copy none of their helpers. `_approval` in `test_send_back_records.py` returns a `WorkItemState` built from records, so it is not a copy of `_document` in `test_send_back.py`.
+   - Work item hygiene: the Description matches what was built. The journal names the main choice (no code change) and what was rejected. The docs criterion "none" still holds, because no behaviour changes.
+
+   Earlier tests:
+   - tests/domain/test_evaluation.py: changed under the standing leave in `CLAUDE.md` (*Tests*) to move a shared test helper. The change moves `MAIN`, `BRANCH_COMMIT`, `MERGE_COMMIT`, `PULL_REQUEST`, `OTHER_INSTANCE`, `AT`, `DEFINITION`, `_id`, `_snapshot`, `_journal`, `_blocked`, `_at_approval`, `_claimed`, `_view`, `_factory_comment`, `_Lookup`, `_ClaimStatus`, `_facts` and `_evaluate` unchanged to `tests/evaluation_support.py` and imports them from there. The diff touches only the module's head, so every test there keeps its name and what it checks.
