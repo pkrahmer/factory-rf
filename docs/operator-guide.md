@@ -79,14 +79,20 @@ A project whose `check` scans for secrets, with the template's `make secrets` or
 
 ### Mutation testing by sweep
 
-No stage and no agent runs `make mutants`. Mutation testing runs only as sweeps outside the factory, which the human starts on a fresh copy in a throwaway container, with `mutants/` made anew for every run (the human's decision of 2026-10-19). The `mutants` target and `python -m factory.entry.check_mutants` stay for those sweeps. A coder's entry has no `mutants` line, and the acceptance's check 3, *Mutation testing*, says `By sweep, not run here.` The template's `CLAUDE.md` and `Makefile` say the same: `make mutants` is for a sweep by hand.
-
-**How long it takes.** A run costs a fixed 165 s (28 s listing the tests, 131 s of mutmut's clean test run, 5 s generating) plus 0.13 to 0.25 s per mutant on 20 cores. Measured on 2026-10-19 on the 12 stories of F0019 and F0021 that changed a module, that is 3 to 11.5 minutes of mutmut. The recipe stops mutmut after 540 s (`MUTANTS_SECONDS`), so the largest runs end `partial`. The stats are the cost to plan for. Measured at F0024's acceptance on 2026-10-19: with a fresh `mutants/`, a run of 4 mutants of one module took 439 s, nearly all of it mutmut's stats; with the stats kept in `mutants/mutmut-stats.json`, a run of 31 mutants took 12 s. A sweep starts with a fresh `mutants/`, so it pays the stats every time.
-
-**A run that never gets past mutmut's stats.** After a change of `[tool.mutmut]`'s test arguments in `pyproject.toml`, or with a fresh `mutants/`, mutmut resets every result and first runs its stats over the whole suite in one process, and keeps them only when that run ends. If the stats alone near 540 s, every stopped run starts them again and checks no mutant. A run with a larger `MUTANTS_SECONDS` repairs it:
+No stage and no agent runs `make mutants`. Mutation testing runs only as sweeps outside the factory, which the human starts on a fresh copy in a throwaway container, with `mutants/` made anew for every run (the human's decision of 2026-10-19). The `mutants` target stays for those sweeps. A sweep's command is
 
 ```
-make mutants MUTANTS_SECONDS=1500
+make mutants MODULES=factory.application MUTANTS_SECONDS=7200 MUTANTS_CHILDREN=2
+```
+
+`MODULES` names the modules or packages, `MUTANTS_SECONDS` stops mutmut (no stop when unset) and `MUTANTS_CHILDREN` caps its workers, which matters in a container limited to fewer cores than the host reports. A coder's entry has no `mutants` line, and the acceptance's check 3, *Mutation testing*, says `By sweep, not run here.` The template's `CLAUDE.md` and `Makefile` say the same: `make mutants` is for a sweep by hand.
+
+**How long it takes.** A run costs a fixed 165 s (28 s listing the tests, 131 s of mutmut's clean test run, 5 s generating) plus 0.13 to 0.25 s per mutant on 20 cores. Measured on 2026-10-19 on the 12 stories of F0019 and F0021 that changed a module, that is 3 to 11.5 minutes of mutmut. The recipe sets no stop unless `MUTANTS_SECONDS` is given. The stats are the cost to plan for, and every run pays them: 165 s on 20 cores, and 4.5 to 19 minutes on two cores in the sweeps of 2026-10-19. Measured at F0024's acceptance on 2026-10-19: with a fresh `mutants/`, a run of 4 mutants of one module took 439 s, nearly all of it mutmut's stats; with the stats kept in `mutants/mutmut-stats.json`, a run of 31 mutants took 12 s. Every run removes `mutants/` first, so no run keeps the stats of an earlier one.
+
+**A run that never gets past mutmut's stats.** After a change of `[tool.mutmut]`'s test arguments in `pyproject.toml`, or with a fresh `mutants/`, mutmut resets every result and first runs its stats over the whole suite in one process, and keeps them only when that run ends. A `MUTANTS_SECONDS` below the stats checks no mutant, and every run with it starts them again. A run with a larger `MUTANTS_SECONDS` repairs it:
+
+```
+make mutants MODULES=<module> MUTANTS_SECONDS=1500
 ```
 
 ## The agent runtime
