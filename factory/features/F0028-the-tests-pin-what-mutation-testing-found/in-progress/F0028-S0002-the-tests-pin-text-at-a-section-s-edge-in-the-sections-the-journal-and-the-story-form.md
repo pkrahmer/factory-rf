@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 313
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T01:38:34.749096Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-20T01:38:14.394750Z'
   stage: review
   run: 292b8bc234d8468ebeb884430258792c
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-20T01:38:34.749096Z'
+  stage: docs
 ---
 
 # The tests pin text at a section's edge in the sections, the journal and the story form
@@ -257,3 +266,4 @@ Expect: three lines, `'first\nsecond'`, `[CodeBlock(start=0, end=1)]` and `creat
     - **Group 5, hygiene:** the Description and Interface match what was built (tests only, no source change). The journal records the main choice and what was rejected. The docs criterion ("docs: none") still holds, because no reader's behaviour changes.
 
     Earlier tests: none changed. Both files in the diff are new (status `A`).
+18. factory: started docs as self.
