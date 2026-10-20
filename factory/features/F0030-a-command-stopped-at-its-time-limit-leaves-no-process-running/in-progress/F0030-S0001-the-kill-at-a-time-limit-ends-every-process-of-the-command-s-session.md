@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 344
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T09:24:00.756180Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -175,6 +179,11 @@ journal:
   at: '2026-10-20T09:23:39.736294Z'
   stage: docs
   run: ccb1df347d224b208064a983e1437fe9
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-10-20T09:24:00.756180Z'
+  stage: smoke-test
 ---
 
 # The kill at a time limit ends every process of the command's session
@@ -586,3 +595,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree fd1fd5adbafa at 2026-10-20T09:18:43Z)
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
+31. factory: started smoke-test as self.
