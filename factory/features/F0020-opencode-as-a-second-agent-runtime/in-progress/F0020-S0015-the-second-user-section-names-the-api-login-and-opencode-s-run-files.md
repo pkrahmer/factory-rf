@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 305
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-20T00:08:13.849524Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-20T00:07:53.088847Z'
   stage: doing
   run: adee967a81d64392892fc6fabc934758
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-20T00:08:13.849524Z'
+  stage: review
 ---
 
 # The second-user section names the API login and opencode's run files
@@ -122,3 +131,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 7897e571521e at 2026-10-19T23:58:37Z)
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
