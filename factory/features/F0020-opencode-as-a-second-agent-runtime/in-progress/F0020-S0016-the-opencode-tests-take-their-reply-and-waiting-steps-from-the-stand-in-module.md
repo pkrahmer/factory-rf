@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 340
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-20T06:57:57.825993Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-20T06:57:36.764380Z'
   stage: review
   run: 8cb2159dd2e148b7be694d3336358a3c
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-20T06:57:57.825993Z'
+  stage: docs
 ---
 
 # The opencode tests take their reply and waiting steps from the stand-in module
@@ -194,3 +203,4 @@ Expect: a line that starts `2 passed`
    - tests/adapters/test_opencode_runtime_folders.py: standing leave (reply copy).
    - tests/adapters/test_opencode_runtime_launch.py: standing leave (reply copy).
    - tests/entry/test_wiring_opencode.py: standing leave (reply copy).
+10. factory: started docs as self.
