@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -163,6 +163,11 @@ journal:
   at: '2026-10-20T12:40:53.009096Z'
   stage: smoke-test
   run: 7ded30a3785744b5872791b59cad6b0f
+- number: 29
+  speaker: factory
+  kind: done
+  at: '2026-10-20T12:43:16.805023Z'
+  stage: approval
 ---
 
 # A program ends every other process of the user it runs as
@@ -609,3 +614,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Criteria check: I read `## Acceptance criteria` again. The output fits criteria 1, 4, 7, 9 and 11 (the usage fault, the refusal of a user the program does not run as, sorting, ended entries, rounds and pauses), and contradicts none of them. I did not run `make check` (criterion 12) because it is not one of the smoke-test commands; the factory's checks cover it. I did not judge the docs criterion (13); that belongs to the docs stage.
 
     Findings: none. The temporary folder was removed by the trap. The working tree holds only the factory's `.costs.jsonl` sidecar, which I did not touch.
+29. factory: done (pull request merged); cost: 13 runs, 23.0 min, 101 turns, 368351 tokens in (2408617 more from cache), 46414 out, $3.99
