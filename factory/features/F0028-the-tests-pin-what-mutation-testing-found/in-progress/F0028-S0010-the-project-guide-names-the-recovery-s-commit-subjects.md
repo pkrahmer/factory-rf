@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 332
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-20T04:22:42.323561Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-20T04:22:21.894649Z'
   stage: docs
   run: e38ae522cc1340d18e9c72938915b141
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:22:42.323561Z'
+  stage: smoke-test
 ---
 
 # The project guide names the recovery's commit subjects
@@ -154,3 +163,4 @@ Expect: `work item F0001-S0001: crash of stage doing recorded` (the form the gui
     `check`: check: green (not run again: passed on tree 450879e8d6a9 at 2026-10-20T04:13:05Z)
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
