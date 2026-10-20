@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 330
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-20T05:02:44.293061Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-20T05:02:23.916118Z'
   stage: tests
   run: 1d03ba10977f455d9b31ec52e877d9b3
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-20T05:02:44.293061Z'
+  stage: doing
 ---
 
 # Intake asks about a smoke test that passes -q to pytest a second time
@@ -103,3 +112,4 @@ Expect: `1` (the human's change 1 is on `main`)
 
    `lint`: lint: green (0.0 s)
    `test`: FAILED tests/test_claude_agent_texts_smoke_pytest.py::test_only_intake_carries_the_pytest_quiet_rule[intake]
+6. factory: started doing as self.
