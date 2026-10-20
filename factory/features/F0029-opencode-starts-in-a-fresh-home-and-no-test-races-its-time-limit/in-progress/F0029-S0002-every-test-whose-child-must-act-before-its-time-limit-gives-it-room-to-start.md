@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T07:16:15.259764Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T07:16:15.252042Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T07:16:15.259764Z'
+  stage: intake
+---
+
 # Every test whose child must act before its time limit gives it room to start
 
 ## Description
@@ -74,3 +101,5 @@ Expect: four lines, `tests/adapters/test_opencode_resume_session.py:0`, `tests/a
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
