@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 365
 comments_read: [6301863943, 6302567860, 6302831658]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T22:10:49.560171Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -100,6 +104,11 @@ journal:
   at: '2026-10-20T22:10:28.938261Z'
   stage: doing
   run: af9ef3a9390e4522a3f5c82248ed0379
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-20T22:10:49.560171Z'
+  stage: tests
 ---
 
 # Every agent run and every project command starts from a fresh agent home
@@ -359,3 +368,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     **Refactor:** I read my diff once and found nothing to change.
 
     **Noticed, not touched:** the tests' `PROGRAM` currently starts the real program with `-I` and no `-B`. Until the test change lands, `make test` can still write `__pycache__` into `src/`. The checkout's new default ACL keeps that from breaking the restore.
+18. factory: started tests as self.
