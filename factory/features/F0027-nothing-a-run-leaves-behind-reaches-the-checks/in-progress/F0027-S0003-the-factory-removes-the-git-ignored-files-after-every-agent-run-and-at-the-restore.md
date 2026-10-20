@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-20T14:54:27.414336Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-20T14:54:05.891248Z'
   stage: intake
   run: 13a1c789d6cc4eef8ede8a25d3636424
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-20T14:54:27.414336Z'
+  stage: tests
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -197,3 +206,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: the commands are runnable and none runs pytest, so there is no `-q` issue. Each `Expect:` line can be checked against the output.
    - Architecture: the new operation is an abstract method of the `Git` ABC in `application`, implemented in `adapters.git_cli` through `_run`. The sealed run and the tick call it only through the interface. This agrees with the layers in `CLAUDE.md`.
    - Scope: it matches S0003 in the feature's Scope, and it touches nothing under Out of scope. The test changes it names are the ones feature decision 16 allows.
+7. factory: started tests as self.
