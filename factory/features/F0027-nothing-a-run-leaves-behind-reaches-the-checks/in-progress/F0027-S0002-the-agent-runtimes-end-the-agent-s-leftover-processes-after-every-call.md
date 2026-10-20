@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 353
-comments_read: []
+comments_read: [6292978197]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: 7b6ef6cd2c85474bb9ca0d715714cf79
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-20T14:16:37.866619Z'
+  stage: doing
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -273,3 +278,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Refactor: I renamed the `_call` local to `leftovers_error`, and replaced the docstrings on the private `_end_leftovers` with a comment.
 
    Noticed, not touched: `_end_leftovers`, `_remove_temporary_folder` and `_request_of` are near-copies in the two runtimes. That matches the existing duplication, and merging them is beyond this story.
+8. 2026-10-20 human: The human's answer (2026-10-20): (a). `main` now holds `"src/factory/entry/wiring.py" = ["PLR0913"]` under `[tool.ruff.lint.per-file-ignores]` in `pyproject.toml` (commit 52cfe595), beside the two runtime constructors. No noqa in the source; nothing else changes. Merge `main` and end with `review`.
