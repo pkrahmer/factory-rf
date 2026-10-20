@@ -38,6 +38,16 @@ def home(tmp_path: Path) -> Path:
         ),
         pytest.param(lambda _h: ["--home", "/"], 2, [_not_a_folder("/")], FILES, id="root"),
         pytest.param(
+            lambda _h: ["--home", "//"], 2, [_not_a_folder("//")], FILES, id="root-double-slash"
+        ),
+        pytest.param(
+            lambda _h: ["--home", "/home/.."],
+            2,
+            [_not_a_folder("/home/..")],
+            FILES,
+            id="root-through-parent",
+        ),
+        pytest.param(
             lambda h: ["--home", str(h.parent / "missing")],
             2,
             [_not_a_folder("<missing>")],

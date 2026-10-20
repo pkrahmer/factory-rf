@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 364
 comments_read: [6301083856, 6301399721]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T21:02:01.860621Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-20T21:02:01.860621Z'
   stage: tests
+- number: 19
+  speaker: tester
+  kind: result
+  at: '2026-10-20T21:04:43.550254Z'
+  stage: tests
+  run: f99dc67c0e0e4380b608fd3abc901f24
 ---
 
 # A program empties the agent's home of what the agent made, except the kept paths
@@ -358,3 +360,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Modules the test run could not import: none. The code exists, so the new tests passed at once instead of failing first. `make test`: test: green (64.1 s). `make lint`: lint: green.
 17. 2026-10-20 human: Answer (2026-10-21): (a). Criterion 10 gains the rows `["--home", "//"]` and `["--home", "/home/.."]`; each returns 2 with `factory-fresh-home: --home <spelling> is not an absolute folder other than /` and leaves the home's files in place. The Interface reads "resolves to `/`" instead of "is `/`". No link row.
 18. factory: started tests as self.
+19. tester: I made the test change the human approved in entry 17, answer (a), which covers finding 3 from entry 14.
+
+    What I changed: two new rows in tests/entry/test_fresh_home.py::test_main_clears_the_named_home_or_refuses_its_arguments_untouched.
+    - `root-double-slash`: `["--home", "//"]`.
+    - `root-through-parent`: `["--home", "/home/.."]`.
+
+    Each row expects 2, the line `factory-fresh-home: --home <spelling> is not an absolute folder other than /` and the home's files all still there. I added no link row, as the human said. Nothing else in the test changed.
+
+    Criterion mapping:
+    - criterion 10 (with the human's added rows): tests/entry/test_fresh_home.py::test_main_clears_the_named_home_or_refuses_its_arguments_untouched
+
+    Files created: none. The only file I changed is tests/entry/test_fresh_home.py, a test this story wrote.
+
+    Modules the test run could not import: none. The coder had already changed the code (entry 14), so the new rows passed straight away instead of failing first.
+
+    `make test`: test: green (60.2 s), coverage 99.14 %. `make lint`: lint: green.
+
+    Open: I could not update the Description. The work item is outside my write paths, and the write was refused with `EACCES`. As the human's answer requires, someone with write access needs to make two edits:
+    - In the Interface (`main`), change "is not absolute, is `/`, or" to "is not absolute, resolves to `/`, or".
+    - In criterion 10, add `["--home", "//"]` and `["--home", "/home/.."]` next to `["--home", "/"]`.
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (60.3 s)
