@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-20T00:31:08.110549Z'
   stage: acceptance
   run: 58f36b6e359d47a1985afd3860a195ea
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-20T00:32:27.224795Z'
+  stage: done
 stories: [F0032-S0001]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of Mutation testing keeps only its sweep form
@@ -164,3 +169,4 @@ Human interventions: 0 questions answered, 0.0 h waited. No story needed the hum
    6 Decisions: feature decisions 1 to 10 are listed for the human. Changes 4 (F0030 draft) and 6 (playbook) are due, 5 is optional, and decision 11's F0028 line is still stale. Two earlier test modules were deleted under decision 9, and the reviewer named that leave.
    7 Slow checks: none beyond `make check`, which is green (5,970 tests, 99.14 %; slowest about 5 s, in the runtime time-limit tests). Disk use is unchanged; the 0.2 GB of free space lost is shared by all three mounts on the host drive.
    8 Cost: 1 story, 6 runs, 4.0 min, $1.15. No rework, no stall, 0 questions, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 4.7 min, 23 turns, 67635 tokens in (982035 more from cache), 19630 out, $1.13
