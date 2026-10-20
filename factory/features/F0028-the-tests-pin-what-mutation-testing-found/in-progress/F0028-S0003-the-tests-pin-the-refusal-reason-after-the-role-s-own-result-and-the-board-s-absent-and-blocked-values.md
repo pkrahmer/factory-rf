@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 314
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T01:48:35.980364Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T01:48:35.980364Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T01:48:52.441084Z'
+  stage: smoke-test
+  run: 47807578dbd4407996861b40393d6b27
 ---
 
 # The tests pin the refusal reason after the role's own result, and the board's absent and blocked values
@@ -224,3 +226,22 @@ Expect: four lines, `Too wide. Cut the second story.`, `features`, `work items` 
     `secrets`: secrets: green (0.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings.
+
+    I ran the one command under `## Smoke test` exactly as written, from the repository root: the `uv run -q python` heredoc. It exited with status 0.
+
+    ```
+    Too wide. Cut the second story.
+    features
+    work items
+    F0001-S0001  Domain model  backlog  stage=-  blocked=-  claim=-  running_since=-  pull_request=-
+    ```
+
+    Expect: met. The output is four lines, and each is exactly the line the `Expect:` line names, in the same order.
+
+    Checked against the acceptance criteria:
+    - Criterion 1, first row: the reason `Too wide. Cut the second story.` matches. A later `result` of another role (`tester`) did not move the reason's start.
+    - Criteria 4 and 5: the row for a work item without a state renders every state value as `-`, which is the line both criteria give.
+    - No other criterion is contradicted. The smoke test does not cover criteria 2, 3 and 6, or the `blocked=question` row of criterion 5. Its output does not contradict any of them.
+
+    I fixed nothing and changed no file. Nothing is open.
