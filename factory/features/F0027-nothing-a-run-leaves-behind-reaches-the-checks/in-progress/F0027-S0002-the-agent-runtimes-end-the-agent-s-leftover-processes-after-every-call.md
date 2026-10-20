@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 353
 comments_read: [6292978197]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T14:41:37.398438Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-20T14:41:37.398438Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T14:42:15.367318Z'
+  stage: smoke-test
+  run: dd48f71186004fd2ac026ec1d06b916b
 ---
 
 # The agent runtimes end the agent's leftover processes after every call
@@ -512,3 +514,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
 23. factory: started smoke-test as self.
+24. smoke-tester: I ran the two commands under `## Smoke test` from the repository root, exactly as written and in order. Neither starts a server. I changed nothing.
+
+    **Command 1** (the `claude -p` runtime with a stand-in `sudo`, `claude` and leftovers program, run for three requests), exit status 0:
+
+    ```
+    smoke-other 0 completed | run in work; program --user smoke-other in /
+    smoke-other 1 cannot end the agent's processes: factory-leftovers: 1 processes left after 50 rounds: 7 | run in work; program --user smoke-other in /
+    own 1 completed | run in work
+    ```
+
+    This met its `Expect:` line: the three lines are identical to the expected ones.
+
+    **Command 2** (`leftovers_command()`), exit status 0:
+
+    ```
+    True
+    ```
+
+    This met its `Expect:` line (`True`).
+
+    **Against the acceptance criteria:** nothing in the output contradicts a criterion.
+    - With a user other than the factory's own, the program runs after the call, from `/`, with `--user <user>` (criteria 4 and 9).
+    - When the program exits 1 after a clean call, the run raises `cannot end the agent's processes: <the factory-leftovers: line>` (criterion 7).
+    - With the factory's own user, no program starts and the run completes even though the plan said exit 1 (criterion 4).
+    - `leftovers_command()` gives `[sys.executable, "-I", "-m", "factory.entry.leftovers"]` (criterion 10).
+
+    The smoke test builds the runtime without `factory-confine`, so no temporary-folder removal appears in the records. That fits the Interface, which removes the folder only when confined. The removal and the other criteria (resume, refused calls, opencode, `build_boundaries`) are not exercised here; the story's tests cover them.
+
+    **Findings:** none.
