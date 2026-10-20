@@ -44,6 +44,14 @@ Write `feature.md` and every story of {{FID}} ({{NAME}}), so that v1.1 can build
 - Every product decision you take goes into `feature.md` as a numbered decision, naming its story.
 - Keep it small (the human's rule: solid over clever). Fix the cause, not the symptom. No new mechanism unless the goal asks for it.
 
+## How much a story fixes in advance (the human, 2026-10-20)
+
+Write what must be true, not how to build it. Fixed details that turn out wrong (a test's user, an output format, a call path) stopped stories with questions; the tester, the coder and the reviewer decide them better on the spot.
+
+- **Fix in the story:** the behaviour and its rules with their edge cases and limits; every contract another story builds on (a public name, a signature, a file another story reads); the earlier tests the story may change, by exact name, for the leave; the documents to change; every decision that is the human's (security trade-offs, architecture, scope).
+- **Leave to the agents:** private helpers and internal structure; the layout of the test files and the names of new tests; test-row tables where a rule already states what must hold; the exact wording of small outputs that nothing else reads.
+- A criterion names an exact value only where the value is the rule (a limit, a message another program or the human reads).
+
 ## Write
 
 Only the folder `C:/Dev/Projects/factory-rf/planning/overnight/stories/{{SLUG}}/`:
