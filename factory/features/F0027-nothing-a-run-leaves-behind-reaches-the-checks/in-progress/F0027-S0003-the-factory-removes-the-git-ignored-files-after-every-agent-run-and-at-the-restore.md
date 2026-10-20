@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 355
-comments_read: []
+comments_read: [6293770931]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 4f9a20ed0c8b4eff98a707432a740d10
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-20T14:53:10.596018Z'
+  stage: intake
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -173,3 +178,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture and scope: both are within the layers in CLAUDE.md and within the feature's scope.
 
    Format check: passed.
+4. 2026-10-20 human: Answer (2026-10-20): (a). Criterion 1 gains a row: a symbolic link `src/stray.pyc` (matched by `*.pyc`) that points to a file outside the repository; afterwards the link is gone and the target file is still there with its content. The Interface's sentence stays.
