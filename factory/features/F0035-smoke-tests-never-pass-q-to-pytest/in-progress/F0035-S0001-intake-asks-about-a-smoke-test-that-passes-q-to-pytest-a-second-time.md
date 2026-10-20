@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-20T04:09:30.540216Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-20T04:09:30.534300Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-20T04:09:30.540216Z'
+  stage: intake
+---
+
 # Intake asks about a smoke test that passes -q to pytest a second time
 
 ## Description
@@ -40,3 +67,6 @@ grep -c -F 'A block that runs pytest never passes `-q`' factory/story-form.md
 Expect: `1` (the human's change 1 is on `main`)
 
 ## Journal
+
+1. 2026-10-20 human: created.
+2. factory: started intake as self.
