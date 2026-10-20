@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T06:47:23.541024Z'
   stage: smoke-test
   run: 3da534ebf06146878daf4867d939a879
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T06:49:45.619622Z'
+  stage: approval
 ---
 
 # The record log skips a line that is not UTF-8
@@ -263,3 +268,4 @@ Expect: one line, `['check: green ✓']`, and no traceback.
     - The smoke test does not reach criteria 2 to 5 (a bad line in the middle, U+2028/U+2029/U+0085, `OSError`, `KnownResults`) or 6 and 7 (`make check`, docs). Their tests and the earlier stages' entries cover them, and nothing here contradicts them.
 
     Open: nothing for this story. Decision 4 (a record appended after a torn line is skipped with it) stays out of scope, as the Description says.
+14. factory: done (pull request merged); cost: 6 runs, 5.6 min, 35 turns, 190240 tokens in (608205 more from cache), 17239 out, $1.72
