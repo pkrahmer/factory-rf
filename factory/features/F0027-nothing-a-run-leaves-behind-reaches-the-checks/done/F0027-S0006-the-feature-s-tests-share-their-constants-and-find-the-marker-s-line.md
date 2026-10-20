@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-20T19:40:08.363473Z'
   stage: smoke-test
   run: d69c67d2ca0d4033b2501e2304c12ef2
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-20T19:42:32.333576Z'
+  stage: approval
 ---
 
 # The feature's tests share their constants and find the marker's line
@@ -245,3 +250,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Criterion 5 (docs: none): nothing in the smoke test contradicts it.
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 4.1 min, 30 turns, 117694 tokens in (446797 more from cache), 8766 out, $1.01
