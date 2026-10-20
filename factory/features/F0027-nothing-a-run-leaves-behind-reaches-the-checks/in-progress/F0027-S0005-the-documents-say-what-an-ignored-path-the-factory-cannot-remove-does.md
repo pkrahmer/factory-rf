@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 359
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-20T19:29:45.652800Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-20T19:29:45.652800Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-20T19:30:07.368145Z'
+  stage: smoke-test
+  run: 51b918897b3f4be993b3287c24eba699
 ---
 
 # The documents say what an ignored path the factory cannot remove does
@@ -193,3 +195,39 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: I ran the three smoke-test commands from the repository root in the order written. All three met their `Expect:` lines, and nothing contradicts an acceptance criterion. No findings.
+
+    1. `grep -q "a bytecode folder" docs/operator-guide.md && echo found`
+       ```
+       found
+       ```
+       Expected `found`. **Met.**
+
+    2. `grep -q "records it as a crash" docs/operator-guide.md && echo found`
+       ```
+       found
+       ```
+       Expected `found`. **Met.**
+
+    3. `grep -c "confine_executable=CONFINE_COMMAND, end_leftovers=True)" docs/project-guide/watching.md`
+       ```
+       1
+       ```
+       Expected `1`. **Met.**
+
+    I then read the acceptance criteria again and compared them with `git diff main...HEAD`:
+    - Criterion 1: the diff changes only `docs/decisions.md`, `docs/operator-guide.md` and `docs/project-guide/watching.md`, plus the work item and its `.costs.jsonl` sidecar. Nothing under `src/` or `tests/` changes, and entries 5 (tester) and 7 (coder) both say so.
+    - Criterion 2: I did not run `make check` in this stage. The earlier entries record `check: green` on tree 416ad76bbc59, and this diff touches only documents.
+    - Criterion 3, `docs/operator-guide.md`, all three items are present:
+      - The ignored-state paragraph (line 78) names `a bytecode folder`, the umask stricter than `002` (the tests under `022`), `PYTHONDONTWRITEBYTECODE=1` (dropped by an emptied environment, ignored under `-I`) and the `Makefile`'s `UV_COMPILE_BYTECODE=1`.
+      - The `checkout_restore_failed` row (line 858) says the stage ends without a result and that the factory "records it as a crash" and runs it again. It gives the repair as `chmod -R g+w <path>` as root, or removing the path as root, and says a second run reaches the crash cap.
+      - The `umask=0002` bullet (line 140) now lists `git clean -X` beside `git reset --hard` and `git clean -fd`.
+    - Criterion 3, `docs/project-guide/watching.md`: the signature matches the code's text, with one sentence on `which` (finds the `sudo` the runtime starts) and one on `confine_executable` (`None` starts no wrapper).
+    - Criterion 3, `docs/decisions.md`: the entry gains a "Seen on 2026-10-20" bullet that covers everything the criterion asks for:
+      - the two crashes from the bytecode folder
+      - the human's `UV_COMPILE_BYTECODE=1` quick fix (fd0fcd0b), which hides the cause without removing it
+      - S0004's `-B`, which removes the cause
+      - why the answer is in how files are written, citing the rejected repair of modes in F0033's entry
+    - `README.md` is unchanged, as the criterion says.
+
+    Nothing is open.
