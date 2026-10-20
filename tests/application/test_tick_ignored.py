@@ -1,6 +1,5 @@
 """The tick's restore removes the git-ignored paths before it switches to `main`."""
 
-import os
 from collections.abc import Callable
 from pathlib import Path
 
@@ -12,12 +11,12 @@ from factory.application.tick import IdleHandler, Tick
 from factory.domain.identifiers import branch_name
 from git_support import CHECKOUT, write_files
 from log_support import log_lines
+from root_support import AS_ROOT
 from tick_support import handlers_of
 
 INSTANCE = "factory-1"
 BRANCH = branch_name("F0001-S0001")
 STANDIN = "standin\n"
-AS_ROOT = pytest.mark.skipif(os.geteuid() == 0, reason="root removes files in unwritable folders")
 
 Setup = Callable[[GitCli, Path], None]
 

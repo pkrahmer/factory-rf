@@ -1,10 +1,7 @@
 """A sealed run removes the git-ignored paths it left, only when the run returned."""
 
-import os
 from collections.abc import Callable
 from dataclasses import replace
-from datetime import timedelta
-from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -14,15 +11,14 @@ from factory.adapters.git_cli import GitCli
 from factory.application.agent_runtime import AgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.sealed_runs import run_sealed
-from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, AgentRunResult
+from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.errors import AgentRuntimeError, GitError
 from git_support import run_git, write_files
 from human_clone import HumanClone
+from root_support import AS_ROOT
+from sealed_run_support import COMPLETED, run_request
 
 CLEAN = "git clean --quiet --force --force -d -X"
-COMPLETED = AgentRunResult(
-    end_reason="completed", decision="question", entry="done", duration=timedelta(seconds=5)
-)
 STANDIN = "standin\n"
 WRITES = {
     ".venv/lib/standin.pth": STANDIN,
@@ -32,7 +28,6 @@ WRITES = {
     "src/new.py": "y = 2\n",
 }
 IGNORED = [path for path in WRITES if path != "src/new.py"]
-AS_ROOT = pytest.mark.skipif(os.geteuid() == 0, reason="root removes files in unwritable folders")
 
 Then = Callable[[Path], None]
 
@@ -84,23 +79,6 @@ def ignoring(boundaries: Boundaries, human: HumanClone, checkout: GitCli) -> Bou
     return boundaries
 
 
-def _request(checkout: Path) -> AgentRunRequest:
-    agent = AgentDefinition(
-        name="coder",
-        model="sonnet",
-        tools=["Read"],
-        budget_usd=Decimal("1.00"),
-        instructions="Write the code.",
-    )
-    return AgentRunRequest(
-        agent=agent,
-        prompt="Do the stage.",
-        allowed_decisions=["question"],
-        time_limit=timedelta(minutes=5),
-        working_directory=checkout,
-    )
-
-
 @pytest.mark.parametrize(
     ("then", "raised", "nested", "present", "gone"),
     [
@@ -141,12 +119,12 @@ def test_a_returned_run_leaves_no_ignored_path_and_a_raised_one_leaves_them(
 
     try:
         if raised is None:
-            sealed = run_sealed(sealed_boundaries, _request(checkout))
+            sealed = run_sealed(sealed_boundaries, run_request(checkout))
             assert sealed.result == COMPLETED
             assert sealed.nested_repositories == nested
         else:
             with pytest.raises(Exception) as error:
-                run_sealed(sealed_boundaries, _request(checkout))
+                run_sealed(sealed_boundaries, run_request(checkout))
             assert type(error.value) is raised
             if isinstance(error.value, GitError):
                 assert error.value.command == CLEAN

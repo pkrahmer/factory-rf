@@ -18,7 +18,6 @@ from application.test_after_agent import (
     _started_attempts,
 )
 from application.test_checkout_preparer_seal import RecordingLog, _existing, _settings
-from application.test_sealed_runs import COMPLETED, _request
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
@@ -35,10 +34,9 @@ from factory.domain.post_texts import stall_note
 from factory.domain.settings import InstanceSettings
 from git_support import TEST_IDENTITY, install_agents, run_git, write_fsmonitor
 from human_clone import HumanClone
+from root_support import AS_ROOT
+from sealed_run_support import COMPLETED, run_request
 
-AS_ROOT = pytest.mark.skipif(
-    os.geteuid() == 0, reason="root removes files in unwritable directories"
-)
 NESTED = "notes/sub/.git"
 LOCKED = "locked"
 ENVIRONMENT = {"PATH": "/usr/local/bin:/usr/bin", "HOME": "/home/factory"}
@@ -144,12 +142,12 @@ def test_run_sealed_reports_and_removes_the_nested_repositories(
     nesting = _nesting(boundaries, act, agent_runtime)
 
     if raised is None:
-        sealed = run_sealed(nesting, _request(boundaries.checkout))
+        sealed = run_sealed(nesting, run_request(boundaries.checkout))
         assert sealed.result == COMPLETED
         assert sealed.nested_repositories == reported
     else:
         with pytest.raises(Exception) as error:
-            run_sealed(nesting, _request(boundaries.checkout))
+            run_sealed(nesting, run_request(boundaries.checkout))
         assert type(error.value) is raised
 
     assert os.path.lexists(boundaries.checkout / NESTED) == left

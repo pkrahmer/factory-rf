@@ -1,6 +1,5 @@
 """The git wrapper's removal of every untracked path the ignore rules match."""
 
-import os
 from collections.abc import Callable
 from pathlib import Path
 
@@ -8,14 +7,14 @@ import pytest
 
 from factory.adapters.git_cli import GitCli
 from factory.domain.errors import GitError
-from git_support import CHECKOUT, commit_all, run_git, write_files
+from git_support import CHECKOUT, commit_all, head_of, run_git, write_files
+from root_support import AS_ROOT
 
 CLEAN = "git clean --quiet --force --force -d -X"
 GITIGNORE = ".venv/\n__pycache__/\n*.pyc\n.mypy_cache/\nmutants/\n"
 MODULE = "x = 1\n"
 STANDIN = "standin\n"
 TARGET = "outside target\n"
-AS_ROOT = pytest.mark.skipif(os.geteuid() == 0, reason="root removes files in unwritable folders")
 
 Setup = Callable[[Path, Path], None]
 
@@ -36,10 +35,6 @@ def outside(tmp_path: Path) -> Path:
     folder = tmp_path / "outside"
     write_files(folder, {"target.txt": TARGET})
     return folder
-
-
-def _head(directory: Path) -> str:
-    return run_git(directory, "rev-parse", "HEAD").strip()
 
 
 def _status(directory: Path) -> str:
@@ -161,7 +156,7 @@ def test_remove_ignored_keeps_tracked_and_unmatched_paths(
     link: str | None,
 ) -> None:
     setup(directory, outside)
-    head = _head(directory)
+    head = head_of(directory)
     status = _status(directory)
 
     checkout.remove_ignored()
@@ -171,7 +166,7 @@ def test_remove_ignored_keeps_tracked_and_unmatched_paths(
         assert (directory / link).is_symlink()
         assert (outside / "target.txt").read_text(encoding="utf-8") == TARGET
     assert _status(directory) == status
-    assert _head(directory) == head
+    assert head_of(directory) == head
 
 
 @pytest.mark.parametrize(

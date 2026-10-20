@@ -9,10 +9,8 @@ import pytest
 from factory.adapters.git_cli import GitCli
 from factory.domain.errors import RepositoryUnsealed
 from git_support import CHECKOUT, clone, run_git
+from root_support import AS_ROOT
 
-AS_ROOT = pytest.mark.skipif(
-    os.geteuid() == 0, reason="root removes files in unwritable directories"
-)
 # Folders the tests close; the fixture opens them again so that nothing is left unreadable.
 CLOSED = ("closed", "locked")
 

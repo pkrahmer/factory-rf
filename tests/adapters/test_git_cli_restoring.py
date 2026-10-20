@@ -6,11 +6,7 @@ import pytest
 
 from factory.adapters.git_cli import GitCli
 from factory.domain.errors import GitError
-from git_support import CHECKOUT, commit_all, run_git, write_files
-
-
-def _head(directory: Path) -> str:
-    return run_git(directory, "rev-parse", "HEAD").strip()
+from git_support import CHECKOUT, commit_all, head_of, run_git, write_files
 
 
 def _status(directory: Path) -> str:
@@ -38,7 +34,7 @@ def test_reset_to_discards_tracked_changes_and_moves_the_branch(
 
     checkout.reset_to(base)
 
-    assert _head(directory) == base
+    assert head_of(directory) == base
     assert run_git(directory, "rev-parse", "--abbrev-ref", "HEAD").strip() == "main"
     assert (directory / "a.txt").read_text(encoding="utf-8") == "a base\n"
     assert (directory / "b.txt").read_text(encoding="utf-8") == "b base\n"
@@ -73,7 +69,7 @@ def test_reset_to_an_unknown_ref_raises_and_changes_nothing(
     with pytest.raises(GitError):
         checkout.reset_to("nope")
 
-    assert _head(directory) == base
+    assert head_of(directory) == base
     assert (directory / "a.txt").read_text(encoding="utf-8") == "a edited\n"
 
 

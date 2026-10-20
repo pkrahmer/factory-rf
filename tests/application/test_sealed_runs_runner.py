@@ -8,13 +8,11 @@ from pathlib import Path
 import pytest
 
 from application.test_sealed_runs import (
-    COMPLETED,
     ENVIRONMENT,
     OPEN_FILE,
     OPEN_FOLDER,
     Swap,
     _leave,
-    _request,
     _swap_for_folder,
 )
 from factory.adapters.clock import ManualClock, ManualWaiter
@@ -26,6 +24,7 @@ from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.errors import RepositoryUnsealed
 from factory.domain.settings import InstanceSettings
 from git_support import install_agents
+from sealed_run_support import COMPLETED, run_request
 
 
 class Runner:
@@ -64,7 +63,7 @@ def test_a_sealed_run_calls_its_runner_instead_of_the_runtime(
     folder.chmod(OPEN_FOLDER)
     (folder / "config").chmod(OPEN_FILE)
     runner = Runner(boundaries.checkout, swap)
-    request = _request(boundaries.checkout)
+    request = run_request(boundaries.checkout)
 
     if unsealed:
         with pytest.raises(RepositoryUnsealed):

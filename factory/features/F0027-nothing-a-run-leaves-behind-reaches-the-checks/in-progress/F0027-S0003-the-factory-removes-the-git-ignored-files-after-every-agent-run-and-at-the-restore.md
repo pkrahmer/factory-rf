@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 355
 comments_read: [6293770931, 6294082194]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-20T15:25:01.203953Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-20T15:25:01.203953Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-10-20T15:28:27.076245Z'
+  stage: tests
+  run: 4debaf35017c45f0995791559586e1ac
 ---
 
 # The factory removes the git-ignored files after every agent run and at the restore
@@ -414,3 +416,35 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed but not touched: `_head` has more near-copies with other signatures in `tests/adapters/test_git_cli_branches.py`, `test_git_cli_writing.py`, `tests/application/test_costs.py`, `test_after_agent.py`, `test_stalls.py` and `test_stage_finish.py`. They are outside these findings. The flaky `test_git_cli_work_tree.py` row from entry 17 is still open.
 22. factory: started tests as self.
+23. tester: Round 1. I moved the three shared test helpers that the reviewer named in entry 19 and the coder passed on in entry 21. I did this under the standing leave in `CLAUDE.md` to move a shared test helper. Every earlier test keeps its name and checks the same thing. I wrote no new test.
+
+    New shared modules (files created):
+    - `tests/sealed_run_support.py`: holds `COMPLETED` (entry "done") and `run_request(checkout)`, which was the private `_request`. I did not merge it with `COMPLETED` in `tests/probe_support.py`. That one carries entry "probe", and `tests/test_shared_test_helpers.py` pins it there.
+    - `tests/root_support.py`: holds `AS_ROOT`. The reason text is the earlier modules' "root removes files in unwritable directories".
+    - `tests/git_support.py` (changed): gains `head_of(directory)`, which was the private `_head`.
+
+    Earlier test files I changed under the standing leave (imports and call names only):
+    - `tests/application/test_sealed_runs.py`: its own `COMPLETED` and `_request` removed; it now imports them from `sealed_run_support`.
+    - `tests/application/test_sealed_runs_runner.py`: it imported `COMPLETED` and `_request` from `application.test_sealed_runs`, so it was in the way of that move. It now imports from `sealed_run_support`.
+    - `tests/application/test_nested_repositories.py`: its `AS_ROOT` copy removed. It now takes `AS_ROOT` from `root_support`, and `COMPLETED` and `run_request` from `sealed_run_support` instead of `application.test_sealed_runs`.
+    - `tests/adapters/test_git_cli_nested.py`: its `AS_ROOT` copy removed; it now uses `root_support`.
+    - `tests/adapters/test_git_cli_restoring.py`: its `_head` removed; it now uses `git_support.head_of`.
+
+    This story's own tests, changed the same way:
+    - `tests/application/test_sealed_runs_ignored.py`: `COMPLETED`, `_request` and `AS_ROOT` removed.
+    - `tests/adapters/test_git_cli_ignored.py`: `_head` and `AS_ROOT` removed.
+    - `tests/application/test_tick_ignored.py`: `AS_ROOT` removed.
+
+    The mapping from criterion to test is the same as in entry 8. No test name changed.
+
+    Results:
+    - `make lint`: green.
+    - `make types`: green.
+    - `make test`: green, coverage 99.17 %.
+
+    Modules the test run could not import: none.
+
+    Still open, and outside this round: the `_head` near-copies with other signatures that the coder listed in entry 21, which I left alone, and the flaky `test_git_cli_work_tree.py` row from entry 17.
+
+    `lint`: lint: green (0.0 s)
+    `test`: test: green (59.9 s)
