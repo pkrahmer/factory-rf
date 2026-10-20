@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 362
 comments_read: [6300047368]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-20T19:57:52.856656Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-20T19:57:52.856656Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-20T20:01:14.995273Z'
+  stage: doing
+  run: 3043f46ac77e461482df25e27fa07cad
 ---
 
 # Every project command of the instance runs as the agent, with the git folder sealed
@@ -212,3 +214,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.8 s)
    `test`: ERROR tests/entry/test_wiring_project_command_user.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_project_command_user.py'.
 9. factory: started doing as self.
+10. coder: Built the sealed project commands and wired them for the agent user. `make check` is green and no test was changed.
+
+    - `src/factory/application/sealed_runs.py`: new class `SealedProjectCommands(ProjectCommands)`. `run` does these steps in order:
+      - calls `git.seal()`, then the inner `run`;
+      - in a `finally`, calls `check_seal()` and then `remove_nested_repositories()`;
+      - writes one log line, `removed nested repositories after <command>: <paths>`, only when something was removed;
+      - returns the inner result unchanged.
+
+      Because of the `finally`, an inner error becomes the context of a `RepositoryUnsealed` from the check, and a failed check removes nothing. The module docstring now says "Sealed runs" instead of "Sealed agent runs".
+    - `src/factory/entry/wiring.py`:
+      - `project_command_environment` is `agent_run_environment` with `PYTHONDONTWRITEBYTECODE=1` and `UV_LINK_MODE=copy` added. It is exported in `__all__`.
+      - `build_boundaries` now works out the `sudo` executable and the leftovers program once and passes the same values to both the agent runtime and the new private `_project_commands`.
+      - `_project_commands` builds `MakeProjectCommands(settings.checkout)` as before when there is no agent user. With an agent user it builds `SealedProjectCommands(MakeProjectCommands(..., user=CommandUser(...)), git, log)`, using the git and log the boundaries hold.
+      - The wrapped objects are plain instance attributes, as the wiring test's `vars()` lookup needs.
+
+    Main choice: `SealedProjectCommands` keeps its own `try/finally`, the same shape as `run_sealed`, and does not share code with it. I rejected pulling a shared "seal around a callable" helper out of `run_sealed`. That function also calls `remove_ignored()` after a run that returned and builds a `SealedRun`, which project commands do neither of, so the shared part would be only the three git calls, and the change would reach into `run_sealed`, which this story does not touch.
+
+    Refactor pass: I read the diff once. The only change was dropping the repeated `which("sudo")` and leftovers expressions in favour of two locals in `build_boundaries`. Nothing else needed changing.
+
+    Noticed but did not touch: `make duplicates` reports 5 new findings, none in the files I changed:
+    - four similar-code findings shared by `claude_runtime` and `opencode_runtime` (`due_leftovers_launch`, `call_refusal`, `_end_leftovers`, `version_printed`);
+    - dead code: `ManualWaiter` in `adapters/clock.py`.
+
+    It also reports 3 known findings as gone (`ManualClock`, `advance`, `data` in `work_item_markdown`), so `security/duplicates-baseline.txt` is out of date.
+
+    The docs criterion (criterion 9) is left to the docs stage.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 33 known, 3 gone
