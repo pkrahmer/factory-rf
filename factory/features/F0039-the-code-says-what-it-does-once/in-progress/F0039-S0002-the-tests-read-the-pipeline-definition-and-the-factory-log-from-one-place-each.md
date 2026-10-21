@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T00:55:07.493708Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T00:55:07.493708Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T00:56:15.236026Z'
+  stage: review
+  run: 2e0c131db96c41ccbf557a0a35119599
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -97,8 +99,9 @@ Left as they are: the `_definition` helpers with a text parameter or another def
 2. Each shared reading is written in one module (rows of one parametrized test): the modules under `tests/` that hold a copy of the definition are exactly `["definition_support.py"]`; those that hold a copy of the log reading are exactly `["log_support.py"]` (paths relative to `tests/`, sorted).
 3. The guard finds a copy by its body, under any name, and nothing else (rows of one parametrized test, each a source text the guard's functions read): `def _definition(boundaries: Boundaries) -> PipelineDefinition:\n    return boundaries.pipeline_reader.parse(PIPELINE_YAML)\n` is a copy of the definition; `def read_it(boundaries):\n    """Read it."""\n    return boundaries.pipeline_reader.parse(PIPELINE_YAML)\n` is one; `def _definition(boundaries, text):\n    return boundaries.pipeline_reader.parse(text)\n` is not; `def _log_lines(tmp_path):\n    return []\n` is a copy of the log reading; `class Rig:\n    def log_lines(self):\n        return []\n` is not; `def _log_lines(state_directory):\n    return []\n` is not.
 4. Every earlier test keeps its name and checks the same thing: the tests that `pytest --collect-only` lists in the twenty modules the Interface names are, after the story, the same ids as before it, and all of them pass.
-5. `make check` stays green.
-6. docs: `docs/project-guide/README.md`, *Shared test helpers*: one line for the new module in the list, in its alphabetical place after `crash_support.py`, in the form of the other lines: `` - `definition_support.py`: `pipeline_definition`, the test remote's pipeline definition read through the boundaries' reader, which the `definition` fixture returns too, for helpers that take no fixtures. `` `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none, nothing an operator or a newcomer sees changes and no decision is taken.
+5. The guard's limits hold on their refused side too (further rows of the parametrized test of criterion 3): `def _definition(boundaries):\n    boundaries.reset()\n    return boundaries.pipeline_reader.parse(PIPELINE_YAML)\n` is not a copy of the definition (a body of more than the one statement); `class Rig:\n    def definition(self, boundaries):\n        return boundaries.pipeline_reader.parse(PIPELINE_YAML)\n` is not (not at the top level of the module); `def _log_lines(tmp_path, name):\n    return []\n` is not a copy of the log reading (`tmp_path` is not its only parameter).
+6. `make check` stays green.
+7. docs: `docs/project-guide/README.md`, *Shared test helpers*: one line for the new module in the list, in its alphabetical place after `crash_support.py`, in the form of the other lines: `` - `definition_support.py`: `pipeline_definition`, the test remote's pipeline definition read through the boundaries' reader, which the `definition` fixture returns too, for helpers that take no fixtures. `` `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none, nothing an operator or a newcomer sees changes and no decision is taken.
 
 ## Smoke test
 
@@ -206,3 +209,32 @@ Expect: one line, `1` (before the story, `0`)
    `check`: check: green
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (24 files under `tests/`, nothing under `src/`) against the work item. The changes to the twenty modules are mechanical. Each removes `_definition` or `_log_lines` and its now-unused imports (`LOG` too, where no line used it any more), and each call is changed to `pipeline_definition(boundaries)` or `log_lines(tmp_path)`. No `def test_` line is added, removed or renamed. `tests/definition_support.py` and the `definition` fixture match the Interface. The guard in `tests/test_shared_definition.py` matches the Interface's three rules. Criteria 1 to 3 each have their test. The coder's `make check` was green (journal entry 7: `check: green`, `duplicates: 0 new`). Criterion 4 has no test: it compares ids from before and after the story, and the tester checked it in their stage (229 ids, diff empty). That is acceptable for this kind of criterion.
+
+   Findings:
+   1. criterion 5 added: it needs its test. `tests/test_shared_definition.py::test_the_guard_finds_a_copy_by_its_body_and_nothing_else` leaves three limits the Interface states untested on their refused side. (a) A body holding the statement plus another one: "the one statement". (b) A method whose body is the definition statement: "at the top level", tested only for the log rule. (c) `_log_lines(tmp_path, name)`: "whose only parameter is `tmp_path`". The guard's code already refuses all three (`len(rest) == 1`, `_functions` reads only top-level nodes, the parameter list must equal `["tmp_path"]`), so nothing under `src/` changes. Fix: the tester adds the three rows that criterion 5 names to that parametrized test.
+
+   Earlier tests changed (all under the standing leave to move a shared test helper in `CLAUDE.md` *Tests*: each change only moves the helper to the shared place, and every test keeps its name and what it checks):
+   - tests/conftest.py: standing leave (the `definition` fixture now returns `pipeline_definition(boundaries)`).
+   - tests/application/handlers/test_closed.py: standing leave.
+   - tests/application/handlers/test_hand_over.py: standing leave.
+   - tests/application/handlers/test_run.py: standing leave.
+   - tests/application/test_after_agent.py: standing leave.
+   - tests/application/test_board_reader.py: standing leave.
+   - tests/application/test_no_state_refusals.py: standing leave.
+   - tests/application/test_pipeline_loading.py: standing leave.
+   - tests/application/test_pipeline_loading_yaml_fault.py: standing leave.
+   - tests/application/test_question_causes_recorded.py: standing leave.
+   - tests/application/test_stall_labels.py: standing leave.
+   - tests/application/test_stalls.py: standing leave.
+   - tests/application/test_stop_records_service.py: standing leave.
+   - tests/application/test_tick_disk.py: standing leave.
+   - tests/application/test_tick_stale_branch.py: standing leave.
+   - tests/application/test_watcher.py: standing leave.
+   - tests/application/test_work_items.py: standing leave.
+   - tests/entry/test_watch.py: standing leave.
+   - tests/entry/test_wiring_acceptance.py: standing leave.
+   - tests/entry/test_wiring_handlers.py: standing leave.
+   - tests/entry/test_wiring_human_handlers.py: standing leave.
+
+   Considered and not raised: the walk over `tests/` in `test_each_shared_reading_is_written_in_one_module` is similar to `_defining` in `tests/test_shared_fixtures.py`. But that test takes a predicate rather than a regex, and the story leaves `test_shared_fixtures.py` unchanged. `tests/source_search.py` reads `src/factory`, not `tests/`, so the guard copies no shared helper. I did not run `make check`.
