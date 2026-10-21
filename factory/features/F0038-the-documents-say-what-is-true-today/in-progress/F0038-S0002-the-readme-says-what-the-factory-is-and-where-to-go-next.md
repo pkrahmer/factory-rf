@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 389
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T06:55:17.843498Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T06:55:17.843498Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T06:55:38.015875Z'
+  stage: docs
+  run: a2caa5527c89446eb8bce2530d17cb4e
 ---
 
 # The README says what the factory is, that an instance runs in the container, and where to go next
@@ -155,3 +157,24 @@ Expect: `documents ok`
    - The Description matches what was built: nothing yet, since the README is the docs stage's work. The coder's journal explains why they left `README.md` to the documenter.
    - Earlier tests: none changed. The diff holds no test file.
 10. factory: started docs as self.
+11. documenter: Changed `README.md` only, as criterion 3 asks:
+    - First paragraph replaced with the exact text of the criterion. The build inventory, "under construction", "groundwork" and the probe and first-start observations are gone.
+    - *Getting started*: the code block and the `check: green` sentence stay. The long paragraph on commands and exit statuses became one sentence pointing to *The container: compose, entrypoint and health check* in `docs/operator-guide.md`, followed by a six-row table (`| Command | What it does |`) with no exit status in it.
+    - "Beside the seven console commands" now reads "Beside the six console commands"; the rest of that paragraph is unchanged.
+    - *Where to look next*: added the `docs/operator-playbook.md` bullet after the `docs/decisions.md` bullet.
+
+    Checks run:
+    - The forbidden-phrase grep counts 0 and the table-row grep counts 6.
+    - `make documents` ended with `documents ok`.
+    - I did not run `make check`: only a document changed, and the factory checks right after this stage.
+
+    Cross-read:
+    - `docs/operator-guide.md` has the section the container sentence names, and `docs/operator-playbook.md` exists.
+    - The six commands in the table match the six console scripts in `pyproject.toml` `[project.scripts]`.
+    - *How it is built* and *Replaced from v1* were left as they are, as the story says.
+
+    No findings, and no code or docs contradict each other. I saw no unrelated stale text and left no note.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
+    `secrets`: secrets: green (0.7 s)
+    `documents`: documents ok
