@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 1
@@ -181,6 +181,11 @@ journal:
   at: '2026-10-21T06:17:26.452861Z'
   stage: smoke-test
   run: ffcaf19e19744570a7913851afe90589
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-10-21T06:18:45.774120Z'
+  stage: approval
 ---
 
 # The boundaries have no optional collaborators
@@ -578,3 +583,4 @@ Expect: one line, `0` (before the story, `1`)
     Checked against the acceptance criteria. Criterion 4 says no module under `src/factory/application/` compares one of the six fields, or a local name read from one, with `None`. The smoke test's grep covers only seven modules, so I also ran a wider grep over all of `src/factory/application/`. It looked for `(settings|disk|disk_records|stop_records|waiter|result_records|now) is (not )?None` and found nothing, which covers the `AcceptanceService._disk_lines` branch too. The only `None` left in `boundaries.py` is `agent_home: AgentHome | None = None`, which the description says stays optional. The smoke test contradicts no criterion. I did not run `make check` (criterion 5); the factory runs it as the stage's check.
 
     Findings: none.
+32. factory: done (pull request merged); cost: 14 runs, 21.3 min, 139 turns, 451354 tokens in (4238826 more from cache), 54338 out, $4.97
