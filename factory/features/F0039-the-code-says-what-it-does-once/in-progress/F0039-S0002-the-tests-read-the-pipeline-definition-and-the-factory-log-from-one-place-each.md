@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 381
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T00:47:26.677128Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T00:47:26.677128Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T00:47:48.881702Z'
+  stage: intake
+  run: 737513a1564340a4abcab8444892885f
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -102,3 +104,9 @@ Expect: one line, `1` (before the story, `0`)
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and one signature (`tests/definition_support.py::pipeline_definition(boundaries: Boundaries) -> PipelineDefinition`, body given, `PIPELINE_YAML` from `git_support`). It names the `definition` fixture's change, all sixteen `_definition` modules, the five `_log_lines` modules, the variants left alone, and the guard's three rules (body match via `ast.unparse` with a leading docstring ignored, the `log_lines`/`_log_lines` rule with `tmp_path` as only parameter, every `*.py` under `tests/`). No `src/` change, so the coder has nothing to build.
+   Criteria: each testable by one test function. 1 compares the function with the fixture and checks `acceptance_stage`. 2 gives exact module lists as parametrized rows. 3 has six rows covering both sides of each guard rule (a different name, a docstring, a text parameter, a class method, `state_directory`). 4 is checked by comparing `--collect-only` ids and passing. Criteria 5 and 6 are the closing ones. Every rule in the Interface has a criterion on the failing side.
+   Smoke test: runnable. The first block is a Python snippet over `tests/` with a single-line `Expect:`. The second runs pytest with no `-q`, and `pyproject.toml` `addopts` already sets `-q`. It only checks `exit 0`, so no summary line is needed. The third is a grep with `Expect: 1`. All three expectations can be checked against the output. I confirmed `tests/log_support.py` and `tests/git_support.py` exist, and that the docs line comes after `crash_support.py` (line 35) in the project guide.
+   Architecture: tests only, under the standing leave in `CLAUDE.md` (*Tests*) for moving shared helpers, which the tester makes. The new helper is a module at the `tests/` root, and the guard is a test at the root. The layers are untouched.
+   Scope: within the feature's scope (S0002). The variants with a text parameter or another definition, `tests/entry/test_run.py::_log_lines(state_directory)` and `tests/test_shared_fixtures.py` stay, as the feature's *Out of scope* and decision 5 say. The S0003 helpers are left out. The docs criterion names only the project guide, as decision 5 asks.
