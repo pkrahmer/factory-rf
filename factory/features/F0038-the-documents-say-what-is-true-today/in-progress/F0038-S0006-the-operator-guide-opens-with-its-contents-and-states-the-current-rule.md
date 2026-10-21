@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 394
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T07:36:26.016995Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T07:36:26.016995Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T07:38:00.254092Z'
+  stage: doing
+  run: b409338cdbdf49a7b9c72a6950b59f46
 ---
 
 # The operator guide opens with its contents and states the current rule without its history
@@ -129,3 +131,14 @@ Expect: `documents ok`
    `lint`: lint: green (0.7 s)
    `test`: test: green (64.9 s)
 6. factory: started doing as self.
+7. coder: No code written, as the story requires. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed in this stage, and I created no files. The working tree shows only the factory's `.costs.jsonl` sidecar.
+   - What I built: nothing. The Interface is "None", and the tester added no tests, so there was nothing failing to make pass. Every change in criterion 3 is to `docs/operator-guide.md`, which the documenter owns.
+   - Main choice: I left `docs/operator-guide.md` untouched and left it to the docs stage. I rejected making the criterion-3 edits here, because `CLAUDE.md`, *Docs*, says the coder does not write the four documents and criterion 1 pins this stage to no change.
+   - Refactor: there is no diff, so there was nothing to refactor.
+   - Description: no journal entry changed the meaning of the task, so `## Description` is unchanged.
+   - Noticed but not touched: nothing.
+
+   `check`: check: green (`make check` run in the foreground; test: green (68.3 s), coverage 99.14 %)
+
+   `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
