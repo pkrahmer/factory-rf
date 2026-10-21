@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 396
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T08:01:48.120717Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T08:01:48.120717Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T08:02:20.243086Z'
+  stage: smoke-test
+  run: 5a668cca098f4411a6d605aeb2832c92
 ---
 
 # The operator guide lists each stop in one table
@@ -199,3 +201,49 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test run from the repository root, each command exactly as written and in order. All four met their `Expect:` lines, and nothing contradicts an acceptance criterion. No findings. I fixed nothing and changed nothing.
+
+    Command 1 (counts of the old tables and the surviving table):
+    ```
+    0
+    1
+    ```
+    Expect: two lines, `0` and `1`. Met.
+
+    Command 2 (the moved detail forms and kept sentences):
+    ```
+    found
+    found
+    found
+    found
+    found
+    found
+    found
+    ```
+    Expect: seven lines `found`. Met.
+
+    Command 3 (the code paths are unchanged; the only document changed is the guide):
+    ```
+    0
+    docs/operator-guide.md
+    ```
+    Expect: two lines, `0` and `docs/operator-guide.md`. Met.
+
+    Command 4:
+    ```
+    documents ok
+    ```
+    Expect: `documents ok`. Met.
+
+    Criteria check: I read `git diff origin/main -- docs/operator-guide.md` against the acceptance criteria.
+    - Criterion 1: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed (command 3). The tester's entry (5) and the coder's entry (7) each say so.
+    - Criterion 2: `make check` was not run in this stage. The coder's entry (7) records `check: green`, and the factory runs the stage checks.
+    - Criterion 3:
+      - The sentence pointing to "The stops" is at the end of the paragraph under *The health check and the restart policy*. *The stops you will see here* is removed, with its heading and its table.
+      - The `preflight_failed` details are in a new paragraph at the end of "The preflight's items": `confinement: ...`, `the probe on main could not run: <message>`, and the `<sudo> refused the command` form.
+      - The two `main_branch_failing` forms are a new bullet in "The stamp and the probe of the main branch".
+      - The four `repository_unavailable` details are a list in "The wait for a repository that is not ready". The clone hint (check `FACTORY_REPOSITORY_URL` and the credentials) is with the first one.
+      - The table in *The stops of the tick* is replaced by two paragraphs. They name the four stops in backticks and point to "The stops". They keep the expired-token note with "nothing is lost", the exact sentence "The tick does not touch the checkout while `pipeline_definition_invalid` or `agent_definition_invalid` stands.", the causes of `checkout_restore_failed` with git's message as its detail, and the crash, rerun, `chmod -R g+w <path>` and `crash_cap` repair text.
+      - The fifteen-row *The stops* table is untouched (command 1's `1`). No passage cites the removed heading (command 1's `0`).
+
+    Open: nothing.
