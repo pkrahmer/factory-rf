@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T07:06:28.153820Z'
   stage: smoke-test
   run: e2689e33ef4a4610802ad71d05408517
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T07:07:48.247272Z'
+  stage: approval
 ---
 
 # The project guide points to the template's pipeline definition and describes `factory-health`
@@ -224,3 +229,4 @@ Expect: `documents ok`
     - Criterion 3, `README.md`: the index gained exactly the stated items (`factory-health`, `factory.entry.health`, `factory.domain.sessions`, `factory.application.agent_home`, `factory.adapters.agent_home`), each at the stated place. Only those three index lines changed.
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 3.2 min, 32 turns, 118990 tokens in (439984 more from cache), 9122 out, $0.99
