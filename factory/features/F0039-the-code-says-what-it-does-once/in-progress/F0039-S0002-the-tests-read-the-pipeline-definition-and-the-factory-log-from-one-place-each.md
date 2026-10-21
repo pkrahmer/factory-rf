@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T01:00:05.980896Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-21T00:59:44.809840Z'
   stage: tests
   run: 82145ff46827403f89b7ac28dc36d1f1
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:00:05.980896Z'
+  stage: doing
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -299,3 +308,4 @@ Expect: one line, `1` (before the story, `0`)
 
     `lint`: lint: green (0.6 s)
     `test`: test: green (60.8 s)
+14. factory: started doing as self.
