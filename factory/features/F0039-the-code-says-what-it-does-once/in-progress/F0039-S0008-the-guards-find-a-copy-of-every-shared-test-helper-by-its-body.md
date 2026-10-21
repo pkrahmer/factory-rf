@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T08:57:25.955090Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-21T08:57:25.955090Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T08:58:07.670291Z'
+  stage: smoke-test
+  run: 965f334c17764a07aaf990f4871d8045
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -380,3 +382,39 @@ Expect: one line, `1` (before the story, `0`)
     `secrets`: secrets: green (0.9 s)
     `documents`: documents ok
 23. factory: started smoke-test as self.
+24. smoke-tester: I ran the three smoke-test commands exactly as written, from the repository root and in order. All three met their `Expect:` lines.
+
+    **Command 1: a body search for copies of the five shared helpers under `tests/`**
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 105ms
+    Bytecode compiled 4164 files in 408ms
+    []
+    ```
+    Met. The script printed one line, `[]`. The lines above it are uv setting up the environment on stderr, not the script's output. `_branch_document` is no longer found.
+
+    **Command 2: pytest over the three guards and `test_reject.py`**
+    ```
+    exit 0
+    ```
+    Met. For context I also printed the tail of the saved output, which is not part of the command: `641 passed in 11.66s`.
+
+    **Command 3: `grep -c 'test_shared_bodies.py' docs/project-guide/README.md`**
+    ```
+    1
+    ```
+    Met.
+
+    **Acceptance criteria, read once more against the run:** the smoke test contradicts none of them.
+    - `tests/application/handlers/test_reject.py` imports `remote_document` from `branch_reading` (lines 8, 108, 173). No `_branch_document` is left.
+    - `tests/function_support.py` exists, and both `test_shared_definition.py` and `test_shared_bodies.py` import `functions` and `without_docstring` from it.
+    - The project guide's sentence follows the paragraph's second sentence with the wording criterion 7 asks for.
+    - Nothing under `src/` differs from `origin/main`.
+
+    **Not checked by the smoke test:** criterion 4 (the `test_reject.py` ids are unchanged) and criterion 6 (`make check`). I did not compare ids before and after the story. The `test_reject.py` tests passed in command 2, and the factory runs `make check` as the gate.
+
+    Findings: none.
