@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-21T09:37:41.746093Z'
   stage: acceptance
   run: adf18e34e3f44b2da7cf9ca8bca52141
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-21T09:39:02.423401Z'
+  stage: done
 stories: [F0039-S0001, F0039-S0002, F0039-S0003, F0039-S0004, F0039-S0005, F0039-S0006, F0039-S0007, F0039-S0008, F0039-S0009]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The code says what it does, once
@@ -300,3 +305,4 @@ S0006 needed the human most. Its question stopped a finished source change at do
    6. Decisions: A0001's items 1 to 13 stand. New are the intake answers for S0008 and S0009, given by the human's operator, which the human may want to own. S0009's collect-only check was confirmed from the diff, not from a pasted record. S0008 changed 2 earlier tests and S0009 changed 52, all under the standing leave. Every change names its leave.
    7. Slow checks: nothing beyond `make check` except `make duplicates` (0 new) and `make documents`. There are now 7071 tests summing 777 s (A0001: 6464, 721 s); S0008's per-module guard rows account for most of the growth. The slowest tests are the ten-second time-limit tests, none of them from this feature. Disk is unchanged from the previous record.
    8. Cost: 83 runs, 88.5 min, $21.20. S0003 ($4.98) and S0006 ($4.97) stand out. S0008 cost $2.50 (an intake question and a review round on its own copied helper), and S0009 changed 52 modules for $1.64. The human answered 5 questions (cause `question`) and the stories waited 3.7 h in total. S0006 needed the human most: decision 11's leave missed two test rows. Two of the intake questions came from drafts the first acceptance wrote.
+3. factory: done (pull request merged); cost: 1 runs, 6.6 min, 31 turns, 110306 tokens in (2183553 more from cache), 29182 out, $1.90
