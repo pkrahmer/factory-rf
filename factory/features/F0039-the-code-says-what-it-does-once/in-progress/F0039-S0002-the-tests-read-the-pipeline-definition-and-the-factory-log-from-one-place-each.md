@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T00:48:10.376349Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T00:47:48.881702Z'
   stage: intake
   run: 737513a1564340a4abcab8444892885f
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:48:10.376349Z'
+  stage: tests
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -110,3 +119,4 @@ Expect: one line, `1` (before the story, `0`)
    Smoke test: runnable. The first block is a Python snippet over `tests/` with a single-line `Expect:`. The second runs pytest with no `-q`, and `pyproject.toml` `addopts` already sets `-q`. It only checks `exit 0`, so no summary line is needed. The third is a grep with `Expect: 1`. All three expectations can be checked against the output. I confirmed `tests/log_support.py` and `tests/git_support.py` exist, and that the docs line comes after `crash_support.py` (line 35) in the project guide.
    Architecture: tests only, under the standing leave in `CLAUDE.md` (*Tests*) for moving shared helpers, which the tester makes. The new helper is a module at the `tests/` root, and the guard is a test at the root. The layers are untouched.
    Scope: within the feature's scope (S0002). The variants with a text parameter or another definition, `tests/entry/test_run.py::_log_lines(state_directory)` and `tests/test_shared_fixtures.py` stay, as the feature's *Out of scope* and decision 5 say. The S0003 helpers are left out. The docs criterion names only the project guide, as decision 5 asks.
+4. factory: started tests as self.
