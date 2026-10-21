@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 395
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T07:50:24.140960Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-21T07:50:02.891454Z'
   stage: doing
   run: 5308253ae6fb480d88170ea160834701
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:50:24.140960Z'
+  stage: review
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -248,3 +257,4 @@ Expect: `documents ok`
 
     `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
+16. factory: started review as self.
