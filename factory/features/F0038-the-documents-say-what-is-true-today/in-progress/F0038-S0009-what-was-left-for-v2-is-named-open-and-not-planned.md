@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T08:05:04.826460Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T08:05:04.826460Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T08:07:48.092291Z'
+  stage: tests
+  run: 478480fcbc6c46f7883e4e4220924aee
 ---
 
 # What was left for v2 is named open and not planned
@@ -94,3 +96,11 @@ Expect: `documents ok`
    Architecture: documents only, so no layer is touched. docs/decisions.md is the documenter's file.
    Scope: it is within F0038's scope (S0009: the new entry, the renamed entry, the settled kill pointed to its entry). It leaves out docs/runs/, write-guard.md and the playbook, as the human's answers of 2026-10-20 say.
 4. factory: started tests as self.
+5. tester: I wrote no tests. This story only changes documents. Its Interface is "None", and criterion 1 says nothing under `tests/` changes. So none of the criteria has a pytest test.
+   - criterion 1 (nothing changes under src/, tests/, image/, template/, demo/ or claude/): no test. It is met because I changed nothing under those paths, including `tests/`. The smoke test's `git diff --name-only origin/main -- src tests image template demo claude` checks it.
+   - criterion 2 (`make check` stays green): no test. The factory's checks cover it.
+   - criterion 3 (docs, `docs/decisions.md`): no test. The documenter writes it. The smoke test's greps and `make documents` check it.
+   Files created: none. Modules the test run could not import: none. `make test` is green and was not red, because there is nothing for the coder to implement. `make lint` is green.
+
+   `lint`: lint: green (0.8 s)
+   `test`: test: green (71.3 s)
