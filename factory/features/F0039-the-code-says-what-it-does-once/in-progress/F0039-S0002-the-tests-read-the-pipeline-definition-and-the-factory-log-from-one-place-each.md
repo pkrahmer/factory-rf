@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T01:00:05.980896Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-21T01:00:05.980896Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-21T01:02:39.576125Z'
+  stage: doing
+  run: 154e15e8f6a343fe9b7c1eea2885c3be
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -309,3 +311,17 @@ Expect: one line, `1` (before the story, `0`)
     `lint`: lint: green (0.6 s)
     `test`: test: green (60.8 s)
 14. factory: started doing as self.
+15. coder: Round 1: the reviewer's finding 1 asked for test rows for criterion 5. The tester added those three rows to `tests/test_shared_definition.py::test_the_guard_finds_a_copy_by_its_body_and_nothing_else` in entry 13, so the coder has nothing left to do for that finding. Nothing under `src/factory/` changes (`git diff main --stat -- src` is empty). The working tree is as the tester's commit left it. The only modified file is the work item's `.costs.jsonl` sidecar, which is the factory's.
+
+    Main choice: change nothing and hand the work item to review. I rejected touching the tester's rows or the guard, because the coder never edits tests (R9) and nothing in them contradicts the Interface.
+
+    Refactor: my diff has nothing in it, so there was nothing to refactor.
+
+    Description: criterion 5 is already in the Description, before the closing criteria. No other journal entry changed the meaning of the task, so I did not rewrite it.
+
+    Noticed but not touched: nothing.
+
+    `make check`: check: green (test: green (61.5 s), coverage 99.14 %).
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 38 known, 0 gone
