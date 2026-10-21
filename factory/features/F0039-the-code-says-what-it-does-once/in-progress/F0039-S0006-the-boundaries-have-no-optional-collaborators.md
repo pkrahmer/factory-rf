@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T06:15:50.768829Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -168,6 +164,12 @@ journal:
   kind: started
   at: '2026-10-21T06:15:50.768829Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T06:16:33.614700Z'
+  stage: docs
+  run: cdb84c9f3b674d2c9d07fb3da5661cdd
 ---
 
 # The boundaries have no optional collaborators
@@ -521,3 +523,21 @@ Expect: one line, `0` (before the story, `1`)
     https://help.github.com/articles/removing-sensitive-data-from-a-repository
     make: *** [Makefile:54: secrets] Error 1
 28. factory: started docs as self.
+29. documenter: Round 1: fixed the red `secrets` check from the last round. I changed only documents, so I did not run `make check`; the factory runs it next.
+
+    The cause was `docs/project-guide/costs.md:18`. My round-0 edit removed ", `None` without settings" from the record paragraph and left "kept by `complete`; either status may carry it". detect-secrets' keyword detector flagged the edited line as a "Secret Keyword", which is a false positive. The line on `main` passes, and the baseline has no entry for this file.
+
+    File changed:
+    - docs/project-guide/costs.md: one sentence of line 18 now reads "set by `begin` from the settings and kept by `complete`, so either status may carry it". The meaning is the same, and the detector no longer flags the line.
+
+    Checks run: `detect-secrets-hook --baseline .secrets.baseline docs/project-guide/costs.md` passes, and `make documents` gives "documents ok". I added no baseline entry and no `pragma: allowlist secret`.
+
+    The round-0 documentation stays as written. It covers watching.md, stages.md, processes-and-checks.md, agents.md, costs.md, work-items.md, operator-guide.md and decisions.md. I cross-read README.md, docs/project-guide/README.md and write-guard.md and found them current. The code matches the Interface, so I have no findings for the coder.
+
+    Stale text I saw and did not touch:
+    - docs/decisions.md ~line 491 (the cost record's `instance`): "without settings it is `None`" is the log's account of that day's decision, so I left it.
+    - `agent_home: AgentHome | None = None` in `src/factory/application/boundaries.py` has no comment of its own, which the feature's decision 10 planned. The reviewer raised it, and it is code, so it is not mine to edit.
+
+    `check`: check: green (not run again: passed on tree c55c67ad5a9b at 2026-10-21T06:11:08Z)
+    `secrets`: secrets: green (3.4 s)
+    `documents`: documents ok
