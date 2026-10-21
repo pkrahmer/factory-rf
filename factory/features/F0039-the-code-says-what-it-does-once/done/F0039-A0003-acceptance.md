@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-21T12:39:59.419211Z'
   stage: acceptance
   run: 65a70462fc0c496189db266e95993fb9
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-21T12:41:21.809488Z'
+  stage: done
 stories: [F0039-S0001, F0039-S0002, F0039-S0003, F0039-S0004, F0039-S0005, F0039-S0006, F0039-S0007, F0039-S0008, F0039-S0009, F0039-S0010]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The code says what it does, once
@@ -337,3 +342,4 @@ None. The two remaining notes are not worth a story each, and both are left to t
    6. Decisions: A0002's items 1 to 18 stand. New are decision 14 (granted before start), the `/opt/guard` pair left as it is, S0010's tester defaults, and the collect-only counts, which this time were pasted (871/872). S0010 changed 23 earlier modules under the standing leave and `test_no_test_module_holds_a_copy` under decision 14; every change names its leave.
    7. Slow checks: nothing beyond `make check` except `make duplicates` (0 new) and `make documents`. There are 7084 tests summing 746.6 s; S0010 added 13 of them, 0.7 s. The slowest are the ten-second time-limit tests, none from this feature. Disk used is unchanged (`/work` 0.5 GB, the `.venv`). Free space fell 0.5 GB equally on the three mounts of one host disk, which this feature does not explain.
    8. Cost: 89 runs, 97.5 min, $23.23. S0003 ($4.98) and S0006 ($4.97) stand out. S0010 cost $2.03 in 6 runs, with no round and no question. The human answered 5 questions (cause `question`) and the stories waited 3.7 h, unchanged since A0002. S0006 needed the human most.
+3. factory: done (pull request merged); cost: 1 runs, 4.7 min, 14 turns, 84349 tokens in (563857 more from cache), 17133 out, $1.13
