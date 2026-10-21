@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-21T08:16:06.684653Z'
   stage: smoke-test
   run: db3a19ca239f41ec90080de51016cfa2
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-21T08:17:27.147234Z'
+  stage: approval
 ---
 
 # What was left for v2 is named open and not planned
@@ -407,3 +412,4 @@ Expect: `documents ok`
     Observations (no finding): in the new entry's Decision bullet, the first closed gap reads "the project commands ran as the factory's user", where the criterion's paraphrase says "run". It names the same gap and cites the same entry, so it does not contradict the criterion. Lines 408 and 788 still say "closed on 2026-10-20 by …" and "morning observation". The criteria leave those lines alone.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 7.1 min, 56 turns, 204514 tokens in (923472 more from cache), 18707 out, $1.83
