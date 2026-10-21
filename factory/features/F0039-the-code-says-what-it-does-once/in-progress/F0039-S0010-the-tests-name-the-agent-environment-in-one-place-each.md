@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 405
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T12:32:10.464059Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T12:31:49.411035Z'
   stage: review
   run: 52b7d9d8dc9843f1a4c75f808cde3ba9
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T12:32:10.464059Z'
+  stage: docs
 ---
 
 # The tests name the agent environment in one place each
@@ -219,3 +228,4 @@ Expect: one line, `2` (before the story, `0`)
    - tests/entry/test_wiring_recovery_expired.py: standing leave (`ENVIRONMENT` from `wiring_support`)
    - tests/wiring_support.py: standing leave (the shared place gains `ENVIRONMENT`; nothing else changes)
    - tests/test_shared_bodies.py: the human's leave, F0039 `feature.md` decision 14 (only `test_no_test_module_holds_a_copy` changes, to the relative-path rule; its name and ids are kept)
+10. factory: started docs as self.
