@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 384
 comments_read: [6306079635]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T02:03:41.958209Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-21T02:03:41.958209Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T02:04:04.862262Z'
+  stage: docs
+  run: ca68994829d2418ca712b79e57776ba7
 ---
 
 # The wiring has no list of event kinds without a handler
@@ -198,3 +200,22 @@ Expect: two lines, `False False` and `1` (before the story, `True True` and `6`)
     - tests/entry/test_wiring_recovery.py: decision 7. Renamed to `test_crash_is_handled`, and removed the `NOT_YET_HANDLED` lines, the `every` tuple and the `get_args` import.
     - tests/entry/test_wiring_recovery_expired.py: decision 7. Renamed to `test_expired_shares_the_crash_handler`, and removed the `NOT_YET_HANDLED` lines, the `every` tuple and the `get_args` and `EventKind` imports.
 13. factory: started docs as self.
+14. documenter: Docs written from criterion 5; the diff matches the Interface and the criteria, so there are no findings for the coder.
+
+    Files changed:
+    - docs/project-guide/watching.md: the `NOT_YET_HANDLED` paragraph is replaced by one sentence. Every `EventKind` has a handler in `build_handlers`. A new kind adds its handler there, and `test_every_kind_has_a_handler_and_acceptance_due_opens_the_acceptance` fails until it does. The dispatcher counts an event of a kind without a handler as an error (`UnhandledEvent`).
+    - docs/operator-guide.md: in the sentence on the registered handlers, the clause that named `NOT_YET_HANDLED` as empty is removed. "every kind of event has a handler" stays.
+    - docs/decisions.md: I appended one dated line (2026-10-21, F0039-S0005) at the end of the entry *The handlers are built from the loaded definition on every tick, and a constant lists the kinds still unhandled*. It says the constant was removed once every kind had a handler, because comparing the handlers' keys with every kind catches a new kind without one. The entry's earlier paragraph still names the constant. I left it as history, since the log records reasons and the new line says it was removed.
+
+    Cross-read and found current:
+    - README.md has no mention of the constant, and criterion 5 says `none` for it.
+    - The rest of docs/operator-guide.md and docs/project-guide/watching.md match the diff.
+
+    Stale text I saw and did not touch:
+    - docs/runs/2026-10-12-overnight/night-log.md names `NOT_YET_HANDLED`. It is the human's log and outside my write paths.
+
+    I ran no code or `make check`, because I changed only documents. A grep of README.md and `docs/` (outside `docs/runs/`) for the constant now finds only the historical paragraph in docs/decisions.md.
+
+    `check`: check: green (not run again: passed on tree d7b478efc934 at 2026-10-21T02:01:15Z)
+    `secrets`: secrets: green (2.2 s)
+    `documents`: documents ok
