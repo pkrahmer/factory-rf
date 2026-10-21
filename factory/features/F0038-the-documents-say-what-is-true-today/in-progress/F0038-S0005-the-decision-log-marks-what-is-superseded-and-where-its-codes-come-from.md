@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 393
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T07:29:29.347217Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T07:29:06.322122Z'
   stage: review
   run: 1e9adf003bf0461eb71ef1af9b2b3e9c
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:29:29.347217Z'
+  stage: docs
 ---
 
 # The decision log marks two superseded entries, the removal of `factory/v1/`, and where its codes come from
@@ -140,3 +149,4 @@ Expect: `documents ok`
    - 2–4. Architecture, security, quality: no code in the diff, so nothing to judge.
    - 5. Work item hygiene: the Description matches what was built (nothing yet; the documenter makes the four additions). The coder's journal explains its one choice, leaving `docs/decisions.md` to the documenter, and what it rejected. The docs criterion is still correct against `docs/decisions.md` on this branch: the three titles it cites are headings at lines 359, 351 and 698. The three headings it edits under are at lines 13, 343 and 554. The bullet "- Decision: v1's" is at line 558, and the header paragraph under `# Decisions` is at line 3.
    - 6. Earlier tests: no test file is changed, renamed or deleted; `git diff --name-status main...HEAD` lists no file outside `factory/`.
+10. factory: started docs as self.
