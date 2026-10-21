@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 385
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T02:08:56.158350Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T02:08:35.543754Z'
   stage: intake
   run: 1eb297bcb69044778803ba136459af33
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T02:08:56.158350Z'
+  stage: tests
 ---
 
 # The boundaries have no optional collaborators
@@ -108,3 +117,4 @@ Expect: one line, `0` (before the story, `1`)
    - Smoke test: the Python snippet and the greps are runnable. Each `Expect:` line gives a checkable value (`[]` and `0`, then `0`), with the before-values stated. No pytest command is used, so the `-q` rule does not apply.
    - Architecture: `Boundaries` stays in `factory.application`. The collaborators are existing interfaces (`DiskSpace`, `RecordLog`, `Waiter`). The test fakes and real `JsonLinesRecordLog` are used under `tmp_path`, as `CLAUDE.md` allows. `build_boundaries` and the layers are untouched.
    - Scope: the story is within the feature's scope, which lists the same S0006 files. The earlier-test changes rest on the human's leave in decision 11, which is granted and names each of the 17 tests. `agent_home` stays optional, as decision 10 says. The `CLAUDE.md` example change is the human's separate change after the merge, not this story's.
+4. factory: started tests as self.
