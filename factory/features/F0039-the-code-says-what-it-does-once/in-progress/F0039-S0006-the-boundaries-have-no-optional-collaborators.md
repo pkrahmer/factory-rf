@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T05:55:43.528531Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-21T05:55:43.528531Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-10-21T05:58:27.860565Z'
+  stage: tests
+  run: 661bcdaf8817440185aef0aef0618685
 ---
 
 # The boundaries have no optional collaborators
@@ -236,3 +238,18 @@ Expect: one line, `0` (before the story, `1`)
 
     Still open: `CountingGit` in `tests/application/test_known_results.py` has no user since an earlier test was removed. The tester raised this before; the human's answer does not cover it, so it stays.
 11. factory: started tests as self.
+12. tester: I made the test change the human approved in entry 8, as the coder named it in entry 10. I changed only those two tests, and each keeps its name and its other rows.
+
+    - `tests/application/test_cost_instance.py::test_a_cost_record_names_the_instance_of_the_settings_and_keeps_it_when_completed`: removed the `no-settings` row `(None, None)` and its id. The parameters are now typed `settings: InstanceSettings` and `expected: str`. The `settings` row is the only one left; I kept it as a one-row parametrize so the test's shape stays as it was.
+    - `tests/application/test_stop_records_service.py::test_a_raise_appends_a_raised_record_when_no_stop_of_its_reason_stands`: removed the `no-settings` row. With it went the `with_settings` parameter (from the argnames, from each remaining row's leading `True` and from the signature) and the line `settings = local_settings if with_settings else None`. The service is now built with `settings=local_settings`.
+
+    Why: decision 8 and the Interface make `Boundaries.settings` required, and these rows tested the "no settings gives instance `None`" branches that the story removes.
+
+    Not changed: the helper `_raised` in test_stop_records_service.py still takes `instance: str | None`. The approved change does not name it, and it still type-checks. `CountingGit` in test_known_results.py is also still there with no user; this is still open for the human, as earlier entries say.
+
+    No files created. The test run imported every module.
+
+    `make test`: test: green (61.7 s), coverage 99.14 %. `make lint`: lint: green (0.2 s).
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (61.1 s)

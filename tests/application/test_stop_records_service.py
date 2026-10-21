@@ -42,31 +42,22 @@ def _raised(reason: RepositoryStopReason, minute: int, instance: str | None) -> 
 
 
 @pytest.mark.parametrize(
-    ("with_settings", "stops", "expected"),
+    ("stops", "expected"),
     [
         pytest.param(
-            True,
             [_stop("fetch_failed")],
             [_raised("fetch_failed", 0, INSTANCE)],
             id="first-raise",
         ),
         pytest.param(
-            True,
             [_stop("fetch_failed"), _stop("fetch_failed", 1)],
             [_raised("fetch_failed", 0, INSTANCE)],
             id="second-raise-while-standing",
         ),
         pytest.param(
-            True,
             [_stop("fetch_failed"), _stop("disk_low", 1)],
             [_raised("fetch_failed", 0, INSTANCE), _raised("disk_low", 1, INSTANCE)],
             id="other-reason-while-standing",
-        ),
-        pytest.param(
-            False,
-            [_stop("fetch_failed")],
-            [_raised("fetch_failed", 0, None)],
-            id="no-settings",
         ),
     ],
 )
@@ -75,12 +66,10 @@ def test_a_raise_appends_a_raised_record_when_no_stop_of_its_reason_stands(
     local_settings: InstanceSettings,
     records: JsonLinesRecordLog[StopRecord],
     *,
-    with_settings: bool,
     stops: list[RepositoryStop],
     expected: list[StopRecord],
 ) -> None:
-    settings = local_settings if with_settings else None
-    service = StopService(replace(boundaries, stop_records=records, settings=settings))
+    service = StopService(replace(boundaries, stop_records=records, settings=local_settings))
 
     for stop in stops:
         service.raise_stop(stop)
