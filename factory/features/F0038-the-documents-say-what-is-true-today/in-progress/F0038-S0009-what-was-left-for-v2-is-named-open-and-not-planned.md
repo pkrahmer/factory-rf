@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T08:10:19.535288Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T08:10:19.535288Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T08:10:38.549567Z'
+  stage: review
+  run: 6877e294c0344afbadde5ee1cc5fa13c
 ---
 
 # What was left for v2 is named open and not planned
@@ -137,3 +139,18 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   I reviewed `git diff main...HEAD -- . ':!factory'`, which is empty. The only changes on the branch are the work item and its `.costs.jsonl` sidecar under `factory/`. This matches the Interface ("None") and criterion 1: nothing changes under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The tester's entry (5) and the coder's entry (7) each say so. The coder's entry records `check: green`, from the factory's passed result on the tree, which criterion 2 needs. `duplicates: 0 new`.
+
+   Criterion 3 is the documenter's next. I checked its quoted old text against `docs/decisions.md` on this branch, and every quoted text is there:
+   - the heading at line 294
+   - the mark "Replaced on 2026-10-20 by ... (F0040-S0002). " at the start of line 296
+   - "Left for v2 (closed on 2026-10-20 by ...)." and "Open: the kill of a timed-out agent under `sudo`." at line 304
+   - "Left for v2: the clone's working folder" and "the operator guide's morning observation" in the "Rejected: a sticky bit" paragraph at line 452
+   - the citation of the old title at line 958
+   - the "*The agent's home stays writable by the agent (L69) ... Left for v2*" sentence at line 976
+
+   `README.md`, `docs/operator-guide.md` and `docs/project-guide/*.md` already say "left for v2" nowhere. The docs criterion still says what the reader must know after this story. The Description matches what the story is to deliver, and the coder's journal entry gives the main choice (leave the log to the docs stage) and what was rejected.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
