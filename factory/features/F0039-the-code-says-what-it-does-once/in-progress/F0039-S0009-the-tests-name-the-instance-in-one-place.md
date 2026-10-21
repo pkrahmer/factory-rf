@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 403
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T09:14:38.817732Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-21T09:14:38.817732Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-21T09:15:00.929651Z'
+  stage: intake
+  run: f9a8aa83b9bc4c65a4dec10f205f7757
+  blocked: question
 ---
 
 # The tests name the instance in one place
@@ -87,3 +90,15 @@ Expect: one line, `1` (before the story, `0`)
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: 1. Criterion 3 ("the ids that `pytest --collect-only` lists for the modules the Interface names are the same before and after the story, and all of them pass") cannot be tested by one test function. A test cannot see the ids from before the story, and the criterion names no stored list to compare with. It is a check on the work, not on the behaviour. The options I see:
+      (a) Drop criterion 3. `make check` (criterion 4) already runs every earlier test, and the standing leave in `CLAUDE.md` (*Tests*) already requires that each earlier test keeps its name. I would choose this one.
+      (b) Keep it as a note for the reviewer and not as a criterion. It would move to the Description.
+      (c) Make it testable: the criterion names a file with the ids, committed by the story, and a test compares `--collect-only` against it. This adds a maintenance burden for no gain.
+
+   The other checks found nothing to ask.
+   - Format check: passed.
+   - Interface: modules and signatures are concrete (`instance_copies(source) -> list[str]`, the full list of modules, `OWN = INSTANCE`).
+   - Rules with a failing side: the guard's rules each have a row in criterion 2, covering annotated, `OWN = INSTANCE`, a function, a class and a different value.
+   - Smoke test: the commands are runnable. pytest's `addopts` sets `-q`, and the command passes none. Every `Expect:` line is checkable.
+   - Architecture: the story changes only `tests/` and one docs line.
+   - Scope: it is within F0039's scope (*Shared test helpers*, the standing leave for constants). It touches nothing under *Out of scope*, and `ENVIRONMENT` stays out.
