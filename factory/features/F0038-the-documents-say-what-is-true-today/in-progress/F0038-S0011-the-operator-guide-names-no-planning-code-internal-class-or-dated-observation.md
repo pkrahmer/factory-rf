@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 401
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T09:04:18.708563Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T09:04:18.708563Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T09:04:32.507166Z'
+  stage: review
+  run: c0ca0b053be84ba29a5310904cfe32dd
 ---
 
 # The operator guide names no planning code, internal class or dated observation
@@ -131,3 +133,11 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 746e4c61c5e9 at 2026-10-21T08:53:42Z)
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar (`git diff --name-status main...HEAD`), so nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` has changed.
+   - Acceptance criteria: criterion 1 holds. The tester's entry (5) and the coder's entry (7) both say nothing changes under the listed folders, and the diff agrees. Criterion 2 holds: the factory's check after the coder is green (entry 7, `check: green`), and `duplicates` reports 0 new. Criterion 3 is the documenter's job: the five passages in `docs/operator-guide.md` and `make documents`. It needs no test, because the story states no rule under `src/` that could have a failing side.
+   - Architecture and security: no code changed, so nothing applies.
+   - Quality: there is no code, docstring or generated contract to judge.
+   - Work item hygiene: the Description still matches what was built. It says the documenter changes only `docs/operator-guide.md`, and nothing else has changed. The docs criterion names the five replacements word for word and says how to check them. The coder's entry explains the main choice, leaving the guide to the documenter, and the rejected alternative.
+   - Earlier tests: the diff changes, renames or deletes no test file that `main` already holds.
