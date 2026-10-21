@@ -318,36 +318,7 @@ To change what an agent is told, edit its file under `claude/agents/`; there is 
 
 `template/` is what a new project starts from, laid out as the project's tree. It holds three files and nothing else:
 
-- `template/factory/pipeline.yml`, the starting pipeline definition. Its roles are the seven agents above. The stages run `intake`, `tests`, `doing`, `review`, `docs`, `smoke-test`, then `approval`; `acceptance` is the acceptance stage. Copy it to `factory/pipeline.yml` and adjust it.
-
-  ```yaml
-  contract: "1.0"
-  attempts_cap: 2
-  crash_cap: 2
-  acceptance_stage: acceptance
-  project_commands:
-    check: {time_limit: 10}
-    lint: {time_limit: 5}
-    test: {time_limit: 10}
-  roles:
-    intake: {write_paths: ["{work_item}"]}
-    tester: {write_paths: ["tests/*"]}
-    coder: {write_paths: ["src/*"]}
-    reviewer: {write_paths: ["{work_item}"]}
-    documenter: {write_paths: ["README.md", "docs/*"]}
-    smoke-tester: {write_paths: ["{work_item}"]}
-    acceptance-reviewer: {write_paths: ["{work_item}", "{feature}/backlog/*"]}
-  stages:
-    intake: {role: intake, next: [tests]}
-    tests: {role: tester, next: [doing], checks: [lint], reports: [test]}
-    doing: {role: coder, next: [review, tests], checks: [check]}
-    review: {role: reviewer, next: [docs, doing], round_cap: 3}
-    docs: {role: documenter, next: [smoke-test, doing], checks: [check], round_cap: 3}
-    smoke-test: {role: smoke-tester, next: [approval, doing], round_cap: 3}
-    acceptance: {role: acceptance-reviewer, next: [approval]}
-    approval: {approval: true, next: [done, doing]}
-    done: {}
-  ```
+- `template/factory/pipeline.yml`, the starting pipeline definition. Its roles are the seven agents above. The stages run `intake`, `tests`, `doing`, `review`, `docs`, `smoke-test`, then `approval`; `acceptance` is the acceptance stage. Copy it to `factory/pipeline.yml` and adjust it. The file holds the three project commands `check`, `lint` and `test` with their `time_limit`s, the `tool_paths` the project's tools may write besides the write paths, the seven roles with their write paths, and the stages. This guide does not copy it, because a copy goes stale with every change of the file: read the file itself.
 
   The coder's write path is `src/*` only; a project that keeps code elsewhere changes it.
 - `template/CLAUDE.md`, the starting rules file of a Python project. It has placeholders in angle brackets for the project's own architecture, test framework and checks, and it carries the Python lessons of v1.1's build (the `mypy --strict` traps in tests, low-entropy hexadecimal test values, and the time-limit lesson: a test that waits for a time limit gives the process it starts room to start). It also gives a standing leave to move a shared test helper: a helper, constant or fixture that a new test would copy from another story's test module, or that an earlier module still holds as a copy, may be moved to one shared place under `tests/`, and the earlier tests changed to use it, without asking, as long as every earlier test keeps its name and checks the same thing. The tester makes the move, never the coder; any other change to another story's test still needs the human's leave.
