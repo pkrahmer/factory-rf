@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T08:13:43.521893Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-21T08:13:43.521893Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T08:14:20.187548Z'
+  stage: review
+  run: d62974da58874f719db8550ca71841c1
 ---
 
 # What was left for v2 is named open and not planned
@@ -294,3 +296,19 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
 16. factory: started review as self.
+17. reviewer: no findings
+
+    I reviewed `git diff main...HEAD -- . ':!factory'`. It changes one file, `docs/decisions.md`. The documenter changed it in the earlier docs stage, and the coder changed nothing in round 1. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed, so criterion 1 holds. The journal records `check: green` on this tree (entries 7 and 15), so criterion 2 holds. The Interface is "None", so no rule needs a test. No architecture, security or code-quality point applies to a change that touches only documents.
+
+    I checked the diff against the docs criterion:
+    - The old entry has the new heading `## The project commands first ran as the factory's user; replaced`. Under it, a paragraph of its own says "Replaced by ...". The F0040-S0002 mark is gone, and the next paragraph begins "Date: 2026-10-16". The rest of its text is unchanged.
+    - *The project commands run as the agent user, with the git folder sealed* cites the new title.
+    - The paragraph on the agent's writable home now says "Closed by ...". It points the `sudo` kill question to *The agent's own `timeout` kills a run under `sudo` at its time limit*.
+    - The "Rejected: a sticky bit" paragraph says "Open, not planned (see *v2 is retired; nothing is left for v2*)" and "one of the operator guide's checks on a running instance".
+    - *Every agent run and every project command starts from a fresh agent home* cites *The agent is started through `sudo -n -u agent -- env -i`, and a run's files are `0640`*.
+    - The new last entry is in bullet form. It names the four closed gaps with their entries, and the one gap that is open and not planned.
+    - The smoke tester's grep output (entry 13) confirms that the old words and the old title are gone, and that every cited title is a heading.
+
+    Open for the docs stage, not a finding against the coder: the smoke tester's finding in entry 13 still holds on this tree. The new entry `## v2 is retired; nothing is left for v2` (the last entry in `docs/decisions.md`) has no date line, but the docs criterion asks for it to be "dated with the story". The fix is a paragraph `Date: 2026-10-21 (F0038-S0009).` between the heading and the first bullet, as the entries above it have. `docs/decisions.md` is the documenter's file, and the coder cannot write it (entry 15). Sending this back to `doing` would only loop, so I end with `docs`, the stage that writes that line.
+
+    Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
