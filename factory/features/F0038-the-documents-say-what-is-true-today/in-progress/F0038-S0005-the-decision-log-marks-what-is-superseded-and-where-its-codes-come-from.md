@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 393
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T07:24:30.695613Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T07:24:30.695613Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T07:24:49.123567Z'
+  stage: intake
+  run: d4d5f60cafb242b0bb5e0079f8f745d0
 ---
 
 # The decision log marks two superseded entries, the removal of `factory/v1/`, and where its codes come from
@@ -71,3 +73,9 @@ Expect: `documents ok`
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is right for this story. It changes only `docs/decisions.md`, and the Interface says that nothing under `src/`, tests, image, template, demo or agents changes. There is no signature or behaviour to specify.
+   - Criteria: each is checkable by one test or command. Criterion 1 is a path diff. Criterion 3 gives the exact text and place of each of the four additions, so there is nothing to interpret. The Interface states no rule, so there is no failing side to cover. I checked that the cited titles are headings of the log: *Mutation testing is limited to one feature's modules* (line 359), *The document check runs in the docs stage; the default identity has one home* (351), *The project guide is an index and one file per domain* (698). The headings *No `mutants` target, no mutmut* (13), *The four documents are checked by a command, ...* (343) and *factory-rf is built by v1.1 since the handover* (554) are also present. The bullet that begins "- Decision: v1's" exists at line 558.
+   - Smoke test: the commands are runnable and each `Expect:` is checkable. The `sed` ranges end at the `^The acceptance reviewer` line (line 15) and at `^Date:` (line 345), and both exist. The expected counts follow from the criteria: `1`, `1`, `2` (two lines match), then one heading each. No pytest command is involved, so there is no `-q` issue.
+   - Architecture: this is a documents-only change to the decision log, which the documenter keeps. Nothing touches the layers, the wrappers or the interfaces.
+   - Scope: it matches `feature.md`, whose scope lists S0005 with findings H7, M12 and M6 for `docs/decisions.md`. It leaves out the mutation entries after *Mutation testing is limited to one feature's modules*, which are F0032's, and the S0009 items. It changes no test of another story.
