@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T00:56:35.682518Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T00:56:15.236026Z'
   stage: review
   run: 2e0c131db96c41ccbf557a0a35119599
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:56:35.682518Z'
+  stage: doing
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -238,3 +247,4 @@ Expect: one line, `1` (before the story, `0`)
    - tests/entry/test_wiring_human_handlers.py: standing leave.
 
    Considered and not raised: the walk over `tests/` in `test_each_shared_reading_is_written_in_one_module` is similar to `_defining` in `tests/test_shared_fixtures.py`. But that test takes a predicate rather than a regex, and the story leaves `test_shared_fixtures.py` unchanged. `tests/source_search.py` reads `src/factory`, not `tests/`, so the guard copies no shared helper. I did not run `make check`.
+10. factory: started doing as self.
