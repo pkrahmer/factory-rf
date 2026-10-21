@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 376
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T00:05:27.694943Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T00:05:06.097809Z'
   stage: tests
   run: 4bcdefe4a24d4299b8f6ab60ed1cc1d0
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:05:27.694943Z'
+  stage: doing
 ---
 
 # The documents say that project commands run as the agent, and how to check it
@@ -106,3 +115,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.6 s)
    `test`: test: green (63.9 s)
+6. factory: started doing as self.
