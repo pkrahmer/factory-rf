@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T01:29:40.495946Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-21T01:29:20.381486Z'
   stage: doing
   run: 0c411aff3adc413ebce514311d5b54f2
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:29:40.495946Z'
+  stage: tests
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -427,3 +436,4 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     What the journal changed: the reviewer added criterion 5, which is already in the Acceptance criteria with the closing ones renumbered 6 and 7. The Description needs no rewrite.
 
     Noticed but not touched: the `docs/project-guide/README.md` lines in criterion 7 are the documenter's work.
+23. factory: started tests as self.
