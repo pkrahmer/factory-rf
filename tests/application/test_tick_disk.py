@@ -58,9 +58,7 @@ def _handlers(_definition: PipelineDefinition) -> Mapping[EventKind, Handler]:
     return {"idle": IdleHandler()}
 
 
-def _tick(
-    boundaries: Boundaries, disk: FakeDiskSpace | None, settings: InstanceSettings | None
-) -> TickOutcome:
+def _tick(boundaries: Boundaries, disk: FakeDiskSpace, settings: InstanceSettings) -> TickOutcome:
     return Tick(replace(boundaries, disk=disk, settings=settings), INSTANCE, _handlers).run()
 
 
@@ -187,25 +185,3 @@ def test_a_tick_with_enough_room_clears_the_low_disk_stop(
     assert outcome.stopped is None
     assert _disk_stops(boundaries) == []
     assert any(line.endswith("stop cleared disk_low") for line in log_lines(tmp_path))
-
-
-@pytest.mark.parametrize(
-    ("with_disk", "with_settings"),
-    [(True, False), (False, True)],
-    ids=["without-settings", "without-disk"],
-)
-def test_a_tick_without_a_disk_or_settings_reads_nothing_and_runs_on(
-    boundaries: Boundaries,
-    settings: InstanceSettings,
-    *,
-    work: Path,
-    state: Path,
-    with_disk: bool,
-    with_settings: bool,
-) -> None:
-    disk = FakeDiskSpace(free={work: SHORT, state: SHORT})
-
-    outcome = _tick(boundaries, disk if with_disk else None, settings if with_settings else None)
-
-    assert outcome.stopped is None
-    assert disk.asked == []

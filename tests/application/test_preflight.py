@@ -258,8 +258,9 @@ def test_the_extra_items_run_last_in_order_and_are_reported_with_the_others(
 def test_the_items_read_the_settings_given_and_not_those_of_the_boundaries(
     ready: Boundaries, installed: Path
 ) -> None:
-    assert ready.settings is None
+    settings = _settings(installed)
+    assert ready.settings != settings
 
-    report = MachineChecks(ready, _settings(installed), DictionaryWhich(ALL_TOOLS)).run()
+    report = MachineChecks(ready, settings, DictionaryWhich(ALL_TOOLS)).run()
 
     assert report.failed() == []

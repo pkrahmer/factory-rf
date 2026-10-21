@@ -117,16 +117,14 @@ def test_a_cost_record_names_the_image_of_the_settings_and_keeps_it_when_complet
     assert launched.cost.records[-1].image == "build-7"
 
 
-@pytest.mark.parametrize(
-    "settings", [None, _settings(None)], ids=["no-settings", "settings-without-image"]
-)
+@pytest.mark.parametrize("settings", [_settings(None)], ids=["settings-without-image"])
 def test_a_cost_record_has_no_image_when_the_settings_name_none(
     boundaries: Boundaries,
     *,
     human: HumanClone,
     agent_home: Path,
     agent_runtime: FakeAgentRuntime,
-    settings: InstanceSettings | None,
+    settings: InstanceSettings,
 ) -> None:
     used = replace(boundaries, settings=settings)
     launched = _launch(used, human, agent_home, agent_runtime)

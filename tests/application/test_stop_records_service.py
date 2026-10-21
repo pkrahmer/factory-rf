@@ -125,27 +125,6 @@ def test_a_clear_of_a_standing_stop_appends_a_cleared_record_at_the_clock_time(
     assert all(record.instance == INSTANCE for record in written)
 
 
-def test_without_stop_records_a_raise_and_a_clear_write_only_the_log_and_the_health_status(
-    boundaries: Boundaries, tmp_path: Path
-) -> None:
-    service = StopService(boundaries)
-
-    service.raise_stop(_stop("fetch_failed"))
-    assert boundaries.health.read().stops == [_stop("fetch_failed")]
-    service.clear_stop("fetch_failed")
-
-    assert boundaries.health.read().stops == []
-    texts = [line.split(" ", 1)[1] for line in log_lines(tmp_path)]
-    assert texts == [
-        "stop repository fetch_failed: fetch_failed detail",
-        "stop cleared fetch_failed",
-    ]
-    assert sorted(path.name for path in (tmp_path / "state").iterdir()) == [
-        "factory.log",
-        "health.json",
-    ]
-
-
 def _raise(service: StopService) -> None:
     service.raise_stop(_stop("fetch_failed"))
 

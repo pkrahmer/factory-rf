@@ -434,6 +434,7 @@ def test_the_sidecar_is_written_again_after_the_undo(
         end_reason="completed",
         denials=0,
         denied_paths=[],
+        instance="factory-1",
     )
     assert _records_at(boundaries, report.commit) == [expected]
 

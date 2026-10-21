@@ -1,7 +1,6 @@
 """The disk recorder measures the instance's folders and keeps the measure."""
 
 import re
-from collections.abc import Callable
 from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
@@ -132,40 +131,16 @@ def test_a_record_that_cannot_be_appended_is_logged_with_the_error_and_still_ret
     assert re.fullmatch(STAMP + "cannot write the disk record: disk full", second)
 
 
-@pytest.mark.parametrize(
-    "without",
-    [
-        pytest.param(lambda b: replace(b, disk=None), id="disk"),
-        pytest.param(lambda b: replace(b, disk_records=None), id="disk_records"),
-        pytest.param(lambda b: replace(b, settings=None), id="settings"),
-    ],
-)
-def test_boundaries_without_disk_records_or_settings_record_nothing(
-    recorded: Boundaries,
-    disk_records: JsonLinesRecordLog[DiskRecord],
-    tmp_path: Path,
-    without: Callable[[Boundaries], Boundaries],
-) -> None:
-    given = without(recorded)
-
-    record = DiskRecorder(given).record("start")
-
-    assert record is None
-    assert disk_records.read() == []
-    assert log_lines(tmp_path) == []
-
-
 def _at(clock: ManualClock, hours: int, occasion: DiskOccasion) -> DiskRecord:
     return DiskRecord(at=clock.now() + timedelta(hours=hours), occasion=occasion, folders=[])
 
 
 @pytest.mark.parametrize(
-    ("occasions", "with_log"),
+    "occasions",
     [
-        pytest.param(["start", "acceptance"], True, id="acceptance-after-start"),
-        pytest.param(["acceptance", "start"], True, id="start-after-acceptance"),
-        pytest.param([], True, id="empty-log"),
-        pytest.param([], False, id="no-record-log"),
+        pytest.param(["start", "acceptance"], id="acceptance-after-start"),
+        pytest.param(["acceptance", "start"], id="start-after-acceptance"),
+        pytest.param([], id="empty-log"),
     ],
 )
 def test_last_gives_the_latest_record_whatever_its_occasion(
@@ -173,16 +148,12 @@ def test_last_gives_the_latest_record_whatever_its_occasion(
     disk_records: JsonLinesRecordLog[DiskRecord],
     disk: FakeDiskSpace,
     clock: ManualClock,
-    *,
     occasions: list[DiskOccasion],
-    with_log: bool,
 ) -> None:
     written = [_at(clock, hours, occasion) for hours, occasion in enumerate(occasions)]
     for record in written:
         disk_records.append(record)
-    given = recorded if with_log else replace(recorded, disk_records=None)
-
-    last = DiskRecorder(given).last()
+    last = DiskRecorder(recorded).last()
 
     assert last == (written[-1] if written else None)
     assert disk.asked == []

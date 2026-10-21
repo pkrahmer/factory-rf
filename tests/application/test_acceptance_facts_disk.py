@@ -1,6 +1,5 @@
 """The acceptance reviewer's facts record the disk and name the record before it."""
 
-from collections.abc import Callable
 from dataclasses import replace
 
 import pytest
@@ -57,23 +56,3 @@ def test_a_start_record_is_the_previous_record(walk: AcceptanceWalk, recorded: B
 
     assert facts.disk_before == disk_line(start)
     assert disk_line(start).startswith("disk start: ")
-
-
-@pytest.mark.parametrize(
-    "without",
-    [
-        pytest.param(lambda b: replace(b, disk=None), id="disk"),
-        pytest.param(lambda b: replace(b, disk_records=None), id="disk_records"),
-        pytest.param(lambda b: replace(b, settings=None), id="settings"),
-    ],
-)
-def test_without_the_disk_the_records_or_the_settings_the_facts_carry_no_disk(
-    walk: AcceptanceWalk,
-    recorded: Boundaries,
-    disk_records: JsonLinesRecordLog[DiskRecord],
-    without: Callable[[Boundaries], Boundaries],
-) -> None:
-    facts = AcceptanceService(without(recorded), walk.definition).facts(FEATURE)
-
-    assert (facts.disk_now, facts.disk_before) == (None, None)
-    assert disk_records.read() == []

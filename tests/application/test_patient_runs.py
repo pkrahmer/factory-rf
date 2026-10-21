@@ -263,18 +263,6 @@ def test_a_limited_run_with_nothing_left_ends_without_a_wait(
     assert waiter.waits == []
 
 
-def test_without_a_waiter_a_limited_run_comes_back_after_one_call(
-    boundaries: Boundaries, agent_runtime: FakeAgentRuntime
-) -> None:
-    limited = _limited()
-    _queue(agent_runtime, limited, _completed())
-
-    result = PatientRuns(boundaries).run(_request(boundaries))
-
-    assert result == limited
-    assert len(agent_runtime.requests()) == 1
-
-
 @pytest.mark.parametrize(
     ("named", "waited"),
     [
@@ -282,7 +270,7 @@ def test_without_a_waiter_a_limited_run_comes_back_after_one_call(
         pytest.param(timedelta(hours=3), timedelta(seconds=7200), id="default-ceiling"),
     ],
 )
-def test_without_settings_the_default_limit_applies(
+def test_with_the_default_settings_the_default_limit_applies(
     boundaries: Boundaries,
     agent_runtime: FakeAgentRuntime,
     waiter: ManualWaiter,
@@ -290,7 +278,11 @@ def test_without_settings_the_default_limit_applies(
     named: timedelta | None,
     waited: timedelta,
 ) -> None:
-    unset = replace(boundaries, waiter=waiter, settings=None)
+    unset = replace(
+        boundaries,
+        waiter=waiter,
+        settings=InstanceSettings(repository_url="/srv/project.git", instance="factory-1"),
+    )
     _queue(agent_runtime, _limited(wait=named), _completed())
 
     PatientRuns(unset).run(_request(unset))

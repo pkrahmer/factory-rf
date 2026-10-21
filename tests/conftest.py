@@ -12,10 +12,11 @@ from acceptance_walk import AcceptanceWalk
 from compose_support import COMPOSE
 from confine_support import Layout, build_layout
 from definition_support import pipeline_definition
+from disk_support import FakeDiskSpace
 from entrypoint_support import Layout as ImageLayout
 from factory.adapters import claude_runtime
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
-from factory.adapters.clock import ManualClock
+from factory.adapters.clock import ManualClock, ManualWaiter
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
@@ -31,6 +32,7 @@ from factory.domain.disk import DiskRecord
 from factory.domain.git import GitOptions
 from factory.domain.identifiers import WorkItemId
 from factory.domain.kill_points import KillPoints
+from factory.domain.known_results import ResultRecord
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.settings import InstanceSettings
 from factory.domain.stops import StopRecord
@@ -194,7 +196,12 @@ def boundaries(
     kill_points: KillPoints,
     clock: ManualClock,
 ) -> Boundaries:
-    """Return the interfaces on the test's checkout, fakes and clock, the state under `tmp_path`."""
+    """Return the interfaces on the test's checkout, fakes and clock, the state under `tmp_path`.
+
+    Every feature is on: the settings name `factory-1` and the test's checkout, state and agent
+    home; the fake disk has ample room; the disk, stop and known-result records lie under
+    `<tmp_path>/state/records/`; the waiter is a manual one on the `clock` fixture.
+    """
     state = tmp_path / "state"
     return Boundaries(
         git=checkout,
@@ -211,6 +218,18 @@ def boundaries(
         log=TimestampedFactoryLog(state / "factory.log", clock),
         health=JsonHealthStatusFile(state / "health.json"),
         checkout=tmp_path / CHECKOUT,
+        settings=InstanceSettings(
+            repository_url="/srv/project.git",
+            instance="factory-1",
+            checkout=tmp_path / CHECKOUT,
+            state_directory=state,
+            agent_home=agent_home,
+        ),
+        disk=FakeDiskSpace(free={tmp_path: 10**12, state: 10**12}, used={tmp_path: 1, state: 1}),
+        disk_records=JsonLinesRecordLog(state / "records" / "disk.jsonl", DiskRecord),
+        stop_records=JsonLinesRecordLog(state / "records" / "stops.jsonl", StopRecord),
+        waiter=ManualWaiter(clock),
+        result_records=JsonLinesRecordLog(state / "records" / "known-results.jsonl", ResultRecord),
     )
 
 

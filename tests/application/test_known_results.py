@@ -117,34 +117,14 @@ def _rig(
     boundaries: Boundaries,
     tmp_path: Path,
     answer: Callable[[str, timedelta], CheckResult],
-    *,
-    with_records: bool = True,
 ) -> Rig:
     commands = RecordingCommands(answer)
     records = JsonLinesRecordLog(
         tmp_path / "state" / "records" / "known-results.jsonl", ResultRecord
     )
-    rigged = replace(
-        boundaries, project_commands=commands, result_records=records if with_records else None
-    )
+    rigged = replace(boundaries, project_commands=commands, result_records=records)
     definition = rigged.pipeline_reader.parse(DEFINITION_YAML)
     return Rig(rigged, commands, records, definition, tmp_path)
-
-
-def test_without_records_every_run_reaches_the_project_commands_and_no_key_is_built(
-    boundaries: Boundaries, tmp_path: Path, clock: ManualClock
-) -> None:
-    counting = CountingGit(boundaries.checkout)
-    rig = _rig(replace(boundaries, git=counting), tmp_path, _answering(clock), with_records=False)
-    known = rig.known()
-
-    first = known.run("check")
-    second = known.run("check")
-
-    assert rig.commands.calls == [("check", TIME_LIMIT), ("check", TIME_LIMIT)]
-    assert first == second == _result("check", 0)
-    assert not (tmp_path / "state" / "records" / "known-results.jsonl").exists()
-    assert counting.calls == 0
 
 
 def test_a_first_run_is_recorded_under_its_key_at_the_time_before_it(

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 385
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T02:08:56.158350Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T02:08:56.158350Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T02:15:01.562129Z'
+  stage: tests
+  run: 20a1addaee2848efbeab3071612dfcbb
 ---
 
 # The boundaries have no optional collaborators
@@ -118,3 +120,43 @@ Expect: one line, `0` (before the story, `1`)
    - Architecture: `Boundaries` stays in `factory.application`. The collaborators are existing interfaces (`DiskSpace`, `RecordLog`, `Waiter`). The test fakes and real `JsonLinesRecordLog` are used under `tmp_path`, as `CLAUDE.md` allows. `build_boundaries` and the layers are untouched.
    - Scope: the story is within the feature's scope, which lists the same S0006 files. The earlier-test changes rest on the human's leave in decision 11, which is granted and names each of the 17 tests. `agent_home` stays optional, as decision 10 says. The `CLAUDE.md` example change is the human's separate change after the merge, not this story's.
 4. factory: started tests as self.
+5. tester: Tests written. I made the fixture changes and the seventeen earlier test changes under the human's leave (the feature's decision 11), and added a new module for criteria 1 and 2.
+
+   Criteria → tests:
+   - criterion 1: tests/application/test_boundaries_required.py::test_boundaries_without_one_of_the_collaborators_are_refused. It has one row per field (settings, disk, disk_records, stop_records, waiter, result_records). Without that field, `Boundaries` called through `Callable[..., Boundaries]` must raise `TypeError`. With all fields it must build a `Boundaries` equal to the fixture's.
+   - criterion 2: tests/application/test_boundaries_required.py::test_the_fixture_boundaries_carry_every_feature
+   - criterion 3: covered by the existing tests/entry/test_wiring_boundaries.py, test_wiring_known_results.py, test_wiring_record_logs.py, test_wiring_stop_records.py and test_wiring_waiter.py. In the first, `test_the_built_boundaries_read_the_disk_and_boundaries_without_one_have_none` became `test_the_built_boundaries_read_the_disk`, without `others` and its last assertion. I dropped the `fields` and `Boundaries` imports that nothing used any more.
+   - criterion 4: covered by the seventeen tests of decision 11 as changed, the other tests of their modules, and test_tick.py, test_stage_known_results.py, test_stage_provider_limit.py, test_tick_stop_records.py and test_sealed_runs_runner.py. The grep for `None` comparisons is in the smoke test, not in pytest.
+   - criteria 5 and 6: `make check` and the docs, so no tests.
+
+   Earlier test files changed under decision 11:
+   - tests/conftest.py: the `boundaries` fixture now sets all six fields exactly as the Interface gives them, and its docstring names them.
+   - tests/proof_support.py: `_assemble` sets the same six under `root` and `state`, with `instance=INSTANCE`.
+   - test_boundaries_settings.py: the test is renamed `test_boundaries_hold_the_settings_they_are_given`, and the `is None` assertion is gone.
+   - test_costs.py: the expected `CostRecord` now has `instance="factory-1"`.
+   - test_patient_runs.py:
+     - the without-a-waiter test is removed;
+     - `test_with_the_default_settings_the_default_limit_applies` now uses `InstanceSettings(repository_url="/srv/project.git", instance="factory-1")`, rows unchanged.
+   - test_preflight.py: `assert ready.settings is None` became `assert ready.settings != settings`, where `settings` is the one the test gives.
+   - test_stage_run_acceptance.py and test_task_acceptance.py: the expected facts are the later `facts()` with `disk_before=None`. The line slices grew by the two disk lines. A new assertion checks those two lines: `{tmp_path}` and `{tmp_path}/state`, each "1000.0 GB free, 0.0 GB used", and "Disk at the previous record: none".
+   - test_stop_records_service.py: the without-stop-records test is removed.
+   - test_acceptance_facts_disk.py: the without-disk test is removed, along with the `Callable` import.
+   - test_disk_recorder.py: the record-nothing test is removed. In `test_last_gives_the_latest_record_whatever_its_occasion`, the `no-record-log` row and `with_log` are gone, and `Callable` is no longer imported.
+   - test_known_results.py: the without-records test is removed, and `with_records` is gone from `_rig`.
+   - test_stop_publisher.py: the `no-record-log` row and `with_records` are gone.
+   - test_tick_disk.py: the without-disk-or-settings test is removed, and `_tick` no longer takes `| None`.
+   - test_cost_image.py: the `no-settings` row is gone, and the parameter is typed `InstanceSettings`.
+   - test_task_os_user.py: the `no-settings` row and `NO_SETTINGS` are gone.
+
+   Files created: tests/application/test_boundaries_required.py.
+
+   `make test` failed for the right reason: only the six rows of the criterion-1 test failed ("DID NOT RAISE TypeError"), because the fields still have defaults. I read the list of failures from .reports/junit.xml and did not run the tests again. Every other test passes with the new fixture, the criterion-2 test included, since it checks the fixture. Every module was imported; none was missing. `make lint` is green.
+
+   Notes:
+   - The Interface leaves the list of the seventeen tests to "the feature's decision 11", so I read that one entry of feature.md and nothing else of it.
+   - After the removed test, the class `CountingGit` in test_known_results.py has no user. The leave names only imports, parameters and `| None`, so I left the class in place. The human can decide whether it goes.
+   - I kept `assert ... is not None` lines in helpers that still type-check (`_limit` in test_patient_runs.py, `test_a_start_record_is_the_previous_record`), because decision 11 does not name them.
+   - The type check was not run, as this stage says.
+
+   `lint`: lint: green (0.6 s)
+   `test`: FAILED tests/application/test_boundaries_required.py::test_boundaries_without_one_of_the_collaborators_are_refused[result_records] - Failed: DID NOT RAISE TypeError

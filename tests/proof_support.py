@@ -9,8 +9,9 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Final
 
+from disk_support import FakeDiskSpace
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
-from factory.adapters.clock import ManualClock
+from factory.adapters.clock import ManualClock, ManualWaiter
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
@@ -19,19 +20,24 @@ from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
 from factory.application.costs import read_cost_records
 from factory.application.tick import Tick
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.cost_records import CostRecord
+from factory.domain.disk import DiskRecord
 from factory.domain.git import CommitId, GitOptions
 from factory.domain.hosting import PostKind, PullRequestComment, PullRequestView
 from factory.domain.identifiers import Name, WorkItemId, branch_name
 from factory.domain.journal import HUMAN, JournalRecord, NewEntry, append_entry
 from factory.domain.kill_point_cases import KILL_POINT_CASES, KillPointCase
 from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.domain.known_results import ResultRecord
 from factory.domain.paths import cost_records_path
+from factory.domain.settings import InstanceSettings
+from factory.domain.stops import StopRecord
 from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 from factory.entry.wiring import agent_environment, handler_factory
 from git_support import (
@@ -164,6 +170,18 @@ def _assemble(
         log=TimestampedFactoryLog(state / "factory.log", clock),
         health=JsonHealthStatusFile(state / "health.json"),
         checkout=checkout,
+        settings=InstanceSettings(
+            repository_url="/srv/project.git",
+            instance=INSTANCE,
+            checkout=checkout,
+            state_directory=state,
+            agent_home=root / "agent-home",
+        ),
+        disk=FakeDiskSpace(free={root: 10**12, state: 10**12}, used={root: 1, state: 1}),
+        disk_records=JsonLinesRecordLog(state / "records" / "disk.jsonl", DiskRecord),
+        stop_records=JsonLinesRecordLog(state / "records" / "stops.jsonl", StopRecord),
+        waiter=ManualWaiter(clock),
+        result_records=JsonLinesRecordLog(state / "records" / "known-results.jsonl", ResultRecord),
     )
     environment = agent_environment(root / "scripts", root / "home")
     tick = Tick(boundaries, INSTANCE, handler_factory(boundaries, INSTANCE, environment))
