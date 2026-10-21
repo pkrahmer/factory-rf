@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 388
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T06:47:44.377300Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T06:47:44.377300Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T06:48:06.894104Z'
+  stage: docs
+  run: b3b0ec0c041b4f5db4b866d92e0877d5
 ---
 
 # The operator guide says the template and the todo demo run under the write guard
@@ -156,3 +158,14 @@ Expect: `documents ok`
    - Hygiene: the Description matches the work so far (no code), and the docs criterion gives the exact text the documenter writes.
    - Earlier tests: `git diff --name-status main...HEAD` changes no test file, so no leave was needed.
 10. factory: started docs as self.
+11. documenter: Files changed: `docs/operator-guide.md`, *The pipeline definition*. I replaced the one paragraph that began "A project made from `template/`, and the todo demo, do not run under the guard as they are." with the exact text criterion 3 gives. It was wrong because the template and the demo already keep their licenses and coverage files under `.reports/` and name `.reports/*` in `tool_paths`. No other passage changed. `make documents` ends with `documents ok`.
+
+    Checked against the tree: the reviewer's entry 9 verified the paragraph's claims about the Makefiles, `pyproject.toml` and both pipeline definitions. I did not re-read those files myself. I did not run `make check`, because the only file I changed is a document; the factory's checks decide.
+
+    Cross-read: the diff has no code change, so there was nothing else to cross-read against. I read the paragraph's immediate surroundings (the `not_read` bullets before it and the "rules you meet most often" list after it) and found them unaffected.
+
+    Findings: none. Stale text I noticed but did not touch: none.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
+    `secrets`: secrets: green (1.3 s)
+    `documents`: documents ok

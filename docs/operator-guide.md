@@ -965,7 +965,7 @@ Two warnings:
 - A project whose `check` scans changed files for secrets keeps a scan of the left-out files only if something else runs it. factory-rf's docs stage runs `secrets` as a check of its own, with nothing left out.
 - A command whose result depends on anything outside the tree and the image, such as dependencies fetched at run time with unpinned versions, is reused safely only when those versions are pinned in the tree (for example by a lockfile). Otherwise leave `not_read` empty and do not rely on reuse for it.
 
-A project made from `template/`, and the todo demo, do not run under the guard as they are. Their `Makefile`'s `licenses` recipe writes `.licenses-requirements.txt`, and coverage writes `.coverage`, both at the checkout's root, where the kernel allows no write. Move both into a tool path folder, as this repository did into `.reports/` (`data_file` under `[tool.coverage.run]` in `pyproject.toml`, and the `licenses` recipe), and name the project's `tool_paths` in its pipeline definition. Until then its `make check` ends with `Permission denied`.
+A project made from `template/`, and the todo demo, run under the guard as they are: their tools keep their files under `.reports/` (the `licenses` recipe's requirements file, and coverage's data file), and their pipeline definitions name `.reports/*` in `tool_paths`. A project whose tools write anywhere else at the checkout's root moves those files into a folder its `tool_paths` names, the same way; until then its `make check` ends with `Permission denied`.
 
 The rules you meet most often:
 
