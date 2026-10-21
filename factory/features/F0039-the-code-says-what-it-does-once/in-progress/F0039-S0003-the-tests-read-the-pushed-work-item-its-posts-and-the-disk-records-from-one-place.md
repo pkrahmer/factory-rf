@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T01:38:21.117717Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -170,6 +174,11 @@ journal:
   at: '2026-10-21T01:38:00.587227Z'
   stage: doing
   run: 54e7fcd1380441e1b0741ca95b66acd0
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:38:21.117717Z'
+  stage: review
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -540,3 +549,4 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
+30. factory: started review as self.
