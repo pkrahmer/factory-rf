@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T01:28:54.881893Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-21T01:28:54.881893Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-21T01:29:20.381486Z'
+  stage: doing
+  run: 0c411aff3adc413ebce514311d5b54f2
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -412,3 +414,16 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     - tests/conftest.py: standing leave (`disk_settings` and `disk_records` added as the shared place)
     - tests/stage_run_support.py: standing leave (`pushed` added; `pushed_state` now calls it)
 21. factory: started doing as self.
+22. coder: Round 2: I changed no code. Both of the reviewer's findings (journal 20) are test changes, so I am handing them to the tester (R9):
+    1. Delete the dead constant `PATH = f"{FEATURE}/in-progress/F0001-S0001-first.md"` from `tests/application/test_watcher.py:32`, `tests/application/test_watcher_move_rule.py:27` and `tests/entry/test_watch.py:39`, under the standing leave. I checked all three: in each module that assignment is the only place `PATH` appears.
+    2. Criterion 5 needs only its test. Add one row to `test_the_guard_finds_a_copy_by_name_and_parameters_only` in `tests/test_shared_branch_helpers.py`: `def __pushed(boundaries: Boundaries, remote: Path) -> WorkItemDocument:\n    ...\n` -> `[]`. That file has no `__pushed` row yet.
+
+    What I built: nothing. Nothing under `src/factory/` changes, and the working tree holds only the factory's costs sidecar.
+
+    Main choice: I hand on with `tests` and leave the code alone. I rejected deleting the constants myself, because the coder never edits tests.
+
+    Refactor: I have no diff, so there was nothing to refactor.
+
+    What the journal changed: the reviewer added criterion 5, which is already in the Acceptance criteria with the closing ones renumbered 6 and 7. The Description needs no rewrite.
+
+    Noticed but not touched: the `docs/project-guide/README.md` lines in criterion 7 are the documenter's work.
