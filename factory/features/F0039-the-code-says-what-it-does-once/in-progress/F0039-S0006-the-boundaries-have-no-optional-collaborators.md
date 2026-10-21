@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T05:58:48.368598Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-21T05:58:48.368598Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-21T06:02:41.567740Z'
+  stage: doing
+  run: 827c5d14867b462083c0c2053cfd86a5
 ---
 
 # The boundaries have no optional collaborators
@@ -263,3 +265,21 @@ Expect: one line, `0` (before the story, `1`)
     `lint`: lint: green (0.5 s)
     `test`: test: green (61.1 s)
 13. factory: started doing as self.
+14. coder: `make check` is green with the tester's two row removals from entry 12. I did not need to change any code for them. Both lines of the first smoke test give the expected result: the list of fields with a default is `[]`, and the grep for `None` comparisons now finds `0` across all of `src/factory/application/`, not just the seven modules the smoke test names.
+
+    What I built: the source change from the first doing round is already committed on the branch. It touches nine modules under `src/factory/application/`:
+    - `boundaries.py`: the six fields are required, and the "Last and optional" comment is gone.
+    - `costs.py`, `known_results.py`, `provider_limits.py`, `stops.py`, `task.py`, `tick.py`: each `is None` branch on the six fields is gone. The `ProviderLimit` import in `provider_limits.py` went with it, since nothing used it any more.
+    - `disk_records.py`: `DiskRecorder.record` now always returns a `DiskRecord` and its docstring lost the `None` sentence. `last()` returns `None` only when there is no record.
+    - `acceptance.py`: the `if now is None` branch in `_disk_lines` is gone.
+
+    Refactor in this round: one change. With the branch gone, `TaskComposer._os_user` in `src/factory/application/task.py` only read `settings.agent_user`, so I inlined it at its one caller and removed the method. I changed nothing else in the diff. The remaining local names (`settings` in `CostRecorder.begin` and `Tick._check_disk`, `disk` in `DiskRecorder.record`, `records` in `KnownResults.run`) are each read more than once or passed on to a helper. `make check` was green again after the inlining.
+
+    Main design choice: the services read the fields straight from `self._boundaries` where a local name existed only to narrow the type for the `None` check. The alternative I rejected was keeping those locals, which would add a name without a reason.
+
+    The journal changed the task only through the human's answer in entry 8: two more test rows were removed. The tester recorded this, and the `## Description` stays as it is.
+
+    Noticed but not touched: `CountingGit` in `tests/application/test_known_results.py` has had no user since the tester removed a test. This is still open for the human. Also, `_raised` in `tests/application/test_stop_records_service.py` still takes `instance: str | None`, which is no longer needed but still type-checks. Both are test code.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 38 known, 0 gone
