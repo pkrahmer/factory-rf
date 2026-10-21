@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T08:38:59.498325Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-21T08:38:59.498325Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-21T08:39:20.837564Z'
+  stage: intake
+  run: 23e3fe1e8ae249d38c066e1b268e806a
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -77,7 +79,7 @@ def copies(source: str, bodies: Mapping[str, str]) -> list[str]:
 - A copy is a function at the top level of a module whose `body_of` equals a helper's body, whatever the function's name, parameters, annotations and decorators.
 - A function in a class, or one whose body holds one more statement, is not a copy.
 - The bodies come from the shared modules themselves, so a change to a shared helper changes what counts as a copy.
-- The guard reads every `*.py` file under `tests/`, the guard's own module included.
+- The guard reads every `*.py` file under `tests/`, except the module that defines the helper (`log_support.py`, `stage_run_support.py`, `branch_reading.py`); `copies` keeps its signature and the tree test does the skipping.
 
 `tests/application/handlers/test_reject.py` (standing leave): `_branch_document` is removed and its calls become `remote_document(boundaries, checkout)` from `branch_reading`. `_branch_state` stays and calls `remote_document`. Every test keeps its name and checks the same thing.
 
@@ -87,8 +89,9 @@ def copies(source: str, bodies: Mapping[str, str]) -> list[str]:
 2. The guard finds a copy by its body and nothing else (rows of one parametrized test, each a source text read by `copies` against `shared_bodies(TESTS)`). `def _the_log(tmp_path: Path) -> list[str]:\n    log = tmp_path / "state" / "factory.log"\n    return log.read_text(encoding="utf-8").splitlines() if log.exists() else []\n` → `["log_lines"]`. The same with a docstring as its first statement → `["log_lines"]`. The same under the decorator `@pytest.fixture` → `["log_lines"]`. `def _branch_document(boundaries, checkout):\n    checkout.fetch()\n    text = checkout.show_file(f"origin/{BRANCH}", PATH)\n    assert text is not None\n    return boundaries.work_item_reader.parse(text)\n` → `["remote_document"]`. The `_the_log` body with `log.touch()` before the `return` → `[]`. `class Rig:\n    def log(self, tmp_path):` with the `_the_log` body → `[]`. `def log_lines(tmp_path):\n    return []\n` → `[]` (a name alone is not a copy for this guard).
 3. `shared_bodies` reads each body from its module: `shared_bodies(TESTS)["log_lines"]` equals `body_of` of `log_support.log_lines`'s definition, read with `ast` from `tests/log_support.py`.
 4. Every earlier test keeps its name and checks the same thing. The ids that `pytest --collect-only` lists for `tests/application/handlers/test_reject.py` are the same before and after the story, and all of them pass.
-5. `make check` stays green.
-6. docs: `docs/project-guide/README.md`, *Shared test helpers*: one sentence after the paragraph's second sentence. It says that the guards `tests/test_shared_*.py` fail on a copy of a shared helper, and that `test_shared_bodies.py` finds a copy of `log_lines`, `pushed`, `pushed_state`, `remote_document` and `push_state` by its body under any name. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none. Nothing an operator or a newcomer sees changes, and the decision is the feature's decision 5.
+5. No file under `tests/` holds a copy (rows of one parametrized test): every `*.py` file under `tests/` other than `log_support.py`, `stage_run_support.py` and `branch_reading.py` gives `copies(source, shared_bodies(TESTS)) == []`; and each of those three modules, read by `copies` against `shared_bodies(TESTS)`, is not asserted empty (it holds its own helpers, so the tree test skips it).
+6. `make check` stays green.
+7. docs: `docs/project-guide/README.md`, *Shared test helpers*: one sentence after the paragraph's second sentence. It says that the guards `tests/test_shared_*.py` fail on a copy of a shared helper, and that `test_shared_bodies.py` finds a copy of `log_lines`, `pushed`, `pushed_state`, `remote_document` and `push_state` by its body under any name. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none. Nothing an operator or a newcomer sees changes, and the decision is the feature's decision 5.
 
 ## Smoke test
 
@@ -141,3 +144,9 @@ Expect: one line, `1` (before the story, `0`)
 
    Please write these into the story and go on.
 5. factory: started intake as self.
+6. intake: accepted, with the human's answers of journal entry 4 written into the story.
+   - Interface: concrete. `SHARED`, `body_of`, `shared_bodies` and `copies` have signatures, and the test_reject.py change is named. Per entry 4, answer 3, I dropped "the guard's own module included". The line now says the tree test skips the three defining modules and that `copies` keeps its signature (answer 2).
+   - Criteria: criteria 1 to 3 each fit one parametrized test, and criterion 2 covers both sides of the body rule (a longer body, a method in a class, a name alone). Per entry 4, answers 1 and 2, I added criterion 5 before the two closing ones, which are now 6 (`make check`) and 7 (`docs:`). It requires `copies(...) == []` for every `*.py` under `tests/` except the three defining modules, and that those three are not asserted empty. Criterion 4 (the test ids of test_reject.py) is testable by collecting the ids before and after.
+   - Smoke test: the three blocks are runnable, and the pytest command passes no `-q`. The `pyproject.toml` pytest `addopts` was not opened to check for a `-q` there. Each `Expect:` line is checkable: `[]`, `exit 0`, `1`.
+   - Architecture: tests only, no `src/` change, which matches CLAUDE.md's layers and its standing leave for moving shared helpers.
+   - Scope: within feature F0039's decision 5 and its Goal, and not in its Out of scope. `error_posts` stays unguarded.
