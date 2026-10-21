@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T08:25:36.012362Z'
   stage: smoke-test
   run: bfe453cb32d3445d9e15c7e901d63670
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T08:26:57.048426Z'
+  stage: approval
 ---
 
 # The project guide names every passage of v1.1's own in the shipped agents
@@ -222,3 +227,4 @@ Expect: `documents ok`
     - The documenter added one more sentence after the opening one: "Every other sentence outside `## Lessons` is v1's, and an edit keeps v1's words there". The criterion asks for one sentence and a list. This added sentence restates what the section already says, so I judge that it does not contradict the criterion. I did not count it as a finding.
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 4.6 min, 31 turns, 105210 tokens in (430852 more from cache), 7671 out, $0.84
