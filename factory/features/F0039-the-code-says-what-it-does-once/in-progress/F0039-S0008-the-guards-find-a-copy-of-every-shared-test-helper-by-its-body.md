@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T08:43:51.545902Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-21T08:43:51.545902Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-21T08:46:48.992511Z'
+  stage: doing
+  run: c2a4378d39cf4627afb41c805afb9528
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -189,3 +191,12 @@ Expect: one line, `1` (before the story, `0`)
    `lint`: lint: green (0.6 s)
    `test`: test: green (66.4 s)
 9. factory: started doing as self.
+10. coder: Built nothing. The story leaves every module under `src/factory/` unchanged. The tester already wrote the guard `tests/test_shared_bodies.py` and moved `_branch_document` of `tests/application/handlers/test_reject.py` to `remote_document` of `branch_reading`. I ran `make check` on the committed tree, with no change of mine in the working tree: green (`test: green (68.7 s)`, coverage 99.14 %, `check: green`).
+
+    - Main choice: I added no code. The alternative I rejected was moving `body_of`, `shared_bodies` and `copies` into a shared test module or into `src/`. The Interface puts them in the test module, and the coder does not edit tests.
+    - Refactor step: my diff is empty, so there is nothing to refactor.
+    - Description: no journal entry changed the task's meaning after intake. Entry 4's answers are already written into the story.
+    - Noticed, not touched: the sentence of criterion 7 in `docs/project-guide/README.md` is not written yet. It is the docs stage's work.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 38 known, 0 gone
