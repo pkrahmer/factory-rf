@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 401
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T09:05:36.314946Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T09:05:36.314946Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T09:05:56.153239Z'
+  stage: smoke-test
+  run: 625e5966af134c85bd38a0fef2b3e532
 ---
 
 # The operator guide names no planning code, internal class or dated observation
@@ -183,3 +185,37 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed. I ran all three commands from the repository root, exactly as written and in order, and each one met its `Expect:` line. There are no findings.
+
+    Command 1 (the three greps on `docs/operator-guide.md`):
+    ```
+    0
+    2
+    `CannotHandle` `HostingServiceError` `PushFailed` `SettingsInvalid` 
+    ```
+    Met. The expectation was three lines: `0`, then `2`, then the four kept error names followed by a space.
+
+    Command 2 (`git diff --name-only origin/main` over the code folders, then over `README.md` and `docs`):
+    ```
+    0
+    docs/operator-guide.md
+    ```
+    Met. The expectation was `0` and then `docs/operator-guide.md`.
+
+    Command 3 (`make documents 2>&1 | tail -n 1`):
+    ```
+    documents ok
+    ```
+    Met.
+
+    Acceptance criteria, read again against these results:
+    - Criterion 1: holds. Command 2 shows nothing changed under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The tester's entry (5) and the coder's entry (7) both say so.
+    - Criterion 2: holds. The factory's `make check` is green (entries 7 and 11).
+    - Criterion 3: holds. I also read `git diff origin/main -- docs/operator-guide.md`. It changes exactly five passages:
+      - "(R29)" is gone.
+      - The `RepositoryUnsealed` sentence is replaced.
+      - The three dated parentheticals are removed with their leading space, and the sentences around them are unchanged.
+      
+      No other passage of the guide changed.
+
+    Nothing is open.
