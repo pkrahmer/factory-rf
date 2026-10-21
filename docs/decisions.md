@@ -1,6 +1,6 @@
 # Decisions
 
-The log of lasting decisions: what was decided, why, and what was rejected. Newest last. The first entries are the seed's choices (2026-10-12); the stories' decisions follow.
+The log of lasting decisions: what was decided, why, and what was rejected. Newest last. The first entries are the seed's choices (2026-10-12); the stories' decisions follow. Older entries cite the planning records by code: the requirement numbers R1 to R34 (`CLAUDE.md` names R3, R5 to R13 and R17; an R14 or R15 beside an agent's rule is that rule's number in the agents' `## Rules`), the codes WE, L and Q, the kept things and v1's features F0001 to F0017. Those records are kept at the tag `planning-history-2026-10-19`.
 
 ## The package is `factory`, in four layers
 
@@ -11,6 +11,8 @@ The code is one package, `src/factory/`, with the layers `factory.domain`, `fact
 `image/` (Dockerfile, compose file, entrypoint), `template/` (v1.1's own project template) and `claude/` (the agent and skill files v1.1 ships). The coder's write paths in the pipeline definition (`factory/pipeline.yml`; v1's `factory/stages.yml` until the handover of 2026-10-18) name them; the folders are created by the stories that need them. `Makefile`, `pyproject.toml`, `uv.lock`, the import-linter configuration, `CLAUDE.md` and `factory/` stay outside every write path.
 
 ## No `mutants` target, no mutmut
+
+Superseded by *Mutation testing is limited to one feature's modules*.
 
 The acceptance reviewer runs `make mutants` only when it exists. Over the whole package it could outgrow the 60-minute lease in later features, and a timeout is a stall. So the seed has neither the target nor the dependency.
 
@@ -342,6 +344,8 @@ Date: 2026-10-17 (F0011-S0004). `STOP_TABLE` lists the fourteen stops that v1 le
 
 ## The four documents are checked by a command, outside `make check`; v1's words live in one section
 
+Superseded for the docs stage by *The document check runs in the docs stage; the default identity has one home*, and for the project guide's layout by *The project guide is an index and one file per domain*.
+
 Date: 2026-10-17 (F0011-S0005). `python -m factory.entry.check_documents` reads `README.md`, `docs/operator-guide.md`, `docs/project-guide.md` and `docs/decisions.md` and prints `documents ok` or one finding per line (`factory.domain.documents.check_documents` is the pure rule). It requires the operator guide's *Install*, *Configuration* and *The stops* with a row for each stop of `STOP_TABLE`, and the project guide's *Kill points* and *Fault-injection paths* with a row for each case and each path, and it flags the phrases and v1 words of its two lists. It is a command and not a console script, and `make check` does not run it, because `pyproject.toml` and the Makefile are outside the coder's write paths; wiring it in is left to the human. The statements that a document must make about v1 (no `--follow` mode, v1's leftover files, this repository's own v1 tree, the renamed words) stand in a section `## Replaced from v1`, which the check exempts in every document; the decision log is exempt as a whole, because it records what was replaced and renamed. WE6.3 (every story's docs criterion names its documents) is not a test: the cross-feature check observes it across the stories. To keep the list of replaced phrases in `src/factory/domain/documents.py`, the human let the search of `tests/entry/test_watch.py::test_no_source_file_knows_the_follow_mode` skip that one file and its compiled form by name (F0011 decision 21); every other file under `src/` is still searched. Rejected: building the phrases at run time to get past the search (it meets the test's words and not its intent), and a data file outside `src/` (the Interface names the constants).
 
 ## The duplicates report keys findings without line numbers, and it is a record, not a check
@@ -556,6 +560,7 @@ Date: 2026-10-18 (F0017, the human's change 1; F0017 decision 7). *The mutants t
 Date: 2026-10-18 (commit `3bcee441`; F0018). Until then v1 built this repository from `factory/` in v1's layout. Since the handover v1.1 builds it from `factory/pipeline.yml`, `factory/story-form.md` and the features under `factory/features/`.
 
 - Decision: v1's `stages.yml`, forms and features F0001 to F0017 moved to `factory/v1/`, and v1.1's features continue the numbers from F0018.
+- On 2026-10-19 `factory/v1/` was removed with the planning history; both are kept at the tag `planning-history-2026-10-19`.
 - Why v1's features left `factory/features/`: v1.1 reads no v1 work item, and v1's `done/` folders would have made each of v1's features count as due for an acceptance.
 - Why the numbers continue from F0018: `make mutants` finds a feature's modules by its id in the commit subjects, and a reused id would match v1's commits.
 - v1 is stopped, not removed, as the fallback.

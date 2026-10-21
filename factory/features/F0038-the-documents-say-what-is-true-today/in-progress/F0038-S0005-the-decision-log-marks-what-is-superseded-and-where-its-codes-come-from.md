@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 393
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T07:29:29.347217Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T07:29:29.347217Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T07:30:18.440649Z'
+  stage: docs
+  run: 183e5afc95a54301a8f2d5f55546745c
 ---
 
 # The decision log marks two superseded entries, the removal of `factory/v1/`, and where its codes come from
@@ -150,3 +152,23 @@ Expect: `documents ok`
    - 5. Work item hygiene: the Description matches what was built (nothing yet; the documenter makes the four additions). The coder's journal explains its one choice, leaving `docs/decisions.md` to the documenter, and what it rejected. The docs criterion is still correct against `docs/decisions.md` on this branch: the three titles it cites are headings at lines 359, 351 and 698. The three headings it edits under are at lines 13, 343 and 554. The bullet "- Decision: v1's" is at line 558, and the header paragraph under `# Decisions` is at line 3.
    - 6. Earlier tests: no test file is changed, renamed or deleted; `git diff --name-status main...HEAD` lists no file outside `factory/`.
 10. factory: started docs as self.
+11. documenter: Files changed: `docs/decisions.md` only, the four additions of criterion 3.
+    - The header paragraph under `# Decisions` now ends with the sentence on the planning codes and the tag `planning-history-2026-10-19`. It was appended to the existing last line, so git shows that line as changed.
+    - `## No `mutants` target, no mutmut` opens with its own paragraph "Superseded by *Mutation testing is limited to one feature's modules*."
+    - `## The four documents are checked by a command, ...` opens, before its `Date:` line, with the paragraph naming the two entries that supersede it.
+    - `## factory-rf is built by v1.1 since the handover` gains the bullet on the removal of `factory/v1/` on 2026-10-19, directly after the "- Decision: v1's" bullet.
+
+    No heading and no other line changed.
+
+    Checks run:
+    - The smoke-test greps give `1`, `1`, `2`. `make documents` ends with `documents ok`.
+    - I did not re-run the heading-count and path-diff smoke commands. The reviewer confirmed the three cited titles are headings of the log, and I touched nothing outside `docs/decisions.md`.
+    - I did not run `make check`: only a document changed, so the factory's own run decides.
+
+    Cross-read: I read the header, the three entries I edited and the handover entry against the story. They are consistent. The diff holds no code, so there was nothing else to cross-read.
+
+    Stale text noticed and not touched: none. No findings.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+    `secrets`: secrets: green (1.3 s)
+    `documents`: documents ok
