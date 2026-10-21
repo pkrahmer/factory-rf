@@ -991,6 +991,8 @@ Date: 2026-10-20 (F0030-S0002). `GitCli.work_tree_id` copied the checkout's inde
 
 ## v2 is retired; nothing is left for v2
 
+Date: 2026-10-21 (F0038-S0009).
+
 - Decision: on 2026-10-19 v2 was retired as a rewrite (factory-v2's decision 009): v1.1 evolves, and nothing is left for a v2. Of the gaps the log and the guides left for v2, four are closed: the project commands ran as the factory's user (*The project commands run as the agent user, with the git folder sealed*), the agent's writable home (*Every agent run and every project command starts from a fresh agent home*), the git-ignored paths the undo did not see (*The factory removes the git-ignored paths after every agent run and at the restore*), and the guard's reading of a hook payload it cannot read, which went with the hook (*The Claude Code hook is removed; the kernel and the undo are the write guard*). One is open and not planned: the checkout's seal does not cover the clone's working folder (the checkout's parent) or the process environment `GitCli` passes on first (*The factory alone writes the checkout's `.git`*).
 - Why: a gap named "left for v2" reads as planned work, and no v2 will come.
 - Open: whether the open gap becomes v1.1 backlog is the human's decision.

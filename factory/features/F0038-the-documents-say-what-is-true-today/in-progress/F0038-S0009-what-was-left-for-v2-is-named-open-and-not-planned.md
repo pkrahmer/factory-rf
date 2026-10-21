@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T08:14:40.981389Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-21T08:14:40.981389Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T08:15:15.738557Z'
+  stage: docs
+  run: de595fbe148f49389fe1acfc197dbb2b
 ---
 
 # What was left for v2 is named open and not planned
@@ -322,3 +324,14 @@ Expect: `documents ok`
 
     Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
 18. factory: started docs as self.
+19. documenter: Round 1: I fixed the smoke-tester's finding. The new last entry `## v2 is retired; nothing is left for v2` had no date. I changed one file, `docs/decisions.md`: a paragraph `Date: 2026-10-21 (F0038-S0009).` now sits between that heading and the first bullet, in the form of the neighbouring entries. Nothing else in the entry changed, so the four smoke-test commands should give the same output as before. I ran `make documents` and it ends with `documents ok`.
+
+    Cross-read and found current: `README.md`, `docs/operator-guide.md` and `docs/project-guide/*.md`. None says "left for v2" and none cites the old title. I did not open `docs/runs/`, which is the human's.
+
+    Stale but not mine: three lines in `docs/decisions.md` (318, 406 and 517 by intake's count) say "morning observation" without the quoted phrase. The criteria leave them alone.
+
+    No findings for the coder. I did not run `make check`, because I changed only a document. The factory's checks follow.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
