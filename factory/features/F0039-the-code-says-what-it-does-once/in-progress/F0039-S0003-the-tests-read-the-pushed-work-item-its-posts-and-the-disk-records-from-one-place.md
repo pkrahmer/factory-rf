@@ -2,16 +2,12 @@
 stage: doing
 blocked: null
 round: 2
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T01:32:45.346212Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,19 @@ journal:
   kind: started
   at: '2026-10-21T01:32:45.346212Z'
   stage: doing
+- number: 26
+  speaker: coder
+  kind: result
+  at: '2026-10-21T01:34:33.712858Z'
+  stage: doing
+  run: f93cc273aa37462990ed0f69a178601b
+- number: 27
+  speaker: factory
+  kind: stall
+  at: '2026-10-21T01:34:33.743091Z'
+  stage: doing
+  run: f93cc273aa37462990ed0f69a178601b
+  reason: check_red
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -475,3 +484,28 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     `lint`: lint: green (0.6 s)
     `test`: test: green (60.7 s)
 25. factory: started doing as self.
+26. coder: Round 2: I changed no code. I checked the tester's fixes for the reviewer's two findings (journal 20, handed on in journal 22, made in journal 24) on the committed state:
+    1. The dead `PATH` constant is gone from `tests/application/test_watcher.py`, `tests/application/test_watcher_move_rule.py` and `tests/entry/test_watch.py`. No line in those files starts with `PATH` any more.
+    2. Criterion 5 now has its test: the row `two-leading-underscores` in `tests/test_shared_branch_helpers.py` (line 82).
+
+    What I built: nothing. The Interface says no module under `src/factory/` changes. `git diff main -- . ':!factory' ':!tests'` is empty, and the working tree holds only the factory's costs sidecar.
+
+    Main choice: I hand on to `review` unchanged. The alternative I rejected was going back over the moved test helpers. That is the tester's work (R9), and no finding is still open.
+
+    Refactor: I have no diff, so there was nothing to change.
+
+    What the journal changed: nothing in the meaning of the task. Criterion 5 was already in the Acceptance criteria, so the Description stands.
+
+    Noticed but not touched: criterion 7, the `docs/project-guide/README.md` lines for `branch_reading.py` and for `disk_settings`/`disk_records`, is the documenter's work.
+
+    `make check`: check: green (coverage 99.14 %).
+27. factory: Stage doing stalled (attempt 1 of 2): a check is red after the stage: `check`
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    Installed 106 packages in 99ms
+    Bytecode compiled 4164 files in 355ms
+    All checks passed!
+    Bytecode compiled 4164 files in 92ms
+    lint: green (0.6 s)
+    Bytecode compiled 4164 files in 125ms
+    make: *** [Makefile:32: types] Error 139
