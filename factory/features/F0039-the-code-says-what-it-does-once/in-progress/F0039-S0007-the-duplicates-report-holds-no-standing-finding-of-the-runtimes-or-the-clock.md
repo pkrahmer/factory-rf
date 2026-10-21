@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 380
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T00:45:20.598270Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T00:44:59.885736Z'
   stage: docs
   run: c69b9f13ca7e48a2b949093b1b62846b
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:45:20.598270Z'
+  stage: smoke-test
 ---
 
 # The duplicates report holds no standing finding of the runtimes or the clock
@@ -163,3 +172,4 @@ Expect: `3`
     `check`: check: green (not run again: passed on tree 6d9d2794d8ce at 2026-10-21T00:42:31Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
