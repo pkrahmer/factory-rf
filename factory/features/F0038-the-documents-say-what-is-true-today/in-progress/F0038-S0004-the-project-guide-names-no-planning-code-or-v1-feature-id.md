@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 392
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T07:18:59.948844Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T07:18:59.948844Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T07:20:32.216263Z'
+  stage: doing
+  run: f5077f9807ed4b8688a5d6c9083e51dc
 ---
 
 # The project guide names no planning code or v1 feature id as a pointer
@@ -113,3 +115,12 @@ Expect: `documents ok`
    `lint`: lint: green (0.6 s)
    `test`: test: green (62.5 s)
 6. factory: started doing as self.
+7. coder: Nothing built, on purpose. The Interface says "None: nothing changes under `src/factory/`, in any test, the image, the template, a demo or an agent file". Criterion 1 forbids any change under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`, and I made none. My working tree holds no change except the factory's own costs sidecar.
+      - Main choice: I left the six guide files alone (`docs/project-guide/README.md`, `agents.md`, `costs.md`, `git-and-hosting.md`, `stages.md`, `watching.md`). `CLAUDE.md` says the documenter stage keeps `docs/project-guide/` true from each story's docs criterion and the coder does not write it, so criterion 3 belongs to the docs stage. Rejected: making criterion 3's text replacements here. That would have gone outside the coder's role.
+      - Refactor: there is no diff, so nothing to refactor.
+      - The journal did not change the meaning of the task, so `## Description` stays as it is.
+      - Noticed, not touched: none.
+      `make check`: check: green (test: green, 64.1 s).
+
+   `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
