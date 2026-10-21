@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 405
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T12:30:47.906583Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T12:30:47.906583Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T12:31:49.411035Z'
+  stage: review
+  run: 52b7d9d8dc9843f1a4c75f808cde3ba9
 ---
 
 # The tests name the agent environment in one place each
@@ -179,3 +181,41 @@ Expect: one line, `2` (before the story, `0`)
    `check`: check: green
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I checked:
+   - Criterion 1: `tests/test_shared_environments.py::test_each_shared_environment_is_assigned_in_one_module`. It has two rows over `SHARED`, and the paths are relative to `tests/` and sorted. It checks both the shared value and the exact list of modules that hold it. `SHARED` imports its values from `stage_run_support` and `wiring_support`. A grep of `tests/` finds only `tests/stage_run_support.py:21` and `tests/wiring_support.py:9` for the two values. The `/opt/guard` pair, `probe_support.py`, `test_opencode_item.py` and `test_agent_launch.py` keep their own values, as the Description says.
+   - Criterion 2: `test_the_guard_counts_a_top_level_assignment_of_the_environment`. Its ten rows are exactly the criterion's ten cases: plain, other name, annotated, home first, other value, one more key, name as value, call, in a function, in a class. The rows read `environment_copies` against a fixture that returns the stated value. A top-level constant would be a copy, and the guard would find it in its own file.
+   - `_literal` treats a dict that holds a name (`{"PATH": PATH}`) as no copy. That matches the Interface ("a dict literal whose `ast.literal_eval` equals"), and it lets the guard read every file, `test_opencode_item.py:14` among them.
+   - Criterion 3: `tests/test_shared_bodies.py:153` now compares `path.relative_to(TESTS).as_posix()` with `SHARED.values()`. The test name and the parametrization are unchanged. Every value of `SHARED` is a module at the `tests/` root, so the result is the same for every module of today.
+   - Criterion 4: the coder's entry 7 records `check: green` and `duplicates: 0 new`.
+   - Criterion 5 is the documenter's.
+   - Collect-only check: the tester's `$TMPDIR` lists are gone with their run. I confirmed by reading instead. Outside the new module, the diff adds or removes no `def`, `@pytest` or `pytest.param` line, so no test id changes. The only change to collection is the bodies guard's automatic new row for `test_shared_environments.py`, which matches what entry 5 reports. `pytest --collect-only` over the 22 changed test modules collects at HEAD without error.
+   - Architecture and security: nothing under `src/` changes, and no marker or baseline entry is added. `wiring_support` still imports no test module. `stage_run_support` gains no import.
+   - Hygiene: the Description, the Interface and the docs criterion match what was built. The tester's entry names its choices: the literal_eval fallback, the fixture, and the docstring shortened for E501. The shortened docstring keeps the meaning of the Interface's wording.
+
+   Earlier tests (each was already on `main` and changed here):
+   - tests/acceptance_walk.py: standing leave to move a shared test helper (its `ENVIRONMENT` moved to `wiring_support`)
+   - tests/application/handlers/test_run.py: standing leave (`ENVIRONMENT` from `wiring_support`)
+   - tests/application/test_after_agent.py: standing leave (`ENVIRONMENT` from `stage_run_support`)
+   - tests/application/test_cost_image.py: standing leave (`ENVIRONMENT` from `stage_run_support`)
+   - tests/application/test_costs.py: standing leave (`ENVIRONMENT` from `stage_run_support`)
+   - tests/application/test_nested_repositories.py: standing leave (`ENVIRONMENT` from `stage_run_support`)
+   - tests/application/test_sealed_runs.py: standing leave (`ENVIRONMENT` from `stage_run_support`)
+   - tests/application/test_sealed_runs_runner.py: standing leave (now imports `ENVIRONMENT` from `stage_run_support` instead of `application.test_sealed_runs`)
+   - tests/application/test_stage_finish.py: standing leave (`ENVIRONMENT` from `stage_run_support`)
+   - tests/application/test_stage_launch.py: standing leave (`ENVIRONMENT` from `stage_run_support`)
+   - tests/application/test_stage_run_acceptance.py: standing leave (`ENVIRONMENT` from `stage_run_support`)
+   - tests/application/test_stall_labels.py: standing leave (`ENVIRONMENT` from `stage_run_support`)
+   - tests/application/test_stalls.py: standing leave (`ENVIRONMENT` from `stage_run_support`)
+   - tests/application/test_tick_agent_definition.py: standing leave (`ENVIRONMENT` from `wiring_support`)
+   - tests/application/test_tick_project_agent.py: standing leave (now imports `ENVIRONMENT` from `wiring_support` instead of `application.test_tick_agent_definition`)
+   - tests/entry/test_run.py: standing leave (`ENVIRONMENT` from `wiring_support`)
+   - tests/entry/test_wiring_acceptance.py: standing leave (`ENVIRONMENT` from `wiring_support`)
+   - tests/entry/test_wiring_constants.py: standing leave (`ENVIRONMENT` from `wiring_support`)
+   - tests/entry/test_wiring_handlers.py: standing leave (`ENVIRONMENT` from `wiring_support`)
+   - tests/entry/test_wiring_human_handlers.py: standing leave (`ENVIRONMENT` from `wiring_support`)
+   - tests/entry/test_wiring_recovery.py: standing leave (`ENVIRONMENT` from `wiring_support`)
+   - tests/entry/test_wiring_recovery_expired.py: standing leave (`ENVIRONMENT` from `wiring_support`)
+   - tests/wiring_support.py: standing leave (the shared place gains `ENVIRONMENT`; nothing else changes)
+   - tests/test_shared_bodies.py: the human's leave, F0039 `feature.md` decision 14 (only `test_no_test_module_holds_a_copy` changes, to the relative-path rule; its name and ids are kept)
