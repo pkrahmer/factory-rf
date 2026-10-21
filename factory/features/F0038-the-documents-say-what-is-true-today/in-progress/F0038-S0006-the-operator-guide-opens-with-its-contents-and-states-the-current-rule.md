@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 394
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T07:39:14.428538Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T07:38:53.640303Z'
   stage: review
   run: 2fd7caa671cf437b97d4e3074e139d2b
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:39:14.428538Z'
+  stage: docs
 ---
 
 # The operator guide opens with its contents and states the current rule without its history
@@ -167,3 +176,4 @@ Expect: `documents ok`
    - Description, Interface and criteria agree. The journal states the main choice: the coder left the guide to the docs stage, and entry 7 gives the reason.
 
    Earlier tests: none. The diff changes no test file.
+10. factory: started docs as self.
