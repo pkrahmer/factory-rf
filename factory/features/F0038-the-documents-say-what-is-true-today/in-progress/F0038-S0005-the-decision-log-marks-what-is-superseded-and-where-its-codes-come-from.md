@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 393
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T07:26:51.731788Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T07:26:31.008801Z'
   stage: tests
   run: f23fc265dea8406c8779a843227c2269
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:26:51.731788Z'
+  stage: doing
 ---
 
 # The decision log marks two superseded entries, the removal of `factory/v1/`, and where its codes come from
@@ -99,3 +108,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.6 s)
    `test`: test: green (63.9 s)
+6. factory: started doing as self.
