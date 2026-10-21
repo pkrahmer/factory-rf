@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T08:15:36.645484Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-21T08:15:36.645484Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T08:16:06.684653Z'
+  stage: smoke-test
+  run: db3a19ca239f41ec90080de51016cfa2
 ---
 
 # What was left for v2 is named open and not planned
@@ -345,3 +347,63 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Round 1: I ran the four smoke-test commands from the repository root exactly as written, in order. All four met their `Expect:` lines. I then read the acceptance criteria again against `docs/decisions.md`, and the smoke test contradicts none of them. The finding from the earlier smoke test (entry 13, the new entry had no date) is fixed. No findings, so I end with `approval`. I fixed nothing.
+
+    Command 1: `grep -c -i 'left for v2' README.md docs/operator-guide.md docs/project-guide/*.md || true`
+    ```
+    README.md:0
+    docs/operator-guide.md:0
+    docs/project-guide/README.md:0
+    docs/project-guide/agents.md:0
+    docs/project-guide/costs.md:0
+    docs/project-guide/git-and-hosting.md:0
+    docs/project-guide/processes-and-checks.md:0
+    docs/project-guide/stages.md:0
+    docs/project-guide/watching.md:0
+    docs/project-guide/work-items.md:0
+    docs/project-guide/write-guard.md:0
+    ```
+    Met: eleven lines, each ending in `:0`.
+
+    Command 2: the old-words count, the old-title count, then the nine heading checks in `docs/decisions.md`
+    ```
+    0
+    0
+    1
+    1
+    1
+    1
+    1
+    1
+    1
+    1
+    1
+    ```
+    Met: `0`, `0`, then nine lines of `1`.
+
+    Command 3: `git diff --name-only origin/main -- src tests image template demo claude | wc -l; git diff --name-only origin/main -- README.md docs`
+    ```
+    0
+    docs/decisions.md
+    ```
+    Met.
+
+    Command 4: `make documents 2>&1 | tail -n 1`
+    ```
+    documents ok
+    ```
+    Met.
+
+    Reading the criteria again (criterion 3, one bullet at a time):
+    - New last entry (line 992): `## v2 is retired; nothing is left for v2`, then `Date: 2026-10-21 (F0038-S0009).`, then the Decision, Why, Open and Rejected bullets. It is dated with the story, so the finding from entry 13 is fixed. It names the four closed gaps, each with the entry that closed it, and the checkout-seal gap as "open and not planned".
+    - Line 454: "Open, not planned (see *v2 is retired; nothing is left for v2*): the clone's working folder …" and "one of the operator guide's checks on a running instance". Matches.
+    - Line 306: "Closed by *Every agent run …*." followed by "The kill of a timed-out agent under `sudo` was settled later: see *The agent's own `timeout` …*." Matches.
+    - Lines 294–298: the heading is `## The project commands first ran as the factory's user; replaced`, then the paragraph "Replaced by *The project commands run as the agent user, with the git folder sealed*." on its own, then a paragraph beginning "Date: 2026-10-16". The rest of the text is unchanged. Matches.
+    - Line 960 cites the new title, and line 978 cites *The agent is started through `sudo -n -u agent -- env -i`, and a run's files are `0640`*. Both match.
+    - In `docs/decisions.md`, lowercase "left for v2" appears only in the new entry (lines 992, 996, 997, 999) and in the citation of its title at line 454. "Left for v2" with a capital L does not appear.
+
+    Criterion 1: met (command 3). Criterion 2: the journal records `check: green` on this tree. I did not run `make check` myself, because the smoke test does not include it.
+
+    Observations (no finding): in the new entry's Decision bullet, the first closed gap reads "the project commands ran as the factory's user", where the criterion's paraphrase says "run". It names the same gap and cites the same entry, so it does not contradict the criterion. Lines 408 and 788 still say "closed on 2026-10-20 by …" and "morning observation". The criteria leave those lines alone.
+
+    Findings: none.
