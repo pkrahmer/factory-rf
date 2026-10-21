@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 405
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T12:32:10.464059Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T12:32:10.464059Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T12:32:45.919158Z'
+  stage: docs
+  run: 9bd3645416ff43c2896838489db79c16
 ---
 
 # The tests name the agent environment in one place each
@@ -229,3 +231,25 @@ Expect: one line, `2` (before the story, `0`)
    - tests/wiring_support.py: standing leave (the shared place gains `ENVIRONMENT`; nothing else changes)
    - tests/test_shared_bodies.py: the human's leave, F0039 `feature.md` decision 14 (only `test_no_test_module_holds_a_copy` changes, to the relative-path rule; its name and ids are kept)
 10. factory: started docs as self.
+11. documenter: Docs written for the docs criterion; no findings.
+
+    Files changed (one, `docs/project-guide/README.md`, *Shared test helpers*):
+    - The `stage_run_support.py` line now also names `ENVIRONMENT`, the environment the stage-run tests pass. I narrowed the guard sentence on that line: `tests/test_shared_constants.py` fails on another top-level assignment of the instance name. Before, "that value" would have read as covering `ENVIRONMENT` too.
+    - The `wiring_support.py` line now names `ENVIRONMENT`, the environment the handler and wiring tests pass. It says that `tests/test_shared_environments.py` fails on another top-level assignment of either `ENVIRONMENT` value (this one or `stage_run_support.py`'s).
+
+    I ran the docs grep from the smoke test; it prints `2` (before the story, `0`). I did not run `make check`, because I changed only a document and the factory's checks run right after this stage.
+
+    Cross-read and found current:
+    - The rest of `docs/project-guide/README.md`.
+    - `README.md`.
+    - `docs/operator-guide.md`.
+    - `docs/decisions.md`. Its only `ENVIRONMENT` hit (line 484) is `ALLOWED_ENVIRONMENT_NAMES`, which is unrelated.
+    - `docs/project-guide/watching.md`. Its text on the agent run's environment is about `agent_environment` in `src/`, which this story does not touch.
+
+    The diff outside `factory/` and `docs/` is test-only, and no module under `src/` changed, so the cross-read found no stale name or example.
+
+    Stale text I noticed and did not touch: none that this story touches. The night log in `docs/runs/` is the human's.
+
+    `check`: check: green (not run again: passed on tree 26c265259365 at 2026-10-21T12:29:13Z)
+    `secrets`: secrets: green (1.2 s)
+    `documents`: documents ok

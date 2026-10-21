@@ -57,13 +57,13 @@ Every module `tests/*.py` whose name does not start with `test_`:
 - `settings_support.py`: `BASE`, the environment with the two required settings, and `raising`, for the tests that read settings.
 - `shipped_agents.py`: `SHIPPED_AGENTS` and `ShippedAgent`, the seven shipped agents' front matter values and the opening of their bodies.
 - `source_search.py`: reads the modules under `src/factory` with `ast`: `modules`, `imports`, `string_literals`, `reads_os_environ`.
-- `stage_run_support.py`: builders for whole stage runs: a story started on `main`, its branch, a Makefile and a run (`open_story`, `run_stage`, `stage_makefile`), and the work item at the head of the remote's branch (`pushed`, `pushed_state`), and `INSTANCE`, the instance name `"factory-1"` that every test module imports from here; `tests/test_shared_constants.py` fails on another top-level assignment of that value.
+- `stage_run_support.py`: builders for whole stage runs: a story started on `main`, its branch, a Makefile and a run (`open_story`, `run_stage`, `stage_makefile`), and the work item at the head of the remote's branch (`pushed`, `pushed_state`), and `INSTANCE`, the instance name `"factory-1"` that every test module imports from here, and `ENVIRONMENT`, the environment the stage-run tests pass; `tests/test_shared_constants.py` fails on another top-level assignment of the instance name.
 - `sudo_support.py`: a stand-in `sudo` that records each call's arguments, environment and working directory and runs the call or exits as planned (`write_sudo`, `Sudo`, `SudoCall`).
 - `tick_support.py`: `handlers_of` and `Failing`, the tick's handler factory and a handler that records each event and raises the error it is given, `ValueError("boom")` by default.
 - `tmp_path_support.py`: `reopen`, which gives the owner back every folder and file under a test's `tmp_path` so that pytest can remove it.
 - `undo_support.py`: a claimed stage start on a work item's branch, and the undo (`start_stage`, `undo_stage`, `pipeline_text`).
 - `watch_support.py`: the watcher's shared data: a claimed story, the due `F0002-todo`, its acceptance (`push_story_claim`, `open_acceptance`, `aged_claim`).
-- `wiring_support.py`: `every_tool` and the constants the wiring and preflight tests share.
+- `wiring_support.py`: `every_tool`, `ENVIRONMENT` (the environment the handler and wiring tests pass) and the constants the wiring and preflight tests share. `tests/test_shared_environments.py` fails on another top-level assignment of either `ENVIRONMENT` value, this one or `stage_run_support.py`'s.
 - `work_item_support.py`: `put_work_item`, `created_state` and `checkout_text`, for tests that put a work item on its branch.
 - `write_path_support.py`: `stage_start` and `push_definition`, for the write-path service tests.
 
