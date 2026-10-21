@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T02:08:18.064279Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T02:08:18.058735Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T02:08:18.064279Z'
+  stage: intake
+---
+
 # The boundaries have no optional collaborators
 
 ## Description
@@ -70,3 +97,6 @@ grep -c 'holds `None`' docs/project-guide/watching.md
 Expect: one line, `0` (before the story, `1`)
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
