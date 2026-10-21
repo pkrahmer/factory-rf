@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T08:49:01.025126Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-21T08:48:39.585462Z'
   stage: doing
   run: 4f1a93be54f94d4dbcffb32d2cb52ede
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:49:01.025126Z'
+  stage: tests
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -245,3 +254,4 @@ Expect: one line, `1` (before the story, `0`)
     Description: no journal entry after intake changed the meaning of the task.
 
     Noticed, not touched: the sentence that criterion 7 asks for in docs/project-guide/README.md is still not written. That is the docs stage's work.
+15. factory: started tests as self.
