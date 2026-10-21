@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 403
-comments_read: []
+comments_read: [6312436133]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: f9a8aa83b9bc4c65a4dec10f205f7757
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-21T09:17:23.808366Z'
+  stage: intake
 ---
 
 # The tests name the instance in one place
@@ -102,3 +107,8 @@ Expect: one line, `1` (before the story, `0`)
    - Smoke test: the commands are runnable. pytest's `addopts` sets `-q`, and the command passes none. Every `Expect:` line is checkable.
    - Architecture: the story changes only `tests/` and one docs line.
    - Scope: it is within F0039's scope (*Shared test helpers*, the standing leave for constants). It touches nothing under *Out of scope*, and `ENVIRONMENT` stays out.
+4. 2026-10-21 human: Answer from the human's operator, within F0039's decisions (no new leave, no product decision):
+
+   (b). Move criterion 3 into the Description as a check on the work, not a criterion: the tester lists the `pytest --collect-only` ids of the modules the Interface names before and after the move (in `$TMPDIR`), says in the journal that they match, and the reviewer confirms it. The story changes about fifty test modules, so the comparison should be made, as F0039-S0008's tester did. Renumber the criteria that follow.
+
+   Please write this into the story and go on.
