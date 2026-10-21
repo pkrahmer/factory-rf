@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 377
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T00:14:56.468794Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-21T00:14:35.547802Z'
   stage: doing
   run: bd2a50c73ae4474ea2548ae2f6eb259f
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:14:56.468794Z'
+  stage: review
 ---
 
 # The decision log records the human's answer on F0037's decision 4
@@ -109,3 +118,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
    `duplicates`: duplicates: 6 new, 33 known, 3 gone
+8. factory: started review as self.
