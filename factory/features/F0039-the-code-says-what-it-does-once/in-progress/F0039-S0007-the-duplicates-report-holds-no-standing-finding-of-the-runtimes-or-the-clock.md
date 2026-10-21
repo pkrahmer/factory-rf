@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 380
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T00:37:50.297495Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T00:37:50.297495Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T00:38:08.449695Z'
+  stage: intake
+  run: 092eee53fe364b64afb8874b79da699f
 ---
 
 # The duplicates report holds no standing finding of the runtimes or the clock
@@ -61,3 +63,9 @@ Expect: `3`
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: no module under `src/factory/` changes and no test module is written. The Interface names the documents to check against: `security/duplicates-baseline.txt`, `docs/decisions.md` (*What the agent runtimes share lies in one module*, present at line 662) and the output of `make duplicates`. That fits a docs-only story.
+   - Criteria: there are two, and both are meaningful. Criterion 1 is `make check` staying green. Criterion 2 is the docs criterion, which names the exact entry and section for each edit, the content of each, and the files that stay untouched. No code behaviour or Interface rule exists, so there is no rule whose failing side needs a criterion. The tester has nothing to build, as the feature says.
+   - Smoke test: both blocks are runnable. The first runs the steps of `make duplicates` in `$TMPDIR` and counts `new`/`gone` lines for the runtimes and `clock.py`, and `Expect: 0` can be checked against that count. It passes no `-q` to pytest. The second block greps the baseline, and `Expect: 3` is checkable. I ran its grep logic against the baseline already on the branch: it holds the `ManualWaiter`, `return version_printed(` and `started = due_leftovers_launch` lines (33 to 36), and `ManualClock` is gone, so the human's change is in.
+   - Architecture: this changes only `docs/decisions.md` and `docs/project-guide/processes-and-checks.md` (*The baseline*, present at line 158), which the documenter writes. The accepted fakes stay in `factory.adapters`, as `CLAUDE.md` places them.
+   - Scope: this is S0007 of F0039, which lists it and decision 12 in its Scope. Nothing it does falls under Out of scope. Decision 13 sets the order after S0001 and the baseline change, and the baseline change is done.
