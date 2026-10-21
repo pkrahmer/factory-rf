@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 398
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T08:18:25.792991Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T08:18:25.792991Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T08:20:56.960160Z'
+  stage: tests
+  run: cbb687a3af784fcf870c38f6c7d699eb
 ---
 
 # The project guide names every passage of v1.1's own in the shipped agents
@@ -88,3 +90,11 @@ Expect: `documents ok`
    - Architecture: the story changes only a project-guide document. It touches no layer and no code.
    - Scope: the story is within F0038's scope, which lists S0010 as "every passage of v1.1's own in the shipped agents". It touches only `agents.md` and none of the feature's "Out of scope" items. The feature file's note that it runs after S0004 is the human's ordering, not a problem for the story.
 4. factory: started tests as self.
+5. tester: No tests written: this story changes only the documents. The Interface is "None", and criterion 1 says nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` may change. Nothing under those paths changed.
+   - criterion 1 (nothing under src/, tests/, image/, template/, demo/ or claude/ changes): no test function. It is checked by smoke test 3, and the working tree has no change under those paths.
+   - criterion 2 (`make check` stays green): no test function. The factory's checks cover it.
+   - criterion 3 (docs, `docs/project-guide/agents.md`): no test function. The documenter's work, checked by `make documents` and smoke tests 1, 2 and 4.
+   Files created: none. Modules the test run could not import: none. `make test` is green with the existing suite (coverage 99.14 %, `test: green`), so there are no red tests for the coder this time. `make lint` is green.
+
+   `lint`: lint: green (0.7 s)
+   `test`: test: green (67.7 s)
