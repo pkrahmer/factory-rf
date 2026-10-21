@@ -313,7 +313,7 @@ Some gateways limit the spend per model in a rolling window and answer a call pa
 
 #### The wait
 
-The stage's agent runs through `PatientRuns` (`factory.application.provider_limits`). When a call ends `provider_limit`, no agent process is left running. The factory waits, then resumes the same session with a short continue prompt, the budget that is left (the agent's budget less what the run has cost so far) and the time limit that is left (less the time the calls have used). It asks no one and counts no attempt.
+When a call ends `provider_limit`, no agent process is left running. The factory waits, then resumes the same session with a short continue prompt, the budget that is left (the agent's budget less what the run has cost so far) and the time limit that is left (less the time the calls have used). It asks no one and counts no attempt.
 
 - The wait is the one the message names (`limit_wait`), or `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` (default 10) when it names none. A run with no session starts again from the stage's own prompt.
 - The waits count toward neither the stage's `time_limit` nor its attempts. A run resumed after a limit is one run and one cost record, with the costs of all its calls added up.
@@ -514,7 +514,7 @@ So `docker compose -f image/compose.yml ps` shows the container as unhealthy whi
 
 ### The preflight's items
 
-The preflight is a list of seven items, and of up to fourteen with the machine's extras (`token-file`, `agent-user`, `tool:sudo` when an agent user is set, `agent-environment`, `confinement`, `opencode` under opencode only, and `agent-run-probe`), in the order of the table; `factory.application.preflight` builds them and `machine_extras` in `factory.entry.wiring` assembles the extras. Every item runs whatever the others found, so one report names everything that is wrong. A failed report becomes one `preflight_failed` stop with scope `machine`; its detail lists each failed item as `<name>: <detail>`, joined by `; `. The preflight installs nothing: a missing tool is reported and you fix the image. The items run only when the image build has changed (see "The stamp and the probe of the main branch").
+The preflight is a list of seven items, and of up to fourteen with the machine's extras (`token-file`, `agent-user`, `tool:sudo` when an agent user is set, `agent-environment`, `confinement`, `opencode` under opencode only, and `agent-run-probe`), in the order of the table. Every item runs whatever the others found, so one report names everything that is wrong. A failed report becomes one `preflight_failed` stop with scope `machine`; its detail lists each failed item as `<name>: <detail>`, joined by `; `. The preflight installs nothing: a missing tool is reported and you fix the image. The items run only when the image build has changed (see "The stamp and the probe of the main branch").
 
 | Item | Passes when | If it fails |
 |---|---|---|
@@ -601,7 +601,7 @@ Both live in the factory's state directory. `factory-run` starts the factory; th
 
 ### The factory log
 
-`TimestampedFactoryLog` writes every line twice: to standard output and, appended, to a file (UTF-8, lines end in `\n`). A line is `<stamp> <text>`. The stamp is `YYYY-MM-DDTHH:MM:SSZ`: UTC, whole seconds (a fraction is cut off, not rounded). One call can hold several lines, and they all carry one stamp, because the clock is read once per call:
+The factory log writes every line twice: to standard output and, appended, to a file (UTF-8, lines end in `\n`). A line is `<stamp> <text>`. The stamp is `YYYY-MM-DDTHH:MM:SSZ`: UTC, whole seconds (a fraction is cut off, not rounded). One call can hold several lines, and they all carry one stamp, because the clock is read once per call:
 
 ```text
 2026-10-12T12:00:07Z first
@@ -771,14 +771,14 @@ Every raise and every clear of a stop of the repository or the machine is also a
 
 ### The stops of one work item
 
-A stop of one work item (a question, a cap reached) is meant to appear as one comment on that work item's pull request. A question is first recorded (a journal entry of kind `question`, with `blocked` set, committed and pushed) and then posted; see "The factory's own questions". The rules below are those of `StopService.post`, which the dispatcher's error report calls (see "An event that keeps failing"). A stall does not follow them: it has its own rule, given under "A stall: the stall note". A posted comment says what each possible answer will do, and it ends with the factory's marker and the stop's key:
+A stop of one work item (a question, a cap reached) is meant to appear as one comment on that work item's pull request. A question is first recorded (a journal entry of kind `question`, with `blocked` set, committed and pushed) and then posted; see "The factory's own questions". The rules below are those of the factory's stop comment, which the dispatcher's error report posts (see "An event that keeps failing"). A stall does not follow them: it has its own rule, given under "A stall: the stall note". A posted comment says what each possible answer will do, and it ends with the factory's marker and the stop's key:
 
 ```
 <!-- factory -->
 <!-- factory key=F0001-S0001:stall:3 -->
 ```
 
-- If the work item has no pull request yet, `StopService.post` opens a draft pull request first, on the work item's branch (`work-item/<id>`), and posts the stop there. The description says: "The factory opened this draft pull request to report a stop on <work item>. The stop is the comment below."
+- If the work item has no pull request yet, the factory opens a draft pull request first, on the work item's branch (`work-item/<id>`), and posts the stop there. The description says: "The factory opened this draft pull request to report a stop on <work item>. The stop is the comment below."
 - It opens one only when the branch is on the remote with a commit beyond `main`. Otherwise it opens nothing, posts nothing and reports a `create_pull_request` error: `branch <branch> is not on the remote with a commit beyond main`. The factory pushes the branch before it can report a stop, so you see this only if the remote branch was removed or reset.
 - If the work item's branch already has an open pull request, the factory posts on that one. A pull request you closed or merged is not reused for a new one; but when the work item's state records a pull request number, the stop is posted there even if you have since closed it.
 - A restart never repeats a stop. The key identifies the stop: if the factory died after posting and before recording it, the next attempt finds the key on the pull request and posts nothing. The same key with another text is still a repeat; a different kind or number is a new stop and a new comment.
@@ -844,7 +844,7 @@ The result commit of every stage holds the whole work tree. Make sure the projec
 
 ## The factory's own questions
 
-Besides an agent's `question`, the factory asks you itself. Every question reaches you in two steps: it is recorded first, as a journal entry of kind `question` in the work item's file (committed and pushed, with `blocked` set), and only then posted as one comment on the pull request. If the factory dies or the post fails between the two, the question is already recorded and the next attempt posts it once: the comment's key is made from the recorded entry's number, and a post whose key the pull request already holds is a no-op. The handler of `ask` (`AskHandler`) does both steps.
+Besides an agent's `question`, the factory asks you itself. Every question reaches you in two steps: it is recorded first, as a journal entry of kind `question` in the work item's file (committed and pushed, with `blocked` set), and only then posted as one comment on the pull request. If the factory dies or the post fails between the two, the question is already recorded and the next attempt posts it once: the comment's key is made from the recorded entry's number, and a post whose key the pull request already holds is a no-op. The factory does both steps when it handles `ask`.
 
 The questions you can meet on a pull request, and how to answer each:
 
@@ -869,7 +869,7 @@ The last time is the text of the work item's latest `stall` entry. A work item a
 
 ### Which comment answers a question
 
-A comment answers a question when it was written after the factory posted that question. The handler of `comment` (`CommentHandler`) works like this for a work item that waits (`blocked` is set):
+A comment answers a question when it was written after the factory posted that question. The factory handles a `comment` like this for a work item that waits (`blocked` is set):
 
 - Your comments are copied into the journal and, in the same commit, the wait ends. The answer is read from ids and keys, never from what you wrote; a blank comment is marked read but does not answer.
 - A comment written before the question was posted is only recorded and the wait stays. The same holds when the question is recorded but not posted yet, and when the only post on the pull request belongs to an earlier question. Comment again once the question is on the pull request.
@@ -1279,13 +1279,13 @@ The acceptance reviewer cannot read the factory's state directory, so the factor
 
 The prompt also carries the line `Human interventions of the stories: ...` right after `Cost of the stories: ...`: the human's line (see "The cost table") summed over the archived stories, not over earlier acceptances or stories still in `backlog`. A damaged archived story file adds nothing.
 
-The next acceptance id of a feature is one above the highest acceptance id among its reports on `main` and on remote acceptance branches. The reader exists as `AcceptanceReader` in `factory.application.acceptance_reading`; the watcher's evaluation and the board command use it.
+The next acceptance id of a feature is one above the highest acceptance id among its reports on `main` and on remote acceptance branches. The watcher's evaluation and the board command use the same rule.
 
 A running acceptance is a work item like a story and is picked by the same order, by id. A due acceptance is not started before the feature's own stories: the next event is `acceptance_due:<feature>` only when no story of that feature (or of an earlier feature) can run; it still comes before the stories of a later feature. A waiting work item and a held claim come first, as for stories. `factory-watch` shows the event as `event: acceptance_due:F0002  acceptance of F0002 is due`.
 
 ## The hand-over at the approval
 
-When a work item reaches an approval stage, the factory shows you on its pull request what to decide. `HandOverHandler` (in `factory.application.handlers.hand_over`) does this for the `hand_over` event. It is registered.
+When a work item reaches an approval stage, the factory shows you on its pull request what to decide. The factory does this when it handles the `hand_over` event.
 
 The description is written first by the stage that reaches the approval, before its push, and again, unchanged, by the hand-over on the next tick, which then marks the pull request ready and posts the cost table. The same holds for an acceptance. If the stage's write failed, the factory logs `pull request #<number>: description not written before the push` and the hand-over writes it.
 
@@ -1300,7 +1300,7 @@ A work item whose `handed_over` already equals its stage is left alone: no descr
 
 ### The hand-over of an acceptance
 
-When a feature's acceptance reaches its approval stage, you see the same steps on its pull request: the draft turns ready for review, the description is replaced, the cost table is posted once and `handed_over = <stage>` is recorded in the report with the commit subject `work item <id>: handed over at <stage>`. `AcceptanceHandOver` (in `factory.application.acceptance`) does it for the acceptance's `hand_over` event, which the wired `SplitByWorkItemKind` sends to it. No agent writes the description. The cost table is the one of the acceptance's own cost records, keyed by the number of the latest `result` entry as for a story.
+When a feature's acceptance reaches its approval stage, you see the same steps on its pull request: the draft turns ready for review, the description is replaced, the cost table is posted once and `handed_over = <stage>` is recorded in the report with the commit subject `work item <id>: handed over at <stage>`. The factory does it when it handles the acceptance's `hand_over` event. No agent writes the description. The cost table is the one of the acceptance's own cost records, keyed by the number of the latest `result` entry as for a story.
 
 The description has four parts, joined by an empty line:
 
@@ -1313,8 +1313,8 @@ A part whose section is missing or empty, and findings with no `result` entry of
 
 What your act does. The result is yours, whatever the acceptance reviewer recommended: a merge of an acceptance that recommended `not accepted` still books it accepted.
 
-- **Merge** accepts. The report moves from the feature's `in-progress/` folder to its `done/` folder with its cost records file, its state says `done` and `accepted`, and its journal gets one `done` entry, `done (pull request merged); cost: <the acceptance's own cost>`. The proposed stories your merge brought into the feature's backlog stay there untouched; you refine them before starting any. While they wait, the feature is `incomplete` and not due; once you have started and archived them it is due again, and a new acceptance follows. A merge that brought no proposed stories leaves the feature `accepted`. The acceptance's branch is then deleted, on the remote and locally. The commit changes only the report and its cost records file (subject `work item <id>: merged, archived`). `AcceptanceMerged` (in `factory.application.acceptance`) does it, in one tick.
-- **Close**, with a comment saying why, refuses, at any stage: while the reviewer works or asks, at the approval, or after a failed hand-over. The report is written to the main branch at `done` as refused, `blocked` is cleared, the proposed stories are discarded (they were only on the branch), and the feature counts as not accepted until another story is archived and a new acceptance runs. The report has `Refused by the human on <date>: <your comment>` as the first paragraph under its `## Recommendation`, and a `done` entry `done (pull request closed by the human); cost: <cost>`; its cost records file is copied beside it. The commit changes only these two files (subject `work item <id>: closed, refused`). Your reason is your comments written after the reviewer's last result, each stripped of surrounding whitespace, blank ones skipped, joined with one space and otherwise copied unchanged; the factory never interprets them. With no comment the reason is `no reason given`. `AcceptanceClosed` (in `factory.application.acceptance`) does it, in one tick.
+- **Merge** accepts. The report moves from the feature's `in-progress/` folder to its `done/` folder with its cost records file, its state says `done` and `accepted`, and its journal gets one `done` entry, `done (pull request merged); cost: <the acceptance's own cost>`. The proposed stories your merge brought into the feature's backlog stay there untouched; you refine them before starting any. While they wait, the feature is `incomplete` and not due; once you have started and archived them it is due again, and a new acceptance follows. A merge that brought no proposed stories leaves the feature `accepted`. The acceptance's branch is then deleted, on the remote and locally. The commit changes only the report and its cost records file (subject `work item <id>: merged, archived`). The factory does it in one tick.
+- **Close**, with a comment saying why, refuses, at any stage: while the reviewer works or asks, at the approval, or after a failed hand-over. The report is written to the main branch at `done` as refused, `blocked` is cleared, the proposed stories are discarded (they were only on the branch), and the feature counts as not accepted until another story is archived and a new acceptance runs. The report has `Refused by the human on <date>: <your comment>` as the first paragraph under its `## Recommendation`, and a `done` entry `done (pull request closed by the human); cost: <cost>`; its cost records file is copied beside it. The commit changes only these two files (subject `work item <id>: closed, refused`). Your reason is your comments written after the reviewer's last result, each stripped of surrounding whitespace, blank ones skipped, joined with one space and otherwise copied unchanged; the factory never interprets them. With no comment the reason is `no reason given`. The factory does it in one tick.
 - **A comment** is not answered while the acceptance waits; it goes into the report's journal.
 
 Each acceptance has its own report and its own cost records, so the cost on its `done` entry counts only that acceptance's runs, never an earlier one's.
@@ -1350,7 +1350,7 @@ After the restore of the checkout and before it looks at any work item, every ti
 
 ## A merge archives the story
 
-A merge of a story's pull request, by any method (merge commit, squash or rebase), accepts the story as it is, at whatever stage it has reached: working, waiting for you, or at an approval stage. The merged handler (`MergedHandler`) then archives it on `main`, in one commit with the subject `work item <id>: merged, archived`:
+A merge of a story's pull request, by any method (merge commit, squash or rebase), accepts the story as it is, at whatever stage it has reached: working, waiting for you, or at an approval stage. The factory then archives it on `main`, in one commit with the subject `work item <id>: merged, archived`:
 
 - the story file moves from `in-progress/` to `done/` of its feature, and its cost records (`<story>.costs.jsonl`) move beside it when it has them;
 - its stage becomes `done`, with no wait and no claim, whoever held the claim; its counters and journal stay as they were;
@@ -1368,7 +1368,7 @@ When it goes wrong:
 
 ## A close before the approval discards the story
 
-When you close a story's pull request while the story is at any stage that is not an approval stage, you have said you do not want this version. The closed handler (`ClosedHandler`) then discards the story on `main`, in one commit with the subject `work item <id>: closed before the approval, back in the backlog`:
+When you close a story's pull request while the story is at any stage that is not an approval stage, you have said you do not want this version. The factory then discards the story on `main`, in one commit with the subject `work item <id>: closed before the approval, back in the backlog`:
 
 - the story file moves from `in-progress/` back to `backlog/` of its feature. It is moved, not rewritten: it is the text you wrote on `main`, whatever the work item's branch held;
 - the commit changes nothing else.
@@ -1387,7 +1387,7 @@ When it goes wrong:
 
 ## A close at the approval sends the story back
 
-When you close the pull request of a story that waits at an approval stage, you have said "not like this". `ClosedHandler` then sends the story back to the second stage in the approval's `next` (`doing` in the usual pipeline). An approval with only one stage in `next` cannot be sent back: the handler raises `CannotHandle` for `closed` and records nothing. The same holds for a story without a pull request number.
+When you close the pull request of a story that waits at an approval stage, you have said "not like this". The factory then sends the story back to the second stage in the approval's `next` (`doing` in the usual pipeline). An approval with only one stage in `next` cannot be sent back: the factory raises `CannotHandle` for `closed` and records nothing. The same holds for a story without a pull request number.
 
 The handler works in this order, and each step that changes the work item is pushed on its own:
 
@@ -1466,9 +1466,7 @@ Do not edit the file of a work item in `in-progress/` on `main`. Answer in its p
 
 The dispatcher hands each event to its handler and counts what goes wrong, per event and per remote state (the commit the work item's branch is at). Any error from the handler counts, an event kind without a handler included. The tick calls the dispatcher once per pass.
 
-The handlers of the human's acts on the pull request (`comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `duplicate`, `pull_request_lookup`), of the stage run, of `crash` and `expired` (see "A restart during a stage" and "An expired lease") and of `acceptance_due` are registered: every kind of event has a handler. Should a future kind have none, the event leads to this:
-
-It ends in the one report of its work item and remote state, and then holds back all new work, until its handler is registered. A push to the branch makes the factory try again.
+The handlers of the human's acts on the pull request (`comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `duplicate`, `pull_request_lookup`), of the stage run, of `crash` and `expired` (see "A restart during a stage" and "An expired lease") and of `acceptance_due` are registered: every kind of event has a handler.
 
 After three errors on one event and one remote state, the factory posts one report on the work item's pull request and stops retrying that event. The report reads: "The factory failed 3 times on `<event>` and has stopped retrying it. Last error: <error>. A new commit on the work item's branch (now at <12 characters of the commit>) makes the factory try again." It is posted once: a restart does not post it again, because the report carries a key that the pull request already holds. If the work item has no pull request, the factory opens a draft one for the report first, as under "The stops of one work item".
 
@@ -1485,7 +1483,7 @@ If the work item's branch is not on the remote, no pull request can be opened fo
 
 ## Stops that cannot be done
 
-Three situations have no work the factory can do. Each is a counted error, never a silent success: the handler raises `CannotHandle`, the dispatcher counts it per event and remote state, tries the event three times, and then posts one report on the work item's pull request (a draft is opened for it first when there is none), as under "An event that keeps failing". A restart posts no second report. The handlers (`DuplicateHandler`, `PullRequestLookupHandler` in `factory.application.handlers.lookups`, and `AskHandler`) are registered; the report's last error reads as below.
+Three situations have no work the factory can do. Each is a counted error, never a silent success: the factory raises `CannotHandle`, the dispatcher counts it per event and remote state, tries the event three times, and then posts one report on the work item's pull request (a draft is opened for it first when there is none), as under "An event that keeps failing". A restart posts no second report. The report's last error reads as below.
 
 | Stop | Last error in the report | What to do |
 |---|---|---|
