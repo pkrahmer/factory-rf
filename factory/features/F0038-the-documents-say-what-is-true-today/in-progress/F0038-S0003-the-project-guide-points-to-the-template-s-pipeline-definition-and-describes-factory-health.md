@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 390
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T07:05:11.713526Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T07:05:11.713526Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T07:05:43.760229Z'
+  stage: docs
+  run: 80e579925e46416c9f5d7cc866a6e6f7
 ---
 
 # The project guide points to the template's pipeline definition and describes `factory-health`
@@ -157,3 +159,17 @@ Expect: `documents ok`
      - The module loop from the smoke test reports exactly the four modules the Description names as missing from the index: `factory.adapters.agent_home`, `factory.application.agent_home`, `factory.domain.sessions` and `factory.entry.health`.
    - Earlier tests: the diff changes, renames or deletes no test file, so there is nothing to name.
 10. factory: started docs as self.
+11. documenter: Files changed (documents only, so I did not run `make check`; the factory's checks decide):
+    - `docs/project-guide/agents.md`, *The template*: removed the stale YAML copy of `template/factory/pipeline.yml`. It lacked `tool_paths`. The bullet now says in one sentence what the file holds (the three project commands with their `time_limit`s, the `tool_paths`, the seven roles with write paths, the stages) and that the guide does not copy it. The stage order, "Copy it ... and adjust it" and the coder's write-path sentence stay. The file has no fenced `yaml` block now.
+    - `docs/project-guide/watching.md`, *Stops, the clock and the factory log*: one paragraph on `factory-health` after the `factory.application.machine` paragraph. I checked it against `src/factory/entry/health.py`: the signature, `--state-directory` with default `/state` (`STATE_DIRECTORY`), `healthy` with 0, one line per stop with 1, and the missing-file line with 1.
+    - `docs/project-guide/README.md`, the index: `factory-health` after `factory-run` and `factory.entry.health` before `factory.entry.run` on the `watching.md` line; `factory.domain.sessions` after `factory.domain.known_results` on the `processes-and-checks.md` line; `factory.application.agent_home` and `factory.adapters.agent_home` in the fresh-home list on the `agents.md` line. Nothing else in the index changed.
+
+    Checks I ran: the smoke test's module loop prints only `end` (every module of `src/factory` is in the index), the yaml count in `agents.md` is 0, and `make documents` ends with `documents ok`.
+
+    Cross-read and found current: the rest of `agents.md` (*The template*, its `CLAUDE.md` and Makefile bullets), `watching.md`'s `machine` paragraph, and the index lines for the other files, against the empty code diff (nothing under `src/` changed).
+
+    Findings: none. Stale text noticed but not touched: none.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+    `secrets`: secrets: green (1.1 s)
+    `documents`: documents ok
