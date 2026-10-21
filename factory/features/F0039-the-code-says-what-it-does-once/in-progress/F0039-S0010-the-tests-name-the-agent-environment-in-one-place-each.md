@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T12:20:20.807064Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T12:20:20.801190Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T12:20:20.807064Z'
+  stage: intake
+---
+
 # The tests name the agent environment in one place each
 
 ## Description
@@ -62,3 +89,6 @@ grep -c '^- `\(stage_run_support\|wiring_support\).py`:.*`ENVIRONMENT`' docs/pro
 Expect: one line, `2` (before the story, `0`)
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
