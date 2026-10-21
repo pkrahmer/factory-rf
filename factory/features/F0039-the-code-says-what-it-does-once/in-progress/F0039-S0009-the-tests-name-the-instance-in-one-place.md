@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 403
 comments_read: [6312436133]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T09:28:34.388465Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-21T09:28:12.930532Z'
   stage: docs
   run: 68fdece8135e486892d10fc1c8336989
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-21T09:28:34.388465Z'
+  stage: smoke-test
 ---
 
 # The tests name the instance in one place
@@ -318,3 +327,4 @@ Expect: one line, `1` (before the story, `0`)
     `check`: check: green (not run again: passed on tree cb3e3f43c061 at 2026-10-21T09:24:36Z)
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
+15. factory: started smoke-test as self.
