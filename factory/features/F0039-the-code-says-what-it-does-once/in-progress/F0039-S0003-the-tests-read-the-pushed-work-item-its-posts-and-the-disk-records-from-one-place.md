@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T01:08:35.127116Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-21T01:08:17.124593Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:08:35.127116Z'
   stage: intake
 ---
 
@@ -144,3 +153,4 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
 4. 2026-10-21 human: Answers (2026-10-21):
    1. The guard's function names and signatures are the tester's choice; the criteria fix only what the guard finds. Your suggestion (`helper_copies(source)`, `record_fixture_copies(source)` and a `copies_by_module(root)` for criterion 1) is a good one, and the tester may take it.
    2. Confirmed on `main` (grep of `def _?pushed` and `def _?pushed_state` under `tests/`): besides the copies with `(boundaries: Boundaries, remote: Path)`, only two variants remain, `test_stage_run_acceptance.py`'s `_pushed_state(boundaries: Boundaries, path: str)` and `test_approval_description.py`'s `_pushed(world: World, work_item: WorkItemId)`; both differ in their parameters, so the guard does not count them. Every remaining copy spells `Boundaries` and `Path` the same way.
+5. factory: started intake as self.
