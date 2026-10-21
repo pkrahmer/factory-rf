@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 394
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T07:33:54.806024Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T07:33:54.806024Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T07:34:18.795988Z'
+  stage: intake
+  run: 08ce70a2d7824e8498829502272ede0b
 ---
 
 # The operator guide opens with its contents and states the current rule without its history
@@ -90,3 +92,9 @@ Expect: `documents ok`
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is right for a documents-only story. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes, and criterion 1 pins that.
+   - Criteria: criterion 3 is a list of exact old-to-new replacements, and each can be checked against the text. The contents-list bullet format and the 400-character limit on the opening paragraph are stated. I grepped the guide, and the quoted passages are there: "Morning observations" at line 227, "Morning observation." at 430, "The service sets `init: true`" at 437, and "The probe of 2026-10-17" at 352. The guide has 39 `##` sections for the contents list. The Interface states no rule with a failing side, because nothing is validated or refused, so that check has nothing to fail.
+   - Smoke test: all four blocks are runnable. The first grep prints `0` because `|| true` covers grep's exit 1 on no match, and the second prints `1`. The Python block does not call pytest, so the `-q` rule does not apply. Each `Expect:` line can be checked against the output.
+   - Architecture: the story changes only `docs/operator-guide.md`, which is the documenter's write path under `CLAUDE.md`, *Docs*.
+   - Scope: the story stays within `feature.md`. It takes S0006's findings H3, M4 with L9, and M13. The stop tables, class names and mutation sections are left to S0007, S0008 and F0032, as the feature says.
