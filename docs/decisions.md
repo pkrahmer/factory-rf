@@ -882,12 +882,12 @@ Date: 2026-10-20 (F0035-S0001; F0035 decisions 1 to 4). This repository's `pypro
 
 ## A record line that is not UTF-8 is skipped
 
-Date: 2026-10-20 (F0037-S0001; F0037 decisions 1, 2, 3 and 5). A kill during an append can cut the last line of a record file inside a multibyte character. `JsonLinesRecordLog.read` decoded the whole file, so it raised `UnicodeDecodeError`, and `KnownResults._read` caught only `OSError`: every check and report of every stage failed with an error until a human repaired `known-results.jsonl`.
+Date: 2026-10-20 (F0037-S0001; F0037 decisions 1, 2, 3, 4 and 5). A kill during an append can cut the last line of a record file inside a multibyte character. `JsonLinesRecordLog.read` decoded the whole file, so it raised `UnicodeDecodeError`, and `KnownResults._read` caught only `OSError`: every check and report of every stage failed with an error until a human repaired `known-results.jsonl`.
 
 - Decision: `JsonLinesRecordLog.read` reads the file's bytes, splits them at `b"\n"` alone and decodes each line on its own as strict UTF-8. A line that does not decode is skipped, like a blank line and a line that does not validate; every other line counts, in file order. Splitting at the line feed alone also keeps whole a record whose text holds U+2028, U+2029 or U+0085, which `str.splitlines` cut in two. An `OSError` of reading still propagates. `KnownResults`, `DiskRecorder` and `StopPublisher` are unchanged.
 - Reasons: the fault is in the reader of the file, which serves all four record files, so one fix covers them.
 - Rejected: a wider `except` in `KnownResults._read` (decision 2; it would fix one of the four callers and hide other faults); decoding with replacement (decision 3; a line cut or damaged inside a JSON string could then validate as a record with a wrong text).
-- Open (decision 4): a record appended after a torn line lands on the torn line's line and is skipped with it. A later story may start a new line first.
+- Answered (decision 4, the human, 2026-10-20): a record appended after a torn line still lands on the torn line's line and is skipped with it, and no later feature changes `append`. Reason: the writer would have to read the file's last byte before each append, which two writers can race, while the loss is one telemetry record per kill.
 
 ## A test whose child must act before its time limit gets ten seconds
 

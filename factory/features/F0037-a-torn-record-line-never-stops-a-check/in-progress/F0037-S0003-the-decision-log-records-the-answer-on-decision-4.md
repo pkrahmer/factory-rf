@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 377
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T00:15:34.864898Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T00:15:34.864898Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T00:15:51.839159Z'
+  stage: docs
+  run: a73d880d334a4b7d872bdcf609ce8438
 ---
 
 # The decision log records the human's answer on F0037's decision 4
@@ -138,3 +140,18 @@ Expect: `documents ok`
    - 5. Work item hygiene: entry 7 states the main choice, leaving `docs/` to the documenter, and the option it rejected. The Description still matches the repository. `docs/decisions.md:883` has the entry *A record line that is not UTF-8 is skipped*. Its date line names decisions 1, 2, 3 and 5, and `docs/decisions.md:890` still has the "Open (decision 4): …" bullet. So the docs criterion still describes exactly the edit the documenter has to make.
    - 6. Earlier tests: none. No test file on `main` is changed, renamed or deleted.
 10. factory: started docs as self.
+11. documenter: Changed `docs/decisions.md` only, in the entry *A record line that is not UTF-8 is skipped*:
+    - The "Open (decision 4)" bullet is now "Answered (decision 4, the human, 2026-10-20)". It says a record appended after a torn line still lands on the torn line's line and is skipped with it, and that no later feature changes `append`. The reason: the writer would have to read the file's last byte before each append, which two writers can race, while the loss is one telemetry record per kill.
+    - The entry's date line now reads "F0037 decisions 1, 2, 3, 4 and 5".
+
+    I ran both smoke-test commands. The grep counts are `0` and `1`, and `uv run python -m factory.entry.check_documents` prints `documents ok`. I did not run `make check`, because I changed only a document under `docs/`.
+
+    Cross-read: nothing under `src/` or `tests/` changed, so the diff gives nothing else to compare against. I left the project guide's sentence that a record after a torn line shares its line and is skipped alone, as the Description says. It is still true.
+
+    Stale text noticed but not touched: none.
+
+    No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
+    `secrets`: secrets: green (1.2 s)
+    `documents`: documents ok
