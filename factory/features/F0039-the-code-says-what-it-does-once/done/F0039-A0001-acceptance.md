@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-21T06:28:41.525443Z'
   stage: acceptance
   run: a5339d42003d43038e3da25295db549d
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-21T06:30:03.369257Z'
+  stage: done
 stories: [F0039-S0001, F0039-S0002, F0039-S0003, F0039-S0004, F0039-S0005, F0039-S0006, F0039-S0007]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The code says what it does, once
@@ -308,3 +313,4 @@ S0006 needed the human most. Its question stopped a finished source change at do
    6. Decisions: 1 to 13 of `feature.md`, two intake answers, the coders' defaults, and how the reviewers read the standing leave for dead leftovers (`BODY`, `PATH`, `_records_path`, `CountingGit`). Every earlier test was changed under a named leave.
    7. Slow checks: nothing beyond `make check`. `make duplicates` gives 0 new and `make documents` is ok. The slowest tests are the ten-second time-limit tests, none from this feature. Used disk is unchanged at 0.5 GB on `/work`; the 0.5 GB fall in free space is the shared host's.
    8. Cost: 65 runs, $17.07. S0003 ($4.98: three review rounds over leftovers of the moves, plus a mypy stall) and S0006 ($4.97: the largest change, a question, a docs stall) stand out. There were 3 questions (cause `question`) and 3.7 h of waiting; S0006 needed the human most, because decision 11's leave missed two test rows and that held a finished source change at doing.
+3. factory: done (pull request merged); cost: 1 runs, 9.1 min, 46 turns, 159318 tokens in (4596204 more from cache), 44457 out, $3.08
