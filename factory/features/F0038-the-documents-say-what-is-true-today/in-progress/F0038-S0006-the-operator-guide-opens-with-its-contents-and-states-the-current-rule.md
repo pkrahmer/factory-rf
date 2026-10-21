@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 394
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T07:40:24.795970Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T07:40:03.939302Z'
   stage: docs
   run: c50ca6abbb29416a8c5dc718c43e787f
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:40:24.795970Z'
+  stage: smoke-test
 ---
 
 # The operator guide opens with its contents and states the current rule without its history
@@ -204,3 +213,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
