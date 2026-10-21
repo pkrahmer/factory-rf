@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T08:52:15.008837Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-21T08:52:15.008837Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-21T08:55:02.995891Z'
+  stage: doing
+  run: 343aa521de0841f8b442ef734b24e408
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -299,3 +301,13 @@ Expect: one line, `1` (before the story, `0`)
     `lint`: lint: green (0.6 s)
     `test`: test: green (65.9 s)
 17. factory: started doing as self.
+18. coder: Round 1, after the tester's move (entry 16): I built nothing and changed no file. The reviewer's only finding (entry 12) was the copy of `_functions` and `_without_docstring` in tests/test_shared_bodies.py. The tester has fixed it: both helpers now live in tests/function_support.py, and tests/test_shared_definition.py and tests/test_shared_bodies.py import them from there. No module under `src/factory/` changes in this story.
+
+    - Check: I ran `make check` on the committed tree with nothing of mine in the working tree. It is green: `test: green (66.7 s)`, coverage 99.14 %, `check: green`.
+    - Main choice: I added no code and handed the work to review. I rejected a further cleanup of the test modules myself, because the coder does not edit tests and the finding is already addressed.
+    - Refactor step: my diff is empty, so there was nothing to refactor.
+    - Description: no journal entry after intake changed what the task means.
+    - Noticed, not touched: the sentence that criterion 7 asks for in docs/project-guide/README.md is still not written. That is the docs stage's work.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 38 known, 0 gone
