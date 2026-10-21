@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T01:20:24.881242Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-21T01:20:03.746218Z'
   stage: review
   run: cf2a7d3bf82d40348197963ac646367d
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:20:24.881242Z'
+  stage: doing
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -278,3 +287,4 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     - tests/entry/test_watch.py: standing leave (`_push_state` moved; it went beyond the move by leaving `BODY` dead, see finding 2)
     - tests/conftest.py: standing leave (`disk_settings` and `disk_records` fixtures added as the shared place)
     - tests/stage_run_support.py: standing leave (`pushed` added; `pushed_state` now calls it)
+13. factory: started doing as self.
