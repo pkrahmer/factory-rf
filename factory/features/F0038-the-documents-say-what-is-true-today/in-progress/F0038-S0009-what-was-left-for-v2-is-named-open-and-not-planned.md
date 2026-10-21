@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T08:10:59.384393Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T08:10:38.549567Z'
   stage: review
   run: 6877e294c0344afbadde5ee1cc5fa13c
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:10:59.384393Z'
+  stage: docs
 ---
 
 # What was left for v2 is named open and not planned
@@ -154,3 +163,4 @@ Expect: `documents ok`
    `README.md`, `docs/operator-guide.md` and `docs/project-guide/*.md` already say "left for v2" nowhere. The docs criterion still says what the reader must know after this story. The Description matches what the story is to deliver, and the coder's journal entry gives the main choice (leave the log to the docs stage) and what was rejected.
 
    Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
+10. factory: started docs as self.
