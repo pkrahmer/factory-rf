@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T01:27:00.711603Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-21T01:27:00.711603Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T01:28:34.167496Z'
+  stage: review
+  run: 5e9dae8b2d4649a38eba2aa3a44fe17f
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -193,8 +195,9 @@ The modules changed, each losing its copy and taking the shared one:
 2. The guard finds a copy by name and parameters and nothing else (rows of one parametrized test, each a source text the guard's functions read): `def _pushed(boundaries: Boundaries, remote: Path) -> WorkItemDocument:\n    ...\n` is a copy of `pushed`; `def _pushed_state(boundaries: Boundaries, path: str) -> WorkItemState:\n    ...\n` is not a copy of `pushed_state`; `def _push_state(human: HumanClone, state: WorkItemState, *, path: str = PATH) -> None:\n    ...\n` is not a copy of `push_state`; `def disk_log(tmp_path: Path) -> JsonLinesRecordLog[DiskRecord]:\n    ...\n` is a copy of a record fixture; `class Rig:\n    def pushed(self, boundaries: Boundaries, remote: Path) -> None:\n        ...\n` is not a copy.
 3. The shared helpers read and write as the copies did: after `human.start(BACKLOG_PATH)` (`stage_run_support`) and `push_state(human, state)` with a `WorkItemState` of stage `doing` and pull request 1, `remote_document(boundaries, checkout).state` equals that state, and `pushed_state(boundaries, remote)` equals it too; `error_posts(hosting, number)` of a pull request on which the factory posted one comment whose `PostKey` has the kind `error` and one whose kind is `cost_table` (`work_item="F0001-S0001"`, `n="1"`) is the one `error` post.
 4. Every earlier test keeps its name and checks the same thing: the tests that `pytest --collect-only` lists in the sixteen test modules the Interface names are, after the story, the same ids as before it, and all of them pass.
-5. `make check` stays green.
-6. docs: `docs/project-guide/README.md`, *Shared test helpers*: one line for the new module in the list, in its alphabetical place after `bill_support.py`, in the form of the other lines: `` - `branch_reading.py`: the work item on a work item's branch and the factory's posts on its pull request (`remote_document`, `error_posts`, `push_state`). ``; and, as the section asks of a story that adds a fixture, the line of `conftest.py` names `disk_settings` (settings whose checkout and state directory lie under `tmp_path`) and `disk_records` (the disk record log in `tmp_path`) under *Paths and settings*. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none, nothing an operator or a newcomer sees changes and no decision is taken.
+5. The guard strips one leading `_` and no more (a row of the parametrized test of criterion 2): `def __pushed(boundaries: Boundaries, remote: Path) -> WorkItemDocument:\n    ...\n` is not a copy of `pushed`.
+6. `make check` stays green.
+7. docs: `docs/project-guide/README.md`, *Shared test helpers*: one line for the new module in the list, in its alphabetical place after `bill_support.py`, in the form of the other lines: `` - `branch_reading.py`: the work item on a work item's branch and the factory's posts on its pull request (`remote_document`, `error_posts`, `push_state`). ``; and, as the section asks of a story that adds a fixture, the line of `conftest.py` names `disk_settings` (settings whose checkout and state directory lie under `tmp_path`) and `disk_records` (the disk record log in `tmp_path`) under *Paths and settings*. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none, nothing an operator or a newcomer sees changes and no decision is taken.
 
 ## Smoke test
 
@@ -371,3 +374,31 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     `check`: check: green
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
 19. factory: started review as self.
+20. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` (21 files, all under `tests/`; nothing under `src/factory/` changes, as the Interface says) against the work item. The three findings from round 0 (journal 12) are fixed: `_records_path` is gone, and so are both dead `BODY` constants, and `test_watcher_move_rule.py` imports `BODY` from `branch_reading`. I read the guard `tests/test_shared_branch_helpers.py` against criteria 1 to 3. Its rows match the criteria's texts, and `copies` follows the Interface: top-level functions only, keyword-only annotations included, compared by `ast.unparse`. The shared `push_state` and `remote_document` use `stage_run_support`'s `BRANCH` and `PATH`, which equal the values the removed copies used, so the moved tests check the same thing. The coder's entry (journal 18) records `check: green` and `duplicates: 0 new`. Architecture and security: no `src/` change and no silencing marker.
+
+    Findings:
+    1. `tests/application/test_watcher.py:32`, `tests/application/test_watcher_move_rule.py:27` and `tests/entry/test_watch.py:39`: `PATH = f"{FEATURE}/in-progress/F0001-S0001-first.md"` is now dead code. Its only user was the removed `_push_state`, and no other module imports it. This is the same kind of leftover as round 0's `BODY`, so it goes beyond the move the standing leave allows. Fix: the tester deletes the constant in all three modules, under the standing leave.
+    2. criterion 5 added: it needs its test. The Interface says the guard strips "one leading `_`", but only the zero-underscore and one-underscore sides are tested; `__pushed` is never tried. The fix is one more row in `test_the_guard_finds_a_copy_by_name_and_parameters_only` (`tests/test_shared_branch_helpers.py`): `def __pushed(boundaries: Boundaries, remote: Path) -> WorkItemDocument:\n    ...\n` -> `[]`. The closing criteria are renumbered 6 (`make check`) and 7 (docs). No code change is needed; `removeprefix("_")` already refuses it.
+
+    Both fixes are test changes, so the coder hands them on with `tests` (R9).
+
+    Earlier tests (changed under the leave named):
+    - tests/application/handlers/test_closed_send_back.py: standing leave (`_remote_document` moved)
+    - tests/application/handlers/test_comment_handler.py: standing leave (`_remote_document` and `_error_posts` moved)
+    - tests/application/handlers/test_hand_over.py: standing leave (`_error_posts` moved)
+    - tests/application/handlers/test_questions.py: standing leave (`_remote_document` moved)
+    - tests/application/test_acceptance_facts_disk.py: standing leave (`settings` and `records` moved to `disk_settings` and `disk_records`)
+    - tests/application/test_after_agent.py: standing leave (`_head`, `_pushed` and `_pushed_state` moved; local `pushed` renamed to `document`)
+    - tests/application/test_disk_recorder.py: standing leave (`settings` and `records` moved to `disk_settings` and `disk_records`)
+    - tests/application/test_nested_repositories.py: standing leave (its `_pushed` import replaced by the shared `pushed`; local renamed)
+    - tests/application/test_stage_finish.py: standing leave (`_head`, `_pushed` and `_pushed_state` moved; local renamed)
+    - tests/application/test_stage_known_results.py: standing leave (`_pushed` moved)
+    - tests/application/test_stall_labels.py: standing leave (`_pushed` and `_pushed_state` moved)
+    - tests/application/test_stalls.py: standing leave (`_head`, `_pushed` and `_pushed_state` moved; local renamed)
+    - tests/application/test_stop_publisher.py: standing leave (shadowing `records` fixture removed)
+    - tests/application/test_stop_records_service.py: standing leave (shadowing `records` fixture and its `_records_path` removed)
+    - tests/application/test_watcher.py: standing leave (`_push_state` and `BODY` moved); the dead `PATH` it leaves goes beyond the leave, see finding 1
+    - tests/application/test_watcher_move_rule.py: standing leave (`_push_state` moved; `BODY` now imported); the dead `PATH` goes beyond the leave, see finding 1
+    - tests/entry/test_watch.py: standing leave (`_push_state` and `BODY` moved); the dead `PATH` goes beyond the leave, see finding 1
+    - tests/conftest.py: standing leave (`disk_settings` and `disk_records` added as the shared place)
+    - tests/stage_run_support.py: standing leave (`pushed` added; `pushed_state` now calls it)
