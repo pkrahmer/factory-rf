@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T06:41:17.269571Z'
   stage: smoke-test
   run: 4c8d590834474c21a4218474b95af7a0
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T06:42:37.153113Z'
+  stage: approval
 ---
 
 # The tests of the agent's user share their stand-in sudo and their recording log
@@ -270,3 +275,4 @@ Expect: one summary line with a count of `passed`, and no `failed` and no `error
     - Criterion 5: `git diff --stat main...HEAD -- src` printed nothing.
 
     Not checked here: criteria 3 (same collected test ids before and after) and 6 (`make check`) need runs that the smoke test does not cover. The tester's entry 5 and the coder's entry 7 record both as met.
+14. factory: done (pull request merged); cost: 6 runs, 6.7 min, 48 turns, 167085 tokens in (1208725 more from cache), 17585 out, $1.66
