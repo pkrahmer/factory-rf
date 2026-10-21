@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T07:40:53.102611Z'
   stage: smoke-test
   run: 6580e5e1ce14495b8285c410fac952d1
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T07:42:13.955648Z'
+  stage: approval
 ---
 
 # The operator guide opens with its contents and states the current rule without its history
@@ -259,3 +264,4 @@ Expect: `documents ok`
     Findings: none.
 
     Open: none for this story. Entry 11 says other dated observations remain in the guide; the criterion does not list them.
+14. factory: done (pull request merged); cost: 6 runs, 3.7 min, 32 turns, 117755 tokens in (513074 more from cache), 10787 out, $1.02
