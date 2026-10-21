@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 395
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T07:51:59.753327Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-21T07:51:59.753327Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T07:52:23.815209Z'
+  stage: smoke-test
+  run: 715e37695c254d388f5cafeb1b53bdf8
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -305,3 +307,40 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.6 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Round 1: I ran the four smoke-test commands from the repository root, in order and as written. All four met their `Expect:` lines. I then read the acceptance criteria again against the guide and its diff to `origin/main`. Nothing contradicts a criterion, and the round-0 finding (the missing blank line) is fixed. I fixed nothing.
+
+    Command 1 (grep for the removed names and "Should a future kind"):
+    ```
+    0
+    ```
+    Met: `0`.
+
+    Command 2 (the kept names, then the handler sentence):
+    ```
+    2
+    1
+    ```
+    Met: at least `2`, then `1`.
+
+    Command 3 (the diff outside the docs, then the diff in README and docs):
+    ```
+    0
+    docs/operator-guide.md
+    ```
+    Met: two lines, `0` and `docs/operator-guide.md`.
+
+    Command 4 (`make documents`):
+    ```
+    documents ok
+    ```
+    Met.
+
+    Other checks against the criteria:
+    - Criterion 3, third bullet: `docs/operator-guide.md:1469` ends "... are registered: every kind of event has a handler.". Line 1470 is blank. "After three errors on one event and one remote state, ..." starts its own paragraph at line 1471. The removed sentence and paragraph are gone.
+    - The kept names occur as often as on `origin/main`: `SettingsInvalid` 1, `CannotHandle` 5, `PushFailed` 5, `HostingServiceError` 1, `STOP_TABLE` 1, `factory.domain.settings.read_settings` 1.
+    - The heading lines (`^#`) are the same as on `origin/main`.
+    - All of the criterion's example rewrites are in the guide: "The factory does both steps when it handles `ask`.", "The factory then archives it", "The factory then discards the story", "The factory then sends the story back", and "The factory does it in one tick." (twice, for merged and for closed).
+    - Criterion 1: `docs/operator-guide.md` is the only file changed outside the work item (17 insertions, 19 deletions).
+    - Criterion 2: I did not run `make check` again. The journal records it green on the tree, and the factory checks it.
+
+    Findings: none. Nothing is open.
