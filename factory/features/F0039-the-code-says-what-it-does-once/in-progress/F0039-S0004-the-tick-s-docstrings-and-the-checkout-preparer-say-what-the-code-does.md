@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 383
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T01:49:46.157604Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T01:49:46.157604Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T01:50:12.509440Z'
+  stage: review
+  run: 563681a6b08043ae86276bdc6cf43c9e
 ---
 
 # The tick's docstrings and the checkout preparer say what the code does
@@ -154,3 +156,17 @@ Expect: one line, `False True <class 'NoneType'> <class 'bool'>` (before the sto
    `check`: check: green
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   Reviewed `git diff main...HEAD -- . ':!factory'` against the work item.
+   - Criterion 1: the Interface's words are now the docstrings of `Tick` and `Tick.run` (`src/factory/application/tick.py`) and of `CheckoutPreparer.prepare` (`src/factory/application/scheduler.py`). `tests/application/test_tick_docstrings.py::test_the_docstrings_say_what_the_code_does` compares all three exactly after joining whitespace, as rows of one parametrized test. I checked the new `Tick.run` docstring against the body: check disk, fetch, load, restore, `_publish_stop_records`, preflight, then `delete_stale_branches`, `evaluate`, dispatch. It says what the code does.
+   - Criterion 2: `CheckoutPreparer.prepare` is `-> None` and its `return True` is gone. `RepositoryWaiter.prepare` is untouched and still calls `self._preparer.prepare()` as a statement (`scheduler.py:130`, the only caller under `src/`). `test_the_preparers_return_types` reads both return types with `get_type_hints`, as two rows.
+   - Criterion 3: each of the seven earlier tests changed only from `assert ...prepare() is True` (or `prepared = ...` with `assert prepared is True`) to the call as a statement. Every other line stays. `RepositoryWaiter`'s `prepared is False` assertion in the seal module stays as it was.
+   - Criterion 4: the coder's journal entry 7 records `check: green` and `duplicates: 0 new`.
+   - Architecture, security, quality: the change stays inside `factory.application`, with no new import and no silencing marker. No dead code is left behind.
+   - Hygiene: the journal names the main choice (drop `return True` rather than write `return None`) and what was rejected. The Description matches what was built. Criterion 5 still names what the documenter must change in `docs/project-guide/watching.md`.
+
+   Earlier tests:
+   - tests/application/test_checkout_preparer_seal.py: the human's leave, feature decision 6 (named in the story's Interface)
+   - tests/application/test_nested_repositories.py: the human's leave, feature decision 6 (named in the story's Interface)
+   - tests/application/test_scheduler.py: the human's leave, feature decision 6 (named in the story's Interface)
