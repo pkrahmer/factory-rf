@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 390
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T07:06:04.775871Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T07:06:04.775871Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T07:06:28.153820Z'
+  stage: smoke-test
+  run: e2689e33ef4a4610802ad71d05408517
 ---
 
 # The project guide points to the template's pipeline definition and describes `factory-health`
@@ -183,3 +185,42 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed: all four commands met their `Expect:` lines, and nothing in the run contradicts any acceptance criterion. Findings: none. I fixed nothing; I ran the commands as written from the repository root, in order, and changed no file.
+
+    Command 1, the yaml block count and the `tool_paths` count in `agents.md`:
+    ```
+    0
+    1
+    ```
+    Met (`0`, then at least `1`).
+
+    Command 2, the `factory-health` lines in `watching.md` and the module-index loop:
+    ```
+    1
+    end
+    ```
+    Met (at least `1`, then the single line `end`: every module of `src/factory` is named in the index).
+
+    Command 3, the changed files against `origin/main`:
+    ```
+    0
+    docs/project-guide/README.md
+    docs/project-guide/agents.md
+    docs/project-guide/watching.md
+    ```
+    Met (four lines: `0`, then the three project-guide files).
+
+    Command 4, `make documents 2>&1 | tail -n 1`:
+    ```
+    documents ok
+    ```
+    Met.
+
+    Check against the acceptance criteria (I read `git diff origin/main -- docs` and `src/factory/entry/health.py`):
+    - Criterion 1: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed (command 3 gives `0`). The tester's entry (5) and the coder's entry (7) each say so.
+    - Criterion 2: I did not run `make check` again. The factory's run after the coder was green (entry 7), and the docs stage changed only files under `docs/`.
+    - Criterion 3, `agents.md`: the YAML block is gone. In its place is a sentence naming `check`, `lint` and `test` with their `time_limit`s, the `tool_paths`, the seven roles with their write paths, and the stages, and saying to read the file itself. The sentences on the stage order, "Copy it … and adjust it" and the coder's write path are still there.
+    - Criterion 3, `watching.md`: the new `factory-health` paragraph comes right after the `factory.application.machine` paragraph. It matches `health.py`: the signature, `--state-directory` with default `STATE_DIRECTORY`, `healthy` with 0, the per-stop line format with 1, and the missing-file message with 1.
+    - Criterion 3, `README.md`: the index gained exactly the stated items (`factory-health`, `factory.entry.health`, `factory.domain.sessions`, `factory.application.agent_home`, `factory.adapters.agent_home`), each at the stated place. Only those three index lines changed.
+
+    Open: nothing.
