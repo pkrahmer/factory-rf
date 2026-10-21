@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T01:34:56.396335Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -168,6 +164,12 @@ journal:
   kind: started
   at: '2026-10-21T01:34:56.396335Z'
   stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-10-21T01:38:00.587227Z'
+  stage: doing
+  run: 54e7fcd1380441e1b0741ca95b66acd0
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -519,3 +521,22 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     Bytecode compiled 4164 files in 125ms
     make: *** [Makefile:32: types] Error 139
 28. factory: started doing as self.
+29. coder: Round 2, after the stall in journal 27: I changed no code. The red check was `make types` ending with `make: *** [Makefile:32: types] Error 139`. Exit 139 is a segfault in mypy itself, not a type error, and it happened on the factory's fresh virtual environment. I could not make it happen again on the committed state:
+    - `make check` ran in the foreground and is green: `check: green`, `test: green (61.3 s)`, coverage 99.14 %.
+    - `make types` ran twice and was green both times: `Success: no issues found in 716 source files`.
+    - A cold mypy run with an empty cache (`MYPY_CACHE_DIR` in `$TMPDIR`, `uv run mypy --strict src tests`) also finished cleanly, with exit 0 and no issues.
+
+    So nothing in this branch's diff causes the crash. The branch changes only tests, and mypy accepts them.
+
+    What I built: nothing. The Interface says no module under `src/factory/` changes. `git diff main -- . ':!factory' ':!tests'` is empty, and the working tree holds only the factory's costs sidecar.
+
+    Main choice: I hand on to `review` unchanged. I rejected ending with `question` about the segfault, because it does not happen again here, on a warm or a cold mypy cache. If it happens again in the factory's check, the cause is mypy or the machine, not this story. That would be a question for the human then.
+
+    Refactor: I have no diff, so there was nothing to change.
+
+    What the journal changed: nothing in the meaning of the task. The Description stands.
+
+    Noticed but not touched: the mypy segfault (Error 139) seen once in the factory's fresh-venv check, which I could not reproduce. Criterion 7, the lines in `docs/project-guide/README.md`, is the documenter's work.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 38 known, 0 gone
