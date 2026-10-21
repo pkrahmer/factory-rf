@@ -497,20 +497,9 @@ Docker runs `python -m factory.entry.health` every 30 seconds (10 seconds to ans
 preflight_failed (machine): tool:make: make is not on the PATH (since 2026-10-12T08:00:00Z)
 ```
 
-So `docker compose -f image/compose.yml ps` shows the container as unhealthy while any repository or machine stop stands, and `docker compose -f image/compose.yml exec factory python -m factory.entry.health` names the stops. The container becomes healthy again by itself when the factory clears the stop. A stop of a work item is not in the health status.
+So `docker compose -f image/compose.yml ps` shows the container as unhealthy while any repository or machine stop stands, and `docker compose -f image/compose.yml exec factory python -m factory.entry.health` names the stops. The container becomes healthy again by itself when the factory clears the stop. A stop of a work item is not in the health status. The stops this container can show in its health status are in "The stops", with what to do about each.
 
 `restart: unless-stopped` brings the container back after a crash or a reboot. A container whose process is dead is left to that policy: the factory builds no watchdog. Under Podman the health check reports `starting`, then the text of a stop in force, with exit 1. Not yet checked on a running instance: `docker compose ps` over a container with a stop in force. Under Podman a machine or host restart does not bring the container back: see "Podman: the restart" under "Container runtimes".
-
-### The stops you will see here
-
-| Stop | Meaning | What to do |
-|---|---|---|
-| `preflight_failed` (machine) | A tool the machine needs is missing or the agent runtime does not work; the detail names it, for example `tool:make: make is not on the PATH`. | Fix the image or the login, then rebuild or restart; the stop clears when the check passes. The detail `confinement: ...` is a kernel without Landlock ABI 3 or a missing `factory-confine`; there is no fallback (see "The preflight's items"). The detail `the probe on main could not run: <message>` means the probe itself failed (git or `make` could not run, the checkout is gone): fix the machine, not `main`. With an agent user this includes a missing `sudo` rule: the probe's `lint` then ends as `the probe on main could not run: project command lint failed: <sudo> refused the command: ...`. |
-| `main_branch_failing` (repository) | The probe ran `lint` on `origin/main` and it failed. The detail is `lint is red on main at <12 characters of the commit>: <last line of the output>`, or `lint reached its time_limit on main at <commit>`. | Push a fix to `main`. The next preflight probes the new commit and clears the stop. See "The stamp and the probe of the main branch". |
-| `checkout_restore_failed` | See "The stops of the tick". | As there. |
-| `pipeline_definition_invalid` | See "The stop `pipeline_definition_invalid`". | As there. |
-| `agent_definition_invalid` | See "The stop `agent_definition_invalid`". | As there. |
-| `repository_unavailable` | The checkout cannot be made, or `origin/main` is not ready. The detail says which: `cannot prepare the checkout: <git's message>` (the clone failed: check `FACTORY_REPOSITORY_URL` and the credentials), `cannot fetch: <git's message>`, `the repository has no main branch yet` (the repository has no commit on `main`), or `origin/main has no factory/pipeline.yml yet`. | Fix the address or credentials, or push `factory/pipeline.yml` to `main`. |
 
 ### The preflight's items
 
@@ -545,12 +534,15 @@ When the probe completes, the item passes and the factory log gets one line with
 
 The items read the instance's settings, so the three variables `FACTORY_CLAUDE_HOME`, `FACTORY_CLAUDE` and `FACTORY_CLAUDE_VERSION` are the ones to check first; under opencode, `FACTORY_OPENCODE`, `FACTORY_OPENCODE_VERSION` and `FACTORY_OPENCODE_MODELS`. The commit identity is not an item.
 
+The detail of `preflight_failed` also takes two forms that are no item. `confinement: ...` is a kernel without Landlock ABI 3 or a missing `factory-confine`; there is no fallback. `the probe on main could not run: <message>` means the probe of the main branch (see "The stamp and the probe of the main branch") itself failed, because git or `make` could not run or the checkout is gone: fix the machine, not `main`. With an agent user this includes a missing `sudo` rule: the probe's `lint` then ends as `the probe on main could not run: project command lint failed: <sudo> refused the command: ...`.
+
 ### The stamp and the probe of the main branch
 
 `Preflight.run` remembers what it has passed in `preflight-stamp.json` in the state directory: the image identity the machine's items passed on, and the commit of `origin/main` whose `lint` passed or failed. The stamp holds no time and no timer expires it.
 
 - **The machine's items** run when the stamp's image differs from the instance's image identity, when there is no stamp, and on every call when the instance has no image identity. While the image build is unchanged they are skipped, however much time passes. A failed report writes no stamp, so the items run again at the next call.
 - **The probe** runs the project's `lint` command with a `time_limit` of 10 minutes, on the main branch only: it puts the checkout on `main` at `origin/main` first. A red `lint` on a work item's branch never fails the preflight. The probe runs only when `origin/main` is a commit the stamp has not seen, and after a new image build (a new build forgets what was probed). The preflight does not fetch; the tick that calls it does.
+- **A red `lint` is a stop.** The probe raises `main_branch_failing` with the detail `lint is red on main at <12 characters of the commit>: <last line of the output>`, or `lint reached its time_limit on main at <commit>` when `lint` ran out of its time.
 - **A red `main` is probed once.** The failing commit is remembered, so an idle tick runs no project command while the stop stands. If `health.json` loses the stop meanwhile, the next call raises it again with the detail `lint is red on main at <commit> (probed earlier)`, without running `lint`.
 - **A fix clears it.** When you push a new commit to `main`, the next call probes it, and when `lint` passes the stop `main_branch_failing` is cleared. A call that ends without a probe error also clears a standing `preflight_failed` stop.
 - **A failed machine clears a stale stop.** While the machine's items fail the probe cannot run, so a `main_branch_failing` is cleared when the stamp's failing commit is no longer `origin/main` (a fix was pushed, or `main` is gone) and the call still returns `preflight_failed`. The new `main` is probed when the machine's items pass again, and a red one raises the stop anew. A stop whose commit is still `main` stays, and so does a stop when git cannot resolve `origin/main`. The exception is a `main` that differs from the failing commit only in `factory/stops.jsonl`: see the next bullet. If git cannot compare the two (the failing commit is not in the clone), the stop is cleared. The stamp is not rewritten.
@@ -561,7 +553,12 @@ Deleting `preflight-stamp.json` is safe: a missing or damaged stamp reads as no 
 
 ### The wait for a repository that is not ready
 
-Before each tick the instance checks that `origin/main` exists and holds `factory/pipeline.yml`. When it does, nothing is fetched here (the tick fetches) and any `repository_unavailable` stop is cleared. When it does not, the instance fetches once, looks again, and if the fault stays it raises the stop and skips the tick; the loop pauses as for any idle iteration and tries again. The stop is written once per detail: the same fault on the next iteration adds no second line, a different fault adds a new one. Push the missing branch or file and the next iteration clears the stop.
+Before each tick the instance checks that `origin/main` exists and holds `factory/pipeline.yml`. When it does, nothing is fetched here (the tick fetches) and any `repository_unavailable` stop is cleared. When it does not, the instance fetches once, looks again, and if the fault stays it raises the stop and skips the tick; the loop pauses as for any idle iteration and tries again. The stop is written once per detail: the same fault on the next iteration adds no second line, a different fault adds a new one. Push the missing branch or file and the next iteration clears the stop. The detail says which fault it is:
+
+- `cannot prepare the checkout: <git's message>`: the clone failed. Check `FACTORY_REPOSITORY_URL` and the credentials.
+- `cannot fetch: <git's message>`: the fetch failed.
+- `the repository has no main branch yet`: the repository has no commit on `main`.
+- `origin/main has no factory/pipeline.yml yet`: push `factory/pipeline.yml` to `main`.
 
 ## Container runtimes
 
@@ -924,12 +921,9 @@ The tick ends there and nothing else happens: no stage is started and no event i
 
 A tick works from the remote alone: the checkout is disposable. It reads the free space first, before the fetch (see "The low disk" below), then fetches, loads the pipeline definition from `origin/main`, puts the checkout back on `main` at `origin/main`, publishes the stop records (see "The stop records on main"), and only then looks at the work items. Four repository stops, and the machine stop `disk_low`, end a tick before it looks at any work item; each is a log line and a health status entry, never a comment on a pull request. The next tick tries again and clears the stop when the fault is gone.
 
-| Stop | Meaning | What to do |
-|---|---|---|
-| `fetch_failed` | `git fetch` failed; the detail is git's message. | Fix the network, the remote's address or the credentials. An expired or revoked token shows as `fetch_failed` too: renew the token. Nothing is lost; the next tick after a successful fetch carries on. |
-| `pipeline_definition_invalid` | `factory/pipeline.yml` on `origin/main` is refused. | See "The stop `pipeline_definition_invalid`". The tick does not touch the checkout while this stop holds. |
-| `agent_definition_invalid` | An agent file of a role is refused. | See "The stop `agent_definition_invalid`". The tick does not touch the checkout while this stop holds. |
-| `checkout_restore_failed` | The factory could not put the checkout on `origin/main` (for example, an untracked file or directory, or an ignored folder, it cannot remove); the detail is git's message. | Fix the cause in the checkout, such as a path's permissions, or delete the checkout and clone again. When an agent run left the path, the stage that ran ends without a result; once the checkout is repaired, the factory records it as a crash and runs it again. Repair with `chmod -R g+w <path>` as root on the path git's message names, or remove it as root. A second run that leaves the same path again reaches the crash cap (`crash_cap`). |
+The four stops are `fetch_failed`, `pipeline_definition_invalid`, `agent_definition_invalid` and `checkout_restore_failed`; "The stops" says what to do about each. An expired or revoked token shows as `fetch_failed`, and nothing is lost: the next tick after a successful fetch carries on. The tick does not touch the checkout while `pipeline_definition_invalid` or `agent_definition_invalid` stands.
+
+`checkout_restore_failed` comes, for example, from an untracked file or directory the factory cannot remove, or from an ignored folder it cannot empty; its detail is git's message. When an agent run left the path, the stage that ran ends without a result; once the checkout is repaired, the factory records it as a crash and runs it again. Repair with `chmod -R g+w <path>` as root on the path git's message names, or remove it as root. A second run that leaves the same path again reaches the crash cap (`crash_cap`).
 
 The restore throws away every uncommitted change and every untracked file in the checkout, ignored paths too (`.venv`, the caches, `mutants/`, `.reports/`), and deletes the local branches of the work items, so that a stage starts from the remote's branch. When it throws changes away it writes one line to the log, `discarded uncommitted changes: <path>, <path>`. The factory also removes the ignored paths after every agent run that returned. Do not keep anything in the factory's checkout.
 

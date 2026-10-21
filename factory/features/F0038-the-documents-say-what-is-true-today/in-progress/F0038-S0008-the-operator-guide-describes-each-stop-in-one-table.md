@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 396
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T07:55:07.953434Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:55:07.960454Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T07:55:36.253315Z'
+  stage: intake
+  run: 7cf5413a4e934e369ddc48c2d6562b0c
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:55:57.765976Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T07:57:36.270893Z'
+  stage: tests
+  run: 4182b4ab1aad445d87af556377d40304
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:57:57.527474Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T07:59:41.744625Z'
+  stage: doing
+  run: e78567894a6b47e5a7cf7ff95afa0665
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:00:02.964507Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T08:00:29.356580Z'
+  stage: review
+  run: 1a3518573eaa4386bbe56582dc89ecdc
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:00:50.736527Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T08:01:27.113310Z'
+  stage: docs
+  run: b425183decab437a94614fac6a4e8924
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:01:48.120717Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T08:02:20.243086Z'
+  stage: smoke-test
+  run: 5a668cca098f4411a6d605aeb2832c92
+---
+
 # The operator guide lists each stop in one table
 
 ## Description
@@ -42,3 +126,124 @@ make documents 2>&1 | tail -n 1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is correct for a documents-only story. It names the one file the documenter changes (`docs/operator-guide.md`) and states that nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. There are no signatures to judge.
+   - Criteria: each one is checkable by one test or check.
+     - Criterion 1 is the empty `git diff` over the code paths.
+     - Criterion 2 is `make check`.
+     - Criterion 3 is a set of checkable text facts. The old headings and the "As there." rows are gone. The named detail forms and the `chmod -R g+w <path>` repair are present. The sentence about the tick not touching the checkout is kept. The fifteen-row table is unchanged. `make documents` ends with `documents ok`.
+     - The failing side of each rule is covered. The old table and the old heading must be absent, and no passage may cite the removed heading.
+     - The moves of the detail forms name their target sections: "The preflight's items", "The stamp and the probe of the main branch", "The wait for a repository that is not ready". I confirmed all three exist in the guide at lines 515, 548 and 562.
+   - Smoke test: the commands are runnable grep, git and make commands, and each `Expect:` line is checkable. The first `grep -c` counts both old `| Stop | Meaning | What to do |` tables (lines 506 and 927) plus the old heading and the "As there." rows. The `0` therefore needs both tables gone, and the `1` pins the surviving *The stops* table (line 720). No pytest is run, so the `-q` concern does not apply.
+   - Architecture: this is docs only and touches no layer. The edit stays within the documenter's write paths (`docs/*`).
+   - Scope: the story is within F0038's scope, "the stop tables (S0008; M1)". The review's proposals S1 and S2 are left to the human, as the feature's Out of scope requires. Decision 8 of the feature (move the detail forms, do not drop them) is covered by criterion 3. I did not check that the guide's exact wording matches the quoted detail forms. The documenter and the smoke test will show that.
+4. factory: started tests as self.
+5. tester: No tests written. This story changes documents only. Its Interface says nothing changes in any test, and criterion 1 says nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes.
+   - criterion 1: no test. It is the empty `git diff` over those paths, checked by the smoke test. As the criterion asks: the tester changed nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`.
+   - criterion 2: no test. It is the `make check` the factory runs.
+   - criterion 3 (docs): no test. The documenter's change to `docs/operator-guide.md` is checked by `make documents` and the smoke test's greps. A pytest that pins the guide's wording would be a change under `tests/`, which criterion 1 rules out.
+
+   Files created: none. Modules the test runner could not import: none, since no new tests exist. `make lint` is green. I did not run `make test` because no test was added or changed, so nothing new could fail. The factory runs it after this stage. Nothing is open for the coder: the documenter does the work.
+
+   `lint`: lint: green (0.8 s)
+   `test`: test: green (72.9 s)
+6. factory: started doing as self.
+7. coder: No code written. This story changes documents only. Its Interface says nothing changes under `src/factory/`, in any test, the image, the template, a demo or an agent file, and the documenter alone changes `docs/operator-guide.md`.
+   - Criterion 1: as it asks, the coder changed nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The working tree holds only the factory's `.costs.jsonl` sidecar.
+   - Criterion 2: `make check` is green (`test: green (73.7 s)`, `check: green`).
+   - Main choice: hand forward without touching the guide. I rejected editing `docs/operator-guide.md` myself, because `CLAUDE.md` gives the docs to the documenter stage and the story names the documenter as the one who changes it.
+   - Refactor: no diff, so nothing to refactor.
+   - Description: no journal entry changed the meaning of the task.
+   - Noticed but did not touch: nothing.
+
+   `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar. This fits a story whose Interface is "None" and whose only change is the documenter's edit to `docs/operator-guide.md`.
+   - Criterion 1: holds. Nothing changed under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`, and the tester's entry (5) and the coder's entry (7) each say so.
+   - Criterion 2: the coder's entry (7) records `check: green` and `duplicates: 0 new, 38 known, 0 gone`.
+   - Criterion 3 (docs): this is the documenter's work. Every heading it names still exists in `docs/operator-guide.md`:
+     - "The health check and the restart policy" (492)
+     - "The stops you will see here" (504), the one to be removed
+     - "The preflight's items" (515)
+     - "The stamp and the probe of the main branch" (548)
+     - "The wait for a repository that is not ready" (562)
+     - "The stops" (716)
+     - "The stops of the tick" (923)
+   - Checklist groups 2 to 4 (architecture, security, quality): no code changed, so nothing to judge.
+   - Work item hygiene: the Description still matches the task, since nothing has been built yet beyond the documents the documenter writes. The docs criterion says exactly what the reader must know after this story.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
+10. factory: started docs as self.
+11. documenter: Files changed: `docs/operator-guide.md` only, as the docs criterion asks.
+    - *The stops you will see here* (heading and six-row table) is gone. One sentence at the end of *The health check and the restart policy* points to "The stops".
+    - "The preflight's items": a new paragraph after the items keeps the `preflight_failed` details `confinement: ...` and `the probe on main could not run: <message>`. It also keeps the missing-`sudo`-rule form `the probe on main could not run: project command lint failed: <sudo> refused the command: ...`.
+    - "The stamp and the probe of the main branch": a new bullet holds the two forms of `main_branch_failing`, `lint is red on main at <12 characters of the commit>: <last line of the output>` and `lint reached its time_limit on main at <commit>`. The existing "(probed earlier)" bullet already had its own form and is untouched.
+    - "The wait for a repository that is not ready": a list of the four `repository_unavailable` details. The first carries its hint (the clone failed, so check `FACTORY_REPOSITORY_URL` and the credentials).
+    - *The stops of the tick*: the four-row table is replaced by two paragraphs. They name the four stops and point to "The stops". They keep what the table said that *The stops* lacks: the expired or revoked token shows as `fetch_failed` and nothing is lost; the tick does not touch the checkout while `pipeline_definition_invalid` or `agent_definition_invalid` stands; what can cause `checkout_restore_failed`; the crash-and-rerun behaviour; the `chmod -R g+w <path>` repair; and the `crash_cap`.
+
+    Not changed: the fifteen-row *The stops* table and every other section. No passage cites the removed heading. The contents list at the top never named it.
+
+    Checks: `make documents` ends `documents ok`. I ran no `make check`, since only a document changed. I did not run the story's other smoke-test greps by hand.
+
+    Cross-read and found current against the story: the contents list at the top of the guide, *The stops* and its follow-on sections, and the health check text.
+
+    Findings for the coder: none. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed.
+
+    Stale text noticed and not touched: *The stops* table writes ids with hyphens (`fetch-failed`), while the removed tables and the guide's other sections use underscores. The paragraph after the table says the health status uses the same words with underscores, so this is deliberate. That the table names stops for the human, not the code, is the review's S1 question, which is the human's to decide.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test run from the repository root, each command exactly as written and in order. All four met their `Expect:` lines, and nothing contradicts an acceptance criterion. No findings. I fixed nothing and changed nothing.
+
+    Command 1 (counts of the old tables and the surviving table):
+    ```
+    0
+    1
+    ```
+    Expect: two lines, `0` and `1`. Met.
+
+    Command 2 (the moved detail forms and kept sentences):
+    ```
+    found
+    found
+    found
+    found
+    found
+    found
+    found
+    ```
+    Expect: seven lines `found`. Met.
+
+    Command 3 (the code paths are unchanged; the only document changed is the guide):
+    ```
+    0
+    docs/operator-guide.md
+    ```
+    Expect: two lines, `0` and `docs/operator-guide.md`. Met.
+
+    Command 4:
+    ```
+    documents ok
+    ```
+    Expect: `documents ok`. Met.
+
+    Criteria check: I read `git diff origin/main -- docs/operator-guide.md` against the acceptance criteria.
+    - Criterion 1: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed (command 3). The tester's entry (5) and the coder's entry (7) each say so.
+    - Criterion 2: `make check` was not run in this stage. The coder's entry (7) records `check: green`, and the factory runs the stage checks.
+    - Criterion 3:
+      - The sentence pointing to "The stops" is at the end of the paragraph under *The health check and the restart policy*. *The stops you will see here* is removed, with its heading and its table.
+      - The `preflight_failed` details are in a new paragraph at the end of "The preflight's items": `confinement: ...`, `the probe on main could not run: <message>`, and the `<sudo> refused the command` form.
+      - The two `main_branch_failing` forms are a new bullet in "The stamp and the probe of the main branch".
+      - The four `repository_unavailable` details are a list in "The wait for a repository that is not ready". The clone hint (check `FACTORY_REPOSITORY_URL` and the credentials) is with the first one.
+      - The table in *The stops of the tick* is replaced by two paragraphs. They name the four stops in backticks and point to "The stops". They keep the expired-token note with "nothing is lost", the exact sentence "The tick does not touch the checkout while `pipeline_definition_invalid` or `agent_definition_invalid` stands.", the causes of `checkout_restore_failed` with git's message as its detail, and the crash, rerun, `chmod -R g+w <path>` and `crash_cap` repair text.
+      - The fifteen-row *The stops* table is untouched (command 1's `1`). No passage cites the removed heading (command 1's `0`).
+
+    Open: nothing.
