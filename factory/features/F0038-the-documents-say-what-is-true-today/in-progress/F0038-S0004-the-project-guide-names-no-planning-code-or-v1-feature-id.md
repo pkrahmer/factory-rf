@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 392
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T07:20:52.969497Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T07:20:52.969497Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T07:21:06.712971Z'
+  stage: review
+  run: 194e62c2e51b41f6aa78212a40880f9a
 ---
 
 # The project guide names no planning code or v1 feature id as a pointer
@@ -134,3 +136,11 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The only changes on the branch are the work item and its `.costs.jsonl` sidecar under `factory/`, which are out of scope.
+   - 1, acceptance criteria: criterion 1 (nothing changes under src/, tests/, image/, template/, demo/ or claude/) holds, because the diff is empty. The tester's entry 5 and the coder's entry 7 both say so, as the criterion asks. Criterion 2: the factory's `make check` after the coder is green (entry 7, tree 61b5f6269707). Criterion 3 is the docs criterion. The documenter writes it next, and the smoke test and `make documents` check it. The Interface states no rule or limit, so there is no failing side to test. A pytest test of criterion 3 would break criterion 1, so having no tests is correct.
+   - 2 to 4, architecture, security and quality: not applicable. No code, test or configuration changed, and no marker that silences a check was added.
+   - 5, work item hygiene: the coder's entry 7 gives the main decision (it leaves criterion 3 to the documenter, because `CLAUDE.md` *Docs* gives `docs/project-guide/` to the documenter) and what it rejected. The Description still matches the story. The docs criterion lists each old and new passage exactly, so the documenter can work from it alone.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds (`git diff --name-status main...HEAD` lists only the work item and its sidecar).
