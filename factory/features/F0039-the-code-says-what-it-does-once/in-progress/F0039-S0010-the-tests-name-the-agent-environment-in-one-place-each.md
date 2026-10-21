@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 405
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T12:21:04.523855Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T12:20:43.208639Z'
   stage: intake
   run: cdf9869216c24b08826789beb26bffd1
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T12:21:04.523855Z'
+  stage: tests
 ---
 
 # The tests name the agent environment in one place each
@@ -100,3 +109,4 @@ Expect: one line, `2` (before the story, `0`)
    - Smoke test: the grep loop, the pytest run and the docs grep are runnable. The pytest command passes no `-q`, and `pyproject.toml` `addopts` already sets `-q`. Each `Expect:` is checkable against the output: line counts, `exit 0`, and `2`. The docs regex matches the existing `- \`name.py\`:` line form in `docs/project-guide/README.md`.
    - Architecture: the changes are test-only, in shared modules at the `tests/` root, under the standing leave for constants in `CLAUDE.md`. `stage_run_support` and `wiring_support` keep their import limits. The one change to an earlier test has the human's leave in decision 14.
    - Scope: within F0039 (the tests' copies of shared helpers). It touches no `src/` file, no out-of-scope item, and none of the 'Unchanged' constants it lists. The documenter's work is limited to the project guide.
+4. factory: started tests as self.
