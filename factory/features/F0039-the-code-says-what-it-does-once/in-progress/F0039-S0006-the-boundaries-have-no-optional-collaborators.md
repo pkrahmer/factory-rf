@@ -2,16 +2,12 @@
 stage: docs
 blocked: null
 round: 1
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T06:14:06.144123Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,19 @@ journal:
   kind: started
   at: '2026-10-21T06:14:06.144123Z'
   stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T06:15:27.762009Z'
+  stage: docs
+  run: 3939153f1ed3448fb4a540c14b56962b
+- number: 27
+  speaker: factory
+  kind: stall
+  at: '2026-10-21T06:15:27.793251Z'
+  stage: docs
+  run: 3939153f1ed3448fb4a540c14b56962b
+  reason: check_red
 ---
 
 # The boundaries have no optional collaborators
@@ -465,3 +474,40 @@ Expect: one line, `0` (before the story, `1`)
     - tests/application/test_task_os_user.py: decision 11
     - tests/application/test_tick_disk.py: decision 11
 25. factory: started docs as self.
+26. documenter: Documentation for the six required `Boundaries` fields. I changed only documents, so I did not run `make check`; the factory runs it next. `make documents` gives "documents ok", and `grep -c 'holds `None`' docs/project-guide/watching.md` gives 0. No findings: the code matches the Interface (read from the diff).
+
+    Files changed:
+    - docs/project-guide/watching.md: *Boundaries* now lists `settings`, `disk`, `disk_records`, `stop_records`, `waiter` and `result_records` as required (no default, no `None`, `TypeError` without one; `build_boundaries` sets all six). The `settings` paragraph lost "a `Boundaries` built by hand holds `None`". The `boundaries` fixture paragraph names the six as the fixture sets them and says a test replaces a collaborator, never uses `None`. Tick step 0 lost the `None` sentence. The stop-records paragraph lost "With `stop_records` `None` both behave as before" and the `| None` type. The `DiskSpace` sentence no longer calls `disk` optional.
+    - docs/project-guide/stages.md: `PatientRuns` loops whenever a run ends `provider_limit`; the clauses on a missing waiter and on `ProviderLimit()` without settings are gone. `Waiter` lost "`None` in a `Boundaries` built by hand". `TaskComposer`'s `os_user` is `settings.agent_user`.
+    - docs/project-guide/processes-and-checks.md: *Known results* moved the records and path of `result_records` into the intro, dropped the "without result_records" step and renumbered the list (4 steps), and `image` has no "without settings" case. `DiskRecorder.record` always returns the record, and `disk_records` is no longer "(optional)".
+    - docs/project-guide/agents.md: `os_user` lost "or `None` without settings".
+    - docs/project-guide/costs.md: `image` and `instance` lost the "`None` when the `Boundaries` holds no settings" clauses.
+    - docs/project-guide/work-items.md: the acceptance facts lost "Without the disk, the record log or the settings both stay `None`".
+    - docs/operator-guide.md: the stop record's `instance` is no longer "`null` without settings"; the factory always sets it now (the criterion said none for this file, but this clause became false).
+    - docs/decisions.md: the entry *The services read the instance's settings from `Boundaries.settings`* now says the field "was optional" and has a dated line (2026-10-21, F0039-S0006, decision 8) that the six fields became required once `build_boundaries` set them all, because an optional collaborator let a construction drop a stop silently.
+
+    README.md: none, as the criterion says.
+
+    Cross-read and found current: README.md, docs/project-guide/README.md, write-guard.md (its `None`s are about `refusal`, not these fields).
+
+    Stale text seen, not touched:
+    - docs/decisions.md line 491 (the cost record's `instance`): "without settings it is `None`" is the log's account of that day's decision, so I left it. The model's `instance` is still optional when read.
+    - `agent_home: AgentHome | None = None` in `boundaries.py` has no comment of its own, which the feature's decision 10 planned (raised by the reviewer; code, not mine).
+
+    `check`: check: green (not run again: passed on tree c55c67ad5a9b at 2026-10-21T06:11:08Z)
+27. factory: Stage docs stalled (attempt 1 of 2): a check is red after the stage: `secrets`
+    Installed 106 packages in 86ms
+    Bytecode compiled 4164 files in 351ms
+    ERROR: Potential secrets about to be committed to git repo!
+
+    Secret Type: Secret Keyword
+    Location:    docs/project-guide/costs.md:18
+
+    Possible mitigations:
+      - For information about putting your secrets in a safer place, please ask in
+        #security
+      - Mark false positives with an inline `pragma: allowlist secret` comment
+
+    If a secret has already been committed, visit
+    https://help.github.com/articles/removing-sensitive-data-from-a-repository
+    make: *** [Makefile:54: secrets] Error 1
