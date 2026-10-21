@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T01:06:40.395708Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T01:06:40.390373Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:06:40.395708Z'
+  stage: intake
+---
+
 # The tests read the pushed work item, its posts and the disk records from one place
 
 ## Description
@@ -96,3 +123,6 @@ grep -c '^- `conftest.py`: .*`disk_settings`.*`disk_records`' docs/project-guide
 Expect: two lines, `1` and `1` (before the story, `0` and `0`)
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
