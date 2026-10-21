@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 379
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T00:32:46.523717Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T00:32:26.209773Z'
   stage: review
   run: f047d51a83114c96bb08068a1f80b3d7
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:32:46.523717Z'
+  stage: docs
 ---
 
 # The runtimes read the end of a call in one place
@@ -196,3 +205,4 @@ Expect: four lines, `True`, `False`, `/opt/factory/bin/factory-confine refused t
    - Work item: the Description, Interface and the docs criterion match what was built. The coder's entry names the main choice (always copy `timed_out`) and what was rejected (keeping the `if`, removing `_state_error`).
 
    Earlier tests: none changed, renamed or deleted by the diff.
+10. factory: started docs as self.
