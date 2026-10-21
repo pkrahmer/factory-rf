@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 390
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T07:06:04.775871Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T07:05:43.760229Z'
   stage: docs
   run: 80e579925e46416c9f5d7cc866a6e6f7
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:06:04.775871Z'
+  stage: smoke-test
 ---
 
 # The project guide points to the template's pipeline definition and describes `factory-health`
@@ -173,3 +182,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
