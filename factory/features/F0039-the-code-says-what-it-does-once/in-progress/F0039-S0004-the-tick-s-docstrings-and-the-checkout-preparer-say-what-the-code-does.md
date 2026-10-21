@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 383
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T01:50:32.988613Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T01:50:32.988613Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T01:50:49.239900Z'
+  stage: docs
+  run: 9b795c0508e24060b30d28ea1bcae1af
 ---
 
 # The tick's docstrings and the checkout preparer say what the code does
@@ -180,3 +182,16 @@ Expect: one line, `False True <class 'NoneType'> <class 'bool'>` (before the sto
    - tests/application/test_nested_repositories.py: the human's leave, feature decision 6 (named in the story's Interface)
    - tests/application/test_scheduler.py: the human's leave, feature decision 6 (named in the story's Interface)
 10. factory: started docs as self.
+11. documenter: Docs: two sentences corrected in one file, as criterion 5 asks. No findings. Only documents changed, so I did not run `make check`; the factory's checks follow.
+
+    Changed:
+    - `docs/project-guide/watching.md`, *The tick* (line 74): "nothing is read before the fetch" now says nothing of the remote is read before the fetch. Beyond the remote the tick reads only the agent files in the agent's home and the instance's state directory (the health file and the records), never what an earlier tick left in the checkout. This matches the new `Tick` docstring.
+    - `docs/project-guide/watching.md` (line 274): `CheckoutPreparer.prepare()` "returns `True` and raises `GitError` as before" now reads "returns nothing and raises `GitError` as before".
+
+    Cross-read against the diff and found current: the rest of `watching.md` (the tick order, which lists publishing the stop records, and the preparer's clone, seal and log behaviour), `README.md`, `docs/operator-guide.md` and `docs/decisions.md`. A grep of `docs/` and `README.md` for other mentions of `prepare()`'s return value, "nothing local" and "always True" found none. The code matches the Interface: `prepare` is `-> None` and `RepositoryWaiter.prepare` stays `-> bool`.
+
+    Stale text noticed, not touched: none.
+
+    `check`: check: green (not run again: passed on tree 85bb13c714fd at 2026-10-21T01:48:14Z)
+    `secrets`: secrets: green (0.8 s)
+    `documents`: documents ok
