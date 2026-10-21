@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 405
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T12:30:47.906583Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-21T12:30:26.804301Z'
   stage: doing
   run: fe65e51765ba4c55aaf2384065454cbf
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T12:30:47.906583Z'
+  stage: review
 ---
 
 # The tests name the agent environment in one place each
@@ -169,3 +178,4 @@ Expect: one line, `2` (before the story, `0`)
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
+8. factory: started review as self.
