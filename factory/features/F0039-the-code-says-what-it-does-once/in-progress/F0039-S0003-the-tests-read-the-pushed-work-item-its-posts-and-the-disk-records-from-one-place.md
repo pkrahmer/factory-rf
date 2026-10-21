@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T01:24:05.623552Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-21T01:24:05.623552Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-21T01:26:39.872180Z'
+  stage: doing
+  run: f18ef9c6a55f4001be6325047586c9c5
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -340,3 +342,22 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     `lint`: lint: green (0.6 s)
     `test`: test: green (60.6 s)
 17. factory: started doing as self.
+18. coder: Round 1: no code changed. The reviewer's findings (journal 12) went to the tester through the coder's `tests` hand-on (journal 14). The tester fixed them (journal 16), and I checked each fix on the committed state:
+    1. `_records_path` is gone from `tests/application/test_stop_records_service.py`.
+    2. `BODY` is gone from `tests/application/test_watcher.py` and from `tests/entry/test_watch.py`.
+    3. `tests/application/test_watcher_move_rule.py:8` now imports `BODY, push_state` from `branch_reading`, and the local copy is gone.
+
+    What I built: nothing. The Interface says no module under `src/factory/` changes. `git diff main -- . ':!factory' ':!tests'` is empty, and the working tree holds only the factory's costs sidecar.
+
+    Main choice: I hand on to `review` with no change of mine. The alternative I rejected was touching the moved test helpers. That is the tester's work (R9), and no finding is left open.
+
+    Refactor: there is no diff of mine, so nothing needed changing.
+
+    What the journal changed: nothing in the meaning of the task. The Description is unchanged.
+
+    Noticed but not touched: criterion 6, the `docs/project-guide/README.md` lines for `branch_reading.py` and `disk_settings`/`disk_records`, is the documenter's.
+
+    `check`: check: green (coverage 99.14 %)
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 38 known, 0 gone
