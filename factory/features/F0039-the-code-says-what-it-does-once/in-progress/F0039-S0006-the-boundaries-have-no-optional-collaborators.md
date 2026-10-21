@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T06:09:36.695413Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-21T06:09:36.695413Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-21T06:12:21.216661Z'
+  stage: doing
+  run: 18b3a67af1b848bfb90efc15a808613d
 ---
 
 # The boundaries have no optional collaborators
@@ -388,3 +390,17 @@ Expect: one line, `0` (before the story, `1`)
     `lint`: lint: green (0.5 s)
     `test`: test: green (59.8 s)
 21. factory: started doing as self.
+22. coder: Rework round 1, after the tester's entry 20. I made no code change. The tester's two test changes cover the reviewer's findings 2 and 3 from entry 16: `CountingGit` is removed from `tests/application/test_known_results.py`, and `_raised` in `tests/application/test_stop_records_service.py` now types its parameter as `instance: str`. My earlier fix for finding 1 is unchanged: `AcceptanceService._disk_lines` in `src/factory/application/acceptance.py` returns `tuple[str, str | None]`. `make check` passed with these changes: `check: green`, coverage 99.14 %.
+
+    What I built: nothing new this round. The source change is already on the branch: the six fields of `Boundaries` in `src/factory/application/boundaries.py` are required, and the `is None` branches on them are gone from `costs.py`, `disk_records.py`, `acceptance.py`, `known_results.py`, `provider_limits.py`, `stops.py`, `task.py` and `tick.py` under `src/factory/application/`. Entries 14 and 18 describe this.
+
+    Main choice: I ended with `review` without touching the code again, because all three findings are now dealt with. I rejected a further clean-up pass, because the findings were the only open items and the rework round is limited to them.
+
+    Refactor: I re-read the diff and nothing needs changing.
+
+    The journal did not change the task's meaning in this round, so the `## Description` stays as it is.
+
+    Noticed but not touched: nothing new.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 38 known, 0 gone
