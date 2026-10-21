@@ -81,14 +81,13 @@ class CheckoutPreparer:
         self._settings = settings
         self._log = log
 
-    def prepare(self) -> bool:
-        """Clone unless the checkout holds a sealed clone, then seal the clone; always `True`."""
+    def prepare(self) -> None:
+        """Clone unless the checkout holds a sealed clone, then seal the clone."""
         if not os.path.lexists(self._settings.checkout / ".git"):
             self._git.clone(self._settings.repository_url)
         else:
             self._keep_or_clone_again()
         self._git.seal()
-        return True
 
     def _keep_or_clone_again(self) -> None:
         # An agent may have replaced `.git` since the last check; it cannot close a folder of

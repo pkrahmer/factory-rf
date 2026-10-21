@@ -60,9 +60,11 @@ class _Stopped(Exception):
 
 
 class Tick:
-    """One pass over the remote, which is the only truth; the checkout is disposable.
+    """One pass over the remote, the only truth of the work items; the checkout is disposable.
 
-    The tick status is kept from one run to the next, and nothing local is read.
+    The tick status is kept from one run to the next. Beyond the remote, it reads only the
+    agent files in the agent's home and the instance's state directory (the health file and
+    the records), never what an earlier tick left in the checkout.
     """
 
     def __init__(
@@ -90,9 +92,10 @@ class Tick:
         return self._status
 
     def run(self) -> TickOutcome:
-        """Check the disk, fetch, load, restore, preflight, clean up, evaluate and dispatch.
+        """Check the disk, fetch, load, restore, publish the stop records, preflight, dispatch.
 
-        A stop ends the tick.
+        Before the dispatch, the stale branches are deleted and the remote is evaluated. A stop
+        ends the tick.
 
         Raises `WorkItemFormatError`, `ValueError` from the evaluation, and `GitError`
         outside the fetch and the restore: no stop exists for them.

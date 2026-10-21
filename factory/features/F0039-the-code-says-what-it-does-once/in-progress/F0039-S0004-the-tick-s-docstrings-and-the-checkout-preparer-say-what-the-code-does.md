@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 383
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T01:46:30.158942Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T01:46:30.158942Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T01:49:25.362209Z'
+  stage: doing
+  run: 0eb458b5532141f8ab52d2f9410366d3
 ---
 
 # The tick's docstrings and the checkout preparer say what the code does
@@ -125,3 +127,20 @@ Expect: one line, `False True <class 'NoneType'> <class 'bool'>` (before the sto
    `lint`: lint: green (0.5 s)
    `test`: FAILED tests/application/test_tick_docstrings.py::test_the_preparers_return_types[checkout-preparer] - AssertionError: assert <class 'bool'> is <class 'NoneType'>
 6. factory: started doing as self.
+7. coder: Rewrote the two `Tick` docstrings and made `CheckoutPreparer.prepare` return `None`. `make check` is green and the smoke test prints `False True <class 'NoneType'> <class 'bool'>`.
+
+   Built:
+   - `src/factory/application/tick.py`: the class docstring of `Tick` and the docstring of `Tick.run` now use the Interface's words, wrapped to the line length. The `Raises` paragraph of `run` is unchanged. No code changed.
+   - `src/factory/application/scheduler.py`: `CheckoutPreparer.prepare(self) -> None` has the new docstring, and its closing `return True` is removed. What it clones, seals, removes and logs is unchanged. `RepositoryWaiter.prepare` is untouched: it stays `-> bool` and still calls the preparer as a statement.
+
+   Main choice: I removed the `return True` and left the method to end after `self._git.seal()`. I rejected adding an explicit `return None`, because it adds nothing in a `-> None` method and the module never does it elsewhere.
+
+   Refactor pass: I read the diff (two docstrings, one signature, one line removed) and found nothing to change.
+
+   The journal did not change the task's meaning, so `## Description` is unchanged.
+
+   Noticed, not touched:
+   - `docs/project-guide/watching.md:274` still says `prepare()` "returns `True`". The tick section there still has the old "nothing is read before the fetch" wording. Both belong to the documenter, as criterion 5 says.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
