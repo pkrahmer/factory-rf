@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 376
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T00:08:41.530790Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T00:08:20.868515Z'
   stage: docs
   run: 9a09531e7cb2479bbb6ad46d14a299e0
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:08:41.530790Z'
+  stage: smoke-test
 ---
 
 # The documents say that project commands run as the agent, and how to check it
@@ -179,3 +188,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
     `secrets`: secrets: green (2.2 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
