@@ -89,6 +89,7 @@ The second, after S0006 is merged: in `CLAUDE.md`, *Tests*, the bullet "Two more
     Every other test that replaces one of the six (thirty `replace(...)` lines with a value) stays as it is. `make types` did not run on the prototype (the host's mypy is a Windows build), so the tester may find one more `| None` of a helper; it falls under this leave only when it is a helper of one of these fifteen modules (S0006).
 
 ## The human's answers (2026-10-20)
+   - Also, beyond the seventeen above (the human, 2026-10-21, answering the coder's question on #385): `tests/application/test_cost_instance.py::test_a_cost_record_names_the_instance_of_the_settings_and_keeps_it_when_completed` loses its row `no-settings` and its parameters are typed `InstanceSettings` and `str`; `tests/application/test_stop_records_service.py::test_a_raise_appends_a_raised_record_when_no_stop_of_its_reason_stands` loses its row `no-settings`, with `with_settings` and `local_settings if ... else None`. Each test keeps its name and its other rows.
 
 1. S0001: answer (a), the frozen `CallEnd` model (decision 1). The pre-check's edits 1 to 3 are applied as `planning/overnight/precheck/F0039-S0001-1.md` gives them; edit 4 (the wording of `_state_error`, which returns the error) is optional there and not recommended, so it is not applied.
 2. Decisions 6 (S0004) and 7 (S0005): the leaves are granted as listed.
