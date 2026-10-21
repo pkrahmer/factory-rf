@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T01:09:08.993807Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-21T01:08:48.692000Z'
   stage: intake
   run: 7343983e890f41b9b3e99b2ca935ef89
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:09:08.993807Z'
+  stage: tests
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -162,3 +171,4 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
    Smoke test: the grep, the pytest run and the docs greps are runnable. The pytest line passes no `-q`. Every `Expect:` line is checkable (`0`, `exit 0`, `1` and `1`).
    Architecture: only `tests/` and the project guide change. The shared places follow the standing leave in `CLAUDE.md` (*Tests*) and feature decision 5.
    Scope: matches S0003 in `feature.md`. The variants in *Out of scope* stay. S0003 starts after F0033, per decision 10. The human's answers add no change to the story, so none was written.
+7. factory: started tests as self.
