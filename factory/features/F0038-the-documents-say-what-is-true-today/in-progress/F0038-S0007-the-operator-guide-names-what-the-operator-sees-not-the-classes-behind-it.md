@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 395
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T07:47:46.966867Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T07:47:46.966867Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T07:48:20.262741Z'
+  stage: docs
+  run: b05e5d60a40f46bb86b4b94ba0700afe
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -152,3 +154,23 @@ Expect: `documents ok`
    - Hygiene: the Description matches what was built (nothing yet, by design). The coder's entry explains why it left the guide alone and what it rejected (doing the documenter's edits itself).
    - Earlier tests: none. No test file on `main` is changed, renamed or deleted.
 10. factory: started docs as self.
+11. documenter: Changed one file, `docs/operator-guide.md`. I removed the class and module names the criterion lists and kept in each sentence what the factory does. I made no other change. I did not run `make check`, because only a document changed. `make documents` ends with `documents ok`. The grep for the removed names and "Should a future kind" finds 0 matches.
+
+    - The provider-limit paragraph no longer says the agent runs through `PatientRuns`. The preflight paragraph lost `factory.application.preflight` and `machine_extras`. The log paragraph says "The factory log" in place of `TimestampedFactoryLog`.
+    - The stop rules no longer name `StopService.post`. The first now reads "the factory's stop comment, which the dispatcher's error report posts". The second reads "the factory opens a draft pull request".
+    - `AskHandler` became "The factory does both steps when it handles `ask`." `CommentHandler` became "The factory handles a `comment` like this".
+    - The `AcceptanceReader` sentence now says the watcher's evaluation and the board command "use the same rule". The two `hand_over` passages (`HandOverHandler`, `AcceptanceHandOver` with `SplitByWorkItemKind`) now say "The factory does this when it handles the `hand_over` event" and the acceptance equivalent.
+    - `AcceptanceMerged` and `AcceptanceClosed` became "The factory does it in one tick." `MergedHandler` and `ClosedHandler` became "The factory then archives", "then discards" and "then sends the story back".
+    - In *An event that keeps failing* I cut "Should a future kind have none, the event leads to this:" and the paragraph after it. The earlier sentence still ends "every kind of event has a handler.".
+    - The "Three situations have no work" paragraph no longer names `DuplicateHandler`, `PullRequestLookupHandler` or `AskHandler`, nor the "are registered" clause. In the same paragraph and in the closed-at-an-approval passage, "the handler raises `CannotHandle`" became "the factory raises `CannotHandle`".
+    - `SettingsInvalid`, `CannotHandle`, `PushFailed`, `HostingServiceError`, `STOP_TABLE` and `factory.domain.settings.read_settings` stay. No heading changed.
+
+    I cross-read only what the story touches in the guide: the paragraphs around each edit. I did not read the README or the rest of `docs/` in full. The diff outside `factory/` and `docs/` is empty, so nothing else could have gone stale.
+
+    Findings for the coder: none.
+
+    Stale text I saw and did not touch: the sentence "The handlers of the human's acts ... are registered: every kind of event has a handler" still speaks of handlers, but the criterion says to keep it. The stop tables are S0008's.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
