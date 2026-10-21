@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T08:59:47.874696Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T08:59:47.868243Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:59:47.874696Z'
+  stage: intake
+---
+
 # The operator guide names no planning code, internal class or dated observation
 
 <!-- proposed by feature acceptance of 2026-10-21; refine before starting -->
@@ -40,3 +67,6 @@ make documents 2>&1 | tail -n 1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
