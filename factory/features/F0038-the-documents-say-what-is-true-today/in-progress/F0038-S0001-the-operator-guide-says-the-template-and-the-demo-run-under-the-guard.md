@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 388
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T06:45:15.659823Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T06:45:15.659823Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T06:46:39.443954Z'
+  stage: doing
+  run: 890a0742403649789ceaa49bf3523e74
 ---
 
 # The operator guide says the template and the todo demo run under the write guard
@@ -111,3 +113,12 @@ Expect: `documents ok`
    `lint`: lint: green (0.5 s)
    `test`: test: green (61.0 s)
 6. factory: started doing as self.
+7. coder: Built nothing. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed in this stage, which is what criterion 1 asks for. This is a documents-only story with Interface "None". Its one change is the paragraph of `docs/operator-guide.md` that criterion 3 names, and that paragraph is the documenter's job: it is outside the coder's remit.
+   - Main choice: I handed forward with no code change. I rejected editing `docs/operator-guide.md` now, because `CLAUDE.md` says the documenter keeps the docs and the coder does not write them.
+   - Verified: `make check` ran green on the unchanged tree (`test: green (61.3 s)`, `check: green`, coverage 99.14 %).
+   - Refactor: there is no diff, so nothing to refactor.
+   - Description: the journal did not change the meaning of the task.
+   - Noticed but did not touch: nothing.
+
+   `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
