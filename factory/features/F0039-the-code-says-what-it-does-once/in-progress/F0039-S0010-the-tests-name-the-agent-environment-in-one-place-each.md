@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 405
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T12:21:04.523855Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T12:21:04.523855Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T12:27:27.559987Z'
+  stage: tests
+  run: ed9a2106b514449abffbc43e759bd15a
 ---
 
 # The tests name the agent environment in one place each
@@ -110,3 +112,33 @@ Expect: one line, `2` (before the story, `0`)
    - Architecture: the changes are test-only, in shared modules at the `tests/` root, under the standing leave for constants in `CLAUDE.md`. `stage_run_support` and `wiring_support` keep their import limits. The one change to an earlier test has the human's leave in decision 14.
    - Scope: within F0039 (the tests' copies of shared helpers). It touches no `src/` file, no out-of-scope item, and none of the 'Unchanged' constants it lists. The documenter's work is limited to the project guide.
 4. factory: started tests as self.
+5. tester: Tests written and the move done. This story is all tester work, so the tests are green, not red: no module under `src/factory/` changes and the coder has nothing to build.
+
+   Mapping:
+   - criterion 1: tests/test_shared_environments.py::test_each_shared_environment_is_assigned_in_one_module (rows `stage_run_support.py`, `wiring_support.py`)
+   - criterion 2: tests/test_shared_environments.py::test_the_guard_counts_a_top_level_assignment_of_the_environment (10 rows: plain, other-name, annotated, home-first, other-value, one-more-key, name-as-value, a-call, in-function, in-class)
+   - criterion 3: tests/test_shared_bodies.py::test_no_test_module_holds_a_copy, which now checks `path.relative_to(TESTS).as_posix() in SHARED.values()` instead of `path.name` (decision 14). Its name and ids are unchanged.
+   - criterion 4: no test of its own; `make check` was run and is green (lint, types, layers, sast, secrets, licenses, test).
+   - criterion 5 (docs): for the documenter, no test.
+
+   Files created: tests/test_shared_environments.py.
+   Files changed:
+   - tests/wiring_support.py gains `ENVIRONMENT`.
+   - These ten modules lost their own `ENVIRONMENT` and import it from `stage_run_support`: test_after_agent, test_cost_image, test_costs, test_nested_repositories, test_sealed_runs, test_stage_finish, test_stage_launch, test_stage_run_acceptance, test_stall_labels, test_stalls (all under tests/application/).
+   - These ten modules import it from `wiring_support`: tests/acceptance_walk.py, tests/application/handlers/test_run.py, tests/application/test_tick_agent_definition.py, tests/entry/test_run.py, tests/entry/test_wiring_acceptance.py, tests/entry/test_wiring_constants.py, tests/entry/test_wiring_handlers.py, tests/entry/test_wiring_human_handlers.py, tests/entry/test_wiring_recovery.py, tests/entry/test_wiring_recovery_expired.py.
+   - tests/application/test_tick_project_agent.py now imports `ENVIRONMENT` from `wiring_support`, and tests/application/test_sealed_runs_runner.py from `stage_run_support`. Their other imports stay.
+   - This was done under the standing leave in CLAUDE.md for constants. The one change beyond that leave is test_shared_bodies.py (decision 14).
+
+   Modules the test runner could not import: none. `make test` passed, so nothing fails before implementation.
+
+   Collect-only check: I listed the `pytest --collect-only` ids of the 21 named test modules plus tests/test_shared_bodies.py, before and after the move ($TMPDIR/before has 871, $TMPDIR/after has 872). They match except for one new id, `tests/test_shared_bodies.py::test_no_test_module_holds_a_copy[test_shared_environments.py]`, which is the bodies guard's row for the new module.
+
+   Two choices inside the Interface, open for the reviewer to judge:
+   - A top-level dict that holds a name, such as `{"PATH": PATH, ...}` in tests/application/test_opencode_item.py, makes `ast.literal_eval` raise. `environment_copies` counts it as no copy, so the guard can read every file under tests/.
+   - The guard's own cases read against an environment returned by a fixture, not a top-level constant. A top-level constant would be a copy that the guard finds in its own file.
+   - The function's docstring is shortened from the Interface's wording to "The top-level names that `source` assigns a dict literal equal to `environment`." The original wording ran past ruff's 100-character line limit (E501).
+
+   Smoke test 1: run by hand, it prints the two expected lines (tests/stage_run_support.py, then tests/wiring_support.py).
+
+   `lint`: lint: green (0.6 s)
+   `test`: test: green (61.7 s)

@@ -8,7 +8,6 @@ from pathlib import Path
 import pytest
 
 from application.test_sealed_runs import (
-    ENVIRONMENT,
     OPEN_FILE,
     OPEN_FOLDER,
     Swap,
@@ -25,6 +24,7 @@ from factory.domain.errors import RepositoryUnsealed
 from factory.domain.settings import InstanceSettings
 from git_support import install_agents
 from sealed_run_support import COMPLETED, run_request
+from stage_run_support import ENVIRONMENT
 
 
 class Runner:

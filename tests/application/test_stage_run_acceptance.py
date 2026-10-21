@@ -16,12 +16,11 @@ from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemState
 from git_support import install_agents
 from human_clone import HumanClone
-from stage_run_support import INSTANCE
+from stage_run_support import ENVIRONMENT, INSTANCE
 
 TODO = "factory/features/F0002-todo"
 ACCEPTANCE = "F0002-A0001"
 BRANCH = f"work-item/{ACCEPTANCE}"
-ENVIRONMENT = {"PATH": "/usr/local/bin:/usr/bin", "HOME": "/home/factory"}
 
 
 @pytest.fixture

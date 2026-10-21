@@ -6,6 +6,7 @@ from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import machine_extras
 
 CREDENTIAL = "example-value"
+ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
 HOSTED_URL = "https://github.com/example/project.git"
 
 

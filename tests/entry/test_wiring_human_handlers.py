@@ -29,9 +29,9 @@ from factory.entry.wiring import build_handlers
 from git_support import install_agents
 from human_clone import HumanClone
 from stage_run_support import INSTANCE
+from wiring_support import ENVIRONMENT
 
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
-ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
 STORY = """\
 # First story
 

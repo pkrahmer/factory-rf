@@ -37,6 +37,7 @@ from factory.entry.wiring import handler_factory, health_store, read_environment
 from git_support import PIPELINE_YAML, install_agents, run_git
 from human_clone import HumanClone
 from stage_run_support import INSTANCE
+from wiring_support import ENVIRONMENT
 
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 STORY = """\
@@ -65,7 +66,6 @@ Expect: nothing.
 
 ## Journal
 """
-ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
 STATE = "a" * 40
 STAMP = r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ "
 HOSTED_URL = "https://github.com/example/project.git"

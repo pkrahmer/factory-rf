@@ -24,12 +24,11 @@ from factory.domain.settings import InstanceSettings
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 from sealed_run_support import COMPLETED, run_request
-from stage_run_support import INSTANCE
+from stage_run_support import ENVIRONMENT, INSTANCE
 
 MOVED = ".git-moved"
 OPEN_FOLDER = 0o2775
 OPEN_FILE = 0o666
-ENVIRONMENT = {"PATH": "/usr/local/bin:/usr/bin", "HOME": "/home/factory"}
 IMAGE = "build-7"
 WORK_ITEM = "F0001-S0001"
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
