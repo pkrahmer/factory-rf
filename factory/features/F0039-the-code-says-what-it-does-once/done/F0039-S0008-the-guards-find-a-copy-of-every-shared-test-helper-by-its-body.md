@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-21T08:58:07.670291Z'
   stage: smoke-test
   run: 965f334c17764a07aaf990f4871d8045
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-21T08:59:27.833559Z'
+  stage: approval
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -418,3 +423,4 @@ Expect: one line, `1` (before the story, `0`)
     **Not checked by the smoke test:** criterion 4 (the `test_reject.py` ids are unchanged) and criterion 6 (`make check`). I did not compare ids before and after the story. The `test_reject.py` tests passed in command 2, and the factory runs `make check` as the gate.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 11.0 min, 79 turns, 248770 tokens in (1703701 more from cache), 26089 out, $2.50
