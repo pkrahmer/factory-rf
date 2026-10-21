@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 388
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T06:47:00.593857Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-21T06:46:39.443954Z'
   stage: doing
   run: 890a0742403649789ceaa49bf3523e74
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:47:00.593857Z'
+  stage: review
 ---
 
 # The operator guide says the template and the todo demo run under the write guard
@@ -122,3 +131,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
+8. factory: started review as self.
