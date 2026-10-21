@@ -1,8 +1,6 @@
 # Accepted findings of make duplicates, one key per line.
 similar-code factory.application.acceptance, factory.application.handlers.hand_over: handed_over = state.model_copy(update={"handed_over": state.stage})
 similar-code factory.application.stage, factory.application.stalls: model_config = ConfigDict(frozen=True, extra="forbid")
-dead-code src/factory/adapters/clock.py: unused class 'ManualClock'
-dead-code src/factory/adapters/clock.py: unused method 'advance'
 dead-code src/factory/adapters/fake_agent_runtime.py: unused class 'FakeAgentRuntime'
 dead-code src/factory/adapters/fake_agent_runtime.py: unused method 'queue'
 dead-code src/factory/adapters/fake_agent_runtime.py: unused method 'requests'
@@ -14,7 +12,6 @@ dead-code src/factory/adapters/fake_hosting.py: unused method 'merge_by_human'
 dead-code src/factory/adapters/fake_hosting.py: unused method 'fail_next'
 dead-code src/factory/adapters/fake_hosting.py: unused method 'factory_posts'
 dead-code src/factory/adapters/fake_hosting.py: unused method 'pull_requests'
-dead-code src/factory/adapters/work_item_markdown.py: unused variable 'data'
 dead-code src/factory/adapters/work_item_markdown.py: unused attribute 'Representer'
 dead-code src/factory/adapters/work_item_markdown.py: unused attribute 'width'
 dead-code src/factory/adapters/work_item_markdown.py: unused variable 'kwargs'
@@ -33,3 +30,8 @@ dead-code src/factory/domain/kill_points.py: unused method 'reached'
 dead-code src/factory/domain/move_rule.py: unused function 'factory_moves'
 dead-code src/factory/domain/paths.py: unused variable 'FACTORY_DIRECTORY'
 dead-code src/factory/domain/write_paths.py: unused function 'is_writable'
+similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: return version_printed(
+similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: leftovers_error = self._end_leftovers(request)
+similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: started = due_leftovers_launch(self._starters, request.os_user, own_identity().user)
+dead-code src/factory/adapters/clock.py: unused class 'ManualWaiter'
+dead-code src/factory/adapters/process.py: unused variable 'output_abandoned'
