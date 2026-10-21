@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-21T00:22:32.782415Z'
   stage: acceptance
   run: c65d1805cfb547bba52895b5c9221e80
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-21T00:23:53.766056Z'
+  stage: done
 stories: [F0037-S0001, F0037-S0002, F0037-S0003]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of A torn record line never stops a check
@@ -261,3 +266,4 @@ None. Nothing found warrants a story. The one remaining noticed item, `_last_lin
    6 Decisions for the human: feature decisions 1, 2, 3 and 5 as taken. Decision 4 was answered by the human and is now recorded in the decision log. No question was asked, no default was taken and no earlier test was changed.
    7 Slow checks: nothing beyond `make check`. `/work` went from 0.0 to 0.5 GB used since A0002's record. That is the git-ignored `.venv` (511 MB), not this feature. The slowest tests are other features' time-limit tests at 10–11.5 s; F0037's 19 cases take 0.1 s together.
    8 Cost: 18 runs, 12.5 min, $3.20 (S0001 $1.72, S0002 $0.79, S0003 $0.70). No story stands out. The documents-only stories pay about $0.25 each for tester and coder runs that write nothing. 0 questions, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 3.8 min, 19 turns, 45544 tokens in (670274 more from cache), 12276 out, $0.74
