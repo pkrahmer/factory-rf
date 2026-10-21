@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T08:37:29.100982Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T08:37:29.094997Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:37:29.100982Z'
+  stage: intake
+---
+
 # The guards find a copy of every shared test helper by its body
 
 <!-- proposed by feature acceptance of 2026-10-21; refine before starting -->
@@ -77,3 +104,6 @@ grep -c 'test_shared_bodies.py' docs/project-guide/README.md
 Expect: one line, `1` (before the story, `0`)
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
