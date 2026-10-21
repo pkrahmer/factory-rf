@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T06:06:54.107082Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-21T06:06:33.556933Z'
   stage: doing
   run: 755287a483314717b9d317c08225ba4f
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:06:54.107082Z'
+  stage: tests
 ---
 
 # The boundaries have no optional collaborators
@@ -355,3 +364,4 @@ Expect: one line, `0` (before the story, `1`)
     Refactor: nothing more beyond the one-line type change.
 
     Noticed but not touched: nothing new.
+19. factory: started tests as self.
