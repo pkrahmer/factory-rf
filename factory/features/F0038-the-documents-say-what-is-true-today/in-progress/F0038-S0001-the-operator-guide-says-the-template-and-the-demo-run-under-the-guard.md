@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 388
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T06:48:27.640252Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T06:48:27.640252Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T06:48:49.226045Z'
+  stage: smoke-test
+  run: 1549cf844b2149abb178935049a995bd
 ---
 
 # The operator guide says the template and the todo demo run under the write guard
@@ -179,3 +181,40 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: I ran the smoke test exactly as written, from the repository root. Every command met its `Expect:` line. No findings.
+
+    Command 1:
+    ```
+    0
+    1
+    ```
+    Met: two lines, `0` and `1`. The old phrase is gone and the new paragraph appears once.
+
+    Command 2:
+    ```
+    template/Makefile:3
+    demo/todo-service/project/Makefile:3
+    template/factory/pipeline.yml:1
+    demo/todo-service/project/factory/pipeline.yml:1
+    ```
+    Met: the four lines expected.
+
+    Command 3:
+    ```
+    0
+    docs/operator-guide.md
+    ```
+    Met: nothing under `src`, `tests`, `image`, `template`, `demo` or `claude` changed against `origin/main`, and the only changed document is `docs/operator-guide.md`.
+
+    Command 4:
+    ```
+    documents ok
+    ```
+    Met.
+
+    Acceptance criteria re-read:
+    - Criterion 1 holds (command 3). The tester's and the coder's entries each say so.
+    - Criterion 2 is not contradicted by the smoke test. I did not run `make check`; the factory's checks gate it, and the coder's entry records `check: green`.
+    - Criterion 3 holds. `git diff origin/main -- docs/operator-guide.md` shows one hunk: the old paragraph removed and the new one added in its place. The new paragraph matches the criterion's text word for word, and no other line of the file changed.
+
+    Open: nothing.
