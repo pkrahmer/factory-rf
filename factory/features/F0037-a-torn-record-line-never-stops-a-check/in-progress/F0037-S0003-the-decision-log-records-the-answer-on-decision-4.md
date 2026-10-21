@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 377
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T00:15:34.864898Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T00:15:14.246321Z'
   stage: review
   run: cfb396b3ffd142129104c3cfb2a6cc39
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:15:34.864898Z'
+  stage: docs
 ---
 
 # The decision log records the human's answer on F0037's decision 4
@@ -128,3 +137,4 @@ Expect: `documents ok`
    - 2–4. Architecture, security, quality: no code changed, so nothing applies. `duplicates: 6 new` comes from `main`'s own tree, because this diff adds no code.
    - 5. Work item hygiene: entry 7 states the main choice, leaving `docs/` to the documenter, and the option it rejected. The Description still matches the repository. `docs/decisions.md:883` has the entry *A record line that is not UTF-8 is skipped*. Its date line names decisions 1, 2, 3 and 5, and `docs/decisions.md:890` still has the "Open (decision 4): …" bullet. So the docs criterion still describes exactly the edit the documenter has to make.
    - 6. Earlier tests: none. No test file on `main` is changed, renamed or deleted.
+10. factory: started docs as self.
