@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 393
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T07:30:40.241479Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T07:30:18.440649Z'
   stage: docs
   run: 183e5afc95a54301a8f2d5f55546745c
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:30:40.241479Z'
+  stage: smoke-test
 ---
 
 # The decision log marks two superseded entries, the removal of `factory/v1/`, and where its codes come from
@@ -172,3 +181,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
