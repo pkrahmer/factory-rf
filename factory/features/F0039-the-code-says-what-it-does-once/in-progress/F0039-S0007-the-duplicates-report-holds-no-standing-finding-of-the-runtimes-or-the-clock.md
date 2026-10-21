@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 380
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T00:38:29.132556Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T00:38:08.449695Z'
   stage: intake
   run: 092eee53fe364b64afb8874b79da699f
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:38:29.132556Z'
+  stage: tests
 ---
 
 # The duplicates report holds no standing finding of the runtimes or the clock
@@ -69,3 +78,4 @@ Expect: `3`
    - Smoke test: both blocks are runnable. The first runs the steps of `make duplicates` in `$TMPDIR` and counts `new`/`gone` lines for the runtimes and `clock.py`, and `Expect: 0` can be checked against that count. It passes no `-q` to pytest. The second block greps the baseline, and `Expect: 3` is checkable. I ran its grep logic against the baseline already on the branch: it holds the `ManualWaiter`, `return version_printed(` and `started = due_leftovers_launch` lines (33 to 36), and `ManualClock` is gone, so the human's change is in.
    - Architecture: this changes only `docs/decisions.md` and `docs/project-guide/processes-and-checks.md` (*The baseline*, present at line 158), which the documenter writes. The accepted fakes stay in `factory.adapters`, as `CLAUDE.md` places them.
    - Scope: this is S0007 of F0039, which lists it and decision 12 in its Scope. Nothing it does falls under Out of scope. Decision 13 sets the order after S0001 and the baseline change, and the baseline change is done.
+4. factory: started tests as self.
