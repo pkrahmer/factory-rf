@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 398
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T08:21:17.668231Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T08:21:17.668231Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T08:22:50.374294Z'
+  stage: doing
+  run: 3ed02e41be154e3e923b9938405047e8
 ---
 
 # The project guide names every passage of v1.1's own in the shipped agents
@@ -108,3 +110,13 @@ Expect: `documents ok`
    `lint`: lint: green (0.7 s)
    `test`: test: green (67.7 s)
 6. factory: started doing as self.
+7. coder: No code written. This story changes only documents. The Interface is "None", and criterion 1 says nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` may change. Nothing under those paths changed: the working tree holds only the factory's `.costs.jsonl` sidecar.
+   - `make test`: there are no failing tests. The tester wrote none, and the existing suite is green.
+   - `make check`: green (coverage 99.14 %, `check: green`).
+   - Main choice: I left `docs/project-guide/agents.md` unedited. Criterion 3 and CLAUDE.md (*Docs*) give that file to the documenter, and they keep the coder out of `docs/`. The alternative I rejected was writing the passage list now, which would take over the documenter's work.
+   - Refactor: there was no diff, so there was nothing to refactor.
+   - Description: the journal did not change the meaning of the task, so the Description stays as it is.
+   - Noticed, not touched: nothing.
+
+   `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
