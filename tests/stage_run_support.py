@@ -113,10 +113,15 @@ def branch_head(remote: Path) -> CommitId:
     return commit
 
 
-def pushed_state(boundaries: Boundaries, remote: Path) -> WorkItemState:
-    """The work item's state at the head of the remote's branch."""
+def pushed(boundaries: Boundaries, remote: Path) -> WorkItemDocument:
+    """The work item at the head of the remote's branch."""
     text = boundaries.git.show_file(branch_head(remote), PATH)
     assert text is not None
-    state = boundaries.work_item_reader.parse(text).state
+    return boundaries.work_item_reader.parse(text)
+
+
+def pushed_state(boundaries: Boundaries, remote: Path) -> WorkItemState:
+    """The work item's state at the head of the remote's branch."""
+    state = pushed(boundaries, remote).state
     assert state is not None
     return state

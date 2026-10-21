@@ -28,6 +28,7 @@ from factory.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import install_agents, remote_commit
 from human_clone import HumanClone
 from observing_runtime import ObservingRuntime
+from stage_run_support import branch_head, pushed, pushed_state
 
 INSTANCE = "factory-1"
 WORK_ITEM = "F0001-S0001"
@@ -125,24 +126,6 @@ def _stall(
     )
 
 
-def _head(remote: Path) -> CommitId:
-    commit = remote_commit(remote, BRANCH)
-    assert commit is not None
-    return commit
-
-
-def _pushed(boundaries: Boundaries, remote: Path) -> WorkItemDocument:
-    text = boundaries.git.show_file(_head(remote), PATH)
-    assert text is not None
-    return boundaries.work_item_reader.parse(text)
-
-
-def _pushed_state(boundaries: Boundaries, remote: Path) -> WorkItemState:
-    state = _pushed(boundaries, remote).state
-    assert state is not None
-    return state
-
-
 def _start_state(boundaries: Boundaries, started: StartedStage) -> WorkItemState:
     text = boundaries.git.show_file(started.stage_start.commit, PATH)
     assert text is not None
@@ -174,7 +157,7 @@ def test_a_stall_keeps_the_writes_inside_the_write_paths_and_drops_the_rest(
 
     _stall(boundaries, _context(started, pull_request=started.pull_request), reason)
 
-    head = _head(remote)
+    head = branch_head(remote)
     assert boundaries.git.show_file(head, INSIDE) == AGENT_TEXT
     assert boundaries.git.show_file(head, OUTSIDE) is None
     assert not (boundaries.checkout / OUTSIDE).exists()
@@ -207,7 +190,7 @@ def test_the_agents_rewrite_of_the_state_and_journal_is_put_back(
 
     _stall(boundaries, _context(started, pull_request=started.pull_request))
 
-    state = _pushed_state(boundaries, remote)
+    state = pushed_state(boundaries, remote)
     start_journal = _start_state(boundaries, started).journal
     stall = JournalRecord(
         number=len(start_journal) + 1,
@@ -234,12 +217,12 @@ def test_each_stall_raises_the_attempts_by_one(
     assert _start_state(boundaries, started).attempts == 0
 
     first = _stall(boundaries, _context(started, pull_request=started.pull_request))
-    first_attempts = _pushed_state(boundaries, remote).attempts
+    first_attempts = pushed_state(boundaries, remote).attempts
     again = _launch(boundaries, agent_runtime, ScriptedRun(result=DIED))
     second = _stall(boundaries, _context(again, pull_request=again.pull_request))
 
     assert (first_attempts, first.attempts) == (1, 1)
-    assert (_pushed_state(boundaries, remote).attempts, second.attempts) == (2, 2)
+    assert (pushed_state(boundaries, remote).attempts, second.attempts) == (2, 2)
     assert first.attempts_cap == second.attempts_cap == pipeline_definition(boundaries).attempts_cap
 
 
@@ -266,7 +249,7 @@ def test_a_stall_leaves_every_other_counter_as_the_stage_start_held_it(
     _stall(boundaries, _context(started, pull_request=started.pull_request))
 
     fields = ["stage", "blocked", "round", "crashes", "comments_read", "handed_over"]
-    pushed = _pushed_state(boundaries, remote).model_dump(include=set(fields))
+    pushed = pushed_state(boundaries, remote).model_dump(include=set(fields))
     assert pushed == _start_state(boundaries, started).model_dump(include=set(fields))
     assert pushed["crashes"] == 1
     assert pushed["comments_read"] == [3]
@@ -286,7 +269,7 @@ def test_a_stall_releases_the_claim(
 
     _stall(boundaries, _context(started, pull_request=started.pull_request))
 
-    assert _pushed_state(boundaries, remote).claim is None
+    assert pushed_state(boundaries, remote).claim is None
 
 
 def test_the_journal_gains_one_stall_entry_of_the_factory_naming_the_cause(
@@ -303,7 +286,7 @@ def test_the_journal_gains_one_stall_entry_of_the_factory_naming_the_cause(
 
     _stall(boundaries, _context(started, pull_request=started.pull_request), "died")
 
-    document = _pushed(boundaries, remote)
+    document = pushed(boundaries, remote)
     assert document.state is not None
     assert len(document.state.journal) == before + 1
     assert document.state.journal[-1] == JournalRecord(
@@ -344,7 +327,7 @@ def test_the_stall_records_the_pull_request_of_the_context_or_an_open_one_or_a_n
 
     result = _stall(boundaries, _context(started, pull_request=given))
 
-    assert _pushed_state(boundaries, remote).pull_request == expected
+    assert pushed_state(boundaries, remote).pull_request == expected
     assert result.pull_request == expected
     pulls = hosting.pull_requests()
     if source == "open":
@@ -369,7 +352,7 @@ def test_an_agent_that_committed_nothing_gets_exactly_one_stall_commit_pushed(
 
     result = _stall(boundaries, _context(started, pull_request=started.pull_request))
 
-    assert result.commit == _head(remote)
+    assert result.commit == branch_head(remote)
     commits = boundaries.git.log(result.commit, since=started.stage_start.commit)
     assert len(commits) == 1
     assert commits[0].parents == [started.stage_start.commit]
@@ -391,7 +374,7 @@ def test_the_agents_own_commit_stays_below_the_one_stall_commit(
     commits = boundaries.git.log(result.commit, since=agent_commit)
     assert len(commits) == 1
     assert commits[0].parents == [agent_commit]
-    assert boundaries.git.is_ancestor(agent_commit, _head(remote))
+    assert boundaries.git.is_ancestor(agent_commit, branch_head(remote))
     assert boundaries.git.show_file(agent_commit, INSIDE) == AGENT_TEXT
 
 
@@ -472,8 +455,8 @@ def test_a_stall_before_the_stage_started_undoes_nothing_and_still_counts(
     result = _stall(boundaries, context, "merge_conflict")
 
     assert result.undo is None
-    assert _pushed_state(boundaries, remote).attempts == 1
-    assert result.commit == _head(remote)
+    assert pushed_state(boundaries, remote).attempts == 1
+    assert result.commit == branch_head(remote)
     assert len(hosting.factory_posts(result.pull_request)) == 1
     assert result.note == "posted"
 
@@ -529,12 +512,12 @@ def test_a_given_document_keeps_its_entries_above_the_stall_entry(
         _context(started, pull_request=started.pull_request, document=document),
     )
 
-    pushed = _pushed(boundaries, remote)
-    assert pushed.state is not None
-    assert pushed.state.journal[-2] == JournalRecord(
+    document = pushed(boundaries, remote)
+    assert document.state is not None
+    assert document.state.journal[-2] == JournalRecord(
         number=before + 1, speaker="tester", kind="result"
     )
-    assert pushed.state.journal[-1] == JournalRecord(
+    assert document.state.journal[-1] == JournalRecord(
         number=before + 2,
         speaker="factory",
         kind="stall",
@@ -542,7 +525,7 @@ def test_a_given_document_keeps_its_entries_above_the_stall_entry(
         stage="tests",
         reason="died",
     )
-    assert entry_text(pushed, before + 1) == "the agent's entry."
+    assert entry_text(document, before + 1) == "the agent's entry."
 
 
 def test_a_hosting_error_while_ensuring_the_pull_request_leaves_the_remote_unchanged(
@@ -579,9 +562,9 @@ def test_a_hosting_error_while_posting_the_note_leaves_the_stall_commit_pushed(
     with pytest.raises(HostingServiceError):
         _stall(boundaries, _context(started, pull_request=started.pull_request))
 
-    [stall_commit] = boundaries.git.log(_head(remote), since=started.stage_start.commit)
+    [stall_commit] = boundaries.git.log(branch_head(remote), since=started.stage_start.commit)
     assert stall_commit.parents == [started.stage_start.commit]
-    assert _pushed_state(boundaries, remote).attempts == 1
+    assert pushed_state(boundaries, remote).attempts == 1
     assert hosting.factory_posts(started.pull_request.number) == []
 
 
@@ -600,7 +583,7 @@ def test_a_stall_without_a_cost_stamps_its_entry_with_the_time_and_stage_and_no_
 
     _stall(boundaries, context, "died")
 
-    stall = _pushed_state(boundaries, remote).journal[-1]
+    stall = pushed_state(boundaries, remote).journal[-1]
     assert (stall.kind, stall.at, stall.stage, stall.run) == ("stall", clock.now(), "tests", None)
 
 

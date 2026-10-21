@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from branch_reading import remote_document
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
@@ -72,13 +73,6 @@ def _handle(boundaries: Boundaries, event: Event, yaml: str = PIPELINE_YAML) -> 
 
 def _event(snapshot: WorkItemSnapshot, kind: EventKind = "closed") -> Event:
     return Event(kind=kind, work_item=snapshot, remote_state="a" * 40)
-
-
-def _remote_document(boundaries: Boundaries, checkout: GitCli) -> WorkItemDocument:
-    checkout.fetch()
-    text = checkout.show_file(f"origin/{BRANCH}", PATH)
-    assert text is not None
-    return boundaries.work_item_reader.parse(text)
 
 
 def _state(document: WorkItemDocument) -> WorkItemState:
@@ -176,7 +170,7 @@ def test_a_failed_reopen_leaves_the_close_recorded_and_the_story_at_the_approval
     with pytest.raises(HostingServiceError):
         _handle(boundaries, _event(snapshot))
 
-    document = _remote_document(boundaries, checkout)
+    document = remote_document(boundaries, checkout)
     state = _state(document)
     comment, close = state.journal[-2:]
     assert comment.speaker == HUMAN
@@ -208,7 +202,7 @@ def test_the_event_handled_again_after_a_failed_reopen_sends_back_with_one_close
 
     _handle(boundaries, _event(snapshot))
 
-    document = _remote_document(boundaries, checkout)
+    document = remote_document(boundaries, checkout)
     assert _state(document).stage == "doing"
     assert len(_records(document, "close")) == 1
     assert len(_records(document, "send_back")) == 1
@@ -228,7 +222,7 @@ def test_a_close_with_a_reason_within_the_cap_sends_the_story_back_without_a_que
 
     _handle(boundaries, _event(snapshot))
 
-    document = _remote_document(boundaries, checkout)
+    document = remote_document(boundaries, checkout)
     state = _state(document)
     assert state.stage == "doing"
     assert state.round == 3
@@ -261,7 +255,7 @@ def test_a_comment_copied_at_the_close_or_earlier_counts_as_the_reason(
 
     _handle(boundaries, _event(snapshot))
 
-    document = _remote_document(boundaries, checkout)
+    document = remote_document(boundaries, checkout)
     state = _state(document)
     assert state.stage == "doing"
     assert state.blocked is None
@@ -280,7 +274,7 @@ def test_a_close_without_a_comment_after_the_latest_result_records_the_question(
 
     _handle(boundaries, _event(snapshot))
 
-    document = _remote_document(boundaries, checkout)
+    document = remote_document(boundaries, checkout)
     state = _state(document)
     send_back, question = state.journal[-2:]
     assert send_back.kind == "send_back"
@@ -305,7 +299,7 @@ def test_a_close_past_the_round_cap_records_the_cap_question_even_with_a_reason(
 
     _handle(boundaries, _event(snapshot))
 
-    document = _remote_document(boundaries, checkout)
+    document = remote_document(boundaries, checkout)
     state = _state(document)
     [question] = _records(document, "question")
     assert entry_text(document, question.number) == (
@@ -328,7 +322,7 @@ def test_the_send_back_posts_nothing_and_the_ask_handler_posts_its_question_once
     _handle(boundaries, _event(snapshot))
 
     assert hosting.factory_posts(pull_request) == []
-    document = _remote_document(boundaries, checkout)
+    document = remote_document(boundaries, checkout)
     [question] = _records(document, "question")
     sent_back = _snapshot(document, checkout.resolve(f"origin/{BRANCH}"))
     ask = AskHandler(boundaries, _definition(boundaries))
@@ -425,14 +419,14 @@ def test_a_rejected_push_of_the_decision_keeps_the_close_and_a_retry_sends_back_
         _handle(pushing, _event(snapshot))
 
     assert raised.value.outcome == "rejected"
-    document = _remote_document(boundaries, checkout)
+    document = remote_document(boundaries, checkout)
     assert len(_records(document, "close")) == 1
     assert _state(document).stage == "approval"
     assert checkout.show_file(f"origin/{BRANCH}", "notes.md") == "The human pushed this.\n"
 
     _handle(pushing, _event(snapshot))
 
-    document = _remote_document(boundaries, checkout)
+    document = remote_document(boundaries, checkout)
     assert len(_records(document, "close")) == 1
     assert len(_records(document, "send_back")) == 1
     assert _state(document).stage == "doing"
@@ -454,7 +448,7 @@ def test_a_comment_written_before_the_retry_is_copied_and_counts_as_the_reason(
 
     _handle(boundaries, _event(snapshot))
 
-    document = _remote_document(boundaries, checkout)
+    document = remote_document(boundaries, checkout)
     state = _state(document)
     [close] = _records(document, "close")
     [comment] = _records(document, "comment")
@@ -484,7 +478,7 @@ def test_after_the_decision_the_labels_name_the_target_stage(
         _handle(boundaries, _event(snapshot))
         assert hosting.labels(pull_request) == ["stage:doing"]
 
-    document = _remote_document(boundaries, checkout)
+    document = remote_document(boundaries, checkout)
     assert _state(document).stage == "doing"
     assert len(_records(document, "send_back")) == 1
 
@@ -510,7 +504,7 @@ def test_only_a_close_recorded_since_the_latest_result_spares_a_new_close_entry(
 
     _handle(boundaries, _event(snapshot))
 
-    document = _remote_document(boundaries, checkout)
+    document = remote_document(boundaries, checkout)
     assert len(_records(document, "close")) == closes
     assert _kinds(document)[-1] in {"send_back", "question"}
 
@@ -530,7 +524,7 @@ def test_a_send_back_with_a_question_stamps_its_entries_with_the_stage_closed_at
 
     stamps = [
         (record.speaker, record.kind, record.at, record.stage, record.run)
-        for record in _state(_remote_document(boundaries, checkout)).journal[-3:]
+        for record in _state(remote_document(boundaries, checkout)).journal[-3:]
     ]
     assert stamps == [
         (HUMAN, "close", clock.now(), closed_at, None),

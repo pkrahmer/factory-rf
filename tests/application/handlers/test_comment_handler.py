@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from branch_reading import error_posts, remote_document
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
@@ -14,7 +15,7 @@ from factory.application.handlers.questions import AskHandler
 from factory.application.stops import StopService
 from factory.domain.errors import CannotHandle, HostingServiceError
 from factory.domain.events import Event, EventKind
-from factory.domain.hosting import FACTORY_MARKER, PostKey, PullRequestComment
+from factory.domain.hosting import FACTORY_MARKER, PostKey
 from factory.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.tick_status import TickStatus
@@ -104,15 +105,8 @@ def _post_question(
     return post.id
 
 
-def _remote_document(boundaries: Boundaries, checkout: GitCli) -> WorkItemDocument:
-    checkout.fetch()
-    text = checkout.show_file(f"origin/{BRANCH}", PATH)
-    assert text is not None
-    return boundaries.work_item_reader.parse(text)
-
-
 def _remote_state(boundaries: Boundaries, checkout: GitCli) -> WorkItemState:
-    return _state_of(_remote_document(boundaries, checkout))
+    return _state_of(remote_document(boundaries, checkout))
 
 
 def _new_commits(checkout: GitCli, snapshot: WorkItemSnapshot) -> int:
@@ -122,14 +116,6 @@ def _new_commits(checkout: GitCli, snapshot: WorkItemSnapshot) -> int:
 
 def _comment_records(state: WorkItemState) -> list[JournalRecord]:
     return [record for record in state.journal if record.kind == "comment"]
-
-
-def _error_posts(hosting: FakeHostingService, pull_request: int) -> list[PullRequestComment]:
-    return [
-        post
-        for post in hosting.factory_posts(pull_request)
-        if post.key is not None and post.key.kind == "error"
-    ]
 
 
 def _definition() -> PipelineDefinition:
@@ -158,7 +144,7 @@ def publish(boundaries: Boundaries, *, human: HumanClone, checkout: GitCli) -> P
 
 
 def _fetched(boundaries: Boundaries, checkout: GitCli) -> WorkItemSnapshot:
-    document = _remote_document(boundaries, checkout)
+    document = remote_document(boundaries, checkout)
     return _snapshot(document, checkout.resolve(f"origin/{BRANCH}"))
 
 
@@ -447,16 +433,16 @@ def test_a_comment_event_that_always_fails_is_tried_three_times_and_reported_onc
     event = _event(work_item)
 
     outcomes: list[DispatchOutcome] = [dispatcher.dispatch(event), dispatcher.dispatch(event)]
-    assert _error_posts(hosting, pull_request) == []
+    assert error_posts(hosting, pull_request) == []
     outcomes.append(dispatcher.dispatch(event))
-    [report] = _error_posts(hosting, pull_request)
+    [report] = error_posts(hosting, pull_request)
     outcomes.append(dispatcher.dispatch(event))
 
     assert outcomes == ["error", "error", "reported", "capped"]
     assert comment.calls == 3
     assert ask.calls == 0
     assert report.key == PostKey(work_item=WORK_ITEM, kind="error", n=REMOTE_STATE[:12])
-    assert len(_error_posts(hosting, pull_request)) == 1
+    assert len(error_posts(hosting, pull_request)) == 1
 
 
 def test_an_ask_event_that_always_fails_is_tried_three_times_and_reported_once(
@@ -474,16 +460,16 @@ def test_an_ask_event_that_always_fails_is_tried_three_times_and_reported_once(
     event = _event(snapshot, "ask")
 
     outcomes: list[DispatchOutcome] = [dispatcher.dispatch(event), dispatcher.dispatch(event)]
-    assert _error_posts(hosting, pull_request) == []
+    assert error_posts(hosting, pull_request) == []
     outcomes.append(dispatcher.dispatch(event))
-    [report] = _error_posts(hosting, pull_request)
+    [report] = error_posts(hosting, pull_request)
     outcomes.append(dispatcher.dispatch(event))
 
     assert outcomes == ["error", "error", "reported", "capped"]
     assert ask.calls == 3
     assert comment.calls == 0
     assert report.key == PostKey(work_item=WORK_ITEM, kind="error", n=REMOTE_STATE[:12])
-    assert len(_error_posts(hosting, pull_request)) == 1
+    assert len(error_posts(hosting, pull_request)) == 1
 
 
 def test_after_a_restart_the_failing_comment_event_is_tried_again_and_not_reported_twice(
@@ -508,4 +494,4 @@ def test_after_a_restart_the_failing_comment_event_is_tried_again_and_not_report
         restarted.dispatch(event)
 
     assert comment.calls == 6
-    assert len(_error_posts(hosting, pull_request)) == 1
+    assert len(error_posts(hosting, pull_request)) == 1

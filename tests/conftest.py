@@ -27,6 +27,7 @@ from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
+from factory.domain.disk import DiskRecord
 from factory.domain.git import GitOptions
 from factory.domain.identifiers import WorkItemId
 from factory.domain.kill_points import KillPoints
@@ -268,6 +269,23 @@ def image_layout(tmp_path: Path) -> ImageLayout:
 def records(tmp_path: Path) -> JsonLinesRecordLog[StopRecord]:
     """The stop records in the test's state directory."""
     return JsonLinesRecordLog(tmp_path / "state" / "records" / "stops.jsonl", StopRecord)
+
+
+@pytest.fixture
+def disk_settings(tmp_path: Path) -> InstanceSettings:
+    """Return settings whose checkout and state directory lie under `tmp_path`."""
+    return InstanceSettings(
+        repository_url="/srv/project.git",
+        instance="factory-1",
+        checkout=tmp_path / CHECKOUT,
+        state_directory=tmp_path / "state",
+    )
+
+
+@pytest.fixture
+def disk_records(tmp_path: Path) -> JsonLinesRecordLog[DiskRecord]:
+    """Return the disk record log of the test, in `tmp_path`."""
+    return JsonLinesRecordLog(tmp_path / "state" / "records" / "disk.jsonl", DiskRecord)
 
 
 @pytest.fixture

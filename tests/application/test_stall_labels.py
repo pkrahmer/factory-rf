@@ -18,8 +18,9 @@ from factory.domain.hosting import PostKey
 from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord, entry_text
 from factory.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import install_agents, remote_commit
+from git_support import install_agents
 from human_clone import HumanClone
+from stage_run_support import pushed, pushed_state
 
 INSTANCE = "factory-1"
 WORK_ITEM = "F0001-S0001"
@@ -127,20 +128,6 @@ def _stall(boundaries: Boundaries, context: StallContext) -> StallResult:
     )
 
 
-def _pushed(boundaries: Boundaries, remote: Path) -> WorkItemDocument:
-    head = remote_commit(remote, BRANCH)
-    assert head is not None
-    text = boundaries.git.show_file(head, PATH)
-    assert text is not None
-    return boundaries.work_item_reader.parse(text)
-
-
-def _pushed_state(boundaries: Boundaries, remote: Path) -> WorkItemState:
-    state = _pushed(boundaries, remote).state
-    assert state is not None
-    return state
-
-
 def _block(note: str) -> tuple[str, list[str]]:
     """The note's sentence line and the lines inside its fenced block."""
     lines = note.split("\n")
@@ -177,7 +164,7 @@ def test_a_red_check_through_the_stage_runner_posts_its_tail_in_a_block(
     assert block[-1].startswith("make: ")
     assert "check] Error 1" in block[-1]
     assert "line 6" not in block
-    document = _pushed(boundaries, remote)
+    document = pushed(boundaries, remote)
     assert document.state is not None
     assert document.state.journal[-1].kind == "stall"
     journal_text = entry_text(document, document.state.journal[-1].number)
@@ -258,7 +245,7 @@ def test_a_failing_label_write_raises_after_the_stall_is_pushed_and_said(
     with pytest.raises(HostingServiceError):
         _stall(boundaries, _first_stage_context(prepared))
 
-    state = _pushed_state(boundaries, remote)
+    state = pushed_state(boundaries, remote)
     assert state.attempts == 1
     assert state.journal[-1].kind == "stall"
     [pull] = hosting.pull_requests()

@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from bill_support import completed_records, sidecar_text
+from branch_reading import error_posts
 from definition_support import pipeline_definition
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
@@ -149,14 +150,6 @@ def _cost_table_posts(hosting: FakeHostingService, number: int) -> list[PullRequ
         post
         for post in hosting.factory_posts(number)
         if post.key is not None and post.key.kind == "cost_table"
-    ]
-
-
-def _error_posts(hosting: FakeHostingService, number: int) -> list[PullRequestComment]:
-    return [
-        post
-        for post in hosting.factory_posts(number)
-        if post.key is not None and post.key.kind == "error"
     ]
 
 
@@ -366,11 +359,11 @@ def test_a_hand_over_that_always_fails_is_tried_three_times_and_reported_once(
     event = _event(snapshot)
 
     outcomes: list[DispatchOutcome] = [dispatcher.dispatch(event), dispatcher.dispatch(event)]
-    assert _error_posts(hosting, pull_request) == []
+    assert error_posts(hosting, pull_request) == []
     outcomes.append(dispatcher.dispatch(event))
-    assert len(_error_posts(hosting, pull_request)) == 1
+    assert len(error_posts(hosting, pull_request)) == 1
     outcomes.append(dispatcher.dispatch(event))
 
     assert outcomes == ["error", "error", "reported", "capped"]
     assert handler.calls == 3
-    assert len(_error_posts(hosting, pull_request)) == 1
+    assert len(error_posts(hosting, pull_request)) == 1

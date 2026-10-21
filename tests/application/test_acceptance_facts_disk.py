@@ -2,7 +2,6 @@
 
 from collections.abc import Callable
 from dataclasses import replace
-from pathlib import Path
 
 import pytest
 
@@ -14,58 +13,40 @@ from factory.application.boundaries import Boundaries
 from factory.application.disk_records import DiskRecorder
 from factory.domain.disk import DiskRecord, disk_line
 from factory.domain.settings import InstanceSettings
-from git_support import CHECKOUT
-
-
-@pytest.fixture
-def settings(tmp_path: Path) -> InstanceSettings:
-    """Return settings whose checkout and state directory lie under `tmp_path`."""
-    return InstanceSettings(
-        repository_url="/srv/project.git",
-        instance="factory-1",
-        checkout=tmp_path / CHECKOUT,
-        state_directory=tmp_path / "state",
-    )
-
-
-@pytest.fixture
-def records(tmp_path: Path) -> JsonLinesRecordLog[DiskRecord]:
-    """Return the disk record log of the test, in `tmp_path`."""
-    return JsonLinesRecordLog(tmp_path / "state" / "records" / "disk.jsonl", DiskRecord)
 
 
 @pytest.fixture
 def recorded(
     walk: AcceptanceWalk,
     boundaries: Boundaries,
-    settings: InstanceSettings,
-    records: JsonLinesRecordLog[DiskRecord],
+    disk_settings: InstanceSettings,
+    disk_records: JsonLinesRecordLog[DiskRecord],
 ) -> Boundaries:
     """Return the walk's fetched boundaries with a fake disk, the record log and the settings."""
-    work = settings.checkout.parent
-    state = settings.state_directory
+    work = disk_settings.checkout.parent
+    state = disk_settings.state_directory
     disk = FakeDiskSpace(
         free={work: 800 * 10**9, state: 790 * 10**9}, used={work: 7 * 10**8, state: 2_000}
     )
     assert walk.status() == "due"
-    return replace(boundaries, disk=disk, disk_records=records, settings=settings)
+    return replace(boundaries, disk=disk, disk_records=disk_records, settings=disk_settings)
 
 
 def test_the_facts_record_the_disk_at_acceptance_and_name_the_record_before(
-    walk: AcceptanceWalk, recorded: Boundaries, records: JsonLinesRecordLog[DiskRecord]
+    walk: AcceptanceWalk, recorded: Boundaries, disk_records: JsonLinesRecordLog[DiskRecord]
 ) -> None:
     service = AcceptanceService(recorded, walk.definition)
 
     first = service.facts(FEATURE)
 
-    [record] = records.read()
+    [record] = disk_records.read()
     assert record.occasion == "acceptance"
     assert (first.disk_now, first.disk_before) == (disk_line(record), None)
 
     second = service.facts(FEATURE)
 
     assert second.disk_before == first.disk_now
-    assert len(records.read()) == 2
+    assert len(disk_records.read()) == 2
 
 
 def test_a_start_record_is_the_previous_record(walk: AcceptanceWalk, recorded: Boundaries) -> None:
@@ -89,10 +70,10 @@ def test_a_start_record_is_the_previous_record(walk: AcceptanceWalk, recorded: B
 def test_without_the_disk_the_records_or_the_settings_the_facts_carry_no_disk(
     walk: AcceptanceWalk,
     recorded: Boundaries,
-    records: JsonLinesRecordLog[DiskRecord],
+    disk_records: JsonLinesRecordLog[DiskRecord],
     without: Callable[[Boundaries], Boundaries],
 ) -> None:
     facts = AcceptanceService(without(recorded), walk.definition).facts(FEATURE)
 
     assert (facts.disk_now, facts.disk_before) == (None, None)
-    assert records.read() == []
+    assert disk_records.read() == []

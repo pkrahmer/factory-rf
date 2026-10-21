@@ -5,6 +5,7 @@ from typing import Literal
 
 import pytest
 
+from branch_reading import BODY, push_state
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
@@ -23,8 +24,6 @@ WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
 FEATURE = "factory/features/F0001-example"
 BACKLOG_PATH = f"{FEATURE}/backlog/F0001-S0001-first.md"
-PATH = f"{FEATURE}/in-progress/F0001-S0001-first.md"
-BODY = "# First story\n"
 
 FIXTURE = RuamelPipelineDefinitionReader().parse(PIPELINE_YAML)
 
@@ -49,15 +48,10 @@ def _state(
     )
 
 
-def _push_state(human: HumanClone, state: WorkItemState) -> None:
-    text = FrontmatterWorkItemWriter().render(WorkItemDocument(state=state, body=BODY))
-    human.push_file(BRANCH, PATH, text)
-
-
 def _open(human: HumanClone, hosting: FakeHostingService, stage: str) -> int:
     human.start(BACKLOG_PATH)
     number = hosting.create_pull_request(BRANCH, "First story", "", draft=False).number
-    _push_state(human, _state(stage, number))
+    push_state(human, _state(stage, number))
     return number
 
 
@@ -83,7 +77,7 @@ def test_a_hand_made_stage_change_the_definition_forbids_is_rejected(
     boundaries: Boundaries, human: HumanClone, hosting: FakeHostingService
 ) -> None:
     number = _open(human, hosting, "tests")
-    _push_state(human, _state("review", number))
+    push_state(human, _state("review", number))
 
     event = _evaluate(boundaries)
 
@@ -99,9 +93,9 @@ def test_the_correction_commit_ends_the_reject(
     boundaries: Boundaries, human: HumanClone, hosting: FakeHostingService
 ) -> None:
     number = _open(human, hosting, "tests")
-    _push_state(human, _state("review", number, _journal("started")))
+    push_state(human, _state("review", number, _journal("started")))
     assert _evaluate(boundaries).kind == "reject"
-    _push_state(human, _state("tests", number, _journal("started", "move_back")))
+    push_state(human, _state("tests", number, _journal("started", "move_back")))
 
     event = _evaluate(boundaries)
 
@@ -117,7 +111,7 @@ def test_a_merge_by_any_method_is_merged_and_never_a_reject(
     method: Literal["merge", "squash", "rebase"],
 ) -> None:
     number = _open(human, hosting, "smoke-test")
-    _push_state(human, _state("approval", number))
+    push_state(human, _state("approval", number))
     _merge(human, hosting, remote, number, method)
 
     event = _evaluate(boundaries)
@@ -136,7 +130,7 @@ def test_an_illegal_change_beside_a_merged_pull_request_is_merged(
     kind: str,
 ) -> None:
     number = _open(human, hosting, "tests")
-    _push_state(human, _state("approval", number))
+    push_state(human, _state("approval", number))
     if merged:
         _merge(human, hosting, remote, number, "squash")
 
@@ -151,7 +145,7 @@ def test_the_opening_commit_of_a_started_story_is_no_reject(
     on_main = WorkItemDocument(state=WorkItemState(stage="review"), body=BODY)
     human.push_file("main", BACKLOG_PATH, FrontmatterWorkItemWriter().render(on_main))
     human.start(BACKLOG_PATH)
-    _push_state(human, WorkItemState(stage=FIXTURE.first_stage()))
+    push_state(human, WorkItemState(stage=FIXTURE.first_stage()))
 
     event = _evaluate(boundaries)
 
@@ -165,7 +159,7 @@ def test_every_factory_move_is_no_reject(
     boundaries: Boundaries, human: HumanClone, hosting: FakeHostingService, move: FactoryMove
 ) -> None:
     number = _open(human, hosting, move.from_stage)
-    _push_state(human, _state(move.to_stage, number))
+    push_state(human, _state(move.to_stage, number))
 
     event = _evaluate(boundaries)
 

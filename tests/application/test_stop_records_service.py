@@ -41,16 +41,6 @@ def _raised(reason: RepositoryStopReason, minute: int, instance: str | None) -> 
     )
 
 
-def _records_path(tmp_path: Path) -> Path:
-    return tmp_path / "state" / "records" / "stops.jsonl"
-
-
-@pytest.fixture
-def records(tmp_path: Path) -> JsonLinesRecordLog[StopRecord]:
-    """The stop records in the test's state directory."""
-    return JsonLinesRecordLog(_records_path(tmp_path), StopRecord)
-
-
 @pytest.mark.parametrize(
     ("with_settings", "stops", "expected"),
     [
