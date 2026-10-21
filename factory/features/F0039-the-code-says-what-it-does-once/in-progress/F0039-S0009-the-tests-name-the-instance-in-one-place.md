@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 403
 comments_read: [6312436133]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T09:17:42.021954Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-21T09:17:23.808366Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-21T09:17:42.021954Z'
   stage: intake
 ---
 
@@ -112,3 +121,4 @@ Expect: one line, `1` (before the story, `0`)
    (b). Move criterion 3 into the Description as a check on the work, not a criterion: the tester lists the `pytest --collect-only` ids of the modules the Interface names before and after the move (in `$TMPDIR`), says in the journal that they match, and the reviewer confirms it. The story changes about fifty test modules, so the comparison should be made, as F0039-S0008's tester did. Renumber the criteria that follow.
 
    Please write this into the story and go on.
+5. factory: started intake as self.
