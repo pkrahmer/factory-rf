@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T01:29:40.495946Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-21T01:29:40.495946Z'
   stage: tests
+- number: 24
+  speaker: tester
+  kind: result
+  at: '2026-10-21T01:32:24.542572Z'
+  stage: tests
+  run: 28b3f1d50a99444584cd9a893c98f95f
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -437,3 +439,29 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
 
     Noticed but not touched: the `docs/project-guide/README.md` lines in criterion 7 are the documenter's work.
 23. factory: started tests as self.
+24. tester: Round 2, a test change the human approved: I made the two test changes the coder handed on in journal 22. They answer the reviewer's findings in journal 20.
+
+    1. I deleted the dead constant `PATH = f"{FEATURE}/in-progress/F0001-S0001-first.md"` from three earlier test files, under the standing leave in `CLAUDE.md` (*Tests*):
+       - tests/application/test_watcher.py
+       - tests/application/test_watcher_move_rule.py
+       - tests/entry/test_watch.py
+
+       `FEATURE` stays in all three, because `BACKLOG_PATH` still uses it. Every test keeps its name and checks the same thing.
+    2. Criterion 5's test: I added one row, `two-leading-underscores`, to `test_the_guard_finds_a_copy_by_name_and_parameters_only` in `tests/test_shared_branch_helpers.py`. The row is `def __pushed(boundaries: Boundaries, remote: Path) -> WorkItemDocument:\n    ...\n` -> `[]`.
+
+    Criterion → test mapping:
+    - criterion 1: tests/test_shared_branch_helpers.py::test_each_shared_helper_is_written_in_one_module (unchanged from journal 8)
+    - criterion 2: tests/test_shared_branch_helpers.py::test_the_guard_finds_a_copy_by_name_and_parameters_only
+    - criterion 3: tests/test_shared_branch_helpers.py::test_the_shared_helpers_read_and_write_as_the_copies_did
+    - criterion 4: the unchanged test ids of the sixteen modules, which pass under `make test`
+    - criterion 5: tests/test_shared_branch_helpers.py::test_the_guard_finds_a_copy_by_name_and_parameters_only[two-leading-underscores]
+    - criteria 6 and 7: `make check`, and the documenter's work
+
+    Files created: none.
+
+    Modules the test runner could not import: none.
+
+    Runs: `make test` is green (coverage 99.14 %), and `make lint` is green.
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (60.7 s)

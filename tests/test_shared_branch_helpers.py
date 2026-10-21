@@ -77,6 +77,11 @@ def test_each_shared_helper_and_fixture_is_written_in_one_module(
             id="a-copy-of-pushed",
         ),
         pytest.param(
+            "def __pushed(boundaries: Boundaries, remote: Path) -> WorkItemDocument:\n    ...\n",
+            [],
+            id="two-leading-underscores",
+        ),
+        pytest.param(
             "def _pushed_state(boundaries: Boundaries, path: str) -> WorkItemState:\n    ...\n",
             [],
             id="pushed-state-of-another-path",

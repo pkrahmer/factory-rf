@@ -29,7 +29,6 @@ WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
 FEATURE = "factory/features/F0001-example"
 BACKLOG_PATH = f"{FEATURE}/backlog/F0001-S0001-first.md"
-PATH = f"{FEATURE}/in-progress/F0001-S0001-first.md"
 
 
 class _CountingHosting(FakeHostingService):
