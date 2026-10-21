@@ -5,7 +5,7 @@ from typing import Literal
 
 import pytest
 
-from branch_reading import push_state
+from branch_reading import BODY, push_state
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
@@ -25,7 +25,6 @@ BRANCH = branch_name(WORK_ITEM)
 FEATURE = "factory/features/F0001-example"
 BACKLOG_PATH = f"{FEATURE}/backlog/F0001-S0001-first.md"
 PATH = f"{FEATURE}/in-progress/F0001-S0001-first.md"
-BODY = "# First story\n"
 
 FIXTURE = RuamelPipelineDefinitionReader().parse(PIPELINE_YAML)
 

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T01:21:06.848658Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-21T01:21:06.848658Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-21T01:23:45.137156Z'
+  stage: tests
+  run: 4fb7b8c0894a4e5a8a830da2667d2c53
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -312,3 +314,19 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
 
     Noticed but not touched: nothing further.
 15. factory: started tests as self.
+16. tester: I made the three test changes the coder handed on in journal 14, which answer the reviewer's findings in journal 12. I made them under the standing leave in `CLAUDE.md` (*Tests*). Every test keeps its name and checks the same thing.
+
+    Files changed (all earlier test files, under the standing leave):
+    - tests/application/test_stop_records_service.py: deleted the dead `_records_path` helper. Its only caller was the `records` fixture that was removed in this story. `Path` is still imported because other code in the module uses it.
+    - tests/application/test_watcher.py: deleted the dead constant `BODY = "# First story\n"`.
+    - tests/entry/test_watch.py: deleted the same dead constant `BODY`.
+    - tests/application/test_watcher_move_rule.py: deleted the local copy of `BODY`. The module now imports `BODY` from `branch_reading`, next to `push_state`. Its one use, at `test_watcher_move_rule.py:146`, now reads the shared constant.
+
+    Files created: none. Criterion → test mapping: unchanged from journal 8. No test was added or renamed.
+
+    Runs: `make test` is green (coverage 99.14 %). `make lint` is green.
+
+    Modules the test runner could not import: none.
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (60.6 s)

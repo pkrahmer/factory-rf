@@ -41,10 +41,6 @@ def _raised(reason: RepositoryStopReason, minute: int, instance: str | None) -> 
     )
 
 
-def _records_path(tmp_path: Path) -> Path:
-    return tmp_path / "state" / "records" / "stops.jsonl"
-
-
 @pytest.mark.parametrize(
     ("with_settings", "stops", "expected"),
     [
