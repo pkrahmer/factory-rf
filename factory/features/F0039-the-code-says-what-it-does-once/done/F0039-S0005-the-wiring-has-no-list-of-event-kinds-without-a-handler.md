@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-10-21T02:04:48.493307Z'
   stage: smoke-test
   run: c9b84bd29a904a85955f8cb93fa490b1
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-21T02:07:11.884728Z'
+  stage: approval
 ---
 
 # The wiring has no list of event kinds without a handler
@@ -264,3 +269,4 @@ Expect: two lines, `False False` and `1` (before the story, `True True` and `6`)
     - Criteria 2, 4 and 5: the smoke test does not touch them, and nothing it showed contradicts them.
 
     Nothing is open.
+17. factory: done (pull request merged); cost: 7 runs, 5.0 min, 41 turns, 156876 tokens in (727099 more from cache), 14712 out, $1.38
