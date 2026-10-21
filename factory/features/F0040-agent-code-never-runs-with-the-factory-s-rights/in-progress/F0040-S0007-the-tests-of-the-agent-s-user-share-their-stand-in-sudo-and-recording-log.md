@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 387
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T06:31:08.192096Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T06:30:47.813969Z'
   stage: intake
   run: 140c7603b4584a24857f88960c9d5ad6
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:31:08.192096Z'
+  stage: tests
 ---
 
 # The tests of the agent's user share their stand-in sudo and their recording log
@@ -112,3 +121,4 @@ Expect: one summary line with a count of `passed`, and no `failed` and no `error
    - Smoke test: both commands are runnable. The `grep -c` over three files prints `path:count` lines, so "each ending in `:0`" is checkable. The pytest command passes no `-q`, and `pyproject.toml` `addopts` already sets `-q`, so the last line is a summary with a `passed` count.
    - Architecture: test-only changes, in the places `CLAUDE.md` gives. The shared helpers are modules at the `tests/` root, which the standing leave allows. The tester makes the move, and the coder changes nothing.
    - Scope: it is inside F0040 (the S0001 and S0004 test modules and the reviewers' notes). Nothing in the feature's "Out of scope" is touched; the older stand-in scripts stay as they are.
+4. factory: started tests as self.
