@@ -63,9 +63,8 @@ def _closed(folder: Path) -> bool:
 def test_a_missing_checkout_is_cloned_and_sealed(
     remote: Path, directory: Path, git: GitCli
 ) -> None:
-    prepared = CheckoutPreparer(git, _settings(remote, directory)).prepare()
+    CheckoutPreparer(git, _settings(remote, directory)).prepare()
 
-    assert prepared is True
     assert _closed(directory / ".git")
     assert git.resolve("origin/main") is not None
 
@@ -79,9 +78,8 @@ def test_a_sealed_checkout_is_kept_and_sealed_again_without_a_log_line(
     config.chmod(0o664)
     log = RecordingLog()
 
-    prepared = CheckoutPreparer(git, _settings(remote, directory), log=log).prepare()
+    CheckoutPreparer(git, _settings(remote, directory), log=log).prepare()
 
-    assert prepared is True
     assert added.read_text(encoding="utf-8") == "put there by the test\n"
     assert config.stat().st_mode & 0o777 == 0o644
     assert log.lines == []
@@ -122,9 +120,8 @@ def test_a_checkout_whose_git_folder_fails_the_check_is_removed_and_cloned_again
         CheckoutPreparer(git, settings, log=log) if logged else CheckoutPreparer(git, settings)
     )
 
-    prepared = preparer.prepare()
+    preparer.prepare()
 
-    assert prepared is True
     assert not added.exists()
     assert git.resolve("origin/main") is not None
     assert _closed(directory / ".git")

@@ -328,7 +328,7 @@ def test_the_preparer_removes_the_nested_repositories_of_a_kept_checkout(
         CheckoutPreparer(git, settings, log=log) if logged else CheckoutPreparer(git, settings)
     )
 
-    assert preparer.prepare() is True
+    preparer.prepare()
 
     assert added.read_text(encoding="utf-8") == "put there by the test\n"
     assert not os.path.lexists(directory / NESTED)
@@ -357,7 +357,7 @@ def test_a_nested_repository_the_preparer_cannot_remove_makes_it_clone_again(
 def test_a_missing_checkout_is_cloned_without_a_search(remote: Path, directory: Path) -> None:
     git = RecordingGit(directory)
 
-    assert CheckoutPreparer(git, _settings(remote, directory)).prepare() is True
+    CheckoutPreparer(git, _settings(remote, directory)).prepare()
 
     assert git.resolve("origin/main") is not None
     assert git.searches == 0

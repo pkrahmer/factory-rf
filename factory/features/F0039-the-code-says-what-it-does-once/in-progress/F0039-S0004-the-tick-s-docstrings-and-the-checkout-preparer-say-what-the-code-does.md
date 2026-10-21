@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 383
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T01:43:24.055355Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T01:43:24.055355Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T01:46:08.827610Z'
+  stage: tests
+  run: e58a73fe6dc74e358a35072d238c3542
 ---
 
 # The tick's docstrings and the checkout preparer say what the code does
@@ -91,3 +93,25 @@ Expect: one line, `False True <class 'NoneType'> <class 'bool'>` (before the sto
    Architecture: the change is inside `factory.application`, with no new import, layer or dependency. It changes docstrings and one return type. Nothing is added to `Boundaries`.
    Scope: it stays within the feature's S0004 line. The `Tick` and `Tick.run` docstrings, `CheckoutPreparer.prepare -> None` and the seven tests all appear in the feature's Scope and decision 6. None of the feature's Out of scope items is touched.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1 and 2. Changed the seven earlier tests the Interface names, under the human's leave in the feature's decision 6.
+
+   Mapping:
+   - criterion 1: tests/application/test_tick_docstrings.py::test_the_docstrings_say_what_the_code_does (rows `tick`, `tick-run`, `checkout-preparer-prepare`)
+   - criterion 2: tests/application/test_tick_docstrings.py::test_the_preparers_return_types (rows `checkout-preparer`, `repository-waiter`)
+   - criterion 3: the seven changed tests, plus the unchanged rest of tests/application/test_repository_waiter.py, test_checkout_preparer_seal.py, test_nested_repositories.py and test_scheduler.py
+   - criterion 4: `make check` (the coder's)
+   - criterion 5: docs, not tested
+
+   Created: tests/application/test_tick_docstrings.py.
+
+   Earlier test files changed (feature decision 6). Each test keeps its name. In each, `assert <call>.prepare() is True`, or `prepared = <call>.prepare()` with `assert prepared is True`, became the call as a statement:
+   - tests/application/test_nested_repositories.py: test_the_preparer_removes_the_nested_repositories_of_a_kept_checkout, test_a_missing_checkout_is_cloned_without_a_search
+   - tests/application/test_checkout_preparer_seal.py: test_a_missing_checkout_is_cloned_and_sealed, test_a_sealed_checkout_is_kept_and_sealed_again_without_a_log_line, test_a_checkout_whose_git_folder_fails_the_check_is_removed_and_cloned_again
+   - tests/application/test_scheduler.py: test_a_missing_checkout_is_cloned_and_cloned_again_after_removal (two calls), test_an_existing_clone_is_kept_without_calling_git
+
+   test_a_waiter_that_hits_a_git_error… in the seal module still asserts `prepared is False` on `RepositoryWaiter.prepare`, which stays `-> bool`. I left it unchanged.
+
+   `make test`: 4 failures, all for the right reason. The three docstrings still hold today's words ("nothing local is read", no stop records, "always `True`"), and `CheckoutPreparer.prepare` returns `bool`. The `repository-waiter` row passes because that method does not change. Every module imported, so nothing was unimportable. `make lint`: green. Type check skipped, as the stage says.
+
+   `lint`: lint: green (0.5 s)
+   `test`: FAILED tests/application/test_tick_docstrings.py::test_the_preparers_return_types[checkout-preparer] - AssertionError: assert <class 'bool'> is <class 'NoneType'>

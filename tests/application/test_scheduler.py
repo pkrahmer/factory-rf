@@ -207,11 +207,11 @@ def test_a_missing_checkout_is_cloned_and_cloned_again_after_removal(
     git = GitCli(directory, GitOptions(identity=TEST_IDENTITY))
     preparer = CheckoutPreparer(git, _settings(remote, directory))
 
-    assert preparer.prepare() is True
+    preparer.prepare()
     assert git.resolve("origin/main") is not None
 
     shutil.rmtree(directory)
-    assert preparer.prepare() is True
+    preparer.prepare()
     assert git.resolve("origin/main") is not None
 
 
@@ -223,7 +223,7 @@ def test_an_existing_clone_is_kept_without_calling_git(tmp_path: Path, remote: P
     no_git = GitOptions(executable=str(tmp_path / "missing" / "git"))
     preparer = CheckoutPreparer(GitCli(directory, no_git), _settings(remote, directory))
 
-    assert preparer.prepare() is True
+    preparer.prepare()
     assert added.read_text() == "kept\n"
 
 
