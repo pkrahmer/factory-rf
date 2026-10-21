@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 384
 comments_read: [6306079635]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T02:02:47.753074Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-21T02:02:47.753074Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T02:03:21.645769Z'
+  stage: review
+  run: 887125ab358647d39ad7333234e4893b
 ---
 
 # The wiring has no list of event kinds without a handler
@@ -169,3 +171,20 @@ Expect: two lines, `False False` and `1` (before the story, `True True` and `6`)
     `check`: check: green
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
 11. factory: started review as self.
+12. reviewer: no findings
+
+    What I checked:
+    - Criterion 1: `tests/entry/test_wiring_constants.py::test_the_wiring_offers_its_names_but_no_list_of_kinds_without_a_handler` is one parametrized test. It has a `NOT_YET_HANDLED` row (not an attribute, not in `__all__`) and one row for each of the 23 names the criterion lists, which must stay. Both sides of the rule are rows of the same test.
+    - Criterion 2: `test_a_kind_without_a_handler_is_caught_by_comparing_the_handlers_with_every_kind` has a `built` row (comparison true, `[]`) and a `no-acceptance-due` row (comparison false, `["acceptance_due"]`). Both work on the mapping that `build_handlers` actually returns, so the failing side of the coverage rule is tested.
+    - Criterion 3: the two tests keep their names and checks, and the two removed tests only repeated the acceptance test. Only the new module still names `NOT_YET_HANDLED`.
+    - Criterion 4: the factory's `make check` after the coder was green (journal entry 10), and `duplicates` reported 0 new.
+    - `src/factory/entry/wiring.py`: removes only the constant, its comment and its `__all__` entry. `EventKind` is still used, so its import stays. Architecture and security are unaffected.
+    - Description, Interface and docs criterion: they match what was built. The documenter's three documents still name the constant, as criterion 5 expects.
+    - Not counted as a finding: the new module copies `INSTANCE` and `ENVIRONMENT`. These are constants, not helpers, and ten wiring and run test modules already hold the same copies. No shared place exists for them, and the feature's scope did not name them for a move.
+
+    Earlier tests changed (all under the human's leave, decision 7 of `factory/features/F0039-the-code-says-what-it-does-once/feature.md`, granted 2026-10-20). Each change stays within it:
+    - tests/entry/test_wiring_acceptance.py: decision 7. Removed the `assert NOT_YET_HANDLED == ()` line and its import.
+    - tests/entry/test_wiring_handlers.py: decision 7. Removed `test_the_kinds_without_a_handler_are_exactly_those_not_yet_handled` and the imports nothing uses any more.
+    - tests/entry/test_wiring_human_handlers.py: decision 7. Removed `test_the_kinds_not_yet_handled_are_exactly_the_kinds_without_a_handler` and the imports nothing uses any more.
+    - tests/entry/test_wiring_recovery.py: decision 7. Renamed to `test_crash_is_handled`, and removed the `NOT_YET_HANDLED` lines, the `every` tuple and the `get_args` import.
+    - tests/entry/test_wiring_recovery_expired.py: decision 7. Renamed to `test_expired_shares_the_crash_handler`, and removed the `NOT_YET_HANDLED` lines, the `every` tuple and the `get_args` and `EventKind` imports.
