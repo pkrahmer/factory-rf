@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T01:04:34.102271Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-21T01:04:34.102271Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T01:05:01.146117Z'
+  stage: smoke-test
+  run: 5e25b9757db74d6396d914453d56a061
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -419,3 +421,38 @@ Expect: one line, `1` (before the story, `0`)
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: I ran the three smoke-test commands from the repository root, in order and exactly as written. All three met their `Expect:` line, and the run contradicted no acceptance criterion. I fixed nothing.
+
+    **Command 1: the AST scan for copies of the definition and the log reading.** It met its expectation of one line, `['tests/definition_support.py', 'tests/log_support.py']`. The first `uv run` built `.venv`, and that printed setup lines before the result line:
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 79ms
+    Bytecode compiled 4164 files in 360ms
+    ['tests/definition_support.py', 'tests/log_support.py']
+    ```
+    The setup lines come from uv's first run in a fresh checkout, not from the scan.
+
+    **Command 2: pytest on the guard, the shared-fixtures test, `test_board_reader.py` and `test_tick_disk.py`.** It met its expectation of `exit 0`:
+    ```
+    exit 0
+    ```
+    The command writes pytest's output to a file, so I also printed the file's tail in the same shell; it ended with `28 passed in 1.47s`.
+
+    **Command 3: grep for the project-guide line.** It met its expectation of `1`:
+    ```
+    1
+    ```
+
+    **Criteria check.** The smoke test contradicts none of the criteria:
+    - Criterion 2: command 1 found exactly the two shared modules.
+    - Criteria 3 and 5: the guard's tests passed.
+    - Criterion 7: the docs line is present.
+    - Criterion 1: `tests/conftest.py:219` returns `pipeline_definition(boundaries)` from the `definition` fixture.
+
+    The smoke test did not cover two criteria: criterion 4 (that test ids are the same before and after across the twenty modules) and criterion 6 (`make check`). I did not run either; the factory runs the stage's checks itself.
+
+    Findings: none.
