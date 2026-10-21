@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 395
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T07:51:20.341765Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-21T07:51:20.341765Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T07:51:38.790859Z'
+  stage: docs
+  run: 869d6c2c62fc4794a78996d97c28c03a
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -282,3 +284,14 @@ Expect: `documents ok`
 
     Earlier tests: none. No test file on `main` is changed, renamed or deleted.
 18. factory: started docs as self.
+19. documenter: Round 1 fixed the one finding, the smoke tester's (entry 13) and the reviewer's (entry 17). I changed one file, `docs/operator-guide.md`. In *An event that keeps failing* I put back the blank line between "... every kind of event has a handler." and "After three errors on one event and one remote state, ...". The registered-handlers paragraph now ends with the words criterion 3 requires, and the "After three errors" paragraph stands alone, as on `origin/main`. `make documents` ends with `documents ok`. I did not run `make check`, because only a document changed. The factory checks right after this stage.
+
+    I cross-read the paragraphs around the edit in *An event that keeps failing*. Both are current. I read no other document in full, since the diff outside `docs/` is empty (only this work item's files changed beside it).
+
+    Findings for the coder: none.
+
+    Stale text I saw and did not touch: the sentence "The handlers of the human's acts ... are registered: every kind of event has a handler" still speaks of handlers, but criterion 3 says to keep it. The stop tables belong to F0038-S0008.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+    `secrets`: secrets: green (1.6 s)
+    `documents`: documents ok

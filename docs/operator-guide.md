@@ -1467,6 +1467,7 @@ Do not edit the file of a work item in `in-progress/` on `main`. Answer in its p
 The dispatcher hands each event to its handler and counts what goes wrong, per event and per remote state (the commit the work item's branch is at). Any error from the handler counts, an event kind without a handler included. The tick calls the dispatcher once per pass.
 
 The handlers of the human's acts on the pull request (`comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `duplicate`, `pull_request_lookup`), of the stage run, of `crash` and `expired` (see "A restart during a stage" and "An expired lease") and of `acceptance_due` are registered: every kind of event has a handler.
+
 After three errors on one event and one remote state, the factory posts one report on the work item's pull request and stops retrying that event. The report reads: "The factory failed 3 times on `<event>` and has stopped retrying it. Last error: <error>. A new commit on the work item's branch (now at <12 characters of the commit>) makes the factory try again." It is posted once: a restart does not post it again, because the report carries a key that the pull request already holds. If the work item has no pull request, the factory opens a draft one for the report first, as under "The stops of one work item".
 
 What to do about it:
