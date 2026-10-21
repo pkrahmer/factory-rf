@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T00:09:05.821815Z'
   stage: smoke-test
   run: cc3a2ef900bf49a7ab96cb3b4df06cfc
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T00:10:26.039395Z'
+  stage: approval
 ---
 
 # The documents say that project commands run as the agent, and how to check it
@@ -236,3 +241,4 @@ Expect: `documents ok`
       - No other passage changes, and `README.md` is unchanged.
 
     None of the commands contradicts any criterion. Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 4.1 min, 27 turns, 107973 tokens in (381819 more from cache), 7186 out, $0.86
