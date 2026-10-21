@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 384
 comments_read: [6306079635]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T02:02:47.753074Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-21T02:02:27.047957Z'
   stage: doing
   run: 46d852cf96184bcb98ee00433336b729
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-21T02:02:47.753074Z'
+  stage: review
 ---
 
 # The wiring has no list of event kinds without a handler
@@ -159,3 +168,4 @@ Expect: two lines, `False False` and `1` (before the story, `True True` and `6`)
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
+11. factory: started review as self.
