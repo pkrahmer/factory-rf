@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T01:38:21.117717Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -179,6 +175,12 @@ journal:
   kind: started
   at: '2026-10-21T01:38:21.117717Z'
   stage: review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T01:39:25.683875Z'
+  stage: review
+  run: 87616090614e499198090ce4da59c581
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -550,3 +552,46 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     `check`: check: green
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
 30. factory: started review as self.
+31. reviewer: Round 2 review of `git diff main...HEAD -- . ':!factory'` against the work item. The diff has 21 files, all under `tests/`. Nothing under `src/factory/` changes, as the Interface says.
+
+    Round 1's findings (journal 20) are fixed:
+    - The dead `PATH` constant is gone from `tests/application/test_watcher.py`, `tests/application/test_watcher_move_rule.py` and `tests/entry/test_watch.py`.
+    - Criterion 5 has its row, `two-leading-underscores`, in `tests/test_shared_branch_helpers.py`.
+
+    Acceptance criteria:
+    - Criteria 1, 2 and 5 are the rows of two parametrized tests in `tests/test_shared_branch_helpers.py`. The rows match the source texts the criteria give. `copies` follows the Interface: top-level functions only, keyword-only annotations included, compared through `ast.unparse`, and `removeprefix("_")` strips exactly one underscore.
+    - Criterion 3 is `test_the_shared_helpers_read_and_write_as_the_copies_did`. It pushes a state of stage `doing` with pull request 1, reads it back through `remote_document` and through `pushed_state`, and posts one `error` and one `cost_table` post to show that `error_posts` returns only the `error` one.
+    - Criterion 4 holds when the diff is read: no `def test_`, `pytest.param` or `@pytest.mark` line is added or removed in any earlier module.
+
+    Two more things I checked:
+    - The shared helpers use `stage_run_support`'s `BRANCH` and `PATH`, which have the values the removed copies used.
+    - No top-level name in the changed modules is left unused, apart from tests and fixtures.
+
+    On `make check`: journal 27 records the factory's one red `make types` (Error 139, a mypy segfault). The coder's rerun (journal 29) was green, and the factory's check then let the stage move forward.
+
+    Architecture and security: no `src/` change and no silencing marker. The Description, the Interface and docs criterion 7 still match what was built.
+
+    I considered one more point and rejected it as a finding: `tests/application/test_stalls.py:252` keeps its local variable `pushed`, which now hides the imported helper inside that one test. The helper is not called in that test, and the line is unchanged from `main`.
+
+    no findings
+
+    Earlier tests (changed under the leave named):
+    - tests/application/handlers/test_closed_send_back.py: standing leave (`_remote_document` moved)
+    - tests/application/handlers/test_comment_handler.py: standing leave (`_remote_document` and `_error_posts` moved)
+    - tests/application/handlers/test_hand_over.py: standing leave (`_error_posts` moved)
+    - tests/application/handlers/test_questions.py: standing leave (`_remote_document` moved)
+    - tests/application/test_acceptance_facts_disk.py: standing leave (`settings` and `records` moved to `disk_settings` and `disk_records`)
+    - tests/application/test_after_agent.py: standing leave (`_head`, `_pushed` and `_pushed_state` moved; local `pushed` renamed to `document`)
+    - tests/application/test_disk_recorder.py: standing leave (`settings` and `records` moved to `disk_settings` and `disk_records`)
+    - tests/application/test_nested_repositories.py: standing leave (its `_pushed` import replaced by the shared `pushed`; a local renamed)
+    - tests/application/test_stage_finish.py: standing leave (`_head`, `_pushed` and `_pushed_state` moved; a local renamed)
+    - tests/application/test_stage_known_results.py: standing leave (`_pushed` moved)
+    - tests/application/test_stall_labels.py: standing leave (`_pushed` and `_pushed_state` moved)
+    - tests/application/test_stalls.py: standing leave (`_head`, `_pushed` and `_pushed_state` moved; a local renamed)
+    - tests/application/test_stop_publisher.py: standing leave (the shadowing `records` fixture removed)
+    - tests/application/test_stop_records_service.py: standing leave (the shadowing `records` fixture and its `_records_path` removed)
+    - tests/application/test_watcher.py: standing leave (`_push_state` moved, with its `PATH` and `BODY`)
+    - tests/application/test_watcher_move_rule.py: standing leave (`_push_state` and `PATH` moved; `BODY` now imported from `branch_reading`)
+    - tests/entry/test_watch.py: standing leave (`_push_state` moved, with its `PATH` and `BODY`)
+    - tests/conftest.py: standing leave (`disk_settings` and `disk_records` added as the shared place)
+    - tests/stage_run_support.py: standing leave (`pushed` added; `pushed_state` now calls it)
