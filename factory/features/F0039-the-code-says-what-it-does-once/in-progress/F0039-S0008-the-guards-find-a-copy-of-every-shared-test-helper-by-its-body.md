@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T08:57:25.955090Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-21T08:57:04.160822Z'
   stage: docs
   run: 11cd49d7c63b4952bb4a7a610b12f07e
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:57:25.955090Z'
+  stage: smoke-test
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -370,3 +379,4 @@ Expect: one line, `1` (before the story, `0`)
     `check`: check: green (not run again: passed on tree 746e4c61c5e9 at 2026-10-21T08:53:42Z)
     `secrets`: secrets: green (0.9 s)
     `documents`: documents ok
+23. factory: started smoke-test as self.
