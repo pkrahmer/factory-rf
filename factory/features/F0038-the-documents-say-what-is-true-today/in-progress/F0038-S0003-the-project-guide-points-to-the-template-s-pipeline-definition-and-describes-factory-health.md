@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 390
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T06:58:49.235031Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T06:58:49.235031Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T06:59:11.542590Z'
+  stage: intake
+  run: f3ee17162d754e968a1a4480cda6dc42
 ---
 
 # The project guide points to the template's pipeline definition and describes `factory-health`
@@ -73,3 +75,9 @@ Expect: `documents ok`
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: none by design (documents only). It names the three files the documenter changes. The `factory.entry.health` signature it quotes, `main(argv=None, *, store=None) -> int`, matches `src/factory/entry/health.py`.
+   Criteria: each is checkable by one check. The YAML block is removed, and `agents.md` has exactly one fenced yaml block, at line 323. The `factory-health` paragraph states both sides of the behaviour: `healthy` with 0, one line per stop with 1, and a missing file printing `no health status: <path> is missing` with 1. The text matches `health.py`. The three index edits are given as exact before and after text. The index-completeness criterion is checked by the smoke test's loop. `make check` and `docs:` are the last two criteria.
+   Smoke test: the commands are runnable. None runs pytest, so the `-q` rule does not apply. Every `Expect:` line is checkable: `0` then at least 1, at least 1 then `end`, four lines, and `documents ok`.
+   Architecture: no code, layer or interface is touched. The change stays in `README.md` and `docs/project-guide/`, which is the documenter's write path.
+   Scope: it matches the feature's S0003 (H4 and the rest of M5). The structural proposal S4 is explicitly left out, and no file outside the docs changes.
