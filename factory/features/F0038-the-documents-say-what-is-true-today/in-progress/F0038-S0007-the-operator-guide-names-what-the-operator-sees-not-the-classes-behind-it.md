@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 395
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T07:49:36.467319Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-21T07:49:36.467319Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-21T07:50:02.891454Z'
+  stage: doing
+  run: 5308253ae6fb480d88170ea160834701
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -234,3 +236,15 @@ Expect: `documents ok`
 
     Open: the finding above. Nothing else.
 14. factory: started doing as self.
+15. coder: I built nothing and changed no file in this round. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed, so criterion 1 still holds.
+
+    - The smoke tester's finding is confirmed. In `docs/operator-guide.md`, line 1468 ("The handlers of the human's acts … every kind of event has a handler.") is followed directly by line 1469 ("After three errors on one event and one remote state, …"), with no blank line between them. Markdown renders them as one paragraph, so the registered-handlers paragraph no longer ends with the words criterion 3 requires.
+    - Main choice: I passed the fix forward to the documenter and did not make it here. The fix is a docs-only change, and `docs/` is outside the coder's write paths: a test write there failed with `Permission denied`. `CLAUDE.md` also says the coder does not write the docs. I rejected ending with `question`: the criterion already states the fix exactly, so the human has nothing to decide.
+    - Finding for the docs stage: insert one blank line in `docs/operator-guide.md` between "… are registered: every kind of event has a handler." and "After three errors on one event and one remote state, …". Then confirm that `make documents` still ends with `documents ok`.
+    - Refactor: there is no diff, so nothing needed changing.
+    - Description: unchanged. No journal entry changed what the task means.
+    - `make check`: not run again. The tree outside the work item's sidecar is unchanged since the last green run.
+    - Noticed, not touched: nothing else.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+    `duplicates`: duplicates: 0 new, 38 known, 0 gone
