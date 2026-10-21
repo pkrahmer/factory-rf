@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 380
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T00:45:20.598270Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T00:45:20.598270Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T00:45:46.848154Z'
+  stage: smoke-test
+  run: e1e7549d733a431589ef5842b9b5eeab
 ---
 
 # The duplicates report holds no standing finding of the runtimes or the clock
@@ -173,3 +175,31 @@ Expect: `3`
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test run from the repository root, both blocks as written and in order. No findings.
+
+    Block 1 (the steps of `make duplicates`, with their reports in a temporary directory, counting `new`/`gone` lines for the runtimes and `adapters/clock.py`):
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 93ms
+    Bytecode compiled 4164 files in 357ms
+    Bytecode compiled 4164 files in 71ms
+    Bytecode compiled 4164 files in 96ms
+    0
+    ```
+    Met `Expect: 0`. The block exits with status 1 because `grep -c` exits 1 when it counts zero matches. That status belongs to the expected result and is not an error. The lines before the count are uv's stderr from building the fresh `.venv`, which is git-ignored.
+
+    Block 2:
+    ```
+    3
+    ```
+    Met `Expect: 3`.
+
+    I read the acceptance criteria again against these results:
+    - Criterion 1 (`make check` stays green): nothing in the smoke test contradicts it. The coder's entry 7 and the documenter's entry 11 record `check: green`. I did not run it again, because this stage runs the smoke test and the factory runs the checks.
+    - Criterion 2 (docs): `git diff main...HEAD -- docs` has one dated bullet (F0039-S0007) at the end of *What the agent runtimes share lies in one module* in `docs/decisions.md`. It names the version call, the start of the leftovers program and of the folder removal, and the lines of `_call`. It says they are accepted in the baseline for the entry's own reason and that F0039-S0001 merged the reading of a call's end. It also has one sentence in *The baseline* of `docs/project-guide/processes-and-checks.md` that names the runtimes' process calls and the four test-only fakes. `README.md` and `docs/operator-guide.md` are unchanged, as the criterion says they should be. Block 1's `0` confirms that the baseline these docs describe settles all of the runtime and clock findings.
+
+    Open: nothing.
