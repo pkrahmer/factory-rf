@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 403
 comments_read: [6312436133]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T09:26:17.425175Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-21T09:26:17.425175Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T09:27:25.320346Z'
+  stage: review
+  run: 142e9e29915442af82f25e6e5ff9476b
 ---
 
 # The tests name the instance in one place
@@ -220,3 +222,69 @@ Expect: one line, `1` (before the story, `0`)
     `check`: check: green
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
 11. factory: started review as self.
+12. reviewer: no findings
+
+    What I read: the work item, `git diff --stat main...HEAD`, `git diff --name-status main...HEAD` and the full diff outside `factory/`.
+    - Scope of the change: I tallied every changed line outside the new guard. There are exactly 48 `-INSTANCE = "factory-1"` lines, each replaced by an import from `stage_run_support`. Five existing `stage_run_support` imports were extended. Three `INSTANCE,` entries were dropped from the `crash_support` and `application.test_tick_agent_definition` imports (`test_recovery_cap.py`, `test_recovery_expiry.py`, `test_tick_project_agent.py`), and `OWN = "factory-1"` became `OWN = INSTANCE` in `tests/domain/test_lease.py`. Nothing else changed: no `def`, no assertion and no parameter row. `git diff main...HEAD -- src` is empty.
+    - Collect-only check (Description): the tester's lists in `$TMPDIR` are gone with their run, so I confirmed it from the diff. No test function, parameter or id-bearing value changed in any earlier module, and `INSTANCE` keeps its value. So every earlier id stays as it was, which agrees with the tester's count (7062 ids before, 7071 after, 9 new ids, all from the new module).
+    - Criterion 1: `tests/test_shared_constants.py::test_the_instance_name_is_assigned_in_one_module` checks every `*.py` under `tests/` against `["stage_run_support.py"]`.
+    - Criterion 2: one parametrized test with the seven rows the criterion lists (plain, other name, annotated, other value, name as value, in a function, in a class). These cover both sides of each rule the Interface states.
+    - `instance_copies` (`tests/test_shared_constants.py:11`) reads only `ast.parse(source).body`, the top level, and handles `Assign` and `AnnAssign` with a value.
+    - Possible copy: I compared the guard with `_names_assigned_a_state` in `tests/test_no_state_copies.py:34`. It walks a function for a different value, so it is not a copy of that helper.
+    - `stage_run_support.py` still imports only `git_support` and `human_clone`, so no import cycle was added.
+    - Criterion 3: the coder's entry 10 reports `make check` green.
+    - Criterion 4: the docs criterion still says what the documenter must write.
+
+    Earlier tests (all status `M`). Each one only drops its top-level `INSTANCE = "factory-1"` (or takes `INSTANCE` from `stage_run_support` instead of another module) and imports the shared constant. Every test keeps its name and what it checks. All are under the standing leave to move a shared test helper (constant):
+    - tests/acceptance_walk.py: standing leave (constant move)
+    - tests/application/handlers/test_run.py: standing leave (constant move)
+    - tests/application/test_after_agent.py: standing leave (constant move)
+    - tests/application/test_board_reader.py: standing leave (constant move)
+    - tests/application/test_board_reader_acceptance.py: standing leave (constant move)
+    - tests/application/test_claims.py: standing leave (constant move)
+    - tests/application/test_claims_observed.py: standing leave (constant move)
+    - tests/application/test_cost_image.py: standing leave (constant move)
+    - tests/application/test_costs.py: standing leave (constant move)
+    - tests/application/test_no_state_refusals.py: standing leave (constant move)
+    - tests/application/test_recovery_cap.py: standing leave (constant move; import now from stage_run_support)
+    - tests/application/test_recovery_crash.py: standing leave (constant move)
+    - tests/application/test_recovery_expiry.py: standing leave (constant move; import now from stage_run_support)
+    - tests/application/test_sealed_runs.py: standing leave (constant move)
+    - tests/application/test_stage_finish.py: standing leave (constant move)
+    - tests/application/test_stage_launch.py: standing leave (constant move)
+    - tests/application/test_stage_run_acceptance.py: standing leave (constant move)
+    - tests/application/test_stall_labels.py: standing leave (constant move)
+    - tests/application/test_stalls.py: standing leave (constant move)
+    - tests/application/test_stop_records_service.py: standing leave (constant move)
+    - tests/application/test_tick.py: standing leave (constant move)
+    - tests/application/test_tick_agent_definition.py: standing leave (constant move)
+    - tests/application/test_tick_disk.py: standing leave (constant move)
+    - tests/application/test_tick_ignored.py: standing leave (constant move)
+    - tests/application/test_tick_preflight.py: standing leave (constant move)
+    - tests/application/test_tick_project_agent.py: standing leave (constant move; import now from stage_run_support)
+    - tests/application/test_tick_stale_branch.py: standing leave (constant move)
+    - tests/application/test_tick_stop_details.py: standing leave (constant move)
+    - tests/application/test_tick_stop_records.py: standing leave (constant move)
+    - tests/application/test_watcher.py: standing leave (constant move)
+    - tests/application/test_watcher_acceptance.py: standing leave (constant move)
+    - tests/application/test_watcher_move_rule.py: standing leave (constant move)
+    - tests/application/test_watcher_observer.py: standing leave (constant move)
+    - tests/crash_support.py: standing leave (constant move)
+    - tests/domain/test_lease.py: standing leave (constant move; `OWN = INSTANCE`, name kept)
+    - tests/domain/test_lease_observed.py: standing leave (constant move)
+    - tests/entry/test_run.py: standing leave (constant move)
+    - tests/entry/test_watch.py: standing leave (constant move)
+    - tests/entry/test_watch_acceptance.py: standing leave (constant move)
+    - tests/entry/test_watch_agent_definition.py: standing leave (constant move)
+    - tests/entry/test_watch_main.py: standing leave (constant move)
+    - tests/entry/test_watch_own_claim.py: standing leave (constant move)
+    - tests/entry/test_watch_settings.py: standing leave (constant move)
+    - tests/entry/test_wiring_acceptance.py: standing leave (constant move)
+    - tests/entry/test_wiring_constants.py: standing leave (constant move)
+    - tests/entry/test_wiring_environment.py: standing leave (constant move)
+    - tests/entry/test_wiring_handlers.py: standing leave (constant move)
+    - tests/entry/test_wiring_human_handlers.py: standing leave (constant move)
+    - tests/entry/test_wiring_recovery.py: standing leave (constant move)
+    - tests/entry/test_wiring_recovery_expired.py: standing leave (constant move)
+    - tests/proof_support.py: standing leave (constant move)
+    - tests/undo_support.py: standing leave (constant move)
