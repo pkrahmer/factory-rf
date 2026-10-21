@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 405
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T12:27:49.893700Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T12:27:27.559987Z'
   stage: tests
   run: ed9a2106b514449abffbc43e759bd15a
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T12:27:49.893700Z'
+  stage: doing
 ---
 
 # The tests name the agent environment in one place each
@@ -142,3 +151,4 @@ Expect: one line, `2` (before the story, `0`)
 
    `lint`: lint: green (0.6 s)
    `test`: test: green (61.7 s)
+6. factory: started doing as self.
