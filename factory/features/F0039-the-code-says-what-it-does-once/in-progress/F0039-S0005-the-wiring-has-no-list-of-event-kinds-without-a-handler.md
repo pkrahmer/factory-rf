@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 384
 comments_read: [6306079635]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T01:59:44.200914Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-21T01:59:23.594121Z'
   stage: tests
   run: f0735f3ce93947bcaea3a76acd9df5b5
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:59:44.200914Z'
+  stage: doing
 ---
 
 # The wiring has no list of event kinds without a handler
@@ -139,3 +148,4 @@ Expect: two lines, `False False` and `1` (before the story, `True True` and `6`)
 
    `lint`: lint: green (0.5 s)
    `test`: FAILED tests/entry/test_wiring_constants.py::test_the_wiring_offers_its_names_but_no_list_of_kinds_without_a_handler[NOT_YET_HANDLED] - AssertionError: assert True is False
+9. factory: started doing as self.
