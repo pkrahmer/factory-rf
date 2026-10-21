@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 398
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T08:25:12.171817Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T08:24:51.502039Z'
   stage: docs
   run: 076f449d8c894b57b126f500fb98a192
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:25:12.171817Z'
+  stage: smoke-test
 ---
 
 # The project guide names every passage of v1.1's own in the shipped agents
@@ -164,3 +173,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
     `secrets`: secrets: green (0.9 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
