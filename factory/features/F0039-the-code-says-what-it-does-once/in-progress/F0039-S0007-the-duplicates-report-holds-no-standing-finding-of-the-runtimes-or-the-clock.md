@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 380
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T00:44:38.096077Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T00:44:17.820308Z'
   stage: review
   run: 945fc4137d5d494f87b529f35db4ad74
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:44:38.096077Z'
+  stage: docs
 ---
 
 # The duplicates report holds no standing finding of the runtimes or the clock
@@ -132,3 +141,4 @@ Expect: `3`
    - Baseline as the Description expects it: `security/duplicates-baseline.txt` has the `return version_printed(` line (33), the `started = due_leftovers_launch(` line (35) and the `ManualWaiter` line (36), and no longer has `ManualClock` or `advance`. So the human's change is in, and the smoke test's second block should print `3`.
    - Hygiene: the coder's journal gives the main choice (leave the code untouched) and what was rejected (merging the runtimes' remaining process calls into `agent_launch`, which the decision log entry rules out). The Description matches what was built.
    - Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
