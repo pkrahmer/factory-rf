@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T06:30:23.105074Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T06:30:23.099674Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:30:23.105074Z'
+  stage: intake
+---
+
 # The tests of the agent's user share their stand-in sudo and their recording log
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -74,3 +101,6 @@ uv run pytest tests/adapters/test_make_commands_user.py tests/adapters/test_sudo
 Expect: one summary line with a count of `passed`, and no `failed` and no `error` in it
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
