@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T08:48:18.654949Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-21T08:48:18.654949Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-21T08:48:39.585462Z'
+  stage: doing
+  run: 4f1a93be54f94d4dbcffb32d2cb52ede
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -228,3 +230,18 @@ Expect: one line, `1` (before the story, `0`)
     Earlier tests:
     - tests/application/handlers/test_reject.py: the standing leave to move a shared test helper. `_branch_document`, a copy of `branch_reading.remote_document`, was removed and its calls use the shared helper. Every test keeps its name and checks the same thing.
 13. factory: started doing as self.
+14. coder: Round 1: the reviewer's only finding (entry 12) is a test helper copied between two test modules, so it is a change to tests that the tester makes under the standing leave in CLAUDE.md (*Tests*). I changed no code and no test, and I left nothing in the working tree.
+
+    What I checked: the copy is real. `_functions` at tests/test_shared_bodies.py:23 is word for word the same as `_functions` at tests/test_shared_definition.py:18. The docstring skip inside `body_of` at tests/test_shared_bodies.py:29-34 repeats `_without_docstring` at tests/test_shared_definition.py:22. The `_functions` in tests/test_fault_paths_table.py:15 and tests/test_proof_support.py:125 have other signatures and do other things, so they are not copies.
+
+    The move I ask the tester to make:
+    - Put `_functions(source: str) -> list[ast.FunctionDef]` and `_without_docstring(body: list[ast.stmt]) -> list[ast.stmt]` in one shared module at the `tests/` root, under public names. I would choose `tests/function_support.py` with `functions` and `without_docstring`. I rejected tests/source_search.py because it reads the modules of `src/factory`, not source text.
+    - Change tests/test_shared_definition.py and tests/test_shared_bodies.py to import both from there.
+    - Make `body_of` use `without_docstring(function.body)` and join what it returns.
+    - Every earlier test in tests/test_shared_definition.py keeps its name and checks the same thing.
+
+    Main choice: I end with `tests` and do not edit the test modules myself. The rules say the coder never changes a test, and a copied test helper falls under the standing leave, which is the tester's work.
+
+    Description: no journal entry after intake changed the meaning of the task.
+
+    Noticed, not touched: the sentence that criterion 7 asks for in docs/project-guide/README.md is still not written. That is the docs stage's work.
