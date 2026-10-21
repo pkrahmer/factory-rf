@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 401
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T09:04:18.708563Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-21T09:03:57.934921Z'
   stage: doing
   run: 164906976e254ea98d865eb4bf832dab
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T09:04:18.708563Z'
+  stage: review
 ---
 
 # The operator guide names no planning code, internal class or dated observation
@@ -121,3 +130,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 746e4c61c5e9 at 2026-10-21T08:53:42Z)
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
+8. factory: started review as self.
