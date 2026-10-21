@@ -14,7 +14,7 @@ The factory keeps four records in JSON lines under `/state/records/`: `project-c
 ## Out of scope
 
 - `KnownResults._read`, `DiskRecorder.last` and `StopPublisher.publish`: they read through `RecordLog.read`, whose promise now holds, so they keep their code (decision 2).
-- A record appended after a torn line. `append` writes `<record>\n` at the end of the file, so the next record lands on the torn line's line and is skipped with it: one torn line costs the record after it too, as it does today for a tear in plain ASCII. Starting every append on a new line is a change of the writer, left open (decision 4).
+- A record appended after a torn line. `append` writes `<record>\n` at the end of the file, so the next record lands on the torn line's line and is skipped with it: one torn line costs the record after it too, as it does today for a tear in plain ASCII. Starting every append on a new line is a change of the writer, left as it is by the human (decision 4).
 - The cost records sidecar (`JsonLinesCostRecordReader`): it is committed, written whole with `write_text`, and refuses a bad line with `CostRecordFormatError` on purpose; it already splits at `\n` alone.
 - The stop records on `main` (`factory/stops.jsonl`, read through `GitCli.show_file`, which decodes with replacement, and `parse_stop_records`): they never raise on bytes.
 - The review's C5 (the missing `__init__` docstring and `newline="\n"` on `append`) and B2 (the stop record line's second codec): other findings, other features.

@@ -48,4 +48,5 @@ class Boundaries:
     stop_records: RecordLog[StopRecord]
     waiter: Waiter
     result_records: RecordLog[ResultRecord]
+    # `None` when the agents run as no second user: then no agent home is reset before a run.
     agent_home: AgentHome | None = None
