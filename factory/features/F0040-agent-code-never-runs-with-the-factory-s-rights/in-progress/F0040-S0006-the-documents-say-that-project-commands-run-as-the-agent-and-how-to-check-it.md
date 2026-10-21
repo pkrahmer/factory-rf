@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 376
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T00:08:41.530790Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T00:08:41.530790Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T00:09:05.821815Z'
+  stage: smoke-test
+  run: cc3a2ef900bf49a7ab96cb3b4df06cfc
 ---
 
 # The documents say that project commands run as the agent, and how to check it
@@ -189,3 +191,48 @@ Expect: `documents ok`
     `secrets`: secrets: green (2.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: I ran the four commands from the repository root, exactly as written and in order. All four met their `Expect:` lines, and I found nothing to report. I fixed nothing.
+
+    1. `grep -c "(\`make\` as \`factory\`)" docs/decisions.md`
+    ```
+    0
+    ```
+    Met (`0`). grep exited with status 1, which is how grep reports zero matches. The count is the expected result.
+
+    2. `grep -c "without a user, every process of its session is killed" docs/project-guide/processes-and-checks.md`
+    ```
+    1
+    ```
+    Met (`1`).
+
+    3. `grep -c "ps -o user,args -C make\|find /work/checkout/.venv -maxdepth 3" docs/operator-guide.md`
+    ```
+    2
+    ```
+    Met (`2`).
+
+    4. `uv run python -m factory.entry.check_documents`
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 79ms
+    Bytecode compiled 4164 files in 349ms
+    documents ok
+    ```
+    Met (`documents ok`). The lines before it are uv creating the virtual environment on first use. They are not part of the check's result.
+
+    Checked against the acceptance criteria. I read `git diff main...HEAD -- docs src tests README.md` against each criterion:
+    - Criterion 1: nothing under `src/` or `tests/` changes. The tester (entry 5) and the coder (entry 7) each say so.
+    - Criterion 2: I did not run `make check` again here, because this stage only runs the smoke test. The factory's last result is green (entries 7 and 11).
+    - Criterion 3:
+      - `processes-and-checks.md`, *Rules of `run`*: the exit-status clause has the required wording. Nothing else in the bullet changed.
+      - `decisions.md`, *The agent's git trusts the shared checkout*: it now says "(`make`, as `agent` since F0040-S0002)".
+      - The 2026-10-17 entry (F0012-S0025) and the 2026-10-19 entry (F0022-S0002): each has the "closed on 2026-10-20 by …" note right after the required phrase. The rest of each "Open:" list is unchanged.
+      - `watching.md`: the sentence about `CommandUser` was added, with the pointer to *Running as another user*.
+      - `operator-guide.md`: the four rows (a) to (d) come right after "The home is fresh", with the commands and expected results the criterion gives.
+      - No other passage changes, and `README.md` is unchanged.
+
+    None of the commands contradicts any criterion. Open: nothing.
