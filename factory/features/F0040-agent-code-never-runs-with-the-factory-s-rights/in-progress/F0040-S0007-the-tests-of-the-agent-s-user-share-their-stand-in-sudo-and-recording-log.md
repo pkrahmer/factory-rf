@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 387
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T06:35:45.732125Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T06:35:45.732125Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T06:38:18.019815Z'
+  stage: doing
+  run: 4ecf3f9ca7df430a8014545412b35355
 ---
 
 # The tests of the agent's user share their stand-in sudo and their recording log
@@ -156,3 +158,13 @@ Expect: one summary line with a count of `passed`, and no `failed` and no `error
    `lint`: lint: green (0.6 s)
    `test`: test: green (60.9 s)
 6. factory: started doing as self.
+7. coder: I changed nothing in this stage. The story only moves test helpers, and the tester already did all of that work (entry 5). Nothing under `src/` changed: `git diff --stat main -- src` printed nothing (criterion 5). `make check` passed: `test: green (61.3 s)`, coverage 99.14 %, `check: green` (criterion 6).
+
+   - Paths built: none. The tester's new files are `tests/recording_log.py` and `tests/sudo_support.py`.
+   - Main choice: I left the tests as the tester wrote them. I rejected re-checking or adjusting them, because the coder never edits tests (R9).
+   - Refactor: there is no diff of mine to read.
+   - Description: the journal did not change what the task means, so I did not rewrite it.
+   - Noticed but did not touch: the only file changed in the working tree is the work item's `.costs.jsonl` sidecar, which the factory writes. Criterion 7, the two entries in `docs/project-guide/README.md`, is still open for the docs stage.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
