@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 376
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T00:07:57.285334Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T00:07:57.285334Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T00:08:20.868515Z'
+  stage: docs
+  run: 9a09531e7cb2479bbb6ad46d14a299e0
 ---
 
 # The documents say that project commands run as the agent, and how to check it
@@ -157,3 +159,23 @@ Expect: `documents ok`
    - Description: it still matches what the story is to deliver. Nothing was built that it would have to describe, and no journal entry changes its meaning.
    - Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: Changed only documents, as the docs criterion says; nothing under `src/` or `tests/`. I did not run `make check`, because every changed file is a document. `uv run python -m factory.entry.check_documents` printed `documents ok`.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`: *Rules of `run`*, the exit-status bullet. The clause now separates the cases. Without a user every process of the session is killed. With a user, the user's own `timeout` kills `make`'s process group and the leftovers program ends what left it. It points to *Running as another user*. Nothing else in the bullet changed.
+    - `docs/decisions.md`: three edits.
+      - *The agent's git trusts the shared checkout*: "(`make` as `factory`)" is now "(`make`, as `agent` since F0040-S0002)".
+      - The 2026-10-17 entry (F0012-S0025): the "closed on 2026-10-20 by *Every agent run and every project command starts from a fresh agent home*" note now follows "(a user `CLAUDE.md`, skills)".
+      - The 2026-10-19 entry (F0022-S0002): the same note now follows "stay writable and are read by `claude`" in its "Open:" bullet. The rest of both "Open:" lists is unchanged.
+    - `docs/project-guide/watching.md`: the paragraph on `leftovers_command()` now says that, when the instance has an agent user, `build_boundaries` hands the same list to the project commands' `CommandUser`. It points to *Running as another user*.
+    - `docs/operator-guide.md`: *Morning observations* has four new rows after "The home is fresh". They are "A project command runs as `agent`", "The home is reset", "The shared `.venv` stays writable" and "A check at its limit leaves no process". Each has the command and the expected result from the criterion.
+
+    Smoke-test greps: the `make as factory` pattern now matches 0 times in `docs/decisions.md`.
+
+    Cross-read and found current against this story: the *Running as another user* section of `processes-and-checks.md` (the target of both new pointers) and the surrounding text of each edited passage. The diff has no code change, so there was nothing else to cross-read against. The code and the docs do not contradict each other, so there are no findings for the coder.
+
+    Stale text I noticed and did not touch: none.
+
+    `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
+    `secrets`: secrets: green (2.2 s)
+    `documents`: documents ok
