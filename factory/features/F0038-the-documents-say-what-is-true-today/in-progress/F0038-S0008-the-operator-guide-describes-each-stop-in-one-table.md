@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 396
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T08:01:48.120717Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T08:01:27.113310Z'
   stage: docs
   run: b425183decab437a94614fac6a4e8924
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:01:48.120717Z'
+  stage: smoke-test
 ---
 
 # The operator guide lists each stop in one table
@@ -189,3 +198,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
