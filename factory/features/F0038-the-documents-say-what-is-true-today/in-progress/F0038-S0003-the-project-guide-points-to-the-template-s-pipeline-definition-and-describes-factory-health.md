@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 390
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T07:04:25.902773Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T07:04:25.902773Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T07:04:50.912426Z'
+  stage: review
+  run: b9090076a47a4a898243239236dba148
 ---
 
 # The project guide points to the template's pipeline definition and describes `factory-health`
@@ -133,3 +135,15 @@ Expect: `documents ok`
    `check`: check: green
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   Reviewed `git diff main...HEAD -- . ':!factory'`. It is empty: `--stat` lists nothing, and `--name-status` shows only the work item and its `.costs.jsonl` sidecar under `factory/`.
+   - Criterion 1 holds. Nothing changes under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The tester's entry (5) and the coder's entry (7) each say so.
+   - Criterion 2 holds. The factory's `make check` after the coder was green (entry 7: `check: green`, coverage 99.14 %, `duplicates: 0 new`). The criteria state no rule or limit under `src/` that would need a test for its failing side.
+   - Architecture and security: nothing is touched.
+   - Work item hygiene. The Description matches what was built (nothing yet; the documenter writes the docs next). The coder's entry gives the main decision and what it rejected (writing the docs itself). I checked the docs criterion against what is there today, and it is accurate:
+     - `src/factory/entry/health.py` has `main(argv=None, *, store=None) -> int`, `--state-directory` with default `STATE_DIRECTORY`, prints `healthy` and returns 0, or prints one line per stop as `<reason> (<scope>): <detail> (since <at>)` and returns 1, and on a missing file prints `no health status: <path> is missing` and returns 1.
+     - The only fenced `yaml` block in `docs/project-guide/agents.md` is the template copy at line 323. It lacks the `tool_paths` line and its comment, which `template/factory/pipeline.yml` (lines 9–10) has.
+     - The sentence about the coder's write path stays after the block.
+     - The module loop from the smoke test reports exactly the four modules the Description names as missing from the index: `factory.adapters.agent_home`, `factory.application.agent_home`, `factory.domain.sessions` and `factory.entry.health`.
+   - Earlier tests: the diff changes, renames or deletes no test file, so there is nothing to name.
