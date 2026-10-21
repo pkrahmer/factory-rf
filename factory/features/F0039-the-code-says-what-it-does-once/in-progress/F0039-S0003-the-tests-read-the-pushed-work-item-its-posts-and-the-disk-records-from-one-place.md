@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T01:34:56.396335Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -159,6 +163,11 @@ journal:
   stage: doing
   run: f93cc273aa37462990ed0f69a178601b
   reason: check_red
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:34:56.396335Z'
+  stage: doing
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -509,3 +518,4 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     lint: green (0.6 s)
     Bytecode compiled 4164 files in 125ms
     make: *** [Makefile:32: types] Error 139
+28. factory: started doing as self.
