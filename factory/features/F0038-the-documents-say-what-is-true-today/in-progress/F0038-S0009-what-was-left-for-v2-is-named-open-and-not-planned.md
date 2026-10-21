@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T08:12:50.322676Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-21T08:12:29.788852Z'
   stage: smoke-test
   run: 668d6cd3817344ffbff3be938c781bc8
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:12:50.322676Z'
+  stage: doing
 ---
 
 # What was left for v2 is named open and not planned
@@ -259,3 +268,4 @@ Expect: `documents ok`
        - Criterion: 3 (docs), first bullet.
 
     Open: the date line is the documenter's to add in `docs/decisions.md`. After the fix, the smoke test's commands should still give the same output.
+14. factory: started doing as self.
