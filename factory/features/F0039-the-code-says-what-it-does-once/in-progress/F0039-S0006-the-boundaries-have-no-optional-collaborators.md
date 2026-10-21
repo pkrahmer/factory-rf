@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 385
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T02:15:22.435919Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T02:15:01.562129Z'
   stage: tests
   run: 20a1addaee2848efbeab3071612dfcbb
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T02:15:22.435919Z'
+  stage: doing
 ---
 
 # The boundaries have no optional collaborators
@@ -160,3 +169,4 @@ Expect: one line, `0` (before the story, `1`)
 
    `lint`: lint: green (0.6 s)
    `test`: FAILED tests/application/test_boundaries_required.py::test_boundaries_without_one_of_the_collaborators_are_refused[result_records] - Failed: DID NOT RAISE TypeError
+6. factory: started doing as self.
