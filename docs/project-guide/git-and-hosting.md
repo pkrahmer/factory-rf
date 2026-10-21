@@ -157,7 +157,7 @@ The push kill points: `KillPoint.BEFORE_PUSH` is reached once per call, before g
 
 An unknown `ref`, and any other refusal that leaves no merge in progress (for example local changes the merge would overwrite), is a `GitError` and changes nothing.
 
-Who uses them: preparing a stage merges the main branch into a work item's branch (F0005); a merge or a discard deletes branches, remote and local (F0007).
+Who uses them: preparing a stage merges the main branch into a work item's branch; a merge or a discard deletes branches, remote and local.
 
 ### Restoring the checkout
 
@@ -176,19 +176,19 @@ The branch rule for pushing: `push` and `delete_remote_branch` call `factory.dom
 
 The branch is also named `refs/heads/<branch>` on git's command line, as the source only, with no `:<dst>`. Without it git matches any ref of that name, so `delete_remote_branch("v1")` would delete a tag `v1` and `push("v1")` would push a local tag; with it a tag is never pushed or deleted as a branch. The local operations (`checkout`, `delete_branch`, `merge`, …) keep `check_git_argument`, because git reads no refspec there. Why not an explicit `refs/heads/<b>:refs/heads/<b>` refspec: see `docs/decisions.md`.
 
-Who uses them: a stall or a crash reverts or resets (F0004, F0005, F0008); the tick resets the checkout to the remote (F0006); the undo's revert is this wrapper's, the rules for what to revert are F0004's; a merge or a discard moves the story file (F0007).
+Who uses them: a stall or a crash reverts or resets; the tick resets the checkout to the remote; the undo's revert is this wrapper's, and the rules for what to revert are the undo's (`write-guard.md`); a merge or a discard moves the story file.
 
-### Which feature uses which operation
+### Which part uses which operation
 
 | Operation | Used by |
 |---|---|
-| `changed_paths`, `revert_paths` | F0004: the undo compares the work tree with the stage-start commit and reverts chosen paths |
-| `merge` | F0005: preparing a stage merges the main branch into the work item's branch |
-| `remove_ignored` | F0027: after every agent run (`run_sealed`) and at the restore (the tick) |
-| `status`, `reset_to` | F0006: the tick looks at the checkout and resets it to the remote |
-| `reset_to` | also F0004, F0005 and F0008: a stall or a crash |
-| `delete_remote_branch`, `delete_branch`, `move` | F0007: a merge or a discard |
-| `work_tree_id` | F0023: the key of a known project-command result (S0002) is the tree the command would read |
+| `changed_paths`, `revert_paths` | the undo: compares the work tree with the stage-start commit and reverts chosen paths |
+| `merge` | the stage's preparation: merges the main branch into the work item's branch |
+| `remove_ignored` | the sealed run and the restore: after every agent run (`run_sealed`) and at the restore (the tick) |
+| `status`, `reset_to` | the tick: looks at the checkout and resets it to the remote |
+| `reset_to` | also the undo, the stage's preparation and the crash recovery: a stall or a crash |
+| `delete_remote_branch`, `delete_branch`, `move` | the merge and the discard |
+| `work_tree_id` | the known results: the key of a known project-command result is the tree the command would read |
 | `fetch`, `remote_branches`, `resolve`, `show_file`, `list_files`, `is_ancestor`, `log`, `clone`, `checkout`, `commit`, `push` | the pipeline's reads and writes, used by the tick, the stages and the claim, and `clone` by the checkout preparer |
 
 Identity: every call also sets `GIT_AUTHOR_NAME`, `GIT_COMMITTER_NAME`, `GIT_AUTHOR_EMAIL` and `GIT_COMMITTER_EMAIL` from `options.identity`, over the process environment and `options.environment`. No user or system configuration can change it, and `commit.gpgsign` is ignored. The wiring fills `identity` from `GIT_USER_NAME` and `GIT_USER_EMAIL`; a `GitCli` built without options commits as `factory <factory@noreply.invalid>`.
