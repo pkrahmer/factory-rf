@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T00:52:12.854963Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T00:52:12.854963Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T00:54:46.952099Z'
+  stage: doing
+  run: d2ec16e2db904ea1a1e14e2cf161ca11
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -180,3 +182,17 @@ Expect: one line, `1` (before the story, `0`)
    `lint`: lint: green (0.6 s)
    `test`: test: green (60.4 s)
 6. factory: started doing as self.
+7. coder: Nothing to build. The Description and Interface say no module under `src/factory/` changes; the tester made the whole change under the standing leave in `CLAUDE.md` (*Tests*): `tests/definition_support.py`, `tests/test_shared_definition.py`, the `definition` fixture in `tests/conftest.py` and the twenty test modules the Interface names. I left the working tree as the tester's commit has it. The only modified file is the work item's `.costs.jsonl` sidecar, which belongs to the factory.
+
+   Main choice: change nothing. I rejected going over the tester's files for polish, because the coder never edits tests (R9) and none of them fails or contradicts the Interface.
+
+   Refactor: my diff against main under `src/` is empty, so there was nothing to change.
+
+   Description: no journal entry changed the meaning of the task, so I did not rewrite it.
+
+   Noticed but not touched: nothing.
+
+   `make check`: check: green (test: green (61.3 s), coverage 99.14 %).
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
