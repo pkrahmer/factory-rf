@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 390
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T06:59:31.866066Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T06:59:11.542590Z'
   stage: intake
   run: f3ee17162d754e968a1a4480cda6dc42
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:59:31.866066Z'
+  stage: tests
 ---
 
 # The project guide points to the template's pipeline definition and describes `factory-health`
@@ -81,3 +90,4 @@ Expect: `documents ok`
    Smoke test: the commands are runnable. None runs pytest, so the `-q` rule does not apply. Every `Expect:` line is checkable: `0` then at least 1, at least 1 then `end`, four lines, and `documents ok`.
    Architecture: no code, layer or interface is touched. The change stays in `README.md` and `docs/project-guide/`, which is the documenter's write path.
    Scope: it matches the feature's S0003 (H4 and the rest of M5). The structural proposal S4 is explicitly left out, and no file outside the docs changes.
+4. factory: started tests as self.
