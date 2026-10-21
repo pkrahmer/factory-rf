@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 384
 comments_read: [6306079635]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T02:03:41.958209Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-21T02:03:21.645769Z'
   stage: review
   run: 887125ab358647d39ad7333234e4893b
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-21T02:03:41.958209Z'
+  stage: docs
 ---
 
 # The wiring has no list of event kinds without a handler
@@ -188,3 +197,4 @@ Expect: two lines, `False False` and `1` (before the story, `True True` and `6`)
     - tests/entry/test_wiring_human_handlers.py: decision 7. Removed `test_the_kinds_not_yet_handled_are_exactly_the_kinds_without_a_handler` and the imports nothing uses any more.
     - tests/entry/test_wiring_recovery.py: decision 7. Renamed to `test_crash_is_handled`, and removed the `NOT_YET_HANDLED` lines, the `every` tuple and the `get_args` import.
     - tests/entry/test_wiring_recovery_expired.py: decision 7. Renamed to `test_expired_shares_the_crash_handler`, and removed the `NOT_YET_HANDLED` lines, the `every` tuple and the `get_args` and `EventKind` imports.
+13. factory: started docs as self.
