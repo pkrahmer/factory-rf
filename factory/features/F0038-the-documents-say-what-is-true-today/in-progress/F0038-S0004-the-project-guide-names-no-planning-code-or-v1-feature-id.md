@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 392
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T07:16:35.234782Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T07:16:35.234782Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T07:16:57.095265Z'
+  stage: intake
+  run: deda32883f35419d949ea4219e79a4c8
 ---
 
 # The project guide names no planning code or v1 feature id as a pointer
@@ -75,3 +77,9 @@ Expect: `documents ok`
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is stated and correct for a documents-only story. It names the six guide files the documenter changes, and each one has old-to-new rows in criterion 3. I grepped the guide and every old passage is there: README.md:99, agents.md:88/213/303/307, costs.md:7/15, git-and-hosting.md:160/179/181/185-191, stages.md:21, watching.md:117/135/221.
+   - Criteria: criterion 1 (no change outside the docs) is checkable by a diff. Criterion 2 is `make check`. Criterion 3 gives exact old and new strings, so a test can assert that each old string is gone and each new one is present. It also says the table cells that start with a feature id are rewritten, which the smoke regex `\| F00[0-9]{2}: ` pins. The heading rename and "no guide file names *Which feature uses which operation*" are checkable. There is no failing-side rule to cover, because the story states no validation or error. The `make documents` result is `documents ok`.
+   - Smoke test: all four blocks are runnable. The first has nine files and `grep -c` prints `file:count` for each. In the second, the `-F` grep counts two lines in git-and-hosting.md (the heading and the preparation row) and one in README.md, matching "2 and 1". In the third, the story expects seven lines (one `0` and six docs paths) and each `Expect:` line is checkable against the output. The fourth is `make documents`. No pytest command is used, so the `-q` rule does not apply.
+   - Architecture: nothing under `src/` changes, so the layer rules in CLAUDE.md are untouched. The documenter writes only `docs/`, which is its write path, and `processes-and-checks.md` is not touched.
+   - Scope: this matches feature.md decision 6 and the *Scope* line for S0004 (M6, guide files only). R5 and R8 (named in CLAUDE.md), the agents' R10, R14 and R15, and example ids stay. The decision log is S0005's and the agent files are S0010's, so the story stays out of both. The only overlap is the `agents.md` sentence with "F0009 reads them". feature.md already orders S0010 after S0004 for that reason.
