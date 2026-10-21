@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 394
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T07:36:26.016995Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T07:36:05.320018Z'
   stage: tests
   run: 6b2d6243f9d043b7a677c187c08734a7
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:36:26.016995Z'
+  stage: doing
 ---
 
 # The operator guide opens with its contents and states the current rule without its history
@@ -119,3 +128,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.7 s)
    `test`: test: green (64.9 s)
+6. factory: started doing as self.
