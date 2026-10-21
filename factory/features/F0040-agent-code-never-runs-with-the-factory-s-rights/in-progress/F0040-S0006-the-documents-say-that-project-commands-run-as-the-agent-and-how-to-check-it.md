@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 376
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T00:07:24.230825Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T00:07:24.230825Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T00:07:36.809956Z'
+  stage: review
+  run: 573f872bf9b34d9d93f92703dc162132
 ---
 
 # The documents say that project commands run as the agent, and how to check it
@@ -138,3 +140,10 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
    `duplicates`: duplicates: 6 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The only changes on the branch are the work item and its `.costs.jsonl` sidecar under `factory/`. This matches the Interface ("None: documents only") and criterion 1: nothing under `src/` or `tests/` changes, and both the tester (entry 5) and the coder (entry 7) say so.
+   - Criterion 2: the factory's `make check` after the coder is green (entry 7: `check: green`). `duplicates: 6 new` cannot come from this branch, because it changes no file under `src/factory`.
+   - Criterion 3 (docs) is the documenter's work, as `CLAUDE.md` *Docs* says. It names the exact wording for the five corrections and the four *Morning observations* rows. The intake checked each place it changes against the current documents (entry 3): `processes-and-checks.md:48`, `decisions.md:398`, `:463` and `:775`, `watching.md:264`, and the anchor row at `operator-guide.md:240`.
+   - Description: it still matches what the story is to deliver. Nothing was built that it would have to describe, and no journal entry changes its meaning.
+   - Earlier tests: none. The diff changes, renames or deletes no test file.
