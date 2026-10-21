@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 384
 comments_read: [6306079635]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T02:04:25.363930Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-21T02:04:25.363930Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T02:04:48.493307Z'
+  stage: smoke-test
+  run: c9b84bd29a904a85955f8cb93fa490b1
 ---
 
 # The wiring has no list of event kinds without a handler
@@ -229,3 +231,36 @@ Expect: two lines, `False False` and `1` (before the story, `True True` and `6`)
     `secrets`: secrets: green (2.2 s)
     `documents`: documents ok
 15. factory: started smoke-test as self.
+16. smoke-tester: Ran both smoke test commands from the repository root, as written and in order. Both met the `Expect:` line. I found nothing.
+
+    Command 1:
+    ```bash
+    uv run python -c 'import factory.entry.wiring as w; print(hasattr(w, "NOT_YET_HANDLED"), "NOT_YET_HANDLED" in w.__all__)'
+    ```
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 86ms
+    Bytecode compiled 4164 files in 353ms
+    False False
+    ```
+    It met the expectation: it printed `False False`. The lines above it are uv setting up the environment for this first run. They are not output of the command itself.
+
+    Command 2:
+    ```bash
+    grep -rl --include='*.py' 'NOT_YET_HANDLED' src tests | wc -l
+    ```
+    ```
+    1
+    ```
+    It met the expectation: it printed `1`. Without `| wc -l`, the one file is `tests/entry/test_wiring_constants.py`, the exception criterion 3 allows.
+
+    Checking the acceptance criteria against what I saw:
+    - Criterion 1: the constant is gone, both as an attribute and from `__all__`. I also checked by hand that each of the 23 listed names is still in `__all__` and is an attribute of the module. None was missing.
+    - Criterion 3: only `tests/entry/test_wiring_constants.py` under `tests/` names `NOT_YET_HANDLED`, and nothing under `src/` does.
+    - Criteria 2, 4 and 5: the smoke test does not touch them, and nothing it showed contradicts them.
+
+    Nothing is open.
