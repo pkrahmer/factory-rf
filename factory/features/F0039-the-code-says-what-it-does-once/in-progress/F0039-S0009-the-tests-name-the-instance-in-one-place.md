@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 403
 comments_read: [6312436133]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T09:27:46.200402Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-21T09:27:46.200402Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T09:28:12.930532Z'
+  stage: docs
+  run: 68fdece8135e486892d10fc1c8336989
 ---
 
 # The tests name the instance in one place
@@ -298,3 +300,21 @@ Expect: one line, `1` (before the story, `0`)
     - tests/proof_support.py: standing leave (constant move)
     - tests/undo_support.py: standing leave (constant move)
 13. factory: started docs as self.
+14. documenter: Changed one file:
+    - `docs/project-guide/README.md`, *Shared test helpers*: the `stage_run_support.py` line now also names `INSTANCE`, the instance name `"factory-1"` that every test module imports from there. It also says that `tests/test_shared_constants.py` fails on another top-level assignment of that value. This is the docs criterion. The smoke test's grep over that line prints `1`.
+
+    I wrote no example, so I ran no example and did not run `make check`: the only file I changed is a document, and the factory's checks run right after this stage.
+
+    Cross-read against the diff, found current:
+    - `README.md`: no mention of the constant, nothing stale.
+    - `docs/operator-guide.md`: its `factory-1` uses are operator-facing examples, unaffected.
+    - `docs/decisions.md`: no decision is taken, as the criterion says.
+    - `docs/project-guide/watching.md:280`: it says the `boundaries` fixture's settings name the instance `factory-1`. That stays true, because the story left the fixture alone.
+
+    Code against Interface: the diff has no `src/` change, the guard `instance_copies` matches the Interface, and I found nothing for the coder.
+
+    Stale text I noticed and did not touch: none that is unrelated to this story. The `ENVIRONMENT` constants are still copied across test modules, but the Description leaves them to a later story.
+
+    `check`: check: green (not run again: passed on tree cb3e3f43c061 at 2026-10-21T09:24:36Z)
+    `secrets`: secrets: green (2.1 s)
+    `documents`: documents ok
