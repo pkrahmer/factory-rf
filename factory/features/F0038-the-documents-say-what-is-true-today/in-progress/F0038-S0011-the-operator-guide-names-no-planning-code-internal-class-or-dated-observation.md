@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 401
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T09:00:30.623360Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T09:00:09.621742Z'
   stage: intake
   run: e8e1cc478b21483e8b899ee44102d0f7
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T09:00:30.623360Z'
+  stage: tests
 ---
 
 # The operator guide names no planning code, internal class or dated observation
@@ -78,3 +87,4 @@ Expect: `documents ok`
    - Smoke test: the commands are runnable. The first grep uses `|| true`, so the count `0` still prints. The class-name grep currently lists the four kept names plus `RepositoryUnsealed`, so after the edit it should list only the four. The pytest `-q` trap does not apply, because no command runs pytest. `make documents` ends with `documents ok`.
    - Architecture: the change is docs only, in the documenter's write path, and touches no layer.
    - Scope: it fits feature S0007's intent (no class names in the guide, keeping the four error names). It touches no Out-of-scope item. The human's bullet in the Description about the dated parentheticals is already in the criteria, so I took it as written.
+4. factory: started tests as self.
