@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 384
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T01:53:58.588297Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-21T01:53:58.588297Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-21T01:54:15.514844Z'
+  stage: intake
+  run: fc8ab75cc0294e95af850cf25b5e6a28
+  blocked: question
 ---
 
 # The wiring has no list of event kinds without a handler
@@ -66,3 +69,17 @@ Expect: two lines, `False False` and `0` (before the story, `True True` and `6`)
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: 1. Criterion 1 and criterion 3 contradict each other, and so do criterion 1 and the smoke test. Criterion 1 has the new `tests/entry/test_wiring_constants.py` check `hasattr(factory.entry.wiring, "NOT_YET_HANDLED")` and `"NOT_YET_HANDLED" not in __all__`. That module has to contain the string `NOT_YET_HANDLED`. Criterion 3 says "no module under `tests/` names `NOT_YET_HANDLED`", and the smoke test expects `grep -rl --include='*.py' 'NOT_YET_HANDLED' src tests | wc -l` to print `0`. It would print `1`, because of the new module. Options:
+      (a) Allow the new module as the one exception. Criterion 3 becomes "no module under `tests/` except `tests/entry/test_wiring_constants.py` names it", and the smoke test expects `1` (before the story: `6`). I would choose this.
+      (b) Keep the `0` and have the test build the name without spelling it, for example from `"NOT_YET_" + "HANDLED"`. The test is then harder to read for no gain.
+      (c) Drop the `NOT_YET_HANDLED` row from criterion 1 and keep only the check on the 23 other names. Nothing then tests that the constant is gone.
+      Please say which, and I will carry it into criterion 3 and the smoke test's `Expect:` line.
+
+   The other checks found nothing else:
+   - The Interface is concrete: one module, one removal.
+   - Every other criterion is testable by one test function.
+   - The failing side of the handler-coverage rule has its own row (criterion 2).
+   - The smoke test commands run.
+   - The architecture is respected: `factory.entry.wiring` only loses a constant.
+   - The scope is within F0039, and `unhandled_kinds` stays as the feature's Out of scope says.
+   - The test changes are covered by decision 7, which the human granted.
