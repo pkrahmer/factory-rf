@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T00:45:46.848154Z'
   stage: smoke-test
   run: e1e7549d733a431589ef5842b9b5eeab
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T00:47:06.398053Z'
+  stage: approval
 ---
 
 # The duplicates report holds no standing finding of the runtimes or the clock
@@ -203,3 +208,4 @@ Expect: `3`
     - Criterion 2 (docs): `git diff main...HEAD -- docs` has one dated bullet (F0039-S0007) at the end of *What the agent runtimes share lies in one module* in `docs/decisions.md`. It names the version call, the start of the leftovers program and of the folder removal, and the lines of `_call`. It says they are accepted in the baseline for the entry's own reason and that F0039-S0001 merged the reading of a call's end. It also has one sentence in *The baseline* of `docs/project-guide/processes-and-checks.md` that names the runtimes' process calls and the four test-only fakes. `README.md` and `docs/operator-guide.md` are unchanged, as the criterion says they should be. Block 1's `0` confirms that the baseline these docs describe settles all of the runtime and clock findings.
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 3.8 min, 28 turns, 102901 tokens in (381455 more from cache), 7078 out, $0.82
