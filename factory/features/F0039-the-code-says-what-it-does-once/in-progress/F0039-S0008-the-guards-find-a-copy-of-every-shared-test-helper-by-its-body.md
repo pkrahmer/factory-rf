@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T08:56:30.349314Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-21T08:56:09.413512Z'
   stage: review
   run: 3ec6c0dd16984f42980bc95901b530e2
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:56:30.349314Z'
+  stage: docs
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -343,3 +352,4 @@ Expect: one line, `1` (before the story, `0`)
     Earlier tests:
     - tests/application/handlers/test_reject.py: under the standing leave to move a shared test helper. `_branch_document`, a copy of `branch_reading.remote_document`, is removed and its calls use the shared helper. Every test keeps its name and checks the same thing.
     - tests/test_shared_definition.py: under the standing leave to move a shared test helper. `_functions` and `_without_docstring` moved to `tests/function_support.py` as `functions` and `without_docstring`. Every test keeps its name and checks the same thing.
+21. factory: started docs as self.
