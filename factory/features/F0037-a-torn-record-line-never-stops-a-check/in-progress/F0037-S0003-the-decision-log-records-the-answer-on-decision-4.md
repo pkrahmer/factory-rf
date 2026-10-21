@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 377
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T00:16:13.020712Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T00:15:51.839159Z'
   stage: docs
   run: a73d880d334a4b7d872bdcf609ce8438
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:16:13.020712Z'
+  stage: smoke-test
 ---
 
 # The decision log records the human's answer on F0037's decision 4
@@ -155,3 +164,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
