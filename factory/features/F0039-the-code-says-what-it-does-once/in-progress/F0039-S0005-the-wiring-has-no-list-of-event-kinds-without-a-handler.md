@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 384
 comments_read: [6306079635]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T02:04:25.363930Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-21T02:04:04.862262Z'
   stage: docs
   run: ca68994829d2418ca712b79e57776ba7
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-21T02:04:25.363930Z'
+  stage: smoke-test
 ---
 
 # The wiring has no list of event kinds without a handler
@@ -219,3 +228,4 @@ Expect: two lines, `False False` and `1` (before the story, `True True` and `6`)
     `check`: check: green (not run again: passed on tree d7b478efc934 at 2026-10-21T02:01:15Z)
     `secrets`: secrets: green (2.2 s)
     `documents`: documents ok
+15. factory: started smoke-test as self.
