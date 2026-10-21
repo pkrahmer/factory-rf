@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 380
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T00:44:38.096077Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T00:44:38.096077Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T00:44:59.885736Z'
+  stage: docs
+  run: c69b9f13ca7e48a2b949093b1b62846b
 ---
 
 # The duplicates report holds no standing finding of the runtimes or the clock
@@ -142,3 +144,22 @@ Expect: `3`
    - Hygiene: the coder's journal gives the main choice (leave the code untouched) and what was rejected (merging the runtimes' remaining process calls into `agent_launch`, which the decision log entry rules out). The Description matches what was built.
    - Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: Docs written for the docs criterion; no findings. The diff outside docs is empty, so no code contradicts the Interface.
+
+    Files changed:
+    - `docs/decisions.md`: one new bullet at the end of *What the agent runtimes share lies in one module*, dated F0039-S0007. It says the similar code `make duplicates` still finds in the runtimes is the process calls the entry keeps in each runtime. It lists them: the version call, the start of the leftovers program and of the folder removal, and the lines of `_call` that call them. It says they are accepted in the baseline for the entry's own reason, and that F0039-S0001 merged the reading of a call's end.
+    - `docs/project-guide/processes-and-checks.md`: one paragraph at the end of *The baseline*. The baseline accepts the runtimes' own process calls (pointing to the decision log entry) and the test-only fakes of `factory.adapters` (`ManualClock`, `ManualWaiter`, `FakeAgentRuntime`, `FakeHostingService`). A new finding there is a copy the decision does not cover.
+
+    Checked:
+    - I read `security/duplicates-baseline.txt`. It holds the `return version_printed(`, `leftovers_error = self._end_leftovers(request)` and `started = due_leftovers_launch(` lines, plus `ManualWaiter`. `ManualClock` and `advance` are gone, as the Description says. The text I wrote matches it.
+    - The coder's entry records `duplicates: 0 new, 38 known, 0 gone`. I did not rerun `make duplicates` or the smoke test blocks myself.
+    - `uv run python -m factory.entry.check_documents` prints `documents ok`.
+    - I did not run `make check`, because I changed only documents.
+
+    Cross-read and found current: `README.md` and `docs/operator-guide.md` need no change, as the criterion says. The rest of *The baseline* and *The output and the exit status* already describe the key format and the report correctly.
+
+    Stale text noticed but not touched: none.
+
+    `check`: check: green (not run again: passed on tree 6d9d2794d8ce at 2026-10-21T00:42:31Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
