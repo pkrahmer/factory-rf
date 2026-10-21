@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 394
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T07:34:40.896673Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T07:34:18.795988Z'
   stage: intake
   run: 08ce70a2d7824e8498829502272ede0b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:34:40.896673Z'
+  stage: tests
 ---
 
 # The operator guide opens with its contents and states the current rule without its history
@@ -98,3 +107,4 @@ Expect: `documents ok`
    - Smoke test: all four blocks are runnable. The first grep prints `0` because `|| true` covers grep's exit 1 on no match, and the second prints `1`. The Python block does not call pytest, so the `-q` rule does not apply. Each `Expect:` line can be checked against the output.
    - Architecture: the story changes only `docs/operator-guide.md`, which is the documenter's write path under `CLAUDE.md`, *Docs*.
    - Scope: the story stays within `feature.md`. It takes S0006's findings H3, M4 with L9, and M13. The stop tables, class names and mutation sections are left to S0007, S0008 and F0032, as the feature says.
+4. factory: started tests as self.
