@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T08:56:30.349314Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-21T08:56:30.349314Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T08:57:04.160822Z'
+  stage: docs
+  run: 11cd49d7c63b4952bb4a7a610b12f07e
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -353,3 +355,18 @@ Expect: one line, `1` (before the story, `0`)
     - tests/application/handlers/test_reject.py: under the standing leave to move a shared test helper. `_branch_document`, a copy of `branch_reading.remote_document`, is removed and its calls use the shared helper. Every test keeps its name and checks the same thing.
     - tests/test_shared_definition.py: under the standing leave to move a shared test helper. `_functions` and `_without_docstring` moved to `tests/function_support.py` as `functions` and `without_docstring`. Every test keeps its name and checks the same thing.
 21. factory: started docs as self.
+22. documenter: Docs round 1. Only documents changed, so I did not run `make check` (the factory's checks follow).
+
+    Changed:
+    - `docs/project-guide/README.md`, *Shared test helpers*: added the criterion 7 sentence after the paragraph's second sentence. The guards `tests/test_shared_*.py` fail on a copy of a shared helper, and `test_shared_bodies.py` finds a copy of `log_lines`, `pushed`, `pushed_state`, `remote_document` and `push_state` by its body under any name.
+    - Same file, the list of root modules: added `function_support.py` (`functions`, `without_docstring`), in alphabetical place. The section says a story that adds such a module names it in this list. The story's docs criterion did not name it, but the diff adds the module, so the list would otherwise be stale.
+
+    Cross-read and found current against the diff: `README.md`, `docs/operator-guide.md`, `docs/decisions.md` (the criterion says none; the decision is the feature's decision 5). The `branch_reading.py` and `log_support.py` lines in the project guide are still true. The `test_reject.py` change adds no name to document.
+
+    Code against the Interface: `tests/function_support.py` and the reviewer's round 1 "no findings" match the story, so I have no findings for the coder.
+
+    Stale text I saw and did not touch: none. The reviewer's note about `test_no_test_module_holds_a_copy` skipping by file name alone (entry 20, note 1) is a test-code point, not mine to fix.
+
+    `check`: check: green (not run again: passed on tree 746e4c61c5e9 at 2026-10-21T08:53:42Z)
+    `secrets`: secrets: green (0.9 s)
+    `documents`: documents ok

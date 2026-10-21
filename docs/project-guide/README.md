@@ -20,7 +20,7 @@ Each file starts with a title and a sentence on what it covers.
 
 ## Shared test helpers
 
-A helper that more than one test module uses lives in a module at the root of `tests/` (a fixture, in `tests/conftest.py`), and a test module imports it from there; `CLAUDE.md`'s standing leave to move a shared test helper intends this. Before writing a helper, look here: the reviewer counts a copy as a finding. A story that adds such a module names it in this list through its docs criterion. A story that adds a fixture to either conftest names it in that conftest's line through its docs criterion.
+A helper that more than one test module uses lives in a module at the root of `tests/` (a fixture, in `tests/conftest.py`), and a test module imports it from there; `CLAUDE.md`'s standing leave to move a shared test helper intends this. Before writing a helper, look here: the reviewer counts a copy as a finding. The guards `tests/test_shared_*.py` fail on a copy of a shared helper, and `test_shared_bodies.py` finds a copy of `log_lines`, `pushed`, `pushed_state`, `remote_document` and `push_state` by its body under any name. A story that adds such a module names it in this list through its docs criterion. A story that adds a fixture to either conftest names it in that conftest's line through its docs criterion.
 
 Every module `tests/*.py` whose name does not start with `test_`:
 
@@ -40,6 +40,7 @@ Every module `tests/*.py` whose name does not start with `test_`:
 - `document_texts.py`: builders for the four documents' texts, clean unless a test asks for a fault (`readme`, `operator_guide`, `project_guide`, `decision_log`, `write_documents`).
 - `entrypoint_support.py`: the entrypoint tests' layout, stub executables and stamped lines.
 - `evaluation_support.py`: the shared inputs of the evaluation's tests (a pipeline definition, snapshots, lookups, claims).
+- `function_support.py`: `functions` (the top-level functions of a source text, read with `ast`) and `without_docstring` (a body's statements, a leading docstring left aside).
 - `git_support.py`: helpers for tests against real git: isolated runs, the bare remote and its copies, stand-in executables, agent files (`run_git`, `make_remote`, `copy_remote`, `clone`, `commit_all`, `install_agents`).
 - `human_clone.py`: `HumanClone`, a second clone of the test remote that acts as the human: starts stories, pushes, merges.
 - `log_support.py`: `log_lines`, the factory log a test's state directory holds.
