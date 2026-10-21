@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 395
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T07:48:41.150915Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T07:48:20.262741Z'
   stage: docs
   run: b05e5d60a40f46bb86b4b94ba0700afe
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:48:41.150915Z'
+  stage: smoke-test
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -174,3 +183,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
