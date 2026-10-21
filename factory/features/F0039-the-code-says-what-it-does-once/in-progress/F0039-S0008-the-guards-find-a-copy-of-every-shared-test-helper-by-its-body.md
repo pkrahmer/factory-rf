@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T08:43:51.545902Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-21T08:43:30.509337Z'
   stage: tests
   run: 07ed86a6a7444632bfa4207ab7ddcb07
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:43:51.545902Z'
+  stage: doing
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -179,3 +188,4 @@ Expect: one line, `1` (before the story, `0`)
 
    `lint`: lint: green (0.6 s)
    `test`: test: green (66.4 s)
+9. factory: started doing as self.
