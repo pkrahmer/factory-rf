@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 392
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T07:21:27.404242Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T07:21:06.712971Z'
   stage: review
   run: 194e62c2e51b41f6aa78212a40880f9a
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:21:27.404242Z'
+  stage: docs
 ---
 
 # The project guide names no planning code or v1 feature id as a pointer
@@ -144,3 +153,4 @@ Expect: `documents ok`
    - 5, work item hygiene: the coder's entry 7 gives the main decision (it leaves criterion 3 to the documenter, because `CLAUDE.md` *Docs* gives `docs/project-guide/` to the documenter) and what it rejected. The Description still matches the story. The docs criterion lists each old and new passage exactly, so the documenter can work from it alone.
 
    Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds (`git diff --name-status main...HEAD` lists only the work item and its sidecar).
+10. factory: started docs as self.
