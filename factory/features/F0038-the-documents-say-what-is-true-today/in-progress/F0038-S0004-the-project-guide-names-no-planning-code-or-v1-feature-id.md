@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 392
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T07:17:18.876803Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T07:16:57.095265Z'
   stage: intake
   run: deda32883f35419d949ea4219e79a4c8
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:17:18.876803Z'
+  stage: tests
 ---
 
 # The project guide names no planning code or v1 feature id as a pointer
@@ -83,3 +92,4 @@ Expect: `documents ok`
    - Smoke test: all four blocks are runnable. The first has nine files and `grep -c` prints `file:count` for each. In the second, the `-F` grep counts two lines in git-and-hosting.md (the heading and the preparation row) and one in README.md, matching "2 and 1". In the third, the story expects seven lines (one `0` and six docs paths) and each `Expect:` line is checkable against the output. The fourth is `make documents`. No pytest command is used, so the `-q` rule does not apply.
    - Architecture: nothing under `src/` changes, so the layer rules in CLAUDE.md are untouched. The documenter writes only `docs/`, which is its write path, and `processes-and-checks.md` is not touched.
    - Scope: this matches feature.md decision 6 and the *Scope* line for S0004 (M6, guide files only). R5 and R8 (named in CLAUDE.md), the agents' R10, R14 and R15, and example ids stay. The decision log is S0005's and the agent files are S0010's, so the story stays out of both. The only overlap is the `agents.md` sentence with "F0009 reads them". feature.md already orders S0010 after S0004 for that reason.
+4. factory: started tests as self.
