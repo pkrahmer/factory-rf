@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 405
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T12:27:49.893700Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T12:27:49.893700Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T12:30:26.804301Z'
+  stage: doing
+  run: fe65e51765ba4c55aaf2384065454cbf
 ---
 
 # The tests name the agent environment in one place each
@@ -152,3 +154,18 @@ Expect: one line, `2` (before the story, `0`)
    `lint`: lint: green (0.6 s)
    `test`: test: green (61.7 s)
 6. factory: started doing as self.
+7. coder: Nothing to build. The Interface says no module under `src/factory/` changes, and the tester already did the whole move: `tests/wiring_support.py` gained `ENVIRONMENT`, the twenty modules import it, `tests/test_shared_environments.py` is the new guard, and `tests/test_shared_bodies.py` now finds a defining module by its relative path. I confirmed that `git diff main -- src` is empty and ran `make check` in the foreground: `test: green (62.3 s)`, `check: green`.
+
+   Main choice: I left the working tree as the tester left it. I rejected touching anything under `src/` or `tests/`, because the coder never edits tests and the story has no code to add.
+
+   Refactor: my own diff is empty, so there is nothing to refactor.
+
+   The journal did not change what the task means, so the Description stays as it is.
+
+   Noticed and not touched: the tester's three choices inside the Interface, which their entry leaves for the reviewer:
+   - `ast.literal_eval` failing on a dict that holds a name counts as no copy.
+   - The guard's cases take their environment from a fixture.
+   - The docstring is shortened because of E501.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
