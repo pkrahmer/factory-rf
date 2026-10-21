@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 383
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T01:46:30.158942Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T01:46:08.827610Z'
   stage: tests
   run: e58a73fe6dc74e358a35072d238c3542
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:46:30.158942Z'
+  stage: doing
 ---
 
 # The tick's docstrings and the checkout preparer say what the code does
@@ -115,3 +124,4 @@ Expect: one line, `False True <class 'NoneType'> <class 'bool'>` (before the sto
 
    `lint`: lint: green (0.5 s)
    `test`: FAILED tests/application/test_tick_docstrings.py::test_the_preparers_return_types[checkout-preparer] - AssertionError: assert <class 'bool'> is <class 'NoneType'>
+6. factory: started doing as self.
