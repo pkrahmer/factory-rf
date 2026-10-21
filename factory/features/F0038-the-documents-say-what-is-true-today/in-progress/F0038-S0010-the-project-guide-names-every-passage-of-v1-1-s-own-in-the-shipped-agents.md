@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 398
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T08:24:10.043630Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T08:23:49.325307Z'
   stage: review
   run: b529dd158dfd472190bda1c01643382f
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:24:10.043630Z'
+  stage: docs
 ---
 
 # The project guide names every passage of v1.1's own in the shipped agents
@@ -139,3 +148,4 @@ Expect: `documents ok`
    - Criterion 3 is the documenter's. I checked its premises against `docs/project-guide/agents.md` as it is on the branch. Line 303 holds "Six passages are v1.1's own text and not v1's." and the two sentences after it, to "... (F0034-S0001).". Line 331 holds "except the six passages of v1.1's own text that *The seven agents* names". So the criterion names sentences that exist, and the documenter can rewrite them as it says.
    - Work item hygiene: the Description still matches what was built (nothing yet; the docs stage writes the list). The coder's entry gives the main decision, which was to leave `agents.md` to the documenter, and the alternative it rejected. The docs criterion still says what the reader must know after this story.
    - Earlier tests: none. The diff changes no test file.
+10. factory: started docs as self.
