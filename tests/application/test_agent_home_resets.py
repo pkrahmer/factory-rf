@@ -9,7 +9,6 @@ from typing import override
 
 import pytest
 
-from application.test_checkout_preparer_seal import RecordingLog
 from application.test_sealed_project_commands import PASSED, ProbeCommands
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.git_cli import GitCli
@@ -18,6 +17,7 @@ from factory.application.boundaries import Boundaries
 from factory.application.sealed_runs import SealedProjectCommands, run_sealed
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.errors import AgentRuntimeError, ProjectCommandError
+from recording_log import RecordingLog
 from sealed_run_support import COMPLETED, run_request
 
 OPEN_FOLDER = 0o2775

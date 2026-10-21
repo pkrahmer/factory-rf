@@ -2,7 +2,6 @@
 
 import errno
 import inspect
-import json
 import os
 import sys
 import time
@@ -10,9 +9,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel, ConfigDict
 
-from confine_support import write_script
 from factory.adapters import agent_home
 from factory.adapters.agent_home import SudoAgentHome
 from factory.adapters.agent_launch import SUDO_GRACE
@@ -20,61 +17,10 @@ from factory.adapters.process import ProcessResult
 from factory.application.agent_home import AgentHome
 from factory.domain.errors import AgentRuntimeError
 from run_process_recorder import Recorder
+from sudo_support import write_sudo
 
 PROGRAM = [sys.executable, "-I", "-B", "-m", "factory.entry.fresh_home"]
 KEPT = [".claude-token", ".config/sso"]
-CALLS = "sudo-calls.jsonl"
-PLANNED = "planned.json"
-
-# Records its arguments, working directory and environment, then either exits as planned or
-# runs what follows `--`.
-SUDO_SCRIPT = r"""
-import json
-import os
-import sys
-from pathlib import Path
-
-here = Path(__file__).resolve().parent
-arguments = sys.argv[1:]
-record = {"arguments": arguments, "cwd": os.getcwd(), "environment": dict(os.environ)}
-with (here / "sudo-calls.jsonl").open("a", encoding="utf-8") as out:
-    out.write(json.dumps(record) + "\n")
-planned = here / "planned.json"
-if planned.exists():
-    played = json.loads(planned.read_text(encoding="utf-8"))
-    sys.stderr.write(played["stderr"])
-    sys.exit(played["exit_status"])
-rest = arguments[arguments.index("--") + 1 :]
-os.execvp(rest[0], rest)
-"""
-
-
-class SudoCall(BaseModel):
-    """What the `sudo` stand-in saw on one call."""
-
-    model_config = ConfigDict(frozen=True, extra="forbid")
-
-    arguments: list[str]
-    cwd: str
-    environment: dict[str, str]
-
-
-def _write_sudo(directory: Path, planned: tuple[int, str] | None = None) -> Path:
-    directory.mkdir(parents=True, exist_ok=True)
-    if planned is not None:
-        exit_status, stderr = planned
-        (directory / PLANNED).write_text(
-            json.dumps({"exit_status": exit_status, "stderr": stderr}), encoding="utf-8"
-        )
-    return write_script(directory / "sudo", SUDO_SCRIPT)
-
-
-def _sudo_calls(directory: Path) -> list[SudoCall]:
-    calls = directory / CALLS
-    return [
-        SudoCall.model_validate_json(line)
-        for line in calls.read_text(encoding="utf-8").splitlines()
-    ]
 
 
 def _write(path: Path, text: str) -> None:
@@ -102,12 +48,14 @@ def test_reset_runs_the_fresh_home_program_through_sudo_from_the_root_and_keeps_
     _write(home / ".claude" / "CLAUDE.md", "steer\n")
     _write(home / ".claude-token", "stand-in\n")
     _write(home / ".config" / "sso" / "login", "stand-in\n")
-    sudo = _write_sudo(tmp_path / "sudo-bin")
-    agent = SudoAgentHome(home, KEPT, os_user="agent", sudo_executable=str(sudo), program=PROGRAM)
+    sudo = write_sudo(tmp_path / "sudo-bin")
+    agent = SudoAgentHome(
+        home, KEPT, os_user="agent", sudo_executable=str(sudo.path), program=PROGRAM
+    )
 
     agent.reset()
 
-    [call] = _sudo_calls(tmp_path / "sudo-bin")
+    [call] = sudo.calls()
     assert call.arguments == [
         "-n",
         "-u",
@@ -130,7 +78,7 @@ def test_reset_runs_the_fresh_home_program_through_sudo_from_the_root_and_keeps_
         "--keep",
         ".config/sso",
     ]
-    assert call.cwd == "/"
+    assert call.working_directory == Path("/")
     assert not (home / ".claude" / "CLAUDE.md").exists()
     assert (home / ".claude-token").is_file()
     assert (home / ".config" / "sso" / "login").is_file()
@@ -161,7 +109,8 @@ def test_a_failed_reset_raises_with_the_line_that_says_why(
     if planned is None:
         sudo = tmp_path / "missing" / "sudo"
     else:
-        sudo = _write_sudo(tmp_path / "sudo-bin", planned)
+        exit_status, stderr = planned
+        sudo = write_sudo(tmp_path / "sudo-bin", exit_status=exit_status, stderr=stderr).path
     agent = SudoAgentHome(home, KEPT, os_user="agent", sudo_executable=str(sudo), program=PROGRAM)
 
     with pytest.raises(AgentRuntimeError) as raised:
@@ -189,8 +138,10 @@ def test_a_reset_that_reaches_its_time_limit_raises(
 ) -> None:
     assert timedelta(seconds=60) == agent_home.FRESH_HOME_TIME_LIMIT
     monkeypatch.setattr(agent_home, "FRESH_HOME_TIME_LIMIT", timedelta(seconds=3))
-    sudo = _write_sudo(tmp_path / "sudo-bin")
-    agent = SudoAgentHome(home, [], os_user="agent", sudo_executable=str(sudo), program=program)
+    sudo = write_sudo(tmp_path / "sudo-bin")
+    agent = SudoAgentHome(
+        home, [], os_user="agent", sudo_executable=str(sudo.path), program=program
+    )
 
     if detail is None:
         agent.reset()

@@ -1,5 +1,6 @@
 """The rule of the fresh home: which paths are inside a home, which are kept and what goes."""
 
+import re
 from pathlib import Path
 
 import pytest
@@ -83,7 +84,7 @@ def test_kept_paths_are_the_logins_inside_the_home_then_state_files_then_folders
     if refused is None:
         assert kept() == [".claude-token", ".claude/.credentials.json", ".config/sso"]
         return
-    with pytest.raises(ValueError, match=refused):
+    with pytest.raises(ValueError, match=re.escape(refused)):
         kept()
 
 

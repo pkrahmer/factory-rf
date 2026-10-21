@@ -10,25 +10,15 @@ import pytest
 
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
-from factory.application.machine import FactoryLog
 from factory.application.scheduler import CheckoutPreparer, RepositoryWaiter
 from factory.application.stops import StopService
 from factory.domain.git import GitOptions
 from factory.domain.settings import InstanceSettings
 from git_support import TEST_IDENTITY, clone
+from recording_log import RecordingLog
 
 UNSEALED = "seal failed (no exit status): "
 KEPT = "added-by-test.txt"
-
-
-class RecordingLog(FactoryLog):
-    """Keeps the lines written to it."""
-
-    def __init__(self) -> None:
-        self.lines: list[str] = []
-
-    def line(self, text: str) -> None:
-        self.lines.append(text)
 
 
 @pytest.fixture

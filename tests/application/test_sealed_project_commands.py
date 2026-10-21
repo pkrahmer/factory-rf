@@ -9,7 +9,6 @@ from typing import override
 
 import pytest
 
-from application.test_checkout_preparer_seal import RecordingLog
 from factory.adapters.git_cli import GitCli
 from factory.application.project_commands import ProjectCommands
 from factory.application.sealed_runs import SealedProjectCommands
@@ -17,6 +16,7 @@ from factory.domain.checks import CheckResult
 from factory.domain.errors import ProjectCommandError, RepositoryUnsealed
 from git_support import run_git
 from project_command_support import raising
+from recording_log import RecordingLog
 
 OPEN_FOLDER = 0o2775
 LIMIT = timedelta(seconds=30)
