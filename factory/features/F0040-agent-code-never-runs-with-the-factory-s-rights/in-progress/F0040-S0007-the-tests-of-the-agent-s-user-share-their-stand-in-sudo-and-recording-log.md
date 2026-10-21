@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 387
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T06:39:49.052491Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T06:39:49.052491Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T06:40:14.374820Z'
+  stage: docs
+  run: 2f0416085ae24f1888625b97c9c82456
 ---
 
 # The tests of the agent's user share their stand-in sudo and their recording log
@@ -216,3 +218,20 @@ Expect: one summary line with a count of `passed`, and no `failed` and no `error
    - `tests/application/test_sealed_project_commands.py`: the standing leave to move a shared test helper (`RecordingLog` imported from `recording_log`).
    - `tests/domain/test_agent_home.py`: the human's leave, decision 18 in the feature's `feature.md` (`match=re.escape(refused)`).
 10. factory: started docs as self.
+11. documenter: Docs for this story: criterion 7 is done. I changed one file, `docs/project-guide/README.md`, under *Shared test helpers*. It gains the two entries the criterion gives, in alphabetical order: `recording_log.py` (after `record_support.py`) and `sudo_support.py` (after `stage_run_support.py`). Both entries use the criterion's wording. I changed nothing else.
+
+    I read the diff `git diff main...HEAD -- . ':!factory' ':!docs' ':!README.md'`. It touches only tests (9 files) and nothing under `src/`. No behaviour changed, so the criterion allows no other document change.
+
+    Cross-read and found current:
+    - The rest of the project guide index.
+    - `README.md`.
+    - `docs/operator-guide.md`.
+    - A grep of `docs/` and `README.md` for `_write_sudo`, `SUDO_SCRIPT` and `RecordingLog` found no stale mention.
+
+    Findings: none. The code matches the Interface. I ran no example, because I wrote none. I did not run `make check`, since I changed only a document (the stage's lesson); the factory runs it next.
+
+    Stale text I noticed but did not touch: none.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
+    `secrets`: secrets: green (0.8 s)
+    `documents`: documents ok
