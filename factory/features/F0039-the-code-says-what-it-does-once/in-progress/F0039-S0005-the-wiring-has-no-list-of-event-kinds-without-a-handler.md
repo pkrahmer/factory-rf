@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 384
 comments_read: [6306079635]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T01:59:44.200914Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-21T01:59:44.200914Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-21T02:02:27.047957Z'
+  stage: doing
+  run: 46d852cf96184bcb98ee00433336b729
 ---
 
 # The wiring has no list of event kinds without a handler
@@ -149,3 +151,11 @@ Expect: two lines, `False False` and `1` (before the story, `True True` and `6`)
    `lint`: lint: green (0.5 s)
    `test`: FAILED tests/entry/test_wiring_constants.py::test_the_wiring_offers_its_names_but_no_list_of_kinds_without_a_handler[NOT_YET_HANDLED] - AssertionError: assert True is False
 9. factory: started doing as self.
+10. coder: Removed `NOT_YET_HANDLED` from `src/factory/entry/wiring.py`: the constant, the comment above it and its entry in `__all__`. Nothing else in the module changed. The `EventKind` import stays because `build_handlers` and `handler_factory` still use it. `make check` is green (test: green, coverage 99.14 %, then `check: green`). The smoke test prints `False False` and `1`.
+
+    - Main choice: a plain deletion, as the Interface says. I rejected keeping the name as a deprecated alias. It would have failed criterion 1, and nothing outside `tests/` imports it.
+    - Refactor: I read the diff and found nothing to change. I removed only the extra blank line the deletion left.
+    - Noticed but did not touch: `docs/project-guide/watching.md`, `docs/operator-guide.md` and `docs/decisions.md` still name `NOT_YET_HANDLED`. They belong to the docs stage (criterion 5). The journal changed only criterion 3 and the smoke test's expected result, and the intake already carried that into the Description.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 38 known, 0 gone
