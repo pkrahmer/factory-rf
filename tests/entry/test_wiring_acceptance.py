@@ -6,6 +6,7 @@ from typing import get_args
 
 import pytest
 
+from definition_support import pipeline_definition
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
@@ -18,7 +19,6 @@ from factory.domain.agent_runs import AgentRunResult
 from factory.domain.errors import CannotHandle
 from factory.domain.events import Event, EventKind
 from factory.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.entry.wiring import NOT_YET_HANDLED, build_handlers, handler_factory
 from git_support import PIPELINE_YAML, install_agents, remote_commit
@@ -69,14 +69,10 @@ COMPLETED = AgentRunResult(
 )
 
 
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
-
-
 def test_every_kind_has_a_handler_and_acceptance_due_opens_the_acceptance(
     boundaries: Boundaries,
 ) -> None:
-    handlers = build_handlers(boundaries, _definition(boundaries), INSTANCE, ENVIRONMENT)
+    handlers = build_handlers(boundaries, pipeline_definition(boundaries), INSTANCE, ENVIRONMENT)
 
     assert NOT_YET_HANDLED == ()
     assert set(handlers) == set(get_args(EventKind))
@@ -111,7 +107,7 @@ def test_a_merged_story_reaches_the_story_handler_and_is_archived(
     )
     main = remote_commit(remote, "main")
     assert main is not None
-    handlers = build_handlers(boundaries, _definition(boundaries), INSTANCE, ENVIRONMENT)
+    handlers = build_handlers(boundaries, pipeline_definition(boundaries), INSTANCE, ENVIRONMENT)
 
     handlers["merged"].handle(Event(kind="merged", work_item=snapshot, remote_state=main))
 
@@ -128,7 +124,7 @@ def test_a_run_of_an_acceptance_closed_while_due_is_booked_refused_by_the_gate(
     hosting: FakeHostingService,
     agent_runtime: FakeAgentRuntime,
 ) -> None:
-    definition = _definition(boundaries)
+    definition = pipeline_definition(boundaries)
     human.push_file("main", f"{TODO}/feature.md", "# Todo service\n")
     human.push_file("main", f"{TODO}/done/F0002-S0001-a.md", "# A\n")
     human.push_file("main", f"{TODO}/done/F0002-S0002-b.md", "# B\n")
@@ -188,7 +184,7 @@ def test_without_an_acceptance_stage_the_handlers_build_refuse_and_a_story_still
         handlers["acceptance_due"].handle(due)
 
     assert refused.value.reason == "no acceptance stage"
-    install_agents(agent_home, _definition(boundaries).roles)
+    install_agents(agent_home, pipeline_definition(boundaries).roles)
     human.push_file("main", "factory/pipeline.yml", WITHOUT_STAGE)
     human.push_file("main", BACKLOG_PATH, STORY)
     human.start(BACKLOG_PATH)

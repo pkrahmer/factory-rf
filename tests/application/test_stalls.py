@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel, ValidationError
 
+from definition_support import pipeline_definition
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
@@ -22,10 +23,9 @@ from factory.domain.git import CommitId
 from factory.domain.hosting import PostKey, PullRequestView
 from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord, NewEntry, append_entry, entry_text
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import stall_cause, stall_note
 from factory.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import PIPELINE_YAML, install_agents, remote_commit
+from git_support import install_agents, remote_commit
 from human_clone import HumanClone
 from observing_runtime import ObservingRuntime
 
@@ -63,10 +63,6 @@ class SwitchingRuntime(ObservingRuntime):
         return super().run(request)
 
 
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
-
-
 def _open(boundaries: Boundaries, human: HumanClone, state: WorkItemState) -> None:
     """Start the story on `main` and push its branch with a document in `state`, then fetch."""
     human.push_file("main", BACKLOG_PATH, STORY)
@@ -82,7 +78,7 @@ def _launch(
     run: ScriptedRun,
     runtime: AgentRuntime | None = None,
 ) -> StartedStage:
-    definition = _definition(boundaries)
+    definition = pipeline_definition(boundaries)
     prepared = WorkItemOpening(boundaries, definition).prepare(WORK_ITEM, PATH)
     agent_runtime.queue(run)
     used = boundaries if runtime is None else replace(boundaries, agent_runtime=runtime)
@@ -124,7 +120,7 @@ def _context(
 def _stall(
     boundaries: Boundaries, context: StallContext, reason: StallReason = "died", detail: str = ""
 ) -> StallResult:
-    return StallService(boundaries, INSTANCE, _definition(boundaries)).stall(
+    return StallService(boundaries, INSTANCE, pipeline_definition(boundaries)).stall(
         context, reason, detail
     )
 
@@ -244,7 +240,7 @@ def test_each_stall_raises_the_attempts_by_one(
 
     assert (first_attempts, first.attempts) == (1, 1)
     assert (_pushed_state(boundaries, remote).attempts, second.attempts) == (2, 2)
-    assert first.attempts_cap == second.attempts_cap == _definition(boundaries).attempts_cap
+    assert first.attempts_cap == second.attempts_cap == pipeline_definition(boundaries).attempts_cap
 
 
 def test_a_stall_leaves_every_other_counter_as_the_stage_start_held_it(
@@ -468,7 +464,7 @@ def test_a_stall_before_the_stage_started_undoes_nothing_and_still_counts(
     hosting: FakeHostingService,
 ) -> None:
     _open(boundaries, human, WorkItemState(stage="tests", journal=[CREATED]))
-    WorkItemOpening(boundaries, _definition(boundaries)).prepare(WORK_ITEM, PATH)
+    WorkItemOpening(boundaries, pipeline_definition(boundaries)).prepare(WORK_ITEM, PATH)
     context = StallContext(
         work_item=WORK_ITEM, stage="tests", branch=BRANCH, path=PATH, stage_start=None
     )

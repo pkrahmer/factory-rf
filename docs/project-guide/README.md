@@ -33,6 +33,7 @@ Every module `tests/*.py` whose name does not start with `test_`:
 - `confine_support.py`: the run layout, the stand-in `factory-confine` executable and the request of the runtime's guard tests (`build_layout`, `write_confine`, `run_request`, `confined_runtime`).
 - `contract_support.py`: the contract command's output lines and `MainRow`, a row of `main`'s cases.
 - `crash_support.py`: a work item claimed by this instance, ready to crash (`claim`, `expired_claim`, `crash_event`, `handler`), for the crash-cap tests.
+- `definition_support.py`: `pipeline_definition`, the test remote's pipeline definition read through the boundaries' reader, which the `definition` fixture returns too, for helpers that take no fixtures.
 - `disk_support.py`: `FakeDiskSpace`, a fake of the disk-space interface that answers per path.
 - `dockerfile_support.py`: `dockerfile_instructions` and `DOCKERFILE`, for tests that read the image's Dockerfile.
 - `document_texts.py`: builders for the four documents' texts, clean unless a test asks for a fault (`readme`, `operator_guide`, `project_guide`, `decision_log`, `write_documents`).

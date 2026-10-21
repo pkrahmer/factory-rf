@@ -11,6 +11,7 @@ from ruamel.yaml import YAML
 from acceptance_walk import AcceptanceWalk
 from compose_support import COMPOSE
 from confine_support import Layout, build_layout
+from definition_support import pipeline_definition
 from entrypoint_support import Layout as ImageLayout
 from factory.adapters import claude_runtime
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
@@ -215,7 +216,7 @@ def boundaries(
 @pytest.fixture
 def definition(boundaries: Boundaries) -> PipelineDefinition:
     """Return the test remote's pipeline definition, with the acceptance stage `acceptance`."""
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
+    return pipeline_definition(boundaries)
 
 
 @pytest.fixture

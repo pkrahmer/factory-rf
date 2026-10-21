@@ -12,8 +12,8 @@ from factory.domain.errors import PipelineDefinitionInvalid
 from factory.domain.stops import RepositoryStop
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
+from log_support import log_lines
 
-LOG = Path("state") / "factory.log"
 PIPELINE_FILE = "factory/pipeline.yml"
 ROLES = [
     "intake",
@@ -30,13 +30,6 @@ REPEATED_KEY_FAULT = (
 )
 
 
-def _log_lines(tmp_path: Path) -> list[str]:
-    path = tmp_path / LOG
-    if not path.exists():
-        return []
-    return path.read_text(encoding="utf-8").splitlines()
-
-
 def test_a_repeated_key_on_main_is_one_stop_and_one_log_line(
     boundaries: Boundaries,
     *,
@@ -49,7 +42,7 @@ def test_a_repeated_key_on_main_is_one_stop_and_one_log_line(
     install_agents(agent_home, ROLES)
     human.push_file("main", PIPELINE_FILE, PIPELINE_YAML + "  done: {}\n")
     checkout.fetch()
-    before = _log_lines(tmp_path)
+    before = log_lines(tmp_path)
 
     with pytest.raises(PipelineDefinitionInvalid) as caught:
         PipelineLoader(boundaries).load(PIPELINE_REF)
@@ -63,6 +56,6 @@ def test_a_repeated_key_on_main_is_one_stop_and_one_log_line(
             at=clock.now(),
         )
     ]
-    added = _log_lines(tmp_path)[len(before) :]
+    added = log_lines(tmp_path)[len(before) :]
     assert len(added) == 1
     assert added[0].endswith(f"stop repository pipeline_definition_invalid: {REPEATED_KEY_FAULT}")

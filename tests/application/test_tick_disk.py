@@ -17,6 +17,7 @@ from factory.domain.settings import InstanceSettings
 from factory.domain.stops import RepositoryStop
 from git_support import CHECKOUT, remote_commit
 from human_clone import HumanClone
+from log_support import log_lines
 
 INSTANCE = "factory-1"
 MIN_FREE_GB = 2
@@ -67,11 +68,6 @@ def _disk_stops(boundaries: Boundaries) -> list[RepositoryStop]:
     return [stop for stop in boundaries.health.read().stops if stop.reason == "disk_low"]
 
 
-def _log_lines(tmp_path: Path) -> list[str]:
-    log = tmp_path / "state" / "factory.log"
-    return log.read_text(encoding="utf-8").splitlines() if log.exists() else []
-
-
 def test_exactly_the_minimum_free_on_both_paths_lets_the_tick_run_on(
     boundaries: Boundaries, settings: InstanceSettings, work: Path, state: Path
 ) -> None:
@@ -114,7 +110,7 @@ def test_the_low_disk_stop_reaches_the_health_status_and_the_factory_log(
     stops = _disk_stops(boundaries)
     assert [(stop.scope, stop.detail) for stop in stops] == [("machine", detail)]
     lines = [
-        line for line in _log_lines(tmp_path) if line.endswith(f"stop machine disk_low: {detail}")
+        line for line in log_lines(tmp_path) if line.endswith(f"stop machine disk_low: {detail}")
     ]
     assert len(lines) == 1
 
@@ -190,7 +186,7 @@ def test_a_tick_with_enough_room_clears_the_low_disk_stop(
 
     assert outcome.stopped is None
     assert _disk_stops(boundaries) == []
-    assert any(line.endswith("stop cleared disk_low") for line in _log_lines(tmp_path))
+    assert any(line.endswith("stop cleared disk_low") for line in log_lines(tmp_path))
 
 
 @pytest.mark.parametrize(

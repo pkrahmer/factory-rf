@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from definition_support import pipeline_definition
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
@@ -25,9 +26,8 @@ from factory.domain.git import CommitId
 from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord, entry_text
 from factory.domain.paths import cost_records_path
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
-from git_support import PIPELINE_YAML, install_agents, remote_commit
+from git_support import install_agents, remote_commit
 from human_clone import HumanClone
 from observing_runtime import ObservingRuntime
 
@@ -89,10 +89,6 @@ class SwitchingRuntime(ObservingRuntime):
         return super().run(request)
 
 
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
-
-
 def _completed(decision: str = "doing", entry: str = ENTRY) -> AgentRunResult:
     return AgentRunResult(
         end_reason="completed", decision=decision, entry=entry, duration=timedelta(minutes=1)
@@ -127,7 +123,7 @@ def _launch(
     )
     human.push_file(BRANCH, PATH, boundaries.work_item_writer.render(document))
     boundaries.git.fetch()
-    definition = _definition(boundaries)
+    definition = pipeline_definition(boundaries)
     prepared = WorkItemOpening(boundaries, definition).prepare(WORK_ITEM, PATH)
     agent_runtime.queue(run)
     used = boundaries
@@ -141,7 +137,7 @@ def _launch(
 
 
 def _process(boundaries: Boundaries, launched: LaunchedStage) -> AgentAftermath | StallResult:
-    return AfterAgent(boundaries, INSTANCE, _definition(boundaries)).process(launched)
+    return AfterAgent(boundaries, INSTANCE, pipeline_definition(boundaries)).process(launched)
 
 
 def _aftermath(boundaries: Boundaries, launched: LaunchedStage) -> AgentAftermath:

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from definition_support import pipeline_definition
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
@@ -14,8 +15,7 @@ from factory.application.watcher import Watcher
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.errors import HostingServiceError
 from factory.domain.events import Event
-from factory.domain.pipeline_definition import PipelineDefinition
-from git_support import PIPELINE_YAML, install_agents
+from git_support import install_agents
 from human_clone import HumanClone
 
 INSTANCE = "factory-1"
@@ -53,15 +53,11 @@ COMPLETED = AgentRunResult(
 )
 
 
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
-
-
 def _run_event(
     boundaries: Boundaries, human: HumanClone, checkout: GitCli, agent_home: Path
 ) -> Event:
     """Start a complete story and return the event the watcher sees for it."""
-    definition = _definition(boundaries)
+    definition = pipeline_definition(boundaries)
     install_agents(agent_home, definition.roles)
     human.push_file("main", BACKLOG_PATH, STORY)
     human.start(BACKLOG_PATH)
@@ -72,7 +68,7 @@ def _run_event(
 
 
 def _handler(boundaries: Boundaries) -> RunHandler:
-    return RunHandler(boundaries, INSTANCE, _definition(boundaries), ENVIRONMENT)
+    return RunHandler(boundaries, INSTANCE, pipeline_definition(boundaries), ENVIRONMENT)
 
 
 def test_a_run_event_runs_the_stage_with_exactly_the_given_environment(

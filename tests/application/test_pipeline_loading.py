@@ -18,8 +18,8 @@ from factory.domain.errors import GitError, PipelineDefinitionInvalid
 from factory.domain.stops import HealthStatus, RepositoryStop
 from git_support import CHECKOUT, PIPELINE_YAML, clone, install_agents, run_git
 from human_clone import HumanClone
+from log_support import log_lines
 
-LOG = Path("state") / "factory.log"
 PIPELINE_FILE = "factory/pipeline.yml"
 ROLES = [
     "intake",
@@ -49,13 +49,6 @@ class _UnwritableHealth(HealthStatusStore):
 def _push(human: HumanClone, checkout: GitCli, branch: str, text: str) -> None:
     human.push_file(branch, PIPELINE_FILE, text)
     checkout.fetch()
-
-
-def _log_lines(tmp_path: Path) -> list[str]:
-    path = tmp_path / LOG
-    if not path.exists():
-        return []
-    return path.read_text(encoding="utf-8").splitlines()
 
 
 def _stop(detail: str, clock: ManualClock) -> RepositoryStop:
@@ -124,7 +117,7 @@ def test_a_refusal_raises_one_stop_and_writes_its_line(
     _refused(PipelineLoader(boundaries))
 
     assert boundaries.health.read().stops == [_stop("missing key: contract", clock)]
-    assert _log_lines(tmp_path) == [
+    assert log_lines(tmp_path) == [
         "2026-10-12T12:00:05Z stop repository pipeline_definition_invalid: missing key: contract"
     ]
 
@@ -156,7 +149,7 @@ def test_a_missing_key_with_a_default_takes_the_default(
     assert {role.lease_duration for role in definition.roles.values()} == {60}
     assert list(definition.roles) == ROLES
     assert boundaries.health.read().stops == []
-    assert _log_lines(tmp_path) == []
+    assert log_lines(tmp_path) == []
 
 
 def test_a_definition_missing_on_main_is_refused_and_stops(
@@ -195,7 +188,7 @@ def test_a_successful_load_clears_the_stop_and_keeps_other_stops(
     loader.load()
 
     assert boundaries.health.read().stops == [fetch_stop]
-    assert _log_lines(tmp_path)[-1] == f"{STAMP} stop cleared pipeline_definition_invalid"
+    assert log_lines(tmp_path)[-1] == f"{STAMP} stop cleared pipeline_definition_invalid"
 
 
 @pytest.mark.parametrize("case", ["git_fails", "unknown_ref"])
@@ -215,7 +208,7 @@ def test_a_git_error_propagates_and_raises_no_stop(
         loader.load(ref)
 
     assert boundaries.health.read().stops == []
-    assert _log_lines(tmp_path) == []
+    assert log_lines(tmp_path) == []
 
 
 @pytest.mark.parametrize(
@@ -252,7 +245,7 @@ def test_installed_agents_for_every_role_load_and_extra_agents_do_not_matter(
 
     assert definition.first_stage() == "intake"
     assert boundaries.health.read().stops == []
-    assert _log_lines(tmp_path) == []
+    assert log_lines(tmp_path) == []
 
 
 def test_an_unavailable_agent_home_is_refused_and_stops(
@@ -287,7 +280,7 @@ def test_a_refusal_at_another_ref_raises_but_changes_no_stop(
 
     assert fault == expected
     assert boundaries.health.read() == HealthStatus(stops=[])
-    assert _log_lines(tmp_path) == []
+    assert log_lines(tmp_path) == []
 
 
 def test_a_successful_load_at_another_ref_leaves_the_stop_in_place(
@@ -302,14 +295,14 @@ def test_a_successful_load_at_another_ref_leaves_the_stop_in_place(
     loader = PipelineLoader(boundaries)
     _refused(loader)
     status = boundaries.health.read()
-    lines = _log_lines(tmp_path)
+    lines = log_lines(tmp_path)
     _push(human, checkout, "other", PIPELINE_YAML.replace("attempts_cap: 2", "attempts_cap: 3"))
 
     loader.load("origin/other")
 
     assert boundaries.health.read() == status
     assert [stop.reason for stop in status.stops] == ["pipeline_definition_invalid"]
-    assert _log_lines(tmp_path) == lines
+    assert log_lines(tmp_path) == lines
 
 
 def test_an_unwritable_health_status_raises_os_error_after_the_stop_line(
@@ -320,7 +313,7 @@ def test_an_unwritable_health_status_raises_os_error_after_the_stop_line(
     with pytest.raises(OSError, match="cannot be written"):
         loader.load()
 
-    lines = _log_lines(tmp_path)
+    lines = log_lines(tmp_path)
     assert len(lines) == 1
     assert lines[0].startswith(
         f"{STAMP} stop repository pipeline_definition_invalid: agent home unavailable: "
