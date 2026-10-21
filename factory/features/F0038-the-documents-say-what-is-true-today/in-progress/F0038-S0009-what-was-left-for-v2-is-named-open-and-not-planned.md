@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T08:08:09.659271Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T08:07:48.092291Z'
   stage: tests
   run: 478480fcbc6c46f7883e4e4220924aee
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:08:09.659271Z'
+  stage: doing
 ---
 
 # What was left for v2 is named open and not planned
@@ -104,3 +113,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.8 s)
    `test`: test: green (71.3 s)
+6. factory: started doing as self.
