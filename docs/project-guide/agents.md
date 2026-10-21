@@ -300,7 +300,16 @@ Each body starts with two paragraphs: the role's boundary as one sentence, a bla
 
 `intake`'s *Stage* step 2 also asks about a smoke test command that passes pytest a `-q` the project's pytest configuration already sets (`addopts` in `pyproject.toml`, `pytest.ini`, `setup.cfg` or `tox.ini`), because at `-qq` pytest prints no summary line. `tests/test_claude_agent_texts_smoke_pytest.py` pins the sentence and that no other agent carries it.
 
-The texts come from v1 (pkrahmer/factory at `f8bc9d2`) so that the baseline run compares with v1's run on the same instructions. The words are renamed, the sentences are not rewritten in other words. Six passages are v1.1's own text and not v1's. Three are the sentence before the `reviewer`'s checklist, the checklist's sixth item and the `acceptance-reviewer`'s added sentence in its check 6, described in the `## Role` bullet above. The other three are paragraphs of the reviewer's *Role*: the `Notes:` from round 1 on and the added criterion (F0021-S0005), and the correction of a stale Description, which the reviewer rewrites when the journal, the Interface or the criteria settle it and names as `description corrected:` (F0034-S0001).
+The texts come from v1 (pkrahmer/factory at `f8bc9d2`) so that the baseline run compares with v1's run on the same instructions. The words are renamed, the sentences are not rewritten in other words. The passages below are v1.1's own text and not v1's. Every other sentence outside `## Lessons` is v1's, and an edit keeps v1's words there:
+
+- The sentence before the `reviewer`'s checklist, the checklist's sixth item *Earlier tests*, and the `acceptance-reviewer`'s added sentence in its check 6, described in the `## Role` bullet above (F0016-S0002).
+- The `reviewer`'s `Notes:` from round 1 on, and its added criterion (F0021-S0005).
+- The `reviewer`'s correction of a stale Description, which it rewrites when the journal, the Interface or the criteria settle it and names as `description corrected:` (F0034-S0001).
+- Rule R14 in every `## Rules`: the kernel refuses every other write, a refused write fails with `Permission denied` and is never retried by another route, and temporary files go only in `$TMPDIR` (F0019-S0006). F0041-S0001 took out its clause on the hook.
+- Rule R15 in every `## Rules`: a project's skills and agents are the human's files (F0022-S0002).
+- `intake`'s sentence in its *Stage* step 2 on a smoke test that passes `-q` (F0035-S0001).
+- The `acceptance-reviewer`'s comparison, in its check 7, of the Disk now line with the previous record line (F0012-S0017).
+- The `acceptance-reviewer`'s check 3 *Mutation testing*, "By sweep, not run here", and the words F0031-S0001 changed around it: check 7 ("but not `make mutants`"), the recommendation, the proposals paragraph and *Stage* steps 1 and 3, which no longer run `make mutants` or report its score (F0031-S0001).
 
 (the table of renamed words is under "Replaced from v1")
 
@@ -328,7 +337,7 @@ The template ships no forms. The story and feature forms (`factory/story-form.md
 
 ## Replaced from v1
 
-The shipped agents carry v1's texts, renamed with this table (the sentences are not rewritten in other words, except the six passages of v1.1's own text that *The seven agents* names):
+The shipped agents carry v1's texts, renamed with this table (the sentences are not rewritten in other words, except the passages of v1.1's own text that *The seven agents* lists):
 
 | v1 | v1.1 |
 |---|---|

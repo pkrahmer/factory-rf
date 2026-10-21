@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 398
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T08:17:47.336100Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:17:47.342013Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T08:18:05.059834Z'
+  stage: intake
+  run: d299f6484b2e447ab859905e28f64a33
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:18:25.792991Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T08:20:56.960160Z'
+  stage: tests
+  run: cbb687a3af784fcf870c38f6c7d699eb
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:21:17.668231Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T08:22:50.374294Z'
+  stage: doing
+  run: 3ed02e41be154e3e923b9938405047e8
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:23:11.755565Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T08:23:49.325307Z'
+  stage: review
+  run: b529dd158dfd472190bda1c01643382f
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:24:10.043630Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T08:24:51.502039Z'
+  stage: docs
+  run: 076f449d8c894b57b126f500fb98a192
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:25:12.171817Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T08:25:36.012362Z'
+  stage: smoke-test
+  run: bfe453cb32d3445d9e15c7e901d63670
+---
+
 # The project guide names every passage of v1.1's own in the shipped agents
 
 ## Description
@@ -40,3 +124,101 @@ make documents 2>&1 | tail -n 1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is right for a documents-only story. It says what the documenter changes (`docs/project-guide/agents.md` only) and how it checks the list (`git log -p 830029c9.. -- claude/agents/` and the shipped bodies). No signature is needed.
+   - Criteria: the three criteria are checkable. 1: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. 2: `make check` stays green. 3: the docs criterion names the exact sentences to replace and the nine stories that must be named. It also gives the replacement for the *Replaced from v1* phrase and ends with `documents ok`. The rule "no sentence gives a count" has its failing side in smoke test 1. The open clause "any other passage the Interface's git log shows" depends on the documenter's judgement. I accept it because the Description names the passages and the Interface gives the method.
+   - Smoke test: all four commands run as written. The `|| true` keeps the first one's exit status clean. No pytest is involved, so the `-q` rule does not apply. Each `Expect:` line can be checked against the output: `0`, nine `named:` lines, `0` followed by the docs path, and `documents ok`.
+   - Architecture: the story changes only a project-guide document. It touches no layer and no code.
+   - Scope: the story is within F0038's scope, which lists S0010 as "every passage of v1.1's own in the shipped agents". It touches only `agents.md` and none of the feature's "Out of scope" items. The feature file's note that it runs after S0004 is the human's ordering, not a problem for the story.
+4. factory: started tests as self.
+5. tester: No tests written: this story changes only the documents. The Interface is "None", and criterion 1 says nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` may change. Nothing under those paths changed.
+   - criterion 1 (nothing under src/, tests/, image/, template/, demo/ or claude/ changes): no test function. It is checked by smoke test 3, and the working tree has no change under those paths.
+   - criterion 2 (`make check` stays green): no test function. The factory's checks cover it.
+   - criterion 3 (docs, `docs/project-guide/agents.md`): no test function. The documenter's work, checked by `make documents` and smoke tests 1, 2 and 4.
+   Files created: none. Modules the test run could not import: none. `make test` is green with the existing suite (coverage 99.14 %, `test: green`), so there are no red tests for the coder this time. `make lint` is green.
+
+   `lint`: lint: green (0.7 s)
+   `test`: test: green (67.7 s)
+6. factory: started doing as self.
+7. coder: No code written. This story changes only documents. The Interface is "None", and criterion 1 says nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` may change. Nothing under those paths changed: the working tree holds only the factory's `.costs.jsonl` sidecar.
+   - `make test`: there are no failing tests. The tester wrote none, and the existing suite is green.
+   - `make check`: green (coverage 99.14 %, `check: green`).
+   - Main choice: I left `docs/project-guide/agents.md` unedited. Criterion 3 and CLAUDE.md (*Docs*) give that file to the documenter, and they keep the coder out of `docs/`. The alternative I rejected was writing the passage list now, which would take over the documenter's work.
+   - Refactor: there was no diff, so there was nothing to refactor.
+   - Description: the journal did not change the meaning of the task, so the Description stays as it is.
+   - Noticed, not touched: nothing.
+
+   `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar (`git diff --name-status main...HEAD`: `M` for the `.md`, `A` for the sidecar). Criterion 1 holds: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. The tester's entry (5) and the coder's entry (7) both say so.
+   - Criterion 2: the coder's entry (7) records `check: green` on the tree. With no code diff there is nothing for the architecture, security or quality groups to judge.
+   - Criterion 3 is the documenter's. I checked its premises against `docs/project-guide/agents.md` as it is on the branch. Line 303 holds "Six passages are v1.1's own text and not v1's." and the two sentences after it, to "... (F0034-S0001).". Line 331 holds "except the six passages of v1.1's own text that *The seven agents* names". So the criterion names sentences that exist, and the documenter can rewrite them as it says.
+   - Work item hygiene: the Description still matches what was built (nothing yet; the docs stage writes the list). The coder's entry gives the main decision, which was to leave `agents.md` to the documenter, and the alternative it rejected. The docs criterion still says what the reader must know after this story.
+   - Earlier tests: none. The diff changes no test file.
+10. factory: started docs as self.
+11. documenter: Files changed: only `docs/project-guide/agents.md`.
+    - *The seven agents*: the "Six passages ..." sentence and the two after it are now one sentence and a bullet list of every passage of v1.1's own text, each with its story. The list: the reviewer's checklist sentence, item 6 and the acceptance-reviewer's check 6 sentence (F0016-S0002); the reviewer's `Notes:` and added criterion (F0021-S0005); `description corrected:` (F0034-S0001); R14 (F0019-S0006, with F0041-S0001 taking out the hook clause); R15 (F0022-S0002); intake's `-q` sentence (F0035-S0001); the Disk now comparison in check 7 (F0012-S0017); and check 3 *Mutation testing* with the words F0031-S0001 changed (F0031-S0001). No sentence gives a count.
+    - *Replaced from v1*: "the six passages ... names" now reads "the passages ... lists".
+
+    Checked against `git log 830029c9.. -- claude/agents/` and the shipped bodies. The list needed no passage beyond the Interface's. F0024-S0003 added a mutation-score passage in `acceptance-reviewer` check 3 and a mutation-report paragraph in the reviewer. F0031-S0001 removed both, so neither is listed. F0012-S0011 and F0012-S0028 only touched `## Lessons`, which the guide already describes. F0016-S0001 also touched only `## Lessons`; the standing-leave lessons are already described in the *Lessons* bullet.
+
+    Verified: `make documents` ends with `documents ok`, and the count grep returns 0. I did not run `make check`, because I changed only a document.
+
+    Cross-read and found current: the rest of `agents.md` (the `## Role`, `## Lessons` and settings bullets, the R14 and R15 descriptions). I found no stale text I left untouched. The code and the Interface agree, so I have no findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+    `secrets`: secrets: green (0.9 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed: I ran all four commands from the repository root, as written and in order, and each output met its `Expect:` line. No findings.
+
+    1. Count grep
+    ```
+    0
+    ```
+    Met: the expected output is `0`.
+
+    2. Story ids named in `docs/project-guide/agents.md`
+    ```
+    named: F0016-S0002
+    named: F0021-S0005
+    named: F0034-S0001
+    named: F0019-S0006
+    named: F0041-S0001
+    named: F0022-S0002
+    named: F0035-S0001
+    named: F0012-S0017
+    named: F0031-S0001
+    ```
+    Met: nine `named:` lines in the expected order, and no `missing:` line.
+
+    3. Changed paths against `origin/main`
+    ```
+    0
+    docs/project-guide/agents.md
+    ```
+    Met: the expected output is two lines, `0` and `docs/project-guide/agents.md`.
+
+    4. `make documents 2>&1 | tail -n 1`
+    ```
+    documents ok
+    ```
+    Met.
+
+    Acceptance criteria read again against what the commands showed and against `git diff origin/main -- docs/project-guide/agents.md`:
+    - Criterion 1 holds: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed (command 3). The tester's entry (5) and the coder's entry (7) both say so.
+    - Criterion 2: I did not run `make check`, because this stage does not run it. The entries above record `check: green` on the tree, and nothing outside `docs/` changed since then.
+    - Criterion 3 holds:
+      - In *The seven agents*, the "Six passages …" sentence and the two after it are replaced by "The passages below are v1.1's own text and not v1's." and a list of eight bullets. Each bullet names the agent or agents, the section, what the passage says and the story that wrote it, and the list covers every passage the criterion names.
+      - In *Replaced from v1*, the text now reads "except the passages of v1.1's own text that *The seven agents* lists".
+      - A search for a number before "passage" finds nothing, so no sentence gives a count.
+      - `make documents` ends with `documents ok`.
+    - The documenter added one more sentence after the opening one: "Every other sentence outside `## Lessons` is v1's, and an edit keeps v1's words there". The criterion asks for one sentence and a list. This added sentence restates what the section already says, so I judge that it does not contradict the criterion. I did not count it as a finding.
+
+    Open: nothing.
