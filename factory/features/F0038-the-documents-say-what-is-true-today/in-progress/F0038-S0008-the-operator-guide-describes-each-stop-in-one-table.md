@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 396
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T08:00:50.736527Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T08:00:50.736527Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T08:01:27.113310Z'
+  stage: docs
+  run: b425183decab437a94614fac6a4e8924
 ---
 
 # The operator guide lists each stop in one table
@@ -167,3 +169,23 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
 10. factory: started docs as self.
+11. documenter: Files changed: `docs/operator-guide.md` only, as the docs criterion asks.
+    - *The stops you will see here* (heading and six-row table) is gone. One sentence at the end of *The health check and the restart policy* points to "The stops".
+    - "The preflight's items": a new paragraph after the items keeps the `preflight_failed` details `confinement: ...` and `the probe on main could not run: <message>`. It also keeps the missing-`sudo`-rule form `the probe on main could not run: project command lint failed: <sudo> refused the command: ...`.
+    - "The stamp and the probe of the main branch": a new bullet holds the two forms of `main_branch_failing`, `lint is red on main at <12 characters of the commit>: <last line of the output>` and `lint reached its time_limit on main at <commit>`. The existing "(probed earlier)" bullet already had its own form and is untouched.
+    - "The wait for a repository that is not ready": a list of the four `repository_unavailable` details. The first carries its hint (the clone failed, so check `FACTORY_REPOSITORY_URL` and the credentials).
+    - *The stops of the tick*: the four-row table is replaced by two paragraphs. They name the four stops and point to "The stops". They keep what the table said that *The stops* lacks: the expired or revoked token shows as `fetch_failed` and nothing is lost; the tick does not touch the checkout while `pipeline_definition_invalid` or `agent_definition_invalid` stands; what can cause `checkout_restore_failed`; the crash-and-rerun behaviour; the `chmod -R g+w <path>` repair; and the `crash_cap`.
+
+    Not changed: the fifteen-row *The stops* table and every other section. No passage cites the removed heading. The contents list at the top never named it.
+
+    Checks: `make documents` ends `documents ok`. I ran no `make check`, since only a document changed. I did not run the story's other smoke-test greps by hand.
+
+    Cross-read and found current against the story: the contents list at the top of the guide, *The stops* and its follow-on sections, and the health check text.
+
+    Findings for the coder: none. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed.
+
+    Stale text noticed and not touched: *The stops* table writes ids with hyphens (`fetch-failed`), while the removed tables and the guide's other sections use underscores. The paragraph after the table says the health status uses the same words with underscores, so this is deliberate. That the table names stops for the human, not the code, is the review's S1 question, which is the human's to decide.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
