@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 385
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T02:08:18.064279Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T02:08:18.064279Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T02:08:35.543754Z'
+  stage: intake
+  run: 1eb297bcb69044778803ba136459af33
 ---
 
 # The boundaries have no optional collaborators
@@ -100,3 +102,9 @@ Expect: one line, `0` (before the story, `1`)
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: concrete. It names `src/factory/application/boundaries.py` with the six fields and their types. It lists each removed branch by module, class and method (`CostRecorder.begin`, `DiskRecorder.record` and `last`, `AcceptanceService._disk_lines`, `KnownResults.run` and `_key`, `PatientRuns`, `StopService._record`, `StopPublisher.publish`, `TaskComposer._os_user`, `Tick._check_disk`). It gives the exact fixture and `_assemble` constructions.
+   - Criteria: criterion 1 is one parametrized test, one row per field, with the failing side (`TypeError`) and the passing side. Criterion 2 is a single test with concrete values. Criteria 3 and 4 name the existing tests that pin the other behaviours. Criterion 4's "no `None` comparison" part is checked by grep only in the smoke test. That grep covers seven modules and not `acceptance.py`; this is a small gap, but the removed `_disk_lines` branch is covered by the acceptance tests of decision 11. The `last()` rule (`None` only without a record) is kept by existing disk-recorder tests. Criterion 5 is `make check`. Criterion 6 is the docs.
+   - Smoke test: the Python snippet and the greps are runnable. Each `Expect:` line gives a checkable value (`[]` and `0`, then `0`), with the before-values stated. No pytest command is used, so the `-q` rule does not apply.
+   - Architecture: `Boundaries` stays in `factory.application`. The collaborators are existing interfaces (`DiskSpace`, `RecordLog`, `Waiter`). The test fakes and real `JsonLinesRecordLog` are used under `tmp_path`, as `CLAUDE.md` allows. `build_boundaries` and the layers are untouched.
+   - Scope: the story is within the feature's scope, which lists the same S0006 files. The earlier-test changes rest on the human's leave in decision 11, which is granted and names each of the 17 tests. `agent_home` stays optional, as decision 10 says. The `CLAUDE.md` example change is the human's separate change after the merge, not this story's.
