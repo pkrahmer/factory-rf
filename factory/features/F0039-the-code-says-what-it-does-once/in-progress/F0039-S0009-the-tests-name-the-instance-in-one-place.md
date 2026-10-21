@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 403
 comments_read: [6312436133]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T09:23:00.479530Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-21T09:23:00.479530Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-21T09:25:56.430632Z'
+  stage: doing
+  run: 92fddfdb883a46a3a84a6fcc4bd9a99e
 ---
 
 # The tests name the instance in one place
@@ -191,3 +193,20 @@ Expect: one line, `1` (before the story, `0`)
    `lint`: lint: green (0.6 s)
    `test`: test: green (67.5 s)
 9. factory: started doing as self.
+10. coder: Nothing to build. The Interface puts the guard `instance_copies` in the new test module `tests/test_shared_constants.py`, and no module under `src/factory/` changes. The tester already moved the constant and wrote the guard, so I changed no file.
+
+    What I checked:
+    - `make check`: green (`test: green (66.5 s)`, coverage 99.14 %, `check: green`).
+    - `git diff main -- src` is empty.
+    - The smoke test's grep lists only `tests/stage_run_support.py`.
+
+    Main choice: leave the tests and the docs untouched. The alternative I rejected was adding anything under `src/factory/` to give the coder a part, because the Interface says no module there changes.
+
+    Refactor step: no diff of mine, so nothing to refactor. The journal did not change the task's meaning beyond what intake already wrote into the Description (the collect-only comparison is a check on the work, and the criteria were renumbered). The `## Description` stays as it is.
+
+    Noticed and not touched:
+    - The `ENVIRONMENT` constants are still copied across about twenty modules. The Description leaves them to a later story.
+    - The docs criterion (`docs/project-guide/README.md`, *Shared test helpers*) is the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 38 known, 0 gone
