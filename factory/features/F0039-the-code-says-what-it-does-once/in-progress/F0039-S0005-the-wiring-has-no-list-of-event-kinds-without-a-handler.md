@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 384
 comments_read: [6306079635]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T01:55:51.349620Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-21T01:55:51.349620Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-21T01:56:06.453717Z'
+  stage: intake
+  run: fe35aa9fceec4cf7b8262c655861bb80
 ---
 
 # The wiring has no list of event kinds without a handler
@@ -67,7 +69,7 @@ Tests (the tester changes them first, under the feature's decision 7; each test 
 
 1. `factory.entry.wiring` no longer offers the constant (rows of one parametrized test): `hasattr(factory.entry.wiring, "NOT_YET_HANDLED")` is `False`, and `"NOT_YET_HANDLED"` is not in `factory.entry.wiring.__all__`; each of the 23 other names of `__all__` on `main` of 2026-10-20 (`CREDENTIAL_HELPER`, `agent_environment`, `agent_run_environment`, `boundaries_from_environment`, `build_bill_service`, `build_boundaries`, `build_handlers`, `build_preflight`, `build_tick`, `build_work_item_reader`, `git_environment`, `git_options`, `handler_factory`, `health_store`, `leftovers_command`, `machine_extras`, `machine_log`, `production_environment`, `project_command_environment`, `read_environment_settings`, `read_hosting_token`, `repository_name`, `system_clock`) is still in it and an attribute of the module; a name another story adds to `__all__` after that needs no row.
 2. A kind without a handler is still caught: `test_every_kind_has_a_handler_and_acceptance_due_opens_the_acceptance` passes, and with the `acceptance_due` handler left out of the mapping, the same comparison `set(handlers) == set(get_args(EventKind))` is `False` and `unhandled_kinds(handlers)` is `["acceptance_due"]` (rows of one parametrized test in `tests/entry/test_wiring_constants.py`: the built mapping, and the built mapping without `acceptance_due`).
-3. The changed tests keep what they check: `test_crash_is_handled`, `test_expired_shares_the_crash_handler`, the other tests of the five modules and `tests/application/test_dispatcher.py` pass, and no module under `tests/` names `NOT_YET_HANDLED`.
+3. The changed tests keep what they check: `test_crash_is_handled`, `test_expired_shares_the_crash_handler`, the other tests of the five modules and `tests/application/test_dispatcher.py` pass, and no module under `tests/` except `tests/entry/test_wiring_constants.py` names `NOT_YET_HANDLED`.
 4. `make check` stays green.
 5. docs: `docs/project-guide/watching.md`, the paragraph on `NOT_YET_HANDLED`: removed; in its place one sentence that every `EventKind` has a handler in `build_handlers`, that a new kind adds its handler there, that `test_every_kind_has_a_handler_and_acceptance_due_opens_the_acceptance` fails until it does, and that the dispatcher counts an event of a kind without a handler as an error (`UnhandledEvent`). `docs/operator-guide.md`, the sentence that names `NOT_YET_HANDLED` as empty: "every kind of event has a handler" stays, the clause on `NOT_YET_HANDLED` goes. `docs/decisions.md`, the entry *The handlers are built from the loaded definition on every tick, and a constant lists the kinds still unhandled*: one line, dated with the story, that the constant was removed once every kind had a handler, because the comparison of the handlers' keys with every kind catches a new kind without it. `README.md`: none.
 
@@ -77,7 +79,7 @@ Tests (the tester changes them first, under the feature's decision 7; each test 
 uv run python -c 'import factory.entry.wiring as w; print(hasattr(w, "NOT_YET_HANDLED"), "NOT_YET_HANDLED" in w.__all__)'
 grep -rl --include='*.py' 'NOT_YET_HANDLED' src tests | wc -l
 ```
-Expect: two lines, `False False` and `0` (before the story, `True True` and `6`)
+Expect: two lines, `False False` and `1` (before the story, `True True` and `6`)
 
 ## Journal
 
@@ -99,3 +101,9 @@ Expect: two lines, `False False` and `0` (before the story, `True True` and `6`)
    - The test changes are covered by decision 7, which the human granted.
 4. 2026-10-21 human: Answer (2026-10-21): (a). Criterion 3 reads "no module under `tests/` except `tests/entry/test_wiring_constants.py` names `NOT_YET_HANDLED`", and the smoke test expects `1` (before the story, `6`).
 5. factory: started intake as self.
+6. intake: accepted. The human's answer (a) in journal entry 4 is carried in: criterion 3 now reads "no module under `tests/` except `tests/entry/test_wiring_constants.py` names `NOT_YET_HANDLED`", and the smoke test's `Expect:` line now says `False False` and `1` (before the story, `True True` and `6`). That is the only change to the story.
+   - Interface: concrete. It names one module, `src/factory/entry/wiring.py`, and one removal (the constant, its comment and its `__all__` entry). It names each of the five tests to change with the exact lines and the new names, and the new module `tests/entry/test_wiring_constants.py`.
+   - Criteria: each is testable by one test function, or by one parametrized test where the story says so. Criterion 1 has rows for the removed name and for each of the 23 others. Criterion 2 covers both sides of the handler-coverage rule: the built mapping, and the mapping without `acceptance_due`, which gives `["acceptance_due"]`. Criterion 3 keeps the changed tests' checks. Criteria 4 and 5 are the two closing ones. The Interface states no behaviour beyond the removal.
+   - Smoke test: both commands run. The `Expect:` line is now consistent with criterion 3. It does not run pytest, so the `-q` rule does not apply.
+   - Architecture: respected. `factory.entry.wiring` only loses a constant, and no layer or interface changes.
+   - Scope: within F0039's scope for S0005. `unhandled_kinds`, `UnhandledEvent` and the duplicates baseline line stay, as the feature's Out of scope says. The test changes are covered by the feature's decision 7, which the human granted.
