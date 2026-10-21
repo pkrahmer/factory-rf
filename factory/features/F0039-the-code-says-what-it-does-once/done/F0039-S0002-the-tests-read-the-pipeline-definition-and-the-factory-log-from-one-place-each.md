@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-21T01:05:01.146117Z'
   stage: smoke-test
   run: 5e25b9757db74d6396d914453d56a061
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-21T01:06:20.712895Z'
+  stage: approval
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -456,3 +461,4 @@ Expect: one line, `1` (before the story, `0`)
     The smoke test did not cover two criteria: criterion 4 (that test ids are the same before and after across the twenty modules) and criterion 6 (`make check`). I did not run either; the factory runs the stage's checks itself.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 9.6 min, 70 turns, 224614 tokens in (1430984 more from cache), 25569 out, $2.36
