@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T08:47:10.685636Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-21T08:47:10.685636Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T08:47:57.776677Z'
+  stage: review
+  run: f384846cc1874235a7e37f1057a32d89
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -210,3 +212,9 @@ Expect: one line, `1` (before the story, `0`)
     `check`: check: green
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
 11. factory: started review as self.
+12. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (tests/test_shared_bodies.py new, tests/application/handlers/test_reject.py changed) against the work item. Criteria 1, 2, 3 and 5 each have a parametrized test (or a single test for criterion 3), and each test checks what its criterion says. Criterion 2's rows cover both sides of the body rule: another name, a docstring, a decorator, no annotations, one more statement, a method in a class, a name alone. Criterion 4: the diff renames and removes no test function in test_reject.py. Only the helper `_branch_document` goes, and its two calls now go to `remote_document`. The coder's `make check` was green (entry 10). Architecture, security and the Description: nothing to report. No `src/` change, no suppression markers, and the Description matches what was built.
+
+    1. tests/test_shared_bodies.py:23 `_functions` is a verbatim second copy of `_functions` at tests/test_shared_definition.py:18. The docstring skip in `body_of` (tests/test_shared_bodies.py:30-34) also repeats `_without_docstring` at tests/test_shared_definition.py:22. Fix: under the standing leave, the tester moves `_functions` and `_without_docstring` to one shared module at the `tests/` root. `test_shared_definition.py` and `test_shared_bodies.py` then import them from there, `body_of` uses `_without_docstring`'s shared form, and every earlier test keeps its name and what it checks. This is a quality point in a test file the diff adds, so it is a finding only because this is round 0.
+
+    Earlier tests:
+    - tests/application/handlers/test_reject.py: the standing leave to move a shared test helper. `_branch_document`, a copy of `branch_reading.remote_document`, was removed and its calls use the shared helper. Every test keeps its name and checks the same thing.
