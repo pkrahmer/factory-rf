@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 396
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T08:00:02.964507Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-21T07:59:41.744625Z'
   stage: doing
   run: e78567894a6b47e5a7cf7ff95afa0665
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:00:02.964507Z'
+  stage: review
 ---
 
 # The operator guide lists each stop in one table
@@ -128,3 +137,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
+8. factory: started review as self.
