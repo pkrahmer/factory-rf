@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 398
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T08:24:10.043630Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T08:24:10.043630Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T08:24:51.502039Z'
+  stage: docs
+  run: 076f449d8c894b57b126f500fb98a192
 ---
 
 # The project guide names every passage of v1.1's own in the shipped agents
@@ -149,3 +151,16 @@ Expect: `documents ok`
    - Work item hygiene: the Description still matches what was built (nothing yet; the docs stage writes the list). The coder's entry gives the main decision, which was to leave `agents.md` to the documenter, and the alternative it rejected. The docs criterion still says what the reader must know after this story.
    - Earlier tests: none. The diff changes no test file.
 10. factory: started docs as self.
+11. documenter: Files changed: only `docs/project-guide/agents.md`.
+    - *The seven agents*: the "Six passages ..." sentence and the two after it are now one sentence and a bullet list of every passage of v1.1's own text, each with its story. The list: the reviewer's checklist sentence, item 6 and the acceptance-reviewer's check 6 sentence (F0016-S0002); the reviewer's `Notes:` and added criterion (F0021-S0005); `description corrected:` (F0034-S0001); R14 (F0019-S0006, with F0041-S0001 taking out the hook clause); R15 (F0022-S0002); intake's `-q` sentence (F0035-S0001); the Disk now comparison in check 7 (F0012-S0017); and check 3 *Mutation testing* with the words F0031-S0001 changed (F0031-S0001). No sentence gives a count.
+    - *Replaced from v1*: "the six passages ... names" now reads "the passages ... lists".
+
+    Checked against `git log 830029c9.. -- claude/agents/` and the shipped bodies. The list needed no passage beyond the Interface's. F0024-S0003 added a mutation-score passage in `acceptance-reviewer` check 3 and a mutation-report paragraph in the reviewer. F0031-S0001 removed both, so neither is listed. F0012-S0011 and F0012-S0028 only touched `## Lessons`, which the guide already describes. F0016-S0001 also touched only `## Lessons`; the standing-leave lessons are already described in the *Lessons* bullet.
+
+    Verified: `make documents` ends with `documents ok`, and the count grep returns 0. I did not run `make check`, because I changed only a document.
+
+    Cross-read and found current: the rest of `agents.md` (the `## Role`, `## Lessons` and settings bullets, the R14 and R15 descriptions). I found no stale text I left untouched. The code and the Interface agree, so I have no findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+    `secrets`: secrets: green (0.9 s)
+    `documents`: documents ok
