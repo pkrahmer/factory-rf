@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T00:33:57.786833Z'
   stage: smoke-test
   run: a1636b05399d4b10b2f598022ddbef88
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T00:35:17.538546Z'
+  stage: approval
 ---
 
 # The runtimes read the end of a call in one place
@@ -267,3 +272,4 @@ Expect: four lines, `True`, `False`, `/opt/factory/bin/factory-confine refused t
     Criteria check: the output matches criterion 1 (the row with user `agent`, status 137 and duration equal to the limit gives `True`; the row with status 0 gives `False`). It matches criterion 2 (the `factory-confine` row with a printed reply and status 137 raises with the stated `detail`). It matches criterion 3 exactly. It contradicts no criterion. Criteria 4 to 6 (earlier tests unchanged, `make check`, docs) are outside what this smoke test exercises; the factory's checks cover `make check`.
 
     Findings: none. Nothing was fixed or changed.
+14. factory: done (pull request merged); cost: 6 runs, 5.5 min, 42 turns, 151569 tokens in (893535 more from cache), 17121 out, $1.47
