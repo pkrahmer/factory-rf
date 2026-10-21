@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 393
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T07:25:09.675925Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T07:24:49.123567Z'
   stage: intake
   run: d4d5f60cafb242b0bb5e0079f8f745d0
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:25:09.675925Z'
+  stage: tests
 ---
 
 # The decision log marks two superseded entries, the removal of `factory/v1/`, and where its codes come from
@@ -79,3 +88,4 @@ Expect: `documents ok`
    - Smoke test: the commands are runnable and each `Expect:` is checkable. The `sed` ranges end at the `^The acceptance reviewer` line (line 15) and at `^Date:` (line 345), and both exist. The expected counts follow from the criteria: `1`, `1`, `2` (two lines match), then one heading each. No pytest command is involved, so there is no `-q` issue.
    - Architecture: this is a documents-only change to the decision log, which the documenter keeps. Nothing touches the layers, the wrappers or the interfaces.
    - Scope: it matches `feature.md`, whose scope lists S0005 with findings H7, M12 and M6 for `docs/decisions.md`. It leaves out the mutation entries after *Mutation testing is limited to one feature's modules*, which are F0032's, and the S0009 items. It changes no test of another story.
+4. factory: started tests as self.
