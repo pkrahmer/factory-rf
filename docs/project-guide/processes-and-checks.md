@@ -45,7 +45,7 @@ Tests: `tests/application/test_sealed_project_commands.py` (a real clone and a r
 
 - `time_limit` of zero or less raises `ValueError`.
 - `command` must match `^[a-z][a-z0-9-]*$`, checked with a full match. Otherwise `ProjectCommandError` is raised before anything is started. So is an `executable` that cannot be started; the detail is the operating system's message.
-- The exit status is the only judgment. 0 is `"passed"`, any other is `"failed"`, and a command ended by the `time_limit` is `"time_limit"` with `exit_status` `None`; every process of its session is killed. GNU make, not the recipe, sets the status: it exits 2 whenever a recipe fails, whatever status the recipe's command had, and when the target is missing. A missing target is therefore a failed command, not an error.
+- The exit status is the only judgment. 0 is `"passed"`, any other is `"failed"`, and a command ended by the `time_limit` is `"time_limit"` with `exit_status` `None`; without a user, every process of its session is killed; with a user, the user's own `timeout` kills `make`'s process group, and the leftovers program ends what left it (see *Running as another user*). GNU make, not the recipe, sets the status: it exits 2 whenever a recipe fails, whatever status the recipe's command had, and when the target is missing. A missing target is therefore a failed command, not an error.
 - `output_tail` is the last 30 lines (`OUTPUT_TAIL_LINES`) of the merged output, in the order written; all of it when shorter.
 - `last_line` is the last line that is not blank and does not start with `make:` or `make[` (make's own messages); `""` when there is none.
 - `duration` is the time the command ran.

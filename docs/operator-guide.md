@@ -238,6 +238,10 @@ Which login is in force: the cost record of each run has the field `login`, whic
 | The agent cannot rewrite its settings | `docker exec -u agent <container> sh -c 'echo x >> /home/agent/.claude/settings.json'` | refused (`Permission denied`) |
 | The factory's restore after an agent-made directory | after the line above, `docker exec <container> sh -c 'cd /work/checkout && git clean -fd && git status --short'` | the directory is gone, no error |
 | The home is fresh | after a run that ended with a question (no checks follow it): `docker exec <container> ls -A /home/agent/.claude`; after a forward move and its checks: the same command | after the question: only the factory's files, the kept login and what that one run made; after the checks: only the factory's files and the kept login |
+| A project command runs as `agent` | `docker exec <container> ps -o user,args -C make` while a stage's check runs | every line after the header shows `agent`, and none shows `factory` |
+| The home is reset | `docker exec <container> tail -n 50 /state/factory.log` after the first stage run after a rebuild | no `cannot reset the agent's home`, and the run passes |
+| The shared `.venv` stays writable | `docker exec <container> find /work/checkout/.venv -maxdepth 3 ! -perm -g+w` after a check that synced it | nothing printed |
+| A check at its limit leaves no process | `docker exec <container> ps -o user,pid,args -U agent` after a check that reached its time limit | only the header (the user's `timeout` ended its group, and the leftovers program ended the rest) |
 | A refused `sudo` | `docker exec <container> sudo -n -u root id` | `sudo: a password is required`; the rule allows only `agent` |
 | The agent's git trusts the checkout | `docker exec -u agent <container> git -C /work/checkout status --short` | no `dubious ownership`; the status, or nothing on a clean checkout |
 | WE3.4: it cannot push | `docker exec -u agent <container> git -C /work/checkout push origin main` | no push; git fails with `could not read Username`, because there is no credential |
