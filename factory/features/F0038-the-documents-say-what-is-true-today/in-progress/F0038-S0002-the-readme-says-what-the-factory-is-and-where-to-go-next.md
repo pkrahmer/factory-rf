@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 389
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T06:52:50.769661Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T06:52:30.055046Z'
   stage: tests
   run: 2367ddd6981d47c2a53aecdb686d3aba
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:52:50.769661Z'
+  stage: doing
 ---
 
 # The README says what the factory is, that an instance runs in the container, and where to go next
@@ -100,3 +109,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.6 s)
    `test`: test: green (59.5 s)
+6. factory: started doing as self.
