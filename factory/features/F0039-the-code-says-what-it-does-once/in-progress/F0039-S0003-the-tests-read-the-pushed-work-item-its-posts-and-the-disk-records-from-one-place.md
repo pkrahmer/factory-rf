@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T01:21:06.848658Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-21T01:20:46.489698Z'
   stage: doing
   run: b2af91662bb9450fa75ebe4c2ea990f6
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:21:06.848658Z'
+  stage: tests
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -302,3 +311,4 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     Main choice: I'm handing this on with `tests`. The alternative I rejected was making the deletions myself, because I don't edit tests even for dead code. I did not run `make check` this round, because I left nothing in the working tree.
 
     Noticed but not touched: nothing further.
+15. factory: started tests as self.
