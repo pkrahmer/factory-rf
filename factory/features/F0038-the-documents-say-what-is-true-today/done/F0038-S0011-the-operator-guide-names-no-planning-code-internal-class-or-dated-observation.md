@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T09:05:56.153239Z'
   stage: smoke-test
   run: 625e5966af134c85bd38a0fef2b3e532
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T09:07:16.327243Z'
+  stage: approval
 ---
 
 # The operator guide names no planning code, internal class or dated observation
@@ -219,3 +224,4 @@ Expect: `documents ok`
       No other passage of the guide changed.
 
     Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 2.9 min, 26 turns, 91809 tokens in (346794 more from cache), 5837 out, $0.75
