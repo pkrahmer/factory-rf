@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 396
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T07:55:07.960454Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T07:55:07.960454Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T07:55:36.253315Z'
+  stage: intake
+  run: 7cf5413a4e934e369ddc48c2d6562b0c
 ---
 
 # The operator guide lists each stop in one table
@@ -72,3 +74,14 @@ Expect: `documents ok`
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is correct for a documents-only story. It names the one file the documenter changes (`docs/operator-guide.md`) and states that nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. There are no signatures to judge.
+   - Criteria: each one is checkable by one test or check.
+     - Criterion 1 is the empty `git diff` over the code paths.
+     - Criterion 2 is `make check`.
+     - Criterion 3 is a set of checkable text facts. The old headings and the "As there." rows are gone. The named detail forms and the `chmod -R g+w <path>` repair are present. The sentence about the tick not touching the checkout is kept. The fifteen-row table is unchanged. `make documents` ends with `documents ok`.
+     - The failing side of each rule is covered. The old table and the old heading must be absent, and no passage may cite the removed heading.
+     - The moves of the detail forms name their target sections: "The preflight's items", "The stamp and the probe of the main branch", "The wait for a repository that is not ready". I confirmed all three exist in the guide at lines 515, 548 and 562.
+   - Smoke test: the commands are runnable grep, git and make commands, and each `Expect:` line is checkable. The first `grep -c` counts both old `| Stop | Meaning | What to do |` tables (lines 506 and 927) plus the old heading and the "As there." rows. The `0` therefore needs both tables gone, and the `1` pins the surviving *The stops* table (line 720). No pytest is run, so the `-q` concern does not apply.
+   - Architecture: this is docs only and touches no layer. The edit stays within the documenter's write paths (`docs/*`).
+   - Scope: the story is within F0038's scope, "the stop tables (S0008; M1)". The review's proposals S1 and S2 are left to the human, as the feature's Out of scope requires. Decision 8 of the feature (move the detail forms, do not drop them) is covered by criterion 3. I did not check that the guide's exact wording matches the quoted detail forms. The documenter and the smoke test will show that.
