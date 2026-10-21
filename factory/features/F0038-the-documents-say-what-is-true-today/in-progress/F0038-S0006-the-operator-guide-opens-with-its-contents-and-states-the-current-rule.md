@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 394
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T07:40:24.795970Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T07:40:24.795970Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T07:40:53.102611Z'
+  stage: smoke-test
+  run: 6580e5e1ce14495b8285c410fac952d1
 ---
 
 # The operator guide opens with its contents and states the current rule without its history
@@ -214,3 +216,46 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed: I ran all four commands from the repository root, exactly as written and in order. Each one met its `Expect:` line, and none contradicts an acceptance criterion. I fixed nothing.
+
+    1. History grep and `### The init` count. **Met** (expected two lines, `0` and `1`).
+    ```
+    0
+    1
+    ```
+
+    2. Contents list and opening length. **Met** (expected `True True`).
+    ```
+    True True
+    ```
+
+    3. Paths changed against `origin/main`. **Met** (expected `0` and `docs/operator-guide.md`).
+    ```
+    0
+    docs/operator-guide.md
+    ```
+
+    4. `make documents 2>&1 | tail -n 1`. **Met** (expected `documents ok`).
+    ```
+    documents ok
+    ```
+
+    Cross-check against the acceptance criteria:
+    - Criterion 1 holds: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed (command 3). The tester and the coder each said so in entries 5 and 7.
+    - Criterion 2: I did not run `make check`, because it is the factory's gate. Entry 7 records it as green, and this branch changes only a document.
+    - Criterion 3:
+      - Line 3 of `docs/operator-guide.md` holds the opening paragraph word for word, and the contents list follows it.
+      - I compared the guide's headings with those on `origin/main`. The only difference is the added `### The init`, at line 477. It sits inside `## The container: compose, entrypoint and health check` (line 429), directly above "The service sets `init: true`" (line 479) and before `### The health check and the restart policy` (line 492).
+      - Each of these replacement sentences now appears exactly once:
+        - "Without it the shell is started as …"
+        - "… is a death."
+        - "… clears the stop."
+        - "… run as the factory's user."
+        - "The pin changes only when you edit the Dockerfile."
+        - "Not yet checked on a running instance: …"
+      - These are gone: "A probe of 2026-10-17 read the token", "pile up as before", the `WE3.x:` prefixes in the table, and the inventory paragraph.
+      - The diff against `origin/main` holds no change outside the criterion's list.
+
+    Findings: none.
+
+    Open: none for this story. Entry 11 says other dated observations remain in the guide; the criterion does not list them.
