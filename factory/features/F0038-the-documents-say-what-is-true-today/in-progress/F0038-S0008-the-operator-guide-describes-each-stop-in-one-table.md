@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 396
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T08:00:50.736527Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T08:00:29.356580Z'
   stage: review
   run: 1a3518573eaa4386bbe56582dc89ecdc
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:00:50.736527Z'
+  stage: docs
 ---
 
 # The operator guide lists each stop in one table
@@ -157,3 +166,4 @@ Expect: `documents ok`
    - Work item hygiene: the Description still matches the task, since nothing has been built yet beyond the documents the documenter writes. The docs criterion says exactly what the reader must know after this story.
 
    Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
+10. factory: started docs as self.
