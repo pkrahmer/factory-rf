@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 383
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T01:42:45.381233Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T01:42:45.381233Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T01:43:03.415905Z'
+  stage: intake
+  run: b0f2cf94fc2a4dab8905066f5ceed1cc
 ---
 
 # The tick's docstrings and the checkout preparer say what the code does
@@ -73,3 +75,9 @@ Expect: one line, `False True <class 'NoneType'> <class 'bool'>` (before the sto
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: concrete. It names `src/factory/application/tick.py` (docstrings of `Tick` and `Tick.run`) and `src/factory/application/scheduler.py` (`CheckoutPreparer.prepare(self) -> None`, with its docstring). The words match the code I read: `Tick` says "nothing local is read", `prepare` is `-> bool` with "always `True`", and `RepositoryWaiter.prepare` stays `-> bool`. The seven earlier tests are named by module and function, with the human's leave in the feature's decision 6.
+   Criteria: each can be tested by one function. Criterion 1 is the three docstrings, compared exactly after joining whitespace, as rows of one parametrized test. Criterion 2 is the two return types, read with `get_type_hints`. Criterion 3 is that the unchanged tests still pass. Criterion 4 is `make check`; criterion 5 is `docs:`. The story has no rule with a failing side. Every behaviour in the Interface has a criterion, including the unchanged `RepositoryWaiter.prepare -> bool`.
+   Smoke test: the one-line `python -c` command is runnable and uses no pytest. Its `Expect:` line gives the exact output, `False True <class 'NoneType'> <class 'bool'>`, with the pre-story output as a contrast.
+   Architecture: the change is inside `factory.application`, with no new import, layer or dependency. It changes docstrings and one return type. Nothing is added to `Boundaries`.
+   Scope: it stays within the feature's S0004 line. The `Tick` and `Tick.run` docstrings, `CheckoutPreparer.prepare -> None` and the seven tests all appear in the feature's Scope and decision 6. None of the feature's Out of scope items is touched.
