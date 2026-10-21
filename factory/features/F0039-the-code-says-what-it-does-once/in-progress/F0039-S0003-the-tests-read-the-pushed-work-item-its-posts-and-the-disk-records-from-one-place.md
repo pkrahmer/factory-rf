@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 382
-comments_read: []
+comments_read: [6305445672]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 718b4ae212f04313963dcd613e8c5d46
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-21T01:08:17.124593Z'
+  stage: intake
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -136,3 +141,6 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
    2. Criterion 1 expects the copies of `pushed` and `pushed_state` to be exactly `["stage_run_support.py"]`. That holds only if `Boundaries` and `Path` are annotated in the same spelling in every copy, because the guard compares `ast.unparse` text. This is probably fine, since criterion 2 pins the spelling. Please confirm that the earlier `_pushed_state(boundaries, path: str)` of `test_stage_run_acceptance.py` is the only variant left, so the "exactly" list is not broken by a variant that has the same parameters but another body.
 
    Everything else I checked is in order. Both closing criteria are present. The Interface names concrete files and signatures. Criteria 3 and 4 are testable, and the smoke commands are runnable (the pytest line passes no `-q`). The scope matches `feature.md` S0003. I confirmed with grep that the `records` copies exist in the four modules named, with the `conftest.py` one as the shared fixture.
+4. 2026-10-21 human: Answers (2026-10-21):
+   1. The guard's function names and signatures are the tester's choice; the criteria fix only what the guard finds. Your suggestion (`helper_copies(source)`, `record_fixture_copies(source)` and a `copies_by_module(root)` for criterion 1) is a good one, and the tester may take it.
+   2. Confirmed on `main` (grep of `def _?pushed` and `def _?pushed_state` under `tests/`): besides the copies with `(boundaries: Boundaries, remote: Path)`, only two variants remain, `test_stage_run_acceptance.py`'s `_pushed_state(boundaries: Boundaries, path: str)` and `test_approval_description.py`'s `_pushed(world: World, work_item: WorkItemId)`; both differ in their parameters, so the guard does not count them. Every remaining copy spells `Boundaries` and `Path` the same way.
