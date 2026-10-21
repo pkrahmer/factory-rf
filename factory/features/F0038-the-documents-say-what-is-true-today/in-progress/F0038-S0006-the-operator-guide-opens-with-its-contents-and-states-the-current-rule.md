@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 394
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T07:38:21.227590Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T07:38:21.227590Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T07:38:53.640303Z'
+  stage: review
+  run: 2fd7caa671cf437b97d4e3074e139d2b
 ---
 
 # The operator guide opens with its contents and states the current rule without its history
@@ -152,3 +154,16 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar. Criterion 1 holds: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed, and the tester and the coder each say so in entries 5 and 7.
+   - Criterion 2: the factory's `make check` after the coder was green (entry 7: `check: green`, `duplicates: 0 new, 38 known, 0 gone`).
+   - Criterion 3 (docs): I checked that the documenter can carry it out as written against the current `docs/operator-guide.md`.
+     - Every quoted passage is in the guide: lines 3, 7, 13, 117, 227, 231–248 (`WE3.1`, `WE3.3`, `WE3.4`), 255, 305, 352, 367, 409, 430, 435, 437, 460, 515, 528, 668, 757, 1421 and 1503.
+     - The smoke test's grep for `as before`, `probe of 2026-10-17`, `orning observation` and `tiny story` finds no occurrence outside the listed replacements.
+     - The section the new opening cites, `## The machine's image`, exists (line 332).
+     - `### The init` would sit inside `## The container: compose, entrypoint and health check` (line 389), between `### The hosting-service token` (405) and `### The health check and the restart policy` (450).
+     - The replacement for "the five of before" matches `login_argv` in `src/factory/adapters/agent_launch.py:120-130`: without an API file it returns `/bin/sh`, `-c`, the script, `factory-login` and the token-file word.
+   - Description, Interface and criteria agree. The journal states the main choice: the coder left the guide to the docs stage, and entry 7 gives the reason.
+
+   Earlier tests: none. The diff changes no test file.
