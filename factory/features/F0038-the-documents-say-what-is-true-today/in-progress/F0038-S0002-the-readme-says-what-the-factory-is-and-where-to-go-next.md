@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 389
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T06:50:29.392556Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:50:29.398040Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T06:50:50.064067Z'
+  stage: intake
+  run: fcfe2a9acb51425c9276df4f839ee796
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:51:10.904717Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T06:52:30.055046Z'
+  stage: tests
+  run: 2367ddd6981d47c2a53aecdb686d3aba
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:52:50.769661Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T06:54:16.536185Z'
+  stage: doing
+  run: 11d4eb8f4aa14136b899c46c167ec43c
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:54:37.872369Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T06:54:57.130651Z'
+  stage: review
+  run: 9049f402dce24d87871a411996c963fc
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:55:17.843498Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T06:55:38.015875Z'
+  stage: docs
+  run: a2caa5527c89446eb8bce2530d17cb4e
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:55:58.739118Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T06:56:26.467474Z'
+  stage: smoke-test
+  run: 16ce8d6d99f94ae5ae3170f5ea5c1e43
+---
+
 # The README says what the factory is, that an instance runs in the container, and where to go next
 
 ## Description
@@ -40,3 +124,108 @@ make documents 2>&1 | tail -n 1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is right for a documents-only story. Nothing changes under `src/`, tests, image, template, demo or agent files, and criterion 1 pins that. The six console commands in the table match the six scripts in `pyproject.toml`.
+   - Criteria: each is checkable by a command or a grep. These are the exact paragraph text, the forbidden words, the six table rows in order, the container sentence, "six console commands", the playbook bullet and `documents ok`. The failing side is covered by the first smoke test: the forbidden phrases, "seven console commands" and `factory-guard` must count 0. The first paragraph is line 3 of README.md, so the length check at `NR == 3` is valid. Every Description behaviour has a criterion.
+   - Smoke test: the commands are runnable. No command runs pytest, so the `-q` rule does not apply. Each `Expect:` line is concrete: 0, 6, 2 and 1; then 0 and `README.md`; then `documents ok`. The target section "The container: compose, entrypoint and health check" exists in `docs/operator-guide.md`.
+   - Architecture: no layer is touched. The story only edits `README.md`, which the documenter writes and `CLAUDE.md`'s *Docs* section assigns to it.
+   - Scope: it matches feature.md's Scope line for S0002 (H2, M10, M11). It leaves out the README rewrite (S3, structural proposal), which feature.md puts out of scope.
+4. factory: started tests as self.
+5. tester: I wrote no tests. This story only changes documents, and criterion 1 forbids any change under `tests/`.
+   - criterion 1 (nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes): no test function, because a test would itself break the criterion. I changed nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. `git status` shows only the factory's own `.costs.jsonl` sidecar.
+   - criterion 2 (`make check` stays green): no test function. The factory's check gate covers it.
+   - criterion 3 (docs: `README.md`): no test function. It is the documenter's criterion. The smoke test's greps and `make documents` check it.
+   Files I created: none. Modules the test runner could not import: none, because there are no new tests.
+   I did not run `make test` (step 2): with no new tests, nothing could fail for the right reason. The suite is the same as on `origin/main`, and the factory runs it after this stage. `make lint`: green (0.6 s).
+   I rejected one option: a structural test that reads `README.md` for the required text. It would add a file under `tests/`, which criterion 1 forbids, and the smoke test already covers the same checks.
+
+   `lint`: lint: green (0.6 s)
+   `test`: test: green (59.5 s)
+6. factory: started doing as self.
+7. coder: I built nothing: no path changed. This story changes documents only. The Interface is "None", and criterion 1 forbids any change under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The tester wrote no tests, so `make test` has no failing test to specify work.
+      - criterion 1: I changed nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. `git status --short` shows only the factory's own `.costs.jsonl` sidecar.
+      - criterion 2: `make check` ran in the foreground and ended with `check: green` (test: green, coverage 99.14 %).
+      - criterion 3 (`README.md`): left for the documenter. `CLAUDE.md` *Docs* says the documenter stage keeps `README.md` true and the coder does not write it.
+      Main choice: hand the story forward with no change and leave `README.md` to the docs stage. I rejected editing `README.md` here, even though it would be quick: that would take over the documenter's work and go against the work item's Interface ("The documenter changes only `README.md`").
+      Refactor: there is no diff to refactor. The journal did not change the meaning of the task, so `## Description` is unchanged.
+      Noticed, not touched: nothing.
+
+   `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar, which are the factory's files. Criterion 1 holds: nothing changed under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`.
+   - Criterion 2: journal entry 7 records `check: green` after the coder, on the tree already passed at the factory's earlier run.
+   - Criterion 3 is the documenter's. I checked that it is true against the repository:
+     - `README.md:14` begins "Beside the seven console commands".
+     - `pyproject.toml` `[project.scripts]` lists exactly the six commands named for the table: run, check-story, bill, watch, health, confine.
+     - `docs/operator-guide.md:389` holds the section *The container: compose, entrypoint and health check* that the container sentence names.
+     - `docs/operator-playbook.md` exists.
+   - The Description matches what was built: nothing yet, since the README is the docs stage's work. The coder's journal explains why they left `README.md` to the documenter.
+   - Earlier tests: none changed. The diff holds no test file.
+10. factory: started docs as self.
+11. documenter: Changed `README.md` only, as criterion 3 asks:
+    - First paragraph replaced with the exact text of the criterion. The build inventory, "under construction", "groundwork" and the probe and first-start observations are gone.
+    - *Getting started*: the code block and the `check: green` sentence stay. The long paragraph on commands and exit statuses became one sentence pointing to *The container: compose, entrypoint and health check* in `docs/operator-guide.md`, followed by a six-row table (`| Command | What it does |`) with no exit status in it.
+    - "Beside the seven console commands" now reads "Beside the six console commands"; the rest of that paragraph is unchanged.
+    - *Where to look next*: added the `docs/operator-playbook.md` bullet after the `docs/decisions.md` bullet.
+
+    Checks run:
+    - The forbidden-phrase grep counts 0 and the table-row grep counts 6.
+    - `make documents` ended with `documents ok`.
+    - I did not run `make check`: only a document changed, and the factory checks right after this stage.
+
+    Cross-read:
+    - `docs/operator-guide.md` has the section the container sentence names, and `docs/operator-playbook.md` exists.
+    - The six commands in the table match the six console scripts in `pyproject.toml` `[project.scripts]`.
+    - *How it is built* and *Replaced from v1* were left as they are, as the story says.
+
+    No findings, and no code or docs contradict each other. I saw no unrelated stale text and left no note.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
+    `secrets`: secrets: green (0.7 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed, with no findings. I ran all three commands from the repository root exactly as written, in order.
+
+    Command 1 (forbidden phrases, table rows, playbook bullet and container sentence, length of the first paragraph):
+    ```
+    0
+    6
+    2
+    1
+    ```
+    Met its `Expect:` line: four lines, `0`, `6`, `2` and `1`.
+
+    Command 2 (changed paths against `origin/main`):
+    ```
+    0
+    README.md
+    ```
+    Met its `Expect:` line: two lines, `0` and `README.md`.
+
+    Command 3 (`make documents 2>&1 | tail -n 1`):
+    ```
+    documents ok
+    ```
+    Met its `Expect:` line: `documents ok`.
+
+    I read the acceptance criteria again against `README.md` and `git diff origin/main -- README.md`. Nothing contradicts them:
+    - **Criterion 1:** nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed (command 2 counts 0). Besides `README.md`, the branch changes only the work item and its `.costs.jsonl` sidecar.
+    - **Criterion 2:** I did not run `make check`, because the smoke test does not include it. The journal records `check: green` after the coder and the documenter, and the factory's gate covers it.
+    - **Criterion 3, first paragraph:** line 3 of `README.md` is the exact text the criterion gives. "under construction", "groundwork" and "probe of 2026-10-17" no longer occur.
+    - **Criterion 3, *Getting started*:**
+      - The code block stays.
+      - The sentence "When it works, `make check` ends with the line `check: green`." stays.
+      - The container sentence follows it word for word.
+      - Then comes the table, with the header `| Command | What it does |` and six rows in the required order (run, check-story, bill, watch, health, confine), each with the required description. No exit status appears in the table.
+    - **Criterion 3, the "Beside" paragraph:** it now begins "Beside the six console commands". I compared it with the line on `origin/main` after swapping "seven" for "six", and they are identical, so the rest of the paragraph is unchanged.
+    - **Criterion 3, *Where to look next*:** the `docs/operator-playbook.md` bullet comes right after the `docs/decisions.md` bullet.
+    - *How it is built* and *Replaced from v1* are unchanged.
+
+    Findings: none.
+    Fixed: nothing, as this stage requires.
