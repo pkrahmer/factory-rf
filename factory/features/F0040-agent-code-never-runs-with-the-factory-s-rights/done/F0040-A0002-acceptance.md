@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-21T07:13:48.485826Z'
   stage: acceptance
   run: 70bf071f57584f2b85ce15a88753d2a7
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-21T07:16:15.415177Z'
+  stage: done
 stories: [F0040-S0001, F0040-S0002, F0040-S0003, F0040-S0004, F0040-S0005, F0040-S0006, F0040-S0007]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of Agent code never runs with the factory's rights
@@ -260,3 +265,4 @@ None. The first acceptance's findings were closed by S0006 and S0007. What remai
    6 Decisions for the human: the first acceptance's list stands. New: decision 18 (S0007's three exact assertions); S0006's wording set when the human refined it; S0007's tester made the whole change with no red tests; the human's order answer. S0007 changed earlier tests in seven files: six under the standing leave, and three assertions under decision 18 (in two files, one of them also among the six). The reviewer named each. Finding: none.
    7 Slow checks: nothing is offered beyond `make check`, which is green (test 64.8 s, coverage 99.14 %; duplicates 0 new). F0040's 139 tests take 51.6 s. Disk used did not grow; the 0.5 GB less free space is the shared host disk.
    8 Cost: 86 runs, $27.95. S0006 ($0.86) and S0007 ($1.66) each took the minimum 6 runs and asked no question. S0001 is still the dearest ($7.77, 22 runs) and needed the human most (4 of the 13 interventions). 13 questions answered (11 questions, 1 round cap, 1 crash cap); 0.3 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 5.6 min, 33 turns, 96424 tokens in (2114996 more from cache), 26207 out, $1.72
