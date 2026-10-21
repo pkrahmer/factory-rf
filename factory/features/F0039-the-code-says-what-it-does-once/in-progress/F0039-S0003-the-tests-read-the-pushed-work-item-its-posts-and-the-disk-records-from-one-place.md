@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T01:40:31.171158Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -201,6 +197,12 @@ journal:
   kind: started
   at: '2026-10-21T01:40:31.171158Z'
   stage: smoke-test
+- number: 35
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T01:41:05.564367Z'
+  stage: smoke-test
+  run: 7cfe506d6e864dcbae9a9b58eb4d40a0
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -635,3 +637,32 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 34. factory: started smoke-test as self.
+35. smoke-tester: Smoke test, round 2: I ran the three commands under `## Smoke test` from the repository root, as written and in order. I fixed nothing.
+
+    Command 1 (no module in the list still defines its own copy of the branch helpers):
+    ```
+    0
+    ```
+    Met `Expect:` (one line, `0`).
+
+    Command 2 (the guard, disk recorder, stop publisher and hand-over tests, in a temporary folder that removes itself):
+    ```
+    exit 0
+    ```
+    Met `Expect:` (one line, `exit 0`). The pytest output written to `$d/out` ended with `47 passed in 3.72s`. Before that it showed only uv's hardlink warning and its package install lines.
+
+    Command 3 (the project guide lines):
+    ```
+    1
+    1
+    ```
+    Met `Expect:` (two lines, `1` and `1`).
+
+    Against the acceptance criteria: nothing in the smoke test contradicts any of them.
+    - Criteria 1, 2 and 5: these are rows of `tests/test_shared_branch_helpers.py`, which passed in command 2.
+    - Criterion 3: `tests/branch_reading.py` exists, and the shared-helper tests passed.
+    - Criterion 7: `docs/project-guide/README.md:32` has the `branch_reading.py` line word for word as the criterion gives it, in its place after `bill_support.py`. The `conftest.py` line at `docs/project-guide/README.md:27` names `disk_settings` and `disk_records` under *Paths and settings*.
+    - The description says no module under `src/factory/` changes: `git diff --stat origin/main -- src` prints nothing.
+    - Not covered here: I did not run `make check` (criterion 6) or the full collect-only comparison of criterion 4. Neither is a smoke-test command, and the factory's checks cover `make check`.
+
+    Findings: none.
