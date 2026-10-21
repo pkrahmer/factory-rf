@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T00:56:35.682518Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T00:56:35.682518Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-21T00:56:48.516936Z'
+  stage: doing
+  run: b777015f9d904d198f81a067d26fcc08
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -248,3 +250,15 @@ Expect: one line, `1` (before the story, `0`)
 
    Considered and not raised: the walk over `tests/` in `test_each_shared_reading_is_written_in_one_module` is similar to `_defining` in `tests/test_shared_fixtures.py`. But that test takes a predicate rather than a regex, and the story leaves `test_shared_fixtures.py` unchanged. `tests/source_search.py` reads `src/factory`, not `tests/`, so the guard copies no shared helper. I did not run `make check`.
 10. factory: started doing as self.
+11. coder: Round 1: the reviewer's latest entry (finding 1) adds criterion 5, and it needs only its test. I changed no code and no test, and nothing under `src/factory/` changes. The working tree is as the tester's commit left it.
+
+    Criterion 5 needs three new rows in `tests/test_shared_definition.py::test_the_guard_finds_a_copy_by_its_body_and_nothing_else`, each a refused case:
+    - `def _definition(boundaries):\n    boundaries.reset()\n    return boundaries.pipeline_reader.parse(PIPELINE_YAML)\n` is not a copy of the definition, because its body holds more than the one statement.
+    - `class Rig:\n    def definition(self, boundaries):\n        return boundaries.pipeline_reader.parse(PIPELINE_YAML)\n` is not a copy, because it is not at the top level of the module.
+    - `def _log_lines(tmp_path, name):\n    return []\n` is not a copy of the log reading, because `tmp_path` is not its only parameter.
+
+    Main choice: send the work item to the tester with the criterion named. I rejected adding the rows myself, because the coder never edits tests (R9).
+
+    Description: the reviewer already added criterion 5 before the closing ones, and nothing else changed the meaning of the task, so I did not rewrite it.
+
+    Noticed but not touched: nothing. I did not run `make check`, because I made no change.
