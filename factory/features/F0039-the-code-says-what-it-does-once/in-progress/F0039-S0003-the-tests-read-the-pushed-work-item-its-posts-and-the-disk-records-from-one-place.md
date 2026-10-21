@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 382
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T01:06:40.395708Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-21T01:06:40.395708Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-21T01:06:59.820235Z'
+  stage: intake
+  run: 718b4ae212f04313963dcd613e8c5d46
+  blocked: question
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -126,3 +129,10 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: Questions (the format check passed, so no findings from it):
+
+   1. The Interface names no functions for the guard `tests/test_shared_branch_helpers.py`, yet criterion 2 says "a source text the guard's functions read" and tests them on source strings. The tester cannot call a function the Interface doesn't name, and two testers would pick two names and signatures. What are the guard's functions? My suggestion, in the guard module: `helper_copies(source: str) -> list[str]` returning the names of top-level functions that copy a branch helper (name without one leading `_`, plus the parameter annotations of the shared one), and `record_fixture_copies(source: str) -> list[str]` returning the names of top-level functions whose return annotation is `JsonLinesRecordLog[StopRecord]` or `JsonLinesRecordLog[DiskRecord]`. Add a third function, or say how criterion 1 gets "the modules that hold a copy" from every `*.py` under `tests/`, e.g. `copies_by_module(root: Path) -> dict[str, list[str]]`.
+
+   2. Criterion 1 expects the copies of `pushed` and `pushed_state` to be exactly `["stage_run_support.py"]`. That holds only if `Boundaries` and `Path` are annotated in the same spelling in every copy, because the guard compares `ast.unparse` text. This is probably fine, since criterion 2 pins the spelling. Please confirm that the earlier `_pushed_state(boundaries, path: str)` of `test_stage_run_acceptance.py` is the only variant left, so the "exactly" list is not broken by a variant that has the same parameters but another body.
+
+   Everything else I checked is in order. Both closing criteria are present. The Interface names concrete files and signatures. Criteria 3 and 4 are testable, and the smoke commands are runnable (the pytest line passes no `-q`). The scope matches `feature.md` S0003. I confirmed with grep that the `records` copies exist in the four modules named, with the `conftest.py` one as the shared fixture.
