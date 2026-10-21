@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T08:39:41.369525Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-21T08:39:20.837564Z'
   stage: intake
   run: 23e3fe1e8ae249d38c066e1b268e806a
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:39:41.369525Z'
+  stage: tests
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -150,3 +159,4 @@ Expect: one line, `1` (before the story, `0`)
    - Smoke test: the three blocks are runnable, and the pytest command passes no `-q`. The `pyproject.toml` pytest `addopts` was not opened to check for a `-q` there. Each `Expect:` line is checkable: `[]`, `exit 0`, `1`.
    - Architecture: tests only, no `src/` change, which matches CLAUDE.md's layers and its standing leave for moving shared helpers.
    - Scope: within feature F0039's decision 5 and its Goal, and not in its Out of scope. `error_posts` stays unguarded.
+7. factory: started tests as self.
