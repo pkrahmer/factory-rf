@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 387
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T06:30:23.105074Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T06:30:23.105074Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T06:30:47.813969Z'
+  stage: intake
+  run: 140c7603b4584a24857f88960c9d5ad6
 ---
 
 # The tests of the agent's user share their stand-in sudo and their recording log
@@ -104,3 +106,9 @@ Expect: one summary line with a count of `passed`, and no `failed` and no `error
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: concrete. It names `tests/recording_log.py` (`RecordingLog`) and `tests/sudo_support.py` (`SudoCall`, `Sudo`, `write_sudo` with full signatures). It lists the stand-in's rules and which names each of the two adapter test modules drops. No `src/` change.
+   - Criteria: each is testable by one check. These are the moved definitions and imports (1, 2), identical collected ids with all passing (3), the three exact assertions (4), nothing under `src/` (5), `make check` (6) and the docs entry (7). The stand-in's rules (record first, `program` runs whatever the plan, `warning`, `exit_status`/`stderr`/`wait_seconds`, otherwise run what follows `--`) are the behaviours of the two scripts being replaced. The unchanged tests of the two modules (criterion 3) exercise them. The story adds no new behaviour, so no failing side lacks a criterion. Criterion 4's leave is in the feature's `feature.md`, decision 18 ("granted", the human, 2026-10-21).
+   - Smoke test: both commands are runnable. The `grep -c` over three files prints `path:count` lines, so "each ending in `:0`" is checkable. The pytest command passes no `-q`, and `pyproject.toml` `addopts` already sets `-q`, so the last line is a summary with a `passed` count.
+   - Architecture: test-only changes, in the places `CLAUDE.md` gives. The shared helpers are modules at the `tests/` root, which the standing leave allows. The tester makes the move, and the coder changes nothing.
+   - Scope: it is inside F0040 (the S0001 and S0004 test modules and the reviewers' notes). Nothing in the feature's "Out of scope" is touched; the older stand-in scripts stay as they are.
