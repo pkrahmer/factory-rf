@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 376
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T00:07:57.285334Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T00:07:36.809956Z'
   stage: review
   run: 573f872bf9b34d9d93f92703dc162132
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:07:57.285334Z'
+  stage: docs
 ---
 
 # The documents say that project commands run as the agent, and how to check it
@@ -147,3 +156,4 @@ Expect: `documents ok`
    - Criterion 3 (docs) is the documenter's work, as `CLAUDE.md` *Docs* says. It names the exact wording for the five corrections and the four *Morning observations* rows. The intake checked each place it changes against the current documents (entry 3): `processes-and-checks.md:48`, `decisions.md:398`, `:463` and `:775`, `watching.md:264`, and the anchor row at `operator-guide.md:240`.
    - Description: it still matches what the story is to deliver. Nothing was built that it would have to describe, and no journal entry changes its meaning.
    - Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
