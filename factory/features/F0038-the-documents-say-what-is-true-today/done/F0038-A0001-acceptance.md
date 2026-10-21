@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-21T08:35:48.563561Z'
   stage: acceptance
   run: 88ace239d80c4b93895d9fd2e373179b
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-21T08:37:09.294596Z'
+  stage: done
 stories: [F0038-S0001, F0038-S0002, F0038-S0003, F0038-S0004, F0038-S0005, F0038-S0006, F0038-S0007, F0038-S0008, F0038-S0009, F0038-S0010]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The documents say what is true today
@@ -209,3 +214,4 @@ Human interventions: 0 questions answered and 0.0 h waited. No story needed the 
       - S0009 ($1.83, 10 runs) and S0007 ($1.66, 10 runs) stand out. In each, the smoke tester found one formatting slip: a missing `Date:` line in S0009, a lost blank line in S0007.
       - Each fix took four extra runs, because a docs-only finding goes through doing and review, which cannot write `docs/`. That is a pipeline question for the human.
       - 0 questions answered, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 8.2 min, 37 turns, 110098 tokens in (2667649 more from cache), 27718 out, $1.97
