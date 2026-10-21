@@ -117,6 +117,28 @@ def test_each_shared_reading_is_written_in_one_module(
             False,
             id="a-log-reading-of-another-folder",
         ),
+        pytest.param(
+            "def _definition(boundaries):\n"
+            "    boundaries.reset()\n"
+            "    return boundaries.pipeline_reader.parse(PIPELINE_YAML)\n",
+            False,
+            False,
+            id="a-definition-of-more-than-one-statement",
+        ),
+        pytest.param(
+            "class Rig:\n"
+            "    def definition(self, boundaries):\n"
+            "        return boundaries.pipeline_reader.parse(PIPELINE_YAML)\n",
+            False,
+            False,
+            id="a-method-reading-the-definition",
+        ),
+        pytest.param(
+            "def _log_lines(tmp_path, name):\n    return []\n",
+            False,
+            False,
+            id="a-log-reading-of-more-than-the-folder",
+        ),
     ],
 )
 def test_the_guard_finds_a_copy_by_its_body_and_nothing_else(

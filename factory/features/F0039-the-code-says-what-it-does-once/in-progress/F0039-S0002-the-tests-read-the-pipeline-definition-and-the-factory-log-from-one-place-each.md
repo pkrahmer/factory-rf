@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T00:57:09.158215Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T00:57:09.158215Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-21T00:59:44.809840Z'
+  stage: tests
+  run: 82145ff46827403f89b7ac28dc36d1f1
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -272,3 +274,28 @@ Expect: one line, `1` (before the story, `0`)
 
     Noticed but not touched: nothing. I did not run `make check`, because I made no change.
 12. factory: started tests as self.
+13. tester: This round I made only the test change the coder's entry 11 names. Criterion 5, which the reviewer added, needed only its test. I added three rows to `tests/test_shared_definition.py::test_the_guard_finds_a_copy_by_its_body_and_nothing_else`. Each is a case the guard must refuse, and each row's source text is the one criterion 5 gives:
+    - `a-definition-of-more-than-one-statement`: `boundaries.reset()` comes before the definition statement, so the body has more than one statement. Expected: not a copy of the definition and not a copy of the log reading.
+    - `a-method-reading-the-definition`: `class Rig` with the method `definition(self, boundaries)` returning the definition statement, so it is not at the top level. Expected: neither kind of copy.
+    - `a-log-reading-of-more-than-the-folder`: `_log_lines(tmp_path, name)`, so `tmp_path` is not the only parameter. Expected: neither kind of copy.
+
+    I changed no other test and no other file. The guard's code already refuses these three cases, so the new rows pass now and are not red. Nothing under `src/factory/` changes.
+
+    Criteria → tests:
+    - criterion 1: tests/test_shared_definition.py::test_the_shared_definition_is_the_fixtures_definition
+    - criterion 2: tests/test_shared_definition.py::test_each_shared_reading_is_written_in_one_module (rows `definition` and `log`)
+    - criterion 3: tests/test_shared_definition.py::test_the_guard_finds_a_copy_by_its_body_and_nothing_else (its first six rows)
+    - criterion 4: no test function. It compares test ids from before and after the story, which the tester checked in entry 5 (229 ids, no difference). This round adds no test to those twenty modules.
+    - criterion 5: tests/test_shared_definition.py::test_the_guard_finds_a_copy_by_its_body_and_nothing_else (the three new rows above)
+    - criterion 6: `make check`, which the factory runs as its gate.
+    - criterion 7: docs, which the documenter writes.
+
+    Files created: none this round. I changed `tests/test_shared_definition.py`, a test this story wrote.
+
+    Modules the test run could not import: none.
+
+    `test`: test: green (62.0 s), coverage 99.14 %
+    `lint`: lint: green (0.2 s)
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (60.8 s)
