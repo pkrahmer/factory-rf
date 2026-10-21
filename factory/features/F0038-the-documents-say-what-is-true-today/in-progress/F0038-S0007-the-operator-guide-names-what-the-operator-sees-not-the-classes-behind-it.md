@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 395
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T07:50:24.140960Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-21T07:50:24.140960Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T07:50:59.704680Z'
+  stage: review
+  run: d98145061deb4134bac1bf0ecf83b626
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -258,3 +260,15 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
 16. factory: started review as self.
+17. reviewer: no findings that the coder can act on. One docs point is still open, and the docs stage has to fix it (see below).
+
+    - What I reviewed: `git diff main...HEAD -- . ':!factory'` changes only `docs/operator-guide.md`. The name-status listing shows that one `M`, plus the work item's `.md` and its new `.costs.jsonl` sidecar. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed.
+    - Criterion 1: holds. The tester (entry 5) and the coder (entries 7 and 15) each say so.
+    - Criterion 2: the journal records `make check` green on the unchanged tree (entry 15, `check: green`). The diff touches only a document.
+    - Criterion 3, names: I read every hunk. `PatientRuns`, `factory.application.provider_limits`, `factory.application.preflight`, `machine_extras`, `factory.entry.wiring`, `TimestampedFactoryLog`, `StopService.post` (twice), `AskHandler` (twice), `CommentHandler`, `AcceptanceReader`, `factory.application.acceptance_reading`, `HandOverHandler`, `factory.application.handlers.hand_over`, `AcceptanceHandOver`, `SplitByWorkItemKind`, `AcceptanceMerged`, `AcceptanceClosed`, `MergedHandler`, `ClosedHandler`, `DuplicateHandler`, `PullRequestLookupHandler` and `factory.application.handlers.lookups` are all gone. Each sentence still says what the factory does. The example rewrites match the criterion word for word. `CannotHandle` stays at both of its places, now as "the factory raises `CannotHandle`". No heading changed.
+    - Criterion 3, the hypothetical case: "Should a future kind have none, the event leads to this:" and the paragraph "It ends in the one report ... try again." are removed.
+    - Still open, for the docs stage: the smoke tester's finding (entry 13) is still in the diff. At `docs/operator-guide.md:1469-1470`, the hunk at `@@ -1466,10 +1466,7 @@` also removed the blank line between "... every kind of event has a handler." and "After three errors on one event and one remote state, ...". Markdown therefore joins them into one paragraph, against the third bullet of criterion 3. The fix is one blank line between lines 1469 and 1470. The documenter's write paths cover this file and the coder's do not (entry 15: `Permission denied`), so sending the work item back to `doing` would only loop. I pass it to `docs`, where criterion 3 already asks for exactly this.
+    - Architecture and security: no code changed, so nothing to apply.
+    - Hygiene: the Description matches what was built. Criterion 3 still says what the documenter must make true, the paragraph break included.
+
+    Earlier tests: none. No test file on `main` is changed, renamed or deleted.
