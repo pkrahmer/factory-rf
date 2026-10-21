@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 395
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T07:43:23.263174Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T07:43:01.540025Z'
   stage: intake
   run: 387a1562423248168c291c53d318af9b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:43:23.263174Z'
+  stage: tests
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -80,3 +89,4 @@ Expect: `documents ok`
    - Smoke test: the commands run. The grep with `|| true` prints `0` when nothing matches. The `grep -c` of the kept names counts 2 lines today, which meets "at least 2". The `git diff --name-only` command is valid. No command runs pytest; the pytest `-q` addopts rule does not apply. `make documents` ends with `documents ok`, which `check_documents.py` prints. Each `Expect:` line can be checked against the output.
    - Architecture: this is a docs change only and respects the layers. It follows `CLAUDE.md`'s rule that the documenter keeps `docs/`. Nothing moves to the project guide, and the stop tables stay with S0008.
    - Scope: this is within F0038's scope, S0007 (findings M2 and M3), and does not touch "Out of scope" items. Decision 7 of the feature matches the names the story keeps.
+4. factory: started tests as self.
