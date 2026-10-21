@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 393
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T07:30:40.241479Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T07:30:40.241479Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T07:31:11.824986Z'
+  stage: smoke-test
+  run: 11d749de11524233a3ed18b8084a397e
 ---
 
 # The decision log marks two superseded entries, the removal of `factory/v1/`, and where its codes come from
@@ -182,3 +184,41 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed: I ran the three commands from the repository root exactly as written, and every one met its `Expect:` line. No findings.
+
+    Command 1 (the marks under their headings, the removal bullet with the header sentence, and the cited titles as headings):
+    ```
+    1
+    1
+    2
+    1
+    1
+    1
+    ```
+    Met: six lines, `1`, `1`, `2`, `1`, `1`, `1`.
+
+    Command 2 (the path diff against `origin/main`):
+    ```
+    0
+    docs/decisions.md
+    ```
+    Met: two lines, `0` and `docs/decisions.md`.
+
+    Command 3 (`make documents 2>&1 | tail -n 1`):
+    ```
+    documents ok
+    ```
+    Met.
+
+    Acceptance criteria, read again against the results:
+    - Criterion 1: the path diff shows no change under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. Entries 5 and 7 say the same.
+    - Criterion 2: the smoke test does not run `make check`. The latest run recorded in the journal is green, and the factory runs the check itself.
+    - Criterion 3: I read `git diff origin/main -- docs/decisions.md`. It holds exactly the four additions, each word for word as the criterion gives it and in the place it names:
+      - the sentence at the end of the header paragraph (git shows that existing line as changed, because the sentence is added to it);
+      - the paragraph of its own directly under `` ## No `mutants` target, no mutmut ``;
+      - the paragraph of its own directly under the four-documents heading, before its `Date:` line;
+      - the bullet directly after "- Decision: v1's" in the handover entry.
+      
+      No heading changed and no other line changed. Each cited title is a heading of the log (command 1).
+
+    The smoke test contradicts no criterion. Nothing is open.
