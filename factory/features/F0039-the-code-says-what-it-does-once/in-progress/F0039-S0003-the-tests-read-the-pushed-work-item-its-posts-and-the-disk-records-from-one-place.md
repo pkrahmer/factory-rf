@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T01:16:10.865505Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-21T01:16:10.865505Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-21T01:18:47.948780Z'
+  stage: doing
+  run: fe82724f2e3f490c8ba4985287604d42
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -219,3 +221,17 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
    `lint`: lint: green (0.5 s)
    `test`: test: green (59.4 s)
 9. factory: started doing as self.
+10. coder: Nothing built. The Interface says no module under `src/factory/` changes. The tester's entry (journal 8) records that the moves to `tests/stage_run_support.py`, `tests/branch_reading.py` and `tests/conftest.py`, and the guard `tests/test_shared_branch_helpers.py`, were the story's work under the standing leave. `make test` was already green when this stage started.
+
+    What I did: ran `make check` on the committed state, with no changes of my own. It ended `check: green`, with coverage at 99.14 %. `git diff main -- . ':!factory' ':!tests'` is empty, and `git status --short` shows only the factory's costs sidecar. So there was no diff of mine to refactor.
+
+    Main choice: I added no code and changed no test. The alternative I rejected was touching the moved test helpers to tidy them; that is the tester's work, and the coder never edits tests (R9).
+
+    What the journal changed: the human's answer (journal 4) left the guard's function names to the tester. The tester used a single `copies(source)`. The Description is unchanged.
+
+    Noticed but not touched:
+    - Criterion 6, the docs line for `branch_reading.py` and the `disk_settings`/`disk_records` fixtures in `docs/project-guide/README.md`, is the documenter's.
+    - Criterion 4 (the same test ids before and after) has no test function. The tester checked it by hand: 279 ids on each side.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 38 known, 0 gone
