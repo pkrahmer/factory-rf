@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 379
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T00:24:50.996821Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T00:24:50.996821Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T00:27:51.196842Z'
+  stage: tests
+  run: 2f2e34890db84a9ebc294d837122c374
 ---
 
 # The runtimes read the end of a call in one place
@@ -128,3 +130,19 @@ Expect: four lines, `True`, `False`, `/opt/factory/bin/factory-confine refused t
    - Architecture: the sequence moves within the adapters layer. `agent_launch` imports nothing of `process`, and the runtimes keep their process calls. This follows the decision log entry cited in the feature's decisions 1 to 3.
    - Scope: the story is inside the feature's scope. It does not touch the state directory difference or the process calls, which the feature's "Out of scope" lists, and it changes no earlier test.
 4. factory: started tests as self.
+5. tester: Tests written for criteria 1 to 3. They fail because the names they test don't exist yet. Criteria 4 to 6 are covered by the existing tests, by `make check` and by the docs stage.
+
+   - criterion 1: tests/adapters/test_agent_launch_call_end.py::test_a_call_end_is_read_as_timed_out_when_its_own_timeout_killed_it_at_the_limit. It has six rows, one per case the criterion lists: duration at the limit (30 s), above it (31 s) and below it (29.9 s), plus `os_user` None or set, `timed_out=True`, and status 0.
+   - criterion 2: tests/adapters/test_agent_launch_call_end.py::test_a_call_end_raises_the_refusal_read_after_its_time_limit. It has five rows: sudo refused, the wrapper refused, a call that printed and was killed and is still read for refusals, a call that printed before the limit, and a call with empty stderr. A row with no refusal expects `False` back; a row with one expects `AgentRuntimeError` with exactly that `detail`.
+   - criterion 3: tests/adapters/test_agent_launch_call_end.py::test_the_state_directory_error_names_the_directory_and_the_cause
+   - criterion 4: no new test. The existing runtime and launch tests the criterion names stay unchanged.
+   - criterion 5: `make check`. criterion 6: docs, not a test.
+
+   Files created: tests/adapters/test_agent_launch_call_end.py, using `STARTERS` and `LIMIT` as the Interface gives them. A private helper `_refused_end` builds the `CallEnd` for each criterion 2 row. I did this because ruff's PLR0917 (more than 5 positional arguments) failed with the fields as separate parameters. No earlier test file was changed.
+
+   Module the test run could not import: tests/adapters/test_agent_launch_call_end.py fails at import because `CallEnd`, `read_call_end` and `state_directory_error` are not yet in `factory.adapters.agent_launch` (ImportError while importing the test module). I ran `make test` once, before the lint fix. That fix only restructured the criterion 2 parameters, so the module still fails at the same import. `make lint` is green. I skipped the type check, as this stage says to.
+
+   No criterion needed interpreting. Nothing is open.
+
+   `lint`: lint: green (0.5 s)
+   `test`: ERROR tests/adapters/test_agent_launch_call_end.py - ImportError while importing test module '/work/checkout/tests/adapters/test_agent_launch_call_end.py'.
