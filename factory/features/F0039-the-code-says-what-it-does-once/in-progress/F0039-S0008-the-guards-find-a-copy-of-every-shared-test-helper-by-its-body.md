@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T08:55:24.071137Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-21T08:55:24.071137Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T08:56:09.413512Z'
+  stage: review
+  run: 3ec6c0dd16984f42980bc95901b530e2
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -125,7 +127,7 @@ journal:
 
 ## Description
 
-The feature's Goal and its decision 5 promise a guard that finds a copy of a shared test helper "by its body or its parameters, not by its name, so the next copy under a new name is found too". Only the definition guard of `tests/test_shared_definition.py` does that. The log reading rule in the same module matches the names `log_lines` and `_log_lines`. `tests/test_shared_branch_helpers.py` matches the name without one leading `_` together with the parameter annotations. So a copy with the very body of `log_lines`, `pushed`, `pushed_state`, `remote_document` or `push_state` passes both guards under another name. The feature's acceptance planted two such copies and both guards stayed green. A search by body over `tests/` on 2026-10-21 found one that is already there: `_branch_document(boundaries: Boundaries, checkout: GitCli)` of `tests/application/handlers/test_reject.py` (written by F0014) has the body of `branch_reading.remote_document` and reads the same `BRANCH` and `PATH` values. This story adds a guard that finds a copy of those five helpers by its body, whatever its name and parameters. It moves the one copy it finds to `remote_document` under the standing leave of `CLAUDE.md` (*Tests*). The tester does the work; no module under `src/factory/` changes and the coder has nothing to build. Unchanged: `tests/test_shared_definition.py`, `tests/test_shared_branch_helpers.py` and `tests/test_shared_fixtures.py` (their rules stay and still catch a copy by name), `error_posts`, which has no guard (decision 5), and every variant the feature's *Out of scope* names.
+The feature's Goal and its decision 5 promise a guard that finds a copy of a shared test helper "by its body or its parameters, not by its name, so the next copy under a new name is found too". Only the definition guard of `tests/test_shared_definition.py` does that. The log reading rule in the same module matches the names `log_lines` and `_log_lines`. `tests/test_shared_branch_helpers.py` matches the name without one leading `_` together with the parameter annotations. So a copy with the very body of `log_lines`, `pushed`, `pushed_state`, `remote_document` or `push_state` passes both guards under another name. The feature's acceptance planted two such copies and both guards stayed green. A search by body over `tests/` on 2026-10-21 found one that is already there: `_branch_document(boundaries: Boundaries, checkout: GitCli)` of `tests/application/handlers/test_reject.py` (written by F0014) has the body of `branch_reading.remote_document` and reads the same `BRANCH` and `PATH` values. This story adds a guard that finds a copy of those five helpers by its body, whatever its name and parameters. It moves the one copy it finds to `remote_document` under the standing leave of `CLAUDE.md` (*Tests*). The tester does the work; no module under `src/factory/` changes and the coder has nothing to build. The two `ast` helpers that the new guard shares with `tests/test_shared_definition.py` move under the same leave to `tests/function_support.py` (`functions`, `without_docstring`), and both modules import them from there. Unchanged: the rules of `tests/test_shared_definition.py`, `tests/test_shared_branch_helpers.py` and `tests/test_shared_fixtures.py` (they stay and still catch a copy by name), `error_posts`, which has no guard (decision 5), and every variant the feature's *Out of scope* names.
 
 ## Interface
 
@@ -321,3 +323,23 @@ Expect: one line, `1` (before the story, `0`)
     `check`: check: green
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
 19. factory: started review as self.
+20. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`: one new test module, `tests/test_shared_bodies.py`; one new shared module, `tests/function_support.py`; and two changed test modules, `tests/test_shared_definition.py` and `tests/application/handlers/test_reject.py`. No file under `src/` changes.
+
+    - Criteria 1, 2 and 5 are each one parametrized test, and criterion 3 is a single test. Each test checks what its criterion says.
+    - Criterion 2's rows cover both sides of the body rule: another name, a docstring, a decorator, no annotations, one more statement, a method in a class, and a name alone.
+    - Criterion 4: the diff renames and removes no test in `test_reject.py`. It removes only the helper `_branch_document`, and its two calls now go to `remote_document`. `BRANCH`, `PATH` and `WORK_ITEM` in `test_reject.py` have the same values as in `stage_run_support`.
+    - The coder's `make check` after the tester's move was green (entry 18), and `duplicates` showed 0 new.
+    - The round-0 finding (entry 12) is fixed. `_functions` and `_without_docstring` now live once, in `tests/function_support.py`, and `body_of` uses `without_docstring`.
+    - I found no other copy of these helpers in the files the diff touches.
+    - Architecture and security: nothing to report. There is no `src/` change and no suppression marker.
+
+    no findings
+
+    description corrected: "Unchanged: `tests/test_shared_definition.py`, `tests/test_shared_branch_helpers.py` and `tests/test_shared_fixtures.py` (their rules stay ...)" -> "The two `ast` helpers that the new guard shares with `tests/test_shared_definition.py` move under the same leave to `tests/function_support.py` (`functions`, `without_docstring`), and both modules import them from there. Unchanged: the rules of `tests/test_shared_definition.py`, `tests/test_shared_branch_helpers.py` and `tests/test_shared_fixtures.py` (they stay ...)". This follows entries 12, 14 and 16.
+
+    Notes:
+    1. tests/test_shared_bodies.py:153: `test_no_test_module_holds_a_copy` skips a module by its file name alone (`path.name in SHARED.values()`). A module with one of those names in a subfolder would also skip the empty check. Comparing the path relative to `TESTS` would be exact.
+
+    Earlier tests:
+    - tests/application/handlers/test_reject.py: under the standing leave to move a shared test helper. `_branch_document`, a copy of `branch_reading.remote_document`, is removed and its calls use the shared helper. Every test keeps its name and checks the same thing.
+    - tests/test_shared_definition.py: under the standing leave to move a shared test helper. `_functions` and `_without_docstring` moved to `tests/function_support.py` as `functions` and `without_docstring`. Every test keeps its name and checks the same thing.
