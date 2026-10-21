@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T06:15:50.768829Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -159,6 +163,11 @@ journal:
   stage: docs
   run: 3939153f1ed3448fb4a540c14b56962b
   reason: check_red
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:15:50.768829Z'
+  stage: docs
 ---
 
 # The boundaries have no optional collaborators
@@ -511,3 +520,4 @@ Expect: one line, `0` (before the story, `1`)
     If a secret has already been committed, visit
     https://help.github.com/articles/removing-sensitive-data-from-a-repository
     make: *** [Makefile:54: secrets] Error 1
+28. factory: started docs as self.
