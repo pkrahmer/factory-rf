@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 389
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T06:51:10.904717Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T06:50:50.064067Z'
   stage: intake
   run: fcfe2a9acb51425c9276df4f839ee796
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:51:10.904717Z'
+  stage: tests
 ---
 
 # The README says what the factory is, that an instance runs in the container, and where to go next
@@ -78,3 +87,4 @@ Expect: `documents ok`
    - Smoke test: the commands are runnable. No command runs pytest, so the `-q` rule does not apply. Each `Expect:` line is concrete: 0, 6, 2 and 1; then 0 and `README.md`; then `documents ok`. The target section "The container: compose, entrypoint and health check" exists in `docs/operator-guide.md`.
    - Architecture: no layer is touched. The story only edits `README.md`, which the documenter writes and `CLAUDE.md`'s *Docs* section assigns to it.
    - Scope: it matches feature.md's Scope line for S0002 (H2, M10, M11). It leaves out the README rewrite (S3, structural proposal), which feature.md puts out of scope.
+4. factory: started tests as self.
