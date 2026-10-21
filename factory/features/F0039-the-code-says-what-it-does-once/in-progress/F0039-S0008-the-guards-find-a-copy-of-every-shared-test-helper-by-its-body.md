@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T08:55:24.071137Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-21T08:55:02.995891Z'
   stage: doing
   run: 343aa521de0841f8b442ef734b24e408
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:55:24.071137Z'
+  stage: review
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -311,3 +320,4 @@ Expect: one line, `1` (before the story, `0`)
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
+19. factory: started review as self.
