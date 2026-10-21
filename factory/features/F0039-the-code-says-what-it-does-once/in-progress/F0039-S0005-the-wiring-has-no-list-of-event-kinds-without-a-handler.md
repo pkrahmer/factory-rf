@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T01:53:58.588297Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T01:53:58.582622Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:53:58.588297Z'
+  stage: intake
+---
+
 # The wiring has no list of event kinds without a handler
 
 ## Description
@@ -36,3 +63,6 @@ grep -rl --include='*.py' 'NOT_YET_HANDLED' src tests | wc -l
 Expect: two lines, `False False` and `0` (before the story, `True True` and `6`)
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
