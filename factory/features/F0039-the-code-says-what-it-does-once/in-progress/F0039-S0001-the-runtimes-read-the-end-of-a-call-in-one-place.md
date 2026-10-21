@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 379
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T00:31:26.483126Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-21T00:31:05.841769Z'
   stage: doing
   run: 808c87e5c5db42099cc82daaad941dab
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:31:26.483126Z'
+  stage: review
 ---
 
 # The runtimes read the end of a call in one place
@@ -171,3 +180,4 @@ Expect: four lines, `True`, `False`, `/opt/factory/bin/factory-confine refused t
 
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
+8. factory: started review as self.
