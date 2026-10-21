@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T01:40:31.171158Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -192,6 +196,11 @@ journal:
   at: '2026-10-21T01:40:09.834723Z'
   stage: docs
   run: 9832452906eb4674af9507540868cb3c
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:40:31.171158Z'
+  stage: smoke-test
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -625,3 +634,4 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     `check`: check: green (not run again: passed on tree eca9aa518208 at 2026-10-21T01:36:48Z)
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
+34. factory: started smoke-test as self.
