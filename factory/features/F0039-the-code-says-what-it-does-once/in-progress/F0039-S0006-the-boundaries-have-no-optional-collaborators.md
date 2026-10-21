@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T06:12:41.734207Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-21T06:12:41.734207Z'
   stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T06:13:45.137267Z'
+  stage: review
+  run: 89750978eb6d49c5843b434aa224fa05
 ---
 
 # The boundaries have no optional collaborators
@@ -414,3 +416,42 @@ Expect: one line, `0` (before the story, `1`)
     `check`: check: green
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
 23. factory: started review as self.
+24. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`: 9 modules under `src/factory/application/`, 18 changed test files and 1 new test file, read against the work item and the feature's decisions 8, 10 and 11.
+
+    no findings
+
+    The three findings of round 0 (entry 16) are fixed:
+    - `src/factory/application/acceptance.py:157`: `_disk_lines` is now typed `-> tuple[str, str | None]`.
+    - `tests/application/test_known_results.py`: `CountingGit` is gone, and the imports it used are still used by `KeylessGit`.
+    - `tests/application/test_stop_records_service.py:37`: `_raised` now takes `instance: str`.
+
+    What I checked:
+    - **Criteria 1 and 2:** both are pinned in `tests/application/test_boundaries_required.py`. Criterion 1 is one parametrized test with a row per field, and it checks both sides: `TypeError` when the field is left out, and equality with the fixture when all fields are given. Criterion 2 checks the fixture's concrete values.
+    - **Criteria 3 and 4:** these rest on existing tests, changed only under decision 11 and entry 8. The `last()` rule keeps its `empty-log` row.
+    - **Check result:** the factory's `make check` after the coder was green (entry 22), with 0 new duplicates.
+    - **`None` comparisons:** no module under `src/factory/application/` compares one of the six fields, or a local name read from one, with `None`. I read every changed module, `acceptance.py` included.
+    - **Architecture and security:** the layers are unchanged, and the diff adds no marker that silences a check.
+    - **Refactor:** inlining `TaskComposer._os_user` at its one caller is a refactor that changes no behaviour.
+    - **Description and docs criterion:** both still match what was built.
+
+    Not raised as a finding: `agent_home: AgentHome | None = None` (`src/factory/application/boundaries.py:51`) no longer has a comment, because it used to sit under the removed "Last and optional" comment. The feature's decision 10 planned "a comment of its own reason" for it. The story's Interface only says the old comment goes, so this is for the human to pick up if they want it.
+
+    Earlier tests (all status M; none renamed or deleted):
+    - tests/conftest.py: decision 11 (the `boundaries` fixture)
+    - tests/proof_support.py: decision 11 (`_assemble`)
+    - tests/entry/test_wiring_boundaries.py: decision 11
+    - tests/application/test_acceptance_facts_disk.py: decision 11
+    - tests/application/test_boundaries_settings.py: decision 11
+    - tests/application/test_cost_image.py: decision 11
+    - tests/application/test_cost_instance.py: the human's answer, journal entry 8
+    - tests/application/test_costs.py: decision 11
+    - tests/application/test_disk_recorder.py: decision 11
+    - tests/application/test_known_results.py: decision 11, which lets a module drop the helpers nothing uses any more (`CountingGit`, removed for round 0's finding 2)
+    - tests/application/test_patient_runs.py: decision 11
+    - tests/application/test_preflight.py: decision 11
+    - tests/application/test_stage_run_acceptance.py: decision 11
+    - tests/application/test_stop_publisher.py: decision 11
+    - tests/application/test_stop_records_service.py: decision 11 and the human's answer, journal entry 8 (the `| None` of `_raised` dropped under decision 11)
+    - tests/application/test_task_acceptance.py: decision 11
+    - tests/application/test_task_os_user.py: decision 11
+    - tests/application/test_tick_disk.py: decision 11
