@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 392
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T07:22:21.044041Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T07:22:21.044041Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T07:22:51.682372Z'
+  stage: smoke-test
+  run: 9db8019f2a90496798d63b0d2380fafb
 ---
 
 # The project guide names no planning code or v1 feature id as a pointer
@@ -194,3 +196,57 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: I ran all four commands from the repository root, exactly as written and in order. Every command met its `Expect:` line, and the smoke test contradicts no acceptance criterion. Findings: none.
+
+    1. The grep for planning codes in the guide files:
+    ```
+    docs/project-guide/README.md:0
+    docs/project-guide/agents.md:0
+    docs/project-guide/costs.md:0
+    docs/project-guide/git-and-hosting.md:0
+    docs/project-guide/processes-and-checks.md:0
+    docs/project-guide/stages.md:0
+    docs/project-guide/watching.md:0
+    docs/project-guide/work-items.md:0
+    docs/project-guide/write-guard.md:0
+    ```
+    Met: nine lines, each ending in `:0`, for the nine files the expectation lists.
+
+    2. The new heading, the preparation row and the recovery tests:
+    ```
+    2
+    1
+    ```
+    Met: `2` and `1`.
+
+    3. The diff against `origin/main`:
+    ```
+    0
+    docs/project-guide/README.md
+    docs/project-guide/agents.md
+    docs/project-guide/costs.md
+    docs/project-guide/git-and-hosting.md
+    docs/project-guide/stages.md
+    docs/project-guide/watching.md
+    ```
+    Met: seven lines, `0` followed by the six guide files.
+
+    4. `make documents 2>&1 | tail -n 1`:
+    ```
+    documents ok
+    ```
+    Met.
+
+    Criteria cross-check:
+    - Criterion 1 (nothing changes under src/, tests/, image/, template/, demo/ or claude/): the smoke diff shows nothing changed there. The tester (entry 5) and the coder (entry 7) each said so.
+    - Criterion 2 (`make check` stays green): the factory recorded `make check` green on tree 61b5f6269707 (entries 7 and 11). That is the factory's gate, and I did not run it in this stage.
+    - Criterion 3 (each old text becomes its new text, nothing else changes): I also read `git diff origin/main -- docs` line by line against the list. Every changed line is one of the listed replacements, and the diff holds no other change:
+      - `README.md` *Kill points*.
+      - `agents.md`: four edits.
+      - `costs.md`: two edits.
+      - `git-and-hosting.md`: the two "Who uses them" sentences, the heading, and the seven *Used by* cells.
+      - `stages.md`: R20 and R21.
+      - `watching.md`: four edits.
+    - Ids that are allowed to stay are still there: "(F0021-S0005)" and "(F0034-S0001)" in `agents.md` are story ids given with their names, and `processes-and-checks.md` is untouched.
+
+    Open: nothing.
