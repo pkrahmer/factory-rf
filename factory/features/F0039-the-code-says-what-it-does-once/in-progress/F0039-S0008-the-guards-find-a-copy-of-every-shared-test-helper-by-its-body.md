@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 400
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T08:37:29.100982Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-21T08:37:29.100982Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-21T08:37:53.524386Z'
+  stage: intake
+  run: a58dca8aeb95427ab6e110257ebb6dc1
+  blocked: question
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -107,3 +110,12 @@ Expect: one line, `1` (before the story, `0`)
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: 1. The guard's main job has no criterion. The Interface says "The guard reads every `*.py` file under `tests/`, the guard's own module included". But criteria 1 to 3 test only where the helpers are defined, the `copies` function on source text, and `shared_bodies`. Nothing says that a test runs `copies` over every file under `tests/` and fails on a copy. Without that criterion, a coder or tester can pass all six criteria and write no guard over the tree. Proposed criterion: one test reads every `tests/**/*.py` file and asserts that `copies` returns `[]` for each, except the shared modules that define the helpers. Option: add it as a new criterion before the two closing ones. I would choose that.
+   2. The exception for the defining modules has no criterion. `log_support.py`, `stage_run_support.py` and `branch_reading.py` hold the helpers, so by the Interface's own rule they "copy" themselves. Smoke test 1 excludes them with `p.name not in set(shared.values())`, but neither the Interface nor any criterion says so. Proposed: the tree test skips the module that defines each helper, and a row for that is added to the criterion from question 1. Alternatively, `copies` could take the defining module's name. I would choose the skip in the tree test.
+   3. "The guard's own module included" has no test row. `tests/test_shared_bodies.py` holds source text with the `_the_log` body inside string literals, which `ast` does not read as functions. Criterion 2 should say that a function body inside a string constant is not a copy, or the Interface should drop the phrase. I would choose to drop the phrase, since the whole-tree scan of question 1 covers the module anyway.
+
+   The other checks found nothing to ask.
+   - Interface: concrete modules and signatures, with `SHARED` spelled out.
+   - Smoke test: the commands are runnable, and the pytest command passes no `-q`.
+   - Architecture: tests only, with no `src/` change.
+   - Scope: within the feature's S0003 follow-up and the decision 5 guard, not in its "Out of scope".
