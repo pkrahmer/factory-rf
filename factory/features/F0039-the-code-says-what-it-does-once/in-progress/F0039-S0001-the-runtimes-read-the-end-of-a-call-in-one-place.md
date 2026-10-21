@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 379
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T00:24:50.996821Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T00:24:30.483005Z'
   stage: intake
   run: e7c57f9cf8da45748d5ea61ca7d3f221
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:24:50.996821Z'
+  stage: tests
 ---
 
 # The runtimes read the end of a call in one place
@@ -118,3 +127,4 @@ Expect: four lines, `True`, `False`, `/opt/factory/bin/factory-confine refused t
    - Smoke test: the command is runnable and uses only names the Interface defines. The `Expect:` line gives four checkable lines. It does not run pytest, so the `-q` rule does not apply.
    - Architecture: the sequence moves within the adapters layer. `agent_launch` imports nothing of `process`, and the runtimes keep their process calls. This follows the decision log entry cited in the feature's decisions 1 to 3.
    - Scope: the story is inside the feature's scope. It does not touch the state directory difference or the process calls, which the feature's "Out of scope" lists, and it changes no earlier test.
+4. factory: started tests as self.
