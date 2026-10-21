@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 380
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T00:44:03.166734Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T00:44:03.166734Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T00:44:17.820308Z'
+  stage: review
+  run: 945fc4137d5d494f87b529f35db4ad74
 ---
 
 # The duplicates report holds no standing finding of the runtimes or the clock
@@ -123,3 +125,10 @@ Expect: `3`
    `check`: check: green
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The only changes on the branch are the work item and its `.costs.jsonl` sidecar. That fits the Interface, which says no module under `src/factory/` changes and the tester writes no test module.
+   - Criterion 1: the coder's entry 7 records `check: green` and `duplicates: 0 new, 38 known, 0 gone`. Criterion 2 (docs) is the documenter's job next, and it still describes what the reader must know.
+   - Baseline as the Description expects it: `security/duplicates-baseline.txt` has the `return version_printed(` line (33), the `started = due_leftovers_launch(` line (35) and the `ManualWaiter` line (36), and no longer has `ManualClock` or `advance`. So the human's change is in, and the smoke test's second block should print `3`.
+   - Hygiene: the coder's journal gives the main choice (leave the code untouched) and what was rejected (merging the runtimes' remaining process calls into `agent_launch`, which the decision log entry rules out). The Description matches what was built.
+   - Earlier tests: none. The diff changes, renames or deletes no test file.
