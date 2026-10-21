@@ -1,17 +1,13 @@
 ---
-stage: smoke-test
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 395
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T07:48:41.150915Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T07:48:41.150915Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T07:49:15.265236Z'
+  stage: smoke-test
+  run: 6e478c44403e4529839d2b0717bfcaf0
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -184,3 +186,41 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: I ran the four smoke-test commands from the repository root, in order and as written. All four met their `Expect:` lines. Then I read the acceptance criteria again against the guide and its diff to `origin/main`. One finding contradicts criterion 3.
+
+    Command 1 (grep for the removed names and "Should a future kind"):
+    ```
+    0
+    ```
+    Met: `0`.
+
+    Command 2 (kept names; the handler sentence):
+    ```
+    2
+    1
+    ```
+    Met: at least `2`, then `1`.
+
+    Command 3 (diff outside the docs; diff in README and docs):
+    ```
+    0
+    docs/operator-guide.md
+    ```
+    Met: two lines, `0` and `docs/operator-guide.md`.
+
+    Command 4 (`make documents`):
+    ```
+    documents ok
+    ```
+    Met.
+
+    Further checks against the criteria:
+    - The kept names have the same counts as on `origin/main`: `SettingsInvalid` 1, `CannotHandle` 5, `PushFailed` 5, `HostingServiceError` 1, `STOP_TABLE` 1, `factory.domain.settings.read_settings` 1.
+    - The `#` heading lines are the same as on `origin/main`.
+    - `docs/operator-guide.md` is the only changed file (17 insertions, 20 deletions).
+    - The sentence rewrites match the examples the criterion gives (`ask`, merged, closed, `AcceptanceMerged`, `AcceptanceClosed`).
+
+    Findings:
+    1. Criterion 3, third bullet (*An event that keeps failing*): the paragraph on the registered handlers must end with "... are registered: every kind of event has a handler.". The edit removed "Should a future kind have none, …" and the paragraph after it, but it also removed the blank line before "After three errors on one event and one remote state, …". In `docs/operator-guide.md`, line 1469 ("The handlers of the human's acts … every kind of event has a handler.") is now followed directly by line 1470 ("After three errors …"). In Markdown these two lines render as one paragraph, so the registered-handlers paragraph no longer ends with the required words. On `origin/main` the two were separate paragraphs. Expected: a blank line between line 1469 and "After three errors …". Observed: no blank line. None of the four commands catches this. Fixing it is a docs-only change; I fixed nothing.
+
+    Open: the finding above. Nothing else.
