@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T08:05:04.826460Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T08:04:43.932317Z'
   stage: intake
   run: a953bb6566414227bf6cf823d6ea5848
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:05:04.826460Z'
+  stage: tests
 ---
 
 # What was left for v2 is named open and not planned
@@ -84,3 +93,4 @@ Expect: `documents ok`
    Smoke test: the commands are runnable. The grep -c over eleven files prints eleven lines. The second block prints 1 + 1 + 9 = eleven lines. The third prints two lines. I read the Expect lines as checkable. No pytest command is involved, so the -q rule does not apply. I did not run make documents.
    Architecture: documents only, so no layer is touched. docs/decisions.md is the documenter's file.
    Scope: it is within F0038's scope (S0009: the new entry, the renamed entry, the settled kill pointed to its entry). It leaves out docs/runs/, write-guard.md and the playbook, as the human's answers of 2026-10-20 say.
+4. factory: started tests as self.
