@@ -2,7 +2,6 @@
 
 from datetime import timedelta
 from pathlib import Path
-from typing import get_args
 
 from definition_support import pipeline_definition
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
@@ -13,7 +12,7 @@ from factory.application.acceptance import (
     SplitByWorkItemKind,
 )
 from factory.application.boundaries import Boundaries
-from factory.application.dispatcher import Handler, unhandled_kinds
+from factory.application.dispatcher import Handler
 from factory.application.handlers.closed import ClosedHandler
 from factory.application.handlers.comments import CommentHandler
 from factory.application.handlers.hand_over import HandOverHandler
@@ -26,7 +25,7 @@ from factory.application.handlers.run_gate import RunGate
 from factory.application.tick import IdleHandler, Tick
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.events import EventKind
-from factory.entry.wiring import NOT_YET_HANDLED, build_handlers
+from factory.entry.wiring import build_handlers
 from git_support import install_agents
 from human_clone import HumanClone
 
@@ -144,13 +143,3 @@ def test_the_run_entry_runs_the_stage_of_a_started_story_without_a_pull_request(
     assert outcome.event.kind == "run"
     assert outcome.dispatch == "handled"
     assert len(agent_runtime.requests()) == 1
-
-
-def test_the_kinds_not_yet_handled_are_exactly_the_kinds_without_a_handler(
-    boundaries: Boundaries,
-) -> None:
-    handlers = _handlers(boundaries)
-
-    assert unhandled_kinds(handlers) == list(NOT_YET_HANDLED)
-    assert not set(NOT_YET_HANDLED) & set(handlers)
-    assert set(get_args(EventKind)) - set(NOT_YET_HANDLED) == set(handlers)

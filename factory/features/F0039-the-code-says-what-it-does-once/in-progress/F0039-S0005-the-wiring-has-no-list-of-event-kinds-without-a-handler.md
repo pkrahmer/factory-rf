@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 384
 comments_read: [6306079635]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T01:56:26.749375Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-21T01:56:26.749375Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-21T01:59:23.594121Z'
+  stage: tests
+  run: f0735f3ce93947bcaea3a76acd9df5b5
 ---
 
 # The wiring has no list of event kinds without a handler
@@ -117,3 +119,23 @@ Expect: two lines, `False False` and `1` (before the story, `True True` and `6`)
    - Architecture: respected. `factory.entry.wiring` only loses a constant, and no layer or interface changes.
    - Scope: within F0039's scope for S0005. `unhandled_kinds`, `UnhandledEvent` and the duplicates baseline line stay, as the feature's Out of scope says. The test changes are covered by the feature's decision 7, which the human granted.
 7. factory: started tests as self.
+8. tester: Changed the five earlier test modules as the Interface says, under the feature's decision 7. Then wrote the new module for criteria 1 and 2.
+
+   - criterion 1: tests/entry/test_wiring_constants.py::test_the_wiring_offers_its_names_but_no_list_of_kinds_without_a_handler. It is parametrized: one row for `NOT_YET_HANDLED`, which must be neither an attribute nor in `__all__`, and one row for each of the 23 names that must stay. The names that came into `__all__` later (`FRESH_HOME_MODULE`, `UV_CACHE_FOLDER`, `agent_home_of`, `fresh_home_command`) have no row, as the criterion allows.
+   - criterion 2: tests/entry/test_wiring_constants.py::test_a_kind_without_a_handler_is_caught_by_comparing_the_handlers_with_every_kind. Rows `built` (comparison true, `[]`) and `no-acceptance-due` (comparison false, `["acceptance_due"]`). It also relies on tests/entry/test_wiring_acceptance.py::test_every_kind_has_a_handler_and_acceptance_due_opens_the_acceptance passing.
+   - criterion 3: tests/entry/test_wiring_recovery.py::test_crash_is_handled, tests/entry/test_wiring_recovery_expired.py::test_expired_shares_the_crash_handler, and the rest of the five modules and of tests/application/test_dispatcher.py. Only tests/entry/test_wiring_constants.py under `tests/` still names `NOT_YET_HANDLED` (checked with grep).
+   - criteria 4 and 5: no test (`make check`, docs).
+
+   Files created: tests/entry/test_wiring_constants.py.
+
+   Earlier test files changed (feature decision 7, as the Interface names them):
+   - tests/entry/test_wiring_acceptance.py: removed the `NOT_YET_HANDLED` line and its import.
+   - tests/entry/test_wiring_handlers.py: removed `test_the_kinds_without_a_handler_are_exactly_those_not_yet_handled` and the imports of `NOT_YET_HANDLED` and `unhandled_kinds`.
+   - tests/entry/test_wiring_human_handlers.py: removed `test_the_kinds_not_yet_handled_are_exactly_the_kinds_without_a_handler` and the imports of `NOT_YET_HANDLED`, `unhandled_kinds` and `get_args`.
+   - tests/entry/test_wiring_recovery.py: renamed the test to `test_crash_is_handled`, removed its two `NOT_YET_HANDLED` lines and the `every` tuple, and dropped `get_args`.
+   - tests/entry/test_wiring_recovery_expired.py: renamed the test to `test_expired_shares_the_crash_handler`, removed its two `NOT_YET_HANDLED` lines and the `every` tuple, and dropped `get_args` and `EventKind`.
+
+   `make test` result: every module imports. The one failure is the `NOT_YET_HANDLED` row of criterion 1 (`assert True is False`), which fails for the right reason because the constant still exists. The other rows pass already, since this story only removes the constant. `make lint` is green.
+
+   `lint`: lint: green (0.5 s)
+   `test`: FAILED tests/entry/test_wiring_constants.py::test_the_wiring_offers_its_names_but_no_list_of_kinds_without_a_handler[NOT_YET_HANDLED] - AssertionError: assert True is False
