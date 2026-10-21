@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T01:04:34.102271Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-21T01:04:13.358259Z'
   stage: docs
   run: eada2bdc778346ee8503535eb11e4eae
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:04:34.102271Z'
+  stage: smoke-test
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -409,3 +418,4 @@ Expect: one line, `1` (before the story, `0`)
     `check`: check: green (not run again: passed on tree 2f849da5ea4a at 2026-10-21T01:01:27Z)
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
