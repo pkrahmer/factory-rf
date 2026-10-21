@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-21T09:12:57.106549Z'
   stage: acceptance
   run: 638d8c5a6d494858a52a9c87c10c40fc
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-21T09:14:18.802136Z'
+  stage: done
 stories: [F0038-S0001, F0038-S0002, F0038-S0003, F0038-S0004, F0038-S0005, F0038-S0006, F0038-S0007, F0038-S0008, F0038-S0009, F0038-S0010, F0038-S0011]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The documents say what is true today
@@ -181,3 +186,4 @@ None. The walk is green, and no story left an observation that nobody owns.
    6 Decisions for the human: the feature's decisions 1 to 11. S0011's dated-observation bullet was kept, not struck. The v1-numbered story ids in `agents.md`, such as (F0012-S0017), are provenance by S0010's design: all 8 resolve in commit subjects. No earlier test was changed.
    7 Slow checks: nothing beyond `make check`. The slowest tests are the `sudo` time-limit tests at 11.5 s, set by `ROOMY_LIMIT`. Disk is unchanged since A0001's record: 968.8 GB free and 0.0 GB used on `/work`, `/state` and `/tmp`.
    8 Cost: 74 runs, 42.5 min, $11.24. S0011 took the minimum route: 6 runs, $0.75. S0009 and S0007 stand out at 10 runs each, as A0001 reported. 0 questions answered and 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 5.0 min, 23 turns, 63574 tokens in (1085887 more from cache), 21216 out, $1.15
