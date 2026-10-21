@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-10-21T09:29:04.108972Z'
   stage: smoke-test
   run: e0c9c42e98d445e3ad2fecc35406d7f2
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-21T09:30:25.290247Z'
+  stage: approval
 ---
 
 # The tests name the instance in one place
@@ -357,3 +362,4 @@ Expect: one line, `1` (before the story, `0`)
     - Criterion 4: not contradicted. `docs/project-guide/README.md:60` now names `INSTANCE` and the instance name `"factory-1"` on the `stage_run_support.py` line.
 
     Findings: none. Nothing is open.
+17. factory: done (pull request merged); cost: 7 runs, 7.2 min, 60 turns, 169917 tokens in (1307651 more from cache), 18367 out, $1.64
