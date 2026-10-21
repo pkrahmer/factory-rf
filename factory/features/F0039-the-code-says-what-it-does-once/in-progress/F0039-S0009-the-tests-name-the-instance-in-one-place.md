@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 403
 comments_read: [6312436133]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T09:23:00.479530Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-21T09:22:39.503282Z'
   stage: tests
   run: 54ed77c9e76f4b47a6cb85e23a9e80f5
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-21T09:23:00.479530Z'
+  stage: doing
 ---
 
 # The tests name the instance in one place
@@ -181,3 +190,4 @@ Expect: one line, `1` (before the story, `0`)
 
    `lint`: lint: green (0.6 s)
    `test`: test: green (67.5 s)
+9. factory: started doing as self.
