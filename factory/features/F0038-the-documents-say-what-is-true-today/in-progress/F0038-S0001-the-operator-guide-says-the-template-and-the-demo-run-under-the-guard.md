@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 388
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T06:43:37.077731Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T06:43:37.077731Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T06:44:54.810338Z'
+  stage: tests
+  run: 4bebf755dacc4096b41cbea50a0bb9d8
 ---
 
 # The operator guide says the template and the todo demo run under the write guard
@@ -91,3 +93,11 @@ Expect: `documents ok`
    - Architecture: the story is documents only and is within the documenter's write paths (README.md, docs/*). It touches no layer.
    - Scope: it matches F0038 S0001 (finding H1) in feature.md, and nothing in "Out of scope" is involved.
 4. factory: started tests as self.
+5. tester: No tests were written, and nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed in this stage. This is a documents-only story, and its Interface is "None". Criterion 1 forbids changes under `tests/`, so a test of the documentation paragraph would break the story itself.
+   - criterion 1 (nothing under src/, tests/, image/, template/, demo/, claude/ changes): no test. The smoke test's `git diff --name-only origin/main -- src tests image template demo claude` checks it, and this entry states it for the tests stage.
+   - criterion 2 (`make check` stays green): no test. The factory's checks enforce it.
+   - criterion 3 (docs: the replaced paragraph in `docs/operator-guide.md`, `make documents` ends with `documents ok`): no test. It is the documenter's docs criterion, checked by the smoke test's greps and by `make documents`.
+   Files created: none. Modules the test run could not import: none, because no new tests exist. I did not run `make test`: there is no red test to confirm, so the branch stays green on purpose. `make lint`: green.
+
+   `lint`: lint: green (0.5 s)
+   `test`: test: green (61.0 s)
