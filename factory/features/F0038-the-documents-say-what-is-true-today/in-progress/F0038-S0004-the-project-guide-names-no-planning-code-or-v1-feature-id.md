@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 392
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T07:21:27.404242Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T07:21:27.404242Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T07:21:59.602891Z'
+  stage: docs
+  run: 5efc076a34f64f9b898db32a28837b70
 ---
 
 # The project guide names no planning code or v1 feature id as a pointer
@@ -154,3 +156,31 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds (`git diff --name-status main...HEAD` lists only the work item and its sidecar).
 10. factory: started docs as self.
+11. documenter: Docs stage: I replaced each planning-code pointer in the six guide files with the plain name of what it referred to, as criterion 3 lists. I changed only documents, so I did not run `make check`. The factory's run after this stage decides. `make documents` ends with `documents ok`, and the first smoke grep gives `:0` for all nine guide files.
+
+    Files changed, all under `docs/project-guide/`:
+    - `README.md`: *Kill points* now says "the recovery tests arm" in place of "F0008's tests arm".
+    - `agents.md`: four edits.
+      - The R24 pointer is gone ("no partial figure: the first call's alone would be one").
+      - "Starting a stage uses `read` to compose every task" replaces "F0005 uses `read`".
+      - The "(questionnaire 1, Q29)" pointer is removed.
+      - "the acceptance reads them" replaces "F0009 reads them".
+    - `costs.md`: I removed the "(F0008)" after "discarded with the stage" and the "(R24)" after "a reported zero stays zero".
+    - `git-and-hosting.md`:
+      - I removed "(F0005)" and "(F0007)" from the "Who uses them: preparing a stage merges ..." sentence.
+      - I rewrote the "a stall or a crash reverts or resets" sentence as the criterion gives it, with the rules for what to revert pointing to `write-guard.md`.
+      - The heading is now *Which part uses which operation*, and the *Used by* cells name the part: the undo, the stage's preparation, the tick, the sealed run and the restore, the crash recovery, the merge and the discard, and the known results. All seven started with a feature id.
+    - `stages.md`: I removed "R20" and "R21" from the *Status* paragraph.
+    - `watching.md`: "the human's act comes first" replaces "R22 puts the human's act first". I also removed "(F0008)", "(kept thing 3)" and "(R28, kept thing 12)".
+
+    Cross-read and found current: I checked the guide's other files (`processes-and-checks.md`, `work-items.md`, `write-guard.md`) only with the smoke grep, which finds no remaining planning code in them. `processes-and-checks.md` is out of scope and I did not touch it. `README.md` at the root and `docs/operator-guide.md` are outside this story's scope, so I did not cross-read them.
+
+    Findings: none. The diff outside `factory/` is empty, so there is no code to contradict the docs.
+
+    Stale text I noticed and did not touch: `agents.md` still cites story ids "(F0021-S0005)" and "(F0034-S0001)" in the reviewer paragraph and a v1 commit hash `f8bc9d2`. The story keeps ids that come with a short name, and the Description does not list these, so I left them. The decision log's codes belong to F0038-S0005.
+
+    Skills set aside: none.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok

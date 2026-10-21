@@ -96,7 +96,7 @@ A model that reads a tool's own output declares `extra="ignore"`, so that a fiel
 
 ## Kill points
 
-A test that must show the factory survives its own death arms a kill point. The seam is `factory.domain.kill_points`; F0008's tests arm `BEFORE_PUSH` (`tests/application/test_recovery_crash.py`, a kill before the crash commit's push) and `AFTER_PUSH` (`tests/application/test_tick_stale_branch.py`, a discard killed after its push); `tests/test_kill_points.py` covers all four points (below).
+A test that must show the factory survives its own death arms a kill point. The seam is `factory.domain.kill_points`; the recovery tests arm `BEFORE_PUSH` (`tests/application/test_recovery_crash.py`, a kill before the crash commit's push) and `AFTER_PUSH` (`tests/application/test_tick_stale_branch.py`, a discard killed after its push); `tests/test_kill_points.py` covers all four points (below).
 
 There are four points, the members of `KillPoint`:
 
