@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 383
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T01:51:09.920814Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T01:51:09.920814Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T01:51:29.757954Z'
+  stage: smoke-test
+  run: e7cd15fa1e7249e49f1bffb39eed6e9c
 ---
 
 # The tick's docstrings and the checkout preparer say what the code does
@@ -205,3 +207,25 @@ Expect: one line, `False True <class 'NoneType'> <class 'bool'>` (before the sto
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed with no findings. I ran the one command from the repository root exactly as written and changed nothing.
+
+    Command 1, the one-line `uv run python -c` that prints the docstring checks and the two return types:
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 76ms
+    Bytecode compiled 4164 files in 364ms
+    False True <class 'NoneType'> <class 'bool'>
+    exit: 0
+    ```
+    It met its `Expect:` line. The program's own output is one line, `False True <class 'NoneType'> <class 'bool'>`. The lines above it are uv setting up the virtual environment on stderr, not the program's output.
+
+    Against the acceptance criteria:
+    - Criteria 1 and 2: on top of the smoke test, I printed the three docstrings with whitespace joined to single spaces, read-only. Each matches the text in criterion 1 word for word: `Tick`, `Tick.run` (including "publish the stop records" and the unchanged Raises paragraph) and `CheckoutPreparer.prepare`. The smoke test shows `CheckoutPreparer.prepare` now returns `NoneType` and `RepositoryWaiter.prepare` still returns `bool`, as criterion 2 says.
+    - Criteria 3 and 4 (the seven changed tests, the unchanged tests, `make check`): the smoke test does not touch them and nothing in it contradicts them. Entry 7 records `check: green` and entry 11 records that the check was reused on that tree.
+    - Criterion 5 (docs): nothing in the smoke test contradicts it.
+
+    Findings: none.
