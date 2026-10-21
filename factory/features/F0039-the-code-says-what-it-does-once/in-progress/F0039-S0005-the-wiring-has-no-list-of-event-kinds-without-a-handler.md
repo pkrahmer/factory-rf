@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 384
 comments_read: [6306079635]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T01:56:26.749375Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-21T01:56:06.453717Z'
   stage: intake
   run: fe35aa9fceec4cf7b8262c655861bb80
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:56:26.749375Z'
+  stage: tests
 ---
 
 # The wiring has no list of event kinds without a handler
@@ -107,3 +116,4 @@ Expect: two lines, `False False` and `1` (before the story, `True True` and `6`)
    - Smoke test: both commands run. The `Expect:` line is now consistent with criterion 3. It does not run pytest, so the `-q` rule does not apply.
    - Architecture: respected. `factory.entry.wiring` only loses a constant, and no layer or interface changes.
    - Scope: within F0039's scope for S0005. `unhandled_kinds`, `UnhandledEvent` and the duplicates baseline line stay, as the feature's Out of scope says. The test changes are covered by the feature's decision 7, which the human granted.
+7. factory: started tests as self.
