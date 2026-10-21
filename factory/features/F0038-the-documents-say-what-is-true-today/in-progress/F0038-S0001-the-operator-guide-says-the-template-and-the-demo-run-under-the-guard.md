@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 388
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T06:45:15.659823Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T06:44:54.810338Z'
   stage: tests
   run: 4bebf755dacc4096b41cbea50a0bb9d8
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:45:15.659823Z'
+  stage: doing
 ---
 
 # The operator guide says the template and the todo demo run under the write guard
@@ -101,3 +110,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.5 s)
    `test`: test: green (61.0 s)
+6. factory: started doing as self.
