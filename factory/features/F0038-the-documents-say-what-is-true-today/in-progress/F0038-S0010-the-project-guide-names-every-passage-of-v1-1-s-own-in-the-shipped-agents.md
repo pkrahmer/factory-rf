@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 398
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T08:21:17.668231Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T08:20:56.960160Z'
   stage: tests
   run: cbb687a3af784fcf870c38f6c7d699eb
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:21:17.668231Z'
+  stage: doing
 ---
 
 # The project guide names every passage of v1.1's own in the shipped agents
@@ -98,3 +107,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.7 s)
    `test`: test: green (67.7 s)
+6. factory: started doing as self.
