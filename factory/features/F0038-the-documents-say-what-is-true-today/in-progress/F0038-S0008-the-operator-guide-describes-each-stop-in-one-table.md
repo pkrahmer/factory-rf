@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 396
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T08:00:02.964507Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T08:00:02.964507Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T08:00:29.356580Z'
+  stage: review
+  run: 1a3518573eaa4386bbe56582dc89ecdc
 ---
 
 # The operator guide lists each stop in one table
@@ -138,3 +140,20 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar. This fits a story whose Interface is "None" and whose only change is the documenter's edit to `docs/operator-guide.md`.
+   - Criterion 1: holds. Nothing changed under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`, and the tester's entry (5) and the coder's entry (7) each say so.
+   - Criterion 2: the coder's entry (7) records `check: green` and `duplicates: 0 new, 38 known, 0 gone`.
+   - Criterion 3 (docs): this is the documenter's work. Every heading it names still exists in `docs/operator-guide.md`:
+     - "The health check and the restart policy" (492)
+     - "The stops you will see here" (504), the one to be removed
+     - "The preflight's items" (515)
+     - "The stamp and the probe of the main branch" (548)
+     - "The wait for a repository that is not ready" (562)
+     - "The stops" (716)
+     - "The stops of the tick" (923)
+   - Checklist groups 2 to 4 (architecture, security, quality): no code changed, so nothing to judge.
+   - Work item hygiene: the Description still matches the task, since nothing has been built yet beyond the documents the documenter writes. The docs criterion says exactly what the reader must know after this story.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
