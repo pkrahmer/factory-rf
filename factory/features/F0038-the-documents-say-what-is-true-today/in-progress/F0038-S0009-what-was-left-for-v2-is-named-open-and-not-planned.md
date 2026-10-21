@@ -1,17 +1,13 @@
 ---
-stage: smoke-test
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T08:11:54.916936Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T08:11:54.916936Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T08:12:29.788852Z'
+  stage: smoke-test
+  run: 668d6cd3817344ffbff3be938c781bc8
 ---
 
 # What was left for v2 is named open and not planned
@@ -194,3 +196,66 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: I ran the four smoke-test commands from the repository root exactly as written, in order. All four met their `Expect:` lines. When I read the acceptance criteria again, I found one criterion that the commands do not cover and that the smoke test contradicts: the new entry is not dated. That is a finding, so I end with `doing`. I fixed nothing.
+
+    Command 1: `grep -c -i 'left for v2' README.md docs/operator-guide.md docs/project-guide/*.md || true`
+    ```
+    README.md:0
+    docs/operator-guide.md:0
+    docs/project-guide/README.md:0
+    docs/project-guide/agents.md:0
+    docs/project-guide/costs.md:0
+    docs/project-guide/git-and-hosting.md:0
+    docs/project-guide/processes-and-checks.md:0
+    docs/project-guide/stages.md:0
+    docs/project-guide/watching.md:0
+    docs/project-guide/work-items.md:0
+    docs/project-guide/write-guard.md:0
+    ```
+    Met: eleven lines, each ending in `:0`.
+
+    Command 2: the old-words count, the old-title count, and the nine heading checks in `docs/decisions.md`
+    ```
+    0
+    0
+    1
+    1
+    1
+    1
+    1
+    1
+    1
+    1
+    1
+    ```
+    Met: `0`, `0`, then nine lines `1`.
+
+    Command 3: `git diff --name-only origin/main -- src tests image template demo claude | wc -l; git diff --name-only origin/main -- README.md docs`
+    ```
+    0
+    docs/decisions.md
+    ```
+    Met.
+
+    Command 4: `make documents 2>&1 | tail -n 1`
+    ```
+    documents ok
+    ```
+    Met.
+
+    Reading the criteria again: I read the changed parts of `docs/decisions.md` against each bullet of criterion 3.
+    - Line 454 has the "Open, not planned (see ...)" text and "one of the operator guide's checks on a running instance".
+    - Line 306 has "Closed by ..." and the pointer to the `timeout` entry.
+    - Lines 294–298: the renamed heading, the "Replaced by ..." paragraph on its own line, then "Date: 2026-10-16 ...".
+    - Lines 960 and 978 cite the new titles.
+    - Lowercase "left for v2" appears only in the new entry (lines 992–997) and at the citation on line 454.
+
+    All of these match. The one exception is the new entry's date (finding 1).
+
+    Findings:
+    1. Command: none of the four commands checks this. I found it by reading the criteria again (`sed -n '/^## v2 is retired/,$p' docs/decisions.md`).
+       - Expected (criterion 3, first bullet): "a new last entry `## v2 is retired; nothing is left for v2`, dated with the story, in the bullet form". The neighbouring entries put a date line directly under the heading, for example `Date: 2026-10-20 (F0030-S0002). ...` under *The work tree's id copies the index with its timestamps*.
+       - Observed: the entry runs from the heading at line 992, through a blank line, straight to `- Decision: on 2026-10-19 v2 was retired ...` at line 994, then the Why, Open and Rejected bullets. It has no `Date:` line and gives no story id anywhere, so it is not dated with the story.
+       - Criterion: 3 (docs), first bullet.
+
+    Open: the date line is the documenter's to add in `docs/decisions.md`. After the fix, the smoke test's commands should still give the same output.
