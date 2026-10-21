@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 383
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T01:51:09.920814Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T01:50:49.239900Z'
   stage: docs
   run: 9b795c0508e24060b30d28ea1bcae1af
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:51:09.920814Z'
+  stage: smoke-test
 ---
 
 # The tick's docstrings and the checkout preparer say what the code does
@@ -195,3 +204,4 @@ Expect: one line, `False True <class 'NoneType'> <class 'bool'>` (before the sto
     `check`: check: green (not run again: passed on tree 85bb13c714fd at 2026-10-21T01:48:14Z)
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
