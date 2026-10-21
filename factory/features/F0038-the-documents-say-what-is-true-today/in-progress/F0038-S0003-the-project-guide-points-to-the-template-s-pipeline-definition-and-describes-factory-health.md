@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 390
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T07:04:25.902773Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-21T07:04:04.796083Z'
   stage: doing
   run: f70c6ae5ff9240cb9b36068bd5a13893
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:04:25.902773Z'
+  stage: review
 ---
 
 # The project guide points to the template's pipeline definition and describes `factory-health`
@@ -123,3 +132,4 @@ Expect: `documents ok`
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
+8. factory: started review as self.
