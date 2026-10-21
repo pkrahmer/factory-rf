@@ -1,16 +1,56 @@
 # Operator guide
 
-The guide for the person who runs the factory this repository implements: how to install it, how to configure it, which stops it can reach and what to do about each. Parts are built: the wrappers for git, the build commands and the `claude -p` and `opencode run` runtimes, the hosting-service client, the factory log and the health status file, the stops of the repository, the machine and a work item (published as raised and cleared records to `factory/stops.jsonl` on `main`, described by the records contract under `src/factory/contract/`), the pipeline definition with its reader, rules and loader, the agent definition reader, the claim of a stage with its lease, the write paths with the guard and the undo, the stage protocol (one stage run from the pushed claim to the result commit, with stalls, checks and reports, and v1's decision rules with the factory's own questions), the cost records with the bill, and the reading of the remote: the evaluation that picks the next event, the tick with its stops, the dispatcher with its handlers, and `factory-watch`. The handlers start a stage and answer the human's acts on the pull request: comments are copied into the journal, questions are recorded and then posted, a merge archives the story, a close discards it or sends it back (for an acceptance, a close books it refused), an illegal stage change is moved back, and the pull request is handed over at the approval. After a crash, a restart reruns the dead stage, an expired lease of another instance is taken over, the crash cap asks the human, and the tick deletes a stale branch. `factory-run` (also `python -m factory.entry.run`) now runs one instance: it reads the settings, prepares the checkout and makes one tick per iteration until `SIGTERM` or `SIGINT`; the repository waiter, the container's health check and the entrypoint are built (see "The container: compose, entrypoint and health check"); the preflight with its machine checks runs in every tick, and the image was built and started once under rootless Podman (the probe of 2026-10-17, without the pins) up to the stop `repository_unavailable`; the first start of 2026-10-17 then brought two instances (Docker Desktop and rootless Podman) up healthy on an empty project, the preflight's probe agent run included; a stage's agent run end to end and a `time_limit` under `sudo` were observed on 2026-10-18, on the todo demo. The commands are `factory-run`, `factory-check-story`, `factory-bill` and `factory-watch` (you run them) and `factory-confine` (the agent runtime runs it; it starts every agent run with its writes confined by the kernel). `factory-health` (also `python -m factory.entry.health`) prints the stops in force. The sections below describe what the built parts expect of your machine and your project. The documenter stage extends this from each story's docs criterion.
+The guide for the person who runs the factory this repository implements: how to install and configure an instance, which stops it can reach and what to do about each. The machine's image is the usual way to run an instance (see "The machine's image").
+
+- "Install"
+- "Configuration"
+- "When the process refuses to start"
+- "The loop and its pauses"
+- "The project's make targets"
+- "The agent runtime"
+- "The machine's image"
+- "The container: compose, entrypoint and health check"
+- "Container runtimes"
+- "The factory log and the health status file"
+- "The stops"
+- "What a stage run shows"
+- "A stall: the stall note"
+- "A stall by a red check"
+- "The factory's own questions"
+- "The stop `pipeline_definition_invalid`"
+- "The stop `agent_definition_invalid`"
+- "The stops of the tick"
+- "The pipeline definition"
+- "The agent files"
+- "The records contract"
+- "Checking a story before it starts"
+- "What a work item cost: `factory-bill`"
+- "Looking at the remote: `factory-watch`"
+- "When a feature acceptance is due"
+- "The hand-over at the approval"
+- "A stale branch is deleted by the tick"
+- "A merge archives the story"
+- "A close before the approval discards the story"
+- "A close at the approval sends the story back"
+- "Branch deletion on merge must be off"
+- "An idle tick that is not empty"
+- "A stage changed by hand"
+- "An event that keeps failing"
+- "Stops that cannot be done"
+- "A restart during a stage"
+- "An expired lease"
+- "Claims, leases and the clock"
+- "Replaced from v1"
 
 ## Install
 
-Install v1.1 only on a repository v1 has not worked in, or whose v1 work items are archived or discarded (decision 008 of factory-v2): v1.1 starts fresh, and nothing detects a v1 work item.
+Install v1.1 only on a repository v1 has not worked in, or whose v1 work items are archived or discarded: v1.1 starts fresh, and nothing detects a v1 work item.
 
 Install the factory with `uv sync`, then check the installation with `make check`; it ends with the line `check: green`. The machine's image (see "The machine's image") is the usual way to run an instance: it carries the factory, the agent runtime and the pinned tools. Then set the instance's environment as described under "Configuration".
 
 ## Configuration
 
-One factory instance runs one project (R2) and is told what it needs through environment variables. `factory.domain.settings.read_settings` reads them and refuses a bad one with `SettingsInvalid`, whose message is `<variable>: <fault>`; it reports the first fault in the order of the table. `factory-run` calls it first; `factory-watch` reads the same environment.
+One factory instance runs one project and is told what it needs through environment variables. `factory.domain.settings.read_settings` reads them and refuses a bad one with `SettingsInvalid`, whose message is `<variable>: <fault>`; it reports the first fault in the order of the table. `factory-run` calls it first; `factory-watch` reads the same environment.
 
 | Variable | Required | Meaning |
 |---|---|---|
@@ -114,7 +154,7 @@ A variable that is unset, or a file that is missing or blank, counts as holding 
 - The token reaches only the `claude -p` calls. It is not in the factory's own environment, the project commands' or `claude --version`'s. A `CLAUDE_CODE_OAUTH_TOKEN` in a request's environment is dropped: the file is the only source.
 - The token stands in no process's arguments, so neither `ps` inside the container nor a host user's `ps` on a Linux host shows it (a host shows a container's processes with their arguments unless `/proc` is mounted with `hidepid=2`).
 - The allow list of the agent run's environment keeps its six names (`PATH`, `HOME`, `LANG`, `LC_ALL`, `TERM`, `TZ`); the runtime's shell adds this one name, or `ANTHROPIC_API_KEY` when an API key is in force.
-- With `FACTORY_API_LOGIN_FILE` set, the shell is started as `/bin/sh -c <script> factory-login --api-login <api file> <token file> claude ...`, with an empty word in place of the token file when `FACTORY_CLAUDE_LOGIN_FILE` is unset. Without it the words are the five of before. The shell tells the runtime on standard error which login it handed over (`factory-login-used: api_key`, `subscription` or `none`); the runtime turns that into the run's `login`.
+- With `FACTORY_API_LOGIN_FILE` set, the shell is started as `/bin/sh -c <script> factory-login --api-login <api file> <token file> claude ...`, with an empty word in place of the token file when `FACTORY_CLAUDE_LOGIN_FILE` is unset. Without it the shell is started as `/bin/sh -c <script> factory-login <token file> claude ...`. The shell tells the runtime on standard error which login it handed over (`factory-login-used: api_key`, `subscription` or `none`); the runtime turns that into the run's `login`.
 
 A run whose budget is spent is not lost: the factory resumes the same session once with a quarter of the budget (at least 0.50 USD) and asks the agent to finish with its decision, `question` if the work is not done. That costs up to that extra amount, and the cost and tokens of both calls are added up. If the resume is also over budget, the run stops as a stall; there is no third call. A run that dies, runs past its time limit or returns no usable decision stops the work item as a stall. One `time_limit` covers both calls: the resume gets what is left. A run the `time_limit` ends is killed, is not resumed, and shows its cost, tokens and turns as unknown.
 
@@ -224,14 +264,14 @@ Compose mounts the file read-only at `/home/agent/.anthropic-api-key`, in the ag
 
 Which login is in force: the cost record of each run has the field `login`, which is `subscription`, `none` or the value for the API key (a line written before the field existed lacks it), and the preflight writes one factory-log line for the probe, for example `preflight: agent-run-probe: the agent runs log in with the API key from /home/agent/.anthropic-api-key`. The line comes with each run of the machine's items, so once for each image build.
 
-**Morning observations.** The second user, the `sudo` rule and the group exist only in a real image, so the tests cannot show these. Do them once on a running instance and note the result:
+**Checks on a running instance.** The second user, the `sudo` rule and the group exist only in a real image, so the tests cannot show these. Do them once on a running instance and note the result:
 
 | Observation | Command | Expected |
 |---|---|---|
-| WE3.1: the agent runs as `agent` | `docker exec <container> sudo -n -u agent -- id -un` | `agent` |
-| WE3.3: it cannot read the token file | `docker exec -u agent <container> cat /home/factory/.secrets/hosting-token` and `docker exec -u agent <container> ls /home/factory/.secrets` | `Permission denied` for both |
+| the agent runs as `agent` | `docker exec <container> sudo -n -u agent -- id -un` | `agent` |
+| it cannot read the token file | `docker exec -u agent <container> cat /home/factory/.secrets/hosting-token` and `docker exec -u agent <container> ls /home/factory/.secrets` | `Permission denied` for both |
 | The token's folder is the factory's | `docker exec <container> ls -lnd /home/factory/.secrets` | `drwx------` and uid 1000 |
-| WE3.3: the token is not in its environment | `docker exec <container> sudo -n -u agent -- env -i HOME=/home/agent env` | no `GH_TOKEN`, no `FACTORY_TOKEN_FILE` |
+| the token is not in its environment | `docker exec <container> sudo -n -u agent -- env -i HOME=/home/agent env` | no `GH_TOKEN`, no `FACTORY_TOKEN_FILE` |
 | The mode of what an agent makes | `docker exec <container> sudo -n -u agent -- sh -c 'mkdir /work/checkout/d && touch /work/checkout/d/f && stat -c "%a %n" /work/checkout/d /work/checkout/d/f'` | `2775` for the directory, `664` for the file; `/work` is setgid, so a folder made in it keeps the bit and the group `factory-work` (seen at the first start of 2026-10-17 under Docker Desktop and Podman) |
 | The agent can read its token | `docker exec -u agent <container> test -r /home/agent/.claude-token && echo readable` | `readable` |
 | The probe needs no login | start a new instance (a new `claude-home` volume) with the token file in place and read the health status | the preflight item `agent-run-probe` passes, with no login made by hand |
@@ -244,15 +284,15 @@ Which login is in force: the cost record of each run has the field `login`, whic
 | A check at its limit leaves no process | `docker exec <container> ps -o user,pid,args -U agent` after a check that reached its time limit | only the header (the user's `timeout` ended its group, and the leftovers program ended the rest) |
 | A refused `sudo` | `docker exec <container> sudo -n -u root id` | `sudo: a password is required`; the rule allows only `agent` |
 | The agent's git trusts the checkout | `docker exec -u agent <container> git -C /work/checkout status --short` | no `dubious ownership`; the status, or nothing on a clean checkout |
-| WE3.4: it cannot push | `docker exec -u agent <container> git -C /work/checkout push origin main` | no push; git fails with `could not read Username`, because there is no credential |
-| WE3.4: it cannot call the hosting service | `docker exec -u agent <container> curl -sS -o /dev/null -w '%{http_code}' https://api.github.com/user` | `401` (no credential) |
+| it cannot push | `docker exec -u agent <container> git -C /work/checkout push origin main` | no push; git fails with `could not read Username`, because there is no credential |
+| it cannot call the hosting service | `docker exec -u agent <container> curl -sS -o /dev/null -w '%{http_code}' https://api.github.com/user` | `401` (no credential) |
 | The agent cannot write the checkout's `.git` | `docker exec -u agent <container> sh -c 'cd /work/checkout && stat -c "%a %U:%G %n" .git .git/config && find .git -perm /022 \| wc -l && git config --local factory.sealcheck agent; touch .git/agent-file; mv .git/hooks .git/hooks-moved'` | line by line: `2750 factory:factory-work .git`, `640 factory:factory-work .git/config`, `0`, `error: could not lock config file .git/config: Permission denied`, `touch: cannot touch '.git/agent-file': Permission denied`, `mv: cannot move '.git/hooks' to '.git/hooks-moved': Permission denied` |
 | The agent's processes after a run | after a run as `agent`, `docker exec <container> ps -o user,pid,ppid,stat,args -U agent` | no process is listed; see "The end of the agent's processes" above |
 | A `time_limit` under `sudo` | start a run with a short role `time_limit`, then `docker exec <container> ps -eo pid,ppid,user,stat,args` after the limit | PID 1 is the runtime's init; no line with `Z` in `STAT` and no `<defunct>`; no live `claude` process of `agent`; see "A `time_limit` under `sudo`" above |
 
 Make the `.git` observation after the instance's second iteration: right after a new clone, `FETCH_HEAD` stays group-writable until the next iteration seals it. The agent's git also needs the checkout's `safe.directory`, or it refuses the checkout before it tries to write.
 
-**A `time_limit` under `sudo`.** The factory cannot signal `sudo`, which is owned by root, so it does not rely on killing the call's process group. The runtime puts `timeout --signal=KILL <limit>s` inside the `sudo` call, where `<limit>` is the call's time limit in whole seconds, rounded up. `timeout` runs as `agent`, so the agent's own user kills its own process tree at the limit. A call that ends with status 137 (or a death by `SIGKILL`) after at least its time limit is read as `time_limit`, like any other timed-out run: it is not resumed and shows its cost, tokens and turns as unknown. The same status before the limit is a death, as before. The factory's own kill of the call comes only after 30 more seconds, and fires only if the inner one did not. After a `time_limit`, `docker exec <container> ps -eo pid,ppid,user,stat,args` must show PID 1 as the runtime's init, no line with `Z` in its `STAT` column and no `<defunct>` (the init reaps what the kill orphaned; see "The container: compose, entrypoint and health check"), and no live `claude` process of `agent`; if one is left, the inner kill did not work, so kill it by hand (`docker exec <container> sudo -n -u agent -- kill <pid>`) and report it. A `sudo:` line printed by a call that ended this way still stops the run with an error (above). A call under `sudo` returns at most 5 seconds (`PIPE_DRAIN`) after the inner kill, also when a process of `agent` that left the group still holds the call's output: the factory stops reading, and the leftovers program after the call ends that process. A run without `FACTORY_AGENT_USER` has no `timeout` and is limited by the factory's own kill, with no extra 30 seconds.
+**A `time_limit` under `sudo`.** The factory cannot signal `sudo`, which is owned by root, so it does not rely on killing the call's process group. The runtime puts `timeout --signal=KILL <limit>s` inside the `sudo` call, where `<limit>` is the call's time limit in whole seconds, rounded up. `timeout` runs as `agent`, so the agent's own user kills its own process tree at the limit. A call that ends with status 137 (or a death by `SIGKILL`) after at least its time limit is read as `time_limit`, like any other timed-out run: it is not resumed and shows its cost, tokens and turns as unknown. The same status before the limit is a death. The factory's own kill of the call comes only after 30 more seconds, and fires only if the inner one did not. After a `time_limit`, `docker exec <container> ps -eo pid,ppid,user,stat,args` must show PID 1 as the runtime's init, no line with `Z` in its `STAT` column and no `<defunct>` (the init reaps what the kill orphaned; see "The container: compose, entrypoint and health check"), and no live `claude` process of `agent`; if one is left, the inner kill did not work, so kill it by hand (`docker exec <container> sudo -n -u agent -- kill <pid>`) and report it. A `sudo:` line printed by a call that ended this way still stops the run with an error (above). A call under `sudo` returns at most 5 seconds (`PIPE_DRAIN`) after the inner kill, also when a process of `agent` that left the group still holds the call's output: the factory stops reading, and the leftovers program after the call ends that process. A run without `FACTORY_AGENT_USER` has no `timeout` and is limited by the factory's own kill, with no extra 30 seconds.
 
 **The agent's processes after a run.** After a run, `docker exec <container> ps -o user,pid,ppid,stat,args -U agent` must list no process: the program of "The end of the agent's processes" ended them. A process listed there means the program did not run (a run without `FACTORY_AGENT_USER`) or an operator's shell of `agent` is open; the next agent call ends it.
 
@@ -302,7 +342,7 @@ opencode has no budget flag, so the factory keeps the budget of an opencode run 
 
 ### Running on opencode
 
-An instance runs its agents on Claude Code unless the operator sets `FACTORY_AGENT_RUNTIME=opencode` for that instance's compose calls, as `FACTORY_INSTANCE` is set. An instance without the setting runs exactly as before. The image holds both runtimes: `opencode-ai` is installed from npm at the version `OPENCODE_VERSION` of the Dockerfile, and the image sets `FACTORY_OPENCODE_VERSION` to it.
+An instance runs its agents on Claude Code unless the operator sets `FACTORY_AGENT_RUNTIME=opencode` for that instance's compose calls, as `FACTORY_INSTANCE` is set. The image holds both runtimes: `opencode-ai` is installed from npm at the version `OPENCODE_VERSION` of the Dockerfile, and the image sets `FACTORY_OPENCODE_VERSION` to it.
 
 **The login.** An opencode run logs in in one of two ways:
 
@@ -349,7 +389,7 @@ docker build -f image/Dockerfile -t factory:local .
 
 The build argument `FACTORY_IMAGE` is optional and is only a label (`docker build --build-arg FACTORY_IMAGE=2026-10 ...`); it defaults to `unlabelled`. The identity of the image is not the label. The build generates a fresh id and writes it to `/opt/factory/image-id`, which the settings read. Every rebuild that changes an earlier layer gets a new id, so it invalidates the preflight stamp, even when you pass the same label.
 
-The probe of 2026-10-17 built the image once under rootless Podman 5.8.3 in 42 s, without the pins (they were placeholders then). A build with the pins of `image/Dockerfile` is not observed yet; treat it as the morning observation. The Dockerfile also copies `claude/` and `template/`.
+A build of the image with the pins of `image/Dockerfile` is not observed yet: check it once on a running instance. The Dockerfile also copies `claude/` and `template/`.
 
 ### Update the pins
 
@@ -364,7 +404,7 @@ To update any pin, edit its line and run `uv run pytest tests/test_image.py`:
 
 ### Claude Code
 
-Claude Code is installed from its npm package, `@anthropic-ai/claude-code`, at the pinned version `2.1.296`, with its auto-update off (`DISABLE_AUTOUPDATER=1`). The version is also in the container's environment as `FACTORY_CLAUDE_VERSION`, so the preflight can read it. A maintenance feature after v1.1 updates the pin (questionnaire 1, Q21); until then it changes only when you edit the Dockerfile.
+Claude Code is installed from its npm package, `@anthropic-ai/claude-code`, at the pinned version `2.1.296`, with its auto-update off (`DISABLE_AUTOUPDATER=1`). The version is also in the container's environment as `FACTORY_CLAUDE_VERSION`, so the preflight can read it. The pin changes only when you edit the Dockerfile.
 
 ### Users and directories
 
@@ -406,7 +446,7 @@ The compose project is named `factory-<instance>`, after `FACTORY_INSTANCE`. The
 
 The token lives in one file on the host, `secrets/hosting-token`, beside `image/compose.yml` (`image/secrets/hosting-token`; git ignores the directory). Compose mounts it read-only at `/home/factory/.secrets/hosting-token`, and the image sets `FACTORY_TOKEN_FILE` to that path. The folder `/home/factory/.secrets` is made in the image, `factory:factory`, mode `0700`: only the factory's user can enter it, so the agent (uid 1001) cannot read the file whatever the file's own mode.
 
-The folder does the work because the file cannot. The token used to be a compose secret with `uid`, `gid` and `mode`, but Compose ignores those three keys outside Swarm mode: the file is a plain bind mount with the host file's owner and mode, which on Windows shows as `-rwxrwxrwx`, owner 0, under Docker Desktop and under Podman alike. A probe of 2026-10-17 read the token as the agent through that file. A missing host file makes Compose refuse to start; it does not create a folder in its place (`create_host_path: false`).
+The folder does the work because the file cannot. A compose secret cannot do it, because Compose ignores its `uid`, `gid` and `mode` outside Swarm mode: the file is a plain bind mount with the host file's owner and mode, which on Windows shows as `-rwxrwxrwx`, owner 0, under Docker Desktop and under Podman alike. A missing host file makes Compose refuse to start; it does not create a folder in its place (`create_host_path: false`).
 
 The host file's permissions still matter: anyone on the host who can read it has the token. Set them by host:
 
@@ -427,14 +467,16 @@ The preflight item `token-file` (see "The preflight's items") checks that the to
 
 The folder is checked first, so a folder the factory's user does not own is reported even when it cannot enter it.
 
-**Morning observation.** Tests cover the files and the helper, but not a real agent run, which needs a container runtime (Docker or Podman) and the image's second operating-system user. Check by hand once after a build, inside the container:
+**Checks on a running instance.** Tests cover the files and the helper, but not a real agent run, which needs a container runtime (Docker or Podman) and the image's second operating-system user. Check by hand once after a build, inside the container:
 
 - `docker exec -u agent <container> cat /home/factory/.secrets/hosting-token` and `docker exec -u agent <container> ls /home/factory/.secrets` are refused with `Permission denied`, and `ls -lnd /home/factory/.secrets` shows `drwx------` and uid 1000.
 - As an agent (a run that tries it, or `su` to another user), `printenv` must show no token, `git -C . push origin main` must fail, and a call to the hosting service's API must fail.
 
-**The project commands run as `agent`.** Every project command the factory runs (`make check`, `lint`, `test`, `secrets`, `duplicates`, `documents`, and the preflight's `lint` on `main`) runs as `agent`, not as `factory`, through `sudo -n -u agent -- timeout --signal=KILL <limit>s env -i ... make --no-print-directory <command>`. Its environment is the agent run's (see above) plus `PYTHONDONTWRITEBYTECODE=1` and `UV_LINK_MODE=copy`. So code an agent wrote never runs as `factory`, `agent` cannot enter the token's folder, and no output tail the factory writes into the journal can hold the hosting token. The checkout's git folder is sealed before every command and checked after it, as for an agent run, and nested repositories are removed; the factory's own git writes (the undo, the commit) leave `.git` group-writable between a run and its checks, and a command running as `agent` must find it the factory's alone. A seal that does not hold is the same `RepositoryUnsealed` error as after an agent run. Every command is followed by the leftovers program as `agent` (see *The end of the agent's processes* above; it applies to project commands too). Without `FACTORY_AGENT_USER` (tests, local runs) the commands run as the factory's user, as before. What stays: the agent's own login files (`/home/agent/.claude-token`, `/home/agent/.anthropic-api-key`) are readable by `agent` by design, so a test can still print the agent's login into the output tail, as an agent run could write it into its work. The checkout's `.git` is no route to the factory's git: the agent cannot write it, and the factory's git sets `core.hooksPath` to `/dev/null` through its own environment as a second line.
+**The project commands run as `agent`.** Every project command the factory runs (`make check`, `lint`, `test`, `secrets`, `duplicates`, `documents`, and the preflight's `lint` on `main`) runs as `agent`, not as `factory`, through `sudo -n -u agent -- timeout --signal=KILL <limit>s env -i ... make --no-print-directory <command>`. Its environment is the agent run's (see above) plus `PYTHONDONTWRITEBYTECODE=1` and `UV_LINK_MODE=copy`. So code an agent wrote never runs as `factory`, `agent` cannot enter the token's folder, and no output tail the factory writes into the journal can hold the hosting token. The checkout's git folder is sealed before every command and checked after it, as for an agent run, and nested repositories are removed; the factory's own git writes (the undo, the commit) leave `.git` group-writable between a run and its checks, and a command running as `agent` must find it the factory's alone. A seal that does not hold is the same `RepositoryUnsealed` error as after an agent run. Every command is followed by the leftovers program as `agent` (see *The end of the agent's processes* above; it applies to project commands too). Without `FACTORY_AGENT_USER` (tests, local runs) the commands run as the factory's user. What stays: the agent's own login files (`/home/agent/.claude-token`, `/home/agent/.anthropic-api-key`) are readable by `agent` by design, so a test can still print the agent's login into the output tail, as an agent run could write it into its work. The checkout's `.git` is no route to the factory's git: the agent cannot write it, and the factory's git sets `core.hooksPath` to `/dev/null` through its own environment as a second line.
 
-The service sets `init: true`, so the container's first process (PID 1) is the container runtime's own init: Docker's `docker-init` (tini, mounted at `/sbin/docker-init`) or Podman's `catatonit` (mounted at `/run/podman-init`). The init starts the entrypoint, forwards the stop signal to the factory and reaps every process whose parent has ended. Without it the factory's Python would be PID 1 and reap only its own children. Then every agent run killed at its `time_limit` under `sudo` leaves `claude` and what it started as zombies, `[claude] <defunct>` of `agent` with parent 1, until the container restarts (seen at the tiny story of 2026-10-18 under Docker Desktop). The same holds for the processes of a project command killed at its time limit. A container started without Compose needs `--init` (`docker run --init`, `podman run --init`). Under Podman this is first observed at the shakedown. If under Podman the container does not start because the runtime finds no init binary, or PID 1 is the factory's Python and not `catatonit`, the Compose provider or the Podman machine does not honour `init: true`: note it, and expect the zombies to pile up as before until the container restarts.
+### The init
+
+The service sets `init: true`, so the container's first process (PID 1) is the container runtime's own init: Docker's `docker-init` (tini, mounted at `/sbin/docker-init`) or Podman's `catatonit` (mounted at `/run/podman-init`). The init starts the entrypoint, forwards the stop signal to the factory and reaps every process whose parent has ended. Without it the factory's Python would be PID 1 and reap only its own children. Then every agent run killed at its `time_limit` under `sudo` leaves `claude` and what it started as zombies, `[claude] <defunct>` of `agent` with parent 1, until the container restarts. The same holds for the processes of a project command killed at its time limit. A container started without Compose needs `--init` (`docker run --init`, `podman run --init`). Under Podman this is first observed at the shakedown. If under Podman the container does not start because the runtime finds no init binary, or PID 1 is the factory's Python and not `catatonit`, the Compose provider or the Podman machine does not honour `init: true`: note it, and expect the zombies to pile up until the container restarts.
 
 ### The entrypoint
 
@@ -457,7 +499,7 @@ preflight_failed (machine): tool:make: make is not on the PATH (since 2026-10-12
 
 So `docker compose -f image/compose.yml ps` shows the container as unhealthy while any repository or machine stop stands, and `docker compose -f image/compose.yml exec factory python -m factory.entry.health` names the stops. The container becomes healthy again by itself when the factory clears the stop. A stop of a work item is not in the health status.
 
-`restart: unless-stopped` brings the container back after a crash or a reboot. A container whose process is dead is left to that policy: the factory builds no watchdog. The probe of 2026-10-17 saw the health check run under Podman: it reported `starting`, then the text of the stop `repository_unavailable`, with exit 1. The morning observation that remains is `docker compose ps` over a container with a stop standing. Under Podman a machine or host restart does not bring the container back: see "Podman: the restart" under "Container runtimes".
+`restart: unless-stopped` brings the container back after a crash or a reboot. A container whose process is dead is left to that policy: the factory builds no watchdog. Under Podman the health check reports `starting`, then the text of a stop in force, with exit 1. Not yet checked on a running instance: `docker compose ps` over a container with a stop in force. Under Podman a machine or host restart does not bring the container back: see "Podman: the restart" under "Container runtimes".
 
 ### The stops you will see here
 
@@ -512,7 +554,7 @@ The items read the instance's settings, so the three variables `FACTORY_CLAUDE_H
 - **A red `main` is probed once.** The failing commit is remembered, so an idle tick runs no project command while the stop stands. If `health.json` loses the stop meanwhile, the next call raises it again with the detail `lint is red on main at <commit> (probed earlier)`, without running `lint`.
 - **A fix clears it.** When you push a new commit to `main`, the next call probes it, and when `lint` passes the stop `main_branch_failing` is cleared. A call that ends without a probe error also clears a standing `preflight_failed` stop.
 - **A failed machine clears a stale stop.** While the machine's items fail the probe cannot run, so a `main_branch_failing` is cleared when the stamp's failing commit is no longer `origin/main` (a fix was pushed, or `main` is gone) and the call still returns `preflight_failed`. The new `main` is probed when the machine's items pass again, and a red one raises the stop anew. A stop whose commit is still `main` stays, and so does a stop when git cannot resolve `origin/main`. The exception is a `main` that differs from the failing commit only in `factory/stops.jsonl`: see the next bullet. If git cannot compare the two (the failing commit is not in the clone), the stop is cleared. The stamp is not rewritten.
-- **A `stops recorded` commit is a new `main`.** The probe runs again for it once the machine's items pass. While they fail (`preflight_failed` stands), the stale-stop rule above keeps `main_branch_failing` when every path that differs between the stamp's failing commit and the checkout is `factory/stops.jsonl`, so no `cleared` record is written for a `main` nobody fixed. A commit that also changes another file clears the stop as before.
+- **A `stops recorded` commit is a new `main`.** The probe runs again for it once the machine's items pass. While they fail (`preflight_failed` stands), the stale-stop rule above keeps `main_branch_failing` when every path that differs between the stamp's failing commit and the checkout is `factory/stops.jsonl`, so no `cleared` record is written for a `main` nobody fixed. A commit that also changes another file clears the stop.
 - A repository with no commit on `main` has nothing to probe, and the preflight passes once the machine's items have.
 
 Deleting `preflight-stamp.json` is safe: a missing or damaged stamp reads as no stamp, and the only cost is one more run of the machine's items and of the probe. The agent can read the file and cannot write it.
@@ -525,7 +567,7 @@ Before each tick the instance checks that `origin/main` exists and holds `factor
 
 ### The runtimes
 
-The image and the compose file run under Docker Desktop and under rootless Podman with the docker-compose v2 binary as its Compose provider (probe of 2026-10-17, Podman 5.8.3 on Windows). Rancher Desktop with its moby engine is expected to work like Docker but is untested, because the probe did not run it. A Mac is not probed.
+The image and the compose file run under Docker Desktop and under rootless Podman with the docker-compose v2 binary as its Compose provider (seen with Podman 5.8.3 on Windows). Rancher Desktop with its moby engine is expected to work like Docker but is untested, because the probe did not run it. A Mac is not probed.
 
 For a team, the setup is one shared Linux host (Docker Engine, or rootless Podman with the restart service below) that runs every instance, each its own compose project, rather than a runtime on every laptop.
 
@@ -665,7 +707,7 @@ python3 -c "import json,collections as c; print(c.Counter(r['key']['tree'] for r
 
 The same record is one line in the factory log, for example `disk start: /work 812.3 GB free, 0.7 GB used; /state 812.3 GB free, 0.0 GB used; /tmp 812.3 GB free, 4.3 GB used`, each value in GB or `unknown`.
 
-It is written at each start of the instance, before the first tick, and at each feature acceptance (F0012-S0017). No record is written at the end of a run. Compare the new line with the last one to see whether disk use grows. When the line cannot be written, the factory log gets `cannot write the disk record: <error>` and the run goes on. It is not committed; the factory uses only its last record that reads whole, to name the previous measure beside the new one at a feature acceptance.
+It is written at each start of the instance, before the first tick, and at each feature acceptance. No record is written at the end of a run. Compare the new line with the last one to see whether disk use grows. When the line cannot be written, the factory log gets `cannot write the disk record: <error>` and the run goes on. It is not committed; the factory uses only its last record that reads whole, to name the previous measure beside the new one at a feature acceptance.
 
 The size of a folder counts only what the factory user can read. The agent's own folders under `/tmp`, made by pytest or Claude Code with mode `0700`, are left out, while the free space of the file system still shows them.
 
@@ -754,7 +796,7 @@ One stage run leaves these traces on the remote and the pull request, in this or
    A stage that moves the work item to an approval also writes the pull request's description after the result commit and before its push, so the description is complete when the board first shows the approval. If that push fails, the description may already show the reports while the work item stays at its stage.
 5. **The label** `stage:<stage>` (written so, for example `stage:review`) on the pull request. It is written after the result commit is pushed, and after a stall's note is posted. It is a projection of the stage and is never read back.
 
-While an agent runs, the work item's `.costs.jsonl` is modified in the work tree and not committed: it holds the running run's record, which the result commit or the stall commit carries. An agent that mentions it in its entry has seen the factory's file, not made a change of its own (seen by the coder of the tiny story, 2026-10-18).
+While an agent runs, the work item's `.costs.jsonl` is modified in the work tree and not committed: it holds the running run's record, which the result commit or the stall commit carries. An agent that mentions it in its entry has seen the factory's file, not made a change of its own.
 
 If the push of the result commit fails, no label is written. If the hosting service fails at the label, the commit stays pushed.
 
@@ -1418,7 +1460,7 @@ A hand-made change that a later commit on the branch buried is not seen: only th
 
 ### Never edit a running work item on main
 
-Do not edit the file of a work item in `in-progress/` on `main`. Answer in its pull request instead: the agents amend the story on its branch (the description, the criteria), and your edit on `main` changes the same file. At the next stage start the factory merges `main` into the branch, the merge conflicts, and the stage stalls with the reason `merge_conflict` (F0019-S0004 showed it). When it has happened, revert the edit on `main`; the stage then starts again from the branch's story.
+Do not edit the file of a work item in `in-progress/` on `main`. Answer in its pull request instead: the agents amend the story on its branch (the description, the criteria), and your edit on `main` changes the same file. At the next stage start the factory merges `main` into the branch, the merge conflicts, and the stage stalls with the reason `merge_conflict`. When it has happened, revert the edit on `main`; the stage then starts again from the branch's story.
 
 ## An event that keeps failing
 
@@ -1500,7 +1542,7 @@ The notes of the factory say "retrying" only where a rerun follows. A note witho
 
 If the post of the note fails, the expiry stays recorded and pushed, the failure is a counted error of the event, and the note is not posted again. The stage is not rerun in that call; the next look finds no claim.
 
-Your own claim is never an expiry, however old it is: that is the restart case. A claim whose lease has not run out is refused as before.
+Your own claim is never an expiry, however old it is: that is the restart case. A claim whose lease has not run out is refused.
 
 ## Claims, leases and the clock
 
