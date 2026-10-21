@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 376
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T00:01:52.383497Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T00:01:52.383497Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T00:02:12.015265Z'
+  stage: intake
+  run: 9f6c516de278494e89d09207a1a824ba
 ---
 
 # The documents say that project commands run as the agent, and how to check it
@@ -76,3 +78,11 @@ Expect: `documents ok`
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None: documents only" is right for this story. It names the four files, and no module under `src/factory/` changes.
+   - Criteria: each of the five sentence corrections and the four new rows can be checked by one test or grep, and each gives the exact wording to insert. I found every sentence to correct in the docs: `processes-and-checks.md:48`, `decisions.md:463`, `decisions.md:398` (2026-10-17) and `decisions.md:775` (2026-10-19), and `watching.md:264`. The anchor row "The home is fresh" is at `operator-guide.md:240`. The Interface states no rule with a failing side, so no refused-input criterion is missing.
+   - Smoke test: the four commands are runnable, and none runs pytest, so the `-q` rule does not apply. Each `Expect:` can be checked against the output. Today the greps give 1, 0 and 0 against the expected 0, 1 and 2. The `-C make` and `maxdepth 3` rows are not in `operator-guide.md` yet.
+   - Architecture: nothing in the layers changes. The four files are docs and the documenter's write paths.
+   - Scope: this matches the feature's scope line "docs from each story's docs criterion". It is not in the feature's Out of scope.
+
+   Minor: criterion 1 asks the tester and coder to end with an entry saying nothing under `src/` or `tests/` changes. That is a process note, not a testable behaviour. I accept it as written and did not change it.
