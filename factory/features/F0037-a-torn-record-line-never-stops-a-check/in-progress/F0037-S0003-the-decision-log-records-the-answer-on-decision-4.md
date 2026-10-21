@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 377
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T00:10:45.902880Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T00:10:45.902880Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T00:11:01.312971Z'
+  stage: intake
+  run: 1448a0989cd340f3b87f53466c61e84d
 ---
 
 # The decision log records the human's answer on F0037's decision 4
@@ -59,3 +61,9 @@ Expect: `documents ok`
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None", and that fits: only `docs/decisions.md` changes. No module or signature is needed.
+   - Criteria: criterion 3 names the exact edit (the "Open (decision 4)" bullet, line 890 of `docs/decisions.md`, becomes "Answered (decision 4, the human, 2026-10-20):"). It gives the content, the reason, the date line and the `check_documents` result. Criterion 1 (nothing under `src/` or `tests/` changes) and criterion 2 (`make check`) are checkable. The story has no Interface rules or behaviours, so no failing side is missing. The tester has no test to write and should say so in its entry.
+   - Smoke test: both commands are runnable. The grep expectations `0` then `1` and the `documents ok` line can be checked against the output. No pytest command, so no `-q` problem.
+   - Architecture: a documentation-only change, which the documenter stage's write paths allow. It touches no layer.
+   - Scope: it matches F0037's decision 4 (answered by the human, 2026-10-20) and touches nothing in the feature's "Out of scope". The `docs/decisions.md` entry exists as the story describes.
