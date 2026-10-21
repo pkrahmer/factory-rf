@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 392
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T07:18:59.948844Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T07:18:38.667964Z'
   stage: tests
   run: c699daf711754ebd9b43a6d7efa3d120
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:18:59.948844Z'
+  stage: doing
 ---
 
 # The project guide names no planning code or v1 feature id as a pointer
@@ -103,3 +112,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.6 s)
    `test`: test: green (62.5 s)
+6. factory: started doing as self.
