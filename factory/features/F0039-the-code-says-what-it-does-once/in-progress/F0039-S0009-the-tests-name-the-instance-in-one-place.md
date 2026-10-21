@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 403
 comments_read: [6312436133]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T09:18:20.349502Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-21T09:17:59.454576Z'
   stage: intake
   run: 58488a49e33940d2a6842ab596a0e7f5
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-21T09:18:20.349502Z'
+  stage: tests
 ---
 
 # The tests name the instance in one place
@@ -131,3 +140,4 @@ Expect: one line, `1` (before the story, `0`)
    - Smoke test: the commands are runnable. The pytest command passes no `-q`, because the project's `addopts` already sets one. Each `Expect:` line is checkable.
    - Architecture: the story changes only `tests/` and one docs line, and no module under `src/factory/` changes.
    - Scope: it is within F0039's scope (*Shared test helpers* and the standing leave for constants). It touches nothing under *Out of scope*, and the `ENVIRONMENT` constants stay out.
+7. factory: started tests as self.
