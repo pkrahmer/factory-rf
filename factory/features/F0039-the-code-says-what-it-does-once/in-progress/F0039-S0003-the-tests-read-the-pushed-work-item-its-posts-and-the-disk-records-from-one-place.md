@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T01:20:24.881242Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-21T01:20:24.881242Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-21T01:20:46.489698Z'
+  stage: doing
+  run: b2af91662bb9450fa75ebe4c2ea990f6
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -288,3 +290,15 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     - tests/conftest.py: standing leave (`disk_settings` and `disk_records` fixtures added as the shared place)
     - tests/stage_run_support.py: standing leave (`pushed` added; `pushed_state` now calls it)
 13. factory: started doing as self.
+14. coder: No code changed this round. The reviewer's three findings (journal 12) are all in test files, so they are the tester's work under the standing leave in `CLAUDE.md` (*Tests*). The coder never edits tests (R9).
+
+    I checked each finding with grep on the committed state, and each holds. The changes for the tester:
+    1. `tests/application/test_stop_records_service.py:44`: delete `_records_path`. Its only caller was the `records` fixture that was removed, so it is now unused.
+    2. `tests/application/test_watcher.py:33` and `tests/entry/test_watch.py:40`: delete `BODY = "# First story\n"`. Nothing uses it in either module now.
+    3. `tests/application/test_watcher_move_rule.py:28`: delete the local `BODY` and import `BODY` from `branch_reading`. Line 147 still uses it.
+
+    Each change keeps every test's name and what it checks.
+
+    Main choice: I'm handing this on with `tests`. The alternative I rejected was making the deletions myself, because I don't edit tests even for dead code. I did not run `make check` this round, because I left nothing in the working tree.
+
+    Noticed but not touched: nothing further.
