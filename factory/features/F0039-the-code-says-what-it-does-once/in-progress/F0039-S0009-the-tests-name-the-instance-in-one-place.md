@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 403
 comments_read: [6312436133]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T09:17:42.021954Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-21T09:17:42.021954Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-21T09:17:59.454576Z'
+  stage: intake
+  run: 58488a49e33940d2a6842ab596a0e7f5
 ---
 
 # The tests name the instance in one place
@@ -49,6 +51,8 @@ journal:
 ## Description
 
 Forty-eight test modules define `INSTANCE = "factory-1"` at the top level, beside `tests/stage_run_support.py`, and five modules already import it from there or from a copy. `tests/domain/test_lease.py` names the same instance `OWN = "factory-1"`. One module imports the constant from another test module: `tests/application/test_tick_project_agent.py` from `application.test_tick_agent_definition`, the pattern F0039-S0003 removed for `_pushed`. The reviewer of F0039-S0005 noted the copies and did not count them as a finding, because the feature's scope did not name them. This story moves them, under the standing leave of `CLAUDE.md` (*Tests*), which names constants. `stage_run_support.INSTANCE` becomes the one definition. Every other module imports it from there, and `OWN` becomes `OWN = INSTANCE`. A guard finds a new copy by its value. The tester does the work; no module under `src/factory/` changes and the coder has nothing to build. Unchanged: every other instance name (`"factory-7"` and the like), the instance that the `boundaries` fixture's settings name inside a call, and the `ENVIRONMENT` constants, which are copied too (eleven and ten modules with two different values). They are left to a later story if the human wants it.
+
+A check on the work, not a criterion: the tester lists the `pytest --collect-only` ids of the modules the Interface names before and after the move (in `$TMPDIR`), says in the journal that they match, and the reviewer confirms it.
 
 ## Interface
 
@@ -77,9 +81,8 @@ def instance_copies(source: str) -> list[str]:
 
 1. The instance is written in one module: the modules under `tests/` for which `instance_copies` is not empty are exactly `["stage_run_support.py"]` (paths relative to `tests/`, sorted).
 2. The guard counts a top-level assignment of the value under any name and nothing else (rows of one parametrized test, each a source text read by `instance_copies`). `INSTANCE = "factory-1"\n` → `["INSTANCE"]`. `OWN = "factory-1"\n` → `["OWN"]`. `NAME: str = "factory-1"\n` → `["NAME"]`. `INSTANCE = "factory-7"\n` → `[]`. `OWN = INSTANCE\n` → `[]`. `def f():\n    name = "factory-1"\n` → `[]`. `class C:\n    NAME = "factory-1"\n` → `[]`.
-3. Every earlier test keeps its name and checks the same thing. The ids that `pytest --collect-only` lists for the modules the Interface names are the same before and after the story, and all of them pass.
-4. `make check` stays green.
-5. docs: `docs/project-guide/README.md`, *Shared test helpers*: the `stage_run_support.py` line also names `INSTANCE`, the instance name `"factory-1"` that every test module imports from there. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none. Nothing an operator or a newcomer sees changes, and no decision is taken.
+3. `make check` stays green.
+4. docs: `docs/project-guide/README.md`, *Shared test helpers*: the `stage_run_support.py` line also names `INSTANCE`, the instance name `"factory-1"` that every test module imports from there. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none. Nothing an operator or a newcomer sees changes, and no decision is taken.
 
 ## Smoke test
 
@@ -122,3 +125,9 @@ Expect: one line, `1` (before the story, `0`)
 
    Please write this into the story and go on.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete. It gives `instance_copies(source: str) -> list[str]`, the full list of modules that import `INSTANCE` from `stage_run_support`, and `OWN = INSTANCE`.
+   - Criteria: each is testable by one test function, and the guard's rules each have a row in criterion 2. Those rows cover plain and annotated assignments, a different value, a name as the value, a function and a class. Criterion 3 of my first entry is carried in as the human's edit from journal entry 4, answer (b). It is now a sentence in the Description: a check on the work. The tester lists the `pytest --collect-only` ids of the modules the Interface names before and after the move (in `$TMPDIR`) and says in the journal that they match, and the reviewer confirms it. The criteria after it are renumbered: `make check` is 3 and `docs:` is 4.
+   - Smoke test: the commands are runnable. The pytest command passes no `-q`, because the project's `addopts` already sets one. Each `Expect:` line is checkable.
+   - Architecture: the story changes only `tests/` and one docs line, and no module under `src/factory/` changes.
+   - Scope: it is within F0039's scope (*Shared test helpers* and the standing leave for constants). It touches nothing under *Out of scope*, and the `ENVIRONMENT` constants stay out.
