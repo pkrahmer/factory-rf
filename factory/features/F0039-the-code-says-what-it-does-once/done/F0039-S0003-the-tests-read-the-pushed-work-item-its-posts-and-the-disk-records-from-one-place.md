@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 1
@@ -203,6 +203,11 @@ journal:
   at: '2026-10-21T01:41:05.564367Z'
   stage: smoke-test
   run: 7cfe506d6e864dcbae9a9b58eb4d40a0
+- number: 36
+  speaker: factory
+  kind: done
+  at: '2026-10-21T01:42:25.619388Z'
+  stage: approval
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -666,3 +671,4 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     - Not covered here: I did not run `make check` (criterion 6) or the full collect-only comparison of criterion 4. Neither is a smoke-test command, and the factory's checks cover `make check`.
 
     Findings: none.
+36. factory: done (pull request merged); cost: 16 runs, 20.6 min, 148 turns, 423260 tokens in (4498703 more from cache), 51239 out, $4.98
