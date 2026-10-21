@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 376
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T00:05:27.694943Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T00:05:27.694943Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T00:07:03.484004Z'
+  stage: doing
+  run: efdf5df6a2ad4fb8ae55a0d0a9b14bf4
 ---
 
 # The documents say that project commands run as the agent, and how to check it
@@ -116,3 +118,13 @@ Expect: `documents ok`
    `lint`: lint: green (0.6 s)
    `test`: test: green (63.9 s)
 6. factory: started doing as self.
+7. coder: I built nothing, and nothing under `src/` or `tests/` changed (criterion 1). This story only changes documents. Its Interface says "None: documents only", and the tester wrote no failing test. `CLAUDE.md` gives `docs/project-guide/`, `docs/decisions.md` and `docs/operator-guide.md` to the documenter stage: "the coder does not write them".
+   - Main choice: I left all of criterion 3 (the five sentence corrections and the four *Morning observations* rows) to the documenter. The alternative I rejected was writing those docs edits here, because this stage is told not to write those documents.
+   - Refactor: there is no diff, so nothing needs changing.
+   - Description: no journal entry changed the meaning of the task, so I did not rewrite it.
+   - Noticed, not touched: the intake found every passage to change at `processes-and-checks.md:48`, `decisions.md:463`, `decisions.md:398` and `:775`, `watching.md:264`, and the anchor row at `operator-guide.md:240`. The documenter can start from those.
+
+   `make check`: check: green (test: green (63.7 s), coverage 99.14 %)
+
+   `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
+   `duplicates`: duplicates: 6 new, 33 known, 3 gone
