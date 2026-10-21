@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T06:16:54.612034Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -179,6 +175,12 @@ journal:
   kind: started
   at: '2026-10-21T06:16:54.612034Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T06:17:26.452861Z'
+  stage: smoke-test
+  run: ffcaf19e19744570a7913851afe90589
 ---
 
 # The boundaries have no optional collaborators
@@ -551,3 +553,28 @@ Expect: one line, `0` (before the story, `1`)
     `secrets`: secrets: green (3.4 s)
     `documents`: documents ok
 30. factory: started smoke-test as self.
+31. smoke-tester: Ran both commands under `## Smoke test` from the repository root, exactly as written and in order. I changed nothing.
+
+    Command 1 (the dataclass-fields script, then the `grep … | wc -l` over the seven application modules):
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 80ms
+    Bytecode compiled 4164 files in 351ms
+    []
+    0
+    ```
+    Met its `Expect:` line. The program printed two lines, `[]` and `0`. The lines above them are uv's stderr while it built the fresh `.venv` (first `uv run` in this checkout); they are not the program's output.
+
+    Command 2 (`grep -c 'holds `None`' docs/project-guide/watching.md`):
+    ```
+    0
+    ```
+    Met its `Expect:` line: one line, `0`. grep exits 1 when the count is 0; that is how `grep -c` reports no match, not an error.
+
+    Checked against the acceptance criteria. Criterion 4 says no module under `src/factory/application/` compares one of the six fields, or a local name read from one, with `None`. The smoke test's grep covers only seven modules, so I also ran a wider grep over all of `src/factory/application/`. It looked for `(settings|disk|disk_records|stop_records|waiter|result_records|now) is (not )?None` and found nothing, which covers the `AcceptanceService._disk_lines` branch too. The only `None` left in `boundaries.py` is `agent_home: AgentHome | None = None`, which the description says stays optional. The smoke test contradicts no criterion. I did not run `make check` (criterion 5); the factory runs it as the stage's check.
+
+    Findings: none.
