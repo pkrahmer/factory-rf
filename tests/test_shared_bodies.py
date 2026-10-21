@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pytest
 
+from function_support import functions, without_docstring
+
 TESTS = Path(__file__).parent
 SHARED: dict[str, str] = {
     "log_lines": "log_support.py",
@@ -20,19 +22,9 @@ THE_LOG_BODY = (
 )
 
 
-def _functions(source: str) -> list[ast.FunctionDef]:
-    return [node for node in ast.parse(source).body if isinstance(node, ast.FunctionDef)]
-
-
 def body_of(function: ast.FunctionDef) -> str:
     """The function's statements, a leading docstring left aside, as `ast.unparse` prints each."""
-    statements = function.body
-    match statements[0]:
-        case ast.Expr(value=ast.Constant(value=str())):
-            statements = statements[1:]
-        case _:
-            pass
-    return "\n".join(ast.unparse(statement) for statement in statements)
+    return "\n".join(ast.unparse(statement) for statement in without_docstring(function.body))
 
 
 def shared_bodies(root: Path) -> dict[str, str]:
@@ -40,7 +32,7 @@ def shared_bodies(root: Path) -> dict[str, str]:
     bodies: dict[str, str] = {}
     for name, module in SHARED.items():
         source = (root / module).read_text(encoding="utf-8")
-        [function] = [function for function in _functions(source) if function.name == name]
+        [function] = [function for function in functions(source) if function.name == name]
         bodies[name] = body_of(function)
     return bodies
 
@@ -49,7 +41,7 @@ def copies(source: str, bodies: Mapping[str, str]) -> list[str]:
     """The helpers that the top-level functions of `source` copy, by their body."""
     return [
         name
-        for function in _functions(source)
+        for function in functions(source)
         for name, body in bodies.items()
         if body_of(function) == body
     ]
@@ -144,7 +136,7 @@ def test_the_guard_finds_a_copy_by_its_body_and_nothing_else(
 def test_each_body_is_read_from_its_own_module() -> None:
     [function] = [
         function
-        for function in _functions((TESTS / "log_support.py").read_text(encoding="utf-8"))
+        for function in functions((TESTS / "log_support.py").read_text(encoding="utf-8"))
         if function.name == "log_lines"
     ]
 

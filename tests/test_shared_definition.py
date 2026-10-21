@@ -9,27 +9,16 @@ import pytest
 from definition_support import pipeline_definition
 from factory.application.boundaries import Boundaries
 from factory.domain.pipeline_definition import PipelineDefinition
+from function_support import functions, without_docstring
 
 TESTS = Path(__file__).parent
 DEFINITION_BODY = "return boundaries.pipeline_reader.parse(PIPELINE_YAML)"
 LOG_NAMES = ("log_lines", "_log_lines")
 
 
-def _functions(source: str) -> list[ast.FunctionDef]:
-    return [node for node in ast.parse(source).body if isinstance(node, ast.FunctionDef)]
-
-
-def _without_docstring(body: list[ast.stmt]) -> list[ast.stmt]:
-    match body[0]:
-        case ast.Expr(value=ast.Constant(value=str())):
-            return body[1:]
-        case _:
-            return body
-
-
 def _copies_the_definition(source: str) -> bool:
-    for function in _functions(source):
-        rest = _without_docstring(function.body)
+    for function in functions(source):
+        rest = without_docstring(function.body)
         if len(rest) == 1 and ast.unparse(rest[0]) == DEFINITION_BODY:
             return True
     return False
@@ -43,7 +32,7 @@ def _copies_the_log_reading(source: str) -> bool:
         and not function.args.kwonlyargs
         and function.args.vararg is None
         and function.args.kwarg is None
-        for function in _functions(source)
+        for function in functions(source)
     )
 
 

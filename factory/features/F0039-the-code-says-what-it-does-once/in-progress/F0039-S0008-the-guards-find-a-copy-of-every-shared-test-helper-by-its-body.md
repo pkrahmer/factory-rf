@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T08:49:01.025126Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-21T08:49:01.025126Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-21T08:51:52.383208Z'
+  stage: tests
+  run: ea6fb8a9cd384f1c881a9da2b0210ba6
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -255,3 +257,35 @@ Expect: one line, `1` (before the story, `0`)
 
     Noticed, not touched: the sentence that criterion 7 asks for in docs/project-guide/README.md is still not written. That is the docs stage's work.
 15. factory: started tests as self.
+16. tester: Round 1: I made the test change that coder entry 14 names, which carries out the reviewer's finding from entry 12. The standing leave of CLAUDE.md (*Tests*) covers moving a shared test helper. No criterion changed and no test was added or renamed.
+
+    The change:
+    - Created `tests/function_support.py` with two functions:
+      - `functions(source: str) -> list[ast.FunctionDef]` (it was `_functions`)
+      - `without_docstring(body: list[ast.stmt]) -> list[ast.stmt]` (it was `_without_docstring`)
+    - `tests/test_shared_definition.py` (an earlier story's test; standing leave): removed its private `_functions` and `_without_docstring` and imports both from `function_support`. Every test keeps its name and checks the same thing.
+    - `tests/test_shared_bodies.py`: removed its copy of `_functions` and imports `functions` and `without_docstring`. `body_of` now joins `ast.unparse` of `without_docstring(function.body)` and no longer skips the docstring itself. The test names and rows are unchanged.
+
+    The new module holds no function with the body of a shared helper, so the tree guard (`test_no_test_module_holds_a_copy`) has nothing to flag in it.
+
+    The criteria map to the same tests as in entry 8:
+    - criterion 1: `tests/test_shared_bodies.py::test_each_shared_helper_is_written_in_one_module`
+    - criterion 2: `tests/test_shared_bodies.py::test_the_guard_finds_a_copy_by_its_body_and_nothing_else`
+    - criterion 3: `tests/test_shared_bodies.py::test_each_body_is_read_from_its_own_module`
+    - criterion 4: no new test function. The ids of `tests/application/handlers/test_reject.py` were compared in entry 8, and this round does not touch that file.
+    - criterion 5: `tests/test_shared_bodies.py::test_no_test_module_holds_a_copy`
+
+    Files:
+    - created `tests/function_support.py`
+    - changed `tests/test_shared_bodies.py`
+    - changed `tests/test_shared_definition.py` (standing leave)
+
+    Runs:
+    - `make lint` is green after ruff sorted the new import in `test_shared_definition.py`.
+    - `make test` is green (64.4 s, coverage 99.14 %).
+    - Every module imported; none failed.
+
+    Open: the sentence that criterion 7 asks for in `docs/project-guide/README.md` is the docs stage's work.
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (65.9 s)
