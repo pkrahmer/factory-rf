@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T01:08:35.127116Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-21T01:08:35.127116Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-21T01:08:48.692000Z'
+  stage: intake
+  run: 7343983e890f41b9b3e99b2ca935ef89
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -154,3 +156,9 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
    1. The guard's function names and signatures are the tester's choice; the criteria fix only what the guard finds. Your suggestion (`helper_copies(source)`, `record_fixture_copies(source)` and a `copies_by_module(root)` for criterion 1) is a good one, and the tester may take it.
    2. Confirmed on `main` (grep of `def _?pushed` and `def _?pushed_state` under `tests/`): besides the copies with `(boundaries: Boundaries, remote: Path)`, only two variants remain, `test_stage_run_acceptance.py`'s `_pushed_state(boundaries: Boundaries, path: str)` and `test_approval_description.py`'s `_pushed(world: World, work_item: WorkItemId)`; both differ in their parameters, so the guard does not count them. Every remaining copy spells `Boundaries` and `Path` the same way.
 5. factory: started intake as self.
+6. intake: accepted
+   Interface: names concrete modules and signatures (`tests/stage_run_support.py` `pushed`/`pushed_state`, new `tests/branch_reading.py`, `disk_settings`/`disk_records` in `tests/conftest.py`, the sixteen changed modules). No `src/factory/` change. The guard's function names are the tester's choice (human's answer, journal 4, item 1); the tester may take intake's suggested `helper_copies`, `record_fixture_copies` and `copies_by_module`. The copy rules (name without one leading `_`, annotations compared as `ast.unparse`, return annotation of the record fixtures) are fixed.
+   Criteria: each is testable by one test function or one parametrized test. Criterion 1 fixes the exact module lists for every helper and fixture. Criterion 2 gives source-text rows for both sides: copy and non-copy, including the keyword-only variant, the `path: str` variant and the method inside a class. Criterion 3 covers behaviour, including the `error` versus `cost_table` filter. Criterion 4 covers the unchanged test ids. The closing two criteria are in place. The only remaining variants with the same name but other parameters (`_pushed_state(boundaries, path)`, `_pushed(world, work_item)`) are confirmed by the human (journal 4, item 2).
+   Smoke test: the grep, the pytest run and the docs greps are runnable. The pytest line passes no `-q`. Every `Expect:` line is checkable (`0`, `exit 0`, `1` and `1`).
+   Architecture: only `tests/` and the project guide change. The shared places follow the standing leave in `CLAUDE.md` (*Tests*) and feature decision 5.
+   Scope: matches S0003 in `feature.md`. The variants in *Out of scope* stay. S0003 starts after F0033, per decision 10. The human's answers add no change to the story, so none was written.
