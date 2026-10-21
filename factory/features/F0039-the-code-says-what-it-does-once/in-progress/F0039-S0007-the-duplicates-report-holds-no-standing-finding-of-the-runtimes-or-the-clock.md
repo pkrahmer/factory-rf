@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 380
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T00:38:29.132556Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T00:38:29.132556Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T00:40:46.609588Z'
+  stage: tests
+  run: 196a44b2b471460ea99f81d5631c88e6
 ---
 
 # The duplicates report holds no standing finding of the runtimes or the clock
@@ -79,3 +81,15 @@ Expect: `3`
    - Architecture: this changes only `docs/decisions.md` and `docs/project-guide/processes-and-checks.md` (*The baseline*, present at line 158), which the documenter writes. The accepted fakes stay in `factory.adapters`, as `CLAUDE.md` places them.
    - Scope: this is S0007 of F0039, which lists it and decision 12 in its Scope. Nothing it does falls under Out of scope. Decision 13 sets the order after S0001 and the baseline change, and the baseline change is done.
 4. factory: started tests as self.
+5. tester: No tests written. The Interface says no module under `src/factory/` changes and the tester writes no test module, so neither criterion maps to a test function.
+   - criterion 1 (`make check` stays green): no test function. The factory's own check is the test.
+   - criterion 2 (docs: `docs/decisions.md` and `docs/project-guide/processes-and-checks.md`): no test function. The documenter checks the text, and so does the docs stage's `make documents`.
+
+   Files created: none. Every module imported, since no new test exists.
+
+   I ran `make test` once and it ended with `test: green (61.6 s)` at 99.14 % coverage. No red test was expected, because no behaviour changes. `make lint` is green.
+
+   Nothing is open for the coder: their work is the docs criterion, which the documenter stage writes.
+
+   `lint`: lint: green (0.5 s)
+   `test`: test: green (60.5 s)
