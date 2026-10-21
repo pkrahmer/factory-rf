@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 395
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T07:45:16.471373Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T07:45:16.471373Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T07:46:50.925483Z'
+  stage: doing
+  run: 396926b49e214b4895aa400a64fe6cbe
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -110,3 +112,12 @@ Expect: `documents ok`
    `lint`: lint: green (0.7 s)
    `test`: test: green (66.6 s)
 6. factory: started doing as self.
+7. coder: I built nothing and changed no file. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed. This entry is the coder's half of the statement criterion 1 asks for.
+   - Main choice: I left `docs/operator-guide.md` untouched. The Interface and criterion 3 give that file to the documenter, and `CLAUDE.md` says the coder does not write the docs. I rejected making the guide edits in this stage: that would take the documenter's work and go outside the coder's role.
+   - Refactor: there is no diff to refactor, so nothing needed changing.
+   - Description: unchanged. No journal entry changed what the task means.
+   - `make check`: green (test: green, 67.6 s; coverage 99.14 %).
+   - Noticed, not touched: the docs stage still has to make every change criterion 3 lists. That means removing the class and module names, rewriting the sentences in operator terms, and cutting "Should a future kind have none, the event leads to this:" and the paragraph after it (the intake entry places these around lines 1469–1471). The documenter must also confirm that `make documents` ends with `documents ok`.
+
+   `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
