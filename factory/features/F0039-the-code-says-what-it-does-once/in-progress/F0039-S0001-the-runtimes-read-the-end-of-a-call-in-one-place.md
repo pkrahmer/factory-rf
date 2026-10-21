@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 379
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T00:31:26.483126Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T00:31:26.483126Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T00:32:26.209773Z'
+  stage: review
+  run: f047d51a83114c96bb08068a1f80b3d7
 ---
 
 # The runtimes read the end of a call in one place
@@ -181,3 +183,16 @@ Expect: four lines, `True`, `False`, `/opt/factory/bin/factory-confine refused t
    `check`: check: green
    `duplicates`: duplicates: 5 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I checked:
+   - Criteria 1 to 3: `tests/adapters/test_agent_launch_call_end.py` has the six time-limit rows and the five refusal rows exactly as the criteria list them, each set as rows of one parametrized test, plus the state-directory error test. The limit of `killed_at_limit` (`duration >= time_limit`) is tested on both sides: at the limit (30 s) and above it (31 s) read as `True`, below it (29.9 s) as `False`. The kill statuses (137, -9) are tested against status 0, and `os_user=None` against a set user. The failing side of `read_call_end` (a refusal raises `AgentRuntimeError` with its `detail`) is tested, including the ordering rule: a call that printed and was killed is still read for refusals.
+   - Criterion 4: no earlier test file is changed (`git diff --name-status main...HEAD` shows only `A tests/adapters/test_agent_launch_call_end.py` under `tests/`). The coder's entry 7 records `check: green`.
+   - Behaviour of the runtimes: `read_call_end` returns `end.timed_out or killed_at_limit(...)`. Both `_call`s set `timed_out` from it with one `model_copy`, which gives the same result as the earlier copy that only ran when the call was killed. Each runtime keeps its own `printed` reading (`_parse_reply` for Claude Code, `_events` for opencode) and its own time limit (`time_limit` for Claude Code, `request.time_limit` for opencode). `_state_error` and `_write_files` build the same text through `state_directory_error`. `_start`, `_request_of`, `_remove_temporary_folder`, `version` and `_confinement` are untouched.
+   - Architecture: the change stays inside `factory.adapters`, `agent_launch` gains no import of `factory.adapters.process`, and `CallEnd` is a frozen Pydantic DTO that forbids unknown keys. No `dict[str, Any]` and no check-silencing markers.
+   - Quality: the new public names have docstrings that say what they are, and the moved comment says why. I ran `make duplicates`. Its five new findings were not added by this diff:
+     - The three similar-code findings are blocks the two runtimes already shared and the diff did not add (`due_leftovers_launch`, `version_printed`, `leftovers_error = self._end_leftovers(request)`). The last one starts at the line just above the code this diff shortened.
+     - The two dead-code findings are in `clock.py` and `process.py`, which this diff does not touch.
+   - Work item: the Description, Interface and the docs criterion match what was built. The coder's entry names the main choice (always copy `timed_out`) and what was rejected (keeping the `if`, removing `_state_error`).
+
+   Earlier tests: none changed, renamed or deleted by the diff.
