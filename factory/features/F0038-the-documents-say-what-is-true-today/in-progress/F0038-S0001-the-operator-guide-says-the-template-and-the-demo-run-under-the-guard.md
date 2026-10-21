@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 388
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T06:47:00.593857Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T06:47:00.593857Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T06:47:23.497143Z'
+  stage: review
+  run: 0bf413df0ec04ef8956611322e33442f
 ---
 
 # The operator guide says the template and the todo demo run under the write guard
@@ -132,3 +134,15 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed, so criterion 1 holds, and the tester's entry (5) and the coder's entry (7) each say so.
+   - Criterion 2: the coder's entry records `check: green`.
+   - Criterion 3 is the docs stage's job. I checked the new paragraph's claims against the tree, and they hold:
+     - `template/Makefile:76` and `demo/todo-service/project/Makefile:75` write `.reports/licenses-requirements.txt`.
+     - `template/Makefile:89` sets `COVERAGE_FILE=.reports/.coverage`.
+     - `demo/todo-service/project/pyproject.toml:103` sets `data_file = ".reports/.coverage"`.
+     - Both pipeline definitions name `.reports/*` in `tool_paths`.
+     - The old paragraph is still at `docs/operator-guide.md:968`, where the documenter will replace it.
+   - Hygiene: the Description matches the work so far (no code), and the docs criterion gives the exact text the documenter writes.
+   - Earlier tests: `git diff --name-status main...HEAD` changes no test file, so no leave was needed.
