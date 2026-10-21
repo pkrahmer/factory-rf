@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T08:14:40.981389Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-21T08:14:20.187548Z'
   stage: review
   run: d62974da58874f719db8550ca71841c1
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:14:40.981389Z'
+  stage: docs
 ---
 
 # What was left for v2 is named open and not planned
@@ -312,3 +321,4 @@ Expect: `documents ok`
     Open for the docs stage, not a finding against the coder: the smoke tester's finding in entry 13 still holds on this tree. The new entry `## v2 is retired; nothing is left for v2` (the last entry in `docs/decisions.md`) has no date line, but the docs criterion asks for it to be "dated with the story". The fix is a paragraph `Date: 2026-10-21 (F0038-S0009).` between the heading and the first bullet, as the entries above it have. `docs/decisions.md` is the documenter's file, and the coder cannot write it (entry 15). Sending this back to `doing` would only loop, so I end with `docs`, the stage that writes that line.
 
     Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
+18. factory: started docs as self.
