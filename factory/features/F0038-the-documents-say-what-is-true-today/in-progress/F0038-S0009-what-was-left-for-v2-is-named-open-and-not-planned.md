@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T08:08:09.659271Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T08:08:09.659271Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T08:09:58.576483Z'
+  stage: doing
+  run: 4556aa960c57462ca4d36c5cee8583f1
 ---
 
 # What was left for v2 is named open and not planned
@@ -114,3 +116,14 @@ Expect: `documents ok`
    `lint`: lint: green (0.8 s)
    `test`: test: green (71.3 s)
 6. factory: started doing as self.
+7. coder: I built nothing. This story only changes documents. Its Interface is "None", and criterion 1 says nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. I changed nothing under those paths, and nothing anywhere else either. `git status --short` shows only the factory's `.costs.jsonl` sidecar.
+   - criterion 1: met, because no file changed. The smoke test's `git diff --name-only origin/main -- src tests image template demo claude` checks it.
+   - criterion 2: `make check` is green (`test: green (74.6 s)`, `check: green`).
+   - criterion 3 (docs): this is the documenter's work in `docs/decisions.md`. I did not write it, as CLAUDE.md says the coder does not.
+   Main choice: I left the decision log to the docs stage. The alternative I rejected was editing `docs/decisions.md` here. It is not the coder's file, and the criterion names the documenter.
+   Refactor: there is no diff, so there was nothing to refactor.
+   Description: no journal entry changed the meaning of the task, so I left it as it is.
+   Noticed but not touched: intake found that lines 318, 406 and 517 of `docs/decisions.md` say "morning observation" without the quoted phrase. The criteria leave those lines alone.
+
+   `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
