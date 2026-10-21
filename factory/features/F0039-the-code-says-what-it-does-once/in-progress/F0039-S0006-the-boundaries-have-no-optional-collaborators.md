@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T06:04:43.919301Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-21T06:04:43.919301Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-21T06:06:33.556933Z'
+  stage: doing
+  run: 755287a483314717b9d317c08225ba4f
 ---
 
 # The boundaries have no optional collaborators
@@ -340,3 +342,16 @@ Expect: one line, `0` (before the story, `1`)
     - tests/application/test_task_os_user.py: decision 11
     - tests/application/test_tick_disk.py: decision 11
 17. factory: started doing as self.
+18. coder: Rework round 1. I dealt with the reviewer's three findings from entry 16: one is a code change, which I made; two are test changes, which go to the tester.
+
+    - Finding 1, done: in `src/factory/application/acceptance.py:157`, `AcceptanceService._disk_lines` is now typed `-> tuple[str, str | None]`. `DiskRecorder.record` always returns a record now, so the first element is always a `str`. `acceptance_facts(disk_now=...)` already accepts a `str`, so nothing else changed. `make check` was green afterwards (`check: green`, coverage 99.14 %).
+    - Finding 2, for the tester: in `tests/application/test_known_results.py`, remove the `CountingGit` class (line 63). Nothing has used it since the without-records test was removed. Decision 11 lets each of its modules drop helpers that nothing uses any more.
+    - Finding 3, for the tester: in `tests/application/test_stop_records_service.py`, type `_raised`'s parameter as `instance: str` instead of `str | None` (line 37). Every caller passes `INSTANCE` since the `no-settings` row went (entry 8). This is the "`| None` of its own helpers" that decision 11 names.
+
+    Both test changes keep every test's name and what it checks. After them, no code change should be needed. The next doing round only needs `make check` green.
+
+    Main choice: I fixed finding 1 now instead of holding it until after the tester's round, because it touches no test and is independent of findings 2 and 3. The alternative I rejected was sending all three in one hand-off, which would have meant an extra doing round for a one-line type change.
+
+    Refactor: nothing more beyond the one-line type change.
+
+    Noticed but not touched: nothing new.

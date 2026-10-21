@@ -154,7 +154,7 @@ class AcceptanceService:
             disk_before=disk_before,
         )
 
-    def _disk_lines(self) -> tuple[str | None, str | None]:
+    def _disk_lines(self) -> tuple[str, str | None]:
         recorder = DiskRecorder(self._boundaries)
         # Read before recording, or the record of now would be its own previous one.
         previous = recorder.last()
