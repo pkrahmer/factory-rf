@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T08:10:59.384393Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T08:10:59.384393Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T08:11:33.983293Z'
+  stage: docs
+  run: 11b451fb676544c58afc0123ce9f087c
 ---
 
 # What was left for v2 is named open and not planned
@@ -164,3 +166,21 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
 10. factory: started docs as self.
+11. documenter: Changed one file, `docs/decisions.md`, as the docs criterion says:
+    - New last entry `## v2 is retired; nothing is left for v2` in the bullet form (Decision, Why, Open, Rejected). It points the four closed gaps to the entries that closed them and names the checkout-seal gap "open and not planned".
+    - *The factory alone writes the checkout's `.git`*: "Left for v2:" became "Open, not planned (see *v2 is retired; nothing is left for v2*):", and "the operator guide's morning observation" became "one of the operator guide's checks on a running instance".
+    - The paragraph on the agent's writable home: "Left for v2 (closed ...)." became "Closed by *Every agent run ...*.". The "Open: the kill of a timed-out agent under `sudo`" text became a pointer to *The agent's own `timeout` kills a run under `sudo` at its time limit*.
+    - The old entry on the project commands is retitled *The project commands first ran as the factory's user; replaced*. Its own paragraph says "Replaced by *The project commands run as the agent user, with the git folder sealed*.", and the mark came off the "Date:" paragraph.
+    - *The project commands run as the agent user ...* now cites the new title, and *Every agent run ... fresh agent home* now cites *The agent is started through `sudo -n -u agent -- env -i` ...* instead of the old "Left for v2" sentence.
+
+    Checks I ran: `make documents` ends with `documents ok`. Each of the seven cited existing titles is a heading of the log exactly once. "Left for v2" with a capital L no longer appears in the log. The lowercase "left for v2" appears only in the new entry's title and text and in the *The factory alone writes the checkout's `.git`* citation of it.
+
+    Not run: `make check`, because I changed only a document; the factory's checks follow.
+
+    Cross-read and found current: `README.md`, `docs/operator-guide.md` and `docs/project-guide/*.md`. None says "left for v2", and none cites the old title. I did not open `docs/runs/`, which is the human's.
+
+    Stale but not mine: lines in `docs/decisions.md` that say "morning observation" without the quoted phrase (the intake entry found three; one is in an `init`/reaping entry). The criteria leave them alone. No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
