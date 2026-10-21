@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 392
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T07:20:52.969497Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-21T07:20:32.216263Z'
   stage: doing
   run: f5077f9807ed4b8688a5d6c9083e51dc
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:20:52.969497Z'
+  stage: review
 ---
 
 # The project guide names no planning code or v1 feature id as a pointer
@@ -124,3 +133,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
+8. factory: started review as self.
