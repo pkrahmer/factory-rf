@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 395
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T07:45:16.471373Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T07:44:55.517390Z'
   stage: tests
   run: 632751e6dd75406fa2ef13b53032d078
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:45:16.471373Z'
+  stage: doing
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -100,3 +109,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.7 s)
    `test`: test: green (66.6 s)
+6. factory: started doing as self.
