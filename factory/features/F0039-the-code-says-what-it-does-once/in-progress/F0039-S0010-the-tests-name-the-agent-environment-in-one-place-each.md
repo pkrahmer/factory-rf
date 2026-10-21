@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 405
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T12:33:06.892076Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T12:32:45.919158Z'
   stage: docs
   run: 9bd3645416ff43c2896838489db79c16
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T12:33:06.892076Z'
+  stage: smoke-test
 ---
 
 # The tests name the agent environment in one place each
@@ -253,3 +262,4 @@ Expect: one line, `2` (before the story, `0`)
     `check`: check: green (not run again: passed on tree 26c265259365 at 2026-10-21T12:29:13Z)
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
