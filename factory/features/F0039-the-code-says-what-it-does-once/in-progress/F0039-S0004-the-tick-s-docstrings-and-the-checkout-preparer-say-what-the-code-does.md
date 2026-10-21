@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 383
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T01:43:24.055355Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T01:43:03.415905Z'
   stage: intake
   run: b0f2cf94fc2a4dab8905066f5ceed1cc
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:43:24.055355Z'
+  stage: tests
 ---
 
 # The tick's docstrings and the checkout preparer say what the code does
@@ -81,3 +90,4 @@ Expect: one line, `False True <class 'NoneType'> <class 'bool'>` (before the sto
    Smoke test: the one-line `python -c` command is runnable and uses no pytest. Its `Expect:` line gives the exact output, `False True <class 'NoneType'> <class 'bool'>`, with the pre-story output as a contrast.
    Architecture: the change is inside `factory.application`, with no new import, layer or dependency. It changes docstrings and one return type. Nothing is added to `Boundaries`.
    Scope: it stays within the feature's S0004 line. The `Tick` and `Tick.run` docstrings, `CheckoutPreparer.prepare -> None` and the seven tests all appear in the feature's Scope and decision 6. None of the feature's Out of scope items is touched.
+4. factory: started tests as self.
