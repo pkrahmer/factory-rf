@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 398
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T08:18:25.792991Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T08:18:05.059834Z'
   stage: intake
   run: d299f6484b2e447ab859905e28f64a33
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:18:25.792991Z'
+  stage: tests
 ---
 
 # The project guide names every passage of v1.1's own in the shipped agents
@@ -78,3 +87,4 @@ Expect: `documents ok`
    - Smoke test: all four commands run as written. The `|| true` keeps the first one's exit status clean. No pytest is involved, so the `-q` rule does not apply. Each `Expect:` line can be checked against the output: `0`, nine `named:` lines, `0` followed by the docs path, and `documents ok`.
    - Architecture: the story changes only a project-guide document. It touches no layer and no code.
    - Scope: the story is within F0038's scope, which lists S0010 as "every passage of v1.1's own in the shipped agents". It touches only `agents.md` and none of the feature's "Out of scope" items. The feature file's note that it runs after S0004 is the human's ordering, not a problem for the story.
+4. factory: started tests as self.
