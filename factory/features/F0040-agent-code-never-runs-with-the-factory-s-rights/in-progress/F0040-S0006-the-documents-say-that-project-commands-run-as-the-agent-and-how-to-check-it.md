@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 376
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T00:02:32.626715Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T00:02:12.015265Z'
   stage: intake
   run: 9f6c516de278494e89d09207a1a824ba
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:02:32.626715Z'
+  stage: tests
 ---
 
 # The documents say that project commands run as the agent, and how to check it
@@ -86,3 +95,4 @@ Expect: `documents ok`
    - Scope: this matches the feature's scope line "docs from each story's docs criterion". It is not in the feature's Out of scope.
 
    Minor: criterion 1 asks the tester and coder to end with an entry saying nothing under `src/` or `tests/` changes. That is a process note, not a testable behaviour. I accept it as written and did not change it.
+4. factory: started tests as self.
