@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 377
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T00:11:22.111230Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T00:11:22.111230Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T00:12:43.904150Z'
+  stage: tests
+  run: 56b93b64c0864db4ad90035870eb0861
 ---
 
 # The decision log records the human's answer on F0037's decision 4
@@ -77,3 +79,11 @@ Expect: `documents ok`
    - Architecture: a documentation-only change, which the documenter stage's write paths allow. It touches no layer.
    - Scope: it matches F0037's decision 4 (answered by the human, 2026-10-20) and touches nothing in the feature's "Out of scope". The `docs/decisions.md` entry exists as the story describes.
 4. factory: started tests as self.
+5. tester: No tests written. This story only changes the documentation, and its Interface says no test is written.
+   - criterion 1 (nothing under `src/` or `tests/` changes): this entry is the tester's half of it. I created and changed no file under `src/` or `tests/`, and `git status` shows no change there.
+   - criterion 2 (`make check` stays green): no test of its own. The factory's checks cover it.
+   - criterion 3 (the decision-log entry, and `check_documents` prints `documents ok`): no test. It is the documenter's change to `docs/decisions.md`, checked by the story's smoke test and `make documents`.
+   Files created: none. Modules the test run could not import: none. I added no test, so there was no failing run to look at and I did not run `make test`. `make lint` is green. Nothing is open.
+
+   `lint`: lint: green (0.5 s)
+   `test`: test: green (62.9 s)
