@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 387
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T06:35:45.732125Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T06:35:24.066313Z'
   stage: tests
   run: 03288458aaad44faabe503698029c3ea
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:35:45.732125Z'
+  stage: doing
 ---
 
 # The tests of the agent's user share their stand-in sudo and their recording log
@@ -146,3 +155,4 @@ Expect: one summary line with a count of `passed`, and no `failed` and no `error
 
    `lint`: lint: green (0.6 s)
    `test`: test: green (60.9 s)
+6. factory: started doing as self.
