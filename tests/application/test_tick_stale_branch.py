@@ -25,9 +25,9 @@ from factory.domain.work_item import (
 from git_support import CHECKOUT, install_agents, remote_commit
 from human_clone import HumanClone
 from log_support import log_lines
+from stage_run_support import INSTANCE
 from tick_support import handlers_of
 
-INSTANCE = "factory-1"
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
 FEATURE = "factory/features/F0001-example"

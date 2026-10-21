@@ -9,9 +9,9 @@ from factory.domain.identifiers import branch_name
 from factory.domain.work_item import WorkItemDocument
 from git_support import PIPELINE_YAML, write_files
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 from work_item_support import created_state
 
-INSTANCE = "factory-1"
 BRANCH = branch_name("F0001-S0001")
 IN_PROGRESS = "factory/features/F0001-example/in-progress"
 PATH = f"{IN_PROGRESS}/F0001-S0001-first.md"

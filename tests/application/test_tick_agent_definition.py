@@ -15,8 +15,8 @@ from factory.domain.stops import RepositoryStop
 from factory.entry.wiring import handler_factory
 from git_support import COLOURED_AGENT_FILE, PIPELINE_YAML, install_agents, write_agent
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 ROLE = "coder"
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}

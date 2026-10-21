@@ -6,8 +6,8 @@ import pytest
 
 from factory.domain.lease import ClaimStatus, observed_claim_status
 from factory.domain.work_item import Claim
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 OTHER_INSTANCE = "factory-2"
 NOW = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
 

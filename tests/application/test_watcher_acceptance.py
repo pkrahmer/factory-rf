@@ -13,6 +13,7 @@ from factory.domain.events import Event
 from factory.domain.pipeline_definition import PipelineDefinition
 from git_support import remote_commit
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 from watch_support import (
     ACCEPTANCE,
     ACCEPTANCE_BRANCH,
@@ -23,7 +24,6 @@ from watch_support import (
     push_complete,
 )
 
-INSTANCE = "factory-1"
 ARCHIVED = ["F0002-S0001", "F0002-S0002"]
 
 

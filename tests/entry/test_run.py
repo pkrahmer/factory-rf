@@ -36,8 +36,8 @@ from factory.entry.run import (
 from factory.entry.wiring import handler_factory, health_store, read_environment_settings
 from git_support import PIPELINE_YAML, install_agents, run_git
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 STORY = """\
 # First story

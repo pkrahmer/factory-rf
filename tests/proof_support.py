@@ -51,6 +51,7 @@ from git_support import (
     run_git,
 )
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
 MARKER: Final[str] = "interrupted-run-marker"
 JOURNAL_LEAK: Final[str] = "interrupted-journal-edit"
@@ -73,7 +74,6 @@ STALL_CONDITIONS: Final[tuple[str, ...]] = (
     "cost-record-kept",
 )
 
-INSTANCE = "factory-1"
 STAGE = "intake"
 START = datetime(2026, 10, 12, 12, 0, tzinfo=UTC)
 FEATURE = "factory/features/F0001-example"

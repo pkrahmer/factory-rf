@@ -8,9 +8,9 @@ import pytest
 from factory.application.boundaries import Boundaries
 from factory.domain.errors import GitError
 from factory.entry.watch import main
+from stage_run_support import INSTANCE
 
 HOSTED_URL = "https://github.com/owner/project.git"
-INSTANCE = "factory-1"
 REFUSAL = "factory-watch: settings invalid: "
 
 

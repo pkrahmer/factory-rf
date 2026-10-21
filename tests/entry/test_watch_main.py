@@ -13,9 +13,9 @@ from factory.domain.settings import InstanceSettings
 from factory.entry import watch
 from factory.entry.watch import main
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 from watch_support import STORY, aged_claim, push_story_claim
 
-INSTANCE = "factory-1"
 SETTINGS_INSTANCE = "factory-2"
 HELD_LINE = f"event: idle:-  {STORY} is held by {INSTANCE}"
 INVALID_YAML = "contract: [\n"

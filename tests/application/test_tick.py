@@ -32,9 +32,9 @@ from git_support import (
 from human_clone import HumanClone
 from log_support import log_lines
 from source_search import SRC
+from stage_run_support import INSTANCE
 from tick_support import handlers_of
 
-INSTANCE = "factory-1"
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
 SECOND_ITEM = "F0001-S0002"

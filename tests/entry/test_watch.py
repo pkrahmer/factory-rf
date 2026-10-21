@@ -30,8 +30,8 @@ from factory.entry.watch import main, render_event, run_watch
 from git_support import PIPELINE_YAML, TEST_IDENTITY, run_git
 from human_clone import HumanClone
 from source_search import SRC
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
 FEATURE = "factory/features/F0001-example"

@@ -20,9 +20,9 @@ from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML, TEST_IDENTITY, remote_commit
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 from work_item_support import CREATED, checkout_text, created_state, put_work_item
 
-INSTANCE = "factory-1"
 STAGE = "intake"
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)

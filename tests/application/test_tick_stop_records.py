@@ -34,8 +34,8 @@ from git_support import (
 )
 from human_clone import HumanClone
 from log_support import log_lines
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 MIN_FREE_GB = 2
 ENOUGH = MIN_FREE_GB * GIGABYTE
 LOCAL = StopRecord(

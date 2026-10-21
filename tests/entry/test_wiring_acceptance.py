@@ -23,8 +23,8 @@ from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkIte
 from factory.entry.wiring import build_handlers, handler_factory
 from git_support import PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
 STATE = "a" * 40
 EXAMPLE = "factory/features/F0001-example"

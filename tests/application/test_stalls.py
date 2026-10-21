@@ -28,9 +28,8 @@ from factory.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import install_agents, remote_commit
 from human_clone import HumanClone
 from observing_runtime import ObservingRuntime
-from stage_run_support import branch_head, pushed, pushed_state
+from stage_run_support import INSTANCE, branch_head, pushed, pushed_state
 
-INSTANCE = "factory-1"
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
 ELSEWHERE = "elsewhere"

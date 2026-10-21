@@ -14,9 +14,8 @@ from factory.domain.git import GitOptions
 from factory.domain.kill_points import KillPoints
 from git_support import CHECKOUT, TEST_IDENTITY
 from log_support import log_lines
+from stage_run_support import INSTANCE
 from tick_support import Failing, handlers_of
-
-INSTANCE = "factory-1"
 
 pytestmark = pytest.mark.usefixtures("installed_agents")
 

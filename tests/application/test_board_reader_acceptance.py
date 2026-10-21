@@ -19,8 +19,8 @@ from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
 from factory.entry.watch import run_watch
 from git_support import run_git
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 ACCEPTANCE = "F0002-A0001"
 BRANCH = branch_name(ACCEPTANCE)
 REPORT = report_of(ACCEPTANCE)

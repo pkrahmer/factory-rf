@@ -21,8 +21,8 @@ from factory.domain.work_item import (
 )
 from git_support import PIPELINE_YAML
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 OTHER_INSTANCE = "factory-2"
 LEASE = timedelta(minutes=60)
 STAGE = "doing"

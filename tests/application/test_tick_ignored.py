@@ -12,9 +12,9 @@ from factory.domain.identifiers import branch_name
 from git_support import CHECKOUT, CLEAN_IGNORED, write_files
 from log_support import log_lines
 from root_support import AS_ROOT
+from stage_run_support import INSTANCE
 from tick_support import handlers_of
 
-INSTANCE = "factory-1"
 BRANCH = branch_name("F0001-S0001")
 STANDIN = "standin\n"
 

@@ -18,8 +18,8 @@ from factory.domain.move_rule import FactoryMove, factory_moves
 from factory.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML, remote_commit
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
 FEATURE = "factory/features/F0001-example"

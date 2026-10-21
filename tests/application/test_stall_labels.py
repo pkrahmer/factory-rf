@@ -20,9 +20,8 @@ from factory.domain.journal import JournalRecord, entry_text
 from factory.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import install_agents
 from human_clone import HumanClone
-from stage_run_support import pushed, pushed_state
+from stage_run_support import INSTANCE, pushed, pushed_state
 
-INSTANCE = "factory-1"
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"

@@ -10,7 +10,6 @@ from application.test_tick_agent_definition import (
     BACKLOG_PATH,
     COMPLETED,
     ENVIRONMENT,
-    INSTANCE,
     STORY,
 )
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
@@ -20,6 +19,7 @@ from factory.application.tick import Tick
 from factory.entry.wiring import handler_factory
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
 PROJECT_INTAKE = "---\nmodel: opus\ntools: [Read]\nbudget_usd: 2\n---\nThe project's intake.\n"
 
