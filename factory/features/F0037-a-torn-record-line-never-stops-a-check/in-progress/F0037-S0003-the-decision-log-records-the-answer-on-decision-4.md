@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 377
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T00:16:13.020712Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T00:16:13.020712Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T00:16:43.219796Z'
+  stage: smoke-test
+  run: 4ae9b64dceff48f48293bfce60b6b7f3
 ---
 
 # The decision log records the human's answer on F0037's decision 4
@@ -165,3 +167,37 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test run from the repository root, both commands exactly as written. No findings.
+
+    Command 1:
+    ```bash
+    grep -c "A later story may start a new line first" docs/decisions.md; grep -c "Answered (decision 4, the human, 2026-10-20)" docs/decisions.md
+    ```
+    ```
+    0
+    1
+    ```
+    Expect `0`, then `1`: met.
+
+    Command 2:
+    ```bash
+    uv run python -m factory.entry.check_documents
+    ```
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 92ms
+    Bytecode compiled 4164 files in 346ms
+    documents ok
+    ```
+    Expect `documents ok`: met. The lines above it are uv setting up the fresh virtual environment.
+
+    Acceptance criteria checked against `git diff main...HEAD`:
+    - 1. Nothing under `src/` or `tests/` changes: holds. The diff covers `docs/decisions.md` and the work item with its `.costs.jsonl` sidecar, nothing else. The tester (entry 5) and the coder (entry 7) each say so.
+    - 2. `make check` green: the coder's entry records `check: green`. I did not run it again, because the smoke test does not include it and the factory runs the stage's checks itself.
+    - 3. docs: in the entry *A record line that is not UTF-8 is skipped*, the "Open (decision 4)" bullet now starts with "Answered (decision 4, the human, 2026-10-20):". It says a record appended after a torn line still lands on the torn line's line and is skipped with it, and that no later feature changes `append`. Its reason is the last-byte read before each append, which two writers can race, against the loss of one telemetry record per kill. The date line reads "F0037 decisions 1, 2, 3, 4 and 5". No other entry or document changed. `check_documents` prints `documents ok`.
+
+    Nothing is open.
