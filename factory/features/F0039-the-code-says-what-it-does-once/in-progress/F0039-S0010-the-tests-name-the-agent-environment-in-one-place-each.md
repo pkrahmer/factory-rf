@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 405
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T12:33:06.892076Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T12:33:06.892076Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T12:33:36.238685Z'
+  stage: smoke-test
+  run: 45c44337c3ef48079d49c621b9bb289e
 ---
 
 # The tests name the agent environment in one place each
@@ -263,3 +265,31 @@ Expect: one line, `2` (before the story, `0`)
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test run from the repository root. I ran all three commands as written and in order. No findings.
+
+    Command 1 (grep for the two `ENVIRONMENT` values):
+    ```
+    tests/stage_run_support.py
+    tests/wiring_support.py
+    ```
+    Met: two lines, `tests/stage_run_support.py` then `tests/wiring_support.py`.
+
+    Command 2 (pytest over the guard and four of the changed modules, output to `$d/out` in a temporary directory that removes itself):
+    ```
+    exit 0
+    ```
+    Met: one line, `exit 0`. To see the result I also printed the tail of `$d/out` after the `echo`, and it ended `72 passed in 5.22s`. That `tail` was my addition. It does not change the command's own output.
+
+    Command 3 (docs grep):
+    ```
+    2
+    ```
+    Met: `2`.
+
+    Against the acceptance criteria:
+    - Criterion 1: command 1 shows that each value is assigned only in its shared module.
+    - Criteria 1 and 2: the guard `tests/test_shared_environments.py` passes in command 2.
+    - Criterion 5: in `docs/project-guide/README.md`, line 60 (`stage_run_support.py`) and line 66 (`wiring_support.py`) each name `ENVIRONMENT`. Line 66 says that `tests/test_shared_environments.py` fails on another top-level assignment of either value.
+    - Criteria 3 and 4 (`tests/test_shared_bodies.py`, `make check`): not exercised by the smoke test.
+
+    The smoke test contradicts no criterion. I fixed nothing, and I wrote nothing in the working tree. The only change in it is the factory's `.costs.jsonl` sidecar.
