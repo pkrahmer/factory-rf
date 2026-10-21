@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T01:03:00.114601Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-21T01:02:39.576125Z'
   stage: doing
   run: 154e15e8f6a343fe9b7c1eea2885c3be
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:03:00.114601Z'
+  stage: review
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -325,3 +334,4 @@ Expect: one line, `1` (before the story, `0`)
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
+16. factory: started review as self.
