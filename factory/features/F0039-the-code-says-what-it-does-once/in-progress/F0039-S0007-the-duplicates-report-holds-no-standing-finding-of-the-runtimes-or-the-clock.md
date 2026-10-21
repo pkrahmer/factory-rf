@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 380
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T00:41:07.052536Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T00:41:07.052536Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T00:43:42.651505Z'
+  stage: doing
+  run: 398670a91d1e4c8aaac770e73e0f82b1
 ---
 
 # The duplicates report holds no standing finding of the runtimes or the clock
@@ -103,3 +105,11 @@ Expect: `3`
    `lint`: lint: green (0.5 s)
    `test`: test: green (60.5 s)
 6. factory: started doing as self.
+7. coder: Built nothing. The Interface says no module under `src/factory/` changes and no test module is written. The only change in this story is the docs criterion, which the documenter writes (`docs/decisions.md`, *What the agent runtimes share lies in one module*, and `docs/project-guide/processes-and-checks.md`, *The baseline*). A coder does not write those files.
+      - Verified on the branch as it stands. `make check` ends with `check: green` (coverage 99.14 %). `make duplicates` prints `duplicates: 0 new, 38 known, 0 gone`, so the human's baseline change already settles the four runtime findings and `ManualWaiter`, and the `ManualClock` and `advance` lines are gone.
+      - Main choice: I left the code untouched. The rejected alternative was to merge the remaining similar process calls of `claude_runtime` and `opencode_runtime` into `agent_launch`. The description and the decision log entry keep those calls in each runtime, so a merge would go beyond the story.
+      - Refactor: there is no diff of mine to refactor.
+      - Noticed but did not touch: none. The journal did not change the meaning of the task, so the Description stays as it is.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
