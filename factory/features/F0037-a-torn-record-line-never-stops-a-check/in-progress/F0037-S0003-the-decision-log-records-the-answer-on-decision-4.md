@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 377
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T00:14:56.468794Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T00:14:56.468794Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T00:15:14.246321Z'
+  stage: review
+  run: cfb396b3ffd142129104c3cfb2a6cc39
 ---
 
 # The decision log records the human's answer on F0037's decision 4
@@ -119,3 +121,10 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
    `duplicates`: duplicates: 6 new, 33 known, 3 gone
 8. factory: started review as self.
+9. reviewer: No findings.
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar (`git diff --name-status main...HEAD`: the sidecar is `A`, the `.md` file is `M`).
+   - 1. Acceptance criteria: criterion 1 holds, because nothing under `src/` or `tests/` changed. The tester's entry (5) and the coder's entry (7) each say so. Criterion 2: the coder's entry records `check: green` (the factory reused the passed result for the unchanged tree). The story's Interface states no rules or limits, so no failing side or boundary needs a test. Criterion 3 is the documenter's.
+   - 2–4. Architecture, security, quality: no code changed, so nothing applies. `duplicates: 6 new` comes from `main`'s own tree, because this diff adds no code.
+   - 5. Work item hygiene: entry 7 states the main choice, leaving `docs/` to the documenter, and the option it rejected. The Description still matches the repository. `docs/decisions.md:883` has the entry *A record line that is not UTF-8 is skipped*. Its date line names decisions 1, 2, 3 and 5, and `docs/decisions.md:890` still has the "Open (decision 4): …" bullet. So the docs criterion still describes exactly the edit the documenter has to make.
+   - 6. Earlier tests: none. No test file on `main` is changed, renamed or deleted.
