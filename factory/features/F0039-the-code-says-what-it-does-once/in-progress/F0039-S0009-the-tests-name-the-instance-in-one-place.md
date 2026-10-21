@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 403
 comments_read: [6312436133]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T09:27:46.200402Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-21T09:27:25.320346Z'
   stage: review
   run: 142e9e29915442af82f25e6e5ff9476b
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-21T09:27:46.200402Z'
+  stage: docs
 ---
 
 # The tests name the instance in one place
@@ -288,3 +297,4 @@ Expect: one line, `1` (before the story, `0`)
     - tests/entry/test_wiring_recovery_expired.py: standing leave (constant move)
     - tests/proof_support.py: standing leave (constant move)
     - tests/undo_support.py: standing leave (constant move)
+13. factory: started docs as self.
