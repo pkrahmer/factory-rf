@@ -26,8 +26,8 @@ from factory.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
 from observing_runtime import ObservingRuntime
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"

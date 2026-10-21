@@ -22,8 +22,8 @@ from factory.domain.identifiers import branch_name
 from factory.domain.work_item import Claim, WorkItemState, initial_state
 from git_support import TEST_IDENTITY, remote_commit, run_git
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 OTHER_INSTANCE = "factory-2"
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)

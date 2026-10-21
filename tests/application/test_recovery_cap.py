@@ -6,7 +6,6 @@ import pytest
 
 from crash_support import (
     BRANCH,
-    INSTANCE,
     PATH,
     STAGE,
     STORY,
@@ -43,6 +42,7 @@ from factory.domain.post_texts import crash_cap_question
 from factory.domain.work_item import Blocked, WorkItemSnapshot, WorkItemState
 from git_support import PIPELINE_YAML, remote_commit
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
 CAP = 2
 

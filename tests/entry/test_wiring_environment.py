@@ -14,8 +14,8 @@ from factory.domain.agent_runs import AgentRunResult
 from factory.entry.wiring import handler_factory, production_environment
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 SECRET_NAMES = ("GH_TOKEN", "GITHUB_TOKEN", "FACTORY_TOKEN_FILE", "GIT_ASKPASS")
 LOCALE = {"LANG": "C.UTF-8", "LC_ALL": "C.UTF-8", "TERM": "xterm", "TZ": "UTC"}

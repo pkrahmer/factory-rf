@@ -8,6 +8,7 @@ from factory.application.watcher import Watcher
 from factory.domain.events import Event
 from factory.domain.pipeline_definition import PipelineDefinition
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 from watch_support import (
     ACCEPTANCE,
     STORY,
@@ -17,7 +18,6 @@ from watch_support import (
     push_story_claim,
 )
 
-INSTANCE = "factory-1"
 OTHER_INSTANCE = "factory-2"
 
 

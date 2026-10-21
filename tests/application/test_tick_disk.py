@@ -18,8 +18,8 @@ from factory.domain.stops import RepositoryStop
 from git_support import CHECKOUT, remote_commit
 from human_clone import HumanClone
 from log_support import log_lines
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 MIN_FREE_GB = 2
 ENOUGH = MIN_FREE_GB * GIGABYTE
 SHORT = ENOUGH - 1

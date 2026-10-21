@@ -22,8 +22,8 @@ from factory.domain.stops import (
 )
 from log_support import log_lines
 from record_support import UnwritableRecordLog
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 AT = datetime(2026, 10, 18, 10, 0, tzinfo=UTC)
 
 

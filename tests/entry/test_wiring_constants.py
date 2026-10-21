@@ -11,8 +11,8 @@ from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler, unhandled_kinds
 from factory.domain.events import EventKind
 from factory.entry.wiring import build_handlers
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
 KEPT = (
     "CREDENTIAL_HELPER",

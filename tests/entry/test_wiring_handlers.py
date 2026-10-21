@@ -27,8 +27,8 @@ from factory.entry.wiring import (
 )
 from git_support import install_agents
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
 STATE = "a" * 40

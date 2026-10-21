@@ -9,9 +9,10 @@ import pytest
 from factory.domain import lease
 from factory.domain.lease import claim_status, lease_age, lease_expired
 from factory.domain.work_item import Claim
+from stage_run_support import INSTANCE
 
 START = datetime(2026, 10, 12, 12, 0, tzinfo=UTC)
-OWN = "factory-1"
+OWN = INSTANCE
 OTHER = "factory-2"
 CLOCK_CALLS = {"now", "utcnow", "today", "time"}
 

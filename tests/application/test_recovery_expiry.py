@@ -8,7 +8,6 @@ import pytest
 
 from crash_support import (
     BRANCH,
-    INSTANCE,
     LEASE,
     OTHER_INSTANCE,
     STAGE,
@@ -39,6 +38,7 @@ from factory.domain.recovery import expiry_entry_text
 from factory.domain.work_item import WorkItemSnapshot
 from git_support import remote_commit, write_files
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
 CAP = 2
 UNTRACKED = "src/dead.py"

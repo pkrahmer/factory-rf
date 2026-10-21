@@ -9,8 +9,8 @@ from factory.domain.board import FeatureRow
 from factory.domain.identifiers import branch_name
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 FEATURES = "factory/features"
 FEATURE = f"{FEATURES}/F0001-example"
 BACKLOG_PATH = f"{FEATURE}/backlog/F0001-S0001-first.md"

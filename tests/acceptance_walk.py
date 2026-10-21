@@ -24,8 +24,8 @@ from factory.domain.work_item import Blocked, WorkItemDocument
 from factory.entry.wiring import handler_factory
 from git_support import PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 
-INSTANCE = "factory-1"
 ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
 FEATURE = "F0002"
 TODO = "F0002-todo"

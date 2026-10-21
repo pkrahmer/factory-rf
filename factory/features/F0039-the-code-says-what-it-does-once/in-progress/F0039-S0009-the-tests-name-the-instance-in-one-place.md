@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 403
 comments_read: [6312436133]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T09:18:20.349502Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-21T09:18:20.349502Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-21T09:22:39.503282Z'
+  stage: tests
+  run: 54ed77c9e76f4b47a6cb85e23a9e80f5
 ---
 
 # The tests name the instance in one place
@@ -141,3 +143,41 @@ Expect: one line, `1` (before the story, `0`)
    - Architecture: the story changes only `tests/` and one docs line, and no module under `src/factory/` changes.
    - Scope: it is within F0039's scope (*Shared test helpers* and the standing leave for constants). It touches nothing under *Out of scope*, and the `ENVIRONMENT` constants stay out.
 7. factory: started tests as self.
+8. tester: Moved the constant under the standing leave in `CLAUDE.md` (*Tests*) and wrote the guard. All tests pass now, and that is expected: the guard `instance_copies` belongs in the test module (Interface), so the coder has nothing to build. Only the docs criterion is left, for the documenter.
+
+   Criteria → tests:
+   - criterion 1: tests/test_shared_constants.py::test_the_instance_name_is_assigned_in_one_module
+   - criterion 2: tests/test_shared_constants.py::test_the_guard_counts_a_top_level_assignment_of_the_instance_name (7 rows: plain, other-name, annotated, other-value, name-as-value, in-function, in-class)
+   - criterion 3 (`make check` green): no test of its own. I ran `make test`, `make lint` and `make types`, all green.
+   - criterion 4 (docs): the documenter's.
+
+   Files created: tests/test_shared_constants.py.
+
+   Earlier test files changed under the standing leave (constants). In each one the top-level `INSTANCE = "factory-1"` is removed and `INSTANCE` is imported from `stage_run_support`:
+   - tests/: acceptance_walk.py, crash_support.py, proof_support.py, undo_support.py
+   - tests/application/: handlers/test_run.py, test_after_agent.py, test_board_reader.py, test_board_reader_acceptance.py, test_claims.py, test_claims_observed.py, test_cost_image.py, test_costs.py, test_no_state_refusals.py, test_recovery_crash.py, test_sealed_runs.py, test_stage_finish.py, test_stage_launch.py, test_stage_run_acceptance.py, test_stall_labels.py, test_stalls.py, test_stop_records_service.py, test_tick.py, test_tick_agent_definition.py, test_tick_disk.py, test_tick_ignored.py, test_tick_preflight.py, test_tick_stale_branch.py, test_tick_stop_details.py, test_tick_stop_records.py, test_watcher.py, test_watcher_acceptance.py, test_watcher_move_rule.py, test_watcher_observer.py
+   - tests/domain/: test_lease_observed.py
+   - tests/entry/: test_run.py, test_watch.py, test_watch_acceptance.py, test_watch_agent_definition.py, test_watch_main.py, test_watch_own_claim.py, test_watch_settings.py, test_wiring_acceptance.py, test_wiring_constants.py, test_wiring_environment.py, test_wiring_handlers.py, test_wiring_human_handlers.py, test_wiring_recovery.py, test_wiring_recovery_expired.py
+
+   Four more files changed:
+   - tests/application/test_recovery_cap.py and test_recovery_expiry.py used to import `INSTANCE` from `crash_support`.
+   - tests/application/test_tick_project_agent.py used to import it from `application.test_tick_agent_definition`.
+   - These three now import it from `stage_run_support`.
+   - In tests/domain/test_lease.py, `OWN = "factory-1"` became `OWN = INSTANCE`, with `INSTANCE` imported from `stage_run_support`.
+
+   The imports were merged and sorted with `ruff check --select I --fix` and `ruff format`. `stage_run_support` still imports only `git_support` and `human_clone`, so no import cycle was added.
+
+   Collect-only check (Description): I ran `pytest --collect-only -q -o addopts=""` over all of `tests` before and after the move and saved the lists in $TMPDIR. Before: 7062 ids. After: 7071. Every earlier id is still there. The 9 new ids are:
+   - the 8 tests of tests/test_shared_constants.py
+   - `tests/test_shared_bodies.py::test_no_test_module_holds_a_copy[test_shared_constants.py]`, which test_shared_bodies adds on its own for each new module
+
+   Runs:
+   - `make test`: green, 99.14 % coverage.
+   - `make lint`: green.
+   - `make types`: green. I ran it because nothing is missing in this story.
+   - The smoke test's grep now lists only tests/stage_run_support.py.
+
+   No module failed to import. Nothing is open.
+
+   `lint`: lint: green (0.6 s)
+   `test`: test: green (67.5 s)

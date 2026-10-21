@@ -9,6 +9,7 @@ from factory.application.boundaries import Boundaries
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.entry.watch import run_watch
 from human_clone import HumanClone
+from stage_run_support import INSTANCE
 from watch_support import (
     ACCEPTANCE,
     STORY,
@@ -17,9 +18,6 @@ from watch_support import (
     push_complete,
     push_story_claim,
 )
-
-INSTANCE = "factory-1"
-
 
 pytestmark = pytest.mark.usefixtures("installed_agents")
 
