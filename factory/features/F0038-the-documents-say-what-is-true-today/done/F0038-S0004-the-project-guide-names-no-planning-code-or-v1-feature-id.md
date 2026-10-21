@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T07:22:51.682372Z'
   stage: smoke-test
   run: 9db8019f2a90496798d63b0d2380fafb
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T07:23:38.953357Z'
+  stage: approval
 ---
 
 # The project guide names no planning code or v1 feature id as a pointer
@@ -250,3 +255,4 @@ Expect: `documents ok`
     - Ids that are allowed to stay are still there: "(F0021-S0005)" and "(F0034-S0001)" in `agents.md` are story ids given with their names, and `processes-and-checks.md` is untouched.
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 3.1 min, 28 turns, 105859 tokens in (386240 more from cache), 8372 out, $0.87
