@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T08:12:50.322676Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-21T08:12:50.322676Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-21T08:13:22.601303Z'
+  stage: doing
+  run: cb3c2193ecbf4c85a17e5fd4e2021edb
 ---
 
 # What was left for v2 is named open and not planned
@@ -269,3 +271,16 @@ Expect: `documents ok`
 
     Open: the date line is the documenter's to add in `docs/decisions.md`. After the fix, the smoke test's commands should still give the same output.
 14. factory: started doing as self.
+15. coder: Round 1: the smoke-tester's one finding is real, but it is in `docs/decisions.md`, and that file is the documenter's to fix, not mine. I changed no file. `git status --short` shows only the factory's `.costs.jsonl` sidecar, and `git diff --name-only main -- src tests image template demo claude` prints nothing.
+
+    - **The finding (criterion 3, first bullet):** I checked it with `sed -n '/^## v2 is retired/,$p' docs/decisions.md`. The new last entry `## v2 is retired; nothing is left for v2` at line 992 goes straight from the heading to `- Decision: ...` at line 994. There is no date line.
+    - **What the fix looks like:** the neighbouring bullet-form entries put a paragraph like `Date: 2026-10-20 (F0030-S0002). ...` between the heading and the first bullet (lines 978 and 986). The new entry needs `Date: 2026-10-21 (F0038-S0009).` in that place, with the story's date and id. Nothing else in the entry needs to change, and all four smoke-test commands should still give the same output.
+    - **Main choice:** I send the work item forward so the docs stage can add the date line. The alternative I rejected was adding the line myself here: CLAUDE.md says the documenter keeps `docs/decisions.md` and the coder does not write it.
+    - **Criterion 1:** still met. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed.
+    - **Criterion 2:** `make check` was green on this tree in the earlier round. I did not run it again because nothing it reads has changed; the factory checks after this stage.
+    - **Refactor:** there is no diff, so there was nothing to refactor.
+    - **Description:** no journal entry changes what the task means, so I left it as it is.
+    - **Noticed, not touched:** three other lines in `docs/decisions.md` (318, 406 and 517 by intake's count) still say "morning observation" without the quoted phrase. The criteria leave them alone.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+    `duplicates`: duplicates: 0 new, 38 known, 0 gone
