@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 401
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T09:02:23.932971Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T09:02:23.932971Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T09:03:57.934921Z'
+  stage: doing
+  run: 164906976e254ea98d865eb4bf832dab
 ---
 
 # The operator guide names no planning code, internal class or dated observation
@@ -109,3 +111,13 @@ Expect: `documents ok`
    `lint`: lint: green (0.7 s)
    `test`: test: green (67.0 s)
 6. factory: started doing as self.
+7. coder: No code written. This story only changes documentation, so nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes (criterion 1). `git status --short` shows only the work item's `.costs.jsonl` sidecar, which belongs to the factory.
+      - Built: nothing. The Interface says "None". The five passages in `docs/operator-guide.md` are the documenter's job (criterion 3), and that file is outside the coder's work.
+      - Main choice: I left the guide alone. The alternative was to edit `docs/operator-guide.md` now, and I rejected it: `CLAUDE.md` says the coder does not write the docs.
+      - Refactor: there is no diff, so nothing to change.
+      - The journal did not change what the task means, so the Description stays as written.
+      - Noticed, not touched: nothing.
+      - `make check`: check: green (test: green, 67.6 s).
+
+   `check`: check: green (not run again: passed on tree 746e4c61c5e9 at 2026-10-21T08:53:42Z)
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
