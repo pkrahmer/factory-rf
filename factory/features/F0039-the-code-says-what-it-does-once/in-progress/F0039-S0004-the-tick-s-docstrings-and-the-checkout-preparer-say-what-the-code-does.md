@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 383
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T01:50:32.988613Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T01:50:12.509440Z'
   stage: review
   run: 563681a6b08043ae86276bdc6cf43c9e
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:50:32.988613Z'
+  stage: docs
 ---
 
 # The tick's docstrings and the checkout preparer say what the code does
@@ -170,3 +179,4 @@ Expect: one line, `False True <class 'NoneType'> <class 'bool'>` (before the sto
    - tests/application/test_checkout_preparer_seal.py: the human's leave, feature decision 6 (named in the story's Interface)
    - tests/application/test_nested_repositories.py: the human's leave, feature decision 6 (named in the story's Interface)
    - tests/application/test_scheduler.py: the human's leave, feature decision 6 (named in the story's Interface)
+10. factory: started docs as self.
