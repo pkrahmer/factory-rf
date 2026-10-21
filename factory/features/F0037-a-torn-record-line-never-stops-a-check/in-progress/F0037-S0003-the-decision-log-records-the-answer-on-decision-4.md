@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 377
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T00:13:04.819245Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T00:12:43.904150Z'
   stage: tests
   run: 56b93b64c0864db4ad90035870eb0861
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:13:04.819245Z'
+  stage: doing
 ---
 
 # The decision log records the human's answer on F0037's decision 4
@@ -87,3 +96,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.5 s)
    `test`: test: green (62.9 s)
+6. factory: started doing as self.
