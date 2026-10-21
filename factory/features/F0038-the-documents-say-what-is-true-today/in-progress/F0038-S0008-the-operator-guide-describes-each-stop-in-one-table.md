@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 396
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T07:57:57.527474Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T07:57:36.270893Z'
   stage: tests
   run: 4182b4ab1aad445d87af556377d40304
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:57:57.527474Z'
+  stage: doing
 ---
 
 # The operator guide lists each stop in one table
@@ -106,3 +115,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.8 s)
    `test`: test: green (72.9 s)
+6. factory: started doing as self.
