@@ -19,6 +19,7 @@ from crash_support import (
     remote_state,
     snapshot,
 )
+from definition_support import pipeline_definition
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
@@ -26,17 +27,11 @@ from factory.application.handlers.closed import ClosedHandler
 from factory.application.handlers.questions import AskHandler
 from factory.domain.events import Event, EventKind
 from factory.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import PIPELINE_YAML
 from human_clone import HumanClone
 
 BODY = "# First story\n\n## Journal\n\n1. 2026-10-12 human: created.\n"
 CREATED = JournalRecord(number=1, speaker=HUMAN, kind="created")
-
-
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
 
 
 def _publish(
@@ -63,7 +58,7 @@ def test_the_ask_handler_at_the_attempts_cap_records_the_question_with_its_block
     stall = NewEntry(speaker=FACTORY, kind="stall", text="the agent gave no result")
     event = _publish(boundaries, human, state, [stall])
 
-    AskHandler(boundaries, _definition(boundaries)).handle(event)
+    AskHandler(boundaries, pipeline_definition(boundaries)).handle(event)
 
     last = remote_state(boundaries).journal[-1]
     assert (last.speaker, last.kind, last.blocked) == (FACTORY, "question", "attempts_cap")
@@ -103,7 +98,7 @@ def test_a_close_that_sends_back_without_a_reason_records_the_question_with_its_
     hosting.set_draft(pull_request, False)
     hosting.close_by_human(pull_request)
 
-    ClosedHandler(boundaries, _definition(boundaries)).handle(_of_kind(event, "closed"))
+    ClosedHandler(boundaries, pipeline_definition(boundaries)).handle(_of_kind(event, "closed"))
 
     last = remote_state(boundaries).journal[-1]
     assert (last.speaker, last.kind, last.blocked) == (FACTORY, "question", "send_back")

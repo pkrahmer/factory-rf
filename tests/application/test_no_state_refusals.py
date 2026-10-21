@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from crash_support import Rerun
+from definition_support import pipeline_definition
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
@@ -16,9 +17,8 @@ from factory.domain.agent_runs import AgentDefinition, GuardSettings
 from factory.domain.errors import CannotHandle, WorkItemFormatError
 from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import CHECKOUT, PIPELINE_YAML, remote_commit
+from git_support import CHECKOUT, remote_commit
 from human_clone import HumanClone
 
 INSTANCE = "factory-1"
@@ -36,10 +36,6 @@ CLAIM = Claim(
     started_at=datetime(2026, 10, 12, 12, 0, tzinfo=UTC),
     lease_duration=60,
 )
-
-
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
 
 
 def _branch_head(remote: Path) -> str:
@@ -64,7 +60,7 @@ def test_a_claim_of_a_document_without_a_state_is_refused_and_pushes_nothing(
 ) -> None:
     boundaries.git.checkout(BRANCH, start_point=f"origin/{BRANCH}")
     before = _branch_head(remote)
-    service = ClaimService(boundaries, INSTANCE, _definition(boundaries))
+    service = ClaimService(boundaries, INSTANCE, pipeline_definition(boundaries))
 
     with pytest.raises(ValueError) as raised:
         service.claim(BRANCH, PATH, STATELESS, "tests")
@@ -81,7 +77,7 @@ def test_a_claim_of_a_document_without_a_state_is_refused_and_pushes_nothing(
 def test_a_release_refuses_a_document_without_a_state_and_clears_a_claim(
     boundaries: Boundaries, state: WorkItemState | None
 ) -> None:
-    service = ClaimService(boundaries, INSTANCE, _definition(boundaries))
+    service = ClaimService(boundaries, INSTANCE, pipeline_definition(boundaries))
     document = WorkItemDocument(state=state, body=BODY)
 
     if state is None:
@@ -97,7 +93,7 @@ def test_a_release_refuses_a_document_without_a_state_and_clears_a_claim(
 def test_asking_the_crash_cap_question_of_a_document_without_a_state_is_refused_and_posts_nothing(
     boundaries: Boundaries, hosting: FakeHostingService
 ) -> None:
-    definition = _definition(boundaries)
+    definition = pipeline_definition(boundaries)
     claims = ClaimService(boundaries, INSTANCE, definition)
     recovery = RecoveryHandler(boundaries, definition, claims, Rerun())
     snapshot = WorkItemSnapshot(
@@ -120,7 +116,7 @@ def test_asking_the_crash_cap_question_of_a_document_without_a_state_is_refused_
 def test_composing_a_task_for_a_document_without_a_state_is_refused_with_its_path(
     boundaries: Boundaries, tmp_path: Path
 ) -> None:
-    composer = TaskComposer(boundaries, _definition(boundaries), {"PATH": "/usr/bin"})
+    composer = TaskComposer(boundaries, pipeline_definition(boundaries), {"PATH": "/usr/bin"})
     context = TaskContext(
         work_item=WORK_ITEM,
         path=PATH,
@@ -160,7 +156,7 @@ def test_a_stall_of_a_document_without_a_state_is_refused_and_pushes_and_posts_n
         pull_request=pull_request,
         cost=None,
     )
-    service = StallService(boundaries, INSTANCE, _definition(boundaries))
+    service = StallService(boundaries, INSTANCE, pipeline_definition(boundaries))
 
     with pytest.raises(ValueError) as raised:
         service.stall(context, "died")

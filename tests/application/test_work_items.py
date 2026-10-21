@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from definition_support import pipeline_definition
 from factory.adapters.git_cli import GitCli
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader
 from factory.application.boundaries import Boundaries
@@ -11,9 +12,8 @@ from factory.application.work_items import RemoteWorkItems
 from factory.domain.errors import WorkItemFormatError
 from factory.domain.identifiers import branch_name
 from factory.domain.paths import LIFECYCLE_FOLDERS
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import StoryFile, initial_state
-from git_support import CHECKOUT, PIPELINE_YAML, remote_commit, write_files
+from git_support import CHECKOUT, remote_commit, write_files
 from human_clone import HumanClone
 
 WORK_ITEM = "F0001-S0001"
@@ -34,10 +34,6 @@ SPECIFICATION_BODY = "# First story\n\n## Description\n\nStarted by the human.\n
 def _items(checkout: GitCli) -> RemoteWorkItems:
     checkout.fetch()
     return RemoteWorkItems(checkout, FrontmatterWorkItemReader())
-
-
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
 
 
 def _ids(stories: list[StoryFile]) -> list[str]:
@@ -142,7 +138,7 @@ def test_a_story_with_a_remote_branch_is_read_from_its_head(
     human.start(BACKLOG_PATH)
     human.push_file(BRANCH, PATH, BRANCH_TEXT)
 
-    snapshots = _items(checkout).read(_definition(boundaries))
+    snapshots = _items(checkout).read(pipeline_definition(boundaries))
 
     assert len(snapshots) == 1
     snapshot = snapshots[0]
@@ -164,7 +160,7 @@ def test_a_pushed_branch_wins_over_a_stale_local_branch(
     _commit_local_branch(checkout, tmp_path / CHECKOUT, STALE_TEXT)
     human.push_file(BRANCH, PATH, BRANCH_TEXT)
 
-    snapshots = _items(checkout).read(_definition(boundaries))
+    snapshots = _items(checkout).read(pipeline_definition(boundaries))
 
     assert [snapshot.branch_commit for snapshot in snapshots] == [remote_commit(remote, BRANCH)]
     assert snapshots[0].document == FrontmatterWorkItemReader().parse(BRANCH_TEXT)
@@ -176,7 +172,7 @@ def test_a_branch_only_in_the_checkout_is_not_read(
     human.start(BACKLOG_PATH)
     _commit_local_branch(checkout, tmp_path / CHECKOUT, STALE_TEXT)
 
-    snapshots = _items(checkout).read(_definition(boundaries))
+    snapshots = _items(checkout).read(pipeline_definition(boundaries))
 
     assert len(snapshots) == 1
     assert snapshots[0].branch_commit is None
@@ -192,7 +188,7 @@ def test_a_started_story_without_a_branch_is_at_the_first_stage(
     checkout: GitCli, human: HumanClone, boundaries: Boundaries
 ) -> None:
     _start_with_state_in_file(human)
-    definition = _definition(boundaries)
+    definition = pipeline_definition(boundaries)
 
     snapshots = _items(checkout).read(definition)
 
@@ -214,7 +210,7 @@ def test_a_started_story_without_a_branch_keeps_its_body_and_ignores_its_keys(
 ) -> None:
     _start_with_state_in_file(human)
 
-    snapshots = _items(checkout).read(_definition(boundaries))
+    snapshots = _items(checkout).read(pipeline_definition(boundaries))
 
     document = snapshots[0].document
     assert document.body == SPECIFICATION_BODY
@@ -228,7 +224,7 @@ def test_a_branch_merged_into_main_is_still_read_from_the_branch(
     human.push_file(BRANCH, PATH, BRANCH_TEXT)
     human.merge(BRANCH, "merge")
 
-    snapshots = _items(checkout).read(_definition(boundaries))
+    snapshots = _items(checkout).read(pipeline_definition(boundaries))
 
     assert [snapshot.path for snapshot in snapshots] == [PATH]
     assert snapshots[0].branch_commit == remote_commit(remote, BRANCH)
@@ -245,7 +241,7 @@ def test_a_story_missing_on_its_branch_is_a_format_error(
     items = _items(checkout)
 
     with pytest.raises(WorkItemFormatError) as raised:
-        items.read(_definition(boundaries))
+        items.read(pipeline_definition(boundaries))
 
     assert raised.value.path == PATH
 
@@ -258,7 +254,7 @@ def test_unreadable_front_matter_on_the_branch_is_a_format_error(
     items = _items(checkout)
 
     with pytest.raises(WorkItemFormatError) as raised:
-        items.read(_definition(boundaries))
+        items.read(pipeline_definition(boundaries))
 
     assert raised.value.path == PATH
 
@@ -271,7 +267,7 @@ def test_unreadable_front_matter_on_main_without_a_branch_is_a_format_error(
     items = _items(checkout)
 
     with pytest.raises(WorkItemFormatError) as raised:
-        items.read(_definition(boundaries))
+        items.read(pipeline_definition(boundaries))
 
     assert raised.value.path == PATH
 
@@ -283,7 +279,7 @@ def test_only_in_progress_stories_are_read(
         human, [f"{FEATURE}/done/F0001-S0002-done.md", f"{FEATURE}/in-progress/F0001-S0003-on.md"]
     )
 
-    snapshots = _items(checkout).read(_definition(boundaries))
+    snapshots = _items(checkout).read(pipeline_definition(boundaries))
 
     assert [(snapshot.id, snapshot.folder) for snapshot in snapshots] == [
         ("F0001-S0003", "in-progress")
@@ -303,7 +299,7 @@ def test_snapshots_come_in_plain_id_order_and_one_per_story_file(
         ],
     )
 
-    snapshots = _items(checkout).read(_definition(boundaries))
+    snapshots = _items(checkout).read(pipeline_definition(boundaries))
 
     assert [(snapshot.id, snapshot.path) for snapshot in snapshots] == [
         ("F0001-S0002", "factory/features/F0001-alpha/in-progress/F0001-S0002-a.md"),
@@ -325,4 +321,4 @@ def test_ongoing_and_drafts_files_are_neither_listed_nor_read(
     ]
 
     assert listed == [BACKLOG_PATH]
-    assert items.read(_definition(boundaries)) == []
+    assert items.read(pipeline_definition(boundaries)) == []

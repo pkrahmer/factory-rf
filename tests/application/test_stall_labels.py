@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from definition_support import pipeline_definition
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
@@ -16,9 +17,8 @@ from factory.domain.errors import HostingServiceError
 from factory.domain.hosting import PostKey
 from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord, entry_text
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import PIPELINE_YAML, install_agents, remote_commit
+from git_support import install_agents, remote_commit
 from human_clone import HumanClone
 
 INSTANCE = "factory-1"
@@ -61,10 +61,6 @@ DIED = AgentRunResult(end_reason="died", duration=timedelta(minutes=3))
 RETRYING = "Retrying on the next tick."
 
 
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
-
-
 def _makefile(check_lines: list[str], check_status: int) -> str:
     names = ["lint", "check", "test"]
     targets = []
@@ -103,14 +99,14 @@ def _open_new(boundaries: Boundaries, human: HumanClone) -> None:
 
 
 def _run(boundaries: Boundaries) -> StageReport:
-    return StageRunner(boundaries, INSTANCE, _definition(boundaries), ENVIRONMENT).run(
+    return StageRunner(boundaries, INSTANCE, pipeline_definition(boundaries), ENVIRONMENT).run(
         WORK_ITEM, PATH
     )
 
 
 def _prepare_new(boundaries: Boundaries, human: HumanClone) -> PreparedWorkItem:
     _open_new(boundaries, human)
-    return WorkItemOpening(boundaries, _definition(boundaries)).prepare(WORK_ITEM, PATH)
+    return WorkItemOpening(boundaries, pipeline_definition(boundaries)).prepare(WORK_ITEM, PATH)
 
 
 def _first_stage_context(prepared: PreparedWorkItem, **changes: object) -> StallContext:
@@ -126,7 +122,9 @@ def _first_stage_context(prepared: PreparedWorkItem, **changes: object) -> Stall
 
 
 def _stall(boundaries: Boundaries, context: StallContext) -> StallResult:
-    return StallService(boundaries, INSTANCE, _definition(boundaries)).stall(context, "died")
+    return StallService(boundaries, INSTANCE, pipeline_definition(boundaries)).stall(
+        context, "died"
+    )
 
 
 def _pushed(boundaries: Boundaries, remote: Path) -> WorkItemDocument:
@@ -233,7 +231,7 @@ def test_a_note_already_posted_still_gets_the_label_written(
     hosting: FakeHostingService,
 ) -> None:
     prepared = _prepare_new(boundaries, human)
-    pull_request = WorkItemOpening(boundaries, _definition(boundaries)).ensure_pull_request(
+    pull_request = WorkItemOpening(boundaries, pipeline_definition(boundaries)).ensure_pull_request(
         WORK_ITEM, prepared.document
     )
     state = prepared.document.state

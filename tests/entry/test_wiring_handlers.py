@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from definition_support import pipeline_definition
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Dispatcher, unhandled_kinds
@@ -16,7 +17,6 @@ from factory.application.stops import StopService
 from factory.application.tick import IdleHandler, Tick
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.events import Event, EventKind
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.tick_status import TickStatus, find_error
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.entry.wiring import (
@@ -26,7 +26,7 @@ from factory.entry.wiring import (
     handler_factory,
     production_environment,
 )
-from git_support import PIPELINE_YAML, install_agents
+from git_support import install_agents
 from human_clone import HumanClone
 
 INSTANCE = "factory-1"
@@ -64,10 +64,6 @@ COMPLETED = AgentRunResult(
 )
 
 
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
-
-
 def _snapshot() -> WorkItemSnapshot:
     return WorkItemSnapshot(
         id="F0001-S0001",
@@ -82,7 +78,7 @@ def _snapshot() -> WorkItemSnapshot:
 def test_build_handlers_registers_the_idle_handler_and_the_gated_run_handler(
     boundaries: Boundaries,
 ) -> None:
-    handlers = build_handlers(boundaries, _definition(boundaries), INSTANCE, ENVIRONMENT)
+    handlers = build_handlers(boundaries, pipeline_definition(boundaries), INSTANCE, ENVIRONMENT)
 
     assert {"idle", "run"} <= set(handlers)
     assert isinstance(handlers["idle"], IdleHandler)
@@ -92,7 +88,7 @@ def test_build_handlers_registers_the_idle_handler_and_the_gated_run_handler(
 def test_the_kinds_without_a_handler_are_exactly_those_not_yet_handled(
     boundaries: Boundaries,
 ) -> None:
-    handlers = build_handlers(boundaries, _definition(boundaries), INSTANCE, ENVIRONMENT)
+    handlers = build_handlers(boundaries, pipeline_definition(boundaries), INSTANCE, ENVIRONMENT)
 
     assert unhandled_kinds(handlers) == list(NOT_YET_HANDLED)
 
@@ -140,7 +136,7 @@ def test_a_tick_over_the_handler_factory_runs_one_stage(
     agent_home: Path,
     agent_runtime: FakeAgentRuntime,
 ) -> None:
-    install_agents(agent_home, _definition(boundaries).roles)
+    install_agents(agent_home, pipeline_definition(boundaries).roles)
     human.push_file("main", BACKLOG_PATH, STORY)
     human.start(BACKLOG_PATH)
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
@@ -159,7 +155,7 @@ def test_a_tick_over_the_handler_factory_runs_one_stage(
 def test_an_event_without_a_handler_is_a_counted_error(
     boundaries: Boundaries, kind: EventKind
 ) -> None:
-    handlers = build_handlers(boundaries, _definition(boundaries), INSTANCE, ENVIRONMENT)
+    handlers = build_handlers(boundaries, pipeline_definition(boundaries), INSTANCE, ENVIRONMENT)
     del handlers[kind]
     dispatcher = Dispatcher(handlers, TickStatus(), StopService(boundaries))
     event = Event(kind=kind, work_item=_snapshot(), remote_state=STATE)

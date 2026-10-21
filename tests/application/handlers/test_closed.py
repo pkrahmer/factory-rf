@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from bill_support import completed_records, sidecar_text
+from definition_support import pipeline_definition
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
@@ -16,9 +17,8 @@ from factory.domain.events import Event
 from factory.domain.git import ChangedPath
 from factory.domain.journal import HUMAN, JournalRecord
 from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import PIPELINE_YAML, remote_commit, run_git
+from git_support import remote_commit, run_git
 from human_clone import HumanClone
 
 WORK_ITEM = "F0001-S0001"
@@ -36,10 +36,6 @@ SUBJECT = f"work item {WORK_ITEM}: closed before the approval, back in the backl
 Close = Callable[[str], WorkItemSnapshot]
 
 
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
-
-
 def _event(snapshot: WorkItemSnapshot, remote: Path) -> Event:
     main = remote_commit(remote, "main")
     assert main is not None
@@ -47,7 +43,7 @@ def _event(snapshot: WorkItemSnapshot, remote: Path) -> Event:
 
 
 def _handle(boundaries: Boundaries, event: Event) -> None:
-    ClosedHandler(boundaries, _definition(boundaries)).handle(event)
+    ClosedHandler(boundaries, pipeline_definition(boundaries)).handle(event)
 
 
 @pytest.fixture

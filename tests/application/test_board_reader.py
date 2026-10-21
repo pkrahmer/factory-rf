@@ -1,14 +1,13 @@
 """The board reader counts the story files on origin/main and reads the work items in progress."""
 
+from definition_support import pipeline_definition
 from factory.adapters.clock import ManualClock
 from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.application.board import BoardReader, BoardView
 from factory.application.boundaries import Boundaries
 from factory.domain.board import FeatureRow
 from factory.domain.identifiers import branch_name
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
-from git_support import PIPELINE_YAML
 from human_clone import HumanClone
 
 INSTANCE = "factory-1"
@@ -19,13 +18,9 @@ PATH = f"{FEATURE}/in-progress/F0001-S0001-first.md"
 SECOND_BACKLOG_PATH = f"{FEATURE}/backlog/F0001-S0002-second.md"
 
 
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
-
-
 def _read(boundaries: Boundaries) -> BoardView:
     boundaries.git.fetch()
-    return BoardReader(boundaries).read(_definition(boundaries))
+    return BoardReader(boundaries).read(pipeline_definition(boundaries))
 
 
 def test_only_story_files_count_on_main(boundaries: Boundaries, human: HumanClone) -> None:

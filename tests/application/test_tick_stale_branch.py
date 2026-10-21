@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from definition_support import pipeline_definition
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
@@ -15,15 +16,15 @@ from factory.domain.events import Event
 from factory.domain.identifiers import branch_name
 from factory.domain.journal import HUMAN, JournalRecord
 from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import (
     WorkItemDocument,
     WorkItemSnapshot,
     WorkItemState,
     initial_state,
 )
-from git_support import CHECKOUT, PIPELINE_YAML, install_agents, remote_commit
+from git_support import CHECKOUT, install_agents, remote_commit
 from human_clone import HumanClone
+from log_support import log_lines
 from tick_support import handlers_of
 
 INSTANCE = "factory-1"
@@ -43,10 +44,6 @@ class Recording(Handler):
 
     def handle(self, event: Event) -> None:
         self.events.append(event)
-
-
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
 
 
 def _discard_killed_after_push(
@@ -78,7 +75,7 @@ def _discard_killed_after_push(
     assert main is not None
     kill_points.arm(KillPoint.AFTER_PUSH)
     with pytest.raises(InjectedKill):
-        ClosedHandler(boundaries, _definition(boundaries)).handle(
+        ClosedHandler(boundaries, pipeline_definition(boundaries)).handle(
             Event(kind="closed", work_item=snapshot, remote_state=main)
         )
     assert remote_commit(remote, BRANCH) is not None
@@ -104,7 +101,7 @@ def discarded(
         hosting=hosting,
         kill_points=kill_points,
     )
-    install_agents(agent_home, _definition(boundaries).roles)
+    install_agents(agent_home, pipeline_definition(boundaries).roles)
 
 
 @pytest.mark.usefixtures("discarded")
@@ -140,7 +137,7 @@ def test_a_story_started_again_after_the_cleanup_starts_from_the_first_stage(
     work_item = outcome.event.work_item
     assert work_item is not None
     assert work_item.branch_commit is None
-    assert work_item.document.state == initial_state(_definition(boundaries).first_stage())
+    assert work_item.document.state == initial_state(pipeline_definition(boundaries).first_stage())
 
 
 def test_a_tick_that_ends_at_a_repository_stop_deletes_nothing(
@@ -158,11 +155,6 @@ def test_a_tick_that_ends_at_a_repository_stop_deletes_nothing(
     assert remote_commit(remote, BRANCH) == before
 
 
-def _log_lines(tmp_path: Path) -> list[str]:
-    log = tmp_path / "state" / "factory.log"
-    return log.read_text(encoding="utf-8").splitlines() if log.exists() else []
-
-
 @pytest.mark.skipif(os.geteuid() == 0, reason="root removes files in unwritable directories")
 def test_a_tick_that_ends_at_the_restore_stop_deletes_nothing(
     boundaries: Boundaries,
@@ -173,7 +165,7 @@ def test_a_tick_that_ends_at_the_restore_stop_deletes_nothing(
     agent_home: Path,
     tmp_path: Path,
 ) -> None:
-    install_agents(agent_home, _definition(boundaries).roles)
+    install_agents(agent_home, pipeline_definition(boundaries).roles)
     human.push_file(BRANCH, "marker.txt", "x\n")
     checkout.fetch()
     before = remote_commit(remote, BRANCH)
@@ -205,7 +197,7 @@ def test_a_tick_that_ends_at_the_fetch_stop_tries_no_deletion(
     agent_home: Path,
     tmp_path: Path,
 ) -> None:
-    install_agents(agent_home, _definition(boundaries).roles)
+    install_agents(agent_home, pipeline_definition(boundaries).roles)
     human.push_file(BRANCH, "marker.txt", "x\n")
     checkout.fetch()
     away = remote.rename(tmp_path / "away.git")
@@ -214,7 +206,7 @@ def test_a_tick_that_ends_at_the_fetch_stop_tries_no_deletion(
     outcome = tick.run()
 
     assert outcome == TickOutcome(stopped="fetch_failed")
-    assert not [line for line in _log_lines(tmp_path) if "stale branch" in line]
+    assert not [line for line in log_lines(tmp_path) if "stale branch" in line]
 
     away.rename(remote)
     tick.run()

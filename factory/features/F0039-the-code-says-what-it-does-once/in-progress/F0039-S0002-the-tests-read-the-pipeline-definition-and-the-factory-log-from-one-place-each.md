@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T00:48:10.376349Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T00:48:10.376349Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T00:51:52.394871Z'
+  stage: tests
+  run: b0d0d5193cbc45098cd67bdddeba7a5c
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -120,3 +122,51 @@ Expect: one line, `1` (before the story, `0`)
    Architecture: tests only, under the standing leave in `CLAUDE.md` (*Tests*) for moving shared helpers, which the tester makes. The new helper is a module at the `tests/` root, and the guard is a test at the root. The layers are untouched.
    Scope: within the feature's scope (S0002). The variants with a text parameter or another definition, `tests/entry/test_run.py::_log_lines(state_directory)` and `tests/test_shared_fixtures.py` stay, as the feature's *Out of scope* and decision 5 say. The S0003 helpers are left out. The docs criterion names only the project guide, as decision 5 asks.
 4. factory: started tests as self.
+5. tester: I wrote the guard and moved the copied helpers under the standing leave in `CLAUDE.md` (*Tests*), as the Description gives this story to the tester. No module under `src/factory/` changes, so the tests pass now and are not red. The coder has nothing to build.
+
+   Criteria → tests:
+   - criterion 1: tests/test_shared_definition.py::test_the_shared_definition_is_the_fixtures_definition
+   - criterion 2: tests/test_shared_definition.py::test_each_shared_reading_is_written_in_one_module (rows `definition`, `log`)
+   - criterion 3: tests/test_shared_definition.py::test_the_guard_finds_a_copy_by_its_body_and_nothing_else (six rows: the-definition-copy, the-definition-under-another-name, a-definition-of-another-text, the-log-reading-copy, a-method-named-log-lines, a-log-reading-of-another-folder)
+   - criterion 4: no test function. It compares test ids before and after the story, so I checked it in this stage. `pytest --collect-only -o addopts="" -q` over the twenty modules listed 229 ids before the change and the same 229 after (`diff` empty). `make test` passed afterwards: `test: green (61.3 s)`, coverage 99.14 %.
+   - criterion 5: `make check`, the factory's gate. `make lint` is green. I skipped the type check as the stage says.
+   - criterion 6: docs, the documenter's.
+
+   Files created: `tests/definition_support.py` (`pipeline_definition`) and `tests/test_shared_definition.py` (the guard, with `_copies_the_definition` and `_copies_the_log_reading` over `ast`).
+
+   Earlier test files changed under the standing leave. Each test keeps its name and checks the same thing:
+   - `tests/conftest.py`: the `definition` fixture now returns `pipeline_definition(boundaries)`.
+   - `_definition` removed and its calls changed to `pipeline_definition(boundaries)` in:
+     - tests/application/handlers/test_closed.py
+     - tests/application/handlers/test_hand_over.py
+     - tests/application/handlers/test_run.py
+     - tests/application/test_after_agent.py
+     - tests/application/test_board_reader.py
+     - tests/application/test_no_state_refusals.py
+     - tests/application/test_question_causes_recorded.py
+     - tests/application/test_stall_labels.py
+     - tests/application/test_stalls.py
+     - tests/application/test_tick_stale_branch.py
+     - tests/application/test_watcher.py
+     - tests/application/test_work_items.py
+     - tests/entry/test_watch.py
+     - tests/entry/test_wiring_acceptance.py
+     - tests/entry/test_wiring_handlers.py
+     - tests/entry/test_wiring_human_handlers.py
+   - `_log_lines` removed and its calls changed to `log_support.log_lines` in:
+     - tests/application/test_pipeline_loading.py
+     - tests/application/test_pipeline_loading_yaml_fault.py
+     - tests/application/test_stop_records_service.py
+     - tests/application/test_tick_disk.py
+     - tests/application/test_tick_stale_branch.py
+   - The module constant `LOG` in test_pipeline_loading.py and test_pipeline_loading_yaml_fault.py was removed, because no other line used it any more. `ruff --fix` then removed the imports that had become unused.
+
+   Left alone, as the Interface says:
+   - the `_definition` variants with a text parameter or another definition (test_stage_finish.py reads `DEFINITION_YAML`)
+   - `tests/entry/test_run.py::_log_lines(state_directory)`
+   - `tests/test_shared_fixtures.py`
+
+   Modules the test run could not import: none.
+
+   `lint`: lint: green (0.6 s)
+   `test`: test: green (60.4 s)

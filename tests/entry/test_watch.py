@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from definition_support import pipeline_definition
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
@@ -88,10 +89,6 @@ class _CountingHosting(FakeHostingService):
 pytestmark = pytest.mark.usefixtures("installed_agents")
 
 
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
-
-
 def _push_state(human: HumanClone, state: WorkItemState) -> None:
     text = FrontmatterWorkItemWriter().render(WorkItemDocument(state=state, body=BODY))
     human.push_file(BRANCH, PATH, text)
@@ -140,7 +137,7 @@ def test_run_watch_writes_the_event_a_blank_line_and_the_board(
 
     status, out, err = _watch(boundaries)
 
-    definition = _definition(boundaries)
+    definition = pipeline_definition(boundaries)
     event = Watcher(boundaries, INSTANCE).evaluate(definition)
     view = BoardReader(boundaries).read(definition)
     assert status == 0

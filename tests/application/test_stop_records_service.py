@@ -20,6 +20,7 @@ from factory.domain.stops import (
     RepositoryStopReason,
     StopRecord,
 )
+from log_support import log_lines
 from record_support import UnwritableRecordLog
 
 INSTANCE = "factory-1"
@@ -42,11 +43,6 @@ def _raised(reason: RepositoryStopReason, minute: int, instance: str | None) -> 
 
 def _records_path(tmp_path: Path) -> Path:
     return tmp_path / "state" / "records" / "stops.jsonl"
-
-
-def _log_lines(tmp_path: Path) -> list[str]:
-    log = tmp_path / "state" / "factory.log"
-    return log.read_text(encoding="utf-8").splitlines() if log.exists() else []
 
 
 @pytest.fixture
@@ -149,7 +145,7 @@ def test_without_stop_records_a_raise_and_a_clear_write_only_the_log_and_the_hea
     service.clear_stop("fetch_failed")
 
     assert boundaries.health.read().stops == []
-    texts = [line.split(" ", 1)[1] for line in _log_lines(tmp_path)]
+    texts = [line.split(" ", 1)[1] for line in log_lines(tmp_path)]
     assert texts == [
         "stop repository fetch_failed: fetch_failed detail",
         "stop cleared fetch_failed",
@@ -200,7 +196,7 @@ def test_an_unwritable_record_log_raises_after_the_log_and_the_health_status_wer
 
     assert raised.value is error
     assert boundaries.health.read().stops == expected_stops
-    assert [line.split(" ", 1)[1] for line in _log_lines(tmp_path)] == [expected_line]
+    assert [line.split(" ", 1)[1] for line in log_lines(tmp_path)] == [expected_line]
 
 
 class _UnwritableLog(FactoryLog):

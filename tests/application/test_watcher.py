@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from definition_support import pipeline_definition
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
@@ -18,9 +19,8 @@ from factory.domain.events import Event
 from factory.domain.git import GitOptions
 from factory.domain.hosting import PullRequestComment, PullRequestView
 from factory.domain.identifiers import branch_name
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState, initial_state
-from git_support import PIPELINE_YAML, TEST_IDENTITY, remote_commit, run_git
+from git_support import TEST_IDENTITY, remote_commit, run_git
 from human_clone import HumanClone
 
 INSTANCE = "factory-1"
@@ -79,10 +79,6 @@ class _CountingHosting(FakeHostingService):
         super().set_labels(number, labels)
 
 
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
-
-
 def _with_hosting(boundaries: Boundaries, hosting: FakeHostingService) -> Boundaries:
     return replace(boundaries, hosting=hosting)
 
@@ -94,14 +90,14 @@ def _push_state(human: HumanClone, state: WorkItemState) -> None:
 
 def _evaluate(boundaries: Boundaries) -> Event:
     boundaries.git.fetch()
-    return Watcher(boundaries, INSTANCE).evaluate(_definition(boundaries))
+    return Watcher(boundaries, INSTANCE).evaluate(pipeline_definition(boundaries))
 
 
 def test_a_started_story_without_a_branch_runs_at_the_first_stage(
     boundaries: Boundaries, human: HumanClone, remote: Path
 ) -> None:
     human.start(BACKLOG_PATH)
-    definition = _definition(boundaries)
+    definition = pipeline_definition(boundaries)
     boundaries.git.fetch()
 
     event = Watcher(boundaries, INSTANCE).evaluate(definition)
@@ -189,4 +185,4 @@ def test_a_remote_without_main_is_a_git_error(boundaries: Boundaries, tmp_path: 
     empty = replace(boundaries, git=git)
 
     with pytest.raises(GitError, match="origin/main"):
-        Watcher(empty, INSTANCE).evaluate(_definition(boundaries))
+        Watcher(empty, INSTANCE).evaluate(pipeline_definition(boundaries))

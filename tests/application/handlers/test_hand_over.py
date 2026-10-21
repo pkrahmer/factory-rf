@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from bill_support import completed_records, sidecar_text
+from definition_support import pipeline_definition
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
@@ -23,11 +24,10 @@ from factory.domain.hosting import PostKey, PullRequestComment, render_post
 from factory.domain.journal import HUMAN, JournalRecord
 from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.domain.paths import cost_records_path
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import cost_table_post
 from factory.domain.tick_status import TickStatus
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import PIPELINE_YAML, remote_commit
+from git_support import remote_commit
 from human_clone import HumanClone
 
 WORK_ITEM = "F0001-S0001"
@@ -100,12 +100,8 @@ def _event(snapshot: WorkItemSnapshot) -> Event:
     return Event(kind="hand_over", work_item=snapshot, remote_state=REMOTE_STATE)
 
 
-def _definition(boundaries: Boundaries) -> PipelineDefinition:
-    return boundaries.pipeline_reader.parse(PIPELINE_YAML)
-
-
 def _handler(boundaries: Boundaries) -> HandOverHandler:
-    return HandOverHandler(boundaries, _definition(boundaries))
+    return HandOverHandler(boundaries, pipeline_definition(boundaries))
 
 
 def _records() -> list[CostRecord]:
