@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T01:03:54.547530Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-21T01:03:54.547530Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T01:04:13.358259Z'
+  stage: docs
+  run: eada2bdc778346ee8503535eb11e4eae
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -389,3 +391,21 @@ Expect: one line, `1` (before the story, `0`)
 
     I did not run `make check`.
 18. factory: started docs as self.
+19. documenter: Docs, round 1.
+
+    Changed:
+    - `docs/project-guide/README.md`, *Shared test helpers*: added the line for `definition_support.py` (`pipeline_definition`) after `crash_support.py`, in the form of the other lines and with the wording from the docs criterion. The grep from the smoke test now prints `1`.
+
+    Cross-read and found current:
+    - `docs/project-guide/README.md`: the `conftest.py` line already describes `definition` as the remote's parsed pipeline definition, and the `log_support.py` line already names `log_lines`.
+    - `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: nothing in them touches the tests, and the criterion says none. I searched `docs/` and `README.md` for `_definition(` and `_log_lines`: no hits.
+
+    Diff against the code: the diff holds only files under `tests/` (23 files, nothing under `src/`). It matches the Interface, so I have no findings for the coder.
+
+    Stale text I noticed that is not mine to fix: none.
+
+    I did not run `make check`, because I changed only a document; the factory's checks run after this stage.
+
+    `check`: check: green (not run again: passed on tree 2f849da5ea4a at 2026-10-21T01:01:27Z)
+    `secrets`: secrets: green (1.1 s)
+    `documents`: documents ok
