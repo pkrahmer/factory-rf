@@ -433,6 +433,39 @@ def call_refusal(
     return login_refusal(stderr, starters.login_files)
 
 
+class CallEnd(BaseModel):
+    """How a runtime's call ended, as the reading of its end needs it."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    stderr: str
+    printed: bool
+    exit_status: int | None
+    duration: timedelta
+    timed_out: bool
+
+
+def read_call_end(
+    end: CallEnd, *, time_limit: timedelta, os_user: str | None, starters: Starters
+) -> bool:
+    """Whether a call ended at its time limit; a call that was refused is `AgentRuntimeError`."""
+    # The inner kill ends the call as the factory's own would: read as its time limit.
+    timed_out = end.timed_out or killed_at_limit(
+        os_user=os_user, exit_status=end.exit_status, duration=end.duration, time_limit=time_limit
+    )
+    refusal = call_refusal(
+        end.stderr, printed=end.printed, timed_out=timed_out, os_user=os_user, starters=starters
+    )
+    if refusal is not None:
+        raise AgentRuntimeError(refusal)
+    return timed_out
+
+
+def state_directory_error(state_directory: Path, error: OSError) -> AgentRuntimeError:
+    """The error of a run whose files cannot be written to `state_directory`."""
+    return AgentRuntimeError(f"cannot write the state directory {state_directory}: {error}")
+
+
 def version_printed(executable: str, *, failed: bool, stdout: str, stderr: str) -> str:
     """The version `<executable> --version` printed: the first word of `stdout`.
 

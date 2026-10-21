@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 379
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T00:28:11.800400Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T00:28:11.800400Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T00:31:05.841769Z'
+  stage: doing
+  run: 808c87e5c5db42099cc82daaad941dab
 ---
 
 # The runtimes read the end of a call in one place
@@ -156,3 +158,16 @@ Expect: four lines, `True`, `False`, `/opt/factory/bin/factory-confine refused t
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/adapters/test_agent_launch_call_end.py - ImportError while importing test module '/work/checkout/tests/adapters/test_agent_launch_call_end.py'.
 6. factory: started doing as self.
+7. coder: Both runtimes now read the end of a call through `read_call_end` and build the state-directory error with `state_directory_error`. Both live in `factory.adapters.agent_launch`. `make check` is green.
+
+   - `src/factory/adapters/agent_launch.py`: adds `CallEnd` (frozen, forbids unknown keys), `read_call_end` and `state_directory_error`, placed right after `call_refusal`. `read_call_end` first reads the time limit (`end.timed_out or killed_at_limit(...)`), then passes that value to `call_refusal`. A refusal raises `AgentRuntimeError`; otherwise it returns the value. The comment about the inner kill moved here with the sequence. The module still imports nothing of `factory.adapters.process`.
+   - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: each `_call` builds one `CallEnd` from its process, with its own `printed` reading (the parsed reply for Claude Code, the events for opencode). It calls `read_call_end` with the call's time limit and sets the process's `timed_out` to the result. `ClaudeCodeRuntime._state_error` and `OpencodeRuntime._write_files` now use `state_directory_error`. The imports of `call_refusal` and `killed_at_limit` are gone from both modules. Nothing else in them changed.
+
+   Main choice: each runtime now always sets `timed_out` from the returned value with one `model_copy`. That value is `process.timed_out or killed`, so the result is the same as before. I rejected keeping `if timed_out:` before the copy: it would keep a branch for no gain. I also rejected removing `ClaudeCodeRuntime._state_error`: it is now a one-line wrapper, but the Interface keeps it, and `_make_state_directory` and `_write_files` both use it.
+
+   Refactor pass: I read the diff; nothing needed changing. The journal did not change the meaning of the task, so I did not rewrite `## Description`.
+
+   Noticed but not touched: the docs criterion (`docs/project-guide/agents.md`, `docs/decisions.md`) is the docs stage's work.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 33 known, 3 gone

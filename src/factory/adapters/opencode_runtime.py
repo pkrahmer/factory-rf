@@ -31,23 +31,24 @@ from factory.adapters.agent_launch import (
     SHELL_EXECUTABLE,
     SUDO_EXECUTABLE,
     VERSION_TIME_LIMIT,
+    CallEnd,
     Launch,
     LoginFiles,
     Starters,
-    call_refusal,
     cleanup_launch,
     confined_argv,
     denied_path,
     device_confinement,
     due_leftovers_launch,
     finished_run,
-    killed_at_limit,
     leftovers_fault,
     login_argv,
     login_used,
+    read_call_end,
     resume_budget,
     run_launch,
     since,
+    state_directory_error,
     temporary_folder,
     version_printed,
 )
@@ -642,9 +643,7 @@ class OpencodeRuntime(AgentRuntime):
                 path.write_text(text, encoding="utf-8")
                 path.chmod(RUN_FILE_MODE)
         except OSError as exc:
-            raise AgentRuntimeError(
-                f"cannot write the state directory {self._state_directory}: {exc}"
-            ) from exc
+            raise state_directory_error(self._state_directory, exc) from exc
 
     def _resume(
         self,
@@ -677,25 +676,17 @@ class OpencodeRuntime(AgentRuntime):
         leftovers_error = self._end_leftovers(request)
         if self._starters.confine_executable is not None:
             self._remove_temporary_folder(request, files.temporary)
-        killed = killed_at_limit(
-            os_user=request.os_user,
+        end = CallEnd(
+            stderr=process.stderr,
+            printed=bool(_events(process.stdout)),
             exit_status=process.exit_status,
             duration=process.duration,
-            time_limit=request.time_limit,
-        )
-        if killed:
-            # The inner kill ends the call as the factory's own would: read as its time limit.
-            process = process.model_copy(update={"timed_out": True})
-        printed = bool(_events(process.stdout))
-        refusal = call_refusal(
-            process.stderr,
-            printed=printed,
             timed_out=process.timed_out,
-            os_user=request.os_user,
-            starters=self._starters,
         )
-        if refusal is not None:
-            raise AgentRuntimeError(refusal)
+        timed_out = read_call_end(
+            end, time_limit=request.time_limit, os_user=request.os_user, starters=self._starters
+        )
+        process = process.model_copy(update={"timed_out": timed_out})
         if leftovers_error is not None:
             raise AgentRuntimeError(leftovers_error)
         return _result(request, process, watch)
