@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T12:33:36.238685Z'
   stage: smoke-test
   run: 45c44337c3ef48079d49c621b9bb289e
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T12:34:24.520283Z'
+  stage: approval
 ---
 
 # The tests name the agent environment in one place each
@@ -293,3 +298,4 @@ Expect: one line, `2` (before the story, `0`)
     - Criteria 3 and 4 (`tests/test_shared_bodies.py`, `make check`): not exercised by the smoke test.
 
     The smoke test contradicts no criterion. I fixed nothing, and I wrote nothing in the working tree. The only change in it is the factory's `.costs.jsonl` sidecar.
+14. factory: done (pull request merged); cost: 6 runs, 8.9 min, 49 turns, 220342 tokens in (1074131 more from cache), 19756 out, $2.03
