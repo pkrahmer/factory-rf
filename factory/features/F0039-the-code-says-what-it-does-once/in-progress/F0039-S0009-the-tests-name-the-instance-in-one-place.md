@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 403
 comments_read: [6312436133]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T09:28:34.388465Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-21T09:28:34.388465Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T09:29:04.108972Z'
+  stage: smoke-test
+  run: e0c9c42e98d445e3ad2fecc35406d7f2
 ---
 
 # The tests name the instance in one place
@@ -328,3 +330,30 @@ Expect: one line, `1` (before the story, `0`)
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
 15. factory: started smoke-test as self.
+16. smoke-tester: Smoke test: I ran all three commands from the repository root, exactly as written. All three met their `Expect:` line, and there are no findings.
+
+    Command 1: the grep for top-level copies of the instance name.
+    ```
+    tests/stage_run_support.py
+    ```
+    Expect: one line, `tests/stage_run_support.py`. Met.
+
+    Command 2: pytest over the guard module and the four modules whose imports changed. The output went to `$d/out`, as written, and the trap removed it.
+    ```
+    exit 0
+    ```
+    Expect: one line, `exit 0`. Met.
+
+    Command 3: the count of the docs line.
+    ```
+    1
+    ```
+    Expect: one line, `1`. Met.
+
+    Acceptance criteria against the smoke test:
+    - Criterion 1: not contradicted. Command 1 finds only `tests/stage_run_support.py`, and `tests/test_shared_constants.py` passed in command 2.
+    - Criterion 2: not contradicted. The parametrized guard test is in `tests/test_shared_constants.py`, and it passed in command 2.
+    - Criterion 3: not contradicted. I did not run `make check`. The factory runs it after this stage, and the coder's entry 10 reported it green.
+    - Criterion 4: not contradicted. `docs/project-guide/README.md:60` now names `INSTANCE` and the instance name `"factory-1"` on the `stage_run_support.py` line.
+
+    Findings: none. Nothing is open.
