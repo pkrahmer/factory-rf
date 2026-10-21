@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 390
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T06:59:31.866066Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T06:59:31.866066Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T07:00:59.744998Z'
+  stage: tests
+  run: db7aa59a5a454051a86e9f16af2825af
 ---
 
 # The project guide points to the template's pipeline definition and describes `factory-health`
@@ -91,3 +93,12 @@ Expect: `documents ok`
    Architecture: no code, layer or interface is touched. The change stays in `README.md` and `docs/project-guide/`, which is the documenter's write path.
    Scope: it matches the feature's S0003 (H4 and the rest of M5). The structural proposal S4 is explicitly left out, and no file outside the docs changes.
 4. factory: started tests as self.
+5. tester: Tests: none written, as the work item asks. Its Interface says nothing changes in any test, and criterion 1 says nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. This entry confirms that for the tester: I changed nothing under any of those folders, or anywhere else.
+   Criterion 1 (no change under src, tests, image, template, demo, claude): no test function. Checked by the third smoke-test command (`git diff --name-only origin/main -- src tests image template demo claude | wc -l` gives `0`). A test under `tests/` would itself break this criterion.
+   Criterion 2 (`make check` stays green): no test function. It is the stage checks' gate.
+   Criterion 3 (docs): no test function. It is the documenter's criterion and is checked by the smoke test (the fenced yaml count, `tool_paths`, the `factory-health` paragraph, the loop that checks every module is in the index) and by `make documents`.
+   Files created: none. Modules the test runner could not import: none, since there are no new tests and so no red tests for the coder. I did not run `make test`: with no new tests it has nothing to show failing. `make lint` is green.
+   Open: nothing. The coder has no code to write for this story either; per criterion 1, the coder's entry should say the same.
+
+   `lint`: lint: green (0.7 s)
+   `test`: test: green (66.3 s)
