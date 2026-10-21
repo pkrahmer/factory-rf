@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 389
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T06:54:37.872369Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T06:54:37.872369Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T06:54:57.130651Z'
+  stage: review
+  run: 9049f402dce24d87871a411996c963fc
 ---
 
 # The README says what the factory is, that an instance runs in the container, and where to go next
@@ -132,3 +134,14 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar, which are the factory's files. Criterion 1 holds: nothing changed under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`.
+   - Criterion 2: journal entry 7 records `check: green` after the coder, on the tree already passed at the factory's earlier run.
+   - Criterion 3 is the documenter's. I checked that it is true against the repository:
+     - `README.md:14` begins "Beside the seven console commands".
+     - `pyproject.toml` `[project.scripts]` lists exactly the six commands named for the table: run, check-story, bill, watch, health, confine.
+     - `docs/operator-guide.md:389` holds the section *The container: compose, entrypoint and health check* that the container sentence names.
+     - `docs/operator-playbook.md` exists.
+   - The Description matches what was built: nothing yet, since the README is the docs stage's work. The coder's journal explains why they left `README.md` to the documenter.
+   - Earlier tests: none changed. The diff holds no test file.
