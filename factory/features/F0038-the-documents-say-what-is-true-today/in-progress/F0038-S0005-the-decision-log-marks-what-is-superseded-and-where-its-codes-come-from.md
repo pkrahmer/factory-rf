@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 393
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T07:28:48.177418Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-21T07:28:27.452861Z'
   stage: doing
   run: 52c9f9cbb1e348e08f714632f85282b3
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:28:48.177418Z'
+  stage: review
 ---
 
 # The decision log marks two superseded entries, the removal of `factory/v1/`, and where its codes come from
@@ -121,3 +130,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
+8. factory: started review as self.
