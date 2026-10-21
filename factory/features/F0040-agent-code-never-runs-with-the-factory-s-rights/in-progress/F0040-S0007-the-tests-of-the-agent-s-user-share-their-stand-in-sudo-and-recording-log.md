@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 387
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T06:40:35.222359Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T06:40:35.222359Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T06:41:17.269571Z'
+  stage: smoke-test
+  run: 4c8d590834474c21a4218474b95af7a0
 ---
 
 # The tests of the agent's user share their stand-in sudo and their recording log
@@ -245,3 +247,26 @@ Expect: one summary line with a count of `passed`, and no `failed` and no `error
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: I ran both commands from the repository root, as written and in order. Both met their `Expect:` lines. No findings.
+
+    Command 1, `grep -c "^SUDO_SCRIPT\|^def _write_sudo\|^class RecordingLog" …` over the three files:
+    ```
+    tests/adapters/test_make_commands_user.py:0
+    tests/adapters/test_sudo_agent_home.py:0
+    tests/application/test_checkout_preparer_seal.py:0
+    ```
+    Met: three lines, each ending in `:0`. grep's exit status was 1, which is what `grep -c` returns when nothing matches. It is not an error.
+
+    Command 2, `uv run pytest` over the six modules `2>&1 | tail -n 1`:
+    ```
+    81 passed in 19.10s
+    ```
+    Met: one summary line with a `passed` count, and no `failed` or `error` in it.
+
+    I then read the acceptance criteria again. Nothing in the run contradicts any of them, and a quick read of the tree agrees:
+    - Criterion 1: `RecordingLog` is in `tests/recording_log.py`, and the four modules import it with `from recording_log import RecordingLog`. The classes in `test_dispatcher.py`, `test_scheduler.py` and `test_repository_waiter.py` are still there.
+    - Criterion 2: `tests/sudo_support.py` defines `SudoCall`, `Sudo` and `write_sudo`.
+    - Criterion 4: `LEFTOVERS_FAULT` is imported from `factory.adapters.agent_launch`. The user test checks with `is user`, and `tests/domain/test_agent_home.py` uses `match=re.escape(refused)`.
+    - Criterion 5: `git diff --stat main...HEAD -- src` printed nothing.
+
+    Not checked here: criteria 3 (same collected test ids before and after) and 6 (`make check`) need runs that the smoke test does not cover. The tester's entry 5 and the coder's entry 7 record both as met.
