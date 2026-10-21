@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 388
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T06:42:57.098741Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T06:42:57.098741Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T06:43:16.729461Z'
+  stage: intake
+  run: c60ba677f885486283c251c9f2640c71
 ---
 
 # The operator guide says the template and the todo demo run under the write guard
@@ -73,3 +75,9 @@ Expect: `documents ok`
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is right for a documents-only story. Nothing under src/, tests/, image/, template/, demo/ or claude/ changes, and the one edited passage is a single paragraph of docs/operator-guide.md.
+   - Criteria: criterion 1 (no change outside docs) and criterion 2 (`make check` green) can each be checked by one test or command. Criterion 3 gives the exact new paragraph and says no other passage changes. It is checkable by text match. I confirmed the old paragraph exists exactly once, at docs/operator-guide.md:968. The story states no Interface rule, so no failing side is missing.
+   - Smoke test: every command is runnable. I ran the greps against the tree and they give template/Makefile:3, demo Makefile:3, and :1 for each pipeline.yml, as the Expect line says. The old phrase currently counts 1, so the first block (0 and 1) will hold once the paragraph is replaced. `make documents` exists (Makefile:94), and the pytest -q trap does not apply because no command runs pytest. Each Expect line is checkable.
+   - Architecture: the story is documents only and is within the documenter's write paths (README.md, docs/*). It touches no layer.
+   - Scope: it matches F0038 S0001 (finding H1) in feature.md, and nothing in "Out of scope" is involved.
