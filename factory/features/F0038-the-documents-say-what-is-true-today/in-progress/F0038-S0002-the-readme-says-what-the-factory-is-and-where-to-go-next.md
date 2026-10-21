@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 389
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T06:55:17.843498Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T06:54:57.130651Z'
   stage: review
   run: 9049f402dce24d87871a411996c963fc
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:55:17.843498Z'
+  stage: docs
 ---
 
 # The README says what the factory is, that an instance runs in the container, and where to go next
@@ -145,3 +154,4 @@ Expect: `documents ok`
      - `docs/operator-playbook.md` exists.
    - The Description matches what was built: nothing yet, since the README is the docs stage's work. The coder's journal explains why they left `README.md` to the documenter.
    - Earlier tests: none changed. The diff holds no test file.
+10. factory: started docs as self.
