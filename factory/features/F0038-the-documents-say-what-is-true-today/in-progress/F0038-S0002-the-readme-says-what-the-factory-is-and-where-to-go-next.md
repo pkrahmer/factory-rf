@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 389
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T06:52:50.769661Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T06:52:50.769661Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T06:54:16.536185Z'
+  stage: doing
+  run: 11d4eb8f4aa14136b899c46c167ec43c
 ---
 
 # The README says what the factory is, that an instance runs in the container, and where to go next
@@ -110,3 +112,13 @@ Expect: `documents ok`
    `lint`: lint: green (0.6 s)
    `test`: test: green (59.5 s)
 6. factory: started doing as self.
+7. coder: I built nothing: no path changed. This story changes documents only. The Interface is "None", and criterion 1 forbids any change under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The tester wrote no tests, so `make test` has no failing test to specify work.
+      - criterion 1: I changed nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. `git status --short` shows only the factory's own `.costs.jsonl` sidecar.
+      - criterion 2: `make check` ran in the foreground and ended with `check: green` (test: green, coverage 99.14 %).
+      - criterion 3 (`README.md`): left for the documenter. `CLAUDE.md` *Docs* says the documenter stage keeps `README.md` true and the coder does not write it.
+      Main choice: hand the story forward with no change and leave `README.md` to the docs stage. I rejected editing `README.md` here, even though it would be quick: that would take over the documenter's work and go against the work item's Interface ("The documenter changes only `README.md`").
+      Refactor: there is no diff to refactor. The journal did not change the meaning of the task, so `## Description` is unchanged.
+      Noticed, not touched: nothing.
+
+   `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
