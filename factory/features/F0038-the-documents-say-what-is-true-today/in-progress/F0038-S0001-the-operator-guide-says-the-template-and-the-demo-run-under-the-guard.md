@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 388
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T06:48:27.640252Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T06:48:06.894104Z'
   stage: docs
   run: b3b0ec0c041b4f5db4b866d92e0877d5
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:48:27.640252Z'
+  stage: smoke-test
 ---
 
 # The operator guide says the template and the todo demo run under the write guard
@@ -169,3 +178,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
