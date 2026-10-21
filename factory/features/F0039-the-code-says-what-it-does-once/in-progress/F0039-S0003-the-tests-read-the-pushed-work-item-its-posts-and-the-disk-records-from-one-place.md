@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T01:19:08.916830Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-21T01:19:08.916830Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T01:20:03.746218Z'
+  stage: review
+  run: cf2a7d3bf82d40348197963ac646367d
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -245,3 +247,34 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     `check`: check: green
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
 11. factory: started review as self.
+12. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. No module under `src/factory/` changes, as the Interface says.
+
+    Acceptance criteria: criteria 1 to 3 have their tests in `tests/test_shared_branch_helpers.py`. They are parametrized as the criteria ask, and the criterion-2 rows match the criterion's source texts. Criterion 4 holds when the diff is read: no `def test_` and no `@pytest.mark` line is added or removed in any changed module. The coder's journal entry says `make check` was green. The architecture and security checks have nothing to judge, since only tests change and no marker was added. The quality check turned up the findings below.
+
+    Findings:
+    1. `tests/application/test_stop_records_service.py:44`: `_records_path` is dead code. Its only caller was the shadowing `records` fixture that the move removed. Fix: delete the function.
+    2. `tests/application/test_watcher.py:33` and `tests/entry/test_watch.py:40`: `BODY = "# First story\n"` is dead code. Its only user was the removed `_push_state`, and `push_state` now carries its own `BODY` in `tests/branch_reading.py`. Fix: delete both constants.
+    3. `tests/application/test_watcher_move_rule.py:28`: `BODY` is still used at line 147, but it is now a copy of `branch_reading.BODY`. Fix: import `BODY` from `branch_reading` and delete the local copy.
+
+    All three are in test files that `main` already holds, so the tester makes the change under the standing leave. The coder hands it on with `tests` (R9).
+
+    Earlier tests (changed under the leave named):
+    - tests/application/handlers/test_closed_send_back.py: standing leave (`_remote_document` moved)
+    - tests/application/handlers/test_comment_handler.py: standing leave (`_remote_document` and `_error_posts` moved)
+    - tests/application/handlers/test_hand_over.py: standing leave (`_error_posts` moved)
+    - tests/application/handlers/test_questions.py: standing leave (`_remote_document` moved)
+    - tests/application/test_acceptance_facts_disk.py: standing leave (`settings` and `records` moved to `disk_settings` and `disk_records`)
+    - tests/application/test_after_agent.py: standing leave (`_head`, `_pushed` and `_pushed_state` moved; a local `pushed` renamed to `document` to avoid shadowing)
+    - tests/application/test_disk_recorder.py: standing leave (`settings` and `records` moved to `disk_settings` and `disk_records`)
+    - tests/application/test_nested_repositories.py: standing leave (its `_pushed` import replaced by the shared `pushed`; a local variable renamed)
+    - tests/application/test_stage_finish.py: standing leave (`_head`, `_pushed` and `_pushed_state` moved; local variable renamed)
+    - tests/application/test_stage_known_results.py: standing leave (`_pushed` moved)
+    - tests/application/test_stall_labels.py: standing leave (`_pushed` and `_pushed_state` moved)
+    - tests/application/test_stalls.py: standing leave (`_head`, `_pushed` and `_pushed_state` moved; local variable renamed)
+    - tests/application/test_stop_publisher.py: standing leave (shadowing `records` fixture removed in favour of conftest's)
+    - tests/application/test_stop_records_service.py: standing leave (shadowing `records` fixture removed; it went beyond the move by leaving `_records_path` dead, see finding 1)
+    - tests/application/test_watcher.py: standing leave (`_push_state` moved; it went beyond the move by leaving `BODY` dead, see finding 2)
+    - tests/application/test_watcher_move_rule.py: standing leave (`_push_state` moved; it left a copy of `BODY`, see finding 3)
+    - tests/entry/test_watch.py: standing leave (`_push_state` moved; it went beyond the move by leaving `BODY` dead, see finding 2)
+    - tests/conftest.py: standing leave (`disk_settings` and `disk_records` fixtures added as the shared place)
+    - tests/stage_run_support.py: standing leave (`pushed` added; `pushed_state` now calls it)
