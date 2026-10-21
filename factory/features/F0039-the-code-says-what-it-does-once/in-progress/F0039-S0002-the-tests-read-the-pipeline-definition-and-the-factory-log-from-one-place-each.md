@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T00:57:09.158215Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T00:56:48.516936Z'
   stage: doing
   run: b777015f9d904d198f81a067d26fcc08
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:57:09.158215Z'
+  stage: tests
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -262,3 +271,4 @@ Expect: one line, `1` (before the story, `0`)
     Description: the reviewer already added criterion 5 before the closing ones, and nothing else changed the meaning of the task, so I did not rewrite it.
 
     Noticed but not touched: nothing. I did not run `make check`, because I made no change.
+12. factory: started tests as self.
