@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 396
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T07:57:57.527474Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T07:57:57.527474Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T07:59:41.744625Z'
+  stage: doing
+  run: e78567894a6b47e5a7cf7ff95afa0665
 ---
 
 # The operator guide lists each stop in one table
@@ -116,3 +118,13 @@ Expect: `documents ok`
    `lint`: lint: green (0.8 s)
    `test`: test: green (72.9 s)
 6. factory: started doing as self.
+7. coder: No code written. This story changes documents only. Its Interface says nothing changes under `src/factory/`, in any test, the image, the template, a demo or an agent file, and the documenter alone changes `docs/operator-guide.md`.
+   - Criterion 1: as it asks, the coder changed nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. The working tree holds only the factory's `.costs.jsonl` sidecar.
+   - Criterion 2: `make check` is green (`test: green (73.7 s)`, `check: green`).
+   - Main choice: hand forward without touching the guide. I rejected editing `docs/operator-guide.md` myself, because `CLAUDE.md` gives the docs to the documenter stage and the story names the documenter as the one who changes it.
+   - Refactor: no diff, so nothing to refactor.
+   - Description: no journal entry changed the meaning of the task.
+   - Noticed but did not touch: nothing.
+
+   `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
