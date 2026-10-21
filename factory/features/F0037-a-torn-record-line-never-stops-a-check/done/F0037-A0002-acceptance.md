@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-21T00:00:11.874582Z'
   stage: acceptance
   run: 2576e7e12fed4c238b1b9c5c0be85037
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-21T00:01:32.562649Z'
+  stage: done
 stories: [F0037-S0001, F0037-S0002]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of A torn record line never stops a check
@@ -223,3 +228,4 @@ Human interventions: 0 questions answered, 0.0 h waited. No story needed the hum
    6 Decisions for the human: feature decisions 1, 2, 3 and 5 as taken. Decision 4 was answered by the human but is not yet in the decision log. No question was asked, no default was taken, and no earlier test was changed.
    7 Slow checks: nothing beyond `make check`. Disk use went down since the previous acceptance record (`/work` from 0.5 to 0.0 GB used). The slowest tests are other features' time-limit tests at 10–11.5 s; F0037's 19 cases take 0.1 s together.
    8 Cost: 12 runs, 9.7 min, $2.50. S0001 cost $1.72 (largest run: the tester, $0.51). S0002 cost $0.79 for a one-file docs change, partly on tester and coder runs that wrote nothing. 0 questions, 0.0 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 4.1 min, 19 turns, 70757 tokens in (832930 more from cache), 16897 out, $1.07
