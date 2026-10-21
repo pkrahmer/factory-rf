@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 387
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T06:38:39.072027Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-21T06:38:39.072027Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T06:39:28.593009Z'
+  stage: review
+  run: 1cd4775f09b7485686ab27ce06746b17
 ---
 
 # The tests of the agent's user share their stand-in sudo and their recording log
@@ -178,3 +180,29 @@ Expect: one summary line with a count of `passed`, and no `failed` and no `error
    `check`: check: green
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
 8. factory: started review as self.
+9. reviewer: No findings.
+
+   I read the work item and `git diff main...HEAD -- . ':!factory'`, which covers 9 test files and nothing under `src/`. I checked the diff against the criteria. I also checked it against `src/factory/adapters/agent_launch.py:43` and the helpers in `tests/confine_support.py`, and against decision 18 in the feature's `feature.md`.
+
+   - Criterion 1: `tests/recording_log.py` holds `RecordingLog`, unchanged. `test_checkout_preparer_seal.py` no longer defines it. That module, `test_nested_repositories.py`, `test_sealed_project_commands.py` and `test_agent_home_resets.py` import it from `recording_log`. The classes in `test_dispatcher.py`, `test_scheduler.py` and `test_repository_waiter.py` are untouched.
+   - Criterion 2: `tests/sudo_support.py` holds `SudoCall`, `Sudo` and `write_sudo` with the Interface's signatures. Its script is the S0001 script. The S0004 stand-in's behaviour is still covered:
+     - A missing plan used to mean "run what follows `--`". Now `write_sudo` always writes a plan, and an unset `exit_status` means the same thing.
+     - The empty default `warning` adds nothing to standard error.
+     - `program=None` is now stored as null where it used to be `"None"`. Neither can equal a command, so the result is the same.
+     - `write_script` creates the folder, so the `mkdir` that was dropped is not missed.
+     - Neither adapter module defines `SUDO_SCRIPT` or `_write_sudo` any more, and no other module imported either one.
+   - Criterion 3: no test was renamed and no row changed. `call.cwd == "/"` became `call.working_directory == Path("/")`, which is the same check. `_sudo_calls(dir)` became `sudo.calls()`, which reads the same record. The tester reports the same 109 collected ids before and after.
+   - Criterion 4: the source's `LEFTOVERS_FAULT` ends in `:` with no space. So `f"{LEFTOVERS_FAULT} ..."` gives the same expected text as before. The `is user` and `re.escape(refused)` changes are as the Interface says.
+   - Criterion 5: nothing under `src/` changes.
+   - Criterion 6: the coder's entry 7 records `check: green` from the coder's own `make check` run, and `duplicates: 0 new`. I did not run `make check` myself, as this stage instructs; the factory runs it again after this review.
+   - Architecture, security, quality: test-only changes, in shared modules at the `tests/` root, as `CLAUDE.md` describes. No markers that silence a check, and no secrets.
+   - Work item hygiene: the Description matches what was built. The tester's entry gives the reasons for the approach (the changes were made in the tests stage, with no red tests, because the story adds no behaviour). Criterion 7 still says what the docs stage must add to `docs/project-guide/README.md`, *Shared test helpers*.
+
+   Earlier tests changed (item 6):
+   - `tests/adapters/test_make_commands_user.py`: the standing leave to move a shared test helper (the stand-in `sudo` moved to `tests/sudo_support.py`). The `LEFTOVERS_FAULT` import and the `is user` assertion are under the human's leave, decision 18 in the feature's `feature.md` ("granted", 2026-10-21).
+   - `tests/adapters/test_sudo_agent_home.py`: the standing leave to move a shared test helper (it now uses `tests/sudo_support.py`; same calls checked, `cwd` read as `working_directory`).
+   - `tests/application/test_agent_home_resets.py`: the standing leave to move a shared test helper (`RecordingLog` imported from `recording_log`).
+   - `tests/application/test_checkout_preparer_seal.py`: the standing leave to move a shared test helper (`RecordingLog` moved out; the unused `FactoryLog` import dropped).
+   - `tests/application/test_nested_repositories.py`: the standing leave to move a shared test helper (`RecordingLog` imported from `recording_log`).
+   - `tests/application/test_sealed_project_commands.py`: the standing leave to move a shared test helper (`RecordingLog` imported from `recording_log`).
+   - `tests/domain/test_agent_home.py`: the human's leave, decision 18 in the feature's `feature.md` (`match=re.escape(refused)`).
