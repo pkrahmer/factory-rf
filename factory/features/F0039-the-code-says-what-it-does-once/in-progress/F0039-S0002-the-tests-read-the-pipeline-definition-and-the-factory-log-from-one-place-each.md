@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T01:03:54.547530Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-21T01:03:34.188785Z'
   stage: review
   run: 3549052bf48e4ce5b9c2aad2ff618cb2
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:03:54.547530Z'
+  stage: docs
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -379,3 +388,4 @@ Expect: one line, `1` (before the story, `0`)
     - tests/test_shared_definition.py::test_each_shared_reading_is_written_in_one_module: the walk over `tests/` is similar to `_defining` in `tests/test_shared_fixtures.py`. That file is left unchanged on purpose, as the Description says, and the guard tests by a predicate, not a regex.
 
     I did not run `make check`.
+18. factory: started docs as self.
