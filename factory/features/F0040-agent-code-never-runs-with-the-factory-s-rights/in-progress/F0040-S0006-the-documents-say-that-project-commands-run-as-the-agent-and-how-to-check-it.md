@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 376
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T00:02:32.626715Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T00:02:32.626715Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T00:05:06.097809Z'
+  stage: tests
+  run: 4bcdefe4a24d4299b8f6ab60ed1cc1d0
 ---
 
 # The documents say that project commands run as the agent, and how to check it
@@ -96,3 +98,11 @@ Expect: `documents ok`
 
    Minor: criterion 1 asks the tester and coder to end with an entry saying nothing under `src/` or `tests/` changes. That is a process note, not a testable behaviour. I accept it as written and did not change it.
 4. factory: started tests as self.
+5. tester: No tests written: this story only changes documents, and criterion 1 says nothing under `src/` or `tests/` changes. I changed nothing under `src/` or `tests/`.
+   - criterion 1 (nothing under `src/` or `tests/` changes): no test function. This is a process rule, and `git status` shows no change under `src/` or `tests/`.
+   - criterion 2 (`make check` stays green): no test function. The existing suite covers it. `make test` passed once (`test: green`, coverage 99.14 %) and `make lint` passed (`lint: green`).
+   - criterion 3 (docs): no test function. The documenter checks the wording against the criterion, and `make documents` and the smoke-test greps check the result.
+   Files created: none. Modules the test run could not import: none. No test is red, because there is no behaviour to specify. The coder's work is only the docs criterion. Open: nothing.
+
+   `lint`: lint: green (0.6 s)
+   `test`: test: green (63.9 s)
