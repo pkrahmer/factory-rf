@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T01:39:45.966323Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -190,6 +186,12 @@ journal:
   kind: started
   at: '2026-10-21T01:39:45.966323Z'
   stage: docs
+- number: 33
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T01:40:09.834723Z'
+  stage: docs
+  run: 9832452906eb4674af9507540868cb3c
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -605,3 +607,21 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
     - tests/conftest.py: standing leave (`disk_settings` and `disk_records` added as the shared place)
     - tests/stage_run_support.py: standing leave (`pushed` added; `pushed_state` now calls it)
 32. factory: started docs as self.
+33. documenter: Docs round 2. I read the story, the journal and the diff (21 files, all under `tests/`; nothing under `src/factory/` changes). I changed one file, and it is a document, so I did not run `make check`; the factory's check after this stage decides.
+
+    Changed:
+    - `docs/project-guide/README.md`, *Shared test helpers*:
+      - Added the `branch_reading.py` line after `bill_support.py`, in the form of the other lines (criterion 7).
+      - Added `disk_settings` and `disk_records` to the `conftest.py` line under *Paths and settings* (criterion 7).
+      - Added `pushed` and `pushed_state` to the `stage_run_support.py` line. Criterion 7 does not ask for this, but the diff moved `pushed` there and the line lists the module's helpers, so it would otherwise be stale.
+    - I ran the two smoke-test greps for the docs: both print `1`.
+
+    Cross-read and found current: `README.md`, `docs/operator-guide.md` and `docs/decisions.md`. Nothing an operator or a newcomer sees changes, and no decision is taken, as criterion 7 says. The rest of the *Shared test helpers* list is also still true against the diff.
+
+    Findings: none. The code (tests only) matches the Interface and the criteria.
+
+    Stale text I noticed and did not touch: none from this story. `docs/runs/2026-10-12-overnight/night-log.md` mentions that this story's "docs: none" was false. That file is the human's, and the criterion has since been fixed.
+
+    `check`: check: green (not run again: passed on tree eca9aa518208 at 2026-10-21T01:36:48Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
