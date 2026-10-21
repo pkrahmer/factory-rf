@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T06:16:54.612034Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -170,6 +174,11 @@ journal:
   at: '2026-10-21T06:16:33.614700Z'
   stage: docs
   run: cdb84c9f3b674d2c9d07fb3da5661cdd
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:16:54.612034Z'
+  stage: smoke-test
 ---
 
 # The boundaries have no optional collaborators
@@ -541,3 +550,4 @@ Expect: one line, `0` (before the story, `1`)
     `check`: check: green (not run again: passed on tree c55c67ad5a9b at 2026-10-21T06:11:08Z)
     `secrets`: secrets: green (3.4 s)
     `documents`: documents ok
+30. factory: started smoke-test as self.
