@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 390
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T07:05:11.713526Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T07:04:50.912426Z'
   stage: review
   run: b9090076a47a4a898243239236dba148
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:05:11.713526Z'
+  stage: docs
 ---
 
 # The project guide points to the template's pipeline definition and describes `factory-health`
@@ -147,3 +156,4 @@ Expect: `documents ok`
      - The sentence about the coder's write path stays after the block.
      - The module loop from the smoke test reports exactly the four modules the Description names as missing from the index: `factory.adapters.agent_home`, `factory.application.agent_home`, `factory.domain.sessions` and `factory.entry.health`.
    - Earlier tests: the diff changes, renames or deletes no test file, so there is nothing to name.
+10. factory: started docs as self.
