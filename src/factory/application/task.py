@@ -111,8 +111,7 @@ class TaskComposer:
         )
 
     def _os_user(self) -> str | None:
-        settings = self._boundaries.settings
-        return None if settings is None else settings.agent_user
+        return self._boundaries.settings.agent_user
 
     def _prompt(self, context: TaskContext, facts: PromptFacts) -> str:
         prompt = compose_prompt(facts)

@@ -6,7 +6,6 @@ from decimal import Decimal
 from factory.application.boundaries import Boundaries
 from factory.application.machine import Waiter
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, EndReason, resumed_result
-from factory.domain.provider_limits import ProviderLimit
 
 CONTINUE_PROMPT = (
     "The provider's spend limit stopped your run. Continue the work where you stopped, "
@@ -18,10 +17,9 @@ class PatientRuns:
     """Runs a stage's agent and waits out the provider's spend limit, resuming after each wait."""
 
     def __init__(self, boundaries: Boundaries) -> None:
-        """Run through the boundaries' runtime, and wait with their waiter, if they have one."""
+        """Run through the boundaries' runtime, and wait with their waiter."""
         self._boundaries = boundaries
-        settings = boundaries.settings
-        self._limit = ProviderLimit() if settings is None else settings.provider_limit
+        self._limit = boundaries.settings.provider_limit
 
     def run(self, request: AgentRunRequest) -> AgentRunResult:
         """Run `request`; after a `provider_limit`, wait and resume with what is left.
@@ -32,7 +30,7 @@ class PatientRuns:
         result = self._boundaries.agent_runtime.run(request)
         waiter = self._boundaries.waiter
         waited = timedelta(0)
-        while result.end_reason == "provider_limit" and waiter is not None:
+        while result.end_reason == "provider_limit":
             budget_left = request.agent.budget_usd - (result.cost_usd or Decimal(0))
             time_left = request.time_limit - result.duration
             if budget_left <= 0:

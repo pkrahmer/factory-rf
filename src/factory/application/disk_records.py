@@ -15,25 +15,18 @@ class DiskRecorder:
     def __init__(self, boundaries: Boundaries) -> None:
         self._boundaries = boundaries
 
-    def record(self, occasion: DiskOccasion) -> DiskRecord | None:
-        """Measure, append and log one record.
-
-        None when the boundaries have no disk, no disk records or no settings.
-        """
+    def record(self, occasion: DiskOccasion) -> DiskRecord:
+        """Measure, append and log one record."""
         disk = self._boundaries.disk
-        records = self._boundaries.disk_records
-        settings = self._boundaries.settings
-        if disk is None or records is None or settings is None:
-            return None
         record = DiskRecord(
             at=self._boundaries.clock.now(),
             occasion=occasion,
-            folders=[_measure(disk, folder) for folder in _folders(settings)],
+            folders=[_measure(disk, folder) for folder in _folders(self._boundaries.settings)],
         )
         log = self._boundaries.log
         log.line(disk_line(record))
         try:
-            records.append(record)
+            self._boundaries.disk_records.append(record)
         except OSError as error:
             # The record is a watch on the disk: a full disk must not stop the instance.
             log.line(f"cannot write the disk record: {error}")
@@ -42,12 +35,9 @@ class DiskRecorder:
     def last(self) -> DiskRecord | None:
         """The latest record in the records, whatever its occasion.
 
-        None without a record or without a record log.
+        None without a record.
         """
-        records = self._boundaries.disk_records
-        if records is None:
-            return None
-        written = records.read()
+        written = self._boundaries.disk_records.read()
         return written[-1] if written else None
 
 

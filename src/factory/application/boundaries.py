@@ -42,11 +42,10 @@ class Boundaries:
     log: FactoryLog
     health: HealthStatusStore
     checkout: Path
-    # Last and optional, so that every construction written before them stays valid.
-    settings: InstanceSettings | None = None
-    disk: DiskSpace | None = None
-    disk_records: RecordLog[DiskRecord] | None = None
-    stop_records: RecordLog[StopRecord] | None = None
-    waiter: Waiter | None = None
-    result_records: RecordLog[ResultRecord] | None = None
+    settings: InstanceSettings
+    disk: DiskSpace
+    disk_records: RecordLog[DiskRecord]
+    stop_records: RecordLog[StopRecord]
+    waiter: Waiter
+    result_records: RecordLog[ResultRecord]
     agent_home: AgentHome | None = None

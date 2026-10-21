@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 385
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T02:15:22.435919Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,13 @@ journal:
   kind: started
   at: '2026-10-21T02:15:22.435919Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-21T02:17:32.778862Z'
+  stage: doing
+  run: dbddf8ce4ce94c14bd61f5efc9f8d801
+  blocked: question
 ---
 
 # The boundaries have no optional collaborators
@@ -170,3 +173,29 @@ Expect: one line, `0` (before the story, `1`)
    `lint`: lint: green (0.6 s)
    `test`: FAILED tests/application/test_boundaries_required.py::test_boundaries_without_one_of_the_collaborators_are_refused[result_records] - Failed: DID NOT RAISE TypeError
 6. factory: started doing as self.
+7. coder: Question: two earlier tests outside decision 11 still pass `settings=None` to `Boundaries`. They contradict the Interface, and I may not edit them (R9).
+
+   Where I stopped: the source change is complete and left in the working tree. In `src/factory/application/`:
+   - `boundaries.py`: the six fields are required, and the "Last and optional" comment is gone.
+   - `costs.py`, `disk_records.py` (`record` now returns `DiskRecord` and its docstring lost the `None` sentence; `last` is `None` only without a record), `acceptance.py` (`_disk_lines`), `known_results.py`, `provider_limits.py`, `stops.py`, `task.py`, `tick.py`: every `is None` branch on the six fields is gone, and the unused `ProviderLimit` import in `provider_limits.py` is removed.
+
+   A grep over `src/factory` finds no `None` comparison on the six fields any more. `make lint` is green. `make check` is red, only because of these two test rows:
+
+   1. `tests/application/test_cost_instance.py::test_a_cost_record_names_the_instance_of_the_settings_and_keeps_it_when_completed`, row `no-settings` (`(None, None)`), with the parameter typed `InstanceSettings | None`.
+      - mypy: `test_cost_instance.py:30: error: Argument "settings" to "replace" of "Boundaries" has incompatible type "InstanceSettings | None"; expected "InstanceSettings"  [arg-type]`
+      - pytest: `FAILED ...[no-settings] - AttributeError: 'NoneType' object has no attribute ...`
+   2. `tests/application/test_stop_records_service.py::test_a_raise_appends_a_raised_record_when_no_stop_of_its_reason_stands`, row `no-settings` (`with_settings=False`, which expects `instance=None`). Its line 82 is `settings = local_settings if with_settings else None`.
+      - mypy: `test_stop_records_service.py:83: error: Argument "settings" to "replace" of "Boundaries" has incompatible type "InstanceSettings | None"; expected "InstanceSettings"  [arg-type]`
+      - pytest: `FAILED ...[no-settings] - AttributeError: 'NoneType' object has no attribute 'inst...`
+
+   Both rows test exactly the branches the Interface removes: "no settings gives instance `None`". The tester's list of decision 11's seventeen tests does not include them, so I take it the human's leave does not cover them.
+
+   Options:
+   - (a) Give leave to remove both `no-settings` rows. That also means dropping `with_settings` and `local_settings if ... else None` in the second test (every remaining row passes `True`), and typing the first test's parameters `InstanceSettings` and `str`. **This is my choice**: it is the same kind of change decision 11 made in `test_cost_image.py` and `test_task_os_user.py`.
+   - (b) Keep the rows and keep `settings` optional. That contradicts the feature's decision 8 and the Interface.
+
+   With (a), I would end the next round with `tests` and name these two row removals for the tester. No code change is needed after that.
+
+   Main design choice so far: in `DiskRecorder.record` I read `disk_records` and `settings` straight from `self._boundaries` instead of keeping local names. I rejected the locals because they only existed to narrow the type for the `None` check.
+
+   Seen but not touched: `CountingGit` in `tests/application/test_known_results.py` has no user since the tester removed a test; the tester raised this already. The refactor step will run once `make check` can be green.
