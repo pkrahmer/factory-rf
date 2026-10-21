@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 401
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T09:00:30.623360Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T09:00:30.623360Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T09:02:02.690906Z'
+  stage: tests
+  run: 355c3125b6e747849d97d34086184aed
 ---
 
 # The operator guide names no planning code, internal class or dated observation
@@ -88,3 +90,12 @@ Expect: `documents ok`
    - Architecture: the change is docs only, in the documenter's write path, and touches no layer.
    - Scope: it fits feature S0007's intent (no class names in the guide, keeping the four error names). It touches no Out-of-scope item. The human's bullet in the Description about the dated parentheticals is already in the criteria, so I took it as written.
 4. factory: started tests as self.
+5. tester: No tests written: this story changes only documentation, and nothing under `tests/` changes.
+   - criterion 1 (nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes): no test. The criterion itself forbids changes under `tests/`, and the tester stage changed nothing there.
+   - criterion 2 (`make check` stays green): no test. The factory's checks are what verify it.
+   - criterion 3 (docs: the five passages in `docs/operator-guide.md`, `make documents` ends with `documents ok`): no test. It is the documenter's work, and the story's smoke test and the docs stage's `make documents` check verify it.
+   Files created: none. Modules the test run could not import: none, since no test was added.
+   I did not run `make test`: with no new tests, nothing could fail for the right reason, so the branch carries no red tests. `make lint` is green. The coder has nothing to implement under `src/`. Per criterion 1, the coder's entry should also say that nothing changes under the listed folders.
+
+   `lint`: lint: green (0.7 s)
+   `test`: test: green (67.0 s)
