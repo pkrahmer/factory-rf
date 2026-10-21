@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 388
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T06:47:44.377300Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T06:47:23.497143Z'
   stage: review
   run: 0bf413df0ec04ef8956611322e33442f
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:47:44.377300Z'
+  stage: docs
 ---
 
 # The operator guide says the template and the todo demo run under the write guard
@@ -146,3 +155,4 @@ Expect: `documents ok`
      - The old paragraph is still at `docs/operator-guide.md:968`, where the documenter will replace it.
    - Hygiene: the Description matches the work so far (no code), and the docs criterion gives the exact text the documenter writes.
    - Earlier tests: `git diff --name-status main...HEAD` changes no test file, so no leave was needed.
+10. factory: started docs as self.
