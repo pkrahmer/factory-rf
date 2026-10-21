@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 395
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T07:42:34.159657Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T07:42:34.159657Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T07:43:01.540025Z'
+  stage: intake
+  run: 387a1562423248168c291c53d318af9b
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -72,3 +74,9 @@ Expect: `documents ok`
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is right for a documents-only story. Nothing under `src/` changes and no signature is needed. The only file the documenter touches is `docs/operator-guide.md`.
+   - Criteria: each is checkable. Criterion 3's first bullet is a name list that a grep checks. The second bullet gives example rewrites and says how to treat the rest. The third bullet gives exact text to cut. I confirmed in the guide that the paragraph ending "every kind of event has a handler. Should a future kind have none, the event leads to this:" exists (line 1469) and that the paragraph "It ends in the one report ... A push to the branch makes the factory try again." follows (line 1471). The kept names have their own check (`STOP_TABLE`, `SettingsInvalid` and the others stay). The Interface states no rule with a failing side, so there is nothing to test for one. Criterion 1 (nothing outside the docs changes) is checked by smoke test 3.
+   - Smoke test: the commands run. The grep with `|| true` prints `0` when nothing matches. The `grep -c` of the kept names counts 2 lines today, which meets "at least 2". The `git diff --name-only` command is valid. No command runs pytest; the pytest `-q` addopts rule does not apply. `make documents` ends with `documents ok`, which `check_documents.py` prints. Each `Expect:` line can be checked against the output.
+   - Architecture: this is a docs change only and respects the layers. It follows `CLAUDE.md`'s rule that the documenter keeps `docs/`. Nothing moves to the project guide, and the stop tables stay with S0008.
+   - Scope: this is within F0038's scope, S0007 (findings M2 and M3), and does not touch "Out of scope" items. Decision 7 of the feature matches the names the story keeps.
