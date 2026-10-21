@@ -34,7 +34,7 @@ def _stop(reason: RepositoryStopReason, minute: int = 0) -> RepositoryStop:
     )
 
 
-def _raised(reason: RepositoryStopReason, minute: int, instance: str | None) -> StopRecord:
+def _raised(reason: RepositoryStopReason, minute: int, instance: str) -> StopRecord:
     stop = _stop(reason, minute)
     return StopRecord(
         event="raised", scope=stop.scope, reason=reason, at=stop.at, instance=instance

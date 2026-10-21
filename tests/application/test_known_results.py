@@ -60,17 +60,6 @@ def _answering(
     return answer
 
 
-class CountingGit(GitCli):
-    """A checkout that counts its calls of `work_tree_id`."""
-
-    calls = 0
-
-    @override
-    def work_tree_id(self, left_out: Sequence[str] = ()) -> TreeId:
-        self.calls += 1
-        return super().work_tree_id(left_out)
-
-
 class KeylessGit(GitCli):
     """A checkout whose tree cannot be computed."""
 

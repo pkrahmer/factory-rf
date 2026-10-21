@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T06:06:54.107082Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-21T06:06:54.107082Z'
   stage: tests
+- number: 20
+  speaker: tester
+  kind: result
+  at: '2026-10-21T06:09:16.125602Z'
+  stage: tests
+  run: f0599c5dddc24bcfac8edbd27a4367f9
 ---
 
 # The boundaries have no optional collaborators
@@ -365,3 +367,14 @@ Expect: one line, `0` (before the story, `1`)
 
     Noticed but not touched: nothing new.
 19. factory: started tests as self.
+20. tester: I made the two test changes that the coder named in entry 18, for the reviewer's findings 2 and 3 in entry 16. Decision 11 allows both: it lets each of its modules drop helpers, and the `| None` of its own helpers, once nothing uses them.
+
+    - `tests/application/test_known_results.py`: I removed the `CountingGit` class. Nothing has used it since the without-records test was removed. Its imports (`Sequence`, `override`, `GitCli`, `TreeId`) stay because `KeylessGit` still uses them.
+    - `tests/application/test_stop_records_service.py`: `_raised` now types its parameter as `instance: str` instead of `str | None`. Every caller passes `INSTANCE`.
+
+    No test was renamed, and each test still checks the same thing. There are no new criteria, so no new criterion-to-test mapping. No files created. The test run imported every module.
+
+    `make test`: test: green (61.9 s), coverage 99.14 %. `make lint`: lint: green (0.2 s). The next doing round needs no code change, only `make check` green.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (59.8 s)
