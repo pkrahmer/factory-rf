@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 394
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T07:34:40.896673Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T07:34:40.896673Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T07:36:05.320018Z'
+  stage: tests
+  run: 6b2d6243f9d043b7a677c187c08734a7
 ---
 
 # The operator guide opens with its contents and states the current rule without its history
@@ -108,3 +110,12 @@ Expect: `documents ok`
    - Architecture: the story changes only `docs/operator-guide.md`, which is the documenter's write path under `CLAUDE.md`, *Docs*.
    - Scope: the story stays within `feature.md`. It takes S0006's findings H3, M4 with L9, and M13. The stop tables, class names and mutation sections are left to S0007, S0008 and F0032, as the feature says.
 4. factory: started tests as self.
+5. tester: No tests written, as the story requires. Nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed in this stage, and I created no files.
+   - criterion 1 (nothing under src/, tests/, image/, template/, demo/ or claude/ changes): no test function. A test file would itself break this criterion. The third smoke-test block checks it (`git diff --name-only origin/main -- src tests image template demo claude`).
+   - criterion 2 (`make check` stays green): no test function. The factory's checks cover it.
+   - criterion 3 (docs: the listed changes to `docs/operator-guide.md`): no test function. It belongs to the documenter, and the factory's `make documents` and the smoke-test blocks check it.
+   Modules the test run could not import: none. I added no tests, so there is no red specification for the coder, and I did not run `make test`. `make lint` is green (`lint: green (0.2 s)`).
+   Nothing in the criteria needed interpreting, so there are no open questions.
+
+   `lint`: lint: green (0.7 s)
+   `test`: test: green (64.9 s)
