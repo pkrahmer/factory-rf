@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 401
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T08:59:47.874696Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T08:59:47.874696Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T09:00:09.621742Z'
+  stage: intake
+  run: e8e1cc478b21483e8b899ee44102d0f7
 ---
 
 # The operator guide names no planning code, internal class or dated observation
@@ -70,3 +72,9 @@ Expect: `documents ok`
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is right for a docs-only story. Nothing under `src/` changes, and the documenter edits only `docs/operator-guide.md`.
+   - Criteria: each is checkable. I grepped the guide, and all five passages exist as quoted: "(R29)" at line 374, `RepositoryUnsealed` at line 475, "seen at the first start" at lines 275 and 575, and "tested on 2026-10-17" at line 585. The rules have a failing side as well as a passing one. The guide must hold no `(R<n>)`, no `RepositoryUnsealed` and no class in backticks beyond the four kept. The replacement sentences must be present. The target heading "The checkout is cloned again..." exists at line 104. The three parentheticals are removed with their leading space.
+   - Smoke test: the commands are runnable. The first grep uses `|| true`, so the count `0` still prints. The class-name grep currently lists the four kept names plus `RepositoryUnsealed`, so after the edit it should list only the four. The pytest `-q` trap does not apply, because no command runs pytest. `make documents` ends with `documents ok`.
+   - Architecture: the change is docs only, in the documenter's write path, and touches no layer.
+   - Scope: it fits feature S0007's intent (no class names in the guide, keeping the four error names). It touches no Out-of-scope item. The human's bullet in the Description about the dated parentheticals is already in the criteria, so I took it as written.
