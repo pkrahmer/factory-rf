@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 394
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T07:39:14.428538Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T07:39:14.428538Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T07:40:03.939302Z'
+  stage: docs
+  run: c50ca6abbb29416a8c5dc718c43e787f
 ---
 
 # The operator guide opens with its contents and states the current rule without its history
@@ -177,3 +179,28 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes no test file.
 10. factory: started docs as self.
+11. documenter: Changed one file, `docs/operator-guide.md`. I made every edit in criterion 3 and no others.
+    - Opening: the paragraph under `# Operator guide` is now the exact text the criterion gives (252 characters). A contents list follows it, with one bullet for each of the 39 `##` sections in order, each a quoted exact title. The build inventory and the sentence on the documenter stage are gone.
+    - History taken out, each as the criterion words it:
+      - "(decision 008 of factory-v2)", "(R2)" and "Q21".
+      - "Morning observations" and "Morning observation" are now "Checks on a running instance", and the table's `WE3.x:` prefixes are gone.
+      - The "five of before" sentence now says the shell is started as `/bin/sh -c <script> factory-login <token file> claude ...`. The reviewer checked this against `login_argv` in `src/factory/adapters/agent_launch.py`.
+      - All the "as before" phrases, the sentence "An instance without the setting runs exactly as before", and the probe and provenance notes (2026-10-17, F0012-S0017, F0019-S0004, "tiny story").
+    - The compose secret sentence is reworded as the criterion words it.
+    - The health check, build and container-runtime passages are reworded as the criterion words them.
+    - `### The init` is added as the one new heading. It sits directly above the paragraph that begins "The service sets `init: true`", inside the container section.
+    - Checks run:
+      - The smoke-test grep prints `0` and the `### The init` count prints `1`.
+      - The contents and opening check prints `True` for the list and 252 for the paragraph length (limit 400).
+      - Only `docs/operator-guide.md` changed outside `factory/`.
+      - `make documents` ends with `documents ok`.
+    - Not run: `make check`, because only a document changed. The factory's checks decide.
+    - Cross-read: the README and `docs/` were not otherwise read against the diff, because the story changes no code. The cited section "The machine's image" exists in the guide.
+    - Stale text noticed and left alone, because it belongs to other stories:
+      - Further dated observations remain in the guide, for example "(seen at the first start of 2026-10-17 under Docker Desktop and Podman)" in the checks table. The criterion does not list them.
+      - The stop tables and class names are F0038-S0007's and F0038-S0008's. The mutation sections are F0032-S0001's.
+    - Findings for the coder: none.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
