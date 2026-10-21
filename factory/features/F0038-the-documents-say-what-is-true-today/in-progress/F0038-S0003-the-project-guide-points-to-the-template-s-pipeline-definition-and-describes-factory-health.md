@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 390
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T07:01:21.004882Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T07:01:21.004882Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T07:04:04.796083Z'
+  stage: doing
+  run: f70c6ae5ff9240cb9b36068bd5a13893
 ---
 
 # The project guide points to the template's pipeline definition and describes `factory-health`
@@ -112,3 +114,12 @@ Expect: `documents ok`
    `lint`: lint: green (0.7 s)
    `test`: test: green (66.3 s)
 6. factory: started doing as self.
+7. coder: Built: nothing. This story only changes documents. Its Interface says nothing under `src/factory/` and no test changes, and criterion 1 says nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. For the coder: I changed no file under any of those folders, or anywhere else. The tester wrote no tests, so there were no failing tests to make pass.
+   Main choice: hand forward with an empty diff. The other option was to make the three docs edits here (`docs/project-guide/agents.md`, `watching.md`, `README.md`), and I rejected it: they belong to the documenter's docs criterion, and the coder does not write the project guide (CLAUDE.md, *Docs*).
+   Refactor: no diff, so there was nothing to refactor.
+   Description: no journal entry changed the meaning of the task, so it stays as written.
+   Noticed but not touched: nothing.
+   `make check`: check: green (test: green, 64.1 s, coverage 99.14 %).
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
