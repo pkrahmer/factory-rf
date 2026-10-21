@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T01:51:29.757954Z'
   stage: smoke-test
   run: e7cd15fa1e7249e49f1bffb39eed6e9c
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T01:52:49.870208Z'
+  stage: approval
 ---
 
 # The tick's docstrings and the checkout preparer say what the code does
@@ -229,3 +234,4 @@ Expect: one line, `False True <class 'NoneType'> <class 'bool'>` (before the sto
     - Criterion 5 (docs): nothing in the smoke test contradicts it.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 4.6 min, 35 turns, 122820 tokens in (581706 more from cache), 10212 out, $1.09
