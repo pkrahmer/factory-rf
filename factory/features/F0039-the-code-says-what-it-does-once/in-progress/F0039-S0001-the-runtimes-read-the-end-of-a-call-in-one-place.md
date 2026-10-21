@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 379
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T00:32:46.523717Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T00:32:46.523717Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T00:33:14.669507Z'
+  stage: docs
+  run: 6f36e0c0f2a847a3ae2a429c9605fe7e
 ---
 
 # The runtimes read the end of a call in one place
@@ -206,3 +208,21 @@ Expect: four lines, `True`, `False`, `/opt/factory/bin/factory-confine refused t
 
    Earlier tests: none changed, renamed or deleted by the diff.
 10. factory: started docs as self.
+11. documenter: Docs written from the story's docs criterion. I changed only documents, so I did not run `make check`; the factory's checks run after this stage.
+
+    Files changed:
+    - `docs/project-guide/agents.md`, *The shared launch module*: a new bullet for `read_call_end` and `CallEnd`, and for `state_directory_error`. It gives the order: the kill is read first, then the refusals with that reading. It says a refusal is raised as `AgentRuntimeError`. It says the module imports no process module, so each runtime keeps `_start`, `_request_of`, the removal of the temporary folder and `version`.
+    - `docs/project-guide/agents.md`, *The opencode runtime*: the sentence that the state directory must exist now says the Claude Code runtime creates it. It says the difference is deliberate, because the image creates `/state/runs`.
+    - `docs/decisions.md`, the entry *What the agent runtimes share lies in one module*: one added decision line for F0039-S0001 with the move, the process calls that stay, and the kept state-directory difference (F0039 decisions 1 to 3).
+
+    Cross-read against the diff and found current: the rest of `agents.md`, including the line on `killed_at_limit` and the line saying an unwritable state directory raises `AgentRuntimeError`. Also `docs/project-guide/README.md`, `README.md` and `docs/operator-guide.md` (the criterion says none for the last two).
+
+    Findings: none. The code matches the Interface as the reviewer found it, and the public names have docstrings.
+
+    Stale text unrelated to this story: none noticed.
+
+    I did not run the smoke test's example. I wrote no code example.
+
+    `check`: check: green (not run again: passed on tree 22cb18b70927 at 2026-10-21T00:29:53Z)
+    `secrets`: secrets: green (1.7 s)
+    `documents`: documents ok

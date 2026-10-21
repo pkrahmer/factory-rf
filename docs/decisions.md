@@ -667,6 +667,7 @@ Date: 2026-10-19 (F0020-S0002; F0020 decision 4). The opencode runtime starts it
 - Decision: `agent_launch` builds words and texts and imports no process module; each runtime keeps its own process calls. The names earlier tests import from or set on `claude_runtime` stay names of that module, read at the call.
 - Reasons: one copy means a change of the start reaches both runtimes; `resumed_result` is a rule on data, so it belongs where the rules are; keeping the process calls in the runtimes leaves `process` the one module that starts processes (R5), and the unchanged tests of the Claude Code runtime prove that it behaves as before.
 - Rejected: a base class for the runtimes (they differ in arguments, reply and files, and share only functions); copying the helpers into the opencode runtime (two copies drift).
+- Decision (F0039-S0001; F0039 decisions 1 to 3): the reading of a call's end (`read_call_end`: the kill at the limit, then the refusals) and the state-directory error (`state_directory_error`) moved into `agent_launch` too. The process calls stay in each runtime for the reason above. The state directory differs between the runtimes on purpose: the Claude Code runtime creates it, the opencode runtime must find it, because the image creates `/state/runs`.
 
 ## A run's output can be streamed by the one process module
 
