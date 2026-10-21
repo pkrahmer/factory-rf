@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 390
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T07:01:21.004882Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T07:00:59.744998Z'
   stage: tests
   run: db7aa59a5a454051a86e9f16af2825af
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:01:21.004882Z'
+  stage: doing
 ---
 
 # The project guide points to the template's pipeline definition and describes `factory-health`
@@ -102,3 +111,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.7 s)
    `test`: test: green (66.3 s)
+6. factory: started doing as self.
