@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 389
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T06:55:58.739118Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T06:55:58.739118Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T06:56:26.467474Z'
+  stage: smoke-test
+  run: 16ce8d6d99f94ae5ae3170f5ea5c1e43
 ---
 
 # The README says what the factory is, that an instance runs in the container, and where to go next
@@ -188,3 +190,42 @@ Expect: `documents ok`
     `secrets`: secrets: green (0.7 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed, with no findings. I ran all three commands from the repository root exactly as written, in order.
+
+    Command 1 (forbidden phrases, table rows, playbook bullet and container sentence, length of the first paragraph):
+    ```
+    0
+    6
+    2
+    1
+    ```
+    Met its `Expect:` line: four lines, `0`, `6`, `2` and `1`.
+
+    Command 2 (changed paths against `origin/main`):
+    ```
+    0
+    README.md
+    ```
+    Met its `Expect:` line: two lines, `0` and `README.md`.
+
+    Command 3 (`make documents 2>&1 | tail -n 1`):
+    ```
+    documents ok
+    ```
+    Met its `Expect:` line: `documents ok`.
+
+    I read the acceptance criteria again against `README.md` and `git diff origin/main -- README.md`. Nothing contradicts them:
+    - **Criterion 1:** nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed (command 2 counts 0). Besides `README.md`, the branch changes only the work item and its `.costs.jsonl` sidecar.
+    - **Criterion 2:** I did not run `make check`, because the smoke test does not include it. The journal records `check: green` after the coder and the documenter, and the factory's gate covers it.
+    - **Criterion 3, first paragraph:** line 3 of `README.md` is the exact text the criterion gives. "under construction", "groundwork" and "probe of 2026-10-17" no longer occur.
+    - **Criterion 3, *Getting started*:**
+      - The code block stays.
+      - The sentence "When it works, `make check` ends with the line `check: green`." stays.
+      - The container sentence follows it word for word.
+      - Then comes the table, with the header `| Command | What it does |` and six rows in the required order (run, check-story, bill, watch, health, confine), each with the required description. No exit status appears in the table.
+    - **Criterion 3, the "Beside" paragraph:** it now begins "Beside the six console commands". I compared it with the line on `origin/main` after swapping "seven" for "six", and they are identical, so the rest of the paragraph is unchanged.
+    - **Criterion 3, *Where to look next*:** the `docs/operator-playbook.md` bullet comes right after the `docs/decisions.md` bullet.
+    - *How it is built* and *Replaced from v1* are unchanged.
+
+    Findings: none.
+    Fixed: nothing, as this stage requires.
