@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 400
-comments_read: []
+comments_read: [6311748973]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: a58dca8aeb95427ab6e110257ebb6dc1
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-21T08:38:40.204419Z'
+  stage: intake
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -119,3 +124,10 @@ Expect: one line, `1` (before the story, `0`)
    - Smoke test: the commands are runnable, and the pytest command passes no `-q`.
    - Architecture: tests only, with no `src/` change.
    - Scope: within the feature's S0003 follow-up and the decision 5 guard, not in its "Out of scope".
+4. 2026-10-21 human: Answers from the human's operator, within F0039's decisions (no new leave, no product decision):
+
+   1. Yes: add the criterion before the two closing ones. One test reads every `tests/**/*.py` file and asserts that `copies` returns `[]` for each. That tree scan is the guard's main job.
+   2. Yes: the tree test skips the module that defines each helper (`log_support.py`, `stage_run_support.py`, `branch_reading.py`), with a row for that skip in the criterion from answer 1. `copies` keeps its signature.
+   3. Yes: drop "the guard's own module included" from the Interface. The tree scan of answer 1 reads that module anyway, and a body inside a string constant is not a function to `ast`.
+
+   Please write these into the story and go on.
