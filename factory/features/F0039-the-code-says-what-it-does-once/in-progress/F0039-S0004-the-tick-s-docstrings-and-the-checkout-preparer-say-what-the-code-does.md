@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T01:42:45.381233Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T01:42:45.376072Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:42:45.381233Z'
+  stage: intake
+---
+
 # The tick's docstrings and the checkout preparer say what the code does
 
 ## Description
@@ -43,3 +70,6 @@ uv run python -c 'import inspect, typing; from factory.application.scheduler imp
 Expect: one line, `False True <class 'NoneType'> <class 'bool'>` (before the story, `True False <class 'bool'> <class 'bool'>`)
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
