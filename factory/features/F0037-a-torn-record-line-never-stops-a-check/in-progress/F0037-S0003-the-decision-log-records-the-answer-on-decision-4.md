@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 377
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T00:11:22.111230Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T00:11:01.312971Z'
   stage: intake
   run: 1448a0989cd340f3b87f53466c61e84d
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:11:22.111230Z'
+  stage: tests
 ---
 
 # The decision log records the human's answer on F0037's decision 4
@@ -67,3 +76,4 @@ Expect: `documents ok`
    - Smoke test: both commands are runnable. The grep expectations `0` then `1` and the `documents ok` line can be checked against the output. No pytest command, so no `-q` problem.
    - Architecture: a documentation-only change, which the documenter stage's write paths allow. It touches no layer.
    - Scope: it matches F0037's decision 4 (answered by the human, 2026-10-20) and touches nothing in the feature's "Out of scope". The `docs/decisions.md` entry exists as the story describes.
+4. factory: started tests as self.
