@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 396
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T07:55:57.765976Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T07:55:57.765976Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T07:57:36.270893Z'
+  stage: tests
+  run: 4182b4ab1aad445d87af556377d40304
 ---
 
 # The operator guide lists each stop in one table
@@ -95,3 +97,12 @@ Expect: `documents ok`
    - Architecture: this is docs only and touches no layer. The edit stays within the documenter's write paths (`docs/*`).
    - Scope: the story is within F0038's scope, "the stop tables (S0008; M1)". The review's proposals S1 and S2 are left to the human, as the feature's Out of scope requires. Decision 8 of the feature (move the detail forms, do not drop them) is covered by criterion 3. I did not check that the guide's exact wording matches the quoted detail forms. The documenter and the smoke test will show that.
 4. factory: started tests as self.
+5. tester: No tests written. This story changes documents only. Its Interface says nothing changes in any test, and criterion 1 says nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes.
+   - criterion 1: no test. It is the empty `git diff` over those paths, checked by the smoke test. As the criterion asks: the tester changed nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`.
+   - criterion 2: no test. It is the `make check` the factory runs.
+   - criterion 3 (docs): no test. The documenter's change to `docs/operator-guide.md` is checked by `make documents` and the smoke test's greps. A pytest that pins the guide's wording would be a change under `tests/`, which criterion 1 rules out.
+
+   Files created: none. Modules the test runner could not import: none, since no new tests exist. `make lint` is green. I did not run `make test` because no test was added or changed, so nothing new could fail. The factory runs it after this stage. Nothing is open for the coder: the documenter does the work.
+
+   `lint`: lint: green (0.8 s)
+   `test`: test: green (72.9 s)
