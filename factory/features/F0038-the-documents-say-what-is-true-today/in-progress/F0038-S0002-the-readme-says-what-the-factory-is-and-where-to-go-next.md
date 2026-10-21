@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 389
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T06:54:37.872369Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-21T06:54:16.536185Z'
   stage: doing
   run: 11d4eb8f4aa14136b899c46c167ec43c
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:54:37.872369Z'
+  stage: review
 ---
 
 # The README says what the factory is, that an instance runs in the container, and where to go next
@@ -122,3 +131,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
+8. factory: started review as self.
