@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T08:13:43.521893Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-21T08:13:22.601303Z'
   stage: doing
   run: cb3c2193ecbf4c85a17e5fd4e2021edb
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:13:43.521893Z'
+  stage: review
 ---
 
 # What was left for v2 is named open and not planned
@@ -284,3 +293,4 @@ Expect: `documents ok`
 
     `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
+16. factory: started review as self.
