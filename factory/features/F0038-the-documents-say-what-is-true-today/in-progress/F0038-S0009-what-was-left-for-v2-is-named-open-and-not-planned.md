@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 397
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T08:11:54.916936Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T08:11:33.983293Z'
   stage: docs
   run: 11b451fb676544c58afc0123ce9f087c
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:11:54.916936Z'
+  stage: smoke-test
 ---
 
 # What was left for v2 is named open and not planned
@@ -184,3 +193,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
