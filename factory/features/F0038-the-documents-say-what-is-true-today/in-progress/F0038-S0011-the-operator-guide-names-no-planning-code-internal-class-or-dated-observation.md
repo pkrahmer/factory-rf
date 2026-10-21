@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 401
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T09:04:53.356602Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T09:04:32.507166Z'
   stage: review
   run: c0ca0b053be84ba29a5310904cfe32dd
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T09:04:53.356602Z'
+  stage: docs
 ---
 
 # The operator guide names no planning code, internal class or dated observation
@@ -141,3 +150,4 @@ Expect: `documents ok`
    - Quality: there is no code, docstring or generated contract to judge.
    - Work item hygiene: the Description still matches what was built. It says the documenter changes only `docs/operator-guide.md`, and nothing else has changed. The docs criterion names the five replacements word for word and says how to check them. The coder's entry explains the main choice, leaving the guide to the documenter, and the rejected alternative.
    - Earlier tests: the diff changes, renames or deletes no test file that `main` already holds.
+10. factory: started docs as self.
