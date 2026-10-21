@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 405
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T12:20:20.807064Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T12:20:20.807064Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T12:20:43.208639Z'
+  stage: intake
+  run: cdf9869216c24b08826789beb26bffd1
 ---
 
 # The tests name the agent environment in one place each
@@ -92,3 +94,9 @@ Expect: one line, `2` (before the story, `0`)
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: concrete. It names the two shared modules (`tests/stage_run_support.py`, `tests/wiring_support.py`) and the ten importing modules for each value. It names the two cross-imports and the guard `tests/test_shared_environments.py` with `SHARED` and `environment_copies(source, environment) -> list[str]`. It also names the one earlier test changed (`test_no_test_module_holds_a_copy`). It states that no module under `src/` changes. `tests/test_shared_bodies.py` already has `SHARED` with values that are file names and a `path.name in SHARED.values()` check at line 153, so the change in criterion 3 is a real one.
+   - Criteria: each is testable by one parametrized test function with no further decisions. Criterion 1 covers both shared values with exact module lists. Criterion 2 has ten rows, covering the counted forms (any name, annotated, key order) and each refused form (other value, extra key, name, call, function scope, class scope). Criterion 3 covers the relative-path rule of decision 14. Each rule in the Interface has a criterion for its failing side. `make check` and `docs:` are last.
+   - Smoke test: the grep loop, the pytest run and the docs grep are runnable. The pytest command passes no `-q`, and `pyproject.toml` `addopts` already sets `-q`. Each `Expect:` is checkable against the output: line counts, `exit 0`, and `2`. The docs regex matches the existing `- \`name.py\`:` line form in `docs/project-guide/README.md`.
+   - Architecture: the changes are test-only, in shared modules at the `tests/` root, under the standing leave for constants in `CLAUDE.md`. `stage_run_support` and `wiring_support` keep their import limits. The one change to an earlier test has the human's leave in decision 14.
+   - Scope: within F0039 (the tests' copies of shared helpers). It touches no `src/` file, no out-of-scope item, and none of the 'Unchanged' constants it lists. The documenter's work is limited to the project guide.
