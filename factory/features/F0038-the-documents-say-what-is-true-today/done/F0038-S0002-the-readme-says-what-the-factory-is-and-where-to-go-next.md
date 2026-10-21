@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T06:56:26.467474Z'
   stage: smoke-test
   run: 16ce8d6d99f94ae5ae3170f5ea5c1e43
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T06:57:49.061390Z'
+  stage: approval
 ---
 
 # The README says what the factory is, that an instance runs in the container, and where to go next
@@ -229,3 +234,4 @@ Expect: `documents ok`
 
     Findings: none.
     Fixed: nothing, as this stage requires.
+14. factory: done (pull request merged); cost: 6 runs, 2.9 min, 28 turns, 98336 tokens in (401302 more from cache), 7299 out, $0.83
