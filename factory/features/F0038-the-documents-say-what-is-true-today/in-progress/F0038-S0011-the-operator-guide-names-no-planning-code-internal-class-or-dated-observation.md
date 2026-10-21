@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 401
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T09:05:36.314946Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T09:05:15.154474Z'
   stage: docs
   run: 09471f20cbbc4ba8a8a5968f6b47206c
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T09:05:36.314946Z'
+  stage: smoke-test
 ---
 
 # The operator guide names no planning code, internal class or dated observation
@@ -173,3 +182,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 746e4c61c5e9 at 2026-10-21T08:53:42Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
