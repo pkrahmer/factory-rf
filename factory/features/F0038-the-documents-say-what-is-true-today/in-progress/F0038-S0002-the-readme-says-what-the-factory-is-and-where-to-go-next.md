@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 389
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T06:55:58.739118Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T06:55:38.015875Z'
   stage: docs
   run: a2caa5527c89446eb8bce2530d17cb4e
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:55:58.739118Z'
+  stage: smoke-test
 ---
 
 # The README says what the factory is, that an instance runs in the container, and where to go next
@@ -178,3 +187,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
     `secrets`: secrets: green (0.7 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
