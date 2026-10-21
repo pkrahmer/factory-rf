@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T09:14:38.817732Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T09:14:38.811467Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T09:14:38.817732Z'
+  stage: intake
+---
+
 # The tests name the instance in one place
 
 <!-- proposed by feature acceptance of 2026-10-21; refine before starting -->
@@ -57,3 +84,6 @@ grep -c '^- `stage_run_support.py`:.*`INSTANCE`' docs/project-guide/README.md
 Expect: one line, `1` (before the story, `0`)
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
