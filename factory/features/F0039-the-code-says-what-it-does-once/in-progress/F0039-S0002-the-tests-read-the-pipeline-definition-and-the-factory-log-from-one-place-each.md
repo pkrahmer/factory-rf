@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 381
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T01:03:00.114601Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-21T01:03:00.114601Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T01:03:34.188785Z'
+  stage: review
+  run: 3549052bf48e4ce5b9c2aad2ff618cb2
 ---
 
 # The tests read the pipeline definition and the factory log from one place each
@@ -335,3 +337,45 @@ Expect: one line, `1` (before the story, `0`)
     `check`: check: green
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
 16. factory: started review as self.
+17. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`: 23 files, all under `tests/`. Nothing under `src/` changed.
+
+    What I checked:
+    - `tests/definition_support.py::pipeline_definition` matches the Interface.
+    - The `definition` fixture in `tests/conftest.py` keeps its name, signature and docstring and now returns `pipeline_definition(boundaries)`. `PIPELINE_YAML` is still imported there because line 225 uses it.
+    - The five `_log_lines(tmp_path)` copies that were removed had the same body as `log_support.log_lines`: the same path `state/factory.log`, an empty list when the file is missing, and `splitlines`. The `LOG` constants that were removed were only used inside those copies.
+    - Not one `def test_`, `assert` or `@pytest` line was removed except where `_definition(boundaries)` or `_log_lines(tmp_path)` became `pipeline_definition(boundaries)` or `log_lines(tmp_path)`.
+    - The guard in `tests/test_shared_definition.py` implements the Interface's three rules. They are: top-level functions only, through `ast.parse(...).body`; a leading docstring ignored and `len(rest) == 1` compared via `ast.unparse`; the parameter list exactly `["tmp_path"]`; every `*.py` under `tests/` through `rglob`.
+    - Criteria 1, 2, 3 and 5 each have their test. Criterion 5's three rows on the refused side, which the round-0 finding asked for, are now in the parametrized test (`a-definition-of-more-than-one-statement`, `a-method-reading-the-definition`, `a-log-reading-of-more-than-the-folder`), so every limit the Interface states is tested on both sides.
+    - Criterion 4 has no test of its own: it compares test ids before and after the story. The tester checked it in entry 5 (229 ids, no difference), and the round-0 review accepted that.
+    - The factory's `make check` after the coder was green (entry 15: `check: green`, `duplicates: 0 new`).
+    - The Description and the docs criterion match what was built.
+
+    no findings
+
+    Earlier tests changed. All 21 are under the standing leave to move a shared test helper (`CLAUDE.md` *Tests*): each change only moves `_definition` or `_log_lines` to its shared place, and every test keeps its name and what it checks.
+    - tests/conftest.py: standing leave
+    - tests/application/handlers/test_closed.py: standing leave
+    - tests/application/handlers/test_hand_over.py: standing leave
+    - tests/application/handlers/test_run.py: standing leave
+    - tests/application/test_after_agent.py: standing leave
+    - tests/application/test_board_reader.py: standing leave
+    - tests/application/test_no_state_refusals.py: standing leave
+    - tests/application/test_pipeline_loading.py: standing leave
+    - tests/application/test_pipeline_loading_yaml_fault.py: standing leave
+    - tests/application/test_question_causes_recorded.py: standing leave
+    - tests/application/test_stall_labels.py: standing leave
+    - tests/application/test_stalls.py: standing leave
+    - tests/application/test_stop_records_service.py: standing leave
+    - tests/application/test_tick_disk.py: standing leave
+    - tests/application/test_tick_stale_branch.py: standing leave
+    - tests/application/test_watcher.py: standing leave
+    - tests/application/test_work_items.py: standing leave
+    - tests/entry/test_watch.py: standing leave
+    - tests/entry/test_wiring_acceptance.py: standing leave
+    - tests/entry/test_wiring_handlers.py: standing leave
+    - tests/entry/test_wiring_human_handlers.py: standing leave
+
+    Notes:
+    - tests/test_shared_definition.py::test_each_shared_reading_is_written_in_one_module: the walk over `tests/` is similar to `_defining` in `tests/test_shared_fixtures.py`. That file is left unchanged on purpose, as the Description says, and the guard tests by a predicate, not a regex.
+
+    I did not run `make check`.
