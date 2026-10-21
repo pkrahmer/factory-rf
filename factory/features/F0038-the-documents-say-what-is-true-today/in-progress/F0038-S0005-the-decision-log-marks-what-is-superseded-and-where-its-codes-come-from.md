@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 393
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T07:25:09.675925Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T07:25:09.675925Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T07:26:31.008801Z'
+  stage: tests
+  run: f23fc265dea8406c8779a843227c2269
 ---
 
 # The decision log marks two superseded entries, the removal of `factory/v1/`, and where its codes come from
@@ -89,3 +91,11 @@ Expect: `documents ok`
    - Architecture: this is a documents-only change to the decision log, which the documenter keeps. Nothing touches the layers, the wrappers or the interfaces.
    - Scope: it matches `feature.md`, whose scope lists S0005 with findings H7, M12 and M6 for `docs/decisions.md`. It leaves out the mutation entries after *Mutation testing is limited to one feature's modules*, which are F0032's, and the S0009 items. It changes no test of another story.
 4. factory: started tests as self.
+5. tester: No tests written: this story only edits the docs, and criterion 1 forbids any change under `tests/`.
+   - criterion 1: no test. The story requires that nothing changes under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. I changed nothing there; the smoke test's `git diff --name-only origin/main -- src tests ...` checks it.
+   - criterion 2: no test. The factory checks it by running `make check`.
+   - criterion 3 (docs): no test. The documenter makes the four additions to `docs/decisions.md`; the smoke test's greps and `make documents` check them.
+   Files created: none. Modules the test run could not import: none (no new tests). I did not run `make test`: with no new tests, there is nothing to watch fail. `make lint` is green.
+
+   `lint`: lint: green (0.6 s)
+   `test`: test: green (63.9 s)
