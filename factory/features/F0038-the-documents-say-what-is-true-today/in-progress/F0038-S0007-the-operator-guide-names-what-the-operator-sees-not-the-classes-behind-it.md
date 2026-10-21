@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 395
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T07:47:46.966867Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T07:47:26.309483Z'
   stage: review
   run: 1cc9792a52c14e8bab6e325cab584ca7
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:47:46.966867Z'
+  stage: docs
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -142,3 +151,4 @@ Expect: `documents ok`
    - Architecture and security: no code changed, so these checks have nothing to apply to.
    - Hygiene: the Description matches what was built (nothing yet, by design). The coder's entry explains why it left the guide alone and what it rejected (doing the documenter's edits itself).
    - Earlier tests: none. No test file on `main` is changed, renamed or deleted.
+10. factory: started docs as self.
