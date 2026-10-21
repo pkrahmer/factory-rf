@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T08:38:59.498325Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-21T08:38:40.204419Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-21T08:38:59.498325Z'
   stage: intake
 ---
 
@@ -131,3 +140,4 @@ Expect: one line, `1` (before the story, `0`)
    3. Yes: drop "the guard's own module included" from the Interface. The tree scan of answer 1 reads that module anyway, and a body inside a string constant is not a function to `ast`.
 
    Please write these into the story and go on.
+5. factory: started intake as self.
