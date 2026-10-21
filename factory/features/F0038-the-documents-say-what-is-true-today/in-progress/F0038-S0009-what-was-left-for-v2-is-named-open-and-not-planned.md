@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 397
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T08:04:01.728550Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T08:04:01.728550Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T08:04:43.932317Z'
+  stage: intake
+  run: a953bb6566414227bf6cf823d6ea5848
 ---
 
 # What was left for v2 is named open and not planned
@@ -76,3 +78,9 @@ Expect: `documents ok`
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: "None" is right for a documents-only story. Nothing under src/, tests/, image/, template/, demo/ or claude/ changes, and the one touched file is named (docs/decisions.md).
+   Criteria: criterion 1 (nothing outside docs changes), criterion 2 (make check) and the docs criterion's bullets are each checkable by one grep or diff. I checked the quoted old text against docs/decisions.md on this branch. The headings the new lines cite each exist exactly once. The old entry heading is at line 294. "Left for v2" is at lines 304, 452 and 976, and "left for v2" is at line 958. "Open: the kill of a timed-out agent under `sudo`." is in line 304. "the operator guide's morning observation" is in line 452. The failing side is covered: the old words, and the old title cited anywhere, must be gone (count 0). Three other lines (318, 406, 517) say "morning observation" without the quoted phrase. They are not matched by the criteria or the smoke test, so they stay.
+   Smoke test: the commands are runnable. The grep -c over eleven files prints eleven lines. The second block prints 1 + 1 + 9 = eleven lines. The third prints two lines. I read the Expect lines as checkable. No pytest command is involved, so the -q rule does not apply. I did not run make documents.
+   Architecture: documents only, so no layer is touched. docs/decisions.md is the documenter's file.
+   Scope: it is within F0038's scope (S0009: the new entry, the renamed entry, the settled kill pointed to its entry). It leaves out docs/runs/, write-guard.md and the playbook, as the human's answers of 2026-10-20 say.
