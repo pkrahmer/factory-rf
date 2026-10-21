@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 401
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-21T09:04:53.356602Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-21T09:04:53.356602Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T09:05:15.154474Z'
+  stage: docs
+  run: 09471f20cbbc4ba8a8a5968f6b47206c
 ---
 
 # The operator guide names no planning code, internal class or dated observation
@@ -151,3 +153,23 @@ Expect: `documents ok`
    - Work item hygiene: the Description still matches what was built. It says the documenter changes only `docs/operator-guide.md`, and nothing else has changed. The docs criterion names the five replacements word for word and says how to check them. The coder's entry explains the main choice, leaving the guide to the documenter, and the rejected alternative.
    - Earlier tests: the diff changes, renames or deletes no test file that `main` already holds.
 10. factory: started docs as self.
+11. documenter: Changed `docs/operator-guide.md` only, five passages as the docs criterion words them:
+    - *The machine's image*: "Nothing in it floats (R29):" is now "Nothing in it floats:".
+    - *The project commands run as `agent`*: the `RepositoryUnsealed` sentence now says a seal that does not hold ends the tick, and the next iteration clones the checkout again with the line `cloning the checkout again: <reason>`, with a pointer to "The checkout is cloned again when it is missing or its `.git` is not the factory's alone".
+    - Three dated parentheticals removed with their leading space: the table row on the mode of what an agent makes, *Podman: the commands* (PowerShell), and *Podman: the restart* (2026-10-17). The sentences around them are unchanged.
+
+    Ran the story's smoke checks:
+    - The first grep counts `0`.
+    - The replaced sentences count `2`.
+    - The class names in backticks are `CannotHandle`, `HostingServiceError`, `PushFailed` and `SettingsInvalid`.
+    - `make documents` ends with `documents ok`.
+
+    I did not run `make check`, because only a document changed. The factory's checks run after this stage.
+
+    Cross-read: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed, so README and the other docs have nothing to go stale against. I did not check them beyond that.
+
+    No findings. I saw no stale text outside this story's passages.
+
+    `check`: check: green (not run again: passed on tree 746e4c61c5e9 at 2026-10-21T08:53:42Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
