@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T06:48:49.226045Z'
   stage: smoke-test
   run: 1549cf844b2149abb178935049a995bd
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T06:50:09.512355Z'
+  stage: approval
 ---
 
 # The operator guide says the template and the todo demo run under the write guard
@@ -218,3 +223,4 @@ Expect: `documents ok`
     - Criterion 3 holds. `git diff origin/main -- docs/operator-guide.md` shows one hunk: the old paragraph removed and the new one added in its place. The new paragraph matches the criterion's text word for word, and no other line of the file changed.
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 2.8 min, 28 turns, 88563 tokens in (366260 more from cache), 5761 out, $0.74
