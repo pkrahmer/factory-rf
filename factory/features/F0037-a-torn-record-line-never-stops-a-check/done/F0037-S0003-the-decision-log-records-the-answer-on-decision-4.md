@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T00:16:43.219796Z'
   stage: smoke-test
   run: 4ae9b64dceff48f48293bfce60b6b7f3
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T00:18:02.979562Z'
+  stage: approval
 ---
 
 # The decision log records the human's answer on F0037's decision 4
@@ -201,3 +206,4 @@ Expect: `documents ok`
     - 3. docs: in the entry *A record line that is not UTF-8 is skipped*, the "Open (decision 4)" bullet now starts with "Answered (decision 4, the human, 2026-10-20):". It says a record appended after a torn line still lands on the torn line's line and is skipped with it, and that no later feature changes `append`. Its reason is the last-byte read before each append, which two writers can race, against the loss of one telemetry record per kill. The date line reads "F0037 decisions 1, 2, 3, 4 and 5". No other entry or document changed. `check_documents` prints `documents ok`.
 
     Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 2.8 min, 29 turns, 82555 tokens in (359460 more from cache), 5695 out, $0.70
