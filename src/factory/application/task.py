@@ -107,12 +107,8 @@ class TaskComposer:
             working_directory=self._boundaries.checkout,
             environment=dict(self._environment),
             guard=context.guard,
-            os_user=self._os_user(),
+            os_user=self._boundaries.settings.agent_user,
         )
-
-    def _os_user(self) -> str | None:
-        settings = self._boundaries.settings
-        return None if settings is None else settings.agent_user
 
     def _prompt(self, context: TaskContext, facts: PromptFacts) -> str:
         prompt = compose_prompt(facts)

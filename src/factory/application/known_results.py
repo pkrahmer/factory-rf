@@ -25,8 +25,6 @@ class KnownResults:
         A `ProjectCommandError` or `ValueError` of the run propagates and nothing is recorded.
         """
         records = self._boundaries.result_records
-        if records is None:
-            return self._run(command)
         key = self._key(command)
         if key is None:
             return self._run(command)
@@ -56,8 +54,7 @@ class KnownResults:
         except GitError as error:
             self._boundaries.log.line(f"known results: no key for {command}: {error}")
             return None
-        settings = self._boundaries.settings
-        image = None if settings is None else settings.image
+        image = self._boundaries.settings.image
         return ResultKey(command=command, tree=tree, definition=self._digest, image=image)
 
     def _read(self, records: RecordLog[ResultRecord]) -> list[ResultRecord]:

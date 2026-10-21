@@ -77,13 +77,22 @@ def test_an_acceptance_reaches_approval_although_its_report_has_no_story_section
 
 @pytest.mark.usefixtures("report")
 def test_the_reviewer_prompt_ends_with_the_feature_facts_at_main(
-    boundaries: Boundaries, definition: PipelineDefinition, agent_runtime: FakeAgentRuntime
+    boundaries: Boundaries,
+    definition: PipelineDefinition,
+    agent_runtime: FakeAgentRuntime,
+    tmp_path: Path,
 ) -> None:
-    facts = AcceptanceService(boundaries, definition).facts("F0002")
+    later = AcceptanceService(boundaries, definition).facts("F0002")
+    facts = later.model_copy(update={"disk_before": None})
 
     prompt = agent_runtime.requests()[0].prompt
 
-    assert prompt.split("\n")[-4:] == facts.lines()
+    assert prompt.split("\n")[-6:] == facts.lines()
+    assert facts.lines()[-2:] == [
+        f"Disk now: disk acceptance: {tmp_path} 1000.0 GB free, 0.0 GB used; "
+        f"{tmp_path / 'state'} 1000.0 GB free, 0.0 GB used",
+        "Disk at the previous record: none",
+    ]
 
 
 def test_the_protocol_opens_the_acceptance_pull_request_and_records_it(

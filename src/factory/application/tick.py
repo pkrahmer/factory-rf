@@ -122,8 +122,6 @@ class Tick:
         # Before the fetch, so that no write of the tick meets a full disk and hangs.
         disk = self._boundaries.disk
         settings = self._boundaries.settings
-        if disk is None or settings is None:
-            return
         free: dict[Path, int] = {}
         for path in (settings.checkout.parent, settings.state_directory):
             try:

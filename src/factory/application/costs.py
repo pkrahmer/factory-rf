@@ -60,8 +60,8 @@ class CostRecorder:
             attempt=state.attempts,
             status="started",
             started_at=self._boundaries.clock.now(),
-            image=None if settings is None else settings.image,
-            instance=None if settings is None else settings.instance,
+            image=settings.image,
+            instance=settings.instance,
         )
         run = CostRun(path=path, run=record.run, records=[*earlier, record])
         self.write(run)

@@ -74,17 +74,13 @@ class StopService:
         self._record("cleared", standing, self._boundaries.clock.now())
 
     def _record(self, event: StopEvent, stop: RepositoryStop, at: datetime) -> None:
-        records = self._boundaries.stop_records
-        if records is None:
-            return
-        settings = self._boundaries.settings
-        records.append(
+        self._boundaries.stop_records.append(
             StopRecord(
                 event=event,
                 scope=stop.scope,
                 reason=stop.reason,
                 at=at,
-                instance=None if settings is None else settings.instance,
+                instance=self._boundaries.settings.instance,
             )
         )
 
@@ -134,8 +130,7 @@ class StopPublisher:
 
         Raises `GitError`, `PushFailed`, and `OSError` when the file cannot be written.
         """
-        records = self._boundaries.stop_records
-        local = [] if records is None else records.read()
+        local = self._boundaries.stop_records.read()
         if not local:
             return []
         text = self._boundaries.git.show_file(f"{REMOTE}/{MAIN_BRANCH}", STOP_RECORDS_FILE) or ""

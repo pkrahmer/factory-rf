@@ -154,13 +154,11 @@ class AcceptanceService:
             disk_before=disk_before,
         )
 
-    def _disk_lines(self) -> tuple[str | None, str | None]:
+    def _disk_lines(self) -> tuple[str, str | None]:
         recorder = DiskRecorder(self._boundaries)
         # Read before recording, or the record of now would be its own previous one.
         previous = recorder.last()
         now = recorder.record("acceptance")
-        if now is None:
-            return None, None
         return disk_line(now), None if previous is None else disk_line(previous)
 
     def _acceptance(self, feature: FeatureId) -> FeatureAcceptance:

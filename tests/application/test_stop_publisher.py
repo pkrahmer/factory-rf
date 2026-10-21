@@ -125,11 +125,10 @@ def test_only_the_missing_records_are_added_after_the_lines_main_holds(
 
 
 @pytest.mark.parametrize(
-    ("with_records", "local", "on_main"),
+    ("local", "on_main"),
     [
-        pytest.param(False, [], None, id="no-record-log"),
-        pytest.param(True, [], None, id="empty-record-log"),
-        pytest.param(True, [FIRST, SECOND], [FIRST, SECOND], id="main-holds-every-record"),
+        pytest.param([], None, id="empty-record-log"),
+        pytest.param([FIRST, SECOND], [FIRST, SECOND], id="main-holds-every-record"),
     ],
 )
 def test_nothing_to_publish_makes_no_commit(
@@ -139,7 +138,6 @@ def test_nothing_to_publish_makes_no_commit(
     checkout: GitCli,
     remote: Path,
     human: HumanClone,
-    with_records: bool,
     local: list[StopRecord],
     on_main: list[StopRecord] | None,
 ) -> None:
@@ -148,7 +146,7 @@ def test_nothing_to_publish_makes_no_commit(
         checkout.fetch()
     _append(records, local)
     head = remote_commit(remote, "main")
-    publisher = StopPublisher(replace(boundaries, stop_records=records if with_records else None))
+    publisher = StopPublisher(replace(boundaries, stop_records=records))
 
     published = publisher.publish()
 

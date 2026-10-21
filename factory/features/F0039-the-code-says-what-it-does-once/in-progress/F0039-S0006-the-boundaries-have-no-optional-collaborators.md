@@ -1,3 +1,188 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 1
+crashes: 0
+pull_request: 385
+comments_read: [6309137603]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T02:08:18.058735Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T02:08:18.064279Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T02:08:35.543754Z'
+  stage: intake
+  run: 1eb297bcb69044778803ba136459af33
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T02:08:56.158350Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T02:15:01.562129Z'
+  stage: tests
+  run: 20a1addaee2848efbeab3071612dfcbb
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T02:15:22.435919Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-21T02:17:32.778862Z'
+  stage: doing
+  run: dbddf8ce4ce94c14bd61f5efc9f8d801
+  blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-21T05:54:46.917249Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-21T05:55:04.938270Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-21T05:55:22.924579Z'
+  stage: doing
+  run: 85bc4d1cb10c470885c72a290853e81e
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-21T05:55:43.528531Z'
+  stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-10-21T05:58:27.860565Z'
+  stage: tests
+  run: 661bcdaf8817440185aef0aef0618685
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-21T05:58:48.368598Z'
+  stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-21T06:02:41.567740Z'
+  stage: doing
+  run: 827c5d14867b462083c0c2053cfd86a5
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:03:02.327939Z'
+  stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T06:04:23.022787Z'
+  stage: review
+  run: 980f8c68e66045c796baf9cadd4305d3
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:04:43.919301Z'
+  stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-21T06:06:33.556933Z'
+  stage: doing
+  run: 755287a483314717b9d317c08225ba4f
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:06:54.107082Z'
+  stage: tests
+- number: 20
+  speaker: tester
+  kind: result
+  at: '2026-10-21T06:09:16.125602Z'
+  stage: tests
+  run: f0599c5dddc24bcfac8edbd27a4367f9
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:09:36.695413Z'
+  stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-21T06:12:21.216661Z'
+  stage: doing
+  run: 18b3a67af1b848bfb90efc15a808613d
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:12:41.734207Z'
+  stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T06:13:45.137267Z'
+  stage: review
+  run: 89750978eb6d49c5843b434aa224fa05
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:14:06.144123Z'
+  stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T06:15:27.762009Z'
+  stage: docs
+  run: 3939153f1ed3448fb4a540c14b56962b
+- number: 27
+  speaker: factory
+  kind: stall
+  at: '2026-10-21T06:15:27.793251Z'
+  stage: docs
+  run: 3939153f1ed3448fb4a540c14b56962b
+  reason: check_red
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:15:50.768829Z'
+  stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T06:16:33.614700Z'
+  stage: docs
+  run: cdb84c9f3b674d2c9d07fb3da5661cdd
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:16:54.612034Z'
+  stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T06:17:26.452861Z'
+  stage: smoke-test
+  run: ffcaf19e19744570a7913851afe90589
+---
+
 # The boundaries have no optional collaborators
 
 ## Description
@@ -70,3 +255,326 @@ grep -c 'holds `None`' docs/project-guide/watching.md
 Expect: one line, `0` (before the story, `1`)
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: concrete. It names `src/factory/application/boundaries.py` with the six fields and their types. It lists each removed branch by module, class and method (`CostRecorder.begin`, `DiskRecorder.record` and `last`, `AcceptanceService._disk_lines`, `KnownResults.run` and `_key`, `PatientRuns`, `StopService._record`, `StopPublisher.publish`, `TaskComposer._os_user`, `Tick._check_disk`). It gives the exact fixture and `_assemble` constructions.
+   - Criteria: criterion 1 is one parametrized test, one row per field, with the failing side (`TypeError`) and the passing side. Criterion 2 is a single test with concrete values. Criteria 3 and 4 name the existing tests that pin the other behaviours. Criterion 4's "no `None` comparison" part is checked by grep only in the smoke test. That grep covers seven modules and not `acceptance.py`; this is a small gap, but the removed `_disk_lines` branch is covered by the acceptance tests of decision 11. The `last()` rule (`None` only without a record) is kept by existing disk-recorder tests. Criterion 5 is `make check`. Criterion 6 is the docs.
+   - Smoke test: the Python snippet and the greps are runnable. Each `Expect:` line gives a checkable value (`[]` and `0`, then `0`), with the before-values stated. No pytest command is used, so the `-q` rule does not apply.
+   - Architecture: `Boundaries` stays in `factory.application`. The collaborators are existing interfaces (`DiskSpace`, `RecordLog`, `Waiter`). The test fakes and real `JsonLinesRecordLog` are used under `tmp_path`, as `CLAUDE.md` allows. `build_boundaries` and the layers are untouched.
+   - Scope: the story is within the feature's scope, which lists the same S0006 files. The earlier-test changes rest on the human's leave in decision 11, which is granted and names each of the 17 tests. `agent_home` stays optional, as decision 10 says. The `CLAUDE.md` example change is the human's separate change after the merge, not this story's.
+4. factory: started tests as self.
+5. tester: Tests written. I made the fixture changes and the seventeen earlier test changes under the human's leave (the feature's decision 11), and added a new module for criteria 1 and 2.
+
+   Criteria → tests:
+   - criterion 1: tests/application/test_boundaries_required.py::test_boundaries_without_one_of_the_collaborators_are_refused. It has one row per field (settings, disk, disk_records, stop_records, waiter, result_records). Without that field, `Boundaries` called through `Callable[..., Boundaries]` must raise `TypeError`. With all fields it must build a `Boundaries` equal to the fixture's.
+   - criterion 2: tests/application/test_boundaries_required.py::test_the_fixture_boundaries_carry_every_feature
+   - criterion 3: covered by the existing tests/entry/test_wiring_boundaries.py, test_wiring_known_results.py, test_wiring_record_logs.py, test_wiring_stop_records.py and test_wiring_waiter.py. In the first, `test_the_built_boundaries_read_the_disk_and_boundaries_without_one_have_none` became `test_the_built_boundaries_read_the_disk`, without `others` and its last assertion. I dropped the `fields` and `Boundaries` imports that nothing used any more.
+   - criterion 4: covered by the seventeen tests of decision 11 as changed, the other tests of their modules, and test_tick.py, test_stage_known_results.py, test_stage_provider_limit.py, test_tick_stop_records.py and test_sealed_runs_runner.py. The grep for `None` comparisons is in the smoke test, not in pytest.
+   - criteria 5 and 6: `make check` and the docs, so no tests.
+
+   Earlier test files changed under decision 11:
+   - tests/conftest.py: the `boundaries` fixture now sets all six fields exactly as the Interface gives them, and its docstring names them.
+   - tests/proof_support.py: `_assemble` sets the same six under `root` and `state`, with `instance=INSTANCE`.
+   - test_boundaries_settings.py: the test is renamed `test_boundaries_hold_the_settings_they_are_given`, and the `is None` assertion is gone.
+   - test_costs.py: the expected `CostRecord` now has `instance="factory-1"`.
+   - test_patient_runs.py:
+     - the without-a-waiter test is removed;
+     - `test_with_the_default_settings_the_default_limit_applies` now uses `InstanceSettings(repository_url="/srv/project.git", instance="factory-1")`, rows unchanged.
+   - test_preflight.py: `assert ready.settings is None` became `assert ready.settings != settings`, where `settings` is the one the test gives.
+   - test_stage_run_acceptance.py and test_task_acceptance.py: the expected facts are the later `facts()` with `disk_before=None`. The line slices grew by the two disk lines. A new assertion checks those two lines: `{tmp_path}` and `{tmp_path}/state`, each "1000.0 GB free, 0.0 GB used", and "Disk at the previous record: none".
+   - test_stop_records_service.py: the without-stop-records test is removed.
+   - test_acceptance_facts_disk.py: the without-disk test is removed, along with the `Callable` import.
+   - test_disk_recorder.py: the record-nothing test is removed. In `test_last_gives_the_latest_record_whatever_its_occasion`, the `no-record-log` row and `with_log` are gone, and `Callable` is no longer imported.
+   - test_known_results.py: the without-records test is removed, and `with_records` is gone from `_rig`.
+   - test_stop_publisher.py: the `no-record-log` row and `with_records` are gone.
+   - test_tick_disk.py: the without-disk-or-settings test is removed, and `_tick` no longer takes `| None`.
+   - test_cost_image.py: the `no-settings` row is gone, and the parameter is typed `InstanceSettings`.
+   - test_task_os_user.py: the `no-settings` row and `NO_SETTINGS` are gone.
+
+   Files created: tests/application/test_boundaries_required.py.
+
+   `make test` failed for the right reason: only the six rows of the criterion-1 test failed ("DID NOT RAISE TypeError"), because the fields still have defaults. I read the list of failures from .reports/junit.xml and did not run the tests again. Every other test passes with the new fixture, the criterion-2 test included, since it checks the fixture. Every module was imported; none was missing. `make lint` is green.
+
+   Notes:
+   - The Interface leaves the list of the seventeen tests to "the feature's decision 11", so I read that one entry of feature.md and nothing else of it.
+   - After the removed test, the class `CountingGit` in test_known_results.py has no user. The leave names only imports, parameters and `| None`, so I left the class in place. The human can decide whether it goes.
+   - I kept `assert ... is not None` lines in helpers that still type-check (`_limit` in test_patient_runs.py, `test_a_start_record_is_the_previous_record`), because decision 11 does not name them.
+   - The type check was not run, as this stage says.
+
+   `lint`: lint: green (0.6 s)
+   `test`: FAILED tests/application/test_boundaries_required.py::test_boundaries_without_one_of_the_collaborators_are_refused[result_records] - Failed: DID NOT RAISE TypeError
+6. factory: started doing as self.
+7. coder: Question: two earlier tests outside decision 11 still pass `settings=None` to `Boundaries`. They contradict the Interface, and I may not edit them (R9).
+
+   Where I stopped: the source change is complete and left in the working tree. In `src/factory/application/`:
+   - `boundaries.py`: the six fields are required, and the "Last and optional" comment is gone.
+   - `costs.py`, `disk_records.py` (`record` now returns `DiskRecord` and its docstring lost the `None` sentence; `last` is `None` only without a record), `acceptance.py` (`_disk_lines`), `known_results.py`, `provider_limits.py`, `stops.py`, `task.py`, `tick.py`: every `is None` branch on the six fields is gone, and the unused `ProviderLimit` import in `provider_limits.py` is removed.
+
+   A grep over `src/factory` finds no `None` comparison on the six fields any more. `make lint` is green. `make check` is red, only because of these two test rows:
+
+   1. `tests/application/test_cost_instance.py::test_a_cost_record_names_the_instance_of_the_settings_and_keeps_it_when_completed`, row `no-settings` (`(None, None)`), with the parameter typed `InstanceSettings | None`.
+      - mypy: `test_cost_instance.py:30: error: Argument "settings" to "replace" of "Boundaries" has incompatible type "InstanceSettings | None"; expected "InstanceSettings"  [arg-type]`
+      - pytest: `FAILED ...[no-settings] - AttributeError: 'NoneType' object has no attribute ...`
+   2. `tests/application/test_stop_records_service.py::test_a_raise_appends_a_raised_record_when_no_stop_of_its_reason_stands`, row `no-settings` (`with_settings=False`, which expects `instance=None`). Its line 82 is `settings = local_settings if with_settings else None`.
+      - mypy: `test_stop_records_service.py:83: error: Argument "settings" to "replace" of "Boundaries" has incompatible type "InstanceSettings | None"; expected "InstanceSettings"  [arg-type]`
+      - pytest: `FAILED ...[no-settings] - AttributeError: 'NoneType' object has no attribute 'inst...`
+
+   Both rows test exactly the branches the Interface removes: "no settings gives instance `None`". The tester's list of decision 11's seventeen tests does not include them, so I take it the human's leave does not cover them.
+
+   Options:
+   - (a) Give leave to remove both `no-settings` rows. That also means dropping `with_settings` and `local_settings if ... else None` in the second test (every remaining row passes `True`), and typing the first test's parameters `InstanceSettings` and `str`. **This is my choice**: it is the same kind of change decision 11 made in `test_cost_image.py` and `test_task_os_user.py`.
+   - (b) Keep the rows and keep `settings` optional. That contradicts the feature's decision 8 and the Interface.
+
+   With (a), I would end the next round with `tests` and name these two row removals for the tester. No code change is needed after that.
+
+   Main design choice so far: in `DiskRecorder.record` I read `disk_records` and `settings` straight from `self._boundaries` instead of keeping local names. I rejected the locals because they only existed to narrow the type for the `None` check.
+
+   Seen but not touched: `CountingGit` in `tests/application/test_known_results.py` has no user since the tester removed a test; the tester raised this already. The refactor step will run once `make check` can be green.
+8. 2026-10-21 human: The human's answer (2026-10-21): (a), granted. The tester removes the `no-settings` row of `tests/application/test_cost_instance.py::test_a_cost_record_names_the_instance_of_the_settings_and_keeps_it_when_completed` (its parameters typed `InstanceSettings` and `str`) and the `no-settings` row of `tests/application/test_stop_records_service.py::test_a_raise_appends_a_raised_record_when_no_stop_of_its_reason_stands` (with `with_settings` and `local_settings if ... else None`). Each test keeps its name and its other rows. Recorded in the feature's decision 11.
+9. factory: started doing as self.
+10. coder: The human's answer (entry 8) calls for two test changes, and the coder never edits tests (R9). So I changed no code and send it back to the tester.
+
+    Remove the `no-settings` row from each of these two tests. Each test keeps its name and its other rows:
+    - `tests/application/test_cost_instance.py::test_a_cost_record_names_the_instance_of_the_settings_and_keeps_it_when_completed`: its parameters become typed `InstanceSettings` and `str`.
+    - `tests/application/test_stop_records_service.py::test_a_raise_appends_a_raised_record_when_no_stop_of_its_reason_stands`: `with_settings` and `local_settings if ... else None` go with the row.
+
+    The source change from the earlier doing round is already committed on the branch: nine modules under `src/factory/application/` (`boundaries.py`, `costs.py`, `disk_records.py`, `acceptance.py`, `known_results.py`, `provider_limits.py`, `stops.py`, `task.py`, `tick.py`). After the tester's change no more code should be needed; the refactor step and the green `make check` follow in the next doing round.
+
+    Still open: `CountingGit` in `tests/application/test_known_results.py` has no user since an earlier test was removed. The tester raised this before; the human's answer does not cover it, so it stays.
+11. factory: started tests as self.
+12. tester: I made the test change the human approved in entry 8, as the coder named it in entry 10. I changed only those two tests, and each keeps its name and its other rows.
+
+    - `tests/application/test_cost_instance.py::test_a_cost_record_names_the_instance_of_the_settings_and_keeps_it_when_completed`: removed the `no-settings` row `(None, None)` and its id. The parameters are now typed `settings: InstanceSettings` and `expected: str`. The `settings` row is the only one left; I kept it as a one-row parametrize so the test's shape stays as it was.
+    - `tests/application/test_stop_records_service.py::test_a_raise_appends_a_raised_record_when_no_stop_of_its_reason_stands`: removed the `no-settings` row. With it went the `with_settings` parameter (from the argnames, from each remaining row's leading `True` and from the signature) and the line `settings = local_settings if with_settings else None`. The service is now built with `settings=local_settings`.
+
+    Why: decision 8 and the Interface make `Boundaries.settings` required, and these rows tested the "no settings gives instance `None`" branches that the story removes.
+
+    Not changed: the helper `_raised` in test_stop_records_service.py still takes `instance: str | None`. The approved change does not name it, and it still type-checks. `CountingGit` in test_known_results.py is also still there with no user; this is still open for the human, as earlier entries say.
+
+    No files created. The test run imported every module.
+
+    `make test`: test: green (61.7 s), coverage 99.14 %. `make lint`: lint: green (0.2 s).
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (61.1 s)
+13. factory: started doing as self.
+14. coder: `make check` is green with the tester's two row removals from entry 12. I did not need to change any code for them. Both lines of the first smoke test give the expected result: the list of fields with a default is `[]`, and the grep for `None` comparisons now finds `0` across all of `src/factory/application/`, not just the seven modules the smoke test names.
+
+    What I built: the source change from the first doing round is already committed on the branch. It touches nine modules under `src/factory/application/`:
+    - `boundaries.py`: the six fields are required, and the "Last and optional" comment is gone.
+    - `costs.py`, `known_results.py`, `provider_limits.py`, `stops.py`, `task.py`, `tick.py`: each `is None` branch on the six fields is gone. The `ProviderLimit` import in `provider_limits.py` went with it, since nothing used it any more.
+    - `disk_records.py`: `DiskRecorder.record` now always returns a `DiskRecord` and its docstring lost the `None` sentence. `last()` returns `None` only when there is no record.
+    - `acceptance.py`: the `if now is None` branch in `_disk_lines` is gone.
+
+    Refactor in this round: one change. With the branch gone, `TaskComposer._os_user` in `src/factory/application/task.py` only read `settings.agent_user`, so I inlined it at its one caller and removed the method. I changed nothing else in the diff. The remaining local names (`settings` in `CostRecorder.begin` and `Tick._check_disk`, `disk` in `DiskRecorder.record`, `records` in `KnownResults.run`) are each read more than once or passed on to a helper. `make check` was green again after the inlining.
+
+    Main design choice: the services read the fields straight from `self._boundaries` where a local name existed only to narrow the type for the `None` check. The alternative I rejected was keeping those locals, which would add a name without a reason.
+
+    The journal changed the task only through the human's answer in entry 8: two more test rows were removed. The tester recorded this, and the `## Description` stays as it is.
+
+    Noticed but not touched: `CountingGit` in `tests/application/test_known_results.py` has had no user since the tester removed a test. This is still open for the human. Also, `_raised` in `tests/application/test_stop_records_service.py` still takes `instance: str | None`, which is no longer needed but still type-checks. Both are test code.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 38 known, 0 gone
+15. factory: started review as self.
+16. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (9 modules under `src/factory/application/`, 18 changed test files, 1 new test file) against the work item and the feature's decision 11.
+
+    Groups 1 to 3 pass:
+    - Criteria 1 and 2 are pinned in `tests/application/test_boundaries_required.py`.
+      - Criterion 1 is one parametrized test with one row per field. It checks both sides: `TypeError` without the field, and equality with the fixture when every field is given.
+      - Criterion 2 checks the fixture's concrete values.
+    - The `last()` rule (`None` only without a record) keeps its `empty-log` row.
+    - `make check` was green after the coder (entry 14).
+    - No module under `src/factory/application/` compares one of the six fields, or a local name read from one, with `None` (grep over all nine changed modules, `acceptance.py` included).
+    - The layers are unchanged, and the diff adds no check-silencing marker.
+
+    Findings (group 4, quality):
+    1. `src/factory/application/acceptance.py:155` (`AcceptanceService._disk_lines`): the return type is still `tuple[str | None, str | None]`, but since the `if now is None` branch went, the first element is always a `str`. The type still says what the removed branch did. Fix: type it `tuple[str, str | None]`. `acceptance_facts(disk_now=...)` accepts a `str`, so nothing else changes.
+    2. `tests/application/test_known_results.py:63` (`class CountingGit`): nothing uses it since `test_without_records_every_run_reaches_the_project_commands_and_no_key_is_built` was removed. It is dead code that this diff left behind. Fix: the tester removes it. That falls under decision 11, which lets each of its fifteen modules drop the helpers nothing uses any more (it drops `NO_SETTINGS` the same way). The coder ends with `tests` and names this change.
+    3. `tests/application/test_stop_records_service.py:37` (`_raised(..., instance: str | None)`): since the `no-settings` row went (entry 8), every caller passes `INSTANCE`, so the `| None` is unused. Decision 11 names exactly this kind of leftover ("the `| None` of its own helpers that nothing uses any more") in one of its fifteen modules. Fix: the tester types it `instance: str`, in the same `tests` hand-off as finding 2.
+
+    Earlier tests (changed, none renamed or deleted):
+    - tests/conftest.py: decision 11 (the `boundaries` fixture)
+    - tests/proof_support.py: decision 11 (`_assemble`)
+    - tests/entry/test_wiring_boundaries.py: decision 11
+    - tests/application/test_acceptance_facts_disk.py: decision 11
+    - tests/application/test_boundaries_settings.py: decision 11
+    - tests/application/test_cost_image.py: decision 11
+    - tests/application/test_cost_instance.py: the human's answer, journal entry 8
+    - tests/application/test_costs.py: decision 11
+    - tests/application/test_disk_recorder.py: decision 11
+    - tests/application/test_known_results.py: decision 11
+    - tests/application/test_patient_runs.py: decision 11
+    - tests/application/test_preflight.py: decision 11
+    - tests/application/test_stage_run_acceptance.py: decision 11
+    - tests/application/test_stop_publisher.py: decision 11
+    - tests/application/test_stop_records_service.py: decision 11 and the human's answer, journal entry 8
+    - tests/application/test_task_acceptance.py: decision 11
+    - tests/application/test_task_os_user.py: decision 11
+    - tests/application/test_tick_disk.py: decision 11
+17. factory: started doing as self.
+18. coder: Rework round 1. I dealt with the reviewer's three findings from entry 16: one is a code change, which I made; two are test changes, which go to the tester.
+
+    - Finding 1, done: in `src/factory/application/acceptance.py:157`, `AcceptanceService._disk_lines` is now typed `-> tuple[str, str | None]`. `DiskRecorder.record` always returns a record now, so the first element is always a `str`. `acceptance_facts(disk_now=...)` already accepts a `str`, so nothing else changed. `make check` was green afterwards (`check: green`, coverage 99.14 %).
+    - Finding 2, for the tester: in `tests/application/test_known_results.py`, remove the `CountingGit` class (line 63). Nothing has used it since the without-records test was removed. Decision 11 lets each of its modules drop helpers that nothing uses any more.
+    - Finding 3, for the tester: in `tests/application/test_stop_records_service.py`, type `_raised`'s parameter as `instance: str` instead of `str | None` (line 37). Every caller passes `INSTANCE` since the `no-settings` row went (entry 8). This is the "`| None` of its own helpers" that decision 11 names.
+
+    Both test changes keep every test's name and what it checks. After them, no code change should be needed. The next doing round only needs `make check` green.
+
+    Main choice: I fixed finding 1 now instead of holding it until after the tester's round, because it touches no test and is independent of findings 2 and 3. The alternative I rejected was sending all three in one hand-off, which would have meant an extra doing round for a one-line type change.
+
+    Refactor: nothing more beyond the one-line type change.
+
+    Noticed but not touched: nothing new.
+19. factory: started tests as self.
+20. tester: I made the two test changes that the coder named in entry 18, for the reviewer's findings 2 and 3 in entry 16. Decision 11 allows both: it lets each of its modules drop helpers, and the `| None` of its own helpers, once nothing uses them.
+
+    - `tests/application/test_known_results.py`: I removed the `CountingGit` class. Nothing has used it since the without-records test was removed. Its imports (`Sequence`, `override`, `GitCli`, `TreeId`) stay because `KeylessGit` still uses them.
+    - `tests/application/test_stop_records_service.py`: `_raised` now types its parameter as `instance: str` instead of `str | None`. Every caller passes `INSTANCE`.
+
+    No test was renamed, and each test still checks the same thing. There are no new criteria, so no new criterion-to-test mapping. No files created. The test run imported every module.
+
+    `make test`: test: green (61.9 s), coverage 99.14 %. `make lint`: lint: green (0.2 s). The next doing round needs no code change, only `make check` green.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (59.8 s)
+21. factory: started doing as self.
+22. coder: Rework round 1, after the tester's entry 20. I made no code change. The tester's two test changes cover the reviewer's findings 2 and 3 from entry 16: `CountingGit` is removed from `tests/application/test_known_results.py`, and `_raised` in `tests/application/test_stop_records_service.py` now types its parameter as `instance: str`. My earlier fix for finding 1 is unchanged: `AcceptanceService._disk_lines` in `src/factory/application/acceptance.py` returns `tuple[str, str | None]`. `make check` passed with these changes: `check: green`, coverage 99.14 %.
+
+    What I built: nothing new this round. The source change is already on the branch: the six fields of `Boundaries` in `src/factory/application/boundaries.py` are required, and the `is None` branches on them are gone from `costs.py`, `disk_records.py`, `acceptance.py`, `known_results.py`, `provider_limits.py`, `stops.py`, `task.py` and `tick.py` under `src/factory/application/`. Entries 14 and 18 describe this.
+
+    Main choice: I ended with `review` without touching the code again, because all three findings are now dealt with. I rejected a further clean-up pass, because the findings were the only open items and the rework round is limited to them.
+
+    Refactor: I re-read the diff and nothing needs changing.
+
+    The journal did not change the task's meaning in this round, so the `## Description` stays as it is.
+
+    Noticed but not touched: nothing new.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 38 known, 0 gone
+23. factory: started review as self.
+24. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`: 9 modules under `src/factory/application/`, 18 changed test files and 1 new test file, read against the work item and the feature's decisions 8, 10 and 11.
+
+    no findings
+
+    The three findings of round 0 (entry 16) are fixed:
+    - `src/factory/application/acceptance.py:157`: `_disk_lines` is now typed `-> tuple[str, str | None]`.
+    - `tests/application/test_known_results.py`: `CountingGit` is gone, and the imports it used are still used by `KeylessGit`.
+    - `tests/application/test_stop_records_service.py:37`: `_raised` now takes `instance: str`.
+
+    What I checked:
+    - **Criteria 1 and 2:** both are pinned in `tests/application/test_boundaries_required.py`. Criterion 1 is one parametrized test with a row per field, and it checks both sides: `TypeError` when the field is left out, and equality with the fixture when all fields are given. Criterion 2 checks the fixture's concrete values.
+    - **Criteria 3 and 4:** these rest on existing tests, changed only under decision 11 and entry 8. The `last()` rule keeps its `empty-log` row.
+    - **Check result:** the factory's `make check` after the coder was green (entry 22), with 0 new duplicates.
+    - **`None` comparisons:** no module under `src/factory/application/` compares one of the six fields, or a local name read from one, with `None`. I read every changed module, `acceptance.py` included.
+    - **Architecture and security:** the layers are unchanged, and the diff adds no marker that silences a check.
+    - **Refactor:** inlining `TaskComposer._os_user` at its one caller is a refactor that changes no behaviour.
+    - **Description and docs criterion:** both still match what was built.
+
+    Not raised as a finding: `agent_home: AgentHome | None = None` (`src/factory/application/boundaries.py:51`) no longer has a comment, because it used to sit under the removed "Last and optional" comment. The feature's decision 10 planned "a comment of its own reason" for it. The story's Interface only says the old comment goes, so this is for the human to pick up if they want it.
+
+    Earlier tests (all status M; none renamed or deleted):
+    - tests/conftest.py: decision 11 (the `boundaries` fixture)
+    - tests/proof_support.py: decision 11 (`_assemble`)
+    - tests/entry/test_wiring_boundaries.py: decision 11
+    - tests/application/test_acceptance_facts_disk.py: decision 11
+    - tests/application/test_boundaries_settings.py: decision 11
+    - tests/application/test_cost_image.py: decision 11
+    - tests/application/test_cost_instance.py: the human's answer, journal entry 8
+    - tests/application/test_costs.py: decision 11
+    - tests/application/test_disk_recorder.py: decision 11
+    - tests/application/test_known_results.py: decision 11, which lets a module drop the helpers nothing uses any more (`CountingGit`, removed for round 0's finding 2)
+    - tests/application/test_patient_runs.py: decision 11
+    - tests/application/test_preflight.py: decision 11
+    - tests/application/test_stage_run_acceptance.py: decision 11
+    - tests/application/test_stop_publisher.py: decision 11
+    - tests/application/test_stop_records_service.py: decision 11 and the human's answer, journal entry 8 (the `| None` of `_raised` dropped under decision 11)
+    - tests/application/test_task_acceptance.py: decision 11
+    - tests/application/test_task_os_user.py: decision 11
+    - tests/application/test_tick_disk.py: decision 11
+25. factory: started docs as self.
+26. documenter: Documentation for the six required `Boundaries` fields. I changed only documents, so I did not run `make check`; the factory runs it next. `make documents` gives "documents ok", and `grep -c 'holds `None`' docs/project-guide/watching.md` gives 0. No findings: the code matches the Interface (read from the diff).
+
+    Files changed:
+    - docs/project-guide/watching.md: *Boundaries* now lists `settings`, `disk`, `disk_records`, `stop_records`, `waiter` and `result_records` as required (no default, no `None`, `TypeError` without one; `build_boundaries` sets all six). The `settings` paragraph lost "a `Boundaries` built by hand holds `None`". The `boundaries` fixture paragraph names the six as the fixture sets them and says a test replaces a collaborator, never uses `None`. Tick step 0 lost the `None` sentence. The stop-records paragraph lost "With `stop_records` `None` both behave as before" and the `| None` type. The `DiskSpace` sentence no longer calls `disk` optional.
+    - docs/project-guide/stages.md: `PatientRuns` loops whenever a run ends `provider_limit`; the clauses on a missing waiter and on `ProviderLimit()` without settings are gone. `Waiter` lost "`None` in a `Boundaries` built by hand". `TaskComposer`'s `os_user` is `settings.agent_user`.
+    - docs/project-guide/processes-and-checks.md: *Known results* moved the records and path of `result_records` into the intro, dropped the "without result_records" step and renumbered the list (4 steps), and `image` has no "without settings" case. `DiskRecorder.record` always returns the record, and `disk_records` is no longer "(optional)".
+    - docs/project-guide/agents.md: `os_user` lost "or `None` without settings".
+    - docs/project-guide/costs.md: `image` and `instance` lost the "`None` when the `Boundaries` holds no settings" clauses.
+    - docs/project-guide/work-items.md: the acceptance facts lost "Without the disk, the record log or the settings both stay `None`".
+    - docs/operator-guide.md: the stop record's `instance` is no longer "`null` without settings"; the factory always sets it now (the criterion said none for this file, but this clause became false).
+    - docs/decisions.md: the entry *The services read the instance's settings from `Boundaries.settings`* now says the field "was optional" and has a dated line (2026-10-21, F0039-S0006, decision 8) that the six fields became required once `build_boundaries` set them all, because an optional collaborator let a construction drop a stop silently.
+
+    README.md: none, as the criterion says.
+
+    Cross-read and found current: README.md, docs/project-guide/README.md, write-guard.md (its `None`s are about `refusal`, not these fields).
+
+    Stale text seen, not touched:
+    - docs/decisions.md line 491 (the cost record's `instance`): "without settings it is `None`" is the log's account of that day's decision, so I left it. The model's `instance` is still optional when read.
+    - `agent_home: AgentHome | None = None` in `boundaries.py` has no comment of its own, which the feature's decision 10 planned (raised by the reviewer; code, not mine).
+
+    `check`: check: green (not run again: passed on tree c55c67ad5a9b at 2026-10-21T06:11:08Z)
+27. factory: Stage docs stalled (attempt 1 of 2): a check is red after the stage: `secrets`
+    Installed 106 packages in 86ms
+    Bytecode compiled 4164 files in 351ms
+    ERROR: Potential secrets about to be committed to git repo!
+
+    Secret Type: Secret Keyword
+    Location:    docs/project-guide/costs.md:18
+
+    Possible mitigations:
+      - For information about putting your secrets in a safer place, please ask in
+        #security
+      - Mark false positives with an inline `pragma: allowlist secret` comment
+
+    If a secret has already been committed, visit
+    https://help.github.com/articles/removing-sensitive-data-from-a-repository
+    make: *** [Makefile:54: secrets] Error 1
+28. factory: started docs as self.
+29. documenter: Round 1: fixed the red `secrets` check from the last round. I changed only documents, so I did not run `make check`; the factory runs it next.
+
+    The cause was `docs/project-guide/costs.md:18`. My round-0 edit removed ", `None` without settings" from the record paragraph and left "kept by `complete`; either status may carry it". detect-secrets' keyword detector flagged the edited line as a "Secret Keyword", which is a false positive. The line on `main` passes, and the baseline has no entry for this file.
+
+    File changed:
+    - docs/project-guide/costs.md: one sentence of line 18 now reads "set by `begin` from the settings and kept by `complete`, so either status may carry it". The meaning is the same, and the detector no longer flags the line.
+
+    Checks run: `detect-secrets-hook --baseline .secrets.baseline docs/project-guide/costs.md` passes, and `make documents` gives "documents ok". I added no baseline entry and no `pragma: allowlist secret`.
+
+    The round-0 documentation stays as written. It covers watching.md, stages.md, processes-and-checks.md, agents.md, costs.md, work-items.md, operator-guide.md and decisions.md. I cross-read README.md, docs/project-guide/README.md and write-guard.md and found them current. The code matches the Interface, so I have no findings for the coder.
+
+    Stale text I saw and did not touch:
+    - docs/decisions.md ~line 491 (the cost record's `instance`): "without settings it is `None`" is the log's account of that day's decision, so I left it.
+    - `agent_home: AgentHome | None = None` in `src/factory/application/boundaries.py` has no comment of its own, which the feature's decision 10 planned. The reviewer raised it, and it is code, so it is not mine to edit.
+
+    `check`: check: green (not run again: passed on tree c55c67ad5a9b at 2026-10-21T06:11:08Z)
+    `secrets`: secrets: green (3.4 s)
+    `documents`: documents ok
+30. factory: started smoke-test as self.
+31. smoke-tester: Ran both commands under `## Smoke test` from the repository root, exactly as written and in order. I changed nothing.
+
+    Command 1 (the dataclass-fields script, then the `grep … | wc -l` over the seven application modules):
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 80ms
+    Bytecode compiled 4164 files in 351ms
+    []
+    0
+    ```
+    Met its `Expect:` line. The program printed two lines, `[]` and `0`. The lines above them are uv's stderr while it built the fresh `.venv` (first `uv run` in this checkout); they are not the program's output.
+
+    Command 2 (`grep -c 'holds `None`' docs/project-guide/watching.md`):
+    ```
+    0
+    ```
+    Met its `Expect:` line: one line, `0`. grep exits 1 when the count is 0; that is how `grep -c` reports no match, not an error.
+
+    Checked against the acceptance criteria. Criterion 4 says no module under `src/factory/application/` compares one of the six fields, or a local name read from one, with `None`. The smoke test's grep covers only seven modules, so I also ran a wider grep over all of `src/factory/application/`. It looked for `(settings|disk|disk_records|stop_records|waiter|result_records|now) is (not )?None` and found nothing, which covers the `AcceptanceService._disk_lines` branch too. The only `None` left in `boundaries.py` is `agent_home: AgentHome | None = None`, which the description says stays optional. The smoke test contradicts no criterion. I did not run `make check` (criterion 5); the factory runs it as the stage's check.
+
+    Findings: none.

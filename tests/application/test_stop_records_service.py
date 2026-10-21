@@ -34,7 +34,7 @@ def _stop(reason: RepositoryStopReason, minute: int = 0) -> RepositoryStop:
     )
 
 
-def _raised(reason: RepositoryStopReason, minute: int, instance: str | None) -> StopRecord:
+def _raised(reason: RepositoryStopReason, minute: int, instance: str) -> StopRecord:
     stop = _stop(reason, minute)
     return StopRecord(
         event="raised", scope=stop.scope, reason=reason, at=stop.at, instance=instance
@@ -42,31 +42,22 @@ def _raised(reason: RepositoryStopReason, minute: int, instance: str | None) -> 
 
 
 @pytest.mark.parametrize(
-    ("with_settings", "stops", "expected"),
+    ("stops", "expected"),
     [
         pytest.param(
-            True,
             [_stop("fetch_failed")],
             [_raised("fetch_failed", 0, INSTANCE)],
             id="first-raise",
         ),
         pytest.param(
-            True,
             [_stop("fetch_failed"), _stop("fetch_failed", 1)],
             [_raised("fetch_failed", 0, INSTANCE)],
             id="second-raise-while-standing",
         ),
         pytest.param(
-            True,
             [_stop("fetch_failed"), _stop("disk_low", 1)],
             [_raised("fetch_failed", 0, INSTANCE), _raised("disk_low", 1, INSTANCE)],
             id="other-reason-while-standing",
-        ),
-        pytest.param(
-            False,
-            [_stop("fetch_failed")],
-            [_raised("fetch_failed", 0, None)],
-            id="no-settings",
         ),
     ],
 )
@@ -75,12 +66,10 @@ def test_a_raise_appends_a_raised_record_when_no_stop_of_its_reason_stands(
     local_settings: InstanceSettings,
     records: JsonLinesRecordLog[StopRecord],
     *,
-    with_settings: bool,
     stops: list[RepositoryStop],
     expected: list[StopRecord],
 ) -> None:
-    settings = local_settings if with_settings else None
-    service = StopService(replace(boundaries, stop_records=records, settings=settings))
+    service = StopService(replace(boundaries, stop_records=records, settings=local_settings))
 
     for stop in stops:
         service.raise_stop(stop)
@@ -123,27 +112,6 @@ def test_a_clear_of_a_standing_stop_appends_a_cleared_record_at_the_clock_time(
     assert [(record.event, record.scope, record.reason) for record in written] == expected
     assert all(record.at == clock.now() for record in written)
     assert all(record.instance == INSTANCE for record in written)
-
-
-def test_without_stop_records_a_raise_and_a_clear_write_only_the_log_and_the_health_status(
-    boundaries: Boundaries, tmp_path: Path
-) -> None:
-    service = StopService(boundaries)
-
-    service.raise_stop(_stop("fetch_failed"))
-    assert boundaries.health.read().stops == [_stop("fetch_failed")]
-    service.clear_stop("fetch_failed")
-
-    assert boundaries.health.read().stops == []
-    texts = [line.split(" ", 1)[1] for line in log_lines(tmp_path)]
-    assert texts == [
-        "stop repository fetch_failed: fetch_failed detail",
-        "stop cleared fetch_failed",
-    ]
-    assert sorted(path.name for path in (tmp_path / "state").iterdir()) == [
-        "factory.log",
-        "health.json",
-    ]
 
 
 def _raise(service: StopService) -> None:

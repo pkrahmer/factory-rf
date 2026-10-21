@@ -125,9 +125,15 @@ def test_an_acceptance_at_the_acceptance_stage_gets_the_feature_facts_appended(
 
     prompt = _compose(boundaries, definition, context)
 
-    facts = AcceptanceService(boundaries, definition).facts("F0002")
+    later = AcceptanceService(boundaries, definition).facts("F0002")
+    facts = later.model_copy(update={"disk_before": None})
     assert prompt == acceptance_prompt(_base_prompt(definition, context), facts)
-    assert prompt.split("\n")[-5:] == ["", *facts.lines()]
+    assert prompt.split("\n")[-7:] == ["", *facts.lines()]
+    assert facts.lines()[-2:] == [
+        f"Disk now: disk acceptance: {tmp_path} 1000.0 GB free, 0.0 GB used; "
+        f"{tmp_path / 'state'} 1000.0 GB free, 0.0 GB used",
+        "Disk at the previous record: none",
+    ]
 
 
 @pytest.mark.usefixtures("todo")

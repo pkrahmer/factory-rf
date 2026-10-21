@@ -15,8 +15,8 @@ from human_clone import HumanClone
 
 @pytest.mark.parametrize(
     ("settings", "expected"),
-    [(_settings("build-7"), "factory-1"), (None, None)],
-    ids=["settings", "no-settings"],
+    [(_settings("build-7"), "factory-1")],
+    ids=["settings"],
 )
 def test_a_cost_record_names_the_instance_of_the_settings_and_keeps_it_when_completed(
     boundaries: Boundaries,
@@ -24,8 +24,8 @@ def test_a_cost_record_names_the_instance_of_the_settings_and_keeps_it_when_comp
     human: HumanClone,
     agent_home: Path,
     agent_runtime: FakeAgentRuntime,
-    settings: InstanceSettings | None,
-    expected: str | None,
+    settings: InstanceSettings,
+    expected: str,
 ) -> None:
     used = replace(boundaries, settings=settings)
     launched = _launch(used, human, agent_home, agent_runtime)

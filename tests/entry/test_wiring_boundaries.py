@@ -4,7 +4,6 @@ import json
 import os
 import shutil
 from collections.abc import Callable
-from dataclasses import fields
 from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -24,7 +23,6 @@ from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.pygithub_hosting import PyGithubHostingService
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
-from factory.application.boundaries import Boundaries
 from factory.application.project_agents import ProjectAgentDefinitions
 from factory.application.project_commands import RecordingProjectCommands
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
@@ -216,18 +214,10 @@ def test_build_boundaries_picks_the_concrete_adapters_and_writes_nothing(
     assert not settings.checkout.exists()
 
 
-def test_the_built_boundaries_read_the_disk_and_boundaries_without_one_have_none(
-    settings: InstanceSettings,
-) -> None:
+def test_the_built_boundaries_read_the_disk(settings: InstanceSettings) -> None:
     boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
-    others = {
-        field.name: getattr(boundaries, field.name)
-        for field in fields(boundaries)
-        if field.name != "disk"
-    }
 
     assert isinstance(boundaries.disk, ShutilDiskSpace)
-    assert Boundaries(**others).disk is None
 
 
 def test_the_built_git_runs_with_the_git_options_of_the_settings(

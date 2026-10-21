@@ -15,7 +15,6 @@ from factory.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import CHECKOUT, PIPELINE_YAML
 
 ENVIRONMENT = {"PATH": "/opt/guard", "HOME": "/home/agent"}
-NO_SETTINGS = "no-settings"
 
 
 def _context(tmp_path: Path) -> TaskContext:
@@ -44,18 +43,14 @@ def _agent() -> AgentDefinition:
 
 @pytest.mark.parametrize(
     ("agent_user", "expected"),
-    [("agent", "agent"), (None, None), (NO_SETTINGS, None)],
-    ids=["agent-user", "no-agent-user", "no-settings"],
+    [("agent", "agent"), (None, None)],
+    ids=["agent-user", "no-agent-user"],
 )
 def test_the_request_runs_as_the_settings_agent_user_with_the_given_environment(
     boundaries: Boundaries, tmp_path: Path, *, agent_user: str | None, expected: str | None
 ) -> None:
-    settings = (
-        None
-        if agent_user == NO_SETTINGS
-        else InstanceSettings(
-            repository_url="/srv/project.git", instance="factory-1", agent_user=agent_user
-        )
+    settings = InstanceSettings(
+        repository_url="/srv/project.git", instance="factory-1", agent_user=agent_user
     )
     composer = TaskComposer(
         dataclasses.replace(boundaries, settings=settings),
