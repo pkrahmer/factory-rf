@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 379
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T00:24:13.456802Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T00:24:13.456802Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T00:24:30.483005Z'
+  stage: intake
+  run: e7c57f9cf8da45748d5ea61ca7d3f221
 ---
 
 # The runtimes read the end of a call in one place
@@ -110,3 +112,9 @@ Expect: four lines, `True`, `False`, `/opt/factory/bin/factory-confine refused t
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: `CallEnd`, `read_call_end` and `state_directory_error` are named with full signatures in `agent_launch`. `killed_at_limit` and `call_refusal` exist with the signatures the story assumes (checked in `agent_launch.py`). The runtime changes are stated for the reviewer, and `CallEnd` keeps `read_call_end` within `max-args`.
+   - Criteria: each is testable by one parametrized or single test function. 1 covers both sides of the time-limit reading: `os_user` None vs set, `timed_out` True, a kill status vs status 0, and duration at, above and below the limit. 2 covers the refusal rules from the failing side (sudo, confine, and the kill read first) and the passing side (stderr ignored when the reply was printed and the call was not killed, empty stderr). 3 covers the error text. 4 pins the runtimes' behaviour through the existing tests, 5 is `make check`, and 6 is the docs criterion.
+   - Smoke test: the command is runnable and uses only names the Interface defines. The `Expect:` line gives four checkable lines. It does not run pytest, so the `-q` rule does not apply.
+   - Architecture: the sequence moves within the adapters layer. `agent_launch` imports nothing of `process`, and the runtimes keep their process calls. This follows the decision log entry cited in the feature's decisions 1 to 3.
+   - Scope: the story is inside the feature's scope. It does not touch the state directory difference or the process calls, which the feature's "Out of scope" lists, and it changes no earlier test.
