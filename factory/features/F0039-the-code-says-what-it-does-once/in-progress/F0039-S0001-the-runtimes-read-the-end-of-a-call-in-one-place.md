@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T00:24:13.456802Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T00:24:13.450751Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:24:13.456802Z'
+  stage: intake
+---
+
 # The runtimes read the end of a call in one place
 
 ## Description
@@ -80,3 +107,6 @@ PY
 Expect: four lines, `True`, `False`, `/opt/factory/bin/factory-confine refused the agent run: factory-confine: landlock is not available` and `cannot write the state directory /state/runs: [Errno 13] Permission denied`
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
