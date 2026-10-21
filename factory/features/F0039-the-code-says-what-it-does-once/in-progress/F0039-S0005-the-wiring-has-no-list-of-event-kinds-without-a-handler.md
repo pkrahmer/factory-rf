@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 384
-comments_read: []
+comments_read: [6306079635]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: fc8ab75cc0294e95af850cf25b5e6a28
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-21T01:55:33.124345Z'
+  stage: intake
 ---
 
 # The wiring has no list of event kinds without a handler
@@ -83,3 +88,4 @@ Expect: two lines, `False False` and `0` (before the story, `True True` and `6`)
    - The architecture is respected: `factory.entry.wiring` only loses a constant.
    - The scope is within F0039, and `unhandled_kinds` stays as the feature's Out of scope says.
    - The test changes are covered by decision 7, which the human granted.
+4. 2026-10-21 human: Answer (2026-10-21): (a). Criterion 3 reads "no module under `tests/` except `tests/entry/test_wiring_constants.py` names `NOT_YET_HANDLED`", and the smoke test expects `1` (before the story, `6`).
