@@ -20,7 +20,7 @@ from factory.domain.errors import CannotHandle
 from factory.domain.events import Event, EventKind
 from factory.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
-from factory.entry.wiring import NOT_YET_HANDLED, build_handlers, handler_factory
+from factory.entry.wiring import build_handlers, handler_factory
 from git_support import PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
 
@@ -74,7 +74,6 @@ def test_every_kind_has_a_handler_and_acceptance_due_opens_the_acceptance(
 ) -> None:
     handlers = build_handlers(boundaries, pipeline_definition(boundaries), INSTANCE, ENVIRONMENT)
 
-    assert NOT_YET_HANDLED == ()
     assert set(handlers) == set(get_args(EventKind))
     assert unhandled_kinds(handlers) == []
     assert isinstance(handlers["acceptance_due"], AcceptanceDueHandler)

@@ -11,7 +11,7 @@ import pytest
 from definition_support import pipeline_definition
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
-from factory.application.dispatcher import Dispatcher, unhandled_kinds
+from factory.application.dispatcher import Dispatcher
 from factory.application.handlers.run_gate import RunGate
 from factory.application.stops import StopService
 from factory.application.tick import IdleHandler, Tick
@@ -20,7 +20,6 @@ from factory.domain.events import Event, EventKind
 from factory.domain.tick_status import TickStatus, find_error
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.entry.wiring import (
-    NOT_YET_HANDLED,
     agent_environment,
     build_handlers,
     handler_factory,
@@ -83,14 +82,6 @@ def test_build_handlers_registers_the_idle_handler_and_the_gated_run_handler(
     assert {"idle", "run"} <= set(handlers)
     assert isinstance(handlers["idle"], IdleHandler)
     assert isinstance(handlers["run"], RunGate)
-
-
-def test_the_kinds_without_a_handler_are_exactly_those_not_yet_handled(
-    boundaries: Boundaries,
-) -> None:
-    handlers = build_handlers(boundaries, pipeline_definition(boundaries), INSTANCE, ENVIRONMENT)
-
-    assert unhandled_kinds(handlers) == list(NOT_YET_HANDLED)
 
 
 @pytest.mark.parametrize(

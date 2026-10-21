@@ -92,7 +92,6 @@ from factory.domain.stops import StopRecord
 __all__ = [
     "CREDENTIAL_HELPER",
     "FRESH_HOME_MODULE",
-    "NOT_YET_HANDLED",
     "UV_CACHE_FOLDER",
     "agent_environment",
     "agent_home_of",
@@ -119,9 +118,6 @@ __all__ = [
     "repository_name",
     "system_clock",
 ]
-
-# The kinds with no handler yet, in the order of `EventKind`; registering one removes it here.
-NOT_YET_HANDLED: tuple[EventKind, ...] = ()
 
 _SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
 
