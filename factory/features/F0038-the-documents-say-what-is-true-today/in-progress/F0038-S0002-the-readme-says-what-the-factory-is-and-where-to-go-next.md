@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 389
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T06:51:10.904717Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T06:51:10.904717Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T06:52:30.055046Z'
+  stage: tests
+  run: 2367ddd6981d47c2a53aecdb686d3aba
 ---
 
 # The README says what the factory is, that an instance runs in the container, and where to go next
@@ -88,3 +90,13 @@ Expect: `documents ok`
    - Architecture: no layer is touched. The story only edits `README.md`, which the documenter writes and `CLAUDE.md`'s *Docs* section assigns to it.
    - Scope: it matches feature.md's Scope line for S0002 (H2, M10, M11). It leaves out the README rewrite (S3, structural proposal), which feature.md puts out of scope.
 4. factory: started tests as self.
+5. tester: I wrote no tests. This story only changes documents, and criterion 1 forbids any change under `tests/`.
+   - criterion 1 (nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes): no test function, because a test would itself break the criterion. I changed nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. `git status` shows only the factory's own `.costs.jsonl` sidecar.
+   - criterion 2 (`make check` stays green): no test function. The factory's check gate covers it.
+   - criterion 3 (docs: `README.md`): no test function. It is the documenter's criterion. The smoke test's greps and `make documents` check it.
+   Files I created: none. Modules the test runner could not import: none, because there are no new tests.
+   I did not run `make test` (step 2): with no new tests, nothing could fail for the right reason. The suite is the same as on `origin/main`, and the factory runs it after this stage. `make lint`: green (0.6 s).
+   I rejected one option: a structural test that reads `README.md` for the required text. It would add a file under `tests/`, which criterion 1 forbids, and the smoke test already covers the same checks.
+
+   `lint`: lint: green (0.6 s)
+   `test`: test: green (59.5 s)
