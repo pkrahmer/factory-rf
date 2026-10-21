@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 387
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T06:39:49.052491Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-21T06:39:28.593009Z'
   stage: review
   run: 1cd4775f09b7485686ab27ce06746b17
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:39:49.052491Z'
+  stage: docs
 ---
 
 # The tests of the agent's user share their stand-in sudo and their recording log
@@ -206,3 +215,4 @@ Expect: one summary line with a count of `passed`, and no `failed` and no `error
    - `tests/application/test_nested_repositories.py`: the standing leave to move a shared test helper (`RecordingLog` imported from `recording_log`).
    - `tests/application/test_sealed_project_commands.py`: the standing leave to move a shared test helper (`RecordingLog` imported from `recording_log`).
    - `tests/domain/test_agent_home.py`: the human's leave, decision 18 in the feature's `feature.md` (`match=re.escape(refused)`).
+10. factory: started docs as self.
