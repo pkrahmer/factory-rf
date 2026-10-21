@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 394
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T07:38:21.227590Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-21T07:38:00.254092Z'
   stage: doing
   run: b409338cdbdf49a7b9c72a6950b59f46
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:38:21.227590Z'
+  stage: review
 ---
 
 # The operator guide opens with its contents and states the current rule without its history
@@ -142,3 +151,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
+8. factory: started review as self.
