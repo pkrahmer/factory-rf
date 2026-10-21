@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T05:55:43.528531Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-21T05:55:22.924579Z'
   stage: doing
   run: 85bc4d1cb10c470885c72a290853e81e
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-21T05:55:43.528531Z'
+  stage: tests
 ---
 
 # The boundaries have no optional collaborators
@@ -226,3 +235,4 @@ Expect: one line, `0` (before the story, `1`)
     The source change from the earlier doing round is already committed on the branch: nine modules under `src/factory/application/` (`boundaries.py`, `costs.py`, `disk_records.py`, `acceptance.py`, `known_results.py`, `provider_limits.py`, `stops.py`, `task.py`, `tick.py`). After the tester's change no more code should be needed; the refactor step and the green `make check` follow in the next doing round.
 
     Still open: `CountingGit` in `tests/application/test_known_results.py` has no user since an earlier test was removed. The tester raised this before; the human's answer does not cover it, so it stays.
+11. factory: started tests as self.
