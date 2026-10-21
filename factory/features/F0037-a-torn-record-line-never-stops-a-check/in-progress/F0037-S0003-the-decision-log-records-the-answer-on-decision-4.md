@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 377
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T00:13:04.819245Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T00:13:04.819245Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T00:14:35.547802Z'
+  stage: doing
+  run: bd2a50c73ae4474ea2548ae2f6eb259f
 ---
 
 # The decision log records the human's answer on F0037's decision 4
@@ -97,3 +99,13 @@ Expect: `documents ok`
    `lint`: lint: green (0.5 s)
    `test`: test: green (62.9 s)
 6. factory: started doing as self.
+7. coder: No code changed. This story only changes documentation, and its Interface says no module under `src/factory/` changes. The edit to `docs/decisions.md` is the documenter's work, not the coder's.
+   - Criterion 1 (nothing under `src/` or `tests/` changes): this entry is the coder's half of it. I created and changed no file. `git diff main --stat -- src tests` is empty.
+   - Criterion 2: `make check` is green (`test: green (60.7 s)`, `check: green`).
+   - Criterion 3: left to the documenter. The bullet "Open (decision 4): …" in the entry *A record line that is not UTF-8 is skipped* becomes "Answered (decision 4, the human, 2026-10-20): …", with the reason, and the entry's date line names decision 4.
+   - Main choice: I left `docs/` alone, even though the edit is small. CLAUDE.md gives the decision log to the documenter stage. The alternative I rejected was writing the bullet myself in this stage.
+   - Refactor: there is no diff, so there was nothing to refactor.
+   - Noticed but did not touch: nothing.
+
+   `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
+   `duplicates`: duplicates: 6 new, 33 known, 3 gone
