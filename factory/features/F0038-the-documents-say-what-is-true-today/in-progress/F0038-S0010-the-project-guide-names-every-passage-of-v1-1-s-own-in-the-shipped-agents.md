@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 398
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-21T08:17:47.342013Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-21T08:17:47.342013Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T08:18:05.059834Z'
+  stage: intake
+  run: d299f6484b2e447ab859905e28f64a33
 ---
 
 # The project guide names every passage of v1.1's own in the shipped agents
@@ -70,3 +72,9 @@ Expect: `documents ok`
 
 1. 2026-10-21 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is right for a documents-only story. It says what the documenter changes (`docs/project-guide/agents.md` only) and how it checks the list (`git log -p 830029c9.. -- claude/agents/` and the shipped bodies). No signature is needed.
+   - Criteria: the three criteria are checkable. 1: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changes. 2: `make check` stays green. 3: the docs criterion names the exact sentences to replace and the nine stories that must be named. It also gives the replacement for the *Replaced from v1* phrase and ends with `documents ok`. The rule "no sentence gives a count" has its failing side in smoke test 1. The open clause "any other passage the Interface's git log shows" depends on the documenter's judgement. I accept it because the Description names the passages and the Interface gives the method.
+   - Smoke test: all four commands run as written. The `|| true` keeps the first one's exit status clean. No pytest is involved, so the `-q` rule does not apply. Each `Expect:` line can be checked against the output: `0`, nine `named:` lines, `0` followed by the docs path, and `documents ok`.
+   - Architecture: the story changes only a project-guide document. It touches no layer and no code.
+   - Scope: the story is within F0038's scope, which lists S0010 as "every passage of v1.1's own in the shipped agents". It touches only `agents.md` and none of the feature's "Out of scope" items. The feature file's note that it runs after S0004 is the human's ordering, not a problem for the story.
