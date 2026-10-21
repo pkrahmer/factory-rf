@@ -16,7 +16,7 @@ from application.test_after_agent import (
     _stalled,
     _started_attempts,
 )
-from application.test_checkout_preparer_seal import RecordingLog, _existing, _settings
+from application.test_checkout_preparer_seal import _existing, _settings
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
@@ -33,6 +33,7 @@ from factory.domain.post_texts import stall_note
 from factory.domain.settings import InstanceSettings
 from git_support import TEST_IDENTITY, install_agents, run_git, write_fsmonitor
 from human_clone import HumanClone
+from recording_log import RecordingLog
 from root_support import AS_ROOT
 from sealed_run_support import COMPLETED, run_request
 from stage_run_support import pushed

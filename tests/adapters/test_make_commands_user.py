@@ -1,105 +1,29 @@
 """The make class runs its commands as another user through `sudo -n -u ... timeout ... env -i`."""
 
-import json
 import time
 from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel, ConfigDict
 
-from confine_support import read_records, write_script
+from factory.adapters.agent_launch import LEFTOVERS_FAULT
 from factory.adapters.make_commands import CommandUser, MakeProjectCommands
 from factory.domain.errors import ProjectCommandError
 from leftovers_runtime_support import LEFTOVERS_LINE, OTHER_USER, SUDO_LINE, own_user, write_program
+from sudo_support import write_sudo
 
 LIMIT = timedelta(seconds=30)
 SHORT_LIMIT = timedelta(seconds=3)
 UPPER_BOUND_SECONDS = 25
 PATH = "/usr/bin:/bin"
 WARNING = "sudo: unable to resolve host x"
-LEFTOVERS_FAULT = "cannot end the agent's processes: "
 
 CHECK_RECIPES = (
     '@echo "home=$$HOME token=$${FACTORY_TOKEN_FILE:-unset}"',
     '@echo "to-stderr" >&2',
     '@echo "check: green (0.1 s)"',
 )
-
-# Records its arguments, environment and working directory; then, unless it starts the
-# leftovers program, writes its planned warning and either exits as planned, after its
-# planned wait, or runs what follows `--`.
-SUDO_SCRIPT = r"""
-import json
-import os
-import sys
-import time
-from pathlib import Path
-
-here = Path(__file__).resolve().parent
-arguments = sys.argv[1:]
-record = {
-    "arguments": arguments,
-    "environment": dict(os.environ),
-    "working_directory": os.getcwd(),
-}
-with (here / "sudo-calls.jsonl").open("a", encoding="utf-8") as out:
-    out.write(json.dumps(record) + "\n")
-plan = json.loads((here / "sudo-plan.json").read_text(encoding="utf-8"))
-rest = arguments[arguments.index("--") + 1 :]
-if rest[0] != plan["program"]:
-    sys.stderr.write(plan["warning"])
-    sys.stderr.flush()
-    if plan["exit_status"] is not None:
-        sys.stderr.write(plan["stderr"])
-        time.sleep(plan["wait_seconds"])
-        sys.exit(plan["exit_status"])
-os.execvp(rest[0], rest)
-"""
-
-
-class SudoCall(BaseModel):
-    """One call the stand-in `sudo` saw."""
-
-    model_config = ConfigDict(frozen=True, extra="forbid")
-
-    arguments: list[str]
-    environment: dict[str, str]
-    working_directory: Path
-
-
-@dataclass(frozen=True)
-class Sudo:
-    """The stand-in `sudo` and the folder that holds its record."""
-
-    path: Path
-    folder: Path
-
-    def calls(self) -> list[SudoCall]:
-        """The calls it recorded, in order."""
-        return read_records(self.folder / "sudo-calls.jsonl", SudoCall)
-
-
-def _write_sudo(
-    folder: Path,
-    *,
-    exit_status: int | None = None,
-    stderr: str = "",
-    warning: str = "",
-    program: Path | None = None,
-    wait_seconds: float = 0,
-) -> Sudo:
-    path = write_script(folder / "sudo", SUDO_SCRIPT)
-    plan = {
-        "exit_status": exit_status,
-        "stderr": stderr,
-        "warning": warning,
-        "program": str(program),
-        "wait_seconds": wait_seconds,
-    }
-    (folder / "sudo-plan.json").write_text(json.dumps(plan), encoding="utf-8")
-    return Sudo(path=path, folder=folder)
 
 
 def _write_makefile(directory: Path, *, removes: Path | None = None) -> None:
@@ -137,7 +61,7 @@ def test_the_command_runs_through_sudo_timeout_and_env_with_only_the_user_s_envi
 ) -> None:
     monkeypatch.setenv("FACTORY_TOKEN_FILE", "/run/token")
     home = tmp_path / "home"
-    sudo = _write_sudo(tmp_path / "sudo-bin")
+    sudo = write_sudo(tmp_path / "sudo-bin")
     user = _user(str(sudo.path), environment={"PATH": PATH, "HOME": str(home)})
 
     result = MakeProjectCommands(project, user=user).run("check", time_limit=LIMIT)
@@ -174,7 +98,7 @@ def test_the_command_runs_through_sudo_timeout_and_env_with_only_the_user_s_envi
 def test_the_limit_is_given_to_timeout_in_whole_seconds_rounded_up(
     tmp_path: Path, project: Path, time_limit: timedelta, word: str
 ) -> None:
-    sudo = _write_sudo(tmp_path / "sudo-bin")
+    sudo = write_sudo(tmp_path / "sudo-bin")
 
     MakeProjectCommands(project, user=_user(str(sudo.path))).run("check", time_limit=time_limit)
 
@@ -187,7 +111,7 @@ def test_the_outer_make_variables_of_the_user_s_environment_are_left_out(
     tmp_path: Path, project: Path, variable: str
 ) -> None:
     name, value = variable.split("=", 1)
-    sudo = _write_sudo(tmp_path / "sudo-bin")
+    sudo = write_sudo(tmp_path / "sudo-bin")
     user = _user(str(sudo.path), environment={"PATH": PATH, name: value})
 
     MakeProjectCommands(project, user=user).run("check", time_limit=LIMIT)
@@ -201,7 +125,7 @@ def test_the_outer_make_variables_of_the_user_s_environment_are_left_out(
 def test_a_command_killed_by_its_own_timeout_is_a_time_limit_result(
     tmp_path: Path, project: Path, warning: str
 ) -> None:
-    sudo = _write_sudo(tmp_path / "sudo-bin", warning=warning)
+    sudo = write_sudo(tmp_path / "sudo-bin", warning=warning)
     commands = MakeProjectCommands(project, user=_user(str(sudo.path)))
     start = time.monotonic()
 
@@ -216,7 +140,7 @@ def test_a_command_killed_by_its_own_timeout_is_a_time_limit_result(
 def test_the_factory_s_own_kill_waits_the_grace_beyond_the_limit(
     tmp_path: Path, project: Path
 ) -> None:
-    sudo = _write_sudo(tmp_path / "sudo-bin", exit_status=0, wait_seconds=5)
+    sudo = write_sudo(tmp_path / "sudo-bin", exit_status=0, wait_seconds=5)
     commands = MakeProjectCommands(project, user=_user(str(sudo.path)))
     start = time.monotonic()
 
@@ -232,7 +156,7 @@ def test_the_factory_s_own_kill_waits_the_grace_beyond_the_limit(
 def test_an_exit_before_the_limit_is_a_failed_command_with_its_status(
     tmp_path: Path, project: Path, exit_status: int
 ) -> None:
-    sudo = _write_sudo(tmp_path / "sudo-bin", exit_status=exit_status, stderr="boom\n")
+    sudo = write_sudo(tmp_path / "sudo-bin", exit_status=exit_status, stderr="boom\n")
 
     result = MakeProjectCommands(project, user=_user(str(sudo.path))).run("check", time_limit=LIMIT)
 
@@ -255,7 +179,7 @@ def test_an_exit_before_the_limit_is_a_failed_command_with_its_status(
 def test_only_sudo_lines_and_a_failing_status_are_a_refusal(
     tmp_path: Path, project: Path, exit_status: int, stderr: str, outcome: str | int
 ) -> None:
-    sudo = _write_sudo(tmp_path / "sudo-bin", exit_status=exit_status, stderr=stderr)
+    sudo = write_sudo(tmp_path / "sudo-bin", exit_status=exit_status, stderr=stderr)
     commands = MakeProjectCommands(project, user=_user(str(sudo.path)))
 
     if isinstance(outcome, str):
@@ -278,7 +202,7 @@ def test_only_sudo_lines_and_a_failing_status_are_a_refusal(
 def test_the_checks_before_the_start_refuse_without_calling_sudo(
     tmp_path: Path, project: Path, command: str, time_limit: timedelta, error: type[Exception]
 ) -> None:
-    sudo = _write_sudo(tmp_path / "sudo-bin")
+    sudo = write_sudo(tmp_path / "sudo-bin")
     commands = MakeProjectCommands(project, user=_user(str(sudo.path)))
 
     with pytest.raises(error):
@@ -302,7 +226,7 @@ def test_the_user_property_returns_what_the_constructor_was_given(tmp_path: Path
     user = _user("/usr/bin/sudo")
 
     assert MakeProjectCommands(tmp_path).user is None
-    assert MakeProjectCommands(tmp_path, user=user).user == user
+    assert MakeProjectCommands(tmp_path, user=user).user is user
 
 
 @dataclass(frozen=True)
@@ -334,7 +258,7 @@ LEFTOVERS_ROWS = [
             program_exit_status=1,
             program_stderr=f"{LEFTOVERS_LINE}\n",
             status=None,
-            detail=f"{LEFTOVERS_FAULT}{LEFTOVERS_LINE}",
+            detail=f"{LEFTOVERS_FAULT} {LEFTOVERS_LINE}",
         ),
         id="program-fault",
     ),
@@ -343,7 +267,7 @@ LEFTOVERS_ROWS = [
             removes_sudo=True,
             second_call=False,
             status=None,
-            detail=f"{LEFTOVERS_FAULT}[Errno 2] No such file or directory",
+            detail=f"{LEFTOVERS_FAULT} [Errno 2] No such file or directory",
             whole_detail=False,
         ),
         id="leftovers-cannot-start",
@@ -383,7 +307,7 @@ def test_a_command_run_as_another_user_is_followed_by_the_leftovers_program(
     program = write_program(
         tmp_path / "program-bin", exit_status=row.program_exit_status, stderr=row.program_stderr
     )
-    sudo = _write_sudo(
+    sudo = write_sudo(
         tmp_path / "sudo-bin",
         exit_status=row.sudo_exit_status,
         stderr=row.sudo_stderr,

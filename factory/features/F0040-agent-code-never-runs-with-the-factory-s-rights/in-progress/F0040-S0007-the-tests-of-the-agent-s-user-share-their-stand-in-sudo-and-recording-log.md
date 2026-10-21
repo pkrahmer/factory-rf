@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 387
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T06:30:23.099674Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:30:23.105074Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-21T06:30:47.813969Z'
+  stage: intake
+  run: 140c7603b4584a24857f88960c9d5ad6
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:31:08.192096Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T06:35:24.066313Z'
+  stage: tests
+  run: 03288458aaad44faabe503698029c3ea
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:35:45.732125Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T06:38:18.019815Z'
+  stage: doing
+  run: 4ecf3f9ca7df430a8014545412b35355
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:38:39.072027Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T06:39:28.593009Z'
+  stage: review
+  run: 1cd4775f09b7485686ab27ce06746b17
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:39:49.052491Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-21T06:40:14.374820Z'
+  stage: docs
+  run: 2f0416085ae24f1888625b97c9c82456
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:40:35.222359Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T06:41:17.269571Z'
+  stage: smoke-test
+  run: 4c8d590834474c21a4218474b95af7a0
+---
+
 # The tests of the agent's user share their stand-in sudo and their recording log
 
 <!-- proposed by feature acceptance of 2026-10-20; refine before starting -->
@@ -74,3 +158,115 @@ uv run pytest tests/adapters/test_make_commands_user.py tests/adapters/test_sudo
 Expect: one summary line with a count of `passed`, and no `failed` and no `error` in it
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   - Interface: concrete. It names `tests/recording_log.py` (`RecordingLog`) and `tests/sudo_support.py` (`SudoCall`, `Sudo`, `write_sudo` with full signatures). It lists the stand-in's rules and which names each of the two adapter test modules drops. No `src/` change.
+   - Criteria: each is testable by one check. These are the moved definitions and imports (1, 2), identical collected ids with all passing (3), the three exact assertions (4), nothing under `src/` (5), `make check` (6) and the docs entry (7). The stand-in's rules (record first, `program` runs whatever the plan, `warning`, `exit_status`/`stderr`/`wait_seconds`, otherwise run what follows `--`) are the behaviours of the two scripts being replaced. The unchanged tests of the two modules (criterion 3) exercise them. The story adds no new behaviour, so no failing side lacks a criterion. Criterion 4's leave is in the feature's `feature.md`, decision 18 ("granted", the human, 2026-10-21).
+   - Smoke test: both commands are runnable. The `grep -c` over three files prints `path:count` lines, so "each ending in `:0`" is checkable. The pytest command passes no `-q`, and `pyproject.toml` `addopts` already sets `-q`, so the last line is a summary with a `passed` count.
+   - Architecture: test-only changes, in the places `CLAUDE.md` gives. The shared helpers are modules at the `tests/` root, which the standing leave allows. The tester makes the move, and the coder changes nothing.
+   - Scope: it is inside F0040 (the S0001 and S0004 test modules and the reviewers' notes). Nothing in the feature's "Out of scope" is touched; the older stand-in scripts stay as they are.
+4. factory: started tests as self.
+5. tester: This story is only about tests, and all of it is the tester's job. So I made the changes themselves (moving the helpers and making three checks exact) instead of writing new red tests. The work is done and `make test` is green. Nothing under `src/` changed, so the coder has nothing to implement. The coder only needs to confirm that (criterion 5) and run `make check` (criterion 6).
+
+   Criterion → where it is met:
+   - criterion 1: `tests/recording_log.py::RecordingLog` was moved unchanged from `tests/application/test_checkout_preparer_seal.py`. That module, `test_nested_repositories.py`, `test_sealed_project_commands.py` and `test_agent_home_resets.py` now import it with `from recording_log import RecordingLog`. The unused `FactoryLog` import was dropped from the seal module. The classes in `test_dispatcher.py`, `test_scheduler.py` and `test_repository_waiter.py` were not touched.
+   - criterion 2: `tests/sudo_support.py` holds `SudoCall`, `Sudo` and `write_sudo` with the signatures in the Interface. Its script combines the two old ones: it records the call, then the planned `program` runs; any other call writes `warning`, then either exits after `stderr` and `wait_seconds` or runs what follows `--`. An unset `program` is stored as null. `tests/adapters/test_make_commands_user.py` dropped `SUDO_SCRIPT`, `_write_sudo`, `SudoCall` and `Sudo`. `tests/adapters/test_sudo_agent_home.py` dropped `SUDO_SCRIPT`, `_write_sudo`, `SudoCall`, `_sudo_calls`, `CALLS` and `PLANNED`. In that module, `call.cwd == "/"` became `call.working_directory == Path("/")`. A planned `(exit_status, stderr)` is now passed as keyword arguments, and the stand-in's path is `Sudo.path`.
+   - criterion 3: I listed the test ids with `uv run pytest --collect-only` (with `-o addopts=""`) for the seven modules before and after the change. Both lists have the same 109 ids (no diff). `make test` passed: `test: green (61.0 s)`, coverage 99.14 %.
+   - criterion 4: the leave is decision 18 in the feature's `feature.md`, which intake cited; I did not read the file myself. `LEFTOVERS_FAULT` is now imported from `factory.adapters.agent_launch`, and the two expected details are `f"{LEFTOVERS_FAULT} ..."`, the same text as before. `test_the_user_property_returns_what_the_constructor_was_given` now checks with `is user`. In `tests/domain/test_agent_home.py`, `test_kept_paths_are_the_logins_inside_the_home_then_state_files_then_folders` uses `match=re.escape(refused)` and adds an `import re`.
+   - criteria 5–7: for the coder (nothing under `src/`), for `make check`, and for the docs stage (two entries under *Shared test helpers* in `docs/project-guide/README.md`).
+
+   Files created: `tests/recording_log.py`, `tests/sudo_support.py`.
+   Earlier test files changed:
+   - Under the standing leave (*Tests* in `CLAUDE.md`): `tests/application/test_checkout_preparer_seal.py`, `tests/application/test_nested_repositories.py`, `tests/application/test_sealed_project_commands.py`, `tests/application/test_agent_home_resets.py`, `tests/adapters/test_make_commands_user.py`, `tests/adapters/test_sudo_agent_home.py`.
+   - Under the human's leave (decision 18): the three assertions in criterion 4, in `tests/adapters/test_make_commands_user.py` and `tests/domain/test_agent_home.py`.
+
+   Every test kept its name and its rows. The older stand-in `sudo` scripts were left as they are; this includes `_write_sudo` in `tests/adapters/test_claude_runtime_os_user.py`, which `tests/test_test_children.py` uses.
+
+   Modules the test run could not import: none. There are no red tests, because the story adds no behaviour. `make lint` and `make types` were both green.
+
+   Smoke test: the `grep -c` prints three lines, each ending in `:0`.
+
+   `lint`: lint: green (0.6 s)
+   `test`: test: green (60.9 s)
+6. factory: started doing as self.
+7. coder: I changed nothing in this stage. The story only moves test helpers, and the tester already did all of that work (entry 5). Nothing under `src/` changed: `git diff --stat main -- src` printed nothing (criterion 5). `make check` passed: `test: green (61.3 s)`, coverage 99.14 %, `check: green` (criterion 6).
+
+   - Paths built: none. The tester's new files are `tests/recording_log.py` and `tests/sudo_support.py`.
+   - Main choice: I left the tests as the tester wrote them. I rejected re-checking or adjusting them, because the coder never edits tests (R9).
+   - Refactor: there is no diff of mine to read.
+   - Description: the journal did not change what the task means, so I did not rewrite it.
+   - Noticed but did not touch: the only file changed in the working tree is the work item's `.costs.jsonl` sidecar, which the factory writes. Criterion 7, the two entries in `docs/project-guide/README.md`, is still open for the docs stage.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
+8. factory: started review as self.
+9. reviewer: No findings.
+
+   I read the work item and `git diff main...HEAD -- . ':!factory'`, which covers 9 test files and nothing under `src/`. I checked the diff against the criteria. I also checked it against `src/factory/adapters/agent_launch.py:43` and the helpers in `tests/confine_support.py`, and against decision 18 in the feature's `feature.md`.
+
+   - Criterion 1: `tests/recording_log.py` holds `RecordingLog`, unchanged. `test_checkout_preparer_seal.py` no longer defines it. That module, `test_nested_repositories.py`, `test_sealed_project_commands.py` and `test_agent_home_resets.py` import it from `recording_log`. The classes in `test_dispatcher.py`, `test_scheduler.py` and `test_repository_waiter.py` are untouched.
+   - Criterion 2: `tests/sudo_support.py` holds `SudoCall`, `Sudo` and `write_sudo` with the Interface's signatures. Its script is the S0001 script. The S0004 stand-in's behaviour is still covered:
+     - A missing plan used to mean "run what follows `--`". Now `write_sudo` always writes a plan, and an unset `exit_status` means the same thing.
+     - The empty default `warning` adds nothing to standard error.
+     - `program=None` is now stored as null where it used to be `"None"`. Neither can equal a command, so the result is the same.
+     - `write_script` creates the folder, so the `mkdir` that was dropped is not missed.
+     - Neither adapter module defines `SUDO_SCRIPT` or `_write_sudo` any more, and no other module imported either one.
+   - Criterion 3: no test was renamed and no row changed. `call.cwd == "/"` became `call.working_directory == Path("/")`, which is the same check. `_sudo_calls(dir)` became `sudo.calls()`, which reads the same record. The tester reports the same 109 collected ids before and after.
+   - Criterion 4: the source's `LEFTOVERS_FAULT` ends in `:` with no space. So `f"{LEFTOVERS_FAULT} ..."` gives the same expected text as before. The `is user` and `re.escape(refused)` changes are as the Interface says.
+   - Criterion 5: nothing under `src/` changes.
+   - Criterion 6: the coder's entry 7 records `check: green` from the coder's own `make check` run, and `duplicates: 0 new`. I did not run `make check` myself, as this stage instructs; the factory runs it again after this review.
+   - Architecture, security, quality: test-only changes, in shared modules at the `tests/` root, as `CLAUDE.md` describes. No markers that silence a check, and no secrets.
+   - Work item hygiene: the Description matches what was built. The tester's entry gives the reasons for the approach (the changes were made in the tests stage, with no red tests, because the story adds no behaviour). Criterion 7 still says what the docs stage must add to `docs/project-guide/README.md`, *Shared test helpers*.
+
+   Earlier tests changed (item 6):
+   - `tests/adapters/test_make_commands_user.py`: the standing leave to move a shared test helper (the stand-in `sudo` moved to `tests/sudo_support.py`). The `LEFTOVERS_FAULT` import and the `is user` assertion are under the human's leave, decision 18 in the feature's `feature.md` ("granted", 2026-10-21).
+   - `tests/adapters/test_sudo_agent_home.py`: the standing leave to move a shared test helper (it now uses `tests/sudo_support.py`; same calls checked, `cwd` read as `working_directory`).
+   - `tests/application/test_agent_home_resets.py`: the standing leave to move a shared test helper (`RecordingLog` imported from `recording_log`).
+   - `tests/application/test_checkout_preparer_seal.py`: the standing leave to move a shared test helper (`RecordingLog` moved out; the unused `FactoryLog` import dropped).
+   - `tests/application/test_nested_repositories.py`: the standing leave to move a shared test helper (`RecordingLog` imported from `recording_log`).
+   - `tests/application/test_sealed_project_commands.py`: the standing leave to move a shared test helper (`RecordingLog` imported from `recording_log`).
+   - `tests/domain/test_agent_home.py`: the human's leave, decision 18 in the feature's `feature.md` (`match=re.escape(refused)`).
+10. factory: started docs as self.
+11. documenter: Docs for this story: criterion 7 is done. I changed one file, `docs/project-guide/README.md`, under *Shared test helpers*. It gains the two entries the criterion gives, in alphabetical order: `recording_log.py` (after `record_support.py`) and `sudo_support.py` (after `stage_run_support.py`). Both entries use the criterion's wording. I changed nothing else.
+
+    I read the diff `git diff main...HEAD -- . ':!factory' ':!docs' ':!README.md'`. It touches only tests (9 files) and nothing under `src/`. No behaviour changed, so the criterion allows no other document change.
+
+    Cross-read and found current:
+    - The rest of the project guide index.
+    - `README.md`.
+    - `docs/operator-guide.md`.
+    - A grep of `docs/` and `README.md` for `_write_sudo`, `SUDO_SCRIPT` and `RecordingLog` found no stale mention.
+
+    Findings: none. The code matches the Interface. I ran no example, because I wrote none. I did not run `make check`, since I changed only a document (the stage's lesson); the factory runs it next.
+
+    Stale text I noticed but did not touch: none.
+
+    `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
+    `secrets`: secrets: green (0.8 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: I ran both commands from the repository root, as written and in order. Both met their `Expect:` lines. No findings.
+
+    Command 1, `grep -c "^SUDO_SCRIPT\|^def _write_sudo\|^class RecordingLog" …` over the three files:
+    ```
+    tests/adapters/test_make_commands_user.py:0
+    tests/adapters/test_sudo_agent_home.py:0
+    tests/application/test_checkout_preparer_seal.py:0
+    ```
+    Met: three lines, each ending in `:0`. grep's exit status was 1, which is what `grep -c` returns when nothing matches. It is not an error.
+
+    Command 2, `uv run pytest` over the six modules `2>&1 | tail -n 1`:
+    ```
+    81 passed in 19.10s
+    ```
+    Met: one summary line with a `passed` count, and no `failed` or `error` in it.
+
+    I then read the acceptance criteria again. Nothing in the run contradicts any of them, and a quick read of the tree agrees:
+    - Criterion 1: `RecordingLog` is in `tests/recording_log.py`, and the four modules import it with `from recording_log import RecordingLog`. The classes in `test_dispatcher.py`, `test_scheduler.py` and `test_repository_waiter.py` are still there.
+    - Criterion 2: `tests/sudo_support.py` defines `SudoCall`, `Sudo` and `write_sudo`.
+    - Criterion 4: `LEFTOVERS_FAULT` is imported from `factory.adapters.agent_launch`. The user test checks with `is user`, and `tests/domain/test_agent_home.py` uses `match=re.escape(refused)`.
+    - Criterion 5: `git diff --stat main...HEAD -- src` printed nothing.
+
+    Not checked here: criteria 3 (same collected test ids before and after) and 6 (`make check`) need runs that the smoke test does not cover. The tester's entry 5 and the coder's entry 7 record both as met.

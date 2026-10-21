@@ -50,12 +50,14 @@ Every module `tests/*.py` whose name does not start with `test_`:
 - `project_command_support.py`: `raising`, the answers for a recording stand-in of the project commands.
 - `proof_support.py`: the recovery proof, described under *Kill points* and *Fault-injection paths*.
 - `record_support.py`: `UnwritableRecordLog`, a record log that cannot be written.
+- `recording_log.py`: `RecordingLog`, a factory log that keeps the lines written to it.
 - `run_process_recorder.py`: `Recorder`, a stand-in for the runtime's `run_process` that keeps each request.
 - `search_support.py`: `modules_matching`, a search of the test modules for a pattern.
 - `settings_support.py`: `BASE`, the environment with the two required settings, and `raising`, for the tests that read settings.
 - `shipped_agents.py`: `SHIPPED_AGENTS` and `ShippedAgent`, the seven shipped agents' front matter values and the opening of their bodies.
 - `source_search.py`: reads the modules under `src/factory` with `ast`: `modules`, `imports`, `string_literals`, `reads_os_environ`.
 - `stage_run_support.py`: builders for whole stage runs: a story started on `main`, its branch, a Makefile and a run (`open_story`, `run_stage`, `stage_makefile`), and the work item at the head of the remote's branch (`pushed`, `pushed_state`).
+- `sudo_support.py`: a stand-in `sudo` that records each call's arguments, environment and working directory and runs the call or exits as planned (`write_sudo`, `Sudo`, `SudoCall`).
 - `tick_support.py`: `handlers_of` and `Failing`, the tick's handler factory and a handler that records each event and raises the error it is given, `ValueError("boom")` by default.
 - `tmp_path_support.py`: `reopen`, which gives the owner back every folder and file under a test's `tmp_path` so that pytest can remove it.
 - `undo_support.py`: a claimed stage start on a work item's branch, and the undo (`start_stage`, `undo_stage`, `pipeline_text`).
