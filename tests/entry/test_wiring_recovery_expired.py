@@ -6,8 +6,7 @@ from factory.domain.pipeline_definition import PipelineDefinition
 from factory.entry.wiring import build_handlers
 from git_support import PIPELINE_YAML
 from stage_run_support import INSTANCE
-
-ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
+from wiring_support import ENVIRONMENT
 
 
 def test_expired_shares_the_crash_handler(

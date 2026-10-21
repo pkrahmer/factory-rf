@@ -24,8 +24,8 @@ from factory.entry.wiring import build_handlers, handler_factory
 from git_support import PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
 from stage_run_support import INSTANCE
+from wiring_support import ENVIRONMENT
 
-ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
 STATE = "a" * 40
 EXAMPLE = "factory/features/F0001-example"
 BACKLOG_PATH = f"{EXAMPLE}/backlog/F0001-S0001-first.md"

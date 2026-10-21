@@ -150,7 +150,7 @@ def test_each_body_is_read_from_its_own_module() -> None:
 def test_no_test_module_holds_a_copy(bodies: dict[str, str], path: Path) -> None:
     found = copies(path.read_text(encoding="utf-8"), bodies)
 
-    if path.name in SHARED.values():
+    if path.relative_to(TESTS).as_posix() in SHARED.values():
         assert found, "a module that defines a shared helper holds its own helpers"
     else:
         assert found == []

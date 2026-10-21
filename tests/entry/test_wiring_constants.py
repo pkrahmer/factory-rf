@@ -12,8 +12,8 @@ from factory.application.dispatcher import Handler, unhandled_kinds
 from factory.domain.events import EventKind
 from factory.entry.wiring import build_handlers
 from stage_run_support import INSTANCE
+from wiring_support import ENVIRONMENT
 
-ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
 KEPT = (
     "CREDENTIAL_HELPER",
     "agent_environment",

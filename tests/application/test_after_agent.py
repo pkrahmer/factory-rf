@@ -29,14 +29,13 @@ from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
 from git_support import install_agents
 from human_clone import HumanClone
 from observing_runtime import ObservingRuntime
-from stage_run_support import INSTANCE, pushed, pushed_state
+from stage_run_support import ENVIRONMENT, INSTANCE, pushed, pushed_state
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
 ELSEWHERE = "elsewhere"
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
-ENVIRONMENT = {"PATH": "/usr/local/bin:/usr/bin", "HOME": "/home/factory"}
 ROLES = ["tester", "reviewer"]
 OUTSIDE = "src/b.py"
 AGENT_TEXT = "written by the agent\n"

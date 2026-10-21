@@ -36,11 +36,10 @@ from human_clone import HumanClone
 from recording_log import RecordingLog
 from root_support import AS_ROOT
 from sealed_run_support import COMPLETED, run_request
-from stage_run_support import pushed
+from stage_run_support import ENVIRONMENT, pushed
 
 NESTED = "notes/sub/.git"
 LOCKED = "locked"
-ENVIRONMENT = {"PATH": "/usr/local/bin:/usr/bin", "HOME": "/home/factory"}
 PROBE_DETAIL = (
     "the probe run left a git repository in the work tree, which the factory removed: "
     "notes/sub/.git"
