@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T07:31:11.824986Z'
   stage: smoke-test
   run: 11d749de11524233a3ed18b8084a397e
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T07:33:34.676366Z'
+  stage: approval
 ---
 
 # The decision log marks two superseded entries, the removal of `factory/v1/`, and where its codes come from
@@ -222,3 +227,4 @@ Expect: `documents ok`
       No heading changed and no other line changed. Each cited title is a heading of the log (command 1).
 
     The smoke test contradicts no criterion. Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 3.5 min, 30 turns, 96944 tokens in (428968 more from cache), 7731 out, $0.80
