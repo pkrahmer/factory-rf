@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 388
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-21T06:43:37.077731Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-21T06:43:16.729461Z'
   stage: intake
   run: c60ba677f885486283c251c9f2640c71
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:43:37.077731Z'
+  stage: tests
 ---
 
 # The operator guide says the template and the todo demo run under the write guard
@@ -81,3 +90,4 @@ Expect: `documents ok`
    - Smoke test: every command is runnable. I ran the greps against the tree and they give template/Makefile:3, demo Makefile:3, and :1 for each pipeline.yml, as the Expect line says. The old phrase currently counts 1, so the first block (0 and 1) will hold once the paragraph is replaced. `make documents` exists (Makefile:94), and the pytest -q trap does not apply because no command runs pytest. Each Expect line is checkable.
    - Architecture: the story is documents only and is within the documenter's write paths (README.md, docs/*). It touches no layer.
    - Scope: it matches F0038 S0001 (finding H1) in feature.md, and nothing in "Out of scope" is involved.
+4. factory: started tests as self.
