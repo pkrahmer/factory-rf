@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 401
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T09:02:23.932971Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T09:02:02.690906Z'
   stage: tests
   run: 355c3125b6e747849d97d34086184aed
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T09:02:23.932971Z'
+  stage: doing
 ---
 
 # The operator guide names no planning code, internal class or dated observation
@@ -99,3 +108,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.7 s)
    `test`: test: green (67.0 s)
+6. factory: started doing as self.
