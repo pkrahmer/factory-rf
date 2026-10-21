@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 379
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T00:28:11.800400Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-21T00:27:51.196842Z'
   stage: tests
   run: 2f2e34890db84a9ebc294d837122c374
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:28:11.800400Z'
+  stage: doing
 ---
 
 # The runtimes read the end of a call in one place
@@ -146,3 +155,4 @@ Expect: four lines, `True`, `False`, `/opt/factory/bin/factory-confine refused t
 
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/adapters/test_agent_launch_call_end.py - ImportError while importing test module '/work/checkout/tests/adapters/test_agent_launch_call_end.py'.
+6. factory: started doing as self.
