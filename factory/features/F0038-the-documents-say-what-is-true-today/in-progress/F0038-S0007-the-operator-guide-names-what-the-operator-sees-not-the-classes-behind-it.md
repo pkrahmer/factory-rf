@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 395
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-21T07:49:36.467319Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-21T07:49:15.265236Z'
   stage: smoke-test
   run: 6e478c44403e4529839d2b0717bfcaf0
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:49:36.467319Z'
+  stage: doing
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -224,3 +233,4 @@ Expect: `documents ok`
     1. Criterion 3, third bullet (*An event that keeps failing*): the paragraph on the registered handlers must end with "... are registered: every kind of event has a handler.". The edit removed "Should a future kind have none, …" and the paragraph after it, but it also removed the blank line before "After three errors on one event and one remote state, …". In `docs/operator-guide.md`, line 1469 ("The handlers of the human's acts … every kind of event has a handler.") is now followed directly by line 1470 ("After three errors …"). In Markdown these two lines render as one paragraph, so the registered-handlers paragraph no longer ends with the required words. On `origin/main` the two were separate paragraphs. Expected: a blank line between line 1469 and "After three errors …". Observed: no blank line. None of the four commands catches this. Fixing it is a docs-only change; I fixed nothing.
 
     Open: the finding above. Nothing else.
+14. factory: started doing as self.
