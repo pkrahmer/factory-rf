@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-21T06:03:02.327939Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-21T06:03:02.327939Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-10-21T06:04:23.022787Z'
+  stage: review
+  run: 980f8c68e66045c796baf9cadd4305d3
 ---
 
 # The boundaries have no optional collaborators
@@ -293,3 +295,38 @@ Expect: one line, `0` (before the story, `1`)
     `check`: check: green
     `duplicates`: duplicates: 0 new, 38 known, 0 gone
 15. factory: started review as self.
+16. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (9 modules under `src/factory/application/`, 18 changed test files, 1 new test file) against the work item and the feature's decision 11.
+
+    Groups 1 to 3 pass:
+    - Criteria 1 and 2 are pinned in `tests/application/test_boundaries_required.py`.
+      - Criterion 1 is one parametrized test with one row per field. It checks both sides: `TypeError` without the field, and equality with the fixture when every field is given.
+      - Criterion 2 checks the fixture's concrete values.
+    - The `last()` rule (`None` only without a record) keeps its `empty-log` row.
+    - `make check` was green after the coder (entry 14).
+    - No module under `src/factory/application/` compares one of the six fields, or a local name read from one, with `None` (grep over all nine changed modules, `acceptance.py` included).
+    - The layers are unchanged, and the diff adds no check-silencing marker.
+
+    Findings (group 4, quality):
+    1. `src/factory/application/acceptance.py:155` (`AcceptanceService._disk_lines`): the return type is still `tuple[str | None, str | None]`, but since the `if now is None` branch went, the first element is always a `str`. The type still says what the removed branch did. Fix: type it `tuple[str, str | None]`. `acceptance_facts(disk_now=...)` accepts a `str`, so nothing else changes.
+    2. `tests/application/test_known_results.py:63` (`class CountingGit`): nothing uses it since `test_without_records_every_run_reaches_the_project_commands_and_no_key_is_built` was removed. It is dead code that this diff left behind. Fix: the tester removes it. That falls under decision 11, which lets each of its fifteen modules drop the helpers nothing uses any more (it drops `NO_SETTINGS` the same way). The coder ends with `tests` and names this change.
+    3. `tests/application/test_stop_records_service.py:37` (`_raised(..., instance: str | None)`): since the `no-settings` row went (entry 8), every caller passes `INSTANCE`, so the `| None` is unused. Decision 11 names exactly this kind of leftover ("the `| None` of its own helpers that nothing uses any more") in one of its fifteen modules. Fix: the tester types it `instance: str`, in the same `tests` hand-off as finding 2.
+
+    Earlier tests (changed, none renamed or deleted):
+    - tests/conftest.py: decision 11 (the `boundaries` fixture)
+    - tests/proof_support.py: decision 11 (`_assemble`)
+    - tests/entry/test_wiring_boundaries.py: decision 11
+    - tests/application/test_acceptance_facts_disk.py: decision 11
+    - tests/application/test_boundaries_settings.py: decision 11
+    - tests/application/test_cost_image.py: decision 11
+    - tests/application/test_cost_instance.py: the human's answer, journal entry 8
+    - tests/application/test_costs.py: decision 11
+    - tests/application/test_disk_recorder.py: decision 11
+    - tests/application/test_known_results.py: decision 11
+    - tests/application/test_patient_runs.py: decision 11
+    - tests/application/test_preflight.py: decision 11
+    - tests/application/test_stage_run_acceptance.py: decision 11
+    - tests/application/test_stop_publisher.py: decision 11
+    - tests/application/test_stop_records_service.py: decision 11 and the human's answer, journal entry 8
+    - tests/application/test_task_acceptance.py: decision 11
+    - tests/application/test_task_os_user.py: decision 11
+    - tests/application/test_tick_disk.py: decision 11
