@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from branch_reading import remote_document
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
@@ -103,15 +104,8 @@ def _new_commits(checkout: GitCli, since: str) -> list[CommitInfo]:
     return checkout.log(f"origin/{BRANCH}", since=since)
 
 
-def _branch_document(boundaries: Boundaries, checkout: GitCli) -> WorkItemDocument:
-    checkout.fetch()
-    text = checkout.show_file(f"origin/{BRANCH}", PATH)
-    assert text is not None
-    return boundaries.work_item_reader.parse(text)
-
-
 def _branch_state(boundaries: Boundaries, checkout: GitCli) -> WorkItemState:
-    state = _branch_document(boundaries, checkout).state
+    state = remote_document(boundaries, checkout).state
     assert state is not None
     return state
 
@@ -176,7 +170,7 @@ def test_the_correction_appends_one_move_back_entry_by_the_factory(
 
     _handle(boundaries, _event(boundaries, checkout, remote))
 
-    document = _branch_document(boundaries, checkout)
+    document = remote_document(boundaries, checkout)
     assert document.state is not None
     assert document.state.journal == [CREATED, MOVE_BACK]
     assert entry_text(document, MOVE_BACK.number) == move_back_entry_text("doing", "approval")

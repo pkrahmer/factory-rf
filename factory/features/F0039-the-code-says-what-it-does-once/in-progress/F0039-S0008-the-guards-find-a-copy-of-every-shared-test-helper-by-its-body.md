@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 400
 comments_read: [6311748973]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T08:39:41.369525Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-21T08:39:41.369525Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-21T08:43:30.509337Z'
+  stage: tests
+  run: 07ed86a6a7444632bfa4207ab7ddcb07
 ---
 
 # The guards find a copy of every shared test helper by its body
@@ -160,3 +162,20 @@ Expect: one line, `1` (before the story, `0`)
    - Architecture: tests only, no `src/` change, which matches CLAUDE.md's layers and its standing leave for moving shared helpers.
    - Scope: within feature F0039's decision 5 and its Goal, and not in its Out of scope. `error_posts` stays unguarded.
 7. factory: started tests as self.
+8. tester: Wrote the guard and moved the one copy it finds. The story says the tester does all the work here: nothing under `src/factory/` changes, so `body_of`, `shared_bodies`, `copies` and `SHARED` live in the test module itself, as the Interface says. The tests are green, not red, and the coder has nothing to build.
+
+   - criterion 1: tests/test_shared_bodies.py::test_each_shared_helper_is_written_in_one_module (5 rows: log_lines, pushed, pushed_state, remote_document, push_state)
+   - criterion 2: tests/test_shared_bodies.py::test_the_guard_finds_a_copy_by_its_body_and_nothing_else (7 rows: another name, a docstring, `@pytest.fixture`, the remote document without annotations, one more statement, a method in a class, a name alone)
+   - criterion 3: tests/test_shared_bodies.py::test_each_body_is_read_from_its_own_module
+   - criterion 4: no new test function. I collected `pytest --collect-only` over tests/application/handlers/test_reject.py before and after the move, kept both lists in $TMPDIR, and they match (18 ids). All of them pass under `make test`.
+   - criterion 5: tests/test_shared_bodies.py::test_no_test_module_holds_a_copy, one row per `tests/**/*.py`. The three modules that define the helpers (`log_support.py`, `stage_run_support.py`, `branch_reading.py`) are not asserted empty. Their rows assert that `copies` finds the module's own helpers there, so the row says why it is left out of the empty check.
+   - criterion 6 (`make check`) and criterion 7 (docs) have no tests: they are the coder's check and the docs stage's.
+
+   Files: created tests/test_shared_bodies.py. Changed tests/application/handlers/test_reject.py under the standing leave of CLAUDE.md (*Tests*): removed `_branch_document`, and its calls (one direct, plus the one inside `_branch_state`) now call `remote_document(boundaries, checkout)` from `branch_reading`. `_branch_state` stays. BRANCH and PATH in test_reject.py have the same values as those in `stage_run_support`, which `remote_document` reads.
+
+   Runs: `make test` is green (67.5 s, coverage 99.14 %) and `make lint` is green. `make types` is also green, since all the code exists. No module failed to import.
+
+   Open: none. The coder ends without code changes and runs `make check`; the docs stage writes the sentence of criterion 7.
+
+   `lint`: lint: green (0.6 s)
+   `test`: test: green (66.4 s)
