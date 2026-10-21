@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 384
 comments_read: [6306079635]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T01:55:51.349620Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-21T01:55:33.124345Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-21T01:55:51.349620Z'
   stage: intake
 ---
 
@@ -89,3 +98,4 @@ Expect: two lines, `False False` and `0` (before the story, `True True` and `6`)
    - The scope is within F0039, and `unhandled_kinds` stays as the feature's Out of scope says.
    - The test changes are covered by decision 7, which the human granted.
 4. 2026-10-21 human: Answer (2026-10-21): (a). Criterion 3 reads "no module under `tests/` except `tests/entry/test_wiring_constants.py` names `NOT_YET_HANDLED`", and the smoke test expects `1` (before the story, `6`).
+5. factory: started intake as self.
