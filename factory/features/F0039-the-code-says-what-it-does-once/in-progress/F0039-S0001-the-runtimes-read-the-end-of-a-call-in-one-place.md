@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 379
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T00:33:35.318190Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T00:33:35.318190Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T00:33:57.786833Z'
+  stage: smoke-test
+  run: a1636b05399d4b10b2f598022ddbef88
 ---
 
 # The runtimes read the end of a call in one place
@@ -236,3 +238,32 @@ Expect: four lines, `True`, `False`, `/opt/factory/bin/factory-confine refused t
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Ran the one command under `## Smoke test` exactly as written, from the repository root. It exited with status 0.
+
+    Command 1 (`uv run python - <<'PY' … PY`), output with stderr included:
+
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 71ms
+    Bytecode compiled 4164 files in 353ms
+    True
+    False
+    /opt/factory/bin/factory-confine refused the agent run: factory-confine: landlock is not available
+    cannot write the state directory /state/runs: [Errno 13] Permission denied
+    ```
+
+    Met its `Expect:` line. The script printed exactly the four expected lines, in order:
+    - `True` (exit status 137 at the limit)
+    - `False` (exit status 0)
+    - the `factory-confine` refusal detail, raised even though the call printed a reply and was killed, so the kill is read first and refusals are still read after it
+    - the state-directory error detail
+
+    The lines before them are uv's own stderr from creating the checkout's virtual environment on first use. They are not output of the script.
+
+    Criteria check: the output matches criterion 1 (the row with user `agent`, status 137 and duration equal to the limit gives `True`; the row with status 0 gives `False`). It matches criterion 2 (the `factory-confine` row with a printed reply and status 137 raises with the stated `detail`). It matches criterion 3 exactly. It contradicts no criterion. Criteria 4 to 6 (earlier tests unchanged, `make check`, docs) are outside what this smoke test exercises; the factory's checks cover `make check`.
+
+    Findings: none. Nothing was fixed or changed.
