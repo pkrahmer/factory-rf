@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 376
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T00:07:24.230825Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-21T00:07:03.484004Z'
   stage: doing
   run: efdf5df6a2ad4fb8ae55a0d0a9b14bf4
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:07:24.230825Z'
+  stage: review
 ---
 
 # The documents say that project commands run as the agent, and how to check it
@@ -128,3 +137,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 4c5c6c3d981c at 2026-10-20T23:21:09Z)
    `duplicates`: duplicates: 6 new, 33 known, 3 gone
+8. factory: started review as self.
