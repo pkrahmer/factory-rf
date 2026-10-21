@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 382
 comments_read: [6305445672]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T01:09:08.993807Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-21T01:09:08.993807Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-21T01:15:49.611613Z'
+  stage: tests
+  run: 49aeb856da5a497a9c895d2c431a3483
 ---
 
 # The tests read the pushed work item, its posts and the disk records from one place
@@ -172,3 +174,38 @@ Expect: two lines, `1` and `1` (before the story, `0` and `0`)
    Architecture: only `tests/` and the project guide change. The shared places follow the standing leave in `CLAUDE.md` (*Tests*) and feature decision 5.
    Scope: matches S0003 in `feature.md`. The variants in *Out of scope* stay. S0003 starts after F0033, per decision 10. The human's answers add no change to the story, so none was written.
 7. factory: started tests as self.
+8. tester: Tests written, and the moves done under the standing leave of `CLAUDE.md` (*Tests*). No module under `src/factory/` changed. `make test` is green: the tests are not red, because the moves are the story's work and the coder has nothing to build. Before the moves, the guard's criterion-1 rows would fail on the copies (the smoke grep counted 12 of them).
+
+   Criterion → test:
+   - criterion 1: tests/test_shared_branch_helpers.py::test_each_shared_helper_and_fixture_is_written_in_one_module (rows `pushed`, `pushed_state`, `remote_document`, `push_state`, `stop-records`, `disk-records`)
+   - criterion 2: tests/test_shared_branch_helpers.py::test_the_guard_finds_a_copy_by_name_and_parameters_only (the five source rows of the criterion)
+   - criterion 3: tests/test_shared_branch_helpers.py::test_the_shared_helpers_read_and_write_as_the_copies_did
+   - criterion 4: no test function. Checked by `pytest --collect-only -q -o addopts=` over the sixteen modules: the HEAD copy (from `git archive`) and the working tree each list the same 279 ids. The full `make test` then passed.
+   - criteria 5 and 6: `make check` and the docs, left to the coder's check and the documenter. I did not touch `docs/`.
+
+   The guard's function: a single `copies(source) -> list[str]` in the guard module. It returns, for each top-level function, the shared helper name it copies (name without one leading `_`, plus the parameter annotations, keyword-only ones included, compared through `ast.unparse`) or the record-log return annotation it repeats. The human left the guard's names and signatures to the tester (journal 4).
+
+   Files created:
+   - tests/branch_reading.py (`remote_document`, `error_posts`, `push_state`, `BODY = "# First story\n"`)
+   - tests/test_shared_branch_helpers.py
+
+   Files changed:
+   - tests/stage_run_support.py: new `pushed`; `pushed_state` now calls it.
+   - tests/conftest.py: new `disk_settings` and `disk_records` fixtures.
+   - The sixteen modules the Interface names:
+     - test_after_agent, test_stage_finish, test_stalls, test_stall_labels and test_stage_known_results lose `_pushed`, `_pushed_state` and `_head`, and use `pushed`, `pushed_state` and `branch_head`. Where a local variable named `pushed` would now shadow the helper inside the same function, I renamed it to `document`.
+     - test_closed_send_back, test_comment_handler, test_questions and test_hand_over lose `_remote_document` and `_error_posts`.
+     - test_watcher, test_watcher_move_rule and entry/test_watch lose `_push_state`.
+     - test_stop_publisher and test_stop_records_service lose their shadowing `records` fixtures.
+     - test_disk_recorder and test_acceptance_facts_disk lose their `settings` and `records` fixtures; their tests and fixtures take `disk_settings` and `disk_records`.
+   - One earlier test file outside that list, under the same leave: tests/application/test_nested_repositories.py imported `_pushed` from test_after_agent. It now imports `pushed` from stage_run_support, and its local variable is renamed to `document`. Its test names and checks are unchanged.
+
+   Runs:
+   - My first `make test` ended with an ImportError collecting test_nested_repositories.py (the `_pushed` import above). After fixing it I ran `make test` a second time, against the stage's run-once rule, because this story's moves must leave every test passing: green, coverage 99.14 %.
+   - `make lint` is green.
+   - I also ran `make types`: green, since every module exists.
+
+   Modules the test runner could not import: none.
+
+   `lint`: lint: green (0.5 s)
+   `test`: test: green (59.4 s)

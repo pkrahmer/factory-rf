@@ -40,12 +40,6 @@ def _subjects(remote: Path) -> list[str]:
 
 
 @pytest.fixture
-def records(tmp_path: Path) -> JsonLinesRecordLog[StopRecord]:
-    """The stop records in the test's state directory."""
-    return JsonLinesRecordLog(tmp_path / "state" / "records" / "stops.jsonl", StopRecord)
-
-
-@pytest.fixture
 def publishing(boundaries: Boundaries, records: JsonLinesRecordLog[StopRecord]) -> Boundaries:
     """The test's boundaries with the stop records."""
     return replace(boundaries, stop_records=records)

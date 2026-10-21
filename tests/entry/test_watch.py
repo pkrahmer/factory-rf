@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 
+from branch_reading import push_state
 from definition_support import pipeline_definition
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
-from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.application.board import BoardReader
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
@@ -25,7 +25,7 @@ from factory.domain.git import GitOptions
 from factory.domain.hosting import PullRequestComment, PullRequestView
 from factory.domain.identifiers import branch_name
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.domain.work_item import WorkItemState
 from factory.entry.watch import main, render_event, run_watch
 from git_support import PIPELINE_YAML, TEST_IDENTITY, run_git
 from human_clone import HumanClone
@@ -89,16 +89,11 @@ class _CountingHosting(FakeHostingService):
 pytestmark = pytest.mark.usefixtures("installed_agents")
 
 
-def _push_state(human: HumanClone, state: WorkItemState) -> None:
-    text = FrontmatterWorkItemWriter().render(WorkItemDocument(state=state, body=BODY))
-    human.push_file(BRANCH, PATH, text)
-
-
 def _waiting(boundaries: Boundaries, human: HumanClone) -> _CountingHosting:
     hosting = _CountingHosting()
     number = hosting.create_pull_request(BRANCH, "First story", "", draft=False).number
     human.start(BACKLOG_PATH)
-    _push_state(human, WorkItemState(stage="approval", pull_request=number, handed_over="approval"))
+    push_state(human, WorkItemState(stage="approval", pull_request=number, handed_over="approval"))
     boundaries.git.fetch()
     hosting.calls.clear()
     return hosting
@@ -180,10 +175,10 @@ def test_run_watch_fetches_nothing(
     boundaries: Boundaries, human: HumanClone, checkout: GitCli
 ) -> None:
     human.start(BACKLOG_PATH)
-    _push_state(human, WorkItemState(stage="tests"))
+    push_state(human, WorkItemState(stage="tests"))
     checkout.fetch()
     before = checkout.resolve(f"origin/{BRANCH}")
-    _push_state(human, WorkItemState(stage="doing"))
+    push_state(human, WorkItemState(stage="doing"))
 
     _, out, _ = _watch(boundaries)
 

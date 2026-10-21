@@ -22,14 +22,14 @@ from factory.domain.agent_runs import (
     EndReason,
     PermissionDenial,
 )
-from factory.domain.git import CommitId
 from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord, entry_text
 from factory.domain.paths import cost_records_path
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
-from git_support import install_agents, remote_commit
+from git_support import install_agents
 from human_clone import HumanClone
 from observing_runtime import ObservingRuntime
+from stage_run_support import pushed, pushed_state
 
 INSTANCE = "factory-1"
 WORK_ITEM = "F0001-S0001"
@@ -152,24 +152,6 @@ def _stalled(boundaries: Boundaries, launched: LaunchedStage) -> StallResult:
     return processed
 
 
-def _head(remote: Path) -> CommitId:
-    commit = remote_commit(remote, BRANCH)
-    assert commit is not None
-    return commit
-
-
-def _pushed(boundaries: Boundaries, remote: Path) -> WorkItemDocument:
-    text = boundaries.git.show_file(_head(remote), PATH)
-    assert text is not None
-    return boundaries.work_item_reader.parse(text)
-
-
-def _pushed_state(boundaries: Boundaries, remote: Path) -> WorkItemState:
-    state = _pushed(boundaries, remote).state
-    assert state is not None
-    return state
-
-
 def _note(hosting: FakeHostingService, stalled: StallResult) -> str:
     [post] = hosting.factory_posts(stalled.pull_request)
     return post.body
@@ -250,7 +232,7 @@ def test_a_run_that_did_not_complete_stalls_with_its_reason_and_one_attempt_more
 
     assert stalled.reason == end_reason
     assert stalled.attempts == _started_attempts(launched) + 1
-    assert _pushed_state(boundaries, remote).attempts == _started_attempts(launched) + 1
+    assert pushed_state(boundaries, remote).attempts == _started_attempts(launched) + 1
 
 
 @pytest.mark.parametrize(
@@ -312,13 +294,13 @@ def test_a_decision_that_is_not_allowed_stalls_naming_it_and_the_allowed_ones(
     stalled = _stalled(boundaries, launched)
 
     assert stalled.reason == "decision_not_allowed"
-    pushed = _pushed(boundaries, remote)
-    state = pushed.state
+    document = pushed(boundaries, remote)
+    state = document.state
     assert state is not None
     assert (state.journal[-1].speaker, state.journal[-1].kind) == ("factory", "stall")
     allowed = ", ".join(launched.request.allowed_decisions)
     assert "doing" in launched.request.allowed_decisions
-    text = entry_text(pushed, state.journal[-1].number)
+    text = entry_text(document, state.journal[-1].number)
     assert f"decision 'review' is not one of {allowed}" in text
 
 
@@ -570,7 +552,7 @@ def test_a_broken_form_stalls_with_the_agents_entry_right_above_the_stall(
     stalled = _stalled(boundaries, launched)
 
     assert stalled.reason == "form_invalid"
-    state = _pushed_state(boundaries, remote)
+    state = pushed_state(boundaries, remote)
     records = [(record.speaker, record.kind) for record in state.journal[-2:]]
     assert records == [("reviewer", "result"), ("factory", "stall")]
     assert state.attempts == _started_attempts(launched) + 1
@@ -799,7 +781,7 @@ def test_a_new_form_finding_stamps_the_entry_and_the_stall_with_the_launched_run
     stalled = _stalled(boundaries, launched)
 
     assert stalled.reason == "form_invalid"
-    state = _pushed_state(boundaries, remote)
+    state = pushed_state(boundaries, remote)
     stamps = [(record.kind, record.at, record.stage, record.run) for record in state.journal]
     assert stamps[-2:] == [
         ("result", clock.now(), "review", launched.cost.run),

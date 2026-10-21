@@ -24,14 +24,14 @@ from factory.application.stage import (
 from factory.domain.agent_runs import QUESTION, AgentRunResult
 from factory.domain.checks import CheckResult
 from factory.domain.errors import HostingServiceError, PushFailed
-from factory.domain.git import CommitId
 from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord, entry_text
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import findings_question, round_cap_question
 from factory.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import PIPELINE_YAML, install_agents, remote_commit
+from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
+from stage_run_support import branch_head, pushed, pushed_state
 
 INSTANCE = "factory-1"
 WORK_ITEM = "F0001-S0001"
@@ -192,24 +192,6 @@ def _rendered(boundaries: Boundaries, body: str, stage: str) -> str:
     return boundaries.work_item_writer.render(document)
 
 
-def _head(remote: Path) -> CommitId:
-    commit = remote_commit(remote, BRANCH)
-    assert commit is not None
-    return commit
-
-
-def _pushed(boundaries: Boundaries, remote: Path) -> WorkItemDocument:
-    text = boundaries.git.show_file(_head(remote), PATH)
-    assert text is not None
-    return boundaries.work_item_reader.parse(text)
-
-
-def _pushed_state(boundaries: Boundaries, remote: Path) -> WorkItemState:
-    state = _pushed(boundaries, remote).state
-    assert state is not None
-    return state
-
-
 def _started_state(aftermath: AgentAftermath) -> WorkItemState:
     state = aftermath.started.document.state
     assert state is not None
@@ -252,7 +234,7 @@ def test_a_forward_decision_with_green_checks_moves_the_work_item(
 
     report = _finish(boundaries, aftermath)
 
-    state = _pushed_state(boundaries, remote)
+    state = pushed_state(boundaries, remote)
     assert state.stage == "doing"
     assert state.blocked is None
     assert state.claim is None
@@ -261,7 +243,7 @@ def test_a_forward_decision_with_green_checks_moves_the_work_item(
     assert report.work_item == WORK_ITEM
     assert report.stage == "tests"
     assert report.next_stage == "doing"
-    assert report.commit == _head(remote)
+    assert report.commit == branch_head(remote)
     assert report.pull_request == aftermath.started.pull_request.number
     assert report.stall is None
 
@@ -335,7 +317,7 @@ def test_a_red_check_stalls_the_stage_and_runs_nothing_after_it(
 
     report = _finish(boundaries, aftermath)
 
-    state = _pushed_state(boundaries, remote)
+    state = pushed_state(boundaries, remote)
     started = _started_state(aftermath)
     assert state.stage == "tests"
     assert state.attempts == started.attempts + 1
@@ -407,7 +389,7 @@ def test_after_a_red_check_the_agents_entry_with_the_green_checks_stays_above_th
 
     _finish(boundaries, aftermath)
 
-    document = _pushed(boundaries, remote)
+    document = pushed(boundaries, remote)
     state = document.state
     assert state is not None
     assert _records(state)[-2:] == [("tester", "result"), ("factory", "stall")]
@@ -438,7 +420,7 @@ def test_the_reports_run_in_order_after_the_checks_and_a_failing_one_holds_nothi
     assert _ran(tmp_path / TARGETS_LOG) == ["lint", "check", "test", "coverage"]
     assert report.rule == 6
     assert report.stall is None
-    assert _pushed_state(boundaries, remote).stage == "doing"
+    assert pushed_state(boundaries, remote).stage == "doing"
 
 
 def test_each_green_check_and_each_report_adds_its_last_line_to_the_entry(
@@ -466,7 +448,7 @@ def test_each_green_check_and_each_report_adds_its_last_line_to_the_entry(
 
     _finish(boundaries, aftermath)
 
-    text = _agent_text(_pushed(boundaries, remote), "tester")
+    text = _agent_text(pushed(boundaries, remote), "tester")
     assert text == (
         f"{ENTRY}\n\n`lint`: lint ok\n`check`: 12 passed\n`test`: 1 failed\n`coverage`: 91 %"
     )
@@ -495,7 +477,7 @@ def test_an_entry_of_a_stage_without_checks_or_reports_gains_no_lines(
 
     assert report.rule == 6
     assert _ran(tmp_path / TARGETS_LOG) == []
-    assert _agent_text(_pushed(boundaries, remote), "reviewer") == "reviewed."
+    assert _agent_text(pushed(boundaries, remote), "reviewer") == "reviewed."
 
 
 def test_a_question_blocks_the_stage_without_running_a_check(
@@ -518,7 +500,7 @@ def test_a_question_blocks_the_stage_without_running_a_check(
 
     report = _finish(boundaries, aftermath)
 
-    state = _pushed_state(boundaries, remote)
+    state = pushed_state(boundaries, remote)
     assert _ran(tmp_path / TARGETS_LOG) == []
     assert state.stage == "tests"
     assert state.blocked == "question"
@@ -559,7 +541,7 @@ def test_a_rework_moves_to_the_decisions_stage_without_running_a_check(
 
     report = _finish(boundaries, aftermath)
 
-    state = _pushed_state(boundaries, remote)
+    state = pushed_state(boundaries, remote)
     assert _ran(tmp_path / TARGETS_LOG) == []
     assert report.rule == rule
     assert report.next_stage == next_stage
@@ -624,7 +606,7 @@ def test_a_forward_decision_with_findings_after_the_run_asks_the_findings_questi
 
     report = _finish(boundaries, aftermath)
 
-    document = _pushed(boundaries, remote)
+    document = pushed(boundaries, remote)
     state = document.state
     assert state is not None
     assert aftermath.form_findings != []
@@ -662,7 +644,7 @@ def test_a_first_stage_that_fixed_the_only_finding_moves_forward(
 
     report = _finish(boundaries, aftermath)
 
-    state = _pushed_state(boundaries, remote)
+    state = pushed_state(boundaries, remote)
     assert aftermath.started.findings != []
     assert report.rule == 6
     assert _ran(tmp_path / TARGETS_LOG) == ["lint"]
@@ -692,7 +674,7 @@ def test_a_rework_past_the_cap_blocks_the_stage_with_the_round_cap_question(
 
     report = _finish(boundaries, aftermath)
 
-    document = _pushed(boundaries, remote)
+    document = pushed(boundaries, remote)
     state = document.state
     assert state is not None
     assert report.rule == 4
@@ -752,7 +734,7 @@ def test_a_move_keeps_the_counters_and_resets_crashes_only_on_a_forward_move(
 
     report = _finish(boundaries, aftermath)
 
-    state = _pushed_state(boundaries, remote)
+    state = pushed_state(boundaries, remote)
     started = _started_state(aftermath)
     assert report.rule == rule
     assert state.attempts == started.attempts
@@ -814,7 +796,7 @@ def test_a_failed_label_write_raises_after_the_result_commit_is_pushed(
     with pytest.raises(HostingServiceError):
         _finish(boundaries, aftermath)
 
-    state = _pushed_state(boundaries, remote)
+    state = pushed_state(boundaries, remote)
     assert state.stage == "doing"
     assert state.attempts == _started_state(aftermath).attempts
     assert ("factory", "stall") not in _records(state)
@@ -936,7 +918,7 @@ def test_a_stage_end_that_asks_a_question_stamps_both_entries_with_the_stage_and
 
     _finish(boundaries, aftermath)
 
-    state = _pushed_state(boundaries, remote)
+    state = pushed_state(boundaries, remote)
     stamps = [(record.kind, record.at, record.stage, record.run) for record in state.journal]
     assert stamps[-2:] == [
         ("result", clock.now(), "tests", aftermath.cost.run),
@@ -969,7 +951,7 @@ def test_a_red_check_stamps_the_entry_and_the_stall_with_the_stages_run(
 
     _finish(boundaries, aftermath)
 
-    state = _pushed_state(boundaries, remote)
+    state = pushed_state(boundaries, remote)
     stamps = [(record.kind, record.at, record.stage, record.run) for record in state.journal]
     assert stamps[-2:] == [
         ("result", clock.now(), "tests", aftermath.cost.run),

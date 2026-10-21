@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pytest
 
+from branch_reading import push_state
 from definition_support import pipeline_definition
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
-from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
 from factory.application.watcher import Watcher
 from factory.domain.errors import GitError
@@ -19,7 +19,7 @@ from factory.domain.events import Event
 from factory.domain.git import GitOptions
 from factory.domain.hosting import PullRequestComment, PullRequestView
 from factory.domain.identifiers import branch_name
-from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState, initial_state
+from factory.domain.work_item import Claim, WorkItemState, initial_state
 from git_support import TEST_IDENTITY, remote_commit, run_git
 from human_clone import HumanClone
 
@@ -83,11 +83,6 @@ def _with_hosting(boundaries: Boundaries, hosting: FakeHostingService) -> Bounda
     return replace(boundaries, hosting=hosting)
 
 
-def _push_state(human: HumanClone, state: WorkItemState) -> None:
-    text = FrontmatterWorkItemWriter().render(WorkItemDocument(state=state, body=BODY))
-    human.push_file(BRANCH, PATH, text)
-
-
 def _evaluate(boundaries: Boundaries) -> Event:
     boundaries.git.fetch()
     return Watcher(boundaries, INSTANCE).evaluate(pipeline_definition(boundaries))
@@ -135,7 +130,7 @@ def test_a_waiting_work_item_is_looked_up_once_and_its_comments_only_when_open(
     if merged:
         hosting.merge_by_human(number, "c" * 40)
     human.start(BACKLOG_PATH)
-    _push_state(human, WorkItemState(stage="approval", pull_request=number, handed_over="approval"))
+    push_state(human, WorkItemState(stage="approval", pull_request=number, handed_over="approval"))
     hosting.calls.clear()
 
     event = _evaluate(_with_hosting(boundaries, hosting))
@@ -171,7 +166,7 @@ def test_the_claim_tier_is_decided_by_the_claim_service(
         lease_duration=60,
     )
     human.start(BACKLOG_PATH)
-    _push_state(human, initial_state("intake").model_copy(update={"claim": claim}))
+    push_state(human, initial_state("intake").model_copy(update={"claim": claim}))
 
     event = _evaluate(boundaries)
 

@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from branch_reading import remote_document
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
@@ -84,13 +85,6 @@ def _event(snapshot: WorkItemSnapshot) -> Event:
 
 def _handler(boundaries: Boundaries) -> AskHandler:
     return AskHandler(boundaries, _definition())
-
-
-def _remote_document(boundaries: Boundaries, checkout: GitCli) -> WorkItemDocument:
-    checkout.fetch()
-    text = checkout.show_file(f"origin/{BRANCH}", PATH)
-    assert text is not None
-    return boundaries.work_item_reader.parse(text)
 
 
 def _questions(document: WorkItemDocument) -> list[JournalRecord]:
@@ -217,7 +211,7 @@ def test_at_the_attempts_cap_the_question_is_recorded_in_one_pushed_commit(
 
     _handler(boundaries).handle(_event(snapshot))
 
-    recorded = _remote_document(boundaries, checkout)
+    recorded = remote_document(boundaries, checkout)
     [commit] = checkout.log(f"origin/{BRANCH}", since=snapshot.branch_commit)
     assert commit.subject == SUBJECT
     assert recorded.state is not None
@@ -245,7 +239,7 @@ def test_the_recorded_attempts_cap_question_is_posted_by_the_factory(
 
     _handler(boundaries).handle(_event(snapshot))
 
-    recorded = _remote_document(boundaries, checkout)
+    recorded = remote_document(boundaries, checkout)
     [post] = hosting.factory_posts(pull_request)
     key = _key("attempts_cap", 4)
     assert post.key == key
@@ -274,7 +268,7 @@ def test_below_the_attempts_cap_nothing_is_asked_and_above_it_the_question_is(
         assert hosting.factory_posts(pull_request) == []
     else:
         handler.handle(_event(snapshot))
-        recorded = _remote_document(boundaries, checkout)
+        recorded = remote_document(boundaries, checkout)
         assert recorded.state is not None
         assert recorded.state.blocked == "attempts_cap"
         assert entry_text(recorded, 4) == attempts_cap_question("doing", 3, LAST_STALL.text)
@@ -315,7 +309,7 @@ def test_the_attempts_cap_question_is_recorded_before_a_failing_post(
     with pytest.raises(HostingServiceError):
         _handler(boundaries).handle(_event(snapshot))
 
-    recorded = _remote_document(boundaries, checkout)
+    recorded = remote_document(boundaries, checkout)
     assert recorded.state is not None
     assert recorded.state.blocked == "attempts_cap"
     assert recorded.state.journal[-1] == JournalRecord(
@@ -343,14 +337,14 @@ def test_after_a_failing_post_the_recorded_question_is_posted_once_and_not_recor
     with pytest.raises(HostingServiceError):
         _handler(boundaries).handle(_event(snapshot))
     recorded_at = remote_commit(remote, BRANCH)
-    reread = _snapshot(_remote_document(boundaries, checkout), recorded_at)
+    reread = _snapshot(remote_document(boundaries, checkout), recorded_at)
 
     _handler(boundaries).handle(_event(reread))
 
     [post] = hosting.factory_posts(pull_request)
     assert post.key == _key("attempts_cap", 4)
     assert remote_commit(remote, BRANCH) == recorded_at
-    assert len(_questions(_remote_document(boundaries, checkout))) == 1
+    assert len(_questions(remote_document(boundaries, checkout))) == 1
 
 
 def test_a_kill_after_the_post_leaves_one_post_and_a_repeat_posts_nothing_more(
@@ -392,7 +386,7 @@ def test_a_kill_before_the_push_leaves_the_branch_and_a_repeat_records_and_posts
     _handler(boundaries).handle(_event(snapshot))
 
     assert len(checkout.log(f"origin/{BRANCH}", since=snapshot.branch_commit)) == 1
-    assert len(_questions(_remote_document(boundaries, checkout))) == 1
+    assert len(_questions(remote_document(boundaries, checkout))) == 1
     [post] = hosting.factory_posts(pull_request)
     assert post.key == _key("attempts_cap", 4)
 

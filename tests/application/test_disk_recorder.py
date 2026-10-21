@@ -15,7 +15,6 @@ from factory.application.boundaries import Boundaries
 from factory.application.disk_records import DiskRecorder
 from factory.domain.disk import DiskOccasion, DiskRecord, DiskUse, disk_line
 from factory.domain.settings import InstanceSettings
-from git_support import CHECKOUT
 from log_support import log_lines
 from record_support import UnwritableRecordLog
 
@@ -29,27 +28,16 @@ TEMP_USED = 43 * 10**8
 
 
 @pytest.fixture
-def settings(tmp_path: Path) -> InstanceSettings:
-    """Return settings whose checkout and state directory lie under `tmp_path`."""
-    return InstanceSettings(
-        repository_url="/srv/project.git",
-        instance="factory-1",
-        checkout=tmp_path / CHECKOUT,
-        state_directory=tmp_path / "state",
-    )
-
-
-@pytest.fixture
 def temporary(tmp_path: Path) -> Path:
     """Return the path of the test's temporary directory."""
     return tmp_path / "tmp"
 
 
 @pytest.fixture
-def disk(settings: InstanceSettings, temporary: Path) -> FakeDiskSpace:
+def disk(disk_settings: InstanceSettings, temporary: Path) -> FakeDiskSpace:
     """Return a fake disk that answers the work, the state and the temporary directory."""
-    work = settings.checkout.parent
-    state = settings.state_directory
+    work = disk_settings.checkout.parent
+    state = disk_settings.state_directory
     return FakeDiskSpace(
         free={work: WORK_FREE, state: STATE_FREE, temporary: TEMP_FREE},
         used={work: WORK_USED, state: STATE_USED, temporary: TEMP_USED},
@@ -57,20 +45,14 @@ def disk(settings: InstanceSettings, temporary: Path) -> FakeDiskSpace:
 
 
 @pytest.fixture
-def records(tmp_path: Path) -> JsonLinesRecordLog[DiskRecord]:
-    """Return the disk record log of the test, in `tmp_path`."""
-    return JsonLinesRecordLog(tmp_path / "state" / "records" / "disk.jsonl", DiskRecord)
-
-
-@pytest.fixture
 def recorded(
     boundaries: Boundaries,
-    settings: InstanceSettings,
+    disk_settings: InstanceSettings,
     disk: FakeDiskSpace,
-    records: JsonLinesRecordLog[DiskRecord],
+    disk_records: JsonLinesRecordLog[DiskRecord],
 ) -> Boundaries:
     """Return the test's boundaries given the fake disk, the record log and the settings."""
-    return replace(boundaries, disk=disk, disk_records=records, settings=settings)
+    return replace(boundaries, disk=disk, disk_records=disk_records, settings=disk_settings)
 
 
 def _use(path: Path, free: int | None, used: int | None) -> DiskUse:
@@ -79,8 +61,8 @@ def _use(path: Path, free: int | None, used: int | None) -> DiskUse:
 
 def test_a_start_record_holds_the_work_and_the_state_directory_and_is_kept_and_logged(
     recorded: Boundaries,
-    settings: InstanceSettings,
-    records: JsonLinesRecordLog[DiskRecord],
+    disk_settings: InstanceSettings,
+    disk_records: JsonLinesRecordLog[DiskRecord],
     clock: ManualClock,
     tmp_path: Path,
 ) -> None:
@@ -90,11 +72,11 @@ def test_a_start_record_holds_the_work_and_the_state_directory_and_is_kept_and_l
         at=clock.now(),
         occasion="start",
         folders=[
-            _use(settings.checkout.parent, WORK_FREE, WORK_USED),
-            _use(settings.state_directory, STATE_FREE, STATE_USED),
+            _use(disk_settings.checkout.parent, WORK_FREE, WORK_USED),
+            _use(disk_settings.state_directory, STATE_FREE, STATE_USED),
         ],
     )
-    assert records.read() == [record]
+    assert disk_records.read() == [record]
     [line] = log_lines(tmp_path)
     assert line.endswith(disk_line(record))
 
@@ -102,19 +84,19 @@ def test_a_start_record_holds_the_work_and_the_state_directory_and_is_kept_and_l
 @pytest.mark.parametrize("with_temporary", [True, False], ids=["temporary", "no-temporary"])
 def test_the_temporary_directory_is_a_third_folder_only_when_it_is_set(
     recorded: Boundaries,
-    settings: InstanceSettings,
+    disk_settings: InstanceSettings,
     temporary: Path,
     *,
     with_temporary: bool,
 ) -> None:
-    given = settings.model_copy(
+    given = disk_settings.model_copy(
         update={"temporary_directory": temporary if with_temporary else None}
     )
 
     record = DiskRecorder(replace(recorded, settings=given)).record("start")
 
     assert record is not None
-    expected = [str(settings.checkout.parent), str(settings.state_directory)]
+    expected = [str(disk_settings.checkout.parent), str(disk_settings.state_directory)]
     if with_temporary:
         expected.append(str(temporary))
     assert [folder.path for folder in record.folders] == expected
@@ -122,9 +104,9 @@ def test_the_temporary_directory_is_a_third_folder_only_when_it_is_set(
 
 @pytest.mark.parametrize("failing", ["free", "used"])
 def test_an_os_error_of_one_measure_leaves_only_that_value_unknown(
-    recorded: Boundaries, settings: InstanceSettings, disk: FakeDiskSpace, failing: str
+    recorded: Boundaries, disk_settings: InstanceSettings, disk: FakeDiskSpace, failing: str
 ) -> None:
-    state = settings.state_directory
+    state = disk_settings.state_directory
     if failing == "free":
         disk.free[state] = OSError("statvfs failed")
     else:
@@ -160,7 +142,7 @@ def test_a_record_that_cannot_be_appended_is_logged_with_the_error_and_still_ret
 )
 def test_boundaries_without_disk_records_or_settings_record_nothing(
     recorded: Boundaries,
-    records: JsonLinesRecordLog[DiskRecord],
+    disk_records: JsonLinesRecordLog[DiskRecord],
     tmp_path: Path,
     without: Callable[[Boundaries], Boundaries],
 ) -> None:
@@ -169,7 +151,7 @@ def test_boundaries_without_disk_records_or_settings_record_nothing(
     record = DiskRecorder(given).record("start")
 
     assert record is None
-    assert records.read() == []
+    assert disk_records.read() == []
     assert log_lines(tmp_path) == []
 
 
@@ -188,7 +170,7 @@ def _at(clock: ManualClock, hours: int, occasion: DiskOccasion) -> DiskRecord:
 )
 def test_last_gives_the_latest_record_whatever_its_occasion(
     recorded: Boundaries,
-    records: JsonLinesRecordLog[DiskRecord],
+    disk_records: JsonLinesRecordLog[DiskRecord],
     disk: FakeDiskSpace,
     clock: ManualClock,
     *,
@@ -197,7 +179,7 @@ def test_last_gives_the_latest_record_whatever_its_occasion(
 ) -> None:
     written = [_at(clock, hours, occasion) for hours, occasion in enumerate(occasions)]
     for record in written:
-        records.append(record)
+        disk_records.append(record)
     given = recorded if with_log else replace(recorded, disk_records=None)
 
     last = DiskRecorder(given).last()

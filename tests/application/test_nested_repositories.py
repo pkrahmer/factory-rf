@@ -13,7 +13,6 @@ from application.test_after_agent import (
     _completed,
     _launch,
     _note,
-    _pushed,
     _stalled,
     _started_attempts,
 )
@@ -36,6 +35,7 @@ from git_support import TEST_IDENTITY, install_agents, run_git, write_fsmonitor
 from human_clone import HumanClone
 from root_support import AS_ROOT
 from sealed_run_support import COMPLETED, run_request
+from stage_run_support import pushed
 
 NESTED = "notes/sub/.git"
 LOCKED = "locked"
@@ -203,11 +203,11 @@ def test_a_stage_whose_agent_leaves_a_nested_repository_stalls(
         assert stall_note("nested_repository", 1, stalled.attempts_cap, detail=NESTED) in _note(
             hosting, stalled
         )
-        pushed = _pushed(boundaries, remote)
-        state = pushed.state
+        document = pushed(boundaries, remote)
+        state = document.state
         assert state is not None
         assert (state.journal[-1].speaker, state.journal[-1].kind) == ("factory", "stall")
-        assert NESTED in entry_text(pushed, state.journal[-1].number)
+        assert NESTED in entry_text(document, state.journal[-1].number)
     assert marker.read_text(encoding="utf-8") == ""
 
 

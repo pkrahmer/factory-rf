@@ -13,10 +13,9 @@ from factory.application.stage import StageReport, StageRunner
 from factory.domain.journal import entry_text
 from factory.domain.known_results import ResultRecord
 from factory.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import PIPELINE_YAML, remote_commit
+from git_support import PIPELINE_YAML
 from human_clone import HumanClone
 from stage_run_support import (
-    BRANCH,
     CREATED,
     ENVIRONMENT,
     INSTANCE,
@@ -24,6 +23,7 @@ from stage_run_support import (
     WORK_ITEM,
     completed,
     open_story,
+    pushed,
     stage_makefile,
 )
 
@@ -79,14 +79,6 @@ def _stages(
     return Stages(known, records, definition_yaml, ran_log)
 
 
-def _pushed(boundaries: Boundaries, remote: Path) -> WorkItemDocument:
-    head = remote_commit(remote, BRANCH)
-    assert head is not None
-    text = boundaries.git.show_file(head, PATH)
-    assert text is not None
-    return boundaries.work_item_reader.parse(text)
-
-
 def _entry_of(document: WorkItemDocument, speaker: str) -> str:
     state = document.state
     assert state is not None
@@ -130,7 +122,7 @@ def test_the_docs_stage_takes_the_coders_passed_check_on_the_same_code(
         stages.boundaries.git.fetch()
     stages.run()
 
-    document = _pushed(stages.boundaries, remote)
+    document = pushed(stages.boundaries, remote)
     assert stages.ran("check") == check_runs
     if definition_yaml == REPORT_YAML:
         assert [(record.key.command, record.reused) for record in coder_records] == [
