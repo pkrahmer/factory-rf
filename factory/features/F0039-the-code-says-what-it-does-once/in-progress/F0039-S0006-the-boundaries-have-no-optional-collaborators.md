@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 385
 comments_read: [6309137603]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-21T06:14:06.144123Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -141,6 +145,11 @@ journal:
   at: '2026-10-21T06:13:45.137267Z'
   stage: review
   run: 89750978eb6d49c5843b434aa224fa05
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:14:06.144123Z'
+  stage: docs
 ---
 
 # The boundaries have no optional collaborators
@@ -455,3 +464,4 @@ Expect: one line, `0` (before the story, `1`)
     - tests/application/test_task_acceptance.py: decision 11
     - tests/application/test_task_os_user.py: decision 11
     - tests/application/test_tick_disk.py: decision 11
+25. factory: started docs as self.
