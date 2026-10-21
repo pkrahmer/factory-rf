@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 380
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-21T00:44:03.166734Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-21T00:43:42.651505Z'
   stage: doing
   run: 398670a91d1e4c8aaac770e73e0f82b1
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-21T00:44:03.166734Z'
+  stage: review
 ---
 
 # The duplicates report holds no standing finding of the runtimes or the clock
@@ -113,3 +122,4 @@ Expect: `3`
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 38 known, 0 gone
+8. factory: started review as self.
