@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-21T07:24:30.695613Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-21T07:24:30.689413Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-21T07:24:30.695613Z'
+  stage: intake
+---
+
 # The decision log marks two superseded entries, the removal of `factory/v1/`, and where its codes come from
 
 ## Description
@@ -41,3 +68,6 @@ make documents 2>&1 | tail -n 1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-21 human: created.
+2. factory: started intake as self.
