@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 392
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-21T07:17:18.876803Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-21T07:17:18.876803Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-21T07:18:38.667964Z'
+  stage: tests
+  run: c699daf711754ebd9b43a6d7efa3d120
 ---
 
 # The project guide names no planning code or v1 feature id as a pointer
@@ -93,3 +95,11 @@ Expect: `documents ok`
    - Architecture: nothing under `src/` changes, so the layer rules in CLAUDE.md are untouched. The documenter writes only `docs/`, which is its write path, and `processes-and-checks.md` is not touched.
    - Scope: this matches feature.md decision 6 and the *Scope* line for S0004 (M6, guide files only). R5 and R8 (named in CLAUDE.md), the agents' R10, R14 and R15, and example ids stay. The decision log is S0005's and the agent files are S0010's, so the story stays out of both. The only overlap is the `agents.md` sentence with "F0009 reads them". feature.md already orders S0010 after S0004 for that reason.
 4. factory: started tests as self.
+5. tester: No tests written, on purpose. The Interface says "None: nothing changes under `src/factory/`, in any test, ...". Criterion 1 forbids any change under `tests/`, and I made none.
+   - criterion 1 (nothing under src/, tests/, image/, template/, demo/ or claude/ changes): no test function. Writing a test would itself break this criterion. The smoke test's `git diff --name-only origin/main -- src tests image template demo claude | wc -l` checks it, and this entry is the tester's statement that nothing changed there.
+   - criterion 2 (`make check` stays green): no test function. It is the stage's check.
+   - criterion 3 (docs: old texts become new texts, no guide file names *Which feature uses which operation*, `make documents` ends with `documents ok`): no test function. A pytest test of this would be a change under `tests/`, which criterion 1 forbids. The story's smoke test (the grep counts) and the docs stage's `make documents` check cover it.
+   Files created: none. Modules the test run could not import: none, because no new test exists. I did not run `make test`, since it has no new red tests to show. `make lint`: green.
+
+   `lint`: lint: green (0.6 s)
+   `test`: test: green (62.5 s)
