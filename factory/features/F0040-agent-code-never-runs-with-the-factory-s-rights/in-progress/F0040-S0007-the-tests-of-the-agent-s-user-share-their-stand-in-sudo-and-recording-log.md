@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 387
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-21T06:40:35.222359Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-21T06:40:14.374820Z'
   stage: docs
   run: 2f0416085ae24f1888625b97c9c82456
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-21T06:40:35.222359Z'
+  stage: smoke-test
 ---
 
 # The tests of the agent's user share their stand-in sudo and their recording log
@@ -235,3 +244,4 @@ Expect: one summary line with a count of `passed`, and no `failed` and no `error
     `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T06:37:06Z)
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
