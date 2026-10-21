@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-21T07:52:23.815209Z'
   stage: smoke-test
   run: 715e37695c254d388f5cafeb1b53bdf8
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-21T07:54:47.562597Z'
+  stage: approval
 ---
 
 # The operator guide names what the operator sees, not the classes behind it
@@ -344,3 +349,4 @@ Expect: `documents ok`
     - Criterion 2: I did not run `make check` again. The journal records it green on the tree, and the factory checks it.
 
     Findings: none. Nothing is open.
+22. factory: done (pull request merged); cost: 10 runs, 4.9 min, 51 turns, 187579 tokens in (773615 more from cache), 15529 out, $1.66
