@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 393
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-21T07:26:51.731788Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-21T07:26:51.731788Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-21T07:28:27.452861Z'
+  stage: doing
+  run: 52c9f9cbb1e348e08f714632f85282b3
 ---
 
 # The decision log marks two superseded entries, the removal of `factory/v1/`, and where its codes come from
@@ -109,3 +111,13 @@ Expect: `documents ok`
    `lint`: lint: green (0.6 s)
    `test`: test: green (63.9 s)
 6. factory: started doing as self.
+7. coder: No code written: this story only changes the docs. Its Interface is "None", and the documenter makes the four additions to `docs/decisions.md`.
+   - criterion 1: I changed nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/`. `git status --short` shows only the factory's own `.costs.jsonl` sidecar.
+   - criterion 2: I ran `make check` on the unchanged tree and it is green (`test: green (67.4 s)`, `check: green`).
+   - criterion 3: left to the documenter, as the work item says. I did not write `docs/decisions.md`, because the coder does not write the four documents (`CLAUDE.md`, *Docs*).
+   Main choice: I ended with no change rather than making the documentation edits early. The alternative I rejected was writing the four lines now, which would go against the doc ownership in `CLAUDE.md` and the story's Interface.
+   Refactor: there is no diff, so there was nothing to refactor. The journal did not change the task's meaning, so `## Description` stays as it is.
+   Noticed, not touched: nothing.
+
+   `check`: check: green (not run again: passed on tree 61b5f6269707 at 2026-10-21T07:02:46Z)
+   `duplicates`: duplicates: 0 new, 38 known, 0 gone
