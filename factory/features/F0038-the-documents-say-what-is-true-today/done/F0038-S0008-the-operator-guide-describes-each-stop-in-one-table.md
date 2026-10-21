@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-21T08:02:20.243086Z'
   stage: smoke-test
   run: 5a668cca098f4411a6d605aeb2832c92
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-21T08:03:41.458200Z'
+  stage: approval
 ---
 
 # The operator guide lists each stop in one table
@@ -247,3 +252,4 @@ Expect: `documents ok`
       - The fifteen-row *The stops* table is untouched (command 1's `1`). No passage cites the removed heading (command 1's `0`).
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 3.8 min, 29 turns, 112744 tokens in (422601 more from cache), 8617 out, $0.91
