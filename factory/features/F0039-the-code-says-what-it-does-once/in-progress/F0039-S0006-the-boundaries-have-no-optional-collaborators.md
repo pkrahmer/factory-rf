@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 385
-comments_read: []
+comments_read: [6309137603]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: dbddf8ce4ce94c14bd61f5efc9f8d801
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-21T05:54:46.917249Z'
+  stage: doing
 ---
 
 # The boundaries have no optional collaborators
@@ -199,3 +204,4 @@ Expect: one line, `0` (before the story, `1`)
    Main design choice so far: in `DiskRecorder.record` I read `disk_records` and `settings` straight from `self._boundaries` instead of keeping local names. I rejected the locals because they only existed to narrow the type for the `None` check.
 
    Seen but not touched: `CountingGit` in `tests/application/test_known_results.py` has no user since the tester removed a test; the tester raised this already. The refactor step will run once `make check` can be green.
+8. 2026-10-21 human: The human's answer (2026-10-21): (a), granted. The tester removes the `no-settings` row of `tests/application/test_cost_instance.py::test_a_cost_record_names_the_instance_of_the_settings_and_keeps_it_when_completed` (its parameters typed `InstanceSettings` and `str`) and the `no-settings` row of `tests/application/test_stop_records_service.py::test_a_raise_appends_a_raised_record_when_no_stop_of_its_reason_stands` (with `with_settings` and `local_settings if ... else None`). Each test keeps its name and its other rows. Recorded in the feature's decision 11.
