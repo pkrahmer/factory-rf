@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 398
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-21T08:25:12.171817Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-21T08:25:12.171817Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-21T08:25:36.012362Z'
+  stage: smoke-test
+  run: bfe453cb32d3445d9e15c7e901d63670
 ---
 
 # The project guide names every passage of v1.1's own in the shipped agents
@@ -174,3 +176,49 @@ Expect: `documents ok`
     `secrets`: secrets: green (0.9 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed: I ran all four commands from the repository root, as written and in order, and each output met its `Expect:` line. No findings.
+
+    1. Count grep
+    ```
+    0
+    ```
+    Met: the expected output is `0`.
+
+    2. Story ids named in `docs/project-guide/agents.md`
+    ```
+    named: F0016-S0002
+    named: F0021-S0005
+    named: F0034-S0001
+    named: F0019-S0006
+    named: F0041-S0001
+    named: F0022-S0002
+    named: F0035-S0001
+    named: F0012-S0017
+    named: F0031-S0001
+    ```
+    Met: nine `named:` lines in the expected order, and no `missing:` line.
+
+    3. Changed paths against `origin/main`
+    ```
+    0
+    docs/project-guide/agents.md
+    ```
+    Met: the expected output is two lines, `0` and `docs/project-guide/agents.md`.
+
+    4. `make documents 2>&1 | tail -n 1`
+    ```
+    documents ok
+    ```
+    Met.
+
+    Acceptance criteria read again against what the commands showed and against `git diff origin/main -- docs/project-guide/agents.md`:
+    - Criterion 1 holds: nothing under `src/`, `tests/`, `image/`, `template/`, `demo/` or `claude/` changed (command 3). The tester's entry (5) and the coder's entry (7) both say so.
+    - Criterion 2: I did not run `make check`, because this stage does not run it. The entries above record `check: green` on the tree, and nothing outside `docs/` changed since then.
+    - Criterion 3 holds:
+      - In *The seven agents*, the "Six passages …" sentence and the two after it are replaced by "The passages below are v1.1's own text and not v1's." and a list of eight bullets. Each bullet names the agent or agents, the section, what the passage says and the story that wrote it, and the list covers every passage the criterion names.
+      - In *Replaced from v1*, the text now reads "except the passages of v1.1's own text that *The seven agents* lists".
+      - A search for a number before "passage" finds nothing, so no sentence gives a count.
+      - `make documents` ends with `documents ok`.
+    - The documenter added one more sentence after the opening one: "Every other sentence outside `## Lessons` is v1's, and an edit keeps v1's words there". The criterion asks for one sentence and a list. This added sentence restates what the section already says, so I judge that it does not contradict the criterion. I did not count it as a finding.
+
+    Open: nothing.
