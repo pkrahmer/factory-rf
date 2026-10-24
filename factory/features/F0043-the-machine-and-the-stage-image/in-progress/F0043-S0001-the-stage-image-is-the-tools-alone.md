@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T23:59:38.004662Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-24T23:59:17.454361Z'
   stage: doing
   run: aa57ad799fa64b6f8c8d93dd933e855c
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:59:38.004662Z'
+  stage: review
 ---
 
 # The stage image is the tools alone
@@ -296,3 +305,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
+16. factory: started review as self.
