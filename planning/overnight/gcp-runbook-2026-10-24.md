@@ -126,11 +126,11 @@ This measures the sync step with a real repository and the read-only upstream mo
 ```bash
 sudo -iu factory
 mkdir -p /srv/factory/vm && cd /srv/factory/vm
-git clone --bare https://github.com/pkrahmer/factory-timeline.git repo.git   # any small public repository
+git clone --bare https://github.com/octocat/Hello-World.git repo.git   # any small public repository (no token)
 cd /srv/factory/vm/work
 zfs rollback -r tank/factory/vm@base
 time podman run --rm --userns=keep-id -v /srv/factory/vm/work:/work -v /srv/factory/vm/repo.git:/upstream:ro \
-  docker.io/alpine/git:v2.45.2 sh -c 'cd /work && ([ -d checkout/.git ] || git init -q checkout) && cd checkout && git fetch -q /upstream main && git checkout -qf FETCH_HEAD && git log --oneline -1'
+  docker.io/alpine/git:v2.45.2 sh -c 'cd /work && ([ -d checkout/.git ] || git init -q checkout) && cd checkout && git -c safe.directory="*" fetch -q /upstream master && git checkout -qf FETCH_HEAD && git log --oneline -1'
 time sh -c 'zfs destroy tank/factory/vm@base && zfs snapshot tank/factory/vm@base'
 time podman run --rm --userns=keep-id -v /srv/factory/vm/work:/work docker.io/alpine/git:v2.45.2 \
   sh -c 'cd /work/checkout && echo x > y && git -c user.email=a@b -c user.name=a commit -qam junk; git status --short | head'
