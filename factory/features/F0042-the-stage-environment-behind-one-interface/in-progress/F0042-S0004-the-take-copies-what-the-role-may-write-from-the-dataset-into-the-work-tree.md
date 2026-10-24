@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 410
 comments_read: [6384920747]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T13:56:38.681549Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-24T13:56:38.681549Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-24T13:57:02.186386Z'
+  stage: doing
+  run: 4b874b4b00b14c019a19e8cfe6cabd22
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -284,3 +286,23 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     - tests/application/test_git_interface.py: the human's leave, decision 18 (d) of the feature's `feature.md` (`OPERATIONS` gains `ignored`, the test is renamed to twenty-six). The change is within that leave.
     - tests/application/test_interfaces.py: the human's leave, decision 18 (d) of the feature's `feature.md` (`test_git_abstract_methods_are_exactly_its_twenty_five_operations` renamed to twenty-six, same assertion). The change is within that leave.
 13. factory: started doing as self.
+14. coder: Round 1. The reviewer's only finding is that criterion 10, which they added, has no test yet. I changed no code and made no edit under `src/`.
+
+    Two rows are missing:
+    - A line-long row in `tests/adapters/test_git_cli_check_ignore.py::test_ignored_asks_git_in_groups_and_refuses_what_it_cannot_read`: a stand-in `git` that prints one line more than the paths it was given must raise `GitError`.
+    - A deleted-dangling-link row in `tests/application/test_take_edges.py::test_copy_changed_mirrors_each_change_without_following_a_link`: a `deleted` path whose target entry is a dangling symbolic link must remove the link and raise nothing.
+
+    The code already does both:
+    - `_ignored_in_group` in `src/factory/adapters/git_cli.py` raises `GitError` whenever the number of lines differs from the number of paths.
+    - `copy_changed` in `src/factory/application/take.py` removes whatever entry stands at the target, a link as the link, and accepts one that is missing.
+
+    So both rows should pass as soon as the tester writes them.
+
+    What the journal changed: the reviewer added criterion 10, and it is already in the `## Description`'s acceptance criteria. Nothing else changes the meaning of the task, so I left the Description as it is.
+
+    I did not run `make check`, because nothing changed since the factory's green check after round 0.
+
+    The three things I noticed but did not touch are still in entry 10:
+    - A failing test in `tests/adapters/test_opencode_runtime_launch.py` prints the leaked `ANTHROPIC_API_KEY` in full.
+    - `copy_changed` does not check for a link at one of the target's parent folders.
+    - A source entry missing for an `added` or `modified` path is not placed.
