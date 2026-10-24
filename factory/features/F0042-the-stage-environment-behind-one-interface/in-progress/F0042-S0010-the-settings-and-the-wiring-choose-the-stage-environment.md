@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T21:03:43.462382Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-24T21:03:43.462382Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-24T21:04:07.712611Z'
+  stage: doing
+  run: ee9ebf259a384d9f91c6d7ad75e9ab58
 ---
 
 # The settings and the wiring choose the stage environment
@@ -237,3 +239,20 @@ Expect: `1`
 
    Earlier tests: none. The diff only adds test files (`A`: the three new modules) and changes no test file that `main` already holds.
 10. factory: started doing as self.
+11. coder: Round 1: both of the reviewer's findings are test changes, so I changed no code and no test.
+
+    The tester should make these two changes in `tests/domain/test_settings_stage_environment.py`:
+    1. Merge `test_read_settings_refuses_a_stage_environment_it_cannot_run` and `test_read_settings_accepts_any_values_for_the_inline_environment` into one parametrized test. Each row expects either a `(variable, fault)` or the values read, the same way the criterion 3 test handles `accepted`.
+    2. Add the four rows of the new criterion 8 to that test:
+       - `container` with the dataset and `FACTORY_WORKSPACE="  "` gives `FACTORY_WORKSPACE`, "missing for the container environment".
+       - The dataset, the workspace and `FACTORY_STAGE_IMAGE="  "` gives `FACTORY_STAGE_IMAGE`, "missing for the container environment".
+       - The dataset and `FACTORY_WORKSPACE=srv/work` with no image gives `FACTORY_WORKSPACE`, "is not an absolute path".
+       - `FACTORY_AGENT_USER=agent` with no dataset gives `FACTORY_DATASET`, "missing for the container environment".
+
+    I did not run the new rows, because they don't exist yet. I expect them to pass against the current `src/factory/domain/settings.py`, from reading the code:
+    - A blank workspace becomes `None` through `_optional_path` (line 176), and a blank image becomes `None` through `or None` (line 177).
+    - `_container_fault` (line 150) checks in the order the Interface gives: dataset, workspace missing, workspace relative, image, agent user last.
+
+    If a row fails, it comes back to doing as a fix under `src/`.
+
+    Noticed, not touched: what entry 7 listed is still open. That is the unreachable `None` narrowing in `_container_environment` in `src/factory/entry/wiring.py`, and `FACTORY_AGENT_USER`'s "is not a name" fault now coming before other settings' faults. The Description is unchanged: the journal added criterion 8, and the reviewer already wrote it into the Description.
