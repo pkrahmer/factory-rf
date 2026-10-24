@@ -179,3 +179,11 @@ class Git(ABC):
         Tracked files, untracked paths no rule matches and the repository stay. A path that
         cannot be removed raises `GitError`.
         """
+
+    @abstractmethod
+    def ignored(self, paths: Sequence[str]) -> list[str]:
+        """Those of `paths` that the checkout's ignore rules ignore, in the order given.
+
+        A tracked path is never ignored. `[]` for no paths, without running git. A path that
+        is absolute or holds a `..` segment raises `ValueError` before git runs.
+        """
