@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T23:56:29.318735Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-24T23:56:08.910141Z'
   stage: tests
   run: f64c316032fc424bb4590df28c2bab6e
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:56:29.318735Z'
+  stage: doing
 ---
 
 # The stage image is the tools alone
@@ -262,3 +271,4 @@ Expect: `1`
 
     `lint`: lint: green (0.5 s)
     `test`: test: green (65.9 s)
+14. factory: started doing as self.
