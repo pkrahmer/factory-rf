@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T21:28:07.346719Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-24T21:28:07.346719Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-24T21:35:43.977138Z'
+  stage: doing
+  run: 35c95b3e8a784b47aa178999005f7c2c
 ---
 
 # The preflight checks the container environment
@@ -216,3 +218,30 @@ Expect: `1`
    `lint`: lint: green (0.6 s)
    `test`: ERROR tests/application/test_container_items.py - ImportError while importing test module '/work/checkout/tests/application/test_container_items.py'.
 9. factory: started doing as self.
+10. coder: I built the container preflight: four new items, both probes now go through the stage environment, and the wiring picks the items by environment. All six of the tester's files pass, and `make check` is green after the refactor.
+
+    What I built:
+    - `src/factory/application/preflight.py`:
+      - Three new items, `tool_version_item`, `dataset_item` and `stage_image_item`, with `_DATASET_ITEM` and `_STAGE_IMAGE_ITEM`.
+      - `CONTAINER_TOOLS = ("git", "uv")` sits beside `REQUIRED_TOOLS`, as the human's answer asked. `MachineChecks._tools()` returns it for `container`, so no `make` and no runtime executable are checked. `inline` is unchanged.
+      - For `container`, `opencode_item` skips the `PATH` check and checks only the aliases.
+      - `agent_run_probe_item` resolves `origin/main` first. With no `origin/main` it fails with `no origin/main to prepare the stage environment from`. Otherwise it calls `prepare(main, MAIN_BRANCH, sync_time_limit=PROBE_TIME_LIMIT)` and then `run_agent` on the same environment. `SnapshotError` and `ContainerError` fail the item with the error's text.
+      - `Preflight._run_probe` calls `prepare` after the checkout and reset of `main`. `Preflight.run` now also catches `SnapshotError` and `ContainerError`, with the same stop detail.
+    - `src/factory/entry/wiring.py`:
+      - `machine_extras` keeps `token-file` first. It then adds `_container_items` (`podman`, `zfs`, `dataset`, `stage-image`) or `_inline_items` (today's `agent-user`, `tool:sudo`, `agent-environment`, `confinement`, unchanged). The `opencode` and `agent-run-probe` items follow, as before.
+      - Both `_container_environment` and `_container_items` now build the adapters through one private `_container_adapters(settings)`. Building them runs no command.
+
+    Main choice: `_container_adapters` returns a small frozen dataclass, `_ContainerAdapters`. It holds the adapters plus the dataset and image names already checked against `None`, so the items get typed `str` names. I rejected two alternatives:
+    - Public `dataset` and `image` properties on `ZfsSnapshots` and `PodmanRuns`: that would widen the adapters for the wiring's sake.
+    - Reading `settings.dataset` again in the items: mypy would need a second `None` check.
+
+    Refactor: the only change was renaming a local in `agent_run_probe_item` to `stage_environment`.
+
+    Noticed, not touched:
+    - The coverage report shows one line of `wiring.py` uncovered (line 390). By my count of the diff that is the `SettingsInvalid` raise in `_container_adapters`; the raise was already there before, I only moved it. I didn't open the line to confirm.
+    - `sast` prints bandit's `nosec encountered (B606)` warning for `process.py`. That marker is the exception `CLAUDE.md` allows.
+
+    Journal: the human's answer fixed `CONTAINER_TOOLS` as a named constant and the `container` tool list as git and uv only. That only makes the Interface sentence more precise, so I left `## Description` as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone

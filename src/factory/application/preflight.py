@@ -24,9 +24,11 @@ from factory.domain.confinement import abi_fault
 from factory.domain.errors import (
     AgentDefinitionError,
     AgentRuntimeError,
+    ContainerError,
     GitError,
     HostingServiceError,
     ProjectCommandError,
+    SnapshotError,
 )
 from factory.domain.git import CommitId
 from factory.domain.paths import MAIN_BRANCH, REMOTE
@@ -48,6 +50,8 @@ from factory.domain.settings import (
 from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopScope
 
 REQUIRED_TOOLS = ("git", "uv", "make")
+# A container instance runs make and the runtime only inside its containers.
+CONTAINER_TOOLS = ("git", "uv")
 
 PROBE_COMMAND = "lint"
 # A constant, the default of every project command: the preflight needs no pipeline definition.
@@ -71,6 +75,9 @@ _AGENT_ENVIRONMENT_ITEM = "agent-environment"
 _CONFINEMENT_ITEM = "confinement"
 _OPENCODE_ITEM = "opencode"
 _PROBE_ITEM = "agent-run-probe"
+_DATASET_ITEM = "dataset"
+_STAGE_IMAGE_ITEM = "stage-image"
+_NO_MAIN_TO_PREPARE = "no origin/main to prepare the stage environment from"
 _KERNEL_ADVICE = (
     "update the kernel (on WSL: wsl --update), "
     "or allow the Landlock system calls in the container runtime's seccomp profile"
@@ -138,6 +145,46 @@ def _token_folder_fault(
     if mode & _GROUP_AND_OTHERS:
         return f"the folder {folder} has mode {mode:04o}; make it 0700"
     return None
+
+
+def tool_version_item(name: str, version: Callable[[], str]) -> PreflightItem:
+    """Check that the tool `name` answers `--version`: `version()` returns its line or raises."""
+    try:
+        line = version()
+    except (SnapshotError, ContainerError) as error:
+        detail = f"{name} does not answer --version: {error}"
+        return PreflightItem(name=name, passed=False, detail=detail)
+    # Logged once per image build, so the factory log names the tool's version.
+    return PreflightItem(name=name, passed=True, detail=line)
+
+
+def dataset_item(dataset: str, exists: Callable[[], bool]) -> PreflightItem:
+    """Check that the ZFS dataset `dataset` exists."""
+    try:
+        found = exists()
+    except SnapshotError as error:
+        detail = f"cannot list the dataset {dataset}: {error}"
+        return PreflightItem(name=_DATASET_ITEM, passed=False, detail=detail)
+    if not found:
+        detail = (
+            f"the dataset {dataset} does not exist; make it with zfs create, "
+            f"and its base with zfs snapshot {dataset}@base"
+        )
+        return PreflightItem(name=_DATASET_ITEM, passed=False, detail=detail)
+    return PreflightItem(name=_DATASET_ITEM, passed=True)
+
+
+def stage_image_item(image: str, exists: Callable[[], bool]) -> PreflightItem:
+    """Check that the stage image `image` is built."""
+    try:
+        found = exists()
+    except ContainerError as error:
+        detail = f"cannot look for the stage image {image}: {error}"
+        return PreflightItem(name=_STAGE_IMAGE_ITEM, passed=False, detail=detail)
+    if not found:
+        detail = f"the stage image {image} is not built; build it with podman build"
+        return PreflightItem(name=_STAGE_IMAGE_ITEM, passed=False, detail=detail)
+    return PreflightItem(name=_STAGE_IMAGE_ITEM, passed=True)
 
 
 def agent_user_item(settings: InstanceSettings, exists: Callable[[Path], bool]) -> PreflightItem:
@@ -210,11 +257,17 @@ def opencode_item(
     find: Callable[[str, str], str | None],
     agent_models: Sequence[str],
 ) -> PreflightItem:
-    """Check that an agent run finds opencode and that every alias the agents use has a model."""
+    """Check that an agent run finds opencode and that every alias the agents use has a model.
+
+    A container instance's opencode is the stage image's, so only the aliases are checked.
+    """
     # No login is checked here: a build may log in with a key file or with a login of its
     # own in the agent's home, and only the probe shows whether a run can log in.
-    path_fault = _path_fault(environment, find, settings.opencode_executable)
-    faults = [] if path_fault is None else [path_fault]
+    faults: list[str] = []
+    if settings.stage_environment != "container":
+        path_fault = _path_fault(environment, find, settings.opencode_executable)
+        if path_fault is not None:
+            faults.append(path_fault)
     faults.extend(
         f"no model is set for {alias} in {OPENCODE_MODELS_VARIABLE}"
         for alias in _unmapped_aliases(settings.opencode_models, agent_models)
@@ -245,12 +298,17 @@ def agent_run_probe_item(
 ) -> PreflightItem:
     """Run the agent runtime once with a stage's flags; it passes when the run completes."""
     # A flag the pinned runtime rejects would end every real run `died` without saying why.
+    main = boundaries.git.resolve(_MAIN_REF)
+    if main is None:
+        return PreflightItem(name=_PROBE_ITEM, passed=False, detail=_NO_MAIN_TO_PREPARE)
     try:
         installed = boundaries.agent_definitions.read(PROBE_AGENT)
         agent = installed.model_copy(update={"budget_usd": PROBE_BUDGET_USD})
         request = _probe_request(boundaries, settings, agent, environment)
-        sealed = stage_environment_of(boundaries).run_agent(request)
-    except (AgentDefinitionError, AgentRuntimeError) as error:
+        stage_environment = stage_environment_of(boundaries)
+        stage_environment.prepare(main, MAIN_BRANCH, sync_time_limit=PROBE_TIME_LIMIT)
+        sealed = stage_environment.run_agent(request)
+    except (AgentDefinitionError, AgentRuntimeError, SnapshotError, ContainerError) as error:
         return PreflightItem(name=_PROBE_ITEM, passed=False, detail=str(error))
     if sealed.nested_repositories:
         detail = (
@@ -358,7 +416,7 @@ class MachineChecks:
 
     def run(self) -> PreflightReport:
         """Run every item, whatever the earlier ones found, and report them all in order."""
-        tools = (*REQUIRED_TOOLS, self._runtime_executable())
+        tools = self._tools()
         items = [tool_item(tool, self._which) for tool in tools]
         items.append(self._hosting_service())
         items.append(self._agents())
@@ -388,6 +446,12 @@ class MachineChecks:
             detail = f"no agents are installed in {agent_home}; install them there"
             return PreflightItem(name=_AGENTS_ITEM, passed=False, detail=detail)
         return PreflightItem(name=_AGENTS_ITEM, passed=True)
+
+    def _tools(self) -> tuple[str, ...]:
+        # A container instance's runtime is the stage image's; its version item finds it there.
+        if self._settings.stage_environment == "container":
+            return CONTAINER_TOOLS
+        return (*REQUIRED_TOOLS, self._runtime_executable())
 
     def _runtime_executable(self) -> str:
         if self._settings.agent_runtime == "opencode":
@@ -458,7 +522,7 @@ class Preflight:
             return _PREFLIGHT_FAILED
         try:
             reason = self._probe(stamp)
-        except (GitError, ProjectCommandError) as error:
+        except (GitError, ProjectCommandError, SnapshotError, ContainerError) as error:
             self._raise("machine", _PREFLIGHT_FAILED, f"the probe on main could not run: {error}")
             return _PREFLIGHT_FAILED
         # The machine's items have passed or been skipped, so no machine stop may stand.
@@ -524,6 +588,9 @@ class Preflight:
         git = self._boundaries.git
         git.checkout(MAIN_BRANCH, start_point=_MAIN_REF)
         git.reset_to(_MAIN_REF)
+        stage_environment_of(self._boundaries).prepare(
+            main, MAIN_BRANCH, sync_time_limit=PROBE_TIME_LIMIT
+        )
         result = self._boundaries.project_commands.run(PROBE_COMMAND, time_limit=PROBE_TIME_LIMIT)
         if result.passed:
             self._stops.clear_stop(_MAIN_FAILING)

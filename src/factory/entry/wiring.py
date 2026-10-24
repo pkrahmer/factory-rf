@@ -64,10 +64,13 @@ from factory.application.preflight import (
     agent_run_probe_item,
     agent_user_item,
     confinement_item,
+    dataset_item,
     installed_models,
     opencode_item,
+    stage_image_item,
     token_file_item,
     tool_item,
+    tool_version_item,
 )
 from factory.application.project_agents import ProjectAgentDefinitions
 from factory.application.project_commands import ProjectCommands, RecordingProjectCommands
@@ -359,13 +362,8 @@ def _inline_environment(
 
 
 def _container_environment(settings: InstanceSettings, git: GitCli) -> _StageEnvironmentBoundaries:
-    # The settings' validator has refused a container instance without these three.
-    if settings.dataset is None or settings.workspace is None or settings.stage_image is None:
-        raise SettingsInvalid(STAGE_ENVIRONMENT_VARIABLE, "container lacks its dataset or image")
-    snapshots = ZfsSnapshots(
-        settings.dataset, settings.workspace, executable=settings.zfs_executable
-    )
-    containers = PodmanRuns(settings.podman_executable, settings.stage_image, settings.workspace)
+    adapters = _container_adapters(settings)
+    snapshots, containers = adapters.snapshots, adapters.containers
     return _StageEnvironmentBoundaries(
         agent_runtime=_agent_runtime(settings, containers=containers),
         project_commands=ContainerMakeCommands(
@@ -373,6 +371,30 @@ def _container_environment(settings: InstanceSettings, git: GitCli) -> _StageEnv
         ),
         snapshots=snapshots,
         containers=containers,
+    )
+
+
+@dataclass(frozen=True)
+class _ContainerAdapters:
+    """The dataset and the stage image a container instance names, and their adapters."""
+
+    dataset: str
+    image: str
+    snapshots: ZfsSnapshots
+    containers: PodmanRuns
+
+
+def _container_adapters(settings: InstanceSettings) -> _ContainerAdapters:
+    # The settings' validator has refused a container instance without these three.
+    if settings.dataset is None or settings.workspace is None or settings.stage_image is None:
+        raise SettingsInvalid(STAGE_ENVIRONMENT_VARIABLE, "container lacks its dataset or image")
+    return _ContainerAdapters(
+        dataset=settings.dataset,
+        image=settings.stage_image,
+        snapshots=ZfsSnapshots(
+            settings.dataset, settings.workspace, executable=settings.zfs_executable
+        ),
+        containers=PodmanRuns(settings.podman_executable, settings.stage_image, settings.workspace),
     )
 
 
@@ -591,18 +613,42 @@ def machine_extras(
     """Return the preflight's items after the runtime's version, in the operator guide's order."""
     extras: list[Callable[[], PreflightItem]] = [
         lambda: token_file_item(settings.token_file, uid=os.getuid(), stat=os.stat),
-        lambda: agent_user_item(settings, Path.exists),
     ]
-    if settings.agent_user is not None:
-        extras.append(lambda: tool_item("sudo", which))
-    extras.append(lambda: agent_environment_item(environment, Path.is_dir))
-    extras.append(lambda: confinement_item(abi_version, environment, _which_on))
+    if settings.stage_environment == "container":
+        extras.extend(_container_items(settings))
+    else:
+        extras.extend(_inline_items(settings, which, environment))
     if settings.agent_runtime == "opencode":
         extras.append(
             lambda: opencode_item(settings, environment, _which_on, installed_models(boundaries))
         )
     extras.append(lambda: agent_run_probe_item(boundaries, settings, environment))
     return extras
+
+
+def _inline_items(
+    settings: InstanceSettings,
+    which: Callable[[str], str | None],
+    environment: Mapping[str, str],
+) -> list[Callable[[], PreflightItem]]:
+    items: list[Callable[[], PreflightItem]] = [lambda: agent_user_item(settings, Path.exists)]
+    if settings.agent_user is not None:
+        items.append(lambda: tool_item("sudo", which))
+    items.append(lambda: agent_environment_item(environment, Path.is_dir))
+    items.append(lambda: confinement_item(abi_version, environment, _which_on))
+    return items
+
+
+def _container_items(settings: InstanceSettings) -> list[Callable[[], PreflightItem]]:
+    # Built apart from the boundaries', whose snapshots and containers are only interfaces.
+    adapters = _container_adapters(settings)
+    snapshots, containers = adapters.snapshots, adapters.containers
+    return [
+        lambda: tool_version_item("podman", containers.version),
+        lambda: tool_version_item("zfs", snapshots.version),
+        lambda: dataset_item(adapters.dataset, snapshots.dataset_exists),
+        lambda: stage_image_item(adapters.image, containers.image_exists),
+    ]
 
 
 def _which_on(name: str, path: str) -> str | None:
