@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T21:38:53.965728Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-24T21:38:33.083721Z'
   stage: doing
   run: 8215348cf8b44c81b6a321b605bfef88
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:38:53.965728Z'
+  stage: tests
 ---
 
 # The preflight checks the container environment
@@ -303,3 +312,4 @@ Expect: `1`
     Every test keeps its name and checks the same thing. All the files above are new on this branch except `tests/application/test_machine_checks_runtime.py`, an earlier story's module, which only changes to use the shared fixture.
 
     I did not run `make check` this round, because I changed nothing. The code under `src/factory` is as I left it in entry 10, when `make check` was green.
+15. factory: started tests as self.
