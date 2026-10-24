@@ -6,6 +6,7 @@ project_commands:
   check: {time_limit: 10}
   lint: {time_limit: 5}
   test: {time_limit: 10}
+  sync: {time_limit: 5}  # the tools after a checkout: the stage environment runs it, no stage lists it
 # What every agent run may write for the project's tools, besides its write paths.
 tool_paths: [".venv/*", ".mypy_cache/*", ".ruff_cache/*", ".pytest_cache/*", ".import_linter_cache/*", ".reports/*", "mutants/*", "~/.cache/*", "~/.semgrep/*"]
 roles:

@@ -35,6 +35,10 @@ This file covers the two interfaces through which the factory reaches the datase
 
 `StageLauncher` takes the limit from the pipeline definition: the `time_limit` of its `sync` project command, in minutes, and when the definition has no `sync` command the default of a project command, `ProjectCommandDefinition().time_limit` (10 minutes). The inline environment ignores it.
 
+### The sync command
+
+`make sync` is the fourth target of the project contract (`processes-and-checks.md`, *Project commands*). For a project it must bring the checkout's tools up to date and nothing else: `uv sync --frozen` in the template, the project's own command in another stack. It must work on a checkout without ignored state and end with its usual green line. The sync container's time limit is the `time_limit` of the `sync` project command, as *The sync time limit* says.
+
 ### One environment per runner
 
 `StageLauncher` and `AfterAgent` take an optional keyword `stage_environment`; `None` means `stage_environment_of(boundaries)`. `StageRunner` builds one environment and gives it to both, so that the object that saw a stage's `prepare` sees its `take`.

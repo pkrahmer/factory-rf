@@ -121,7 +121,7 @@ TEMPLATE_RULES_LINES = [
     "and never part of `make check`; mutmut rewrites the source with its own import, so its "
     "runs leave out the tests that read the source (`pytest_add_cli_args` in `[tool.mutmut]` "
     "of `pyproject.toml`). "
-    "The pipeline definition names `check`, `lint` and `test`; a project that wants the "
+    "The pipeline definition names `check`, `lint`, `test` and `sync`; a project that wants the "
     "duplicates report after the coder adds `duplicates` to its `project_commands` and to the "
     "`reports` of the stage `doing`.",
     "",

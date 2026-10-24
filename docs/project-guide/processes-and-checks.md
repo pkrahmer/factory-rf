@@ -8,6 +8,8 @@ The factory reaches a project's build only through the `ProjectCommands` interfa
 
 `run` starts `<executable> --no-print-directory <command>` in `directory` through `run_process`, with stderr merged into stdout. The environment is the current one less `MAKELEVEL`, `MAKEFLAGS` and `MFLAGS`. Without that, a run inside `make check` (where `MAKELEVEL` is set) would print `make[N]: Entering directory` lines that a run on its own does not. `directory` is where make finds the project's Makefile.
 
+The contract between a project and the factory is four make targets: `check`, `lint`, `test` and `sync`. `sync` is the fourth: the command that brings a checkout's tools up to date after a checkout (`uv sync --frozen` for Python; another stack names its own command in the same target). It is run by the stage environment, in its sync container before every agent run and in its check container before every check (`stage-environment.md`), and never as a stage's `checks` or `reports`; `check` does not run it. `template/Makefile` has the target and `template/factory/pipeline.yml` the command `sync` with a time limit. This repository's own `Makefile` and `factory/pipeline.yml` do not have it yet: that is the human's change.
+
 ### Running as another user
 
 `user` is an optional `CommandUser` (`factory.adapters.make_commands`; frozen, no unknown keys): `os_user`, `sudo_executable`, `environment` (a `dict[str, str]`) and `leftovers` (words, `None` by default). `MakeProjectCommands.user` returns what the constructor was given. Without `user` nothing above or below changes: the factory's own environment, no `sudo`, the factory's own kill at `time_limit`. The wiring hands the instance's agent user to the class (*Sealed project commands* below).
