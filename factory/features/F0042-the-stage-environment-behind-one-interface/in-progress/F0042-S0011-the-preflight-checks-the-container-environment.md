@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T21:45:57.023311Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-24T21:45:57.023311Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T21:47:56.331660Z'
+  stage: review
+  run: 4c2d0893249148ceb0185abc0051b900
 ---
 
 # The preflight checks the container environment
@@ -380,3 +382,28 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 19. factory: started review as self.
+20. reviewer: no findings
+
+    I read the work item and `git diff main...HEAD -- . ':!factory'`: `src/factory/application/preflight.py`, `src/factory/entry/wiring.py`, the six new test modules, and the changes to `tests/conftest.py`, `tests/container_support.py` and `tests/application/test_machine_checks_runtime.py`.
+    - Group 1 passes. Criteria 1 to 10 each have one parametrized test that checks what the criterion names:
+      - every failing side the Interface states: `SnapshotError` and `ContainerError` for `tool_version_item`; false and the error for `dataset_item` and `stage_image_item`;
+      - the probe's three faults, each with no runtime request;
+      - both errors `Preflight.run` now catches, with no check container run;
+      - both forms of `opencode_item`;
+      - no `tool:make`, `claude` or `opencode` asked for under `container`.
+      Criterion 8's two inline rows match `tests/entry/test_wiring_extras.py:57-72`. The coder's `make check` was green (entry 18).
+    - Groups 2 and 3 pass. The items take callables in `application`. The adapters are built only in `entry.wiring`, through `_container_adapters`, which both `_container_environment` and `_container_items` call. `boundaries.snapshots` and `boundaries.containers` stay typed as the interfaces, with no `isinstance`. No silencing marker was added.
+    - Group 4 passes. The docstring on the private `_ContainerAdapters` follows `_StageEnvironmentBoundaries` in the same file. I ran `make duplicates` (`11 new, 36 known, 2 gone`). Every new finding is in `claude_runtime`, `opencode_runtime`, `podman_runs`, `zfs_snapshots`, `fake_containers` or `fake_snapshots`, none of which this diff touches.
+    - Group 5 passes. The Description already follows the human's answer in entry 6 (corrected in entry 12). Criterion 12 still names what the documenter must write.
+
+    Rejected as a finding: `agent_run_probe_item` calls `boundaries.git.resolve` (`src/factory/application/preflight.py:301`) outside its `try`, so a `GitError` other than a missing ref would escape `MachineChecks.run`. The Interface places that call there, and the tick's restore runs git before the preflight, so I did not send it back.
+
+    Earlier tests:
+    - `tests/application/test_machine_checks_runtime.py`: the standing leave to move a shared test helper. Only its copy of the fixture `installed` and the imports that fixture used are removed; every test keeps its name and what it checks.
+    - `tests/conftest.py`: the standing leave to move a shared test helper. It gains the moved fixture `installed`, word for word.
+    - `tests/container_support.py`: the standing leave to move a shared test helper. It gains the shared `CONTAINER` and `container_instance_settings` and changes nothing it already held.
+
+    Notes:
+    - `tests/entry/test_wiring_container_extras.py:43-61`: `_settings` builds a container `InstanceSettings` a third way, beside `container_instance_settings` of `tests/container_support.py`.
+    - `tests/application/test_preflight_run_environment.py:25`: `IMAGE = "build-7"` (the image build of the stamp) reuses the name of `podman_support.IMAGE` (the stage image) with another meaning.
+    - `tests/application/test_container_items.py:63,94`: the passing rows carry a `detail` of `""` that the test never asserts.
