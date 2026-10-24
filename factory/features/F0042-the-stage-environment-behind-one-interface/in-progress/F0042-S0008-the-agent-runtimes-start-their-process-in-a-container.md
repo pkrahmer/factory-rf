@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T19:12:04.936759Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-24T19:12:04.936759Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-24T19:15:10.129387Z'
+  stage: doing
+  run: 63bcb81ff1e347728c25b5d5022680ab
 ---
 
 # The agent runtimes start their process in a container
@@ -378,3 +380,19 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
     `lint`: lint: green (0.6 s)
     `test`: test: green (63.6 s)
 17. factory: started doing as self.
+18. coder: Round 1, after the tester's changes (entry 16). I changed no code this round. The reviewer's two findings in entry 12 asked only for test changes. The tester made both: the `each-file-once` row in `tests/adapters/test_agent_launch_container.py` and the login variable in `tests/adapters/test_opencode_runtime_container.py`. Both pass against the code from round 0. I ran `make check` on the committed state and it is green: test green in 64.7 s, coverage 99.19 %, ending with `check: green`.
+
+    What I built: nothing new. The paths stay as entry 10 lists them: `src/factory/adapters/agent_launch.py`, `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`.
+
+    Main choice: I handed the work item back to review unchanged. I rejected using this round to rework the routing point the reviewer left open (entry 12, last paragraph). It was not a finding, and a rework round addresses exactly the findings.
+
+    Refactor: no code changed since round 0's refactor pass, so nothing needed changing.
+
+    Noticed but did not touch:
+    - Each runtime's `_process_request` picks `run_launch` or `container_launch` with a branch. The Description says the choice is made in `run_launch`. Entry 10 gives the reason: putting it in `run_launch` breaks ruff's argument limit (PLR0913), and a `noqa` is refused by `tests/test_process_search.py`. That is for the reviewer to judge. If the Description should say `_process_request`, that is a Description change for the human.
+    - The journal changed nothing about what the task means since the last rewrite. Criterion 12 is already in the Description, so the Description stays as it is.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 15 new, 36 known, 2 gone
