@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 413
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T16:31:13.045921Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-24T16:30:52.089440Z'
   stage: intake
   run: eac3596abc704aee8bfdddc25a3e03c9
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:31:13.045921Z'
+  stage: tests
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -178,3 +187,4 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
    - Smoke test: both blocks are runnable. The project's pytest `addopts` already holds `-q` and the first command passes none, so the `N passed in` summary line the `grep` expects is printed. Both `Expect:` lines are checkable against the output (`1`, and the two exact lines).
    - Architecture: the interface sits in `factory.application` as an ABC with docstring-only abstract methods, as CLAUDE.md requires. `InlineEnvironment` composes existing application services and is the only place that knows `run_sealed` and the undo. Nothing in `domain` or `adapters` changes, so the layer order holds. It uses `TakeReport` from S0004, built before this story.
    - Scope: it is inside `feature.md`'s Scope for S0005 and decisions 1 to 4, 9 and 18 e. The journal sentence is unchanged (decision 9). `StallService` is left alone (decision 20). The only changes to earlier tests are the two assertions in `test_after_agent.py` and the `test_interfaces.py` addition, which decision 18 e allows.
+4. factory: started tests as self.
