@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T19:50:42.718164Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -85,6 +89,11 @@ journal:
   at: '2026-10-24T19:50:22.256803Z'
   stage: review
   run: f1d8f1aa858c4049adcde09a38c768b5
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-24T19:50:42.718164Z'
+  stage: doing
 ---
 
 # The project commands run in a check container on the taken result
@@ -229,3 +238,4 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
     description corrected: "`MakeProjectCommands` and `SealedProjectCommands` ... untouched" -> "unchanged in behaviour; `MakeProjectCommands` shares the refusal of a bad call and the reading of the output with the new class". The Interface requires the shared reader ("read by the same code", "shared, not copied"), and the diff splits `_check_call` and `_read_result` out of `MakeProjectCommands`.
 
     Earlier tests: none. The diff only adds tests/adapters/test_make_commands_container.py (status `A`).
+15. factory: started doing as self.
