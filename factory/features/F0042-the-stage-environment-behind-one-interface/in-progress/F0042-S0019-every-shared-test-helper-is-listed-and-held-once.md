@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 428
 comments_read: [6390818287]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T23:24:37.086488Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-24T23:24:37.086488Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T23:25:24.024302Z'
+  stage: smoke-test
+  run: 97c546a053f246beb370ab32abc36c15
 ---
 
 # Every shared test helper is listed and held once
@@ -462,3 +464,34 @@ Expect: 0
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
 23. factory: started smoke-test as self.
+24. smoke-tester: Ran the three `## Smoke test` commands as written, in order, from the repository root. I fixed nothing. All three matched their `Expect:` lines and none of them contradicts an acceptance criterion, so there are no findings.
+
+    Command 1: `uv run pytest tests/test_shared_stage_constants.py tests/test_shared_constants.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '`
+    ```
+    1
+    ```
+    Met (Expect: 1). I ran it again without the grep and the last line was `11 passed in 1.13s`.
+
+    Command 2: `grep -rlE '^[A-Za-z_]+(: str)? = "(written by the agent\\n|tests/test_a\.py|notes\.md)"$' tests | sort`
+    ```
+    tests/stage_run_support.py
+    tests/take_support.py
+    ```
+    Met (Expect: the two lines `tests/stage_run_support.py` and `tests/take_support.py`).
+
+    Command 3: the loop over `tests/*.py` (skipping `test_*` and `__init__.py`), counting modules with no entry in `docs/project-guide/README.md`
+    ```
+    0
+    ```
+    Met (Expect: 0).
+
+    Checked against the acceptance criteria:
+    - Criterion 1: commands 1 and 2 confirm it. The guard passes, and each value is assigned at top level only in its home.
+    - Criterion 5 (docs): I read the entries in `docs/project-guide/README.md`.
+      - The `search_support.py` entry names `modules_matching`, `modules_assigning` and `top_level_copies`, names both guards, and says a later guard calls `modules_assigning`.
+      - The `stage_run_support.py` entry names `INSIDE` and `NOTES`.
+      - The `container_support.py` entry says `stage_run_support.py` holds `INSIDE` and `NOTES`.
+      - The `take_support.py` entry names the guard `tests/test_shared_stage_constants.py`.
+    - Criteria 2–4 (the seven guard rows, earlier tests unchanged, `make check`) are not exercised by the smoke test. Nothing here contradicts them. This stage did not run `make check`; the factory's checks cover it.
+
+    Open, not a finding: the `take_support.py` entry names the guard but not `top_level_copies`; only the `search_support.py` entry names it. Criterion 5 says the two entries "name the guard … and `top_level_copies`". Read jointly, the docs meet it. Read as each entry on its own, the `take_support.py` entry falls one name short. I judged that the joint reading is what the criterion means and approved. The human can decide otherwise at the merge.
