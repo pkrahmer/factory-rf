@@ -123,6 +123,8 @@ class ContainerEnvironment(StageEnvironment):
         self._reset = timedelta(0)
         self._sync = timedelta(0)
         self._advance = timedelta(0)
+        # A stall after the result's take takes again; the stage still logs one line.
+        self._timing_due = True
 
     @override
     def prepare(self, commit: CommitId, branch: str, *, sync_time_limit: timedelta) -> None:
@@ -136,6 +138,7 @@ class ContainerEnvironment(StageEnvironment):
         self._reset = reset_done - began
         self._sync = sync_done - reset_done
         self._advance = self._now() - sync_done
+        self._timing_due = True
 
     @override
     def run_agent(
@@ -150,19 +153,27 @@ class ContainerEnvironment(StageEnvironment):
 
     @override
     def take(self, stage_start: StageStart, work_item_path: str) -> TakeReport:
-        """Take from the dataset's changes what the role may write; log the cycle's timing."""
+        """Take from the dataset's changes what the role may write; log the cycle's timing.
+
+        The timing is logged by the first take after a prepare, or on an object without one.
+        """
         began = self._now()
         service = TakeService(self._boundaries, self._snapshots.mount_point)
         report = service.take(stage_start, work_item_path, self._snapshots.changed_paths())
+        if self._timing_due:
+            self._log_timing(self._now() - began)
+            self._timing_due = False
+        return report
+
+    def _log_timing(self, take: timedelta) -> None:
         self._boundaries.log.line(
             TIMING_LINE.format(
                 reset=_seconds(self._reset),
                 sync=_seconds(self._sync),
                 advance=_seconds(self._advance),
-                take=_seconds(self._now() - began),
+                take=_seconds(take),
             )
         )
-        return report
 
     def _run_sync(self, commit: CommitId, branch: str, time_limit: timedelta) -> None:
         settings = self._boundaries.settings

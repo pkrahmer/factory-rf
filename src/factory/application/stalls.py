@@ -7,7 +7,8 @@ from factory.application.claims import ClaimService, StageStart
 from factory.application.costs import CostRecorder, CostRun
 from factory.application.handlers.recording import commit_subject
 from factory.application.opening import WorkItemOpening
-from factory.application.undo import UndoReport, UndoService
+from factory.application.stage_environment import StageEnvironment, stage_environment_of
+from factory.application.take import TakeReport
 from factory.domain.decisions import StallReason
 from factory.domain.errors import PushFailed
 from factory.domain.git import CommitId
@@ -36,7 +37,7 @@ class StallContext(BaseModel):
 
 
 class StallResult(BaseModel):
-    """What a stall did: the counted attempt, the pushed commit, the note and the undo."""
+    """What a stall did: the counted attempt, the pushed commit, the note and the take."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -46,31 +47,41 @@ class StallResult(BaseModel):
     commit: CommitId
     pull_request: PositiveInt
     note: PostOutcome
-    undo: UndoReport | None
+    take: TakeReport | None
 
 
 class StallService:
-    """Ends a stage as a stall: undo, one attempt counted, claim released, pushed, then said."""
+    """Ends a stage as a stall: take, one attempt counted, claim released, pushed, then said."""
 
     def __init__(
-        self, boundaries: Boundaries, instance: str, definition: PipelineDefinition
+        self,
+        boundaries: Boundaries,
+        instance: str,
+        definition: PipelineDefinition,
+        *,
+        stage_environment: StageEnvironment | None = None,
     ) -> None:
-        """Stall as `instance`, counting attempts against the cap of `definition`."""
+        """Stall as `instance`, counting attempts against the cap of `definition`.
+
+        The agent's writes are taken from `stage_environment`, by default the one the
+        boundaries describe.
+        """
         self._boundaries = boundaries
+        self._stage_environment = stage_environment or stage_environment_of(boundaries)
         self._definition = definition
         self._claims = ClaimService(boundaries, instance, definition)
         self._opening = WorkItemOpening(boundaries, definition)
 
     def stall(self, context: StallContext, reason: StallReason, detail: str = "") -> StallResult:
-        """Undo, commit and push the stall, then post its note on the pull request.
+        """Take, commit and push the stall, then post its note on the pull request.
 
         `PushFailed` when the push does not reach the remote, before any note. A
         `HostingServiceError` propagates: from the pull request before anything is written,
         from the note or the labels after the push.
         """
-        undo = None if context.stage_start is None else self._undo(context, context.stage_start)
+        take = None if context.stage_start is None else self._take(context, context.stage_start)
         if context.cost is not None:
-            # The undo reverts the sidecar like any path outside the write paths.
+            # The take leaves out the sidecar like any path outside the write paths.
             CostRecorder(self._boundaries).write(context.cost)
         document = context.document or self._read(context.path)
         pull_request = context.pull_request or self._opening.ensure_pull_request(
@@ -92,16 +103,16 @@ class StallService:
             commit=commit,
             pull_request=pull_request.number,
             note=note,
-            undo=undo,
+            take=take,
         )
 
-    def _undo(self, context: StallContext, stage_start: StageStart) -> UndoReport:
+    def _take(self, context: StallContext, stage_start: StageStart) -> TakeReport:
         git = self._boundaries.git
         if git.status().branch != context.branch:
             # Whatever the agent left on the other branch is dropped; its commits stay there.
             git.reset_to("HEAD")
             git.checkout(context.branch, start_point=stage_start.commit)
-        return UndoService(self._boundaries).undo(stage_start, context.path)
+        return self._stage_environment.take(stage_start, context.path)
 
     def _read(self, path: str) -> WorkItemDocument:
         return self._boundaries.work_item_reader.read(self._boundaries.checkout / path)

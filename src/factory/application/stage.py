@@ -194,7 +194,9 @@ class AfterAgent:
         self._boundaries = boundaries
         self._definition = definition
         self._stage_environment = stage_environment or stage_environment_of(boundaries)
-        self._stalls = StallService(boundaries, instance, definition)
+        self._stalls = StallService(
+            boundaries, instance, definition, stage_environment=self._stage_environment
+        )
         self._costs = CostRecorder(boundaries)
 
     def process(self, launched: LaunchedStage) -> AgentAftermath | StallResult:
@@ -303,13 +305,26 @@ class StageFinisher:
     """Decides, runs the checks and reports, then commits, pushes and labels the stage's result."""
 
     def __init__(
-        self, boundaries: Boundaries, instance: str, definition: PipelineDefinition
+        self,
+        boundaries: Boundaries,
+        instance: str,
+        definition: PipelineDefinition,
+        *,
+        stage_environment: StageEnvironment | None = None,
     ) -> None:
-        """Finish as `instance` under `definition`."""
+        """Finish as `instance` under `definition`; a stall takes from `stage_environment`.
+
+        By default the environment is the one the boundaries describe.
+        """
         self._boundaries = boundaries
         self._definition = definition
         self._claims = ClaimService(boundaries, instance, definition)
-        self._stalls = StallService(boundaries, instance, definition)
+        self._stalls = StallService(
+            boundaries,
+            instance,
+            definition,
+            stage_environment=stage_environment or stage_environment_of(boundaries),
+        )
         self._known_results = KnownResults(boundaries, definition)
 
     def finish(self, aftermath: AgentAftermath) -> StageReport:
@@ -451,16 +466,20 @@ class StageRunner:
     ) -> None:
         """Run as `instance` under `definition`; agent runs get `environment` unchanged."""
         self._opening = WorkItemOpening(boundaries, definition)
-        self._stalls = StallService(boundaries, instance, definition)
         # One object sees both ends of a stage: what it prepared is what it takes from.
         stage_environment = stage_environment_of(boundaries)
+        self._stalls = StallService(
+            boundaries, instance, definition, stage_environment=stage_environment
+        )
         self._launcher = StageLauncher(
             boundaries, instance, definition, environment, stage_environment=stage_environment
         )
         self._after = AfterAgent(
             boundaries, instance, definition, stage_environment=stage_environment
         )
-        self._finisher = StageFinisher(boundaries, instance, definition)
+        self._finisher = StageFinisher(
+            boundaries, instance, definition, stage_environment=stage_environment
+        )
 
     def run(self, work_item: WorkItemId, path: str) -> StageReport:
         """Prepare, claim and run the agent, process its run, decide, check and push the result.
