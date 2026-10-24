@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T15:53:03.039000Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -71,6 +75,11 @@ journal:
   stage: doing
   run: 03abec51b738400297d7e6b4031497f3
   reason: check_red
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-24T15:53:03.039000Z'
+  stage: doing
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -274,3 +283,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     lint: green (0.6 s)
     Bytecode compiled 4164 files in 89ms
     make: *** [Makefile:39: types] Error 139
+12. factory: started doing as self.
