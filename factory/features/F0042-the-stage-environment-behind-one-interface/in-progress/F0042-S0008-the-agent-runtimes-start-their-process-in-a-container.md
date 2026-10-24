@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T18:46:54.540080Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-24T18:46:54.534148Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:46:54.540080Z'
+  stage: intake
+---
+
 # The agent runtimes start their process in a container
 
 ## Description
@@ -115,3 +142,6 @@ EOF
 Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkout`, `True False`, `refused True`
 
 ## Journal
+
+1. 2026-10-24 human: created.
+2. factory: started intake as self.
