@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T21:38:15.394308Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-24T21:37:55.204011Z'
   stage: review
   run: 60f5b852070644f686f6e0f91f92a0bf
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:38:15.394308Z'
+  stage: doing
 ---
 
 # The preflight checks the container environment
@@ -276,3 +285,4 @@ Expect: `1`
     Both corrections follow the human's answer in entry 6. Its Interface sentence ("`REQUIRED_TOOLS` alone") is left as the human said to read it.
 
     Earlier tests: none. Every test file in the diff is new (status `A`).
+13. factory: started doing as self.
