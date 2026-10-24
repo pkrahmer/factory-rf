@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 408
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T12:03:27.609452Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-24T12:03:27.609452Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-24T12:03:48.462994Z'
+  stage: intake
+  run: a82df3871ab5413b9471660bef0892ca
+  blocked: question
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -126,3 +129,10 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: The format check passed. The Interface, architecture, scope and smoke test are fine, but two rules in the Interface have no criterion for their failing side:
+
+   1. The Interface says a nonzero exit status from `destroy` or `snapshot` is a fault, and criterion 2 covers only the `list` failure. Nothing tests a failing `destroy` or a failing `snapshot` inside `advance()`. Should criterion 2 gain two rows, or a new criterion? I would add two rows: `destroy` planned to exit 1 raises `SnapshotError` with `command` `<stand-in> destroy tank/factory/vm@base` and `snapshot` is not called, and `snapshot` planned to exit 1 raises it with `command` `<stand-in> snapshot tank/factory/vm@base`. Each row would also say what `detail` is.
+
+   2. The Interface says an `R` line with fewer fields than its form needs is a fault, meaning four fields: `<change> <kind> <old path> <new path>`. Criterion 4 covers only `M\tF` (too few fields) and `X\tF\t...` (unknown change). Nothing covers an `R` line with only three fields, or an `R` line whose new path is outside the mount point. I would add two rows to criterion 4. First, `R\tF\t/srv/factory/vm/work/a` gives `cannot read the line R\tF\t/srv/factory/vm/work/a`. Second, `R\tF\t/srv/factory/vm/work/a\t/elsewhere/b` gives `/elsewhere/b is outside /srv/factory/vm/work`.
+
+   Smaller gap, no question needed if you agree: no criterion has the backslash escape `\134`, which the Interface names. I would add a `\134` path to criterion 3 or to a row of its own.
