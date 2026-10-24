@@ -21,12 +21,22 @@ _TARGET_NAME = COMMAND_NAME_PATTERN.removeprefix("^").removesuffix("$")
 
 _TARGET_TIME_LINE = re.compile(rf"({_TARGET_NAME}): green \(([0-9]+(?:\.[0-9]+)?) s\)")
 
+MAKE_MESSAGE_PREFIXES = ("make:", "make[")
+
 
 def status_of(exit_status: int | None) -> CheckStatus:
     """The status an exit status means; `None` is a command ended by its time limit."""
     if exit_status is None:
         return "time_limit"
     return "passed" if exit_status == 0 else "failed"
+
+
+def last_line(lines: list[str]) -> str:
+    """The last non-blank line of `lines` that is no message of make's own; `""` when none is."""
+    for line in reversed(lines):
+        if line.strip() and not line.startswith(MAKE_MESSAGE_PREFIXES):
+            return line
+    return ""
 
 
 class TargetTime(BaseModel):

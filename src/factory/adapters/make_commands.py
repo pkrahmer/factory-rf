@@ -23,6 +23,7 @@ from factory.domain.checks import (
     COMMAND_NAME_PATTERN,
     OUTPUT_TAIL_LINES,
     CheckResult,
+    last_line,
     status_of,
     target_times,
 )
@@ -35,8 +36,6 @@ _COMMAND_NAME = re.compile(COMMAND_NAME_PATTERN)
 # sees them prints "Entering directory" lines that a run on its own would not.
 _OUTER_MAKE_VARIABLES = ("MAKELEVEL", "MAKEFLAGS", "MFLAGS")
 
-_MAKE_MESSAGE_PREFIXES = ("make:", "make[")
-
 
 def _without_outer_make(environment: Mapping[str, str]) -> dict[str, str]:
     return {name: value for name, value in environment.items() if name not in _OUTER_MAKE_VARIABLES}
@@ -44,13 +43,6 @@ def _without_outer_make(environment: Mapping[str, str]) -> dict[str, str]:
 
 def _tail(lines: list[str]) -> str:
     return "\n".join(lines[-OUTPUT_TAIL_LINES:])
-
-
-def _last_line(lines: list[str]) -> str:
-    for line in reversed(lines):
-        if line.strip() and not line.startswith(_MAKE_MESSAGE_PREFIXES):
-            return line
-    return ""
 
 
 def _refusal_line(lines: list[str]) -> str | None:
@@ -195,7 +187,7 @@ def _check_result(command: str, result: ProcessResult) -> CheckResult:
         status=status_of(result.exit_status),
         exit_status=result.exit_status,
         duration=result.duration,
-        last_line=_last_line(lines),
+        last_line=last_line(lines),
         output_tail=_tail(lines),
         targets=target_times(result.stdout),
     )
