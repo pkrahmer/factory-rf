@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T20:24:51.273016Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-24T20:24:51.273016Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T20:25:09.172814Z'
+  stage: smoke-test
+  run: 901ba558b707409d82a0f0825599fa4d
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -304,3 +306,20 @@ Expect: one line, `[-9, 137, 255] True False`
     `secrets`: secrets: green (1.8 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test round 1. I ran the one command under `## Smoke test` from the repository root exactly as written. I changed nothing.
+
+    Command 1: `uv run python -c '... print(sorted(c), k(os_user=None, exit_status=255, ..., in_container=True), k(os_user="agent", exit_status=255, ...))' 2>/dev/null`
+
+    ```
+    [-9, 137, 255] True False
+    ```
+    It exited with status 0. It met its `Expect:` line, which asks for exactly one line, `[-9, 137, 255] True False`.
+
+    Against the acceptance criteria:
+    - Criterion 1: `CONTAINER_KILL_STATUSES` is {-9, 137, 255}. That matches.
+    - Criterion 2, the row for 255 at 30 s in a container: `True`. That matches.
+    - Criterion 2, the row for 255 at 30 s with `os_user="agent"` and not in a container: `False`. That matches.
+
+    The smoke test does not touch criteria 3 to 6. It contradicts none of them.
+
+    Findings: none.
