@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 423
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T21:59:12.524894Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-24T21:59:12.524894Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T22:00:11.446492Z'
+  stage: docs
+  run: b2fc8bda33134e42ab1d1a1c81991fac
 ---
 
 # The documents describe the stage environment
@@ -149,3 +151,22 @@ Expect: `documents ok`
    - Hygiene: the Description matches what was built (nothing yet; the documenter comes next). The tester's and coder's entries give the reason for the empty diff and the alternative they rejected. The docs criterion still says everything the documenter needs. Its bullet on `docs/decisions.md` repeats the README requirement of the next bullet, but both say the same thing.
    - Earlier tests: the diff changes, renames or deletes no test file that `main` already holds.
 10. factory: started docs as self.
+11. documenter: Docs sweep done; only documents changed, so I did not run `make check` (the factory does). `make documents` ends with `documents ok`. I counted the smoke test's greps for `stage-environment.md` and "three targets"; I did not run the settings, preflight and decision-heading greps, but the operator-guide rows and the decision heading were already in place and I changed none of them.
+
+    Files changed:
+    - `docs/project-guide/stage-environment.md`: now has exactly the 14 `##` sections in the order the criterion gives. New *The cycle* is a numbered list of the eight steps, each naming the section that describes it, and says `prepare` does nothing under `inline`. *The sync command* and *The agent's container* are raised from subsections to sections. The opening paragraph's stale pointer ("first below") is corrected. *The sync command* now says only a `container` instance runs it.
+    - `docs/project-guide/README.md`: the `stage-environment.md` bullet lists the 14 sections in the new order (it already named all ten modules). The `write-guard.md` bullet says the undo is the inline environment's take.
+    - `docs/project-guide/write-guard.md`: *The undo* now says a stall's undo is the inline environment's take too, in place of "`StallService` still calls the undo itself". `StallService` does take through the environment: `src/factory/application/stalls.py:115`.
+    - `docs/decisions.md`: in *One snapshot instead of many layers*, I added `restore_state_and_journal` to the "what the take keeps" bullet and corrected "`StallService` still undoes on its own until then". The section already named the date, `planning/v1.2-plan.md`, `StageEnvironment`, `InlineEnvironment`, `ContainerEnvironment`, the refusal rule and `F0044`.
+    - `README.md`: one paragraph on the two stage environments, naming `FACTORY_STAGE_ENVIRONMENT` once and pointing to the operator guide.
+    - `docs/operator-guide.md`: removed two sentences that S0011 made false: "No instance chooses the container environment yet" (the factory log) and "The factory's wiring of this chain into an instance is not yet part of a release" (the container call chain). The second now points to the settings.
+
+    Cross-read and found current: the operator guide's *Configuration* rows (all six variables), *The preflight's items* (`podman`, `zfs`, `dataset`, `stage-image`), the timing line `stage environment: reset`, the stall note, and the project-commands paragraph (four targets). Neither `operator-guide.md` nor `processes-and-checks.md` says "three targets". The rest of `stage-environment.md` matched the code as far as I read it; I did not check every sentence against the code.
+
+    No findings for the coder.
+
+    Stale text I saw and left alone: none beyond what I fixed. The inline items and chain stay for F0044.
+
+    `check`: check: green (not run again: passed on tree 3389db52e22b at 2026-10-24T21:56:50Z)
+    `secrets`: secrets: green (2.5 s)
+    `documents`: documents ok
