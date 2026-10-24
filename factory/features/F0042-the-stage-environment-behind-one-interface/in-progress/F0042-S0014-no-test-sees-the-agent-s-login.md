@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 412
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T16:22:34.652795Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -63,6 +59,12 @@ journal:
   kind: started
   at: '2026-10-24T16:22:34.652795Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-24T16:25:34.180105Z'
+  stage: doing
+  run: ccd07be656f54f78b6fca331b7271f2c
 ---
 
 # No test sees the agent's login
@@ -148,3 +150,20 @@ Expect: one line that starts with `N passed` and names no `failed` and no `error
    Bytecode compiled 4164 files in 99ms
    make: *** [Makefile:39: types] Error 139
 9. factory: started doing as self.
+10. coder: No code changed this round either: as the Interface says, nothing under `src/factory/` changes. The only changes are the tester's: the autouse fixture `without_agent_login` in `tests/conftest.py`, the last assertion in `tests/adapters/test_opencode_runtime_launch.py`, and the new `tests/test_no_agent_login.py`. They stay as they are (R9).
+
+    The stall: the factory's `make check` stopped at `make: *** [Makefile:39: types] Error 139`. That is a segfault of the mypy process, not a type error, and it happened right after the run created a fresh `.venv`. This story changes only tests, and those type-check cleanly. I could not reproduce the crash:
+    - `make check` in the foreground ended with `check: green` (test: green, 61.8 s, coverage 99.18 %).
+    - `make types` passed three times with the existing cache: `Success: no issues found in 751 source files`, 0.2 s each.
+    - It passed twice more from a cold cache (`MYPY_CACHE_DIR` set to a fresh folder from `mktemp -d` each time), 3.9 s each.
+
+    So the crash looks like a one-off failure of mypy itself, or of the machine, outside this work item. If it comes back on the factory's check, it needs the human, not a code change here.
+
+    Main choice: to add nothing under `src/` and hand forward. The alternative I rejected was to strip the login variables inside the runtimes' `version()` calls. That would change the factory's behaviour, which the story rules out.
+
+    Refactor: there is no diff of mine to refactor.
+
+    Noticed but did not touch: the segfault (exit 139) of `make types` in a freshly created venv, which I could not reproduce. The Description is unchanged, because no journal entry changed what the task means. Criterion 6 (the paragraph in `docs/project-guide/processes-and-checks.md`) is for the documenter.
+
+    `check`: check: green
+    `duplicates`: duplicates: 14 new, 38 known, 0 gone
