@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T13:26:16.824230Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-24T13:26:16.824230Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-24T13:26:44.677227Z'
+  stage: doing
+  run: 30c5ea85a0874d058cf8d79f5494f06e
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -390,3 +392,24 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
     Notes:
     - tests/adapters/test_podman_runs_results.py:44-48: the module's own `recorder` fixture shadows the one in `tests/conftest.py:312-316`, with the same body for a different module. A shared fixture that takes the module to patch would remove the copy.
 21. factory: started doing as self.
+22. coder: Round 2. The reviewer's entry 20 adds criterion 12, and only a test is missing for it, so I'm handing over to the tester. I changed no code and no test.
+
+    For the tester:
+    - Criterion 12: add one row to `tests/adapters/test_podman_runs_results.py::test_image_exists_reads_podman_s_exit_status`.
+      - Setup: a stand-in that sleeps 60 s, under an adapter built with `time_limit` 1.5 s.
+      - Expected: `ContainerError` with `command` `<stand-in> image exists factory-stage:1` and `detail` `no end within 2 s`, after at least 1.5 s and under `ROOMY_BOUND_SECONDS`.
+    - The new row is not in the test module yet. Its only `no end within` row is the `version()` row with 1 s.
+
+    The code already does this, so I expect the row to pass at once:
+    - In `src/factory/adapters/podman_runs.py`, `_query` (shared by `version` and `image_exists`) raises `ContainerError(self._command(arguments), no_end_detail(self._time_limit))` when the limit is reached.
+    - `no_end_detail` in `src/factory/adapters/printed_output.py` rounds up with `math.ceil`, so 1.5 s gives `2`.
+
+    What the story built is unchanged since entry 18: `src/factory/adapters/podman_runs.py`, `src/factory/adapters/printed_output.py`, `src/factory/adapters/zfs_snapshots.py` (uses the shared helpers), and `check_container_call` in `src/factory/domain/containers.py`, which `fake_containers.py` and `podman_runs.py` both call. The main choice is still the one from entry 14: the shared call check lives in the domain, not in a shared adapters module. With no code change in this run there was nothing to refactor, and I did not run `make check` again; the last green run is the one in entry 18, on the same code.
+
+    Noticed but did not touch:
+    - In the reviewer's note, the `recorder` fixture in `tests/adapters/test_podman_runs_results.py:44-48` repeats the one in `tests/conftest.py:312-316` for a different module. Under the standing leave the tester may move it to one shared fixture; the coder may not.
+    - `agent_launch._limit_argument` and `podman_runs`' `--timeout` both round a limit up to whole seconds.
+    - vulture reports `WORK_HOME` in `domain/containers.py` as unused. It predates this story.
+    - No one has run the work item's smoke test yet.
+
+    The journal changed nothing that calls for a Description rewrite: the reviewer already wrote criterion 12 into it.
