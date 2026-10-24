@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 426
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T22:47:54.750217Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-24T22:47:33.954127Z'
   stage: review
   run: 444aebce122a483698af4ecd1b84104a
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:47:54.750217Z'
+  stage: docs
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -323,3 +332,4 @@ Expect: three lines, `2`, `1`, `1`
     - tests/sealed_run_support.py: standing leave (receives `leave`)
     - tests/take_support.py: standing leave (receives `BROKEN_FRONT_MATTER`; `PATH` now from `stage_run_support`, the same string, to avoid an import cycle)
     - tests/undo_support.py: standing leave (receives `without_work_item` and `with_broken_work_item`)
+18. factory: started docs as self.
