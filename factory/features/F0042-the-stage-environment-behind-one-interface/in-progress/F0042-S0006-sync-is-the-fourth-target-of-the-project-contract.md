@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T17:13:50.478301Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -63,6 +59,12 @@ journal:
   kind: started
   at: '2026-10-24T17:13:50.478301Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-24T17:16:36.395313Z'
+  stage: doing
+  run: e761f4f747644827a50cc012064a922d
 ---
 
 # `sync` is the fourth target of the project contract
@@ -214,3 +216,27 @@ Expect: four lines: `# The contract between a project and the factory is four ta
    Bytecode compiled 4164 files in 89ms
    make: *** [Makefile:39: types] Error 139
 9. factory: started doing as self.
+10. coder: Round 0, second attempt. The work from attempt 1 (entry 7) was already in the committed state, and I changed nothing. I ran `make check` again in the foreground and it is green: `test: green (62.7 s)`, then `check: green`, with coverage at 99.19 %.
+
+    Why the first attempt stalled: the factory's check failed at `make: *** [Makefile:39: types] Error 139`. Exit code 139 means mypy itself crashed with a segmentation fault; it is not a type error, and nothing in this story's diff touches Python under `src/`. In my run, `types` passed. I read it as a one-off crash on the machine, not a fault in the work. If it comes back, the human should look at mypy or the machine.
+
+    What I built (unchanged from entry 7):
+    - `template/Makefile`:
+      - Line 1 says the contract is four targets: `check`, `lint`, `test`, `sync`.
+      - `.PHONY` names `sync` after `test`.
+      - A new `sync:` target sits between `check:` and `lint:`. Its recipe is `$(start)` / `uv sync --frozen` / `$(green)`.
+      - `check:` is unchanged and does not run `sync`.
+    - `template/factory/pipeline.yml`: new line `  sync: {time_limit: 5}`, with the Interface's comment at its end. No stage lists `sync`.
+    - `template/CLAUDE.md`: now says "names `check`, `lint`, `test` and `sync`".
+
+    Main decision: `sync` uses the same `$(start)`/`$(green)` macros as the other targets, so its last line is the usual green line. I rejected a bare `uv sync --frozen` recipe, because it prints no green line.
+
+    Refactor: nothing to change.
+
+    Noticed, not touched:
+    - The docs stage still needs to add the entry for `tests/template_make_support.py` in `docs/project-guide/README.md`, *Shared test helpers*.
+    - This repository's own `Makefile` and `factory/pipeline.yml` still have no `sync`; they are the human's change 1.
+    - The journal did not change the meaning of the task, so I left `## Description` as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 14 new, 37 known, 1 gone
