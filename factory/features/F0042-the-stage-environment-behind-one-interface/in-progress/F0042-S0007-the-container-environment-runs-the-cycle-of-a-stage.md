@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T17:30:00.072545Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-24T17:30:00.066936Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:30:00.072545Z'
+  stage: intake
+---
+
 # The container environment runs the cycle of a stage
 
 ## Description
@@ -80,3 +107,6 @@ EOF
 Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s, take 0.2 s`, `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} StageEnvironment`, `None None`
 
 ## Journal
+
+1. 2026-10-24 human: created.
+2. factory: started intake as self.
