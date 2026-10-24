@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 426
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T22:47:54.750217Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-24T22:47:54.750217Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T22:48:33.751409Z'
+  stage: docs
+  run: c530836dacba4c20b2ca96c28ad29006
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -333,3 +335,20 @@ Expect: three lines, `2`, `1`, `1`
     - tests/take_support.py: standing leave (receives `BROKEN_FRONT_MATTER`; `PATH` now from `stage_run_support`, the same string, to avoid an import cycle)
     - tests/undo_support.py: standing leave (receives `without_work_item` and `with_broken_work_item`)
 18. factory: started docs as self.
+19. documenter: Docs round for F0042-S0018. The diff touches only tests (18 files, nothing under `src/`), so the documentation change is the docs criterion plus the helper homes. I changed only documents, so I did not run `make check`; the factory's checks run right after this stage.
+
+    Files changed:
+    - `docs/project-guide/stage-environment.md`, *Wiring and tests*: names `tests/application/test_container_stage_checks.py` as the whole stage through the check container (the sync container, one check container per check on the taken result, and the next `prepare` starting from the pushed head with nothing left over). It also lists `whole_stage` and `assert_taken_and_pushed` among the `tests/container_support.py` helpers, and says the older whole-stage test in `test_container_environment_take.py` uses the host's project commands.
+    - `docs/project-guide/README.md`, *Shared test helpers*: added entries for `container_support.py` (now with `FIVE_MINUTES`, `whole_stage`, `assert_taken_and_pushed`), `take_support.py` (`BROKEN_FRONT_MATTER`), `sealed_run_support.py` (`leave`), `podman_support.py` (`IMAGE`) and `zfs_support.py` (`DATASET`). Four of these modules had no entry at all. I extended the `undo_support.py` entry with `without_work_item` and `with_broken_work_item`.
+
+    Cross-read and found current against the diff: the *Shared test helpers* list apart from the entries above, and *The take* and the rest of `stage-environment.md`. No `src/` behaviour changed, so no other document moves.
+
+    Findings for the coder: none. The code and the Interface agree, since nothing under `src/` changed.
+
+    Stale text I saw and did not touch: none that is unrelated. I did not check the other entries of the *Shared test helpers* list one by one against the files. The ones I added come from the files' current content.
+
+    I did not run the examples, because there are none beyond the story's smoke-test commands, which belong to the next stage.
+
+    `check`: check: green (not run again: passed on tree f66258edd2b5 at 2026-10-24T22:44:29Z)
+    `secrets`: secrets: green (1.9 s)
+    `documents`: documents ok

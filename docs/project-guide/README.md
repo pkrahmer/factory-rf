@@ -33,6 +33,7 @@ Every module `tests/*.py` whose name does not start with `test_`:
 - `branch_reading.py`: the work item on a work item's branch and the factory's posts on its pull request (`remote_document`, `error_posts`, `push_state`).
 - `compose_support.py`: `COMPOSE`, the compose file the image ships.
 - `confine_support.py`: the run layout, the stand-in `factory-confine` executable and the request of the runtime's guard tests (`build_layout`, `write_confine`, `run_request`, `confined_runtime`).
+- `container_support.py`: the container environment's rig: `container_dataset` (a dataset on `FakeSnapshots` and `FakeContainerRuns`), `push_main`, `sync_makefile`, `dataset_git`, `local_branches`, `timing_lines`, `WorkspaceRuntime`, `FIVE_MINUTES` (the time limit the container tests share), and the whole stage on that dataset: `whole_stage` (the agent writes `INSIDE` and `NOTES`; `project_commands` picks the stage's project commands, the host's by default) and `assert_taken_and_pushed` (its five assertions).
 - `contract_support.py`: the contract command's output lines and `MainRow`, a row of `main`'s cases.
 - `crash_support.py`: a work item claimed by this instance, ready to crash (`claim`, `expired_claim`, `crash_event`, `handler`), for the crash-cap tests.
 - `definition_support.py`: `pipeline_definition`, the test remote's pipeline definition read through the boundaries' reader, which the `definition` fixture returns too, for helpers that take no fixtures.
@@ -46,6 +47,7 @@ Every module `tests/*.py` whose name does not start with `test_`:
 - `human_clone.py`: `HumanClone`, a second clone of the test remote that acts as the human: starts stories, pushes, merges.
 - `log_support.py`: `log_lines`, the factory log a test's state directory holds.
 - `observing_runtime.py`: `ObservingRuntime`, an agent runtime that records what the remote and the hosting fake hold when a run starts.
+- `podman_support.py`: the stand-in `podman` and its plan; `IMAGE`, the stage image name `"factory-stage:1"`, which every test that names it imports from here.
 - `preflight_support.py`: `fail_once` and `failed_once`, the preflight's rig after one probe of a red main.
 - `probe_support.py`: the agent environment, the completed run and the opencode texts (`opencode_died`, `opencode_sso_hint`) of the probe tests.
 - `process_support.py`: real child processes in tests (`python_argv`, `Recorder`, `is_gone`).
@@ -54,6 +56,7 @@ Every module `tests/*.py` whose name does not start with `test_`:
 - `record_support.py`: `UnwritableRecordLog`, a record log that cannot be written.
 - `recording_log.py`: `RecordingLog`, a factory log that keeps the lines written to it.
 - `run_process_recorder.py`: `Recorder`, a stand-in for the runtime's `run_process` that keeps each request.
+- `sealed_run_support.py`: the sealed runs' completed result, request and `leave` (an agent that leaves a file in the checkout).
 - `search_support.py`: `modules_matching`, a search of the test modules for a pattern.
 - `settings_support.py`: `BASE`, the environment with the two required settings, and `raising`, for the tests that read settings.
 - `shipped_agents.py`: `SHIPPED_AGENTS` and `ShippedAgent`, the seven shipped agents' front matter values and the opening of their bodies.
@@ -61,11 +64,13 @@ Every module `tests/*.py` whose name does not start with `test_`:
 - `stage_run_support.py`: builders for whole stage runs: a story started on `main`, its branch, a Makefile and a run (`open_story`, `run_stage`, `stage_makefile`), and the work item at the head of the remote's branch (`pushed`, `pushed_state`), and `INSTANCE`, the instance name `"factory-1"` that every test module naming that instance imports from here, and `ENVIRONMENT`, the environment the stage-run tests pass; `tests/test_shared_constants.py` fails on another top-level assignment of the instance name.
 - `sudo_support.py`: a stand-in `sudo` that records each call's arguments, environment and working directory and runs the call or exits as planned (`write_sudo`, `Sudo`, `SudoCall`).
 - `template_make_support.py`: runs of the template's Makefile in a copy of it, with a stand-in `uv` on the `PATH` (`MAKEFILE`, `makefile_lines`, `green_line`, `template_project`, `stand_in_uv`, `run_make`).
+- `take_support.py`: the take's datasets and runs (`make_dataset`, `write_dataset`, `run_take`, `tree`) and constants: `AGENT_TEXT` and `BROKEN_FRONT_MATTER`, a work item whose front matter cannot be read.
 - `tick_support.py`: `handlers_of` and `Failing`, the tick's handler factory and a handler that records each event and raises the error it is given, `ValueError("boom")` by default.
 - `tmp_path_support.py`: `reopen`, which gives the owner back every folder and file under a test's `tmp_path` so that pytest can remove it.
-- `undo_support.py`: a claimed stage start on a work item's branch, and the undo (`start_stage`, `undo_stage`, `pipeline_text`).
+- `undo_support.py`: a claimed stage start on a work item's branch, and the undo (`start_stage`, `undo_stage`, `pipeline_text`), and `without_work_item` and `with_broken_work_item`, which make the work item absent or unreadable at the stage start.
 - `watch_support.py`: the watcher's shared data: a claimed story, the due `F0002-todo`, its acceptance (`push_story_claim`, `open_acceptance`, `aged_claim`).
 - `wiring_support.py`: `every_tool`, `ENVIRONMENT` (the environment the handler and wiring tests pass) and the constants the wiring and preflight tests share. `tests/test_shared_environments.py` fails on another top-level assignment of either `ENVIRONMENT` value, this one or `stage_run_support.py`'s.
+- `zfs_support.py`: the stand-in `zfs` and its plan; `DATASET`, the dataset name `"tank/factory/vm"`, which every test that names it imports from here.
 - `work_item_support.py`: `put_work_item`, `created_state` and `checkout_text`, for tests that put a work item on its branch.
 - `write_path_support.py`: `stage_start` and `push_definition`, for the write-path service tests.
 
