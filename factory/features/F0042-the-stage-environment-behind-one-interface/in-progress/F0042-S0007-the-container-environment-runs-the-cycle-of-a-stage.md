@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T18:04:09.742474Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-24T18:03:49.511987Z'
   stage: doing
   run: df738252e9614f4cbdf59b181c96a616
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:04:09.742474Z'
+  stage: tests
 ---
 
 # The container environment runs the cycle of a stage
@@ -407,3 +416,4 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
     Refactor pass: there is no new diff this round, so nothing to refactor.
 
     Noticed, not touched: after a failed `prepare`, the object keeps the durations of the last successful one. No criterion covers that case.
+23. factory: started tests as self.
