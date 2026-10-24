@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638, 6384356460]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T12:45:33.971126Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -203,6 +207,11 @@ journal:
   at: '2026-10-24T12:45:13.243529Z'
   stage: review
   run: fdd5579329ee4fa9a7f85d97fa17826b
+- number: 36
+  speaker: factory
+  kind: started
+  at: '2026-10-24T12:45:33.971126Z'
+  stage: doing
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -540,3 +549,4 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
 
     Earlier tests:
     - `tests/test_wrapper_search.py`: changed under the human's leave. Criterion 9 of the story, as the human wrote it, names this test and the added `factory.adapters.zfs_snapshots`. The change only adds that one name to the expected set, and the test keeps its name and what it checks.
+36. factory: started doing as self.
