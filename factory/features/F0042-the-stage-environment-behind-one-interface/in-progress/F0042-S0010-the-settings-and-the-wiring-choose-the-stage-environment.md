@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T21:01:47.432915Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-24T21:01:47.432915Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T21:03:22.882308Z'
+  stage: review
+  run: 153a4a8f364747f98966b3d43d5433f0
 ---
 
 # The settings and the wiring choose the stage environment
@@ -129,8 +131,9 @@ Tests (the tester writes them): `tests/domain/test_settings_stage_environment.py
 5. `build_boundaries` for `container` settings (dataset `tank/factory/vm`, workspace `<tmp>/work`, image `factory-stage:1`, `FACTORY_ZFS` and `FACTORY_PODMAN` set to two stand-in paths), called with `which` a function of the test that records every name it is asked for, `confine_executable="factory-confine"` and `end_leftovers=True`: the build succeeds (S0008's runtime refuses `containers` together with a confine executable, so none reached it) and `which` was asked for nothing; `snapshots` is a `ZfsSnapshots` whose `mount_point` is `<tmp>/work`; `containers` is a `PodmanRuns`; `containers.launch(["true"], mounts=[], environment={}, time_limit=1 s, working_directory="/work")` gives words that start with the podman stand-in's path and hold `factory-stage:1`; `snapshots.reset()` with a stand-in `zfs` that records its arguments records `rollback -r tank/factory/vm@base` (the executable and the dataset reached the adapter); `agent_runtime` is a `ClaudeCodeRuntime` whose `containers is boundaries.containers`, whose `confine_executable` is `None` and whose `leftovers` is `None`; with `FACTORY_AGENT_RUNTIME=opencode` it is an `OpencodeRuntime` whose `containers is boundaries.containers` and whose `leftovers` is `None` (it has no public `confine_executable`; the successful build shows none); `project_commands` is a `RecordingProjectCommands` whose `inner` is a `ContainerMakeCommands`; `agent_home` is `None`. One more row: with `claude_login_file` a file in `tmp_path` and the podman stand-in printing the completed reply of `tests/entry/test_wiring_login.py` while recording its words, `agent_runtime.run(<a request without os_user, its environment's HOME /work/home>)` ends completed and the recorded words hold `--volume <login file>:<login file>:ro` (the wiring gave the runtime its login file).
 6. `agent_run_environment` (rows of one parametrized test): `container` settings give `HOME` `/work/home` and keep `PATH` and `LANG`; `inline` with an agent user gives the agent user's home; `inline` without one keeps the base's `HOME`; the base dict is not changed.
 7. `build_tick` on `container` settings with `hosting` the fake does not start any `zfs` or `podman` (the stand-ins record no call) and builds a tick (the preflight's items for a container instance are S0011's; this row only pins that wiring a container instance runs nothing).
-8. `make check` stays green.
-9. docs: `docs/operator-guide.md`, *Configuration*: the six rows in its three-column table (variable, required, and in the meaning the default and the refusal text, as the other rows give them), a paragraph *The stage environment* after the table saying what `inline` and `container` are, that `container` needs the dataset, the workspace and the image, runs no second user and no kernel guard, and that the VM it runs on is F0043's (the machine and the stage image); `docs/project-guide/stage-environment.md` gains the section *The settings and the wiring* (the six settings and their faults, what `build_boundaries` builds for each environment, `agent_run_environment`'s `HOME`); `docs/project-guide/git-and-hosting.md` (which names `factory.domain.settings`): one sentence pointing to `stage-environment.md` for the new settings; `docs/project-guide/watching.md`, *Boundaries*: how the wiring fills `snapshots` and `containers`. `docs/project-guide/README.md`, *The files*: the line of `stage-environment.md` names the section *The settings and the wiring* and that the file also names `factory.domain.settings` and `factory.entry.wiring`. `docs/decisions.md`: none.
+8. More rows of the parametrized test of criterion 2, for the blank values and the order of the container faults: `container` with the dataset and `FACTORY_WORKSPACE="  "` gives `FACTORY_WORKSPACE` and `missing for the container environment`; with the dataset, the workspace and `FACTORY_STAGE_IMAGE="  "` gives `FACTORY_STAGE_IMAGE` and `missing for the container environment`; with the dataset and `FACTORY_WORKSPACE=srv/work` but without `FACTORY_STAGE_IMAGE` gives `FACTORY_WORKSPACE` and `is not an absolute path` (the relative workspace comes before the missing image); with `FACTORY_AGENT_USER=agent` but without `FACTORY_DATASET` gives `FACTORY_DATASET` and `missing for the container environment` (the agent user comes last).
+9. `make check` stays green.
+10. docs: `docs/operator-guide.md`, *Configuration*: the six rows in its three-column table (variable, required, and in the meaning the default and the refusal text, as the other rows give them), a paragraph *The stage environment* after the table saying what `inline` and `container` are, that `container` needs the dataset, the workspace and the image, runs no second user and no kernel guard, and that the VM it runs on is F0043's (the machine and the stage image); `docs/project-guide/stage-environment.md` gains the section *The settings and the wiring* (the six settings and their faults, what `build_boundaries` builds for each environment, `agent_run_environment`'s `HOME`); `docs/project-guide/git-and-hosting.md` (which names `factory.domain.settings`): one sentence pointing to `stage-environment.md` for the new settings; `docs/project-guide/watching.md`, *Boundaries*: how the wiring fills `snapshots` and `containers`. `docs/project-guide/README.md`, *The files*: the line of `stage-environment.md` names the section *The settings and the wiring* and that the file also names `factory.domain.settings` and `factory.entry.wiring`. `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -217,3 +220,10 @@ Expect: `1`
    `check`: check: green
    `duplicates`: duplicates: 13 new, 36 known, 2 gone
 8. factory: started review as self.
+9. reviewer: Review, round 0. Group 1 (acceptance criteria) fails. I stopped there and did not judge groups 2 to 5. Before reporting I went through every criterion (1 to 7) and every rule of the Interface. Criteria 1 and 3 to 7 each have a test that checks what they say: the inline `None`s, the container adapters and their arguments, `which` never asked, the `inner` of `RecordingProjectCommands`, the runtime's `containers`/`confine_executable`/`leftovers`, the login volume, `HOME`, and the tick that starts no tool. The coder's `make check` was green (journal entry 7).
+
+   Findings:
+   1. `tests/domain/test_settings_stage_environment.py`, `test_read_settings_refuses_a_stage_environment_it_cannot_run` and `test_read_settings_accepts_any_values_for_the_inline_environment`: criterion 2 asks for one parametrized test, and its accepted `inline` rows are the other side of the same rule (container refuses a missing value or a relative `srv/work`, inline accepts them). Writing them as two test functions splits that rule. Fix: merge them into one parametrized test where each row expects either `(variable, fault)` or the values read, the way the criterion 3 test already handles `accepted`.
+   2. criterion 8 added: it needs its test. The Interface makes a blank value count as unset and fixes the order of the container faults, but no row covers a blank `FACTORY_WORKSPACE` or `FACTORY_STAGE_IMAGE`. Example: if `or None` is dropped after `_optional(environ, STAGE_IMAGE_VARIABLE)` in `src/factory/domain/settings.py`, a blank image is accepted and every test still passes. Two order cases are also untested: a relative workspace before a missing image, and the agent user checked last (`agent_user` with no dataset). The new criterion 8 (old 8 and 9 are now 9 and 10) adds these as rows of the criterion 2 test. They need no change under `src/`.
+
+   Earlier tests: none. The diff only adds test files (`A`: the three new modules) and changes no test file that `main` already holds.
