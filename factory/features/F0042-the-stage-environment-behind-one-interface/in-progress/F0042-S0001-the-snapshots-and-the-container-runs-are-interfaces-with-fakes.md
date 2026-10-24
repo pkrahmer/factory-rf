@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T11:31:46.552456Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-24T11:31:26.244219Z'
   stage: intake
   run: 1063050e89f740548207d6a2045ba47f
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-24T11:31:46.552456Z'
+  stage: tests
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -329,3 +338,4 @@ Expect: `1`
    - Smoke test: both blocks are runnable. Each has an `Expect:` line that can be checked against the output. The pytest command passes no `-q`, because `addopts` already sets one, so the `passed in` summary line is printed.
    - Architecture: interfaces are ABCs in `application`, the DTOs are in `domain`, the fakes are in `adapters`, and the process module is used only through `run_process`. This matches the layering in `CLAUDE.md`.
    - Scope: the story is within F0042's scope as feature.md lists it for S0001. It touches no "Out of scope" item. The tests it changes (`tests/application/test_interfaces.py`, `tests/test_wrapper_search.py`) are covered by decision 18 a of feature.md.
+7. factory: started tests as self.
