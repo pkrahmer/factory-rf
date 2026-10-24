@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T21:38:15.394308Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-24T21:38:15.394308Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-24T21:38:33.083721Z'
+  stage: doing
+  run: 8215348cf8b44c81b6a321b605bfef88
 ---
 
 # The preflight checks the container environment
@@ -286,3 +288,18 @@ Expect: `1`
 
     Earlier tests: none. Every test file in the diff is new (status `A`).
 13. factory: started doing as self.
+14. coder: All three of the reviewer's findings in entry 12 are changes to tests, so I changed no code and no test. They fall under the standing leave to move a shared test helper, and the tester makes them:
+
+    1. Move the fixture `installed` to `tests/conftest.py`. It is in `tests/application/test_machine_checks_container.py:35-39` and in `tests/application/test_machine_checks_runtime.py:32-36`. Both modules then use the shared fixture.
+    2. Move the container settings to one shared support module, for example `tests/container_support.py`. Today they are in four places:
+       - the `CONTAINER` settings dict in `tests/application/test_machine_checks_container.py:16-21`
+       - the same dict in `tests/application/test_opencode_item_container.py:13-18`
+       - the container `InstanceSettings` built by the fixture `container_settings` in `tests/application/test_agent_run_probe_environment.py:29-42`
+       - the same `InstanceSettings` built again in `tests/application/test_preflight_run_environment.py:66-76`
+
+       All four modules then use the shared constant or builder.
+    3. In `tests/application/test_container_items.py:11-12`, drop the local `DATASET` and `IMAGE`. Import them from `tests/zfs_support.py` and `tests/podman_support.py`, as `tests/entry/test_wiring_container_extras.py` already does.
+
+    Every test keeps its name and checks the same thing. All the files above are new on this branch except `tests/application/test_machine_checks_runtime.py`, an earlier story's module, which only changes to use the shared fixture.
+
+    I did not run `make check` this round, because I changed nothing. The code under `src/factory` is as I left it in entry 10, when `make check` was green.
