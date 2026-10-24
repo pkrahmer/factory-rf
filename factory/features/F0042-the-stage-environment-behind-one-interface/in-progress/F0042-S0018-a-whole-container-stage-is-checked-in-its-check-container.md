@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 426
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T22:46:10.710508Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-24T22:45:50.240213Z'
   stage: doing
   run: e7a25c5421de44c7b740b8da85d232a1
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:46:10.710508Z'
+  stage: review
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -280,3 +289,4 @@ Expect: three lines, `2`, `1`, `1`
 
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
+16. factory: started review as self.
