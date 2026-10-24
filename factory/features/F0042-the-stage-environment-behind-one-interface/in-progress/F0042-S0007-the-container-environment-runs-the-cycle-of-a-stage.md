@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 415
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T17:30:00.072545Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-24T17:30:00.072545Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-24T17:30:25.555659Z'
+  stage: intake
+  run: cceae78738854d1989a0d139d5b73505
+  blocked: question
 ---
 
 # The container environment runs the cycle of a stage
@@ -110,3 +113,8 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: 1. The Interface moves make's last-line rule into `factory.domain.checks` as the public `last_line(lines: list[str]) -> str` with `MAKE_MESSAGE_PREFIXES`, "used by both and copied by neither". No criterion tests the function in its new place. Criterion 5 reaches it only through `prepare`, and only for a `make: ***` line. The other sides of the rule have no test: a line starting with `make[` is skipped, blank lines are skipped, and the result is `""` when no line is left. The same goes for "used by both", i.e. that `MakeProjectCommands` imports it and the old `_last_line` and `_MAKE_MESSAGE_PREFIXES` are gone. `tests/adapters/test_make_commands*.py` stay unchanged and so cannot pin the new location. Two coders could read this differently and both pass. Options: (a) add a criterion with a parametrized test of `factory.domain.checks.last_line`. Its rows would be: a `make:` line skipped, a `make[2]:` line skipped, a trailing blank line skipped, the recipe's last line returned, and `""` for make messages alone or no lines. A second criterion would check that `factory.adapters.make_commands` no longer defines `_last_line` or `_MAKE_MESSAGE_PREFIXES`. (b) State that the move is not tested directly. I would choose (a).
+
+   2. `run_agent` says "no home reset", but no criterion pins that side. Criterion 6 covers no seal, no ignored-path removal and no nested-repository search, and says nothing about the agent home. Should criterion 6 gain a row showing that a file the fake run writes into the host's `agent_home` is left alone? I would add it.
+
+   Everything else I checked is fine. The Interface is concrete. Criteria 1 to 9 are each testable. The smoke test commands are runnable, and the pytest command correctly passes no `-q` because `addopts` already sets it. The architecture fits: the application layer holds `ContainerEnvironment` and the domain holds `last_line`. The scope is inside the feature's S0007 entry.
