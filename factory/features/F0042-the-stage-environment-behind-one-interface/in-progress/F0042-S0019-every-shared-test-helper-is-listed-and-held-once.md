@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 428
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T23:19:01.557148Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,13 @@ journal:
   kind: started
   at: '2026-10-24T23:19:01.557148Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: question
+  at: '2026-10-24T23:20:06.070554Z'
+  stage: review
+  run: 2ee9a41559fd4a83b95abe22e4adf320
+  blocked: question
 ---
 
 # Every shared test helper is listed and held once
@@ -308,3 +311,53 @@ Expect: 0
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 16. factory: started review as self.
+17. reviewer: Question for the human. Should criterion 5 also name `modules_assigning`? It is the one gap left, and no stage that `doing` reaches can close it.
+
+    I reviewed `git diff main...HEAD -- . ':!factory'`: 22 files, all under `tests/`, nothing under `src/`. I checked it against the work item.
+
+    - **Group 1, acceptance criteria: passes.**
+      - Criterion 1: `tests/test_shared_stage_constants.py::test_a_shared_stage_value_is_assigned_only_in_its_home` has three rows and asserts `modules_assigning(value) == [home]`. A second copy anywhere fails the row, and the failure diff names that module.
+      - Criterion 2: `tests/test_shared_constants.py::test_the_guard_counts_a_top_level_assignment_of_the_instance_name` keeps its name and its seven rows. It now calls `top_level_copies(source, "factory-1")`.
+      - Criterion 3: no test was renamed or removed.
+      - Criterion 4: the factory's `make check` after the coder was green (entry 15).
+      - The Interface rule holds: `tests/stage_run_support.py:1-14` imports neither `take_support` nor `container_support`.
+    - **Group 2, architecture:** passes.
+    - **Group 3, security:** passes. No markers, no secrets, no baseline entries.
+    - **Group 4, quality:** passes. Both round-0 findings are fixed. `tests/search_support.py:37-44` `modules_assigning` is now the one walk, and both guards use it. `tests/application/test_costs.py` now changes only its imports.
+    - **Group 5, work item hygiene: one gap.**
+      - The round-1 fix added `modules_assigning(value)` to `tests/search_support.py`. That is the helper a later guard should call instead of copying the walk again, which is what this story exists to prevent.
+      - Criterion 5 tells the documenter that the `search_support.py` entry names `top_level_copies` and the guard. It does not mention `modules_assigning`, and neither does the Interface. So the guide entry written from criterion 5 can leave it out (today the entry at `docs/project-guide/README.md:60` names only `modules_matching`).
+      - My role may correct only the Description, not a criterion. The coder cannot write the work item. Sending this back with `doing` would only produce a question one round later.
+
+    Options:
+    - (a) The human allows me to add `modules_assigning` to criterion 5 and to the Interface's `search_support.py` bullet. I would then end with `docs`.
+    - (b) Leave criterion 5 as it is and trust the documenter to list the module's public names.
+    - (c) The human amends criterion 5 themselves.
+
+    I would choose (a): it is one clause, and with it the guide lists the helper the story built.
+
+    Earlier tests changed (item 6), all status `M`:
+    - tests/application/test_after_agent.py: standing leave (`AGENT_TEXT` from take_support)
+    - tests/application/test_container_stage_checks.py: standing leave (import home of `INSIDE`/`NOTES`)
+    - tests/application/test_costs.py: standing leave (`INSIDE`, `AGENT_TEXT`; imports only)
+    - tests/application/test_opening.py: standing leave (`NOTES`)
+    - tests/application/test_stage_environment.py: standing leave; `WRITTEN` → `INSIDE`, as the Interface states
+    - tests/application/test_stage_environment_calls.py: standing leave (`AGENT_TEXT`)
+    - tests/application/test_stage_finish.py: standing leave (`AGENT_TEXT`)
+    - tests/application/test_stage_run.py: standing leave (`INSIDE`, `NOTES`, `AGENT_TEXT`)
+    - tests/application/test_stall_container.py: standing leave (`NOTES`, import homes)
+    - tests/application/test_stall_edges.py: standing leave; `AGENT_FILE` → `INSIDE`, docstring included, as the Interface states
+    - tests/application/test_stall_environment.py: standing leave (import home of `INSIDE`)
+    - tests/application/test_stall_labels.py: standing leave (`NOTES`)
+    - tests/application/test_stall_reasons_recorded.py: standing leave (`NOTES`)
+    - tests/application/test_stalls.py: standing leave (import homes of `INSIDE`/`AGENT_TEXT`)
+    - tests/application/test_undo.py: standing leave (`AGENT_TEXT`)
+    - tests/application/test_undo_nested_claude.py: standing leave (`AGENT_TEXT`)
+    - tests/container_support.py: standing leave (`INSIDE`/`NOTES` moved to stage_run_support)
+    - tests/search_support.py: standing leave (`instance_copies` moved here as `top_level_copies`, and the shared walk as `modules_assigning`)
+    - tests/stage_run_support.py: standing leave (now the home of `INSIDE`/`NOTES`)
+    - tests/stall_support.py: standing leave (`INSIDE`/`AGENT_TEXT` copies dropped)
+    - tests/test_shared_constants.py: standing leave (uses search_support; test names and rows unchanged)
+
+    Notes:
+    - `tests/test_shared_stage_constants.py`: nothing to note.
