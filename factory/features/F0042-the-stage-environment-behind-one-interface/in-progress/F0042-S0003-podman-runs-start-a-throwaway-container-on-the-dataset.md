@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T13:02:53.769459Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-24T13:02:32.993670Z'
   stage: intake
   run: 13a99a69c6e94749b09787a213be7f60
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-24T13:02:53.769459Z'
+  stage: tests
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -158,3 +167,4 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
    - Architecture: an adapter behind the `ContainerRuns` interface, and it reaches processes only through `run_process`. Criterion 9 covers the `test_wrapper_search.py` leave (decision 18 c). Nothing is wired, which fits S0010.
    - Scope: within the feature's scope list and decision 11. Nothing is removed and no new dependency is added.
    - Description: needs no rewrite. It states no `env` value, and entry 4's three answers are in the Interface and criteria.
+7. factory: started tests as self.
