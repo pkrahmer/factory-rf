@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 425
 comments_read: [6390283009]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T22:24:42.388621Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-24T22:24:42.388621Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T22:25:12.168367Z'
+  stage: smoke-test
+  run: f1b48d0dd7984416963c16ad13e580c9
 ---
 
 # The guides say what is true after the wiring
@@ -261,3 +263,34 @@ Expect: `documents ok`
     I would choose (a). The pointer is correct and useful, and only the expected count is wrong.
 14. 2026-10-24 human: (a). The pointer at `costs.md:14` is correct and stays. Read command 2's `Expect:` as "two lines, each a number of at least `1`": the count of exactly `1` did not allow for the pointer, and no criterion asks for one occurrence. With that reading command 2 is met (`2`, `1`), so the smoke test passes as you ran it; say so in your entry and quote this answer. No change to the documents.
 15. factory: started smoke-test as self.
+16. smoke-tester: Smoke test, round 0, run again after the human's answer (entry 14). I ran the three commands from the repository root as written and fixed nothing. No findings.
+
+    Command 1:
+    ```
+    0
+    0
+    0
+    0
+    0
+    ```
+    Met: five lines, each `0`.
+
+    Command 2:
+    ```
+    2
+    1
+    ```
+    Met under the human's reading. The human said in entry 14: "(a). The pointer at `costs.md:14` is correct and stays. Read command 2's `Expect:` as "two lines, each a number of at least `1`": the count of exactly `1` did not allow for the pointer, and no criterion asks for one occurrence. With that reading command 2 is met (`2`, `1`), so the smoke test passes as you ran it; say so in your entry and quote this answer. No change to the documents." The `2` is the bullet title at `docs/project-guide/costs.md:17` plus the pointer "(see *Rewritten after every take*)" at `docs/project-guide/costs.md:14`.
+
+    Command 3:
+    ```
+    documents ok
+    ```
+    Met.
+
+    Checked against the acceptance criteria:
+    - Criterion 1 holds. `git diff main...HEAD --stat -- src tests image template claude` is empty, and `git status --short` shows only the work item's `.costs.jsonl` sidecar, which the factory writes.
+    - Criterion 2: the coder's `make check` ended green (entry 7), and the docs stage reused that passed result (entry 11). I did not run `make check` again because this stage changed nothing.
+    - Criterion 3: the diff touches exactly the five documents named, with 7 lines in and 7 out. I read each changed passage. The `sync` target and command, `ContainerMakeCommands` behind `RecordingProjectCommands`, `PodmanRuns` from `build_boundaries`, both `project_commands` cases in `watching.md`, the "Rewritten after every take" bullet with its `container` wording, and the stall note's "leaves out the rest" for both environments all say what the criterion asks. `make documents` ends with `documents ok`.
+
+    Open: nothing for this story. The documenter's note (entry 11) still stands as a possible follow-up: `docs/decisions.md:166` and `:168` still say "after every undo", and it has not been checked whether the take path rewrites the sidecar through `AfterAgent.process`.
