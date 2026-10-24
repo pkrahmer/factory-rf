@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T21:48:16.912926Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-24T21:47:56.331660Z'
   stage: review
   run: 4c2d0893249148ceb0185abc0051b900
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:48:16.912926Z'
+  stage: docs
 ---
 
 # The preflight checks the container environment
@@ -407,3 +416,4 @@ Expect: `1`
     - `tests/entry/test_wiring_container_extras.py:43-61`: `_settings` builds a container `InstanceSettings` a third way, beside `container_instance_settings` of `tests/container_support.py`.
     - `tests/application/test_preflight_run_environment.py:25`: `IMAGE = "build-7"` (the image build of the stamp) reuses the name of `podman_support.IMAGE` (the stage image) with another meaning.
     - `tests/application/test_container_items.py:63,94`: the passing rows carry a `detail` of `""` that the test never asserts.
+21. factory: started docs as self.
