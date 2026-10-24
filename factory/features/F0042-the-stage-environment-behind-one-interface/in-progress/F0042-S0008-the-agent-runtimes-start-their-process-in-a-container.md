@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T19:07:58.655805Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-24T19:07:58.655805Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-24T19:08:25.842662Z'
+  stage: doing
+  run: 243de73379d442819034d2b110c5664f
 ---
 
 # The agent runtimes start their process in a container
@@ -324,3 +326,15 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
 
     Earlier tests: none. `git diff --name-status main...HEAD` lists only added test files (`A`), so no test that `main` already holds was changed, renamed or deleted.
 13. factory: started doing as self.
+14. coder: Round 1. Both of the reviewer's findings ask only for test changes, and the code already does what they check, so I changed no code. I also did not run `make check` this round, because nothing changed since entry 10's green check. The tester should make these two changes:
+
+    1. Criterion 12 needs its test. Add a row to `tests/adapters/test_agent_launch_container.py::test_a_container_launch_mounts_the_files_read_only_at_their_own_paths`: files `/state/a`, `/state/b`, `/state/a` should give exactly the mounts `/state/a`, `/state/b`, both read-only at their own paths. The new row should pass as it is, because `src/factory/adapters/agent_launch.py:244` builds the mounts with `dict.fromkeys(files)`.
+    2. In `tests/adapters/test_opencode_runtime_container.py::test_a_run_in_a_container_mounts_the_login_and_configuration_and_completes`, put a login variable in the request's environment, as the Claude Code test does with `LOGIN_VARIABLE: "request-login"`. Keep asserting that the recorded environment equals the request's environment without it. This should also pass as it is, because `src/factory/adapters/opencode_runtime.py:765-768` passes `run_environment(request, runtime_environment)` to `container_launch`, and that drops the logins.
+
+    What I built: nothing new this round. The paths from round 0 stay as entry 10 lists them: `src/factory/adapters/agent_launch.py`, `claude_runtime.py` and `opencode_runtime.py`.
+
+    Main choice: I end with `tests` instead of changing code, because both findings concern tests only and the stage's rules leave the tests to the tester. The alternative I rejected was adding code to make the missing tests unnecessary; nothing in the code needs to change.
+
+    Noticed but did not touch:
+    - The reviewer left one point for later rounds: calls are routed by a branch in each runtime's `_process_request`, not through `run_launch` as the Description says. Entry 10 gives the reason, ruff's argument limit (PLR0913). The reviewer did not judge it this round, so I left it as it is.
+    - The journal added criterion 12, which the Description already holds. It changed nothing else about what the task means, so the Description stays as it is.
