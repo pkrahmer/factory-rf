@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 426
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T22:38:33.451059Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-24T22:38:33.451059Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-24T22:38:48.173391Z'
+  stage: doing
+  run: 7367e26c2ffb4b698b02d55a05ed5c38
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -194,3 +196,16 @@ Expect: three lines, `2`, `1`, `1`
    - tests/take_support.py: standing leave (receives `BROKEN_FRONT_MATTER`; `PATH` now from `stage_run_support`, the same string, to avoid an import cycle)
    - tests/undo_support.py: standing leave (receives `without_work_item`, `with_broken_work_item`)
 10. factory: started doing as self.
+11. coder: Round 1: I changed no code and no file. The reviewer's only finding (entry 9) is a copied test helper. `CLAUDE.md` gives a standing leave for that kind of move, and only the tester may make it, so I am sending the item back to the tests stage.
+
+    - Built: nothing. `git diff main -- src` is still empty.
+    - The test change I ask for, under the standing leave: move the whole-stage setup into one shared helper in `tests/container_support.py`. The setup is currently copied in the `staged` fixture of `tests/application/test_container_stage_checks.py` (lines 33-35 and 59-70) and in `tests/application/test_container_environment_take.py` (lines 128-135). The helper should:
+      - build the sync target and `.gitignore` from `SYNC_RECIPE`/`SYNC_MARKER`;
+      - hold `INSIDE` and `NOTES`;
+      - take `AGENT_TEXT` from `take_support`;
+      - accept `project_commands` as an optional argument.
+      Both `staged` and `test_a_whole_stage_takes_the_agents_work_from_the_dataset` should use it. Then do one of these for the five assertions that the two whole-stage tests repeat: move them into one shared check, or make the two tests rows of one parametrized test over the project commands (host `MakeProjectCommands` against `ContainerMakeCommands`). Every earlier test keeps its name and what it checks, and the tester's entry names each earlier test file it changed.
+    - Main choice: I hand this to the tester and do not edit the tests myself (R9). The other option was to treat it as a question for the human. I rejected that because `CLAUDE.md` already allows this exact move without asking.
+    - Refactor: nothing of mine to refactor.
+    - Noticed, not touched: nothing further. The docs criterion is still the documenter's.
+    - The journal did not change the meaning of the task.
