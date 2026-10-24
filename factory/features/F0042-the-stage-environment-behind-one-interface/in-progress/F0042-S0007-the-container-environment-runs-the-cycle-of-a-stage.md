@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T17:57:36.646135Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-24T17:57:36.646135Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-24T18:00:38.302438Z'
+  stage: doing
+  run: e1600c0606d14d59bc8217ca9eb215c8
 ---
 
 # The container environment runs the cycle of a stage
@@ -332,3 +334,20 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
     `lint`: lint: green (0.7 s)
     `test`: test: green (67.6 s)
 17. factory: started doing as self.
+18. coder: Round 1, after the tester's change. The only finding was the reviewer's criterion 12. The tester has now written its test, `tests/application/test_container_environment.py::test_the_timeouts_seconds_are_rounded_up`, with the rows 1.2 s → 2 s and 3 s → 3 s. The round-0 code already passes it: `_check_sync` in `src/factory/application/stage_environment.py` rounds up with `math.ceil`. So I changed no code and no test this round. `make check` is green: 99.19 % coverage, `test: green (70.7 s)`, ending in `check: green`.
+
+    What I built (unchanged since round 0, entry 10):
+    - `src/factory/application/stage_environment.py`: `ContainerEnvironment`, `stage_environment_of`, the constants and the sync script.
+    - `src/factory/application/boundaries.py`: the fields `snapshots` and `containers`.
+    - `src/factory/domain/checks.py`: `last_line` and `MAKE_MESSAGE_PREFIXES`, which `src/factory/adapters/make_commands.py` now imports instead of keeping its own copy.
+
+    Main choice, still the one from round 0: the durations are fields on the object, zero from the start and set when a `prepare` succeeds. I rejected a timing DTO returned by `prepare`, because the interface fixes `prepare` to return `None`.
+
+    Refactor pass: there is no new diff this round, so there was nothing to refactor.
+
+    Journal effect on the Description: it only added criterion 12 and renumbered the two closing criteria to 13 and 14. The reviewer already wrote both into the Description.
+
+    Noticed, not touched: after a failed `prepare`, the object keeps the durations of the last successful one. No criterion covers that case, and the stage stops at the error anyway.
+
+    `check`: check: green
+    `duplicates`: duplicates: 9 new, 37 known, 1 gone
