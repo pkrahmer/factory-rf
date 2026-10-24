@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 423
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T21:53:35.564888Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-24T21:53:14.990447Z'
   stage: intake
   run: 8f2ef02b451d408484707bcf298e0347
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:53:35.564888Z'
+  stage: tests
 ---
 
 # The documents describe the stage environment
@@ -77,3 +86,4 @@ Expect: `documents ok`
    - Smoke test: all three blocks are runnable `grep` or `make documents` commands. Each `Expect:` line is checkable: the counts `14`, `1`, `0`, `0`; `6`, `4`, `1`, `1`; and `documents ok`. No pytest command is involved, so there is no `-q` problem. One small gap, not a blocker: the smoke test also greps `docs/project-guide/processes-and-checks.md` for "three targets", while the criterion names only the operator guide. The expectation still reads true either way.
    - Architecture: nothing under `src/` changes, so the four layers are untouched. The documents involved match the Docs section of `CLAUDE.md`, and the documenter's write paths are `README.md` and `docs/*`. The story does not touch `planning/` or `docs/runs/`.
    - Scope: this is the sweep that the feature's Stories list and Scope ("The documents ... S0012 is the sweep") name. It changes nothing in the feature's "Out of scope": the inline environment's items and chain stay, since F0044 removes them. It changes no test another story wrote.
+4. factory: started tests as self.
