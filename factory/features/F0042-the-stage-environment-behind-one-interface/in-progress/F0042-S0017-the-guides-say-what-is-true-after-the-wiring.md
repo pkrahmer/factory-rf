@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T22:14:25.153110Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-24T22:14:25.147163Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:14:25.153110Z'
+  stage: intake
+---
+
 # The guides say what is true after the wiring
 
 <!-- proposed by feature acceptance of 2026-10-24; refine before starting -->
@@ -47,3 +74,6 @@ make documents 2>&1 | tail -n 1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-24 human: created.
+2. factory: started intake as self.
