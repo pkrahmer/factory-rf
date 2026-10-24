@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 428
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T23:07:14.559563Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-24T23:07:14.559563Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-24T23:10:07.112263Z'
+  stage: doing
+  run: 1677168628f94905b35a5c1c82efc8af
 ---
 
 # Every shared test helper is listed and held once
@@ -154,3 +156,15 @@ Expect: 0
    `lint`: lint: green (0.5 s)
    `test`: test: green (65.5 s)
 6. factory: started doing as self.
+7. coder: Built nothing. The Interface puts no work under `src/factory/`, and the tester already made every move under the standing leave. `make test` showed no failing test to work against. `git diff main -- src` is empty, and I wrote no file.
+
+   Main choice: I left the tree as the tester committed it and changed none of their moves. The alternative was to tidy their test modules in the refactor step. I rejected it because the coder never edits tests (R9). The tester's diff is not mine to refactor, so the refactor step had nothing to change.
+
+   Checked: `make check` is green (last lines `test: green (67.6 s)` and `check: green`, total coverage 99.19 %). The smoke test's second command lists exactly `tests/stage_run_support.py` and `tests/take_support.py`.
+
+   Noticed, not touched:
+   - The third smoke command will pass only after the documenter adds the seven *Shared test helpers* entries (criterion 5).
+   - The work item's `.costs.jsonl` sidecar shows as modified in the working tree. That is the factory's change.
+
+   `check`: check: green
+   `duplicates`: duplicates: 11 new, 36 known, 2 gone
