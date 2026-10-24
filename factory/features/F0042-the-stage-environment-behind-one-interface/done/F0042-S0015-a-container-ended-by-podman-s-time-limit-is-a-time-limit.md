@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-24T20:25:09.172814Z'
   stage: smoke-test
   run: 901ba558b707409d82a0f0825599fa4d
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-24T20:26:28.649858Z'
+  stage: approval
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -323,3 +328,4 @@ Expect: one line, `[-9, 137, 255] True False`
     The smoke test does not touch criteria 3 to 6. It contradicts none of them.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 10.9 min, 66 turns, 266210 tokens in (1497865 more from cache), 29861 out, $2.72
