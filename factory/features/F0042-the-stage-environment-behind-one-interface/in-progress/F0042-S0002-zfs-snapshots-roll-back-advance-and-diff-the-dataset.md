@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T12:32:36.146366Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-24T12:32:36.146366Z'
   stage: review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T12:33:45.084266Z'
+  stage: review
+  run: 3ddf6b046c9e46088a7857899cecc984
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -177,7 +179,7 @@ class ZfsSnapshots(Snapshots):
 - `changed_paths()` runs `<zfs> diff -FH <dataset>@base` and reads each non-blank line as tab-separated fields `<change> <kind> <path>` or, for `R`, `<change> <kind> <old path> <new path>`; a field after those (`(+1)` on an `M` line: the change of a link count, as a hard link makes it) is ignored. `M` is `modified`, `+` is `added`, `-` is `deleted`, `R` is `deleted` for the old path and `added` for the new one. A line whose kind is `/` (a directory) is left out whatever its change. Every path must be the mount point or lie under it (`<mount point>/...`; `<mount point>x/...` is outside); it is made relative to the mount point with `/` separators, and `zfs`'s octal escapes (`\ooo`, one per byte outside printable ASCII and for the backslash: `\040` is a space, `\303\251` is `é`, `\134` is `\`) are decoded to bytes and read as UTF-8. A path that two lines name (one removes it and one adds it: a file removed and made anew, a rename onto a removed path) is listed once, as `added`. The result is sorted by path. An empty output is `[]`.
 - A fault is `SnapshotError(command, detail)`, `command` the words run joined by one space (`zfs rollback -r tank/factory/vm@base`), `detail` the last non-blank line of the output, or `exit status <n>` when the output has none, or `no end within <n> s` (`n` the whole seconds of the time limit, rounded up) when the command reached its time limit, or the operating system's message when it could not start (`OSError`). Faults: an exit status other than 0 for `rollback`, `destroy`, `snapshot`, `diff` and `--version`; a status other than 0 or 1 for the two `list` commands; a `diff` line with a change other than `M`, `+`, `-`, `R`, with fewer fields than its form needs, or with a path outside the mount point (`detail` then `cannot read the line <line>` or `<path> is outside <mount point>`).
 - `version()` runs `<zfs> --version` and returns its first non-blank line stripped (`zfs-2.2.2-0ubuntu9.1`); an output without one is a fault with `detail` `printed nothing`.
-- `dataset_exists()` runs `<zfs> list -H -o name <dataset>`: exit status 0 whose first line is the dataset is `True`; exit status 1 is `False`; exit status 0 with another first line is a fault with `detail` `named <line>, not <dataset>`.
+- `dataset_exists()` runs `<zfs> list -H -o name <dataset>`: exit status 0 whose first line is the dataset is `True`; exit status 1 is `False`; exit status 0 with another first line is a fault with `detail` `named <line>, not <dataset>`; exit status 0 with no non-blank line is a fault with `detail` `printed nothing`, worded like `version()` (the human's answer, journal entry 17).
 
 Tests (the tester writes them): `tests/adapters/test_zfs_snapshots.py` and `tests/adapters/test_zfs_snapshots_diff.py`, with a stand-in `zfs` written into `tmp_path` by a helper modelled on `write_sudo` of `tests/sudo_support.py`: it records its arguments to a file and, by a plan keyed on its first argument (`rollback`, `list`, `destroy`, `snapshot`, `diff`, `--version`), prints planned standard output and standard error and exits with a planned status, or sleeps past a short limit. No real `zfs` is run anywhere.
 
@@ -190,11 +192,12 @@ Tests (the tester writes them): `tests/adapters/test_zfs_snapshots.py` and `test
 5. The fault's `detail` (rows of one parametrized test, on `reset()`): exit status 1 with the two lines `warning` and `rollback: dataset is busy` gives `rollback: dataset is busy`; exit status 1 with no output gives `exit status 1`; a stand-in that sleeps 60 seconds, under an adapter built with `time_limit` 1.5 seconds, gives `no end within 2 s` (the seconds rounded up) after at least 1 and less than 25 seconds; an executable that does not exist raises `SnapshotError` whose `command` starts with `/nowhere/zfs rollback` and whose `detail` starts with `[Errno 2]`. `SNAPSHOT_TIME_LIMIT` is 10 minutes, and an adapter built without `time_limit` passes it to `run_process` (read from a recorded `run_process` request: the module's `run_process` replaced by a `Recorder` of `tests/run_process_recorder.py`, as the `recorder` fixture of `tests/conftest.py` does for the runtime; a stand-in cannot see the limit it runs under).
 6. Standard error is merged, the working directory is the root and the environment is the factory's own: a `reset()` whose stand-in exits 1 writing `boom` to standard error only raises `SnapshotError` with `detail` `boom`, the stand-in's recorded working directory is `/`, and its recorded environment holds a variable the test set with `monkeypatch.setenv`.
 7. `version()` with `--version` planned to print `zfs-2.2.2-0ubuntu9.1\nzfs-kmod-2.2.2-0ubuntu9.1` returns `zfs-2.2.2-0ubuntu9.1`; planned to print nothing and exit 0 raises `SnapshotError` with `detail` `printed nothing`; planned to exit 1 with `zfs: command not found` raises it with that detail (rows of one parametrized test).
-8. `dataset_exists()` (rows of one parametrized test): `list` planned to exit 0 and print `tank/factory/vm` returns `True` and the call's arguments are `["list", "-H", "-o", "name", "tank/factory/vm"]`; exit 1 returns `False`; exit 0 printing `tank/other` raises `SnapshotError` with `detail` `named tank/other, not tank/factory/vm`; exit 2 raises it with the output's last line.
+8. `dataset_exists()` (rows of one parametrized test): `list` planned to exit 0 and print `tank/factory/vm` returns `True` and the call's arguments are `["list", "-H", "-o", "name", "tank/factory/vm"]`; exit 1 returns `False`; exit 0 printing `tank/other` raises `SnapshotError` with `detail` `named tank/other, not tank/factory/vm`; exit 0 printing nothing raises it with `detail` `printed nothing` (journal entry 17); exit 2 raises it with the output's last line.
 9. `ZfsSnapshots` is an instance of `Snapshots`, and `tests/test_wrapper_search.py` lists `factory.adapters.zfs_snapshots` among the modules that import the process module (decision 18 b).
 10. `changed_paths()` with `diff` planned to print the line `+\tF\t/srv/factory/vm/work/bad\377` (an escape whose byte is not UTF-8) raises `SnapshotError` with `command` `<stand-in> diff -FH tank/factory/vm@base` and `detail` `cannot read the line +\tF\t/srv/factory/vm/work/bad\377` (a row of criterion 4's parametrized test).
-11. `make check` stays green.
-12. docs: `docs/project-guide/stage-environment.md` gains the section *The ZFS adapter*: the five commands and when each runs, the reading of `zfs diff -FH` (the kinds, the rename, the escapes, the mount point), the faults and their details, `version` and `dataset_exists` for the preflight, the stand-in the tests use; `docs/project-guide/README.md`, *The files*, names `factory.adapters.zfs_snapshots` for the file. `docs/operator-guide.md`: nothing yet (S0010 writes the settings, S0011 the items). `docs/decisions.md`: none.
+11. `changed_paths()` with `diff` planned to print the lines `M\t/\t/srv/factory/vm/work` (the mount point itself, which the Interface accepts) and `M\tF\t/srv/factory/vm/work/checkout/a.py` returns exactly `[ChangedPath("checkout/a.py", "modified")]`: the mount point is no fault, and as a directory it is left out (a row of criterion 3's parametrized test).
+12. `make check` stays green.
+13. docs: `docs/project-guide/stage-environment.md` gains the section *The ZFS adapter*: the five commands and when each runs, the reading of `zfs diff -FH` (the kinds, the rename, the escapes, the mount point), the faults and their details, `version` and `dataset_exists` for the preflight, the stand-in the tests use; `docs/project-guide/README.md`, *The files*, names `factory.adapters.zfs_snapshots` for the file. `docs/operator-guide.md`: nothing yet (S0010 writes the settings, S0011 the items). `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -373,3 +376,15 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     `check`: check: green
     `duplicates`: duplicates: 8 new, 38 known, 0 gone
 22. factory: started review as self.
+23. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`: `src/factory/adapters/zfs_snapshots.py`, `tests/adapters/test_zfs_snapshots.py`, `tests/adapters/test_zfs_snapshots_diff.py`, `tests/zfs_support.py` and the one-line change to `tests/test_wrapper_search.py`. Both findings from round 0 are closed. The `not-utf-8` row tests criterion 10. `dataset_exists` raises `printed nothing` on an empty status-0 output, and the `nothing` row of `test_dataset_exists_reads_what_list_names` tests it. Criteria 1 to 10 each have a test that checks what they say. The checks the factory ran after the coder were green (entry 21: `check: green`). I did not run `make check`. I stopped at group 1.
+
+    As the human's answer in entry 17 asks, I wrote that rule into the work item:
+    - The Interface's `dataset_exists()` bullet now ends: "exit status 0 with no non-blank line is a fault with `detail` `printed nothing`, worded like `version()` (the human's answer, journal entry 17)".
+    - Criterion 8 gained the row "exit 0 printing nothing raises it with `detail` `printed nothing` (journal entry 17)".
+    I changed nothing else in the Interface or the Description.
+
+    Findings:
+    1. criterion 11 added: it needs its test. The Interface says "Every path must be the mount point or lie under it", and only paths under it and outside it are tested. Nothing tests the boundary itself: a line that names the mount point, such as `M\t/\t/srv/factory/vm/work`. Real `zfs diff` prints that line when an entry directly under the dataset's root changes. `src/factory/adapters/zfs_snapshots.py` (`_read_diff_line` calls `_relative` before the directory check) accepts it, but no test would catch a change that refused it. The fix is a row of `tests/adapters/test_zfs_snapshots_diff.py::test_changed_paths_reads_the_diff_relative_to_the_mount_point`. Its diff is `M\t/\t/srv/factory/vm/work` and `M\tF\t/srv/factory/vm/work/checkout/a.py`, and it expects exactly `[ChangedPath("checkout/a.py", "modified")]`. No code change is needed. The old criteria 11 and 12 are now 12 and 13.
+
+    Earlier tests:
+    - tests/test_wrapper_search.py: changed under the human's leave. Criterion 9, which the human wrote, names this test and the added `factory.adapters.zfs_snapshots`. The change only adds that name to the expected set, and the test keeps its name and what it checks.
