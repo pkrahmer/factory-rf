@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T17:54:11.865297Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-24T17:53:50.985374Z'
   stage: doing
   run: 21a81ace73834f579e3cf21d98cf8ff9
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:54:11.865297Z'
+  stage: tests
 ---
 
 # The container environment runs the cycle of a stage
@@ -294,3 +303,4 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
     The journal changed the task only by adding criterion 12 and renumbering the closing criteria to 13 and 14. The reviewer already wrote that into the Description. I did not run `make check` this round because nothing changed in the working tree; the factory's run after round 0 was green.
 
     Still open, untouched: a failed `prepare` keeps the durations of the last successful one.
+15. factory: started tests as self.
