@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T13:27:05.222247Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-24T13:26:44.677227Z'
   stage: doing
   run: 30c5ea85a0874d058cf8d79f5494f06e
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-24T13:27:05.222247Z'
+  stage: tests
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -413,3 +422,4 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
     - No one has run the work item's smoke test yet.
 
     The journal changed nothing that calls for a Description rewrite: the reviewer already wrote criterion 12 into it.
+23. factory: started tests as self.
