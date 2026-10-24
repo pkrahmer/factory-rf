@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 425
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T22:15:00.838289Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-24T22:15:00.838289Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-24T22:16:23.105444Z'
+  stage: tests
+  run: ddc4dcfe19af426ebd38905bf8b66130
 ---
 
 # The guides say what is true after the wiring
@@ -95,3 +97,13 @@ Expect: `documents ok`
    Architecture: no code or layer is touched. The new text matches the stage-environment guide's *The settings and the wiring* and the S0010 wiring that F0042 describes.
    Scope: it fits F0042. It is a sweep after S0012, it keeps the inline environment's descriptions (F0044 removes them), and it touches nothing in "Out of scope".
 4. factory: started tests as self.
+5. tester: No tests written. This story only changes documents, and its Interface says no test reads them.
+   criterion 1: no test. Nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changes, and this stage changed nothing there. `git status` shows only the work item's `.costs.jsonl` sidecar, which the factory writes.
+   criterion 2: no new test. The factory's `make check` covers it.
+   criterion 3: no test. It is the docs criterion, which the smoke test and `make documents` check.
+   Files created: none. Modules the test runner could not import: none. There are no new tests, so I did not run `make test` to look for red: there is nothing new that could fail.
+   `make lint`: green.
+   Nothing is open.
+
+   `lint`: lint: green (0.5 s)
+   `test`: test: green (65.6 s)
