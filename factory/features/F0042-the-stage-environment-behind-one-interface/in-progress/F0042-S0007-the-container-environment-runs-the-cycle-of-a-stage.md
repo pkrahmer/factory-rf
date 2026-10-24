@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T18:03:27.079476Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-24T18:03:06.635018Z'
   stage: review
   run: b9e2cd083eff47deb8c5e8ec54d06997
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:03:27.079476Z'
+  stage: doing
 ---
 
 # The container environment runs the cycle of a stage
@@ -372,3 +381,4 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
     Still open, as before, and not a finding: after a failed `prepare` the object keeps the durations of the last successful one. The Interface does not settle that case.
 
     Earlier tests: none. Every test file in the diff is new (`A`).
+21. factory: started doing as self.
