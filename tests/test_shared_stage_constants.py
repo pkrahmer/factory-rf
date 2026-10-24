@@ -1,12 +1,8 @@
 """The stage tests' shared values are each written in one module, which the others import from."""
 
-from pathlib import Path
-
 import pytest
 
-from search_support import top_level_copies
-
-TESTS = Path(__file__).parent
+from search_support import modules_assigning
 
 
 @pytest.mark.parametrize(
@@ -18,10 +14,4 @@ TESTS = Path(__file__).parent
     ],
 )
 def test_a_shared_stage_value_is_assigned_only_in_its_home(value: str, home: str) -> None:
-    copies = sorted(
-        path.relative_to(TESTS).as_posix()
-        for path in TESTS.rglob("*.py")
-        if top_level_copies(path.read_text(encoding="utf-8"), value)
-    )
-
-    assert copies == [home]
+    assert modules_assigning(value) == [home]

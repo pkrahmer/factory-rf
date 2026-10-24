@@ -33,3 +33,12 @@ def top_level_copies(source: str, value: str) -> list[str]:
         if isinstance(assigned, ast.Constant) and assigned.value == value:
             names.extend(target.id for target in targets if isinstance(target, ast.Name))
     return names
+
+
+def modules_assigning(value: str) -> list[str]:
+    """The sorted paths, relative to `tests`, of the modules that assign `value` at top level."""
+    return sorted(
+        path.relative_to(TESTS).as_posix()
+        for path in TESTS.rglob("*.py")
+        if top_level_copies(path.read_text(encoding="utf-8"), value)
+    )

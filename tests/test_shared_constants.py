@@ -1,22 +1,12 @@
 """The instance name the tests use is written in one module, which the others import it from."""
 
-from pathlib import Path
-
 import pytest
 
-from search_support import top_level_copies
-
-TESTS = Path(__file__).parent
+from search_support import modules_assigning, top_level_copies
 
 
 def test_the_instance_name_is_assigned_in_one_module() -> None:
-    copies = sorted(
-        path.relative_to(TESTS).as_posix()
-        for path in TESTS.rglob("*.py")
-        if top_level_copies(path.read_text(encoding="utf-8"), "factory-1")
-    )
-
-    assert copies == ["stage_run_support.py"]
+    assert modules_assigning("factory-1") == ["stage_run_support.py"]
 
 
 @pytest.mark.parametrize(

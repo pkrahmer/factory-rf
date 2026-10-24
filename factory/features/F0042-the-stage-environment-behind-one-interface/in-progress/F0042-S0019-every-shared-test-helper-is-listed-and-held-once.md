@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 428
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T23:12:35.002829Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-24T23:12:35.002829Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-24T23:15:33.659693Z'
+  stage: tests
+  run: faf38bf8c4ad48cea84507d958122f38
 ---
 
 # Every shared test helper is listed and held once
@@ -247,3 +249,25 @@ Expect: 0
 
     Noticed, not touched: `tests/application/test_stall_edges.py:44` still writes the literal `"written by the agent\n"` inside a method. The reviewer called it not a finding, because the criteria count only top-level assignments. The work item's `.costs.jsonl` sidecar shows as modified in the working tree; that change is the factory's.
 12. factory: started tests as self.
+13. tester: I made the two test changes that the coder's entry 11 lists. Both come from the reviewer's findings in entry 9. Finding 1 is a shared-helper move under CLAUDE.md's standing leave. Finding 2 undoes a whitespace change that this story's own tester made in round 0.
+
+    Changes:
+    1. `tests/search_support.py`: added `modules_assigning(value: str) -> list[str]` next to `modules_matching`. It walks `TESTS` and returns the sorted module paths that hold a top-level copy of `value`, using `top_level_copies`.
+       - `tests/test_shared_stage_constants.py` now calls it. Its own `TESTS = Path(__file__).parent` and its directory walk are gone.
+       - `tests/test_shared_constants.py` (an earlier test file, changed under the standing leave) now calls it in place of its copied walk.
+       - Both tests keep their names and check the same thing. `test_the_guard_counts_a_top_level_assignment_of_the_instance_name` keeps its seven rows and still calls `top_level_copies`.
+    2. `tests/application/test_costs.py`: removed the blank line I had added between `EARLIER` and `FAILED_REASONS`. That file's diff against main now holds only the import move.
+
+    Criteria → tests (unchanged from entry 5):
+    - criterion 1: tests/test_shared_stage_constants.py::test_a_shared_stage_value_is_assigned_only_in_its_home
+    - criterion 2: tests/test_shared_constants.py::test_the_guard_counts_a_top_level_assignment_of_the_instance_name
+    - criterion 3: no test renamed or removed. The earlier test files this round changed are `tests/test_shared_constants.py`, `tests/search_support.py` and `tests/application/test_costs.py`. Entry 5 lists the full set.
+    - criterion 4: `make check`, which the factory runs.
+    - criterion 5: the documenter's work; no test.
+
+    Files created this round: none. Modules the test run could not import: none.
+
+    `make test`: `test: green (65.9 s)`. `make lint`: green. My first lint run failed with E501 because the new docstring was too long, so I shortened it.
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (64.8 s)

@@ -76,7 +76,6 @@ EARLIER = CostRecord(
     duration_seconds=30.0,
     end_reason="completed",
 )
-
 FAILED_REASONS: list[EndReason] = ["no_result", "time_limit", "budget", "died"]
 
 
