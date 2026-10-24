@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T15:43:07.067570Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-24T15:42:46.674332Z'
   stage: intake
   run: 4754a858818e49b1a2a322076c28cc25
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-24T15:43:07.067570Z'
+  stage: tests
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -176,3 +185,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
    - Smoke test: both commands are runnable. pyproject sets `-q` in `addopts` and the pytest command passes none, so the `N passed in` line exists. Each `Expect:` line can be checked against the output.
    - Architecture: `factory.application.take` and the `Git` operation sit in `application`, `GitCli.ignored` in `adapters`, with no import against the layers. This matches CLAUDE.md.
    - Scope: inside F0042's scope (S0004, decisions 10 and 18 d). Nothing is in "Out of scope". The story changes tests that other stories wrote only where decision 18 d gives the leave.
+7. factory: started tests as self.
