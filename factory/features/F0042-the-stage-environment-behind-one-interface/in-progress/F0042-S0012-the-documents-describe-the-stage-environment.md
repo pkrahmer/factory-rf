@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 423
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T21:53:35.564888Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-24T21:53:35.564888Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-24T21:54:58.232201Z'
+  stage: tests
+  run: b0eb58c3995b4769b2d69350dbd2eb3f
 ---
 
 # The documents describe the stage environment
@@ -87,3 +89,11 @@ Expect: `documents ok`
    - Architecture: nothing under `src/` changes, so the four layers are untouched. The documents involved match the Docs section of `CLAUDE.md`, and the documenter's write paths are `README.md` and `docs/*`. The story does not touch `planning/` or `docs/runs/`.
    - Scope: this is the sweep that the feature's Stories list and Scope ("The documents ... S0012 is the sweep") name. It changes nothing in the feature's "Out of scope": the inline environment's items and chain stay, since F0044 removes them. It changes no test another story wrote.
 4. factory: started tests as self.
+5. tester: No tests written; nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changed in this stage (criterion 1).
+   - criterion 1: no test. The criterion says nothing outside the docs changes. This entry is the tester's statement that it holds: `git status` shows only the factory's `.costs.jsonl` sidecar.
+   - criterion 2: no test. `make check` stays green; the factory runs it as the gate.
+   - criterion 3 (docs): no test. The Interface says no test reads the documents, and the smoke test and `make documents` check them.
+   Files created: none. Modules the test runner could not import: none, because no new tests exist, so this branch has no red tests for the coder. I did not run `make test`: there is nothing new that could fail. `make lint` is green.
+
+   `lint`: lint: green (0.6 s)
+   `test`: test: green (65.2 s)
