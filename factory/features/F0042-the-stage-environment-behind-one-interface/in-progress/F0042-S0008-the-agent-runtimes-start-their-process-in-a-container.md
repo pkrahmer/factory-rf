@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T19:12:04.936759Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-24T19:11:43.223128Z'
   stage: tests
   run: 2498a590f3b74e039c639ac1b4b74317
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-24T19:12:04.936759Z'
+  stage: doing
 ---
 
 # The agent runtimes start their process in a container
@@ -368,3 +377,4 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
 
     `lint`: lint: green (0.6 s)
     `test`: test: green (63.6 s)
+17. factory: started doing as self.
