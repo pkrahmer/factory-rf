@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 428
 comments_read: [6390818287]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T23:22:44.176618Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -107,6 +111,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-24T23:22:26.255146Z'
+  stage: review
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:22:44.176618Z'
   stage: review
 ---
 
@@ -367,3 +376,4 @@ Expect: 0
     Notes:
     - `tests/test_shared_stage_constants.py`: nothing to note.
 18. 2026-10-24 human: (a). You may add `modules_assigning` to criterion 5 and to the Interface's `search_support.py` bullet, one clause each, saying that the guide's `search_support.py` entry names `modules_matching`, `modules_assigning` and `top_level_copies`, and that a later guard calls `modules_assigning` instead of walking the modules again. Nothing else in the criteria changes. Then end with `docs`.
+19. factory: started review as self.
