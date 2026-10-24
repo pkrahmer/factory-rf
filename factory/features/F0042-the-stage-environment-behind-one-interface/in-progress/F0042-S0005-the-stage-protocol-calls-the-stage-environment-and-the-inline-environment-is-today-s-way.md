@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T17:03:41.258091Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -152,6 +156,11 @@ journal:
   at: '2026-10-24T17:03:20.606398Z'
   stage: docs
   run: 7770eff01e794165bec85b749586393f
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:03:41.258091Z'
+  stage: smoke-test
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -591,3 +600,4 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
     `check`: check: green (not run again: passed on tree f4f2ec122926 at 2026-10-24T16:58:54Z)
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
+27. factory: started smoke-test as self.
