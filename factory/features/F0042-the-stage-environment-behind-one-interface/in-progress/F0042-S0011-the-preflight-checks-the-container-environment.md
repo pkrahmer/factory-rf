@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T21:21:52.918786Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -41,6 +45,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-24T21:21:34.887322Z'
+  stage: tests
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:21:52.918786Z'
   stage: tests
 ---
 
@@ -161,3 +170,4 @@ Expect: `1`
 
    What I did: I read the work item, `factory.application.preflight`, `factory.application.stage_environment`, the fake snapshots and containers, `ContainerMakeCommands`, `tests/container_support.py`, `tests/wiring_support.py` and the current probe, preflight-run, machine-checks and wiring-extras tests. The other criteria (1 to 9) can be tested as written. I wrote no tests and created no files, so I have not run `make test` or `make lint` in this run. I'll write all six test files once this is answered.
 6. 2026-10-24 human: A. Criterion 10 is right, by decision 15 of `feature.md` ("The item `tool:make` is not run for `container` either"): a `container` instance runs `make` only inside the sync and check containers, so the host checks `git` and `uv` only. Read the Interface sentence as "`REQUIRED_TOOLS` without `make` and without the runtime's executable". Name it as a constant in `factory.application.preflight`: `CONTAINER_TOOLS = ("git", "uv")`, beside `REQUIRED_TOOLS`, and `MachineChecks.run` uses it for `settings.stage_environment == "container"`; no filter on `REQUIRED_TOOLS`, so `tests/test_make_search.py` stays as it is. The test may name the constant and check the item names; for `inline` the items stay exactly as today.
+7. factory: started tests as self.
