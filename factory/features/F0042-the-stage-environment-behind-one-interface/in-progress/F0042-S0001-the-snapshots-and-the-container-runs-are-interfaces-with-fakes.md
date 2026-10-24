@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T11:51:55.237925Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-24T11:51:55.237925Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-24T11:55:22.412432Z'
+  stage: doing
+  run: 593a404a9175496396985a2e27da90e2
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -497,3 +499,21 @@ Expect: `1`
     Notes:
     - `tests/adapters/test_fake_containers.py`: `_run` (line 119) and `_run_with` (line 225) both call `runs.run` with nearly the same arguments, and `_launch` (line 216) repeats the pattern of `_launch_word` (line 29). One parametrized helper would do.
 17. factory: started doing as self.
+18. coder: Round 2. I fixed the reviewer's one finding from entry 16: `fake_containers` had a second copy of an existing helper. I changed no tests, and `make check` is green.
+
+    - `src/factory/domain/agent_home.py`: the private helper `_beneath_or_at` is now public as `beneath_or_at`, with a one-line docstring. Its two callers in that module, `fate` and `removed_when_empty`, now use the new name. Its behaviour is unchanged.
+    - `src/factory/adapters/fake_containers.py`: it now imports `beneath_or_at` and uses it for the `/work` mount refusal in `_accept` and for the path mapping in `_map`. I deleted the copy, `_lies_under`.
+
+    Main choice: I made the helper public where it already was, in `factory.domain.agent_home`. I rejected moving it to another domain module such as `factory.domain.paths`. That would have touched more code for no gain. `agent_home` already gives the other path rule, `inside_home`, to callers outside the home (`factory.domain.settings`). Importing from it into an adapter is a downward import, which the layers allow.
+
+    Refactor: I read the diff and found nothing else to change.
+
+    Noticed, not touched:
+    - In entry 16 the reviewer noted that the test helpers in `tests/adapters/test_fake_containers.py` repeat each other: `_run` and `_run_with`, and `_launch` and `_launch_word`. That is the tester's file, so I left it alone.
+    - The module name `agent_home` is now a little narrow for a general path helper. Moving the helper is a restructuring outside this story.
+    - The `.costs.jsonl` sidecar in the working tree is the factory's.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 8 new, 38 known, 0 gone

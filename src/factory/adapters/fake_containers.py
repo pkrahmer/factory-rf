@@ -6,6 +6,7 @@ from pathlib import Path
 
 from factory.adapters.process import ProcessRequest, run_process
 from factory.application.containers import ContainerRuns
+from factory.domain.agent_home import beneath_or_at
 from factory.domain.containers import WORK, ContainerCall, ContainerLaunch, ContainerResult, Mount
 from factory.domain.errors import ContainerError
 
@@ -80,7 +81,7 @@ class FakeContainerRuns(ContainerRuns):
         if not command:
             raise ValueError("a container run needs command words")
         for mount in mounts:
-            if _lies_under(mount.target, WORK):
+            if beneath_or_at(mount.target, WORK):
                 raise ValueError(f"a mount may not target {mount.target}: the dataset is {WORK}")
         call = ContainerCall(
             command=list(command),
@@ -107,10 +108,6 @@ class FakeContainerRuns(ContainerRuns):
         every_mount = [*mounts, Mount(source=self._workspace, target=WORK)]
         # The longest target first, so that a deeper mount wins over the one it lies in.
         for mount in sorted(every_mount, key=lambda mount: len(mount.target), reverse=True):
-            if _lies_under(value, mount.target):
+            if beneath_or_at(value, mount.target):
                 return str(mount.source) + value.removeprefix(mount.target)
         return value
-
-
-def _lies_under(path: str, target: str) -> bool:
-    return path == target or path.startswith(f"{target}/")

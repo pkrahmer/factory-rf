@@ -36,7 +36,7 @@ def kept_paths(
 
 def fate(relative: str, *, owned: bool, folder: bool, kept: Sequence[str]) -> HomeFate:
     """What the program does with the entry `relative` of the home."""
-    if any(_beneath_or_at(relative, path) for path in kept):
+    if any(beneath_or_at(relative, path) for path in kept):
         return "keep"
     if folder:
         return "descend"
@@ -45,8 +45,9 @@ def fate(relative: str, *, owned: bool, folder: bool, kept: Sequence[str]) -> Ho
 
 def removed_when_empty(relative: str, *, owned: bool, kept: Sequence[str]) -> bool:
     """Whether a folder the walk descended into is removed once it is empty."""
-    return owned and not any(_beneath_or_at(path, relative) for path in kept)
+    return owned and not any(beneath_or_at(path, relative) for path in kept)
 
 
-def _beneath_or_at(relative: str, above: str) -> bool:
+def beneath_or_at(relative: str, above: str) -> bool:
+    """Whether the `/`-separated path `relative` is `above` itself or lies under it."""
     return relative == above or relative.startswith(f"{above}/")
