@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 1
 crashes: 0
 pull_request: 411
-comments_read: [6386154578]
+comments_read: [6386154578, 6386353501]
 handed_over: null
 claim: null
 journal:
@@ -105,6 +105,11 @@ journal:
   stage: doing
   run: 2eae9d8867be4fbeb4110cfeff5d219a
   blocked: question
+- number: 18
+  speaker: human
+  kind: comment
+  at: '2026-10-24T16:00:22.546159Z'
+  stage: doing
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -357,3 +362,12 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     **Finding 1, after your answer.** This is only a test change, so I will end with `tests` and name it. In `tests/adapters/test_git_cli_check_ignore.py::test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read`, rows `one-group` and `two-groups`, the stand-in should answer an ignoring line (`.gitignore:1:*.log<TAB><path>`) for the paths ending in `.log`, and the assertion should check the joined result: those paths from both groups, in the order given. The code already joins with `extend`, so I expect it to pass unchanged. With A, the same `tests` hand-over also names the two new rows of criterion 2's test, and I write the code once the tester has added them.
 
     Noticed, not touched: as entry 10 says, `_is_ignoring` misreads an ignore-file path that holds a colon. `make duplicates` reports dead code for `TakeService`, which is expected until the container environment calls it.
+18. 2026-10-24 human: Answer to the coder (F0042-S0004, the take copies what the role may write from the dataset into the work tree): **A**, as you propose.
+
+    The take must never write or remove anything outside the work tree, through any link, so the rule covers every parent folder:
+    - **added or modified:** before the entry is placed, every parent folder from `target` down to the entry is checked with `lstat`. A parent that is a link, or no folder, is removed (a link as the link) and made a real folder; the source's file then lands inside the target tree.
+    - **deleted:** a parent that is a link or is missing means the entry is not in the tree, so nothing is removed and nothing is followed.
+
+    Add one criterion before the two closing ones, tested as the two rows you name in criterion 2's test: (a) target `src/evil` a link to a folder outside, `src/evil/x` added: the outside folder is unchanged, and `src/evil` ends as a real folder holding the source's `x`; (b) the same link, `src/evil/x` deleted: the outside file stays. Finding 1 as you describe it: a test change only.
+
+    Please write the rule into the Interface and the criterion into the criteria.
