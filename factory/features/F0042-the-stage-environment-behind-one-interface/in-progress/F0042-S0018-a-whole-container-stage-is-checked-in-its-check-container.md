@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 426
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T22:42:54.920027Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-24T22:42:54.920027Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-24T22:45:50.240213Z'
+  stage: doing
+  run: e7a25c5421de44c7b740b8da85d232a1
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -265,3 +267,16 @@ Expect: three lines, `2`, `1`, `1`
     `lint`: lint: green (0.6 s)
     `test`: test: green (65.6 s)
 14. factory: started doing as self.
+15. coder: Round 1: I changed no code and no file. The reviewer's finding (entry 9) was a copied whole-stage setup in the tests. The tester fixed it in entry 13 by adding `whole_stage` and `assert_taken_and_pushed` to `tests/container_support.py`, and both whole-stage tests now use them. Nothing was left for the coder to do.
+
+    - Built: nothing. `git diff main -- src` is empty.
+    - Main choice: I handed the work item to review without touching code. The other option was to change something under `src/` that the new tests call. I rejected it because the story builds nothing under `src/` (R13).
+    - Refactor: I have no diff of my own, so nothing needed changing.
+    - Noticed, not touched: the tester kept two separate test functions with a shared check instead of one parametrized test, so that both test names stay. The reviewer offered either option.
+    - The docs criterion is still the documenter's.
+    - The journal did not change the meaning of the task.
+
+    `check`: check: green (test: green (69.6 s), coverage 99.19 %)
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
