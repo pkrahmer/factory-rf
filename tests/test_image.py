@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pytest
 
+from dockerfile_support import _after, _apt_packages, _uncommented
+
 ROOT = Path(__file__).parent.parent
 DOCKERFILE = ROOT / "image" / "Dockerfile"
 PYPROJECT = ROOT / "pyproject.toml"
@@ -31,8 +33,7 @@ Command = list[str]
 
 def _instructions(dockerfile: str) -> list[Instruction]:
     """Every instruction as (keyword, arguments), continuations joined, comments dropped."""
-    lines = [line for line in dockerfile.splitlines() if not line.strip().startswith("#")]
-    joined = re.sub(r"\\\n", " ", "\n".join(lines))
+    joined = re.sub(r"\\\n", " ", _uncommented(dockerfile))
     result: list[Instruction] = []
     for line in joined.splitlines():
         if line.strip():
@@ -88,17 +89,6 @@ def _commands(dockerfile: str) -> list[Command]:
         for pipeline in _pipelines(line)
         for command in pipeline
     ]
-
-
-def _after(command: Command, program: str, subcommands: set[str]) -> tuple[str, list[str]] | None:
-    """The subcommand that follows `program` in `command`, and the words after it."""
-    if program not in command:
-        return None
-    rest = command[command.index(program) + 1 :]
-    words = [word for word in rest if not word.startswith("-")]
-    if not words or words[0] not in subcommands:
-        return None
-    return words[0], words[1:]
 
 
 def _apt_findings(command: Command) -> list[str]:
@@ -316,12 +306,7 @@ def test_claude_code_does_not_update_itself(instructions: list[Instruction]) -> 
 
 
 def test_every_debian_package_is_pinned_and_the_set_is_the_tools(dockerfile: str) -> None:
-    packages = [
-        package
-        for command in _commands(dockerfile)
-        if (found := _after(command, "apt-get", {"install"})) is not None
-        for package in found[1]
-    ]
+    packages = _apt_packages(_commands(dockerfile))
 
     assert all(re.match(r"^[^=\s]+=\S+$", package) for package in packages)
     assert sorted(package.partition("=")[0] for package in packages) == sorted(APT_PACKAGES)

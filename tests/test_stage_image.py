@@ -5,13 +5,13 @@ from pathlib import Path
 
 import pytest
 
+from dockerfile_support import SECRET_WORDS, _after, _apt_packages, _declared_names, _uncommented
 from test_image import (
     DIGEST,
     DOCKERFILE,
     THREE_NUMBERS,
     Command,
     Instruction,
-    _after,
     _arg_defaults,
     _commands,
     _env,
@@ -40,6 +40,7 @@ ENV_NAMES = [
     "FACTORY_OPENCODE_VERSION",
     "FACTORY_OPENCODE_MODELS",
 ]
+ONE_SETTING = re.compile(r"ENV \w+=\S*[^\s\\]")
 ABSENT_WORDS = [
     "useradd",
     "groupadd",
@@ -83,22 +84,9 @@ def machine_instructions() -> list[Instruction]:
     return _instructions(DOCKERFILE.read_text(encoding="utf-8"))
 
 
-def _uncommented(dockerfile: str) -> str:
-    return "\n".join(line for line in dockerfile.splitlines() if not line.strip().startswith("#"))
-
-
 def _pins(instructions: list[Instruction]) -> dict[str, str]:
     """The ARG defaults, with the ENV values over them."""
     return _arg_defaults(instructions, before_from=False) | _env(instructions)
-
-
-def _apt_packages(dockerfile: str) -> list[str]:
-    return [
-        package
-        for command in _commands(dockerfile)
-        if (found := _after(command, "apt-get", {"install"})) is not None
-        for package in found[1]
-    ]
 
 
 def _installs(dockerfile: str, program: str) -> list[Command]:
@@ -166,10 +154,14 @@ def test_the_stage_image_carries_the_machine_images_pins(
 def test_each_debian_package_is_pinned_as_the_machine_image_pins_it(
     stage_dockerfile: str, package: str
 ) -> None:
-    stage = [each for each in _apt_packages(stage_dockerfile) if each.partition("=")[0] == package]
+    stage = [
+        each
+        for each in _apt_packages(_commands(stage_dockerfile))
+        if each.partition("=")[0] == package
+    ]
     machine = [
         each
-        for each in _apt_packages(DOCKERFILE.read_text(encoding="utf-8"))
+        for each in _apt_packages(_commands(DOCKERFILE.read_text(encoding="utf-8")))
         if each.partition("=")[0] == package
     ]
     version = stage[0].partition("=")[2] if len(stage) == 1 else ""
@@ -200,9 +192,9 @@ def test_the_one_apt_install_is_the_tools_without_recommends(
 
     assert len(runs) == 1
     assert len(install) == 1
-    assert sorted(each.partition("=")[0] for each in _apt_packages(stage_dockerfile)) == sorted(
-        STAGE_PACKAGES
-    )
+    assert sorted(
+        each.partition("=")[0] for each in _apt_packages(_commands(stage_dockerfile))
+    ) == sorted(STAGE_PACKAGES)
     assert "--no-install-recommends" in install[0]
     assert removals != []
 
@@ -267,6 +259,28 @@ def test_the_environment_names_are_the_runtimes_alone(
 
 
 @pytest.mark.parametrize(
+    ("extra", "one_name_each"),
+    [
+        pytest.param("", True, id="as-built"),
+        pytest.param("ENV FIRST=1 SECOND=2", False, id="two-names-on-a-line"),
+        pytest.param("ENV FIRST=1 \\\n    SECOND=2", False, id="continued-line"),
+        pytest.param("ENV FIRST=1\\", False, id="trailing-backslash"),
+        pytest.param("ENV FIRST", False, id="no-value"),
+    ],
+)
+def test_each_setting_is_one_name_on_a_line_of_its_own(
+    stage_dockerfile: str, extra: str, one_name_each: bool
+) -> None:
+    text = f"{stage_dockerfile}\n{extra}\n"
+    lines = [line for line in text.splitlines() if line.startswith("ENV ")]
+    names = _env(_instructions(text))
+    one_pair_per_line = all(ONE_SETTING.fullmatch(line) for line in lines)
+
+    assert (one_pair_per_line and len(lines) == len(names)) == one_name_each
+    assert not one_name_each or len(lines) == len(ENV_NAMES)
+
+
+@pytest.mark.parametrize(
     ("name", "value"),
     [
         ("UV_LINK_MODE", "copy"),
@@ -282,13 +296,11 @@ def test_each_runtime_setting_has_its_value(
     assert _env(stage_instructions).get(name) == value
 
 
-@pytest.mark.parametrize("word", ["TOKEN", "SECRET", "PASSWORD", "CREDENTIAL"])
+@pytest.mark.parametrize("word", SECRET_WORDS)
 def test_no_setting_or_build_argument_names_a_secret(
     stage_instructions: list[Instruction], word: str
 ) -> None:
-    names = list(_env(stage_instructions)) + [
-        arguments.partition("=")[0] for keyword, arguments in stage_instructions if keyword == "ARG"
-    ]
+    names = _declared_names([f"{keyword} {arguments}" for keyword, arguments in stage_instructions])
 
     assert [name for name in names if word in name] == []
 

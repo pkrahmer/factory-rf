@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T23:52:04.405564Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-24T23:52:04.405564Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-24T23:56:08.910141Z'
+  stage: tests
+  run: f64c316032fc424bb4590df28c2bab6e
 ---
 
 # The stage image is the tools alone
@@ -236,3 +238,27 @@ Expect: `1`
 
     `image/` is still byte-for-byte as on `main`. Refactor: nothing to change, because this round has no code diff. I did not run `make check`, since nothing changed since round 0, where it was green.
 12. factory: started tests as self.
+13. tester: Round 1, an approved test change: the three review findings (entry 9) that the coder passed on in entry 11. I made no change to `vm/Dockerfile` or to any code.
+
+    - Finding 1, criterion 9: tests/test_stage_image.py::test_each_setting_is_one_name_on_a_line_of_its_own. It reads the file's raw lines that start with `ENV ` and checks three things:
+      - each line matches `ENV NAME=value`, a single pair that does not end in `\`;
+      - the number of `ENV` lines equals the number of `ENV` names;
+      - there are six of them.
+      The parametrized rows cover the file as built (accepted) and four refused forms added to it: two names on one line, a continued line, a trailing backslash, and a name with no value.
+    - Finding 2, a move under the standing leave in CLAUDE.md *Tests*: `SECRET_WORDS` and `_declared_names` moved from tests/test_image_credentials.py into tests/dockerfile_support.py, and tests/test_image_credentials.py now imports them from there. tests/test_stage_image.py::test_no_setting_or_build_argument_names_a_secret now uses both: its rows come from `SECRET_WORDS`, and `_declared_names` gives it the names.
+    - Finding 3, a move under the same leave: `_uncommented` and `_apt_packages` moved into tests/dockerfile_support.py.
+      - `_uncommented` now drops the comment lines in both `_instructions` (tests/test_image.py) and `dockerfile_instructions`.
+      - `_apt_packages` now takes the list of commands rather than the file text. `dockerfile_support` cannot import `_commands` from `test_image`, because `test_image` now imports from `dockerfile_support` and the imports would go in a circle.
+      - `_apt_packages` needs `_after`, so `_after` moved from tests/test_image.py into tests/dockerfile_support.py as well. It is unchanged, and the only other module that imported it, tests/test_stage_image.py, now imports it from there.
+      - tests/test_image.py::test_every_debian_package_is_pinned_and_the_set_is_the_tools now calls `_apt_packages(_commands(dockerfile))`.
+
+    Earlier test files I changed, all under the standing leave: tests/test_image.py and tests/test_image_credentials.py. Every test in them keeps its name and its assertions.
+
+    For the docs criterion (11): tests/dockerfile_support.py now offers `DOCKERFILE`, `SECRET_WORDS`, `dockerfile_instructions`, `_uncommented`, `_declared_names`, `_after` and `_apt_packages`.
+
+    Run: `make test` is green, because `vm/Dockerfile` already meets criterion 9 (the coder's entry 11 says so). `make lint` is green. `mypy --strict` over the four changed test files reports no issues.
+
+    Files changed: tests/dockerfile_support.py, tests/test_image.py, tests/test_image_credentials.py, tests/test_stage_image.py. No files created. Every module imported.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (65.9 s)

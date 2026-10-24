@@ -5,25 +5,12 @@ from pathlib import Path
 import pytest
 from ruamel.yaml import YAML
 
-from dockerfile_support import DOCKERFILE, dockerfile_instructions
+from dockerfile_support import DOCKERFILE, SECRET_WORDS, _declared_names, dockerfile_instructions
 
 ROOT = Path(__file__).parent.parent
 COMPOSE = ROOT / "image" / "compose.yml"
-SECRET_WORDS = ("TOKEN", "SECRET", "PASSWORD", "CREDENTIAL")
 HELPER_COPY = "COPY image/git-credential-factory /usr/local/bin/git-credential-factory"
 FILE_SETTING = "ENV FACTORY_TOKEN_FILE=/home/factory/.secrets/hosting-token"
-
-
-def _declared_names(instructions: list[str]) -> list[str]:
-    """The names every `ENV` and `ARG` instruction declares."""
-    names: list[str] = []
-    for instruction in instructions:
-        keyword, _, arguments = instruction.partition(" ")
-        if keyword.upper() in {"ENV", "ARG"}:
-            names.extend(word.partition("=")[0] for word in arguments.split() if "=" in word)
-            if "=" not in arguments:
-                names.append(arguments.split()[0])
-    return names
 
 
 @pytest.fixture
