@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 426
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T22:48:54.285069Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-24T22:48:33.751409Z'
   stage: docs
   run: c530836dacba4c20b2ca96c28ad29006
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:48:54.285069Z'
+  stage: smoke-test
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -352,3 +361,4 @@ Expect: three lines, `2`, `1`, `1`
     `check`: check: green (not run again: passed on tree f66258edd2b5 at 2026-10-24T22:44:29Z)
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
