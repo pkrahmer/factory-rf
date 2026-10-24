@@ -14,6 +14,8 @@ from git_support import PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
 
 INSTANCE = "factory-1"
+INSIDE = "tests/test_a.py"
+NOTES = "notes.md"
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"

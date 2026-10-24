@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 428
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T23:02:54.198541Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-24T23:02:54.198541Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-24T23:06:53.511056Z'
+  stage: tests
+  run: a839b0968ece4c62a59790172bcff844
 ---
 
 # Every shared test helper is listed and held once
@@ -96,3 +98,49 @@ Expect: 0
    Architecture: the work stays in `tests/`, uses the standing leave to move shared helpers, and matches the CLAUDE.md test layout. Nothing under `src/` changes.
    Scope: it fits F0042's "the tests each story names" and breaks none of its Out of scope items. It changes earlier tests only under the standing leave, and criterion 3 requires the tester to name each earlier test file it changed.
 4. factory: started tests as self.
+5. tester: This story's work is all in the tests (no `src/` change), so I did the moves myself under CLAUDE.md's standing leave to move a shared test helper. Nothing is left red for the coder: `make test` is green (one run, last line `test: green (74.6 s)`) and `make lint` is green. I skipped the type check, as the stage says.
+
+   Criteria → tests:
+   - criterion 1: tests/test_shared_stage_constants.py::test_a_shared_stage_value_is_assigned_only_in_its_home. It has three rows: agent-text → `take_support.py`, inside → `stage_run_support.py`, notes → `stage_run_support.py`. Each row compares the sorted list of modules with a top-level copy to `[home]`, so if a second copy appears the failure diff names its module.
+   - criterion 2: tests/test_shared_constants.py::test_the_guard_counts_a_top_level_assignment_of_the_instance_name. The name and its seven rows are unchanged; it now calls `top_level_copies(source, "factory-1")` from `tests/search_support.py`.
+   - criterion 3: no test renamed or removed; the whole `make test` run is green. The earlier test files I changed are listed below.
+   - criterion 4: this is the factory's `make check`. Lint and tests are green.
+   - criterion 5: docs, the documenter's work; no test.
+
+   Created: tests/test_shared_stage_constants.py.
+
+   Moves:
+   - Moved `instance_copies` out of tests/test_shared_constants.py into tests/search_support.py as `top_level_copies(source, value)`, which takes any string. `test_the_instance_name_is_assigned_in_one_module` uses it with the literal `"factory-1"`. I did not give that literal a top-level name, because the guard would then count the name as a copy.
+   - Added `INSIDE` and `NOTES` to tests/stage_run_support.py. `AGENT_TEXT` stays in tests/take_support.py.
+
+   Earlier test files changed under the standing leave (each drops its copy and imports from the value's home; no test renamed or changed in what it checks):
+   - tests/container_support.py (`INSIDE` and `NOTES` now imported from stage_run_support)
+   - tests/stall_support.py (`INSIDE` and `AGENT_TEXT`)
+   - tests/test_shared_constants.py
+   - tests/search_support.py
+   - tests/stage_run_support.py
+   - tests/application/test_costs.py
+   - tests/application/test_undo_nested_claude.py
+   - tests/application/test_opening.py
+   - tests/application/test_after_agent.py
+   - tests/application/test_stall_edges.py (`AGENT_FILE` renamed to `INSIDE`, docstring included)
+   - tests/application/test_stage_environment_calls.py
+   - tests/application/test_stage_finish.py
+   - tests/application/test_undo.py
+   - tests/application/test_stage_run.py
+   - tests/application/test_stage_environment.py (`WRITTEN` renamed to `INSIDE`)
+   - tests/application/test_stall_labels.py
+   - tests/application/test_stall_reasons_recorded.py
+   - tests/application/test_stall_container.py
+   - Import lines only, because the names left `container_support`/`stall_support`, which under mypy's no implicit re-export would no longer supply them: tests/application/test_container_stage_checks.py, tests/application/test_stalls.py, tests/application/test_stall_environment.py
+
+   Left as they are:
+   - `tests/application/test_stall_edges.py` still writes the literal `"written by the agent\n"` inside a method. The criteria count only top-level assignments.
+   - `test_stall_edges.py` keeps its own `WRITTEN = "written-by-lint.txt"`, which is a different value.
+
+   Modules the test run could not import: none.
+
+   Not mine: the work item's `.costs.jsonl` sidecar shows as modified in the working tree. That is the factory's change, not mine.
+
+   `lint`: lint: green (0.5 s)
+   `test`: test: green (65.5 s)

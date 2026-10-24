@@ -31,6 +31,7 @@ from git_support import install_agents, remote_commit
 from human_clone import HumanClone
 from stage_run_support import (
     BRANCH,
+    INSIDE,
     INSTANCE,
     PATH,
     WORK_ITEM,
@@ -41,7 +42,6 @@ from stage_run_support import (
 from stall_support import (
     CREATED,
     DIED,
-    INSIDE,
     OUTSIDE,
     WRITES,
     SwitchingRuntime,

@@ -24,7 +24,16 @@ from factory.domain.settings import InstanceSettings
 from git_support import install_agents, run_git, write_files
 from human_clone import HumanClone
 from podman_support import IMAGE
-from stage_run_support import branch_head, completed, open_story, pushed, run_stage, stage_makefile
+from stage_run_support import (
+    INSIDE,
+    NOTES,
+    branch_head,
+    completed,
+    open_story,
+    pushed,
+    run_stage,
+    stage_makefile,
+)
 from take_support import AGENT_TEXT
 from undo_support import start_stage
 from zfs_support import DATASET, MOUNT_POINT
@@ -34,8 +43,6 @@ SYNC_RECIPE = f"@echo synced > {SYNC_MARKER}"
 TIMING_PREFIX = "stage environment:"
 TAKE_SECONDS = 0.25
 FIVE_MINUTES = timedelta(minutes=5)
-INSIDE = "tests/test_a.py"
-NOTES = "notes.md"
 CONTAINER: dict[str, object] = {
     "stage_environment": "container",
     "dataset": DATASET,

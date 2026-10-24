@@ -30,6 +30,7 @@ from git_support import install_agents
 from human_clone import HumanClone
 from observing_runtime import ObservingRuntime
 from stage_run_support import ENVIRONMENT, INSTANCE, pushed, pushed_state
+from take_support import AGENT_TEXT
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
@@ -38,7 +39,6 @@ BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
 ROLES = ["tester", "reviewer"]
 OUTSIDE = "src/b.py"
-AGENT_TEXT = "written by the agent\n"
 ENTRY = "tests written."
 UNDONE_PARAGRAPH = "The factory undid changes outside the write paths: "
 CRITERIA_SECTION = """\

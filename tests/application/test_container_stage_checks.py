@@ -7,8 +7,6 @@ import pytest
 
 from container_support import (
     FIVE_MINUTES,
-    INSIDE,
-    NOTES,
     Dataset,
     assert_taken_and_pushed,
     whole_stage,
@@ -21,7 +19,7 @@ from factory.application.stage_environment import ContainerEnvironment
 from factory.domain.git import CommitId
 from git_support import write_files
 from human_clone import HumanClone
-from stage_run_support import BRANCH, branch_head
+from stage_run_support import BRANCH, INSIDE, NOTES, branch_head
 from take_support import AGENT_TEXT
 
 STRAY = "stray.txt"

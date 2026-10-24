@@ -26,15 +26,14 @@ from factory.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
 from observing_runtime import ObservingRuntime
-from stage_run_support import ENVIRONMENT, INSTANCE
+from stage_run_support import ENVIRONMENT, INSIDE, INSTANCE
+from take_support import AGENT_TEXT
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
 SIDECAR = cost_records_path(PATH)
-INSIDE = "tests/test_a.py"
-AGENT_TEXT = "written by the agent\n"
 ENTRY = "tests written."
 UNDONE_PARAGRAPH = "The factory undid changes outside the write paths"
 RUN_ID = re.compile(r"^[0-9a-f]{32}$")
@@ -77,6 +76,7 @@ EARLIER = CostRecord(
     duration_seconds=30.0,
     end_reason="completed",
 )
+
 FAILED_REASONS: list[EndReason] = ["no_result", "time_limit", "budget", "died"]
 
 

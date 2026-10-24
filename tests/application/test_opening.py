@@ -16,6 +16,7 @@ from factory.domain.story_form import check_story_form
 from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 from git_support import PIPELINE_YAML, STORY_FORM, remote_commit
 from human_clone import HumanClone
+from stage_run_support import NOTES
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
@@ -23,7 +24,6 @@ BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
 SEEDED_BODY = "# First story\n"
 BODY_WITH_JOURNAL = "# First story\n\n## Description\n\nOriginal.\n\n## Journal\n"
-NOTES = "notes.md"
 CREATED = JournalRecord(number=1, speaker="human", kind="created")
 BRANCH_BODY = BODY_WITH_JOURNAL + "\n1. 2026-10-12 human: created.\n"
 
