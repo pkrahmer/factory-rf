@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 428
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T23:10:27.827705Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-24T23:10:27.827705Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T23:11:36.345017Z'
+  stage: review
+  run: 8bd782ead82344338a9fc2d5bdc16641
 ---
 
 # Every shared test helper is listed and held once
@@ -178,3 +180,39 @@ Expect: 0
    `check`: check: green
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (22 files under `tests/`, nothing under `src/`) against the work item, going through the checklist in order.
+
+   Group 1, acceptance criteria: passes. Criterion 1 is tested by `tests/test_shared_stage_constants.py::test_a_shared_stage_value_is_assigned_only_in_its_home`. It has three rows and asserts `copies == [home]`, so a second copy fails and the diff names its module. Criterion 2 is tested by `tests/test_shared_constants.py::test_the_guard_counts_a_top_level_assignment_of_the_instance_name`, which keeps its name and its seven rows and now calls `search_support.top_level_copies`. Criterion 3: no test was renamed or removed. Criterion 4: per journal entry 7, the factory's `make check` after the coder was green. The Interface rule "`stage_run_support.py` imports neither `take_support` nor `container_support`" holds: `tests/stage_run_support.py:1-14` imports neither. mypy's no-implicit-re-export rule covers the import-home rule.
+
+   Group 2, architecture: passes; nothing under `src/` changed. Group 3, security: passes; no markers, secrets or new baseline entries.
+
+   Group 4, quality: fails, and this is round 0, so it sends the work item back.
+
+   Findings:
+   1. `tests/test_shared_stage_constants.py:9,21-25` copies existing code instead of reusing it. `TESTS = Path(__file__).parent` is the `search_support.TESTS` the module already imports from. The `sorted(path.relative_to(TESTS).as_posix() for path in TESTS.rglob("*.py") if top_level_copies(...))` walk is copied from `tests/test_shared_constants.py:13-17`, and both have the same shape as `search_support.modules_matching`. Fix: add one helper beside `modules_matching` in `tests/search_support.py` (for example `modules_assigning(value: str) -> list[str]`, using its `TESTS`). Both guards should call it, and the new module should drop its own `TESTS` and walk. The standing leave covers the change to `test_shared_constants.py`, as long as its test keeps its name and what it checks. This is the tester's change.
+   2. `tests/application/test_costs.py:79` adds a blank line between `EARLIER` and `FAILED_REASONS`. That change does not move anything, so it is outside the standing leave. Fix: remove the added blank line (tester).
+
+   Earlier tests changed (item 6), all modified (`M`):
+   - tests/application/test_after_agent.py: standing leave (AGENT_TEXT imported from take_support)
+   - tests/application/test_container_stage_checks.py: standing leave (import home of INSIDE/NOTES)
+   - tests/application/test_costs.py: standing leave for INSIDE/AGENT_TEXT; the blank line is beyond it (finding 2)
+   - tests/application/test_opening.py: standing leave (NOTES)
+   - tests/application/test_stage_environment.py: standing leave; `WRITTEN` → `INSIDE` as the story's Interface states
+   - tests/application/test_stage_environment_calls.py: standing leave (AGENT_TEXT)
+   - tests/application/test_stage_finish.py: standing leave (AGENT_TEXT)
+   - tests/application/test_stage_run.py: standing leave (INSIDE, NOTES, AGENT_TEXT)
+   - tests/application/test_stall_container.py: standing leave (NOTES, import homes)
+   - tests/application/test_stall_edges.py: standing leave; `AGENT_FILE` → `INSIDE` (docstring included) as the story's Interface states
+   - tests/application/test_stall_environment.py: standing leave (import home of INSIDE)
+   - tests/application/test_stall_labels.py: standing leave (NOTES)
+   - tests/application/test_stall_reasons_recorded.py: standing leave (NOTES)
+   - tests/application/test_stalls.py: standing leave (import homes of INSIDE/AGENT_TEXT)
+   - tests/application/test_undo.py: standing leave (AGENT_TEXT)
+   - tests/application/test_undo_nested_claude.py: standing leave (AGENT_TEXT)
+   - tests/container_support.py: standing leave (INSIDE/NOTES moved to stage_run_support)
+   - tests/search_support.py: standing leave (`instance_copies` moved here as `top_level_copies`)
+   - tests/stage_run_support.py: standing leave (becomes home of INSIDE/NOTES)
+   - tests/stall_support.py: standing leave (INSIDE/AGENT_TEXT copies dropped)
+   - tests/test_shared_constants.py: standing leave (uses `top_level_copies` from search_support; test names and rows unchanged)
+
+   Not a finding, left open: `tests/application/test_stall_edges.py:44` still writes the literal `"written by the agent\n"` inside a method. The criteria count only top-level assignments.
