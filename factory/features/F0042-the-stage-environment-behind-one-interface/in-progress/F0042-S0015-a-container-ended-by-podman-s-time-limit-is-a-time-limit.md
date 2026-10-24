@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T20:19:49.101475Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-24T20:19:27.237218Z'
   stage: tests
   run: fed54e185e0d4377a87ae77fd9755235
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:19:49.101475Z'
+  stage: doing
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -197,3 +206,4 @@ Expect: one line, `[-9, 137, 255] True False`
 
     `lint`: lint: green (0.6 s)
     `test`: test: green (67.3 s)
+14. factory: started doing as self.
