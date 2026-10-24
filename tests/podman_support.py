@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict
 
 from confine_support import read_records, write_script
 
+IMAGE = "factory-stage:1"
 CALLS = "podman-calls.jsonl"
 PLAN = "podman-plan.json"
 

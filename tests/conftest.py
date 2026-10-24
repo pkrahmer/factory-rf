@@ -28,6 +28,7 @@ from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.adapters.podman_runs import PodmanRuns
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
@@ -49,7 +50,7 @@ from git_support import (
     make_remote,
 )
 from human_clone import HumanClone
-from podman_support import Podman, write_podman
+from podman_support import IMAGE, Podman, write_podman
 from proof_support import World, build_world, start_story
 from run_process_recorder import Recorder
 from tmp_path_support import reopen
@@ -342,3 +343,9 @@ def recorder(monkeypatch: pytest.MonkeyPatch) -> Recorder:
 def podman(tmp_path: Path) -> Podman:
     """Return a stand-in `podman` in `tmp_path`, planned to exit 0 silently."""
     return write_podman(tmp_path / "podman-bin")
+
+
+@pytest.fixture
+def runs(podman: Podman) -> PodmanRuns:
+    """Return a `PodmanRuns` over the stand-in `podman`, its dataset at a fixed host path."""
+    return PodmanRuns(str(podman.path), IMAGE, Path("/srv/factory/vm/work"))
