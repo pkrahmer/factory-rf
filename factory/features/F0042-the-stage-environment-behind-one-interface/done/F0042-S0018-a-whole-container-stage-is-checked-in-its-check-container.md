@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-24T22:49:28.588475Z'
   stage: smoke-test
   run: 73759e60de364597a083aa3bbd100b8f
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-24T22:51:55.205170Z'
+  stage: approval
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -398,3 +403,4 @@ Expect: three lines, `2`, `1`, `1`
     - Criteria 5 (`make check`) and 6 (docs): the smoke test does not target them, and nothing it showed contradicts them.
 
     Findings: none. Open: nothing.
+22. factory: done (pull request merged); cost: 10 runs, 13.6 min, 84 turns, 292306 tokens in (2627161 more from cache), 40257 out, $3.35
