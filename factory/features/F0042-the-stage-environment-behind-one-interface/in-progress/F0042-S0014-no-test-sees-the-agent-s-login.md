@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 412
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T16:27:45.537428Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-10-24T16:27:45.537428Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T16:28:08.007002Z'
+  stage: smoke-test
+  run: dbe8e79ed26d4e38b060f878f462a1e6
 ---
 
 # No test sees the agent's login
@@ -235,3 +237,20 @@ Expect: one line that starts with `N passed` and names no `failed` and no `error
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
 15. factory: started smoke-test as self.
+16. smoke-tester: Smoke test passed with no findings. I ran the one command under `## Smoke test` from the repository root, exactly as written, with both login variables set to `x`.
+
+    Command 1 (`env … uv run pytest tests/test_no_agent_login.py "tests/adapters/test_opencode_runtime_launch.py::test_the_version_is_the_first_word_of_a_call_without_login_words" 2>&1 | tail -1 | sed …`):
+
+    ```
+    N passed
+    ```
+
+    It met its `Expect:` line: it printed one line, starting with `N passed`, with no `failed` and no `error`.
+
+    Checking the criteria again:
+    - Criteria 1 and 3: the smoke test is their started-with-both-set side, and it passed.
+    - Criterion 3's assertion text: `tests/adapters/test_opencode_runtime_launch.py:246` reads `assert API_LOGIN_VARIABLE not in set(call.environment)`.
+    - Criterion 2's restore side: `tests/conftest.py:68` removes through `monkeypatch.delenv(name, raising=False)`, and the file has no `os.environ.pop` and no `del os.environ`.
+    - No criterion is contradicted. I did not re-run criteria 4 and 5 (the full suite and `make check`) here; they rest on the factory's earlier green `make check` on this tree (entries 10 and 14).
+
+    Findings: none.
