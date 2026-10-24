@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T18:49:58.659027Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-24T18:49:40.760480Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:49:58.659027Z'
   stage: intake
 ---
 
@@ -169,3 +178,4 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
    3. The value is the runtime's constructor argument `version_time_limit`, whose default is `factory.adapters.agent_launch.VERSION_TIME_LIMIT` (30 seconds). The row builds the runtime with its own `version_time_limit` and asserts that the recorded call has exactly that limit, plus one row with the default that compares against `VERSION_TIME_LIMIT` by name, not by a copied number.
 
    Please write the three into the criteria as you accept.
+5. factory: started intake as self.
