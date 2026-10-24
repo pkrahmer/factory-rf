@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T20:40:35.758204Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-24T20:40:35.758204Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-24T20:43:26.053928Z'
+  stage: doing
+  run: 6a7c9da3a2a1474ea8210d63b6567a2e
 ---
 
 # Every container runs without rights and within limits
@@ -228,3 +230,19 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
     `lint`: lint: green (0.5 s)
     `test`: test: green (66.2 s)
 14. factory: started doing as self.
+15. coder: Round 1, after the tester moved the test helper. I made no edits in this round. The reviewer's finding in entry 9 (the copied `IMAGE` constant and `runs` fixture) was a change to tests only. The tester made it in entry 13: `IMAGE` now lives in `tests/podman_support.py`, the `runs` fixture in `tests/conftest.py`, and `test_the_limits_are_built_from_the_constants` builds its expected words from `FENCE[:2]`. The finding named no fault in `src/factory/adapters/podman_runs.py`, so the code stays as entry 7 built it.
+
+    What I built (entry 7, unchanged): `src/factory/adapters/podman_runs.py` defines `PIDS_LIMIT = 4096` and `MEMORY_LIMIT = "4g"`. `PodmanRuns.launch` puts four words right after `--timeout <seconds>` and before the first `--env`: `--cap-drop=all`, `--security-opt=no-new-privileges`, `--pids-limit={PIDS_LIMIT}` and `--memory={MEMORY_LIMIT}`, each with a comment that says what it keeps out.
+
+    Main choice (entry 7): the four words sit inline in the argument list, and the constants are read on every call, so the values patched in the constants test take effect. I rejected a module-level fence list built once at import: it would freeze the limits at import time and hide the comment on each word.
+
+    Refactor: no new diff in this round, so nothing to change.
+
+    Checks: `make check` is green (`check: green`, `test: green (66.6 s)`, coverage 99.20 %).
+
+    Noticed but did not touch (as entries 11 and 13 say): `tests/adapters/test_podman_runs_results.py:18` and `tests/adapters/test_podman_timeout_status.py:12` still hold their own copies of `IMAGE = "factory-stage:1"`. The standing leave allows a later move of those too.
+
+    Open: the docs in criterion 6 are for the docs stage.
+
+    `check`: check: green
+    `duplicates`: duplicates: 16 new, 36 known, 2 gone
