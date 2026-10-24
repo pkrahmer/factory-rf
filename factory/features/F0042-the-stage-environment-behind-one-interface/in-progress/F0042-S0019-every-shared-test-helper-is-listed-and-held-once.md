@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 428
 comments_read: [6390818287]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T23:23:37.884971Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-24T23:23:37.884971Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T23:24:16.530955Z'
+  stage: docs
+  run: efb8851d14f7402d878c07852ebac167
 ---
 
 # Every shared test helper is listed and held once
@@ -432,3 +434,21 @@ Expect: 0
     Notes:
     - none.
 21. factory: started docs as self.
+22. documenter: No findings. The diff has no change under `src/`, and the code matches the Interface and the criteria.
+
+    Changed (one file, `docs/project-guide/README.md`, *Shared test helpers*):
+    - Added entries for `home_files_support.py`, `leftovers_runtime_support.py`, `leftovers_support.py`, `root_support.py`, `stall_support.py`, `time_limits.py` and `torn_record_support.py`. Each is written from the module's docstring and public names. The smoke-test loop for criterion 5 now prints no missing module.
+    - `stage_run_support.py` entry: added `INSIDE` and `NOTES`, and said that `test_shared_stage_constants.py` guards them. It also says a test module imports them from `stage_run_support.py` and not from `container_support.py`.
+    - `container_support.py` entry: no longer claims `INSIDE` and `NOTES`. It says `stage_run_support.py` holds them.
+    - `take_support.py` entry: gave `AGENT_TEXT` its value and named the guard `tests/test_shared_stage_constants.py` as the check that the value stays in this one module.
+    - `search_support.py` entry: now names `modules_matching`, `modules_assigning` and `top_level_copies`. It says that `test_shared_constants.py` and `test_shared_stage_constants.py` call them, and that a later guard calls `modules_assigning` instead of walking the modules again.
+
+    Cross-read and found current: the rest of the guide's index and the *Shared test helpers* intro. The intro already says `tests/test_shared_*.py` guard shared helpers. No document names `instance_copies` any more.
+
+    I did not run `make check`, because I changed only documents. I did not run the smoke-test commands that run pytest. I only ran the missing-entry loop, which came out empty.
+
+    Nothing stale noticed that is unrelated to this story.
+
+    `check`: check: green (not run again: passed on tree ae650560410b at 2026-10-24T23:17:23Z)
+    `secrets`: secrets: green (1.1 s)
+    `documents`: documents ok
