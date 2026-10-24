@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 419
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T20:05:57.163994Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-24T20:05:57.163994Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-24T20:06:14.797307Z'
+  stage: intake
+  run: 85ee350dffac4aa2bd600fbd946aa375
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -69,3 +71,9 @@ Expect: one line, `[-9, 137, 255] True False`
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: concrete. It names `factory.adapters.agent_launch` (`KILL_STATUSES`, `PODMAN_TIMEOUT_STATUS`, `CONTAINER_KILL_STATUSES`, `killed_at_limit`, `read_call_end`) and `factory.adapters.podman_runs.PodmanRuns`. I checked these against the source. `killed_at_limit` has the keyword signature the story uses. `podman_runs._killed_at_limit` exists and currently imports `KILL_STATUSES`. `read_call_end` already takes `in_container`.
+   Criteria: each is testable by one test function. Criterion 1 is the constants. Criterion 2 is a table of seven rows covering both sides of 255 and of the limit, `in_container` true and false, and `os_user` set and `None`. Criterion 3 covers 255 at the limit, 255 before it and 137 at the limit for `PodmanRuns`. Criterion 4 covers 255 at 30 s and at 29.9 s for Claude and for opencode. Every Interface rule has its failing side: 255 before the limit, and 255 outside a container.
+   Smoke test: runnable. The one-line `python -c` uses the real keyword names, and the `Expect:` line `[-9, 137, 255] True False` can be checked exactly. It runs no pytest, so the `-q` rule does not apply.
+   Architecture: the change stays in `factory.adapters`, where `podman_runs` already imports from `agent_launch`. It reuses one constant instead of a copy, and no new dependency or layer is involved.
+   Scope: it is within F0042 (decision 22, built after S0009 and before S0010). It changes no earlier test; the story says so. The docs criterion names its files and the content for each.
