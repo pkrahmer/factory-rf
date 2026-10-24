@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T20:43:47.589933Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-24T20:43:47.589933Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T20:44:16.015645Z'
+  stage: review
+  run: 51c4ce2c6d0b44d89270c6e8dc6d2c39
 ---
 
 # Every container runs without rights and within limits
@@ -256,3 +258,27 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
     `check`: check: green
     `duplicates`: duplicates: 16 new, 36 known, 2 gone
 16. factory: started review as self.
+17. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`. The diff touches src/factory/adapters/podman_runs.py, tests/adapters/test_podman_runs.py, tests/adapters/test_podman_runs_fence.py, tests/conftest.py and tests/podman_support.py. I read it against the work item.
+
+    no findings
+
+    What I checked:
+    - **Acceptance criteria.** Each of criteria 1 to 4 has a test that checks what the criterion says.
+      - Criterion 1 pins the full argv, with the four words after "2400" and before the first `--env`, and checks that no word starts with `--network`.
+      - Criterion 2 reads the stand-in's recorded call and checks the four words right after `--timeout` and its seconds.
+      - Criterion 3 is one test. It checks both constants, then monkeypatches them to 64 and "64m" and checks the words in their places.
+      - Criterion 4 is the earlier test, gaining exactly the four words.
+      - The Interface states no rule with a refused side. The two constants are fixed container settings, not limits on any input, so no boundary needs a test.
+      - Journal entry 15 records `make check` green after the coder.
+    - **Architecture.** The change stays in the one podman adapter. `ContainerRuns`, `ContainerCall`, `FakeContainerRuns` and the callers are untouched.
+    - **Security.** No secret, no marker, no string-built shell. The words go in an argv list.
+    - **Quality.** Each word has a comment saying what it keeps out. `launch` reads the constants on every call, which is why criterion 3's monkeypatch takes effect. Round 0's finding about the copied `IMAGE` constant and `runs` fixture is fixed: they now live in tests/podman_support.py and tests/conftest.py.
+    - **Work item hygiene.** The Description matches what was built. Entry 7 gives the main decision (the words inline, constants read per call) and what was rejected (a fence list frozen at import). The docs criterion still says what the documenter must write.
+
+    Earlier tests:
+    - tests/adapters/test_podman_runs.py (M): two leaves. The human's leave (the Interface names `test_launch_pins_the_podman_command_line` under decision 18 (j)) covers adding the four words, and nothing else changed in that test. The standing leave to move a shared test helper covers the removal of `IMAGE` and the `runs` fixture, now used from tests/podman_support.py and tests/conftest.py. Every test keeps its name and what it checks.
+    - tests/conftest.py (M): standing leave to move a shared test helper. It only gains the moved `runs` fixture and the imports it needs.
+    - tests/podman_support.py (M): standing leave to move a shared test helper. It only gains the moved `IMAGE` constant.
+
+    Notes:
+    - tests/adapters/test_podman_runs_results.py:18 and tests/adapters/test_podman_timeout_status.py:12 still hold their own `IMAGE = "factory-stage:1"`, a copy of the shared one in tests/podman_support.py. Both files are outside this diff, so this is left for a later move under the same leave.
