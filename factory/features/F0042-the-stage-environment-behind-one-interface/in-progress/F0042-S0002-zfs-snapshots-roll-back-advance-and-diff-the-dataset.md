@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T12:34:05.720411Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-10-24T12:34:05.720411Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-24T12:34:29.287431Z'
+  stage: doing
+  run: fc1031194d5547ed9f1c659f0333f28e
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -398,3 +400,14 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     Earlier tests:
     - tests/test_wrapper_search.py: changed under the human's leave. Criterion 9, which the human wrote, names this test and the added `factory.adapters.zfs_snapshots`. The change only adds that name to the expected set, and the test keeps its name and what it checks.
 24. factory: started doing as self.
+25. coder: Round 2: the reviewer's one finding in entry 23 needs only its test, so I made no code change. I built nothing new; `src/factory/adapters/zfs_snapshots.py` is unchanged.
+
+    - Criterion 11 (the reviewer added it): it needs a row in `tests/adapters/test_zfs_snapshots_diff.py::test_changed_paths_reads_the_diff_relative_to_the_mount_point`. In that row `diff` prints `M\t/\t/srv/factory/vm/work` and `M\tF\t/srv/factory/vm/work/checkout/a.py`, and the expected result is exactly `[ChangedPath("checkout/a.py", "modified")]`.
+
+    Why no code change: in `src/factory/adapters/zfs_snapshots.py`, `_relative` uses `PurePosixPath.is_relative_to`, which accepts the mount point itself and makes it relative as `.`. `_read_diff_line` then leaves out any line whose kind is `/`. So the new row should pass against the code as it stands. I checked this by reading the code; I did not run the case.
+
+    Main choice: I end with `tests` rather than touch the code. The rejected alternative was a special case in `_relative` for the mount point itself. It would add code and change no behaviour.
+
+    Description: the journal changed nothing in the Description this round. The reviewer has already written criterion 11 into the work item.
+
+    Noticed, not touched: nothing new beyond the notes from round 0. I did not run `make check` this run, because nothing in the working tree changed.
