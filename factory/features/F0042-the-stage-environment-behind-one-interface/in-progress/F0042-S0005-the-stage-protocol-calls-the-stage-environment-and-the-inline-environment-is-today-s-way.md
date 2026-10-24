@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T16:54:19.905053Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-24T16:53:59.393253Z'
   stage: doing
   run: 7e0dc298ba894ff1a4794d9fdd3c29e3
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:54:19.905053Z'
+  stage: tests
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -430,3 +439,4 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
     - `StallService` still runs the undo on its own, as the description says.
     - `UndoReport` is still used by `stalls.py` and by `undo_support`.
     - The docs criterion (13) is the documenter's.
+19. factory: started tests as self.
