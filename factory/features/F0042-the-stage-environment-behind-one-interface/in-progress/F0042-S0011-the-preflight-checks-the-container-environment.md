@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T21:48:16.912926Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-24T21:48:16.912926Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T21:49:23.852191Z'
+  stage: docs
+  run: 028971d8d1f54abb9b00e8bd94884bf5
 ---
 
 # The preflight checks the container environment
@@ -417,3 +419,25 @@ Expect: `1`
     - `tests/application/test_preflight_run_environment.py:25`: `IMAGE = "build-7"` (the image build of the stamp) reuses the name of `podman_support.IMAGE` (the stage image) with another meaning.
     - `tests/application/test_container_items.py:63,94`: the passing rows carry a `detail` of `""` that the test never asserts.
 21. factory: started docs as self.
+22. documenter: Documents only, so I did not run `make check`; the factory's checks run right after this stage. I found no finding against the code: the diff matches the Interface and the criteria.
+
+    Files I changed:
+    - `docs/operator-guide.md`:
+      - *The preflight's items*: the item counts for each environment (seven, up to fourteen for `inline`; five, up to twelve for `container`) and the four new rows `podman`, `zfs`, `dataset` and `stage-image` with what passes, the detail and what to do. The `opencode` row now has its two forms. `tool:make` and `tool:<claude>` are marked as `inline` only. A new list names each item a `container` instance does not run and why.
+      - *The probe of the agent run*: the dataset is prepared for `main` first, with the two faults it adds (no `origin/main`, and the snapshot or container command that failed).
+      - *The stamp and the probe of the main branch*, and the `the probe on main could not run` paragraph: both now say that a `container` instance prepares the dataset before `lint`, and the paragraph gives the new snapshot and container forms of the message.
+      - The settings text that said no preflight item checks the two tools yet (S0011's) now points to the items.
+    - `docs/project-guide/stage-environment.md`: the new section *The preflight* (the items in order, the callables, the items left out, `CONTAINER_TOOLS`, the probes through `prepare`, the tests), placed before *The fakes*; the sentence "items … are not built yet" now points to it.
+    - `docs/project-guide/README.md`: the `stage-environment.md` line now lists *The preflight* in its sections. It also gains *The checks*, which the file already had and the list missed.
+    - `docs/project-guide/processes-and-checks.md`: one sentence pointing to *The preflight*.
+    - `docs/project-guide/watching.md`: the extras' order for `container`; `MachineChecks.run` uses `CONTAINER_TOOLS` and checks no runtime executable for `container`; `opencode_item` checks the executable for `inline` only.
+
+    I cross-read `docs/project-guide/watching.md` (the preflight step and the item paragraphs), the operator guide's *The preflight in the tick* and the environment settings text, and `docs/project-guide/stage-environment.md` (the *For the preflight* sections of the ZFS and podman adapters). They match the code. `docs/decisions.md` needs no change, as the docs criterion says. I wrote no runnable examples, so there was nothing to run.
+
+    Stale text I noticed and left alone:
+    - The probe-of-the-agent-run paragraph in `watching.md` (step 4 of the tick) does not mention the new `resolve` call or `prepare`. I added only the container-related facts there and left the rest of that long paragraph.
+    - Tests, from the reviewer's notes (not mine to edit): `tests/entry/test_wiring_container_extras.py:43-61` builds a third container `InstanceSettings`, and `tests/application/test_preflight_run_environment.py:25` uses `IMAGE` for the image build, a different meaning from `podman_support.IMAGE`.
+
+    `check`: check: green (not run again: passed on tree 3389db52e22b at 2026-10-24T21:44:20Z)
+    `secrets`: secrets: green (2.2 s)
+    `documents`: documents ok
