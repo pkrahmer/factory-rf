@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 410
 comments_read: [6384920747]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T13:42:27.152958Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-24T13:42:27.152958Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-24T13:48:13.028006Z'
+  stage: tests
+  run: 633131afeaf445b6a100fe77470fa937
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -188,3 +190,29 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
    - Architecture: `application.take` and the `Git` operation sit in `application`, the `git check-ignore` call sits in `adapters.git_cli`, and no layer is crossed. The undo's helpers are made public and shared rather than copied.
    - Scope: the story is within F0042's scope, which lists `TakeService`, `TakeReport`, the shared copying and `ignored`, and it removes no layer. Decision 18 d gives the leave to change `test_git_interface.py` and `test_interfaces.py`.
 7. factory: started tests as self.
+8. tester: I wrote the tests for criteria 1 to 9. They fail on purpose: `GitCli.ignored` and `factory.application.take` do not exist yet. `make lint` is green.
+
+   - criterion 1: tests/adapters/test_git_cli_check_ignore.py::test_ignored_names_the_paths_the_rules_ignore_in_the_order_given (the real clone, rows in-order, order-given, not-ignored, negation, tracked) and ::test_ignored_asks_git_in_groups_and_refuses_what_it_cannot_read (a recording stand-in git, rows: 1,000 paths make one call, 1,001 make two, `[]` makes none, `/abs` and `a/../b` raise ValueError with no call, exit 128 and a short answer raise GitError)
+   - criterion 2: tests/application/test_take_edges.py::test_copy_changed_mirrors_each_change_without_following_a_link (nine rows) and ::test_copy_changed_refuses_a_path_outside_the_tree_before_copying_anything (`/abs`, `a/../b`)
+   - criteria 3 and 4: tests/application/test_take.py::test_the_take_copies_what_the_role_may_write_and_leaves_the_rest (rows taken, outside-the-write-paths, protected)
+   - criterion 5: tests/application/test_take.py::test_everything_else_directly_in_an_in_progress_folder_is_left_whatever_the_write_paths
+   - criterion 6: tests/application/test_take_edges.py::test_dropped_paths_are_neither_taken_nor_left
+   - criterion 7: tests/application/test_take.py::test_the_work_items_state_and_journal_come_back_from_the_stage_start (rows state, section-only, deleted, broken, not-writable)
+   - criterion 8: tests/application/test_take_edges.py::test_a_missing_or_unreadable_baseline_raises_before_anything_is_taken
+   - criterion 9: tests/application/test_take_edges.py::test_left_ascends_without_repeats. The frozen model and the refused unknown field are left to tests/test_model_configuration.py, as the criterion says.
+
+   Files created: tests/adapters/test_git_cli_check_ignore.py, tests/application/test_take.py, tests/application/test_take_edges.py, and tests/take_support.py (helpers for the dataset beside the host's checkout and for running the take, built on tests/undo_support.py).
+
+   Earlier test files changed: tests/application/test_git_interface.py (`ignored` added to OPERATIONS, the test renamed `..._twenty_six_operations_...`) and tests/application/test_interfaces.py (the test renamed `test_git_abstract_methods_are_exactly_its_twenty_six_operations`). The leave for this is decision 18 d of the feature, which the Interface cites. Both now fail until `Git.ignored` exists.
+
+   What the `make test` run showed:
+   - `tests/application/test_take.py` and `tests/application/test_take_edges.py` cannot be collected: ImportError, because `factory.application.take` is missing.
+   - Every row of `test_git_cli_check_ignore.py` fails with `AttributeError: 'GitCli' object has no attribute 'ignored'`, and the two count tests fail as described above.
+   - One other failure has nothing to do with this story: `tests/adapters/test_opencode_runtime_launch.py::test_the_version_is_the_first_word_of_a_call_without_login_words`, `AssertionError: assert 'ANTHROPIC_API_KEY' not in {'AI_AGENT': 'claude-code...`. It looks like the environment this stage ran in leaks into that test; the coder's `make check` will show whether it fails there too.
+
+   Choices I made:
+   - In criterion 1, the stand-in answers `::<TAB><path>` for every path, so its result is always `[]`. The paths' order is therefore checked on the arguments the stand-in recorded across its calls, not on the result.
+   - In the take tests, the `.gitignore` with `.venv/` is written untracked into the host's checkout; `git check-ignore` reads it from there.
+
+   `lint`: lint: green (0.5 s)
+   `test`: ERROR tests/application/test_take_edges.py - ImportError while importing test module '/work/checkout/tests/application/test_take_edges.py'.
