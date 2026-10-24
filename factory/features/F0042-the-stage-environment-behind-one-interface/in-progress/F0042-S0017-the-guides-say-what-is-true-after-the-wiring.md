@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 425
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T22:15:00.838289Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-24T22:14:40.591173Z'
   stage: intake
   run: cf9d10ead2034f75a830dd9ed8c5673a
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:15:00.838289Z'
+  stage: tests
 ---
 
 # The guides say what is true after the wiring
@@ -85,3 +94,4 @@ Expect: `documents ok`
    Smoke test: the greps are runnable, and every `Expect:` line is checkable (five zeros; `1` and at least `1`; `documents ok`). The patterns match the quoted sentences. The `make documents` command passes no pytest flags.
    Architecture: no code or layer is touched. The new text matches the stage-environment guide's *The settings and the wiring* and the S0010 wiring that F0042 describes.
    Scope: it fits F0042. It is a sweep after S0012, it keeps the inline environment's descriptions (F0044 removes them), and it touches nothing in "Out of scope".
+4. factory: started tests as self.
