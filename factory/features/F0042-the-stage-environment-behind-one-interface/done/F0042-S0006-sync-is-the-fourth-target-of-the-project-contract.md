@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 1
@@ -142,6 +142,11 @@ journal:
   at: '2026-10-24T17:27:28.522625Z'
   stage: smoke-test
   run: a036ccc45c7e45718fe91ca01af93d8c
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-24T17:28:48.322436Z'
+  stage: approval
 ---
 
 # `sync` is the fourth target of the project contract
@@ -478,3 +483,4 @@ Expect: four lines: `# The contract between a project and the factory is four ta
     The smoke test contradicts none of criteria 1 to 4. I did not run `make check` (criterion 5) in this stage; the factory runs it as the gate. I did not judge the docs criterion (6) here.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 11.7 min, 70 turns, 265858 tokens in (1487195 more from cache), 28669 out, $2.66
