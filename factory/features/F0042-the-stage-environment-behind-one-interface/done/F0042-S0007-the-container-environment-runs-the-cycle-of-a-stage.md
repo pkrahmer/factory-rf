@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -185,6 +185,11 @@ journal:
   at: '2026-10-24T18:15:24.734443Z'
   stage: smoke-test
   run: 2539578023e945ee9598763a336c3820
+- number: 33
+  speaker: factory
+  kind: done
+  at: '2026-10-24T18:16:46.332182Z'
+  stage: approval
 ---
 
 # The container environment runs the cycle of a stage
@@ -598,3 +603,4 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
     No findings.
 
     Still open, carried over from the review and not a finding: after a failed `prepare`, the object keeps the durations of the last successful one. The Interface does not settle that case.
+33. factory: done (pull request merged); cost: 15 runs, 30.2 min, 135 turns, 495900 tokens in (4111969 more from cache), 76355 out, $6.48
