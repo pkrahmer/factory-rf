@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 428
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T23:12:35.002829Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-24T23:12:14.521763Z'
   stage: doing
   run: 5c658bcb9d5e4345923024151f917426
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:12:35.002829Z'
+  stage: tests
 ---
 
 # Every shared test helper is listed and held once
@@ -237,3 +246,4 @@ Expect: 0
     Main choice: I end with `tests` and name the changes, rather than `question`. Finding 1 is a shared-helper move, which CLAUDE.md's standing leave gives to the tester without asking. Finding 2 undoes a whitespace change that this story's own tester made. Neither needs the human's word.
 
     Noticed, not touched: `tests/application/test_stall_edges.py:44` still writes the literal `"written by the agent\n"` inside a method. The reviewer called it not a finding, because the criteria count only top-level assignments. The work item's `.costs.jsonl` sidecar shows as modified in the working tree; that change is the factory's.
+12. factory: started tests as self.
