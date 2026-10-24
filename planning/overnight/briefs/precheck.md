@@ -9,7 +9,7 @@ Copy this file into the helper's prompt and replace every placeholder:
 - `{{ROUND}}`: 1 for a fresh draft; 2 and on after edits. From round 2, the helper also reads the earlier rounds' reports and reports findings only.
 - `{{SOURCES}}`: what to read beyond the standing inputs: the code and tests the story touches, the drafter's brief, other stories it must fit with.
 - `{{CHECK}}`: the points to check in particular (a cause the feature names, a decision, an order with other stories), or "none".
-- `{{TEMP}}`: the helper's exact temporary folder, a short name, for example `C:/Users/pasca/AppData/Local/Temp/f31pre`.
+- `{{TEMP}}`: the helper's exact temporary folder, a short name, for example `C:/Users/pasca/AppData/Local/Temp/f31pre`; `{{TEMPWIN}}`: the same folder in Windows form, for example `C:\Users\pasca\AppData\Local\Temp\f31pre`.
 
 Delete this section before you hand the brief over.
 
@@ -43,7 +43,7 @@ Check in particular: {{CHECK}}
 
 The suite and `factory-check-story` do not run on Windows. Run them in throwaway containers, on a copy:
 
-1. Copy the repository into `{{TEMP}}/repo`, leaving out `./.git`, `./image/secrets`, `./.venv` and `./mutants`. Convert the copy's text files to LF line endings.
+1. Copy the repository into `{{TEMP}}/repo` with exactly this command, whose excluded folders are absolute paths (a relative `/XD image\secrets` does not exclude it): `robocopy C:\Dev\Projects\factory-rf {{TEMPWIN}}\repo /E /NFL /NDL /NJH /XD C:\Dev\Projects\factory-rf\.git C:\Dev\Projects\factory-rf\image\secrets C:\Dev\Projects\factory-rf\.venv C:\Dev\Projects\factory-rf\mutants`. Then check that `{{TEMP}}/repo/image/secrets` does not exist (`test ! -e`); if it does, delete `{{TEMP}}` without listing or reading it and stop with that report. Convert the copy's text files to LF line endings.
 2. `factory-check-story` only accepts paths under `factory/features/`: place a copy of the story at `factory/features/{{SLUG}}/backlog/` inside that copy.
 3. Run each command as:
 

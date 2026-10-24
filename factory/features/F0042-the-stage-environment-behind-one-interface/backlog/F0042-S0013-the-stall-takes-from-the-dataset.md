@@ -1,0 +1,92 @@
+# The stall takes from the dataset
+
+## Description
+
+A stall ends a stage without a result the factory can keep, and it commits what the agent wrote inside the write paths with the stall entry (`planning/v1.2-plan.md`, "The cycle of a stage": a stall "changes nothing here: the taken files are committed with the stall entry, as today"). Today `StallService` (`factory.application.stalls`) undoes on its own, through `UndoService`, which S0005 left as it is; under the container environment the agent's writes lie on the dataset, so a stall there would commit an untouched work tree and lose them at the next reset (decision 20 of `feature.md`). This story routes the stall through the stage environment: `StallService` takes the `stage_environment` keyword like the launcher, its undo is the environment's `take`, and `StallResult.take` is the `TakeReport` (`StallResult.undo` goes). The take runs at every stall with a stage start, `check_red` included: under `inline` it is the undo as today, so a red check's writes outside the write paths are still undone (`tests/application/test_stall_edges.py` pins it), and under `container` it brings the agent's writes within the write paths from the dataset into the work tree, where the stall commit takes them. A stall after `AfterAgent`'s take (an empty entry, a broken form, a red check) is a second take within one stage: it takes the same way and writes no second timing line, so a stage has one `stage environment:` line whether it ends with a result or a stall. `StageFinisher` gains the keyword too, so that the one environment object of `StageRunner` sees every take of a stage. Nothing observable changes under `inline`: the suite's stall tests stay green with the two assertions of decision 18 (g2) changed. What stays: `StallContext`, the stall's commit, note and labels; `UndoService`, used by `InlineEnvironment`; the agent's container (S0008) and the check container (S0009), which come after this story.
+
+## Interface
+
+`factory.application.stalls` (`application`):
+
+```python
+class StallResult(BaseModel):
+    ...
+    take: TakeReport | None     # in place of `undo: UndoReport | None`
+
+
+class StallService:
+    def __init__(
+        self,
+        boundaries: Boundaries,
+        instance: str,
+        definition: PipelineDefinition,
+        *,
+        stage_environment: StageEnvironment | None = None,
+    ) -> None: ...
+```
+
+- `stage_environment` `None` means `stage_environment_of(boundaries)`, as for `StageLauncher` and `AfterAgent` (S0005).
+- `stall(context, reason, detail="")`, step 1 of the stall: with a `stage_start`, after the checkout is put back on `context.branch` as today, `stage_environment.take(context.stage_start, context.path)` runs whatever the reason, `check_red` included, and its report is `StallResult.take`; with a `context.cost` the sidecar is written right after the take, as today. Without a `stage_start` nothing is taken and `take` is `None`. Steps 2 to 7 are unchanged.
+- A `WorkItemFormatError`, `SnapshotError` or `ContainerError` from the take propagates out of `stall` before anything is written, committed, pushed or posted, as the undo's `WorkItemFormatError` does today.
+- The module imports no name of `factory.application.undo`: the undo is reached through `InlineEnvironment` alone. `StallContext` is unchanged. `TakeReport` is the model of `factory.application.take` (S0004); `StageEnvironment` and `stage_environment_of` are S0005's.
+
+`factory.application.stage` (`application`):
+
+```python
+class StageFinisher:
+    def __init__(
+        self,
+        boundaries: Boundaries,
+        instance: str,
+        definition: PipelineDefinition,
+        *,
+        stage_environment: StageEnvironment | None = None,
+    ) -> None: ...
+```
+
+- `stage_environment` `None` means `stage_environment_of(boundaries)`. `AfterAgent`, `StageFinisher` and `StageRunner` each give their `StallService` the environment they hold; `StageRunner.__init__` builds one environment (S0005) and gives it to its launcher, its after-agent, its finisher and its own stall service, so one object sees every `prepare` and every `take` of a stage. `StageLauncher` and `AfterAgent` keep S0005's signatures.
+
+`factory.application.stage_environment` (`application`), `ContainerEnvironment.take` (S0007):
+
+- The timing line is written by the first `take` after a `prepare` on the same object, and by the first `take` on an object without a `prepare` (S0007's line with `reset`, `sync` and `advance` as `0.0`). A `take` that follows another `take` on the same object with no `prepare` between them takes exactly as the first did (`TakeService` on `snapshots.changed_paths()`, the report as the service gives it) and writes no line. The next `prepare` starts the next line. The line's text, `prepare`, `run_agent` and `InlineEnvironment` are unchanged.
+
+Tests (the tester writes them): `tests/application/test_stall_environment.py` (a recording stand-in `StageEnvironment`, as S0005's `tests/application/test_stage_environment_protocol.py` has one, given to `StallService` and to `StageFinisher`; the inline stall without the keyword; built on the helpers of `tests/application/test_stalls.py`, moved to a shared module under the standing leave of `CLAUDE.md` where a test would copy them) and `tests/application/test_stall_container.py` (whole stages through `StageRunner` on the `boundaries` fixture replaced with `FakeSnapshots` and `FakeContainerRuns`, as S0007's criterion 9 builds them, with a runtime of the test that writes into `<workspace>/checkout`; and the timing line's rule on one `ContainerEnvironment` with the manual clock, as S0007's criterion 8). The leave of decision 18 (g2) of `feature.md`, for `tests/application/test_stalls.py`: the assertion `result.undo is None` of `test_a_stall_before_the_stage_started_undoes_nothing_and_still_counts` reads `result.take is None`, and the row `"undo": None` of its `_result` helper becomes `"take": None`; each test keeps its name and its rows. Every other earlier test is unchanged and green: `tests/application/test_stall_labels.py`, `test_stall_edges.py` (its `test_a_red_check_stall_undoes_what_the_check_wrote` pins that the `check_red` stall still takes under `inline`), `test_stall_reasons_recorded.py`, `test_no_state_refusals.py`, `test_stage_finish.py`, `test_stage_finish_causes.py`, `test_costs.py`, `test_stage_run*.py`, `test_after_agent*.py`, and S0005's and S0007's modules.
+
+## Acceptance criteria
+
+1. `StallService(boundaries, INSTANCE, definition, stage_environment=<a recording stand-in>)`: `stall(context, reason)` with a `stage_start`, for each of the reasons `died`, `no_result`, `form_invalid` and `check_red`, calls the stand-in's `take` exactly once with the context's `stage_start` and `PATH`, and `StallResult.take` is the stand-in's report (`TakeReport(left=["src/b.py"], restored_work_item=False)`); with `stage_start` `None` (`merge_conflict`) `take` is not called and `StallResult.take` is `None` (rows of one parametrized test). `factory.application.stalls` imports no name of `factory.application.undo` (a structural assertion over the module's imports, as S0005's criterion 10 makes for the preflight).
+2. The take's place: after the `SwitchingRuntime` of `tests/application/test_stalls.py` left the checkout on `elsewhere`, a stall of `left_branch` through a stand-in whose `take` records `boundaries.git.status()` sees the checkout on the work item's branch with `head` the stage-start commit when `take` is called; with a `context.cost` and a stand-in whose `take` deletes the sidecar `cost_records_path(PATH)` from the work tree, the stall commit holds the sidecar with the run's record exactly once (the sidecar is written after the take) (rows of one parametrized test).
+3. Faults of the take: a stand-in whose `take` raises `SnapshotError("changed_paths", "no base")`, and one whose `take` raises `WorkItemFormatError("missing", PATH)`, each end `stall` with that error, the remote's branch still at the stage-start commit, no note posted on the pull request and no label written (rows of one parametrized test).
+4. Under `inline`, as today: `StallService(boundaries, INSTANCE, definition)` built without the keyword, after a died run that wrote `tests/test_a.py` and `src/b.py` (the `WRITES` of `tests/application/test_stalls.py`, role `tester`): the stall commit holds `tests/test_a.py` and not `src/b.py`, `src/b.py` is gone from the work tree, and `StallResult.take` is a `TakeReport` whose `left` is `[cost_records_path(PATH), "src/b.py"]` (the sidecar the launch wrote after the stage-start commit, and the outside write; both undone, the sidecar kept out of the entry as today) and whose `restored_work_item` is false; `tests/application/test_stalls.py` with the two assertions of decision 18 (g2) changed, and every other module the Interface names, are otherwise unchanged and green.
+5. Under `container`, a stall before the take: a whole stage through `StageRunner` on boundaries with `FakeSnapshots` and `FakeContainerRuns` (as S0007's criterion 9), stage `tests`, a runtime of the test that writes `tests/test_a.py` and `notes.md` into `<workspace>/checkout` and returns a died run: the pushed stall commit holds `tests/test_a.py` and not `notes.md`, `report.stall.take` is `TakeReport(left=["notes.md"], restored_work_item=False)`, the factory log holds exactly one `stage environment:` line, and the host's work tree is clean afterwards.
+6. Under `container`, a stall after the take (rows of one parametrized test): the same boundaries and stage with a `Makefile` whose `lint` exits 1 (`stage_makefile({"lint": 1})`) and a runtime that writes `tests/test_a.py` into `<workspace>/checkout` and returns a completed run with the decision `doing` and the entry `done.`; and the same with a green `Makefile` and a run whose entry is `tester: ` (blank after the role's prefix, the `no_result` stall of `tests/application/test_after_agent.py`): the stall's reason is `check_red` and `no_result` respectively, the pushed stall commit holds `tests/test_a.py`, `report.stall.take` is `TakeReport(left=[], restored_work_item=False)`, and the factory log holds exactly one `stage environment:` line (the stall's take is the stage's second, and writes none).
+7. The timing line of a `ContainerEnvironment` on one object with the manual clock advanced inside the fakes as S0007's criterion 8 does (rows of one parametrized test): `prepare`, `take`, `take`, the clock advanced by 0.25 s inside the first take's `changed_paths` and by 0.5 s inside the second's, writes exactly one `stage environment:` line, ending `take 0.2 s`, and the second `take` returns the same report as the first (the dataset unchanged between them); `prepare`, `take`, `prepare`, `take` writes two lines; `take`, `take` on a fresh object without `prepare` writes one line, `stage environment: reset 0.0 s, sync 0.0 s, advance 0.0 s, take 0.2 s`.
+8. `StageFinisher(boundaries, INSTANCE, definition, stage_environment=<a recording stand-in>).finish(aftermath)` for a stage whose `lint` exits 1 calls the stand-in's `take` exactly once with the stage start and `PATH`, and `report.stall.take` is the stand-in's report; `StageFinisher(boundaries, INSTANCE, definition)` built without the keyword stalls through the inline environment: a red check's write outside the write paths is neither in the stall commit nor in the work tree (`tests/application/test_stall_edges.py::test_a_red_check_stall_undoes_what_the_check_wrote`, unchanged and green) (rows of one parametrized test for the first clause; the second is the earlier test).
+9. `make check` stays green.
+10. docs: `docs/project-guide/stages.md`, *Stalls*: step 1 says the environment's `take` runs in place of `UndoService.undo`, whatever the reason, `check_red` included, its report `StallResult.take` (a `TakeReport`), nothing taken and `take` `None` without a stage start; the paragraph after the steps says a stall keeps the writes inside the write paths by the environment's take (the undo under `inline`, the take from the dataset under `container`); the `StallResult` sentence names `take` in place of `undo`; `StallService(boundaries, instance, definition, stage_environment=None)` and who hands the environment over (`AfterAgent`, `StageFinisher`, `StageRunner`: one object per stage); *The stage protocol*, `StageFinisher.finish` step 2: the stall's take after a red check, and that under `inline` the check's writes outside the write paths are undone as today. `docs/project-guide/stage-environment.md`, *The stage environment*: the stall as a caller of `take` beside `AfterAgent`; *The container environment*: the timing line's rule for a stage with two takes (one line, the first take's; the stall's second take writes none). `docs/project-guide/write-guard.md`: none, *The undo* names no stall (S0005's sentence covers the undo as the inline environment's take). `docs/operator-guide.md`: none, "one `stage environment:` line per stage" stays true; the stall paragraph's "undoes the rest" is S0012's sweep. `docs/decisions.md`: none.
+
+## Smoke test
+
+```bash
+uv run pytest tests/application/test_stall_environment.py tests/application/test_stall_container.py tests/application/test_stalls.py tests/application/test_stall_edges.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '
+```
+Expect: `1`
+
+```bash
+uv run python - <<'EOF'
+import inspect
+
+from factory.application import stalls
+from factory.application.stage import StageFinisher
+from factory.application.stalls import StallResult, StallService
+
+print("take" in StallResult.model_fields, "undo" in StallResult.model_fields)
+for cls in (StallService, StageFinisher):
+    parameter = inspect.signature(cls.__init__).parameters["stage_environment"]
+    print(cls.__name__, parameter.kind.name, parameter.default)
+print([name for name in dir(stalls) if name.startswith("Undo")])
+EOF
+```
+Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinisher KEYWORD_ONLY None`, `[]`
+
+## Journal
