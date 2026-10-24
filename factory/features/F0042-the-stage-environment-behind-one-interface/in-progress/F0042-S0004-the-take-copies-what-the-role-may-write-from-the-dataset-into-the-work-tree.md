@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T15:58:26.876598Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -93,6 +97,11 @@ journal:
   at: '2026-10-24T15:58:06.222848Z'
   stage: review
   run: bd23e10c76e84ee19c75fd2c850cc8db
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-24T15:58:26.876598Z'
+  stage: doing
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -327,3 +336,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     Earlier tests (item 6):
     - `tests/application/test_git_interface.py`: under the human's leave, feature.md decision 18 (d), which the story's Interface cites (`OPERATIONS` gains `ignored`, test renamed to twenty-six). It stays within that leave.
     - `tests/application/test_interfaces.py`: under the same leave, 18 (d) (`test_git_abstract_methods_are_exactly_its_twenty_five_operations` renamed to twenty-six, assertion unchanged). It stays within that leave.
+16. factory: started doing as self.
