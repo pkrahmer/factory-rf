@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 412
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T16:17:16.090225Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-24T16:16:55.450012Z'
   stage: intake
   run: 7ceb56bb03c54c26b93d967b304006c5
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:17:16.090225Z'
+  stage: tests
 ---
 
 # No test sees the agent's login
@@ -69,3 +78,4 @@ Expect: one line that starts with `N passed` and names no `failed` and no `error
    - Smoke test: runnable. The `env` and `printf` splitting only keeps the variable names out of the command text. `pyproject.toml` already sets `-q` in `addopts` and the command adds none, so the summary line `N passed in Xs` is printed. `tail -1 | sed` reduces it to `N passed`, which the `Expect:` line can be checked against.
    - Architecture: tests only, with the fixture in the shared `tests/conftest.py` and the new module at the `tests/` root, as CLAUDE.md allows. It imports the names from the adapters layer and does not repeat them.
    - Scope: it is listed in `feature.md`'s Scope ("`tests/conftest.py`: no test sees the agent's login (S0014)"), it is not in Out of scope, and it follows the human's decision 21. The change to the opencode version test, written by another story, has the leave in decision 18 (i).
+4. factory: started tests as self.
