@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T21:28:07.346719Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-24T21:27:46.697350Z'
   stage: tests
   run: 16d4bb7b605a458ea547ec9eae74b1ce
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:28:07.346719Z'
+  stage: doing
 ---
 
 # The preflight checks the container environment
@@ -206,3 +215,4 @@ Expect: `1`
 
    `lint`: lint: green (0.6 s)
    `test`: ERROR tests/application/test_container_items.py - ImportError while importing test module '/work/checkout/tests/application/test_container_items.py'.
+9. factory: started doing as self.
