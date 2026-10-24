@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 425
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T22:20:38.596275Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-24T22:20:17.952409Z'
   stage: review
   run: 9d0128124e5e4bea87fb40ce7b970de2
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:20:38.596275Z'
+  stage: docs
 ---
 
 # The guides say what is true after the wiring
@@ -155,3 +164,4 @@ Expect: `documents ok`
    - Work item hygiene: the coder's entry gives the main choice (leave the documents to the documenter) and what was rejected (editing them in the doing stage). The Description matches what was built.
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
