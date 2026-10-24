@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T18:26:53.236049Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-24T18:26:32.838917Z'
   stage: tests
   run: 73954258a1dd42a29a099314394e8288
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:26:53.236049Z'
+  stage: doing
 ---
 
 # The stall takes from the dataset
@@ -177,3 +186,4 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
 
    `lint`: lint: green (0.5 s)
    `test`: FAILED tests/application/test_stall_environment.py::test_each_holder_hands_its_environment_to_its_stall[after-agent-early-stall] - AssertionError: assert [] == [(StageStart(...01-first.md')]
+6. factory: started doing as self.
