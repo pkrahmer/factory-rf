@@ -8,6 +8,7 @@ The second implementation of the factory (github.com/pkrahmer/factory), planned 
 ## Vocabulary
 - v1's history (its stage table, its forms and its features F0001 to F0017, in v1's words) was `factory/v1/`; it is kept at the tag `planning-history-2026-10-19`, with the planning history.
 - Everything else, the pipeline's own files under `factory/` included (the pipeline definition, the story and feature forms, the features and their work items), uses the glossary's names: work item, journal, backlog, start, approval, pipeline definition, write paths, project commands, acceptance reviewer, smoke test, error (R3). Stall, lease, crash, `time_limit` and provider limit keep the meanings the decision log gives them.
+- v1.2's words (`planning/v1.2-plan.md`): the **dataset** is the ZFS dataset a stage runs on, mounted at `/work` in every container and at `FACTORY_WORKSPACE` on the host; the **base** is its one snapshot, `@base`, moved forward at every stage's start; the **take** is what the factory copies from the dataset into its own work tree after the agent: the changed paths the role may write. The **stage environment** is the interface behind which `inline` (v1.1's way) and `container` (the dataset) stand.
 
 ## Architecture
 - One package, `factory`, under `src/` (Python 3.12, uv). Four layers; a higher one may import a lower one and never the reverse: `factory.entry` → `factory.adapters` → `factory.application` → `factory.domain`. import-linter enforces this in `make check`.
