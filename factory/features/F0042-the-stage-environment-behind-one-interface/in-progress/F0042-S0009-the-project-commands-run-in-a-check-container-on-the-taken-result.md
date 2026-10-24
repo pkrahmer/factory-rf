@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T20:01:35.453466Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -140,6 +144,11 @@ journal:
   at: '2026-10-24T20:01:14.667225Z'
   stage: docs
   run: 60c15c9ef7d6489eab0abb64f412c847
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:01:35.453466Z'
+  stage: smoke-test
 ---
 
 # The project commands run in a check container on the taken result
@@ -384,3 +393,4 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
     `check`: check: green (not run again: passed on tree 75a4af8630b7 at 2026-10-24T19:57:40Z)
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
+25. factory: started smoke-test as self.
