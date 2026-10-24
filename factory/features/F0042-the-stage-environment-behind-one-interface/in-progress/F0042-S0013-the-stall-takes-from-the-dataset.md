@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T18:26:53.236049Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-24T18:26:53.236049Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-24T18:30:23.369945Z'
+  stage: doing
+  run: 1b6fc57a8ae34356828c0ead69afbfe7
 ---
 
 # The stall takes from the dataset
@@ -187,3 +189,32 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
    `lint`: lint: green (0.5 s)
    `test`: FAILED tests/application/test_stall_environment.py::test_each_holder_hands_its_environment_to_its_stall[after-agent-early-stall] - AssertionError: assert [] == [(StageStart(...01-first.md')]
 6. factory: started doing as self.
+7. coder: The tester's tests now pass, and no test was changed. `make check` is green (`check: green`). The story's first smoke command shows `60 passed`.
+
+   What I built:
+   - `src/factory/application/stalls.py`:
+     - `StallService.__init__` takes a keyword-only `stage_environment: StageEnvironment | None = None`. `None` means `stage_environment_of(boundaries)`.
+     - `_undo` is now `_take`. It puts the checkout back on the branch as before, then calls `stage_environment.take(stage_start, path)`.
+     - `StallResult.undo` is replaced by `take: TakeReport | None`.
+     - The module no longer imports anything from `factory.application.undo`.
+     - The sidecar comment now says the take leaves the sidecar out.
+   - `src/factory/application/stage.py`:
+     - `StageFinisher.__init__` takes the same keyword and gives it to its `StallService`.
+     - `AfterAgent` gives its own environment to its `StallService`.
+     - `StageRunner` builds one environment before its stall service, and gives it to its stall service, launcher, after-agent and finisher.
+   - `src/factory/application/stage_environment.py`:
+     - `ContainerEnvironment` has a flag, `_timing_due`. It starts true and `prepare` sets it true again. `take` writes the timing line only when the flag is set, then clears it.
+     - Writing the line moved into a private `_log_timing`. The take itself is unchanged, so a second take returns what `TakeService` gives.
+
+   Main choice: the timing rule is a boolean flag set by `prepare` and cleared by the first `take`. I rejected resetting the `_reset`/`_sync`/`_advance` durations and checking whether a take already ran. That would have needed a sentinel value and would not cover the case of a `take` with no `prepare`, which must still write one line with zeros.
+
+   Refactor: I read my diff and found nothing to change.
+
+   Description: no journal entry changed the meaning of the task, so `## Description` is unchanged.
+
+   Noticed but not touched:
+   - `docs/project-guide/stages.md` and `docs/project-guide/stage-environment.md` still describe the stall as an undo. Updating them is criterion 10, the docs stage's work.
+   - `StallResult` is not among the models of `factory.domain.contract.CONTRACT`, so no schema needed regenerating.
+
+   `check`: check: green
+   `duplicates`: duplicates: 9 new, 37 known, 1 gone
