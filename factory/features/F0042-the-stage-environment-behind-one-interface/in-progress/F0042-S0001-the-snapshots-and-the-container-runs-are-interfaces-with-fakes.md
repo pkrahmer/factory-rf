@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 407
-comments_read: []
+comments_read: [6383665028]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 2aa2e15d4c0247088365607baa43d949
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-24T11:30:48.737650Z'
+  stage: intake
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -298,3 +303,11 @@ Expect: `1`
    4. Criterion 8 says `advance()` replaces the base, "what `base` held before is gone". Only the changed-then-advanced case is tested. A file that is in the old base but no longer in the folder is not covered. Should I add a row where a file is deleted, then `advance()` is called, and then `reset()` does not bring it back? I would add it.
 
    The format check passed. The smoke test's pytest command passes no `-q`, and `addopts` already sets one, so the `passed in` line will be there. The architecture and the feature's scope check out, so I would accept once these four are settled.
+4. 2026-10-24 human: All four as you propose, in your exact words:
+
+   1. Yes: add to the rows of criterion 12 that a mount with target `/workspace` is accepted and recorded in `calls` (the near side of "is `/work` or starts with `/work/`").
+   2. Yes: add `env=None` and `env={}` as accepted rows of criterion 2, and that `ContainerLaunch` keeps `env` as given.
+   3. Yes: add to the timeout row of criterion 11 that `duration` is at least 1 second and under 25 seconds, and that it is greater than 0 for the successful run.
+   4. Yes: add a row to criterion 8 where a file is deleted, then `advance()` is called, and then `reset()` does not bring it back.
+
+   You have leave to edit the Acceptance criteria for exactly these four additions; the Interface and the Description stay as they are.
