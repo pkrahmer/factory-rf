@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T12:25:47.648551Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-24T12:25:29.486990Z'
+  stage: tests
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-24T12:25:47.648551Z'
   stage: tests
 ---
 
@@ -313,3 +322,4 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     Who writes what: the tester adds the row to `tests/adapters/test_zfs_snapshots.py::test_dataset_exists_reads_what_list_names` now. The test is this story's own, so no leave is needed. The tester does not edit the work item, which lies outside its write paths. The reviewer, whose write path is the work item, writes the rule into the Interface's `dataset_exists()` bullet and the row into criterion 8 in its round, citing this answer.
 
     The coder's change to `dataset_exists` stands as it is.
+18. factory: started tests as self.
