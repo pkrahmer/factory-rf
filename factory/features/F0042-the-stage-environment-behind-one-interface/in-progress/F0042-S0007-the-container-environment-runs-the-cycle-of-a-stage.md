@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T17:33:48.316182Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-24T17:33:27.916072Z'
   stage: intake
   run: 2533ea2b6a634cc3af93bef9a10c7590
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:33:48.316182Z'
+  stage: tests
 ---
 
 # The container environment runs the cycle of a stage
@@ -149,3 +158,4 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
    - Smoke test: runnable. The pytest command passes no `-q` because `addopts` already sets one. Each `Expect:` line is checkable. I left the smoke test as it was. The tests for criteria 10 and 11 are the tester's to place, and the pytest command does not name them.
    - Architecture: fits. The application layer holds `ContainerEnvironment` and `SHELL`, the domain holds `last_line`, and the adapters layer is not imported upward.
    - Scope: inside feature.md's S0007 entry. No earlier test changes, and decision 18 (g) holds.
+7. factory: started tests as self.
