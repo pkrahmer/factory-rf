@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T11:58:34.137156Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-24T11:58:34.137156Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T11:59:16.148911Z'
+  stage: smoke-test
+  run: 0d4f792cc7ff4877a41cbb4f4ba9c8da
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -598,3 +600,32 @@ Expect: `1`
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
 23. factory: started smoke-test as self.
+24. smoke-tester: Smoke test, round 2. I ran both commands under `## Smoke test` from the repository root, exactly as written and in order. Both met their `Expect:` lines. I changed nothing.
+
+    Command 1 (the Python script on `FakeSnapshots` and `FakeContainerRuns` in a `mktemp -d` folder that removes itself). Exit status 0. Output, with uv's bytecode line first:
+    ```
+    Bytecode compiled 4164 files in 86ms
+    reset True
+    [('checkout/a.txt', 'modified'), ('checkout/gone.txt', 'deleted'), ('checkout/new.txt', 'added')]
+    [] ['a.txt', 'gone.txt']
+    0 False ['W/checkout', 'W/home', 'W/checkout/a.txt', 'err']
+    1 True /work/checkout
+    ```
+    Met: the script printed exactly the five expected lines, in order. The `Bytecode compiled` line is uv's own output, not the script's.
+
+    Command 2 (`uv run pytest tests/application/test_interfaces.py tests/adapters/test_fake_snapshots.py tests/adapters/test_fake_containers.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '`):
+    ```
+    1
+    ```
+    Met: `1` as expected. I ran the same pytest call again, outside the smoke test, only to see the line it counts: `67 passed in 1.58s`.
+
+    Against the acceptance criteria, nothing the smoke test showed contradicts one:
+    - Criterion 7: `reset()` with no base raised `SnapshotError`, its `command` was `reset` and its `detail` was `no base at <base>`.
+    - Criterion 5: `changed_paths()` listed only files, sorted by path, with no folder in the list (`home/` was made after `advance()` and is not listed).
+    - Criterion 7: after `reset()` the diff was empty, `gone.txt` was back and `new.txt` was gone.
+    - Criterion 11: `run` mapped the working directory, `$HOME` and the command word, and merged stderr into the output.
+    - Criterion 12: `calls` recorded the call as it was given (`/work/checkout`, the mount still `read_only`).
+
+    Criteria 13 (`make check`) and 14 (docs) are not things the smoke test checks. Journal entry 22 records `check: green`, `secrets: green` and `documents ok` for them.
+
+    Findings: none.
