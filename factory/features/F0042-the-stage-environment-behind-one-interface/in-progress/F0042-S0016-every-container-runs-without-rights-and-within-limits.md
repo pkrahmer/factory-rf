@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 420
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T20:27:49.244418Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-24T20:27:49.244418Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-24T20:28:10.015632Z'
+  stage: intake
+  run: 9694797ef2ee49f2894d5aa27a9c98c9
 ---
 
 # Every container runs without rights and within limits
@@ -65,3 +67,9 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: `factory.adapters.podman_runs` names `PIDS_LIMIT = 4096` and `MEMORY_LIMIT = "4g"` and gives the exact placement and order of the four words in `PodmanRuns.launch`, after `--timeout <seconds>` and before the first `--env`. `launch` and `run` are real operations in `podman_runs.py`, and the argv layout I read there matches the stated position. It changes no interface, DTO or caller.
+   - Criteria: each can be tested by one test function. They cover the exact argv with no `--network` word (1), the recorded call of `run` through the stand-in podman (2), and both constants plus their monkeypatched replacement (3). They also cover the one earlier test that changes, named with its change (4). The rules are the two limits and the four words. They have no failing side to test: the story validates nothing and rejects no input, so no refusal criterion is missing. The decision 18 (j) leave covers the earlier test, with the human's word.
+   - Smoke test: the command is runnable. The `PodmanRuns("podman", "img", Path)` constructor matches, and with empty mounts and environment `argv[6:11]` is the four words followed by `--volume`, because `/work` is always the first volume. The `Expect:` line is a single exact list. No pytest is run, so the `-q` rule does not apply.
+   - Architecture: the change stays in the adapters layer, in the one podman wrapper. `ContainerRuns` is untouched and the constants are module-level. The docs criterion names the files the documenter keeps.
+   - Scope: this is S0016 of F0042, listed in the feature's Scope and Stories and Decision 23. It adds no `network` keyword, and removes no layer, so it stays outside the Out of scope list.
