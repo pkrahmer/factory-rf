@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 422
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T21:17:12.663119Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-24T21:17:12.663119Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-24T21:17:34.022830Z'
+  stage: intake
+  run: efd6e38c6de2461091caf450bc4a228c
 ---
 
 # The preflight checks the container environment
@@ -120,3 +122,9 @@ Expect: `1`
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures (`factory.application.preflight`: `tool_version_item`, `dataset_item`, `stage_image_item`, `opencode_item`; `factory.entry.wiring.machine_extras`), and the probe and `MachineChecks.run` changes are stated with exact details and error types. The wiring places the adapters correctly (built from settings in entry, interfaces kept in boundaries).
+   Criteria: 1 to 4 cover each item's pass side and each failing side with exact detail strings, both error types included. 5 and 6 cover the probe's pass side and its three faults (no origin/main, SnapshotError, ContainerError). 7 covers the lint probe order after prepare and both caught errors with the stop detail. 8 to 10 cover the extras' order for each environment and runtime, the adapters actually run, and `MachineChecks.run`'s tools for container and inline. Each is testable by one parametrized test function without further decisions. Every Interface clause has a criterion, and none needs a decision the story leaves open.
+   Smoke test: both blocks are runnable. The pytest command passes no `-q`, and `pyproject.toml` `addopts` sets a single `-q`, so the last line is the `N passed in ...` summary that the `grep -cE` matches. Each Expect line gives an exact, checkable output.
+   Architecture: the items and probes sit in `application`. The `podman`/`zfs` adapters are reached only through their wrapper classes, built in `entry.wiring`. `boundaries.snapshots` and `boundaries.containers` stay typed as the interfaces, which fits the layer rules and decisions 1 and 15 of `feature.md`.
+   Scope: it matches the S0011 line in the feature's Scope. It removes no layer and does not touch the inline items. The test files it names are new, and it changes no earlier test.
