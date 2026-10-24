@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T19:17:58.680386Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-24T19:17:37.788152Z'
   stage: review
   run: 83cded0baeec4f4cb0a3819594e85f01
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-24T19:17:58.680386Z'
+  stage: docs
 ---
 
 # The agent runtimes start their process in a container
@@ -432,3 +441,4 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
     - `tests/adapters/test_claude_runtime_container.py` and `test_opencode_runtime_container.py`: for criterion 7, "rows of one parametrized test" is split into two functions, the stand-in kill and podman's recorded kill. For criterion 4, the login row is a separate function. Both splits follow the difference in setup.
     - Both runtime test modules: `OS_USER_DETAIL` repeats the Interface's text and does not import `CONTAINER_OS_USER`. That pins the text, but it is a second copy.
     - `tests/adapters/test_claude_runtime_container.py::_write_login` and `test_opencode_runtime_container.py::_api_login` write a login file in nearly the same way. They could share one helper in `tests/adapters/container_runtime_support.py`.
+21. factory: started docs as self.
