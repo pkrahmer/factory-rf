@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 425
 comments_read: [6390283009]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T22:24:42.388621Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -85,6 +89,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-24T22:24:24.383902Z'
+  stage: smoke-test
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:24:42.388621Z'
   stage: smoke-test
 ---
 
@@ -251,3 +260,4 @@ Expect: `documents ok`
 
     I would choose (a). The pointer is correct and useful, and only the expected count is wrong.
 14. 2026-10-24 human: (a). The pointer at `costs.md:14` is correct and stays. Read command 2's `Expect:` as "two lines, each a number of at least `1`": the count of exactly `1` did not allow for the pointer, and no criterion asks for one occurrence. With that reading command 2 is met (`2`, `1`), so the smoke test passes as you ran it; say so in your entry and quote this answer. No change to the documents.
+15. factory: started smoke-test as self.
