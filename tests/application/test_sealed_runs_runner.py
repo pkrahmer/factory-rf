@@ -11,7 +11,6 @@ from application.test_sealed_runs import (
     OPEN_FILE,
     OPEN_FOLDER,
     Swap,
-    _leave,
     _swap_for_folder,
 )
 from factory.adapters.clock import ManualClock, ManualWaiter
@@ -23,7 +22,7 @@ from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.errors import RepositoryUnsealed
 from factory.domain.settings import InstanceSettings
 from git_support import install_agents
-from sealed_run_support import COMPLETED, run_request
+from sealed_run_support import COMPLETED, leave, run_request
 from stage_run_support import ENVIRONMENT
 
 
@@ -52,7 +51,7 @@ class Runner:
 @pytest.mark.parametrize(
     ("swap", "unsealed"),
     [
-        pytest.param(_leave, False, id="sealed"),
+        pytest.param(leave, False, id="sealed"),
         pytest.param(_swap_for_folder, True, id="swapped"),
     ],
 )

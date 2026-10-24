@@ -23,7 +23,7 @@ from factory.domain.errors import AgentRuntimeError, RepositoryUnsealed
 from factory.domain.settings import InstanceSettings
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
-from sealed_run_support import COMPLETED, run_request
+from sealed_run_support import COMPLETED, leave, run_request
 from stage_run_support import ENVIRONMENT, INSTANCE
 
 MOVED = ".git-moved"
@@ -61,10 +61,6 @@ Expect: nothing.
 """
 
 Swap = Callable[[Path], None]
-
-
-def _leave(checkout: Path) -> None:
-    del checkout
 
 
 def _move_away(checkout: Path) -> Path:
@@ -149,7 +145,7 @@ def test_the_run_sees_a_sealed_git_folder_and_its_result_is_returned(
     ("before", "swap", "queued", "expected", "context", "requested"),
     [
         pytest.param(
-            _leave,
+            leave,
             _swap_for_folder,
             True,
             RepositoryUnsealed,
@@ -158,10 +154,10 @@ def test_the_run_sees_a_sealed_git_folder_and_its_result_is_returned(
             id="folder-in-place",
         ),
         pytest.param(
-            _leave, _swap_for_link, True, RepositoryUnsealed, None, True, id="link-in-place"
+            leave, _swap_for_link, True, RepositoryUnsealed, None, True, id="link-in-place"
         ),
         pytest.param(
-            _leave,
+            leave,
             _swap_for_folder,
             False,
             RepositoryUnsealed,
@@ -170,10 +166,10 @@ def test_the_run_sees_a_sealed_git_folder_and_its_result_is_returned(
             id="swap-then-runtime-error",
         ),
         pytest.param(
-            _remove, _leave, True, RepositoryUnsealed, None, False, id="missing-before-the-run"
+            _remove, leave, True, RepositoryUnsealed, None, False, id="missing-before-the-run"
         ),
         pytest.param(
-            _leave, _leave, False, AgentRuntimeError, None, True, id="runtime-error-git-alone"
+            leave, leave, False, AgentRuntimeError, None, True, id="runtime-error-git-alone"
         ),
     ],
 )

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 426
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T22:27:30.567732Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-24T22:27:30.567732Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-24T22:32:47.251790Z'
+  stage: tests
+  run: fd62ef8100b44778890aefae112363a0
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -98,3 +100,30 @@ Expect: three lines, `2`, `1`, `1`
    - Architecture: nothing is built under `src/`. The tests go in `tests/application/` (the stage and its environment) and use the shared helper modules at the `tests/` root. That fits the layout in `CLAUDE.md`.
    - Scope: this matches F0042's goal of a whole container stage, and it stays inside "Out of scope" because no layer is removed. The helper moves are under the standing leave in `CLAUDE.md`, and the story names each helper and each test file it affects.
 4. factory: started tests as self.
+5. tester: The tests are written. The story said the behaviour already exists, and the new tests pass: `make test` was green (67.1 s) and `make lint` is green. `make types` is green as well. I ran it because every module under test already exists.
+
+   Mapping:
+   - criterion 1: tests/application/test_container_stage_checks.py::test_a_whole_container_stage_pushes_the_taken_work_and_leaves_the_host_clean
+   - criterion 2: tests/application/test_container_stage_checks.py::test_the_sync_and_each_check_run_in_their_containers_on_the_taken_result
+   - criterion 3: tests/application/test_container_stage_checks.py::test_the_next_prepare_starts_from_the_pushed_result_and_nothing_else (rows `stray-file-gone`, `home-leftover-gone`, `taken-file-kept`)
+   - criterion 4: the helper moves below. The smoke test's grep counts now give `2`, `1`, `1`, and `test_stage_environment.py` imports no `_` name from another test module.
+   - criterions 5 and 6: no test. `make check` belongs to the coder; the docs belong to the documenter.
+
+   A fixture `staged` runs the whole stage once per test. It uses `container_dataset` and `ContainerMakeCommands(snapshots, containers, git, checkout=boundaries.checkout)` as `project_commands`, `WorkspaceRuntime` writing `tests/test_a.py` and `notes.md`, and `open_story` with `stage_makefile()` plus a `sync` target that writes the git-ignored `.synced`. Criterion 2 needs the stage-start commit, and the test reads it as the parent of the pushed result commit (`report.commit^`), the claim commit. The sync call's last word matches it, so the run confirms that reading.
+
+   Files created: tests/application/test_container_stage_checks.py.
+
+   Earlier test files changed under the standing leave. Every test keeps its name and checks the same thing:
+   - tests/container_support.py: now holds `FIVE_MINUTES`.
+   - tests/application/test_container_environment.py, tests/application/test_container_environment_take.py and tests/application/test_stall_container.py: their copies of `FIVE_MINUTES` are gone. The Interface did not name `test_stall_container.py`, but criterion 4 and the smoke test's `2` need its copy gone.
+   - tests/take_support.py: now holds `BROKEN_FRONT_MATTER`. It takes `PATH`, the same string, from `stage_run_support` instead of `undo_support`, because `undo_support` now imports from `take_support` and the old import would be a cycle.
+   - tests/application/test_take.py, tests/application/test_take_edges.py and tests/application/test_undo.py: they use `BROKEN_FRONT_MATTER` from take_support.
+   - tests/undo_support.py: now holds `without_work_item` and `with_broken_work_item`, without the underscore. test_take_edges.py, test_undo.py and test_stage_environment.py use them from there.
+   - tests/sealed_run_support.py: now holds `leave` (formerly `_leave` of test_sealed_runs.py). tests/application/test_sealed_runs.py, tests/application/test_sealed_runs_runner.py, tests/application/test_stage_environment.py and tests/application/test_nested_repositories.py use it. The last one held its own copy of `_leave`.
+   - tests/entry/test_wiring_stage_environment.py uses `podman_support.IMAGE` and `zfs_support.DATASET`.
+   - tests/adapters/test_podman_timeout_status.py and tests/adapters/test_podman_runs_results.py use `podman_support.IMAGE`. Criterion 4 allows only one `IMAGE = "factory-stage:1"` under `tests/`, so their copies had to go.
+
+   Modules the test run could not import: none. Open: nothing.
+
+   `lint`: lint: green (0.5 s)
+   `test`: test: green (66.3 s)

@@ -10,6 +10,7 @@ from factory.domain.work_item import WorkItemDocument
 from git_support import PIPELINE_YAML, write_files
 from human_clone import HumanClone
 from stage_run_support import INSTANCE
+from take_support import BROKEN_FRONT_MATTER
 from work_item_support import created_state
 
 BRANCH = branch_name("F0001-S0001")
@@ -63,3 +64,17 @@ def start_stage(
 def undo_stage(boundaries: Boundaries, start: StageStart) -> UndoReport:
     """Run the undo on the work item of `start_stage`."""
     return UndoService(boundaries).undo(start, PATH)
+
+
+def without_work_item(boundaries: Boundaries, start: StageStart) -> StageStart:
+    """The stage start moved to `origin/main`, where the work item is absent."""
+    commit = boundaries.git.resolve("origin/main")
+    assert commit is not None
+    return StageStart(commit=commit, claim=start.claim)
+
+
+def with_broken_work_item(boundaries: Boundaries, start: StageStart) -> StageStart:
+    """The stage start moved to a commit whose work item has unreadable front matter."""
+    write_files(boundaries.checkout, {PATH: BROKEN_FRONT_MATTER})
+    commit = boundaries.git.commit("break the work item")
+    return StageStart(commit=commit, claim=start.claim)

@@ -13,12 +13,10 @@ from factory.application.claims import StageStart
 from factory.application.take import copy_changed
 from factory.domain.errors import WorkItemFormatError
 from factory.domain.git import ChangedPath
-from git_support import write_files
 from human_clone import HumanClone
 from take_support import AGENT_TEXT, changes, make_dataset, run_take, tree, write_dataset
-from undo_support import PATH, start_stage
+from undo_support import PATH, start_stage, with_broken_work_item, without_work_item
 
-BROKEN_FRONT_MATTER = "---\nstage: [unclosed\n  : :\n---\n# First story\n"
 OUTSIDE_TEXT = "outside\n"
 SOURCE_TEXT = "from the source\n"
 TARGET_TEXT = "on the target\n"
@@ -265,19 +263,7 @@ def test_a_dropped_path_is_neither_taken_nor_left(
     assert (boundaries.checkout / ".git" / "config").read_bytes() == git_config
 
 
-def _without_work_item(boundaries: Boundaries, start: StageStart) -> StageStart:
-    commit = boundaries.git.resolve("origin/main")
-    assert commit is not None
-    return StageStart(commit=commit, claim=start.claim)
-
-
-def _with_broken_work_item(boundaries: Boundaries, start: StageStart) -> StageStart:
-    write_files(boundaries.checkout, {PATH: BROKEN_FRONT_MATTER})
-    commit = boundaries.git.commit("break the work item")
-    return StageStart(commit=commit, claim=start.claim)
-
-
-@pytest.mark.parametrize("baseline", [_without_work_item, _with_broken_work_item])
+@pytest.mark.parametrize("baseline", [without_work_item, with_broken_work_item])
 def test_a_missing_or_unreadable_baseline_raises_before_anything_is_taken(
     boundaries: Boundaries,
     human: HumanClone,

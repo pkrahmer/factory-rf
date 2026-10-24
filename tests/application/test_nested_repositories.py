@@ -35,7 +35,7 @@ from git_support import TEST_IDENTITY, install_agents, run_git, write_fsmonitor
 from human_clone import HumanClone
 from recording_log import RecordingLog
 from root_support import AS_ROOT
-from sealed_run_support import COMPLETED, run_request
+from sealed_run_support import COMPLETED, leave, run_request
 from stage_run_support import ENVIRONMENT, pushed
 
 NESTED = "notes/sub/.git"
@@ -88,10 +88,6 @@ def _nest_two(checkout: Path) -> None:
     _init(checkout / "a")
 
 
-def _leave(_checkout: Path) -> None:
-    pass
-
-
 def _nest_and_unseal(checkout: Path) -> None:
     _nest(checkout)
     (checkout / ".git").chmod(0o2775)
@@ -111,7 +107,7 @@ def _nesting(boundaries: Boundaries, act: Act, delegate: AgentRuntime) -> Bounda
     ("act", "queued", "raised", "reported", "left"),
     [
         pytest.param(_nest, True, None, [NESTED], False, id="nested-and-completed"),
-        pytest.param(_leave, True, None, [], False, id="nothing-nested"),
+        pytest.param(leave, True, None, [], False, id="nothing-nested"),
         pytest.param(_nest, False, AgentRuntimeError, None, False, id="nested-and-run-error"),
         pytest.param(
             _nest_and_unseal, True, RepositoryUnsealed, None, True, id="nested-and-unsealed"
@@ -248,7 +244,7 @@ def _probe_settings(tmp_path: Path, agent_home: Path) -> InstanceSettings:
     ("act", "result", "detail"),
     [
         pytest.param(_nest, COMPLETED, PROBE_DETAIL, id="nested-and-completed"),
-        pytest.param(_leave, COMPLETED, None, id="nothing-nested"),
+        pytest.param(leave, COMPLETED, None, id="nothing-nested"),
         pytest.param(
             _nest_two,
             COMPLETED,
@@ -310,7 +306,7 @@ def directory(tmp_path: Path) -> Path:
     [
         pytest.param(_nest, True, [REMOVED_LINE], id="nested"),
         pytest.param(_nest, False, [], id="nested-without-log"),
-        pytest.param(_leave, True, [], id="nothing-nested"),
+        pytest.param(leave, True, [], id="nothing-nested"),
         pytest.param(
             _nest_two, True, [f"removed nested repositories: {TWO_NESTED}"], id="two-nested"
         ),

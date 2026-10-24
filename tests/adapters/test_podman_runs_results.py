@@ -11,11 +11,9 @@ from factory.adapters import podman_runs
 from factory.adapters.podman_runs import PODMAN_TIME_LIMIT, PodmanRuns
 from factory.adapters.process import ProcessResult
 from factory.domain.errors import ContainerError
-from podman_support import Podman, PodmanPlan
+from podman_support import IMAGE, Podman, PodmanPlan
 from run_process_recorder import Recorder
 from time_limits import ROOMY_BOUND_SECONDS
-
-IMAGE = "factory-stage:1"
 
 
 @pytest.fixture

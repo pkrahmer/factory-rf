@@ -20,10 +20,9 @@ from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries, build_tick
 from git_support import write_executable
+from podman_support import IMAGE
 from wiring_support import CREDENTIAL, every_tool
-
-IMAGE = "factory-stage:1"
-DATASET = "tank/factory/vm"
+from zfs_support import DATASET
 
 
 def _recording_stand_in(folder: Path, *, printed: str = "") -> Path:

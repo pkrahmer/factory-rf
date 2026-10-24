@@ -29,6 +29,7 @@ SYNC_MARKER = ".synced"
 SYNC_RECIPE = f"@echo synced > {SYNC_MARKER}"
 TIMING_PREFIX = "stage environment:"
 TAKE_SECONDS = 0.25
+FIVE_MINUTES = timedelta(minutes=5)
 CONTAINER: dict[str, object] = {
     "stage_environment": "container",
     "dataset": DATASET,

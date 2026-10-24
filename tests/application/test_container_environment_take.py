@@ -1,13 +1,13 @@
 """The container environment's take on the snapshots' changes, its timing line, a whole stage."""
 
 from dataclasses import replace
-from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
 from container_support import (
     FIRST,
+    FIVE_MINUTES,
     SECOND,
     Pace,
     Steps,
@@ -27,7 +27,6 @@ from human_clone import HumanClone
 from stage_run_support import branch_head, completed, open_story, pushed, run_stage, stage_makefile
 from undo_support import BRANCH, GUIDE, GUIDE_TEXT, PATH
 
-FIVE_MINUTES = timedelta(minutes=5)
 AGENT_TEXT = "written by the agent\n"
 NEW = "src/new.py"
 INSIDE = "tests/test_a.py"
