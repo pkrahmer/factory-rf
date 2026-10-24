@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-24T23:36:07.400567Z'
   stage: acceptance
   run: f5c6c2c224f247369f4358f5650fa682
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-24T23:36:54.621677Z'
+  stage: done
 stories: [F0042-S0001, F0042-S0002, F0042-S0003, F0042-S0004, F0042-S0005, F0042-S0006, F0042-S0007, F0042-S0008, F0042-S0009, F0042-S0010, F0042-S0011, F0042-S0012, F0042-S0013, F0042-S0014, F0042-S0015, F0042-S0016, F0042-S0017, F0042-S0018, F0042-S0019]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The stage environment behind one interface
@@ -245,3 +250,4 @@ None. The remarks in 4 are one literal inside a test method, one name that one g
       - `duplicates` was not rerun (S0019 recorded 11 new, unchanged).
       - Disk used on `/work` grew from 0.0 to 0.5 GB. That is the git-ignored `.venv` (511 MB), the same as the first acceptance's record, not the feature.
    8. Cost: $75.38, 213 runs, 312.4 min. S0019 cost $2.74, with one rework round (a copied guard walk) and one question. S0002 still stands out at $6.63 and needed the human most (3 answers). 14 answers in all, 0.5 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 5.5 min, 34 turns, 99940 tokens in (2356860 more from cache), 21566 out, $1.70
