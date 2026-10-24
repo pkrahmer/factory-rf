@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T19:07:58.655805Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-24T19:07:38.062287Z'
   stage: review
   run: 1824b636982b4d9dac55668c57af8af5
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-24T19:07:58.655805Z'
+  stage: doing
 ---
 
 # The agent runtimes start their process in a container
@@ -314,3 +323,4 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
     The coder routes calls with a branch in each runtime's `_process_request`, not through `run_launch` as the Description says (entry 10 gives the reason, PLR0913). That is a Description and quality point for groups 4 and 5. I did not judge it this round because group 1 failed first.
 
     Earlier tests: none. `git diff --name-status main...HEAD` lists only added test files (`A`), so no test that `main` already holds was changed, renamed or deleted.
+13. factory: started doing as self.
