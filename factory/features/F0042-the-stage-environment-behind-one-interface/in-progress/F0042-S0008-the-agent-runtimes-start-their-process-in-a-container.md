@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 417
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T18:46:54.540080Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-24T18:46:54.540080Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-24T18:47:20.323443Z'
+  stage: intake
+  run: 839f3930045745b3a7e36f268f070e5c
+  blocked: question
 ---
 
 # The agent runtimes start their process in a container
@@ -145,3 +148,12 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: Questions (format check: passed; no findings from it). I checked the Interface, the criteria, the smoke test, the architecture and the scope. The Interface, architecture, scope and smoke test are fine. The criteria have gaps:
+
+   1. The Interface says a call that completes in a container is read "exactly as today (the JSON reply, the events, the login line `factory-login-used:` from the mounted login files)". No criterion tests the login line in a container. Criteria 4 and 5 check the result, the command, the mounts and the environment, but not that the login line is read from the mounted login files. Should I add a criterion to criterion 4, and the same for opencode in criterion 5, that a run with a login file set returns the login line the stand-in's shell prints from that file? I would add it.
+
+   2. The Interface says "No leftovers program runs (no `os_user`), no temporary folder is removed (none was made)". No criterion tests either statement. Should I add one that a runtime built with a `leftovers` program and `containers` never starts it, and one that no temporary folder is made or removed? I would add both, with a stand-in `leftovers` that writes a record file and a check that the record is absent. If you think these statements are only explanatory, say so and I will accept as is.
+
+   3. Criterion 9 says the version call gets "the version time limit", but neither the story nor the criterion names the value. Is it the existing constant of the runtimes? If so, please name it (module and name), so the test can assert it and not copy a number.
+
+   My choice: answer yes to 1 and 2, and name the constant for 3. I would then accept.
