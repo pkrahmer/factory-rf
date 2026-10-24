@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T12:34:50.006299Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-10-24T12:34:29.287431Z'
   stage: doing
   run: fc1031194d5547ed9f1c659f0333f28e
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-24T12:34:50.006299Z'
+  stage: tests
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -411,3 +420,4 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     Description: the journal changed nothing in the Description this round. The reviewer has already written criterion 11 into the work item.
 
     Noticed, not touched: nothing new beyond the notes from round 0. I did not run `make check` this run, because nothing in the working tree changed.
+26. factory: started tests as self.
