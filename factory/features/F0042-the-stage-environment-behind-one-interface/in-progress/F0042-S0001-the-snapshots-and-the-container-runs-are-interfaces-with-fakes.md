@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T11:57:18.432416Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-24T11:57:18.432416Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T11:58:12.651484Z'
+  stage: docs
+  run: 9846f9ab16484bf786777d767bdd5f10
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -564,3 +566,25 @@ Expect: `1`
     - `tests/adapters/test_fake_containers.py:118,211`: `_run` and `_run_with` call `runs.run` with nearly the same arguments.
     - `tests/adapters/test_fake_containers.py:30,201`: `_launch` repeats the pattern of `_launch_word`. One helper with parameters would cover both pairs.
 21. factory: started docs as self.
+22. documenter: Round 2 docs. No findings: the code matches the Interface and the criteria, and the round-2 change (`beneath_or_at` made public in `factory.domain.agent_home`) needs no documentation. I changed only documents, so I did not run `make check`; the factory's check after this stage decides. I ran no examples, because I wrote none.
+
+    Files changed:
+    - `docs/project-guide/stage-environment.md` (new): the guide file criterion 14 asks for. It has a title and a sentence naming the five modules, then the sections *The snapshots*, *The container runs* and *The fakes*.
+      - *The snapshots*: the interface, the base, what `changed_paths` lists and does not list, and `SnapshotError`.
+      - *The container runs*: `launch` against `run`, the fixed `/work` mount, the refused targets and `ContainerError`.
+      - *The fakes*: the folder and its copy, the path mapping with the longer target winning, and what the fake cannot do (a read-only mount is not enforced, nothing is isolated).
+      - It ends with the tests.
+    - `docs/project-guide/README.md`: *The files* names `stage-environment.md` with its modules and sections. *Errors* names `SnapshotError` and `ContainerError` as `BoundaryError`s beside `ProjectCommandError`.
+
+    Written to match the code, not only the Interface: `Mount.target` accepts `/a/./b`. The Interface lists only empty and `..` segments as refused, and round 1 fixed the code to match.
+
+    Cross-read and found current: `docs/project-guide/README.md` (the *Errors* section apart from the lines I added) and `docs/project-guide/processes-and-checks.md`, for how `run_process` and the structural wrapper test are described. I did not read `docs/decisions.md`, since the criterion says it takes no entry in this story. I did not read `docs/operator-guide.md` or the top-level `README.md`: nothing in the diff is visible to the operator, because no module uses the new code yet.
+
+    Stale text noticed, not touched:
+    - In *Errors*, `AgentRuntimeError` is called the "fourth subtype" of `BoundaryError`. I did not number the two new errors, so the ordinal wording will need a look if the human cares about it.
+    - `tests/adapters/test_fake_containers.py` has near-duplicate helpers (`_run` and `_run_with`, `_launch` and `_launch_word`), as the reviewer noted. That is the tester's file, not mine.
+    - The module name `agent_home` is now narrow for a general path helper, as the coder noted.
+
+    `check`: check: green (not run again: passed on tree 05aa75c575e2 at 2026-10-24T11:53:57Z)
+    `secrets`: secrets: green (1.1 s)
+    `documents`: documents ok
