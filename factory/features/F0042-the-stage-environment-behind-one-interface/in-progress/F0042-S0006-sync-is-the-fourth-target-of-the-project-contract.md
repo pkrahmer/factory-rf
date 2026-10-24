@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T17:07:51.860763Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-24T17:07:31.222622Z'
   stage: intake
   run: da4bca229a64443992ab7b91b91dc0f8
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:07:51.860763Z'
+  stage: tests
 ---
 
 # `sync` is the fourth target of the project contract
@@ -100,3 +109,4 @@ Expect: four lines: `# The contract between a project and the factory is four ta
    - Smoke test: both blocks are runnable and run no pytest, so the `-q` rule does not apply. Each `Expect:` line is checkable. The first has two exact lines, with the seconds normalised by `sed`. The second has four exact lines; `grep -c ... || true` still prints `0`.
    - Architecture: this is template-only, with no layer change, which fits `CLAUDE.md`. The edit leaves to `tests/test_template_makefile.py` and `tests/test_claude_files.py` are named and rest on decision 18 f. `tests/test_template_makefile_header.py` stays unchanged.
    - Scope: it is within `feature.md`. This repository's own `Makefile` and `factory/pipeline.yml`, and the `planning/overnight/templates/` designs, are left to the human (changes 1 and 3). No stage lists `sync`, so no lease math changes.
+4. factory: started tests as self.
