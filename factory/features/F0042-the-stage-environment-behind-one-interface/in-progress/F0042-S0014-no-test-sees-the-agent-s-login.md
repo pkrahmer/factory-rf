@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 412
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T16:16:30.648814Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-24T16:16:30.648814Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-24T16:16:55.450012Z'
+  stage: intake
+  run: 7ceb56bb03c54c26b93d967b304006c5
 ---
 
 # No test sees the agent's login
@@ -61,3 +63,9 @@ Expect: one line that starts with `N passed` and names no `failed` and no `error
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: no `src/` change. It names `tests/conftest.py` (one autouse fixture using `monkeypatch.delenv(name, raising=False)`), the two constants `LOGIN_VARIABLE` and `API_LOGIN_VARIABLE` (both exist in `factory.adapters.agent_launch`, lines 47 and 49), the one assertion in the version test (currently line 246, `not in call.environment`), and the new module `tests/test_no_agent_login.py`. The fixture's name is left to the tester, as the story says.
+   - Criteria: each is testable by one parametrized test or one named test. Criterion 1 covers both names. Criterion 2 covers the set side (a test that sets the name sees its value) and the restore side (a text row on `conftest.py` that requires `monkeypatch.delenv` and forbids `os.environ.pop` and `del os.environ`). Criterion 3 covers the version test's passing and the exact text of its last assertion. Criteria 4 and 5 are the usual closing ones. Criterion 6 is the docs criterion. The Interface has no failing-side rule, because nothing is validated or rejected.
+   - Smoke test: runnable. The `env` and `printf` splitting only keeps the variable names out of the command text. `pyproject.toml` already sets `-q` in `addopts` and the command adds none, so the summary line `N passed in Xs` is printed. `tail -1 | sed` reduces it to `N passed`, which the `Expect:` line can be checked against.
+   - Architecture: tests only, with the fixture in the shared `tests/conftest.py` and the new module at the `tests/` root, as CLAUDE.md allows. It imports the names from the adapters layer and does not repeat them.
+   - Scope: it is listed in `feature.md`'s Scope ("`tests/conftest.py`: no test sees the agent's login (S0014)"), it is not in Out of scope, and it follows the human's decision 21. The change to the opencode version test, written by another story, has the leave in decision 18 (i).
