@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 410
 comments_read: [6384920747]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T13:57:22.512357Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-24T13:57:22.512357Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-24T14:00:07.868835Z'
+  stage: tests
+  run: 8519ce27c82945bc91f41d3703a11828
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -316,3 +318,14 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     - `copy_changed` does not check for a link at one of the target's parent folders.
     - A source entry missing for an `added` or `modified` path is not placed.
 15. factory: started tests as self.
+16. tester: Round 1, a test change the human approved (coder's entry 14, from the reviewer's criterion 10). I added the two rows criterion 10 asks for and changed nothing else.
+
+    - criterion 10, the line-long side: tests/adapters/test_git_cli_check_ignore.py::test_ignored_asks_git_in_groups_and_refuses_what_it_cannot_read, new row `line-long`. A new constant `LONG` makes a stand-in `git` that prints one line more than the paths it was given. The row expects `GitError` after one recorded call, next to the `line-short` row.
+    - criterion 10, the dangling-link side: tests/application/test_take_edges.py::test_copy_changed_mirrors_each_change_without_following_a_link, new row `deleted-dangling-link`. A new setup `_deleted_dangling_link` puts a symbolic link to a missing file at the target and passes it as a `deleted` path. The existing check `_gone` then confirms the link is removed, and the row raises nothing.
+
+    Files changed: tests/adapters/test_git_cli_check_ignore.py and tests/application/test_take_edges.py. I wrote both files in this story's earlier tests stage. I created no files, and the test run had no module it could not import.
+
+    `make test`: both new rows pass, because the code already does both things, as the coder said. The run is red on one test only, the same one entries 8 and 10 report: `tests/adapters/test_opencode_runtime_launch.py::test_the_version_is_the_first_word_of_a_call_without_login_words`, with `AssertionError: assert 'ANTHROPIC_API_KEY' not in {'AI_AGENT': 'claude-code...`. This stage's environment leaks the key into that test; this story did not change it. Coverage is 99.16 %. `make lint`: green.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (63.1 s)

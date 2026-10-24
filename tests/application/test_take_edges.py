@@ -162,6 +162,12 @@ def _folder_link_gone(trees: Trees) -> None:
     assert (trees.outside / "file.txt").read_text(encoding="utf-8") == OUTSIDE_TEXT
 
 
+def _deleted_dangling_link(trees: Trees) -> list[ChangedPath]:
+    (trees.target / "src").mkdir()
+    (trees.target / "src/a.py").symlink_to(trees.outside / "missing.txt")
+    return [_change("src/a.py", "deleted")]
+
+
 @pytest.mark.parametrize(
     ("setup", "check"),
     [
@@ -174,6 +180,7 @@ def _folder_link_gone(trees: Trees) -> None:
         pytest.param(_modified_over_link, _link_replaced, id="modified-over-link"),
         pytest.param(_added_over_folder, _folder_replaced, id="added-over-folder"),
         pytest.param(_deleted_folder_link, _folder_link_gone, id="deleted-folder-link"),
+        pytest.param(_deleted_dangling_link, _gone, id="deleted-dangling-link"),
     ],
 )
 def test_copy_changed_mirrors_each_change_without_following_a_link(

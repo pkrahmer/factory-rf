@@ -16,6 +16,7 @@ GROUP = 1000
 ANSWER = "for path in paths:\n    print('::\\t' + path)"
 FATAL = "sys.stderr.write('fatal: boom\\n')\nsys.exit(128)"
 SHORT = "for path in paths[1:]:\n    print('::\\t' + path)"
+LONG = "for path in paths + paths[:1]:\n    print('::\\t' + path)"
 
 
 @pytest.fixture
@@ -83,6 +84,7 @@ def _paths(count: int) -> list[str]:
         pytest.param(ANSWER, ["a/../b"], ValueError, 0, id="dot-dot"),
         pytest.param(FATAL, ["src/a.py"], GitError, 1, id="fatal"),
         pytest.param(SHORT, ["src/a.py", "src/b.py"], GitError, 1, id="line-short"),
+        pytest.param(LONG, ["src/a.py", "src/b.py"], GitError, 1, id="line-long"),
     ],
 )
 def test_ignored_asks_git_in_groups_and_refuses_what_it_cannot_read(
