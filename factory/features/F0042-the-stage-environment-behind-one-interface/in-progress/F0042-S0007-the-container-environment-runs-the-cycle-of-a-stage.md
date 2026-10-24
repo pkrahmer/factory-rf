@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T18:13:07.710507Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -163,6 +167,11 @@ journal:
   at: '2026-10-24T18:12:47.129251Z'
   stage: review
   run: 941f5ebbf440434f928748fdaf313d84
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:13:07.710507Z'
+  stage: docs
 ---
 
 # The container environment runs the cycle of a stage
@@ -517,3 +526,4 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
     Notes:
     1. `tests/application/test_container_environment.py:35` and `tests/application/test_container_environment_take.py:34`: `FIVE_MINUTES` is defined in both modules. It could live in `tests/container_support.py`.
     2. `tests/application/test_container_environment_take.py`, `ClockedSnapshots` and `ClockedContainerRuns`: their overriding methods have no `@override`, while `ResultContainerRuns` and `ContainerEnvironment` have it.
+29. factory: started docs as self.
