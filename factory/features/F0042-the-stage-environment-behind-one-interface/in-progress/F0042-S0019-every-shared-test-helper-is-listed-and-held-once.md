@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T23:02:13.614741Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-24T23:02:13.608910Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:02:13.614741Z'
+  stage: intake
+---
+
 # Every shared test helper is listed and held once
 
 <!-- proposed by feature acceptance of 2026-10-24; refine before starting -->
@@ -48,3 +75,6 @@ for f in tests/*.py; do b=$(basename "$f"); case "$b" in test_*|__init__.py) con
 Expect: 0
 
 ## Journal
+
+1. 2026-10-24 human: created.
+2. factory: started intake as self.
