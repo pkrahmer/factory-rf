@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T20:44:36.477438Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-24T20:44:36.477438Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T20:45:13.938773Z'
+  stage: docs
+  run: 327527768b184a72a5e3f910982cf2fc
 ---
 
 # Every container runs without rights and within limits
@@ -292,3 +294,21 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
     Notes:
     - tests/adapters/test_podman_runs_results.py:18 and tests/adapters/test_podman_timeout_status.py:12 still hold their own `IMAGE = "factory-stage:1"`, a copy of the shared one in tests/podman_support.py. Both files are outside this diff, so this is left for a later move under the same leave.
 18. factory: started docs as self.
+19. documenter: Docs round 1. The code matches the Interface: `src/factory/adapters/podman_runs.py` has the constants and the four words in the stated order after `--timeout <seconds>`, each with a comment. No findings. I changed only documents, so I did not run `make check`; the factory's checks decide.
+
+    Files changed:
+    - docs/project-guide/stage-environment.md, *The podman adapter*: the command-line block gains the four words. A bullet for each says what it keeps out. A paragraph says the container keeps the default network and why (the sync and the check's `make sync`: the package index; the agent: the model's API). Another covers the two constants, why 4096 and 4 GB, and that a memory kill is an ordinary failure. A third gives the facts measured on 2026-10-24. The stand-in section also names the new test module `test_podman_runs_fence.py`.
+    - docs/operator-guide.md, *The agent in a container*: the `podman run` words gain the four words. A new paragraph describes a `container` instance's fence: no capabilities, no new rights, the two limits, the network kept, and a memory kill before the time limit as a failed check (make's exit status 2, or 137).
+    - docs/decisions.md: a new entry "Every container runs without rights and within limits", with the reason, why the network stays, and what was rejected.
+
+    README.md: none, as the criterion says.
+
+    Cross-read and found current: the rest of docs/project-guide/stage-environment.md (*The container runs*, *The grace*, *Reading the end*, *The container environment*), the operator guide's container-runtime sections, and README.md. None of them names the podman words or a limit.
+
+    I did not run the examples. They are prose, and the smoke test covers the argv.
+
+    Stale text I noticed and did not touch: none. Entries 11, 13 and 17 note that `tests/adapters/test_podman_runs_results.py:18` and `tests/adapters/test_podman_timeout_status.py:12` keep their own copy of `IMAGE`. That is test code, which is not mine to change.
+
+    `check`: check: green (not run again: passed on tree c4ddd27c5f7f at 2026-10-24T20:42:07Z)
+    `secrets`: secrets: green (2.3 s)
+    `documents`: documents ok

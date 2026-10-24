@@ -125,6 +125,8 @@ A `Mount` has a `source` (an absolute host path), a `target` (a container path) 
 
 ```
 <executable> run --rm --userns=keep-id --timeout <seconds>
+    --cap-drop=all --security-opt=no-new-privileges
+    --pids-limit=4096 --memory=4g
     --env NAME=value ...
     --volume <workspace>:/work --volume <source>:<target>[:ro] ...
     --workdir <working_directory> <image> <command...>
@@ -133,10 +135,20 @@ A `Mount` has a `source` (an absolute host path), a `target` (a container path) 
 - `--rm`: the container is removed when it ends, so nothing of one command is left for the next.
 - `--userns=keep-id`: rootless podman maps the container's user to the host user that runs podman, the `factory` user. Files the command writes into `/work` belong to that user on the host.
 - `--timeout <seconds>`: the container runtime ends the container at the limit. The seconds are the limit rounded up (`30s` is `30`, 1.5 seconds is `2`).
+- `--cap-drop=all`: the container has no capability. Code in the checkout (a dependency's install script, a test, a file an agent was misled into writing) cannot use the rights root has inside its namespace.
+- `--security-opt=no-new-privileges`: a set-uid program cannot give a process rights it was not started with.
+- `--pids-limit=4096`: a fork bomb ends at the limit and does not fill the machine's process table.
+- `--memory=4g`: a runaway process is killed in its container and does not take the machine's memory.
 - `--env NAME=value`: one pair per entry of `environment`, in its order. These are the only variables the command gets besides the image's own. Podman does not pass the factory's environment into the container, so a token or a path the factory holds reaches a command only when a caller names it here.
 - `--volume`: the workspace at `/work` comes first, then the given mounts in their order. A read-only mount gets `:ro`. A rootless container cannot write a `:ro` bind mount, and that is the whole protection of the host's repository and of the login files: a command can read them and never change them. The tests pin the words, `:ro` above all.
 - `--workdir`: the command's working directory in the container.
 - the image, then the command words, which are never joined into a string.
+
+There is no `--network` word, so every container keeps podman's default network: the sync needs the package index, the check runs `make sync` first, which needs the index when the take changed `uv.lock` or `pyproject.toml`, and the agent needs the model's API. Cutting the network is a later step, for example an allow-list (decision *Every container runs without rights and within limits*).
+
+The limits are the constants `PIDS_LIMIT = 4096` and `MEMORY_LIMIT = "4g"`, read on every call of `launch`. 4096 processes leave room for the test suite's workers under `-n auto` on the VM's cores and what each starts; 4 GB lets one container run at a time on a machine of 8 GB. A container the kernel kills for its memory before the time limit is an ordinary result with its exit status, not a time-out: a command that fails with make's status 2 when the kernel ended one of its children, 137 when it ended the container's first process.
+
+Measured on 2026-10-24 on the local VM (Ubuntu 24.04, podman 4.9.3, rootless as `factory`): podman accepts all four words; the container's effective capabilities are `0000000000000000`; a write to the dataset still works under `--userns=keep-id`; `--pids-limit=50` stops the 49th fork with "can't fork: Resource temporarily unavailable"; `--memory=64m` sets the container's `memory.max` to 67108864; and the user's systemd delegates the `cpu memory pids` controllers.
 
 `launch` returns `ContainerLaunch(argv, env=None, time_limit=<limit> + CONTAINER_GRACE)`. `env` is `None`: the `podman` program itself runs with the factory's environment (`HOME`, `XDG_RUNTIME_DIR` and `PATH` it needs), as `version` does.
 
@@ -168,7 +180,7 @@ The preflight reads a missing `podman` from this error. The line helpers (`first
 
 ### The stand-in
 
-No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` writes a stand-in `podman` into `tmp_path`. It records its arguments, environment and working directory; it prints planned output, waits and exits with a planned status, or, when its arguments hold the image, runs the words after the image on the host, so that a command's own exit status and output pass through. Tests of the default limit and of the kill rule replace the module's `run_process` with the `Recorder` of `tests/run_process_recorder.py`. The tests are `tests/adapters/test_podman_runs.py` (the command line) and `tests/adapters/test_podman_runs_results.py` (results and faults).
+No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` writes a stand-in `podman` into `tmp_path`. It records its arguments, environment and working directory; it prints planned output, waits and exits with a planned status, or, when its arguments hold the image, runs the words after the image on the host, so that a command's own exit status and output pass through. Tests of the default limit and of the kill rule replace the module's `run_process` with the `Recorder` of `tests/run_process_recorder.py`. The tests are `tests/adapters/test_podman_runs.py` (the command line), `tests/adapters/test_podman_runs_fence.py` (the four words and the constants) and `tests/adapters/test_podman_runs_results.py` (results and faults).
 
 ## The take
 

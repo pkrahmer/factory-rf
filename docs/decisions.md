@@ -1017,3 +1017,12 @@ Date: 2026-10-24 (F0042-S0005; the design is `planning/v1.2-plan.md`, the human'
 - The seam: the stage protocol calls `StageEnvironment` (`prepare`, `run_agent`, `take`), and no longer `run_sealed` or `UndoService`. `InlineEnvironment` is v1.1's way behind the interface and is the second implementation beside F0042-S0007's `ContainerEnvironment`, until F0044 removes it with the layers it uses. `StallService` still undoes on its own until then.
 - The journal sentence stays `The factory undid changes outside the write paths: ...` until F0044 (decision 9 of the feature F0042).
 - Rejected: a stage container that pushes with a token; the factory as root on the VM; keeping `factory-confine` inside the container as a second fence; a dataset with the work tree only (the agents would lose `git diff main`); a second snapshot adapter in v1.2.
+
+## Every container runs without rights and within limits
+
+Date: 2026-10-24 (F0042-S0016, decision 23 of the feature F0042).
+
+- Decision: every container of `PodmanRuns` is started with `--cap-drop=all`, `--security-opt=no-new-privileges`, `--pids-limit=4096` and `--memory=4g` (the constants `PIDS_LIMIT` and `MEMORY_LIMIT`). Every container keeps podman's default network. A container killed for its memory before its time limit is an ordinary failure with its exit status.
+- Why: code in the checkout (a dependency's install script, a test, a file an agent was misled into writing) runs in these containers, and F0044 removes the second user and the kernel's write guard, so the container's own fence is what stays.
+- Why the network stays: the check's `make sync` needs the package index after a change of `uv.lock` or `pyproject.toml`, the sync needs it as well, and the agent needs the model's API. Cutting it is a later step, for example an allow-list. The human chose this on 2026-10-24 over a check without network.
+- Rejected: a `network` option on `ContainerRuns` that the check does not ask for.
