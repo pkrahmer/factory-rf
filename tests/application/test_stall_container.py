@@ -8,6 +8,7 @@ import pytest
 
 from container_support import (
     FIRST,
+    FIVE_MINUTES,
     Pace,
     WorkspaceRuntime,
     clocked_environment,
@@ -29,7 +30,6 @@ from undo_support import BRANCH, GUIDE, PATH
 NOTES = "notes.md"
 LATER = "src/c.py"
 SYNC_TARGET = "\nsync:\n\t@echo synced\n"
-FIVE_MINUTES = timedelta(minutes=5)
 BLANK_ENTRY = AgentRunResult(
     end_reason="completed", decision="doing", entry="tester: ", duration=timedelta(minutes=1)
 )

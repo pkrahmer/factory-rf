@@ -8,11 +8,12 @@ from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.take import TakeReport, TakeService
 from factory.domain.git import ChangedPath
-from undo_support import PATH
+from stage_run_support import PATH
 
 DATASET = "dataset"
 MOUNTED = "checkout"
 AGENT_TEXT = "written by the agent\n"
+BROKEN_FRONT_MATTER = "---\nstage: [unclosed\n  : :\n---\n# First story\n"
 
 Tree = dict[str, tuple[str, int, bytes]]
 

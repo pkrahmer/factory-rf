@@ -9,12 +9,19 @@ from factory.application.claims import StageStart
 from factory.domain.paths import cost_records_path
 from git_support import run_git
 from human_clone import HumanClone
-from take_support import AGENT_TEXT, changes, make_dataset, run_take, tree, write_dataset
+from take_support import (
+    AGENT_TEXT,
+    BROKEN_FRONT_MATTER,
+    changes,
+    make_dataset,
+    run_take,
+    tree,
+    write_dataset,
+)
 from undo_support import GUIDE, GUIDE_TEXT, IN_PROGRESS, KEPT, PATH, SECOND, start_stage
 from work_item_support import checkout_text
 
 STORY_FORM_FILE = "factory/story-form.md"
-BROKEN_FRONT_MATTER = "---\nstage: [unclosed\n  : :\n---\n# First story\n"
 OLD = "src/old.py"
 OLD_TEXT = "gone = 1\n"
 NEW = "src/new.py"

@@ -11,6 +11,7 @@ from typing import override
 import pytest
 
 from container_support import (
+    FIVE_MINUTES,
     SYNC_MARKER,
     Dataset,
     container_dataset,
@@ -32,7 +33,6 @@ from human_clone import HumanClone
 from sealed_run_support import COMPLETED, run_request
 from undo_support import BRANCH, start_stage
 
-FIVE_MINUTES = timedelta(minutes=5)
 AGENT = "tester"
 CHANGED_AGENT_FILE = AGENT_FILE.replace("Do the work.", "Do the work again.")
 GONE = "gone"

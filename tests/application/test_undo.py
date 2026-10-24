@@ -15,6 +15,7 @@ from factory.domain.paths import cost_records_path
 from factory.domain.write_paths import refusal
 from git_support import PIPELINE_YAML, write_files
 from human_clone import HumanClone
+from take_support import BROKEN_FRONT_MATTER
 from undo_support import (
     GUIDE,
     GUIDE_TEXT,
@@ -26,13 +27,14 @@ from undo_support import (
     pipeline_text,
     start_stage,
     undo_stage,
+    with_broken_work_item,
+    without_work_item,
 )
 from work_item_support import checkout_text
 
 THIRD_COSTS = f"{IN_PROGRESS}/F0001-S0003-third.costs.jsonl"
 NOTES = f"{IN_PROGRESS}/notes.txt"
 STORY_FORM_FILE = "factory/story-form.md"
-BROKEN_FRONT_MATTER = "---\nstage: [unclosed\n  : :\n---\n# First story\n"
 AGENT_TEXT = "written by the agent\n"
 
 
@@ -337,19 +339,7 @@ def test_the_lists_ascend_without_repeats_and_a_second_undo_finds_nothing(
     assert second == UndoReport(reverted=[], deleted=[], restored_work_item=False)
 
 
-def _without_work_item(boundaries: Boundaries, start: StageStart) -> StageStart:
-    commit = boundaries.git.resolve("origin/main")
-    assert commit is not None
-    return StageStart(commit=commit, claim=start.claim)
-
-
-def _with_broken_work_item(boundaries: Boundaries, start: StageStart) -> StageStart:
-    write_files(boundaries.checkout, {PATH: BROKEN_FRONT_MATTER})
-    commit = boundaries.git.commit("break the work item")
-    return StageStart(commit=commit, claim=start.claim)
-
-
-@pytest.mark.parametrize("baseline", [_without_work_item, _with_broken_work_item])
+@pytest.mark.parametrize("baseline", [without_work_item, with_broken_work_item])
 def test_a_missing_or_unreadable_baseline_raises_before_any_path_is_changed(
     boundaries: Boundaries,
     human: HumanClone,

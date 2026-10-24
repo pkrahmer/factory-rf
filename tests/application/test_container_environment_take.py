@@ -1,37 +1,33 @@
 """The container environment's take on the snapshots' changes, its timing line, a whole stage."""
 
-from dataclasses import replace
-from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
 from container_support import (
     FIRST,
+    FIVE_MINUTES,
     SECOND,
     Pace,
     Steps,
-    WorkspaceRuntime,
+    assert_taken_and_pushed,
     clocked_environment,
     container_dataset,
     started_with_sync,
     timing_lines,
+    whole_stage,
 )
 from factory.adapters.clock import ManualClock
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.stage_environment import ContainerEnvironment
 from factory.application.take import TakeReport
 from git_support import write_files
 from human_clone import HumanClone
-from stage_run_support import branch_head, completed, open_story, pushed, run_stage, stage_makefile
+from take_support import AGENT_TEXT
 from undo_support import BRANCH, GUIDE, GUIDE_TEXT, PATH
 
-FIVE_MINUTES = timedelta(minutes=5)
-AGENT_TEXT = "written by the agent\n"
 NEW = "src/new.py"
-INSIDE = "tests/test_a.py"
-NOTES = "notes.md"
 
 
 def test_take_copies_the_snapshots_changes_the_role_may_write(
@@ -126,22 +122,12 @@ def test_a_whole_stage_takes_the_agents_work_from_the_dataset(
     remote: Path,
     tmp_path: Path,
 ) -> None:
-    makefile = stage_makefile() + "\nsync:\n\t@echo synced > .synced\n"
-    open_story(
-        boundaries, human, agent_home, makefile=makefile, main_files={".gitignore": ".synced\n"}
-    )
-    dataset = container_dataset(boundaries, tmp_path)
-    agent_runtime.queue(ScriptedRun(result=completed("doing")))
-    runtime = WorkspaceRuntime(
-        agent_runtime, dataset.workspace / "checkout", {INSIDE: AGENT_TEXT, NOTES: AGENT_TEXT}
+    _, report = whole_stage(
+        boundaries,
+        human=human,
+        agent_home=agent_home,
+        agent_runtime=agent_runtime,
+        tmp_path=tmp_path,
     )
 
-    report = run_stage(replace(dataset.boundaries, agent_runtime=runtime))
-
-    assert report.commit == branch_head(remote)
-    assert boundaries.git.show_file(report.commit, INSIDE) == AGENT_TEXT
-    assert boundaries.git.show_file(report.commit, NOTES) is None
-    journal = pushed(boundaries, remote).body.split("## Journal", 1)[1]
-    assert NOTES in journal
-    assert len(timing_lines(boundaries)) == 1
-    assert boundaries.git.status().changes == []
+    assert_taken_and_pushed(boundaries, remote, report)

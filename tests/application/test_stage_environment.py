@@ -9,9 +9,8 @@ from pathlib import Path
 import pytest
 
 from application.test_nested_repositories import NestingRuntime
-from application.test_sealed_runs import OPEN_FILE, OPEN_FOLDER, ModeRecordingRuntime, _leave
+from application.test_sealed_runs import OPEN_FILE, OPEN_FOLDER, ModeRecordingRuntime
 from application.test_sealed_runs_runner import Runner
-from application.test_undo import _with_broken_work_item, _without_work_item
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
@@ -20,8 +19,16 @@ from factory.application.take import TakeReport
 from factory.domain.errors import WorkItemFormatError
 from git_support import run_git, write_files
 from human_clone import HumanClone
-from sealed_run_support import COMPLETED, run_request
-from undo_support import GUIDE, GUIDE_TEXT, KEPT, PATH, start_stage
+from sealed_run_support import COMPLETED, leave, run_request
+from undo_support import (
+    GUIDE,
+    GUIDE_TEXT,
+    KEPT,
+    PATH,
+    start_stage,
+    with_broken_work_item,
+    without_work_item,
+)
 from work_item_support import checkout_text
 
 WRITTEN = "tests/test_a.py"
@@ -58,7 +65,7 @@ def test_run_agent_is_the_sealed_run_through_the_runtime_or_the_given_run(
     _open_git_folder(boundaries.checkout)
     request = run_request(boundaries.checkout)
     if given:
-        runner = Runner(boundaries.checkout, _leave)
+        runner = Runner(boundaries.checkout, leave)
         sealed = InlineEnvironment(boundaries).run_agent(request, run=runner.run)
         assert runner.requests == [request]
         assert runner.modes == [SEALED_MODES]
@@ -115,8 +122,8 @@ def _with_raised_attempts(boundaries: Boundaries, start: StageStart) -> StageSta
     [
         pytest.param(_as_started, False, id="work-item-untouched"),
         pytest.param(_with_raised_attempts, True, id="work-item-state-changed"),
-        pytest.param(_without_work_item, None, id="work-item-absent"),
-        pytest.param(_with_broken_work_item, None, id="work-item-unreadable"),
+        pytest.param(without_work_item, None, id="work-item-absent"),
+        pytest.param(with_broken_work_item, None, id="work-item-unreadable"),
     ],
 )
 def test_take_is_the_undo_turned_into_a_take_report(

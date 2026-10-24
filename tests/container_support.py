@@ -1,19 +1,21 @@
 """Shared helpers of the container environment tests: a dataset beside the host and its fakes."""
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import timedelta
 from pathlib import Path
 
 from factory.adapters.clock import ManualClock
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.fake_snapshots import FakeSnapshots
 from factory.application.agent_runtime import AgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.containers import ContainerRuns
+from factory.application.project_commands import ProjectCommands
 from factory.application.snapshots import Snapshots
+from factory.application.stage import StageReport
 from factory.application.stage_environment import ContainerEnvironment
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
@@ -22,6 +24,8 @@ from factory.domain.settings import InstanceSettings
 from git_support import install_agents, run_git, write_files
 from human_clone import HumanClone
 from podman_support import IMAGE
+from stage_run_support import branch_head, completed, open_story, pushed, run_stage, stage_makefile
+from take_support import AGENT_TEXT
 from undo_support import start_stage
 from zfs_support import DATASET, MOUNT_POINT
 
@@ -29,6 +33,9 @@ SYNC_MARKER = ".synced"
 SYNC_RECIPE = f"@echo synced > {SYNC_MARKER}"
 TIMING_PREFIX = "stage environment:"
 TAKE_SECONDS = 0.25
+FIVE_MINUTES = timedelta(minutes=5)
+INSIDE = "tests/test_a.py"
+NOTES = "notes.md"
 CONTAINER: dict[str, object] = {
     "stage_environment": "container",
     "dataset": DATASET,
@@ -248,3 +255,46 @@ class WorkspaceRuntime(AgentRuntime):
     def version(self) -> str:
         """The delegate's version."""
         return self._delegate.version()
+
+
+def whole_stage(
+    boundaries: Boundaries,
+    *,
+    human: HumanClone,
+    agent_home: Path,
+    agent_runtime: FakeAgentRuntime,
+    tmp_path: Path,
+    project_commands: Callable[[Dataset], ProjectCommands] | None = None,
+) -> tuple[Dataset, StageReport]:
+    """Run the story's `tests` stage on a dataset whose agent writes `INSIDE` and `NOTES`.
+
+    `project_commands`, given the dataset, picks the stage's project commands; the host's
+    stay by default.
+    """
+    open_story(
+        boundaries,
+        human,
+        agent_home,
+        makefile=stage_makefile() + f"\nsync:\n\t{SYNC_RECIPE}\n",
+        main_files={".gitignore": f"{SYNC_MARKER}\n"},
+    )
+    dataset = container_dataset(boundaries, tmp_path)
+    agent_runtime.queue(ScriptedRun(result=completed("doing")))
+    runtime = WorkspaceRuntime(
+        agent_runtime, dataset.workspace / "checkout", {INSIDE: AGENT_TEXT, NOTES: AGENT_TEXT}
+    )
+    stage_boundaries = replace(dataset.boundaries, agent_runtime=runtime)
+    if project_commands is not None:
+        stage_boundaries = replace(stage_boundaries, project_commands=project_commands(dataset))
+    return dataset, run_stage(stage_boundaries)
+
+
+def assert_taken_and_pushed(boundaries: Boundaries, remote: Path, report: StageReport) -> None:
+    """Check the stage pushed `INSIDE` but not `NOTES`, logged its timing, kept the host clean."""
+    assert report.commit == branch_head(remote)
+    assert boundaries.git.show_file(report.commit, INSIDE) == AGENT_TEXT
+    assert boundaries.git.show_file(report.commit, NOTES) is None
+    journal = pushed(boundaries, remote).body.split("## Journal", 1)[1]
+    assert NOTES in journal
+    assert len(timing_lines(boundaries)) == 1
+    assert boundaries.git.status().changes == []
