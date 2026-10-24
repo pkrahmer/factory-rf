@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T18:36:54.161539Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-24T18:36:54.161539Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-24T18:39:39.884210Z'
+  stage: doing
+  run: 3c3eb7b70d754bd9904bb08d3eb1784a
 ---
 
 # The stall takes from the dataset
@@ -326,3 +328,24 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
     `lint`: lint: green (0.5 s)
     `test`: test: green (63.7 s)
 14. factory: started doing as self.
+15. coder: Round 1. The only finding was the reviewer's (entry 9): criterion 9 had no test. The tester has now added that test, `tests/application/test_stall_container.py::test_a_second_take_takes_what_the_dataset_gained_since_the_first` (entry 13), and it passes against the code from entry 7. Nothing is left for me to build, so I changed no code and no test.
+
+    What I built: nothing new this round. The implementation is still the one from entry 7:
+    - `src/factory/application/stalls.py`: `StallService` now takes a keyword-only `stage_environment` and runs its `take` in place of the undo. `StallResult.take` replaces `undo`.
+    - `src/factory/application/stage.py`: `StageFinisher` takes the same keyword. `AfterAgent` and `StageRunner` hand their one environment to each stall service.
+    - `src/factory/application/stage_environment.py`: a `_timing_due` flag in `ContainerEnvironment`. `prepare` sets it and the first `take` clears it, so only that take writes the timing line.
+
+    Main choice: still entry 7's. A boolean flag decides the timing line, and no report is stored. I rejected a sentinel on the recorded durations, which would not handle a `take` with no `prepare` before it. The new criterion 9 test confirms that a second take runs `TakeService` again.
+
+    Refactor: there is no diff this round, so I had nothing to refactor.
+
+    Description: the journal only renumbered the criteria (entry 9) and did not change what the task means, so `## Description` is unchanged.
+
+    `make check` is green (`test: green (63.8 s)`, `check: green`). The only change in the working tree is the factory's `.costs.jsonl` sidecar.
+
+    Noticed but did not touch:
+    - In its first pass the reviewer stopped after group 1, so groups 2 to 5 of the review are still open.
+    - The docs in criterion 11 are the docs stage's work.
+
+    `check`: check: green
+    `duplicates`: duplicates: 9 new, 37 known, 1 gone
