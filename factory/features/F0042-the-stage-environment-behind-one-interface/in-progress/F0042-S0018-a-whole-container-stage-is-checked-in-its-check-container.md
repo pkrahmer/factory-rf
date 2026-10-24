@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 426
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T22:48:54.285069Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-24T22:48:54.285069Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T22:49:28.588475Z'
+  stage: smoke-test
+  run: 73759e60de364597a083aa3bbd100b8f
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -362,3 +364,37 @@ Expect: three lines, `2`, `1`, `1`
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: I ran both smoke-test commands from the repository root, exactly as written. Both met their `Expect:` lines.
+
+    Command 1:
+    ```bash
+    uv run pytest tests/application/test_container_stage_checks.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '
+    ```
+    ```
+    1
+    ```
+    It met `Expect: 1`. I also ran pytest on the module without the filter to see the summary line: `5 passed in 1.55s`.
+
+    Command 2:
+    ```bash
+    grep -rlE '^(FIVE_MINUTES|BROKEN_FRONT_MATTER) = ' tests | wc -l; grep -rlE '^def _?(without_work_item|with_broken_work_item)\(' tests | wc -l; grep -rl '^IMAGE = "factory-stage:1"' tests | wc -l
+    ```
+    ```
+    2
+    1
+    1
+    ```
+    It met `Expect: three lines, 2, 1, 1`.
+
+    Checking against the acceptance criteria:
+    - Criterion 4: I listed the definitions by line. Each one appears exactly once:
+      - `FIVE_MINUTES` in `tests/container_support.py:36`
+      - `BROKEN_FRONT_MATTER` in `tests/take_support.py:16`
+      - `without_work_item` and `with_broken_work_item` in `tests/undo_support.py:69` and `:76`
+      - `IMAGE = "factory-stage:1"` in `tests/podman_support.py:10`
+
+      The other `IMAGE = "build-7"` constants are a different value and outside the criterion. A grep found no `import _` of a name from another test module in `tests/application/test_stage_environment.py`.
+    - Criteria 1–3: the passing module is the smoke test's evidence for them.
+    - Criteria 5 (`make check`) and 6 (docs): the smoke test does not target them, and nothing it showed contradicts them.
+
+    Findings: none. Open: nothing.
