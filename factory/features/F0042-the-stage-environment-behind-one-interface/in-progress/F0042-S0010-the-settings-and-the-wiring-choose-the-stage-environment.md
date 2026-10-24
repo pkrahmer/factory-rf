@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T21:12:44.179338Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-24T21:12:23.441219Z'
   stage: review
   run: e3f18e78d38a498bb121efd69f53eab0
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:12:44.179338Z'
+  stage: docs
 ---
 
 # The settings and the wiring choose the stage environment
@@ -377,3 +386,4 @@ Expect: `1`
     Notes:
     1. `tests/entry/test_wiring_stage_environment.py`, `_recording_stand_in` and `_calls`: a second recording stand-in for `zfs` and `podman`. `tests/zfs_support.py` (`ZFS_SCRIPT`, `Zfs.arguments`) and `tests/podman_support.py` (`PODMAN_SCRIPT`, `PodmanPlan`) already provide these. The shared stand-ins could be used instead.
     2. `tests/entry/test_wiring_stage_environment.py`, `IMAGE` and `DATASET`: copies of `tests/podman_support.IMAGE` and `tests/zfs_support.DATASET`.
+18. factory: started docs as self.
