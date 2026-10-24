@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578, 6386353501]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T16:00:41.578841Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -119,6 +115,12 @@ journal:
   kind: started
   at: '2026-10-24T16:00:41.578841Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-10-24T16:03:01.073392Z'
+  stage: doing
+  run: df6fd7d97aff467ea4cc5e53183a7649
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -381,3 +383,24 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
 
     Please write the rule into the Interface and the criterion into the criteria.
 19. factory: started doing as self.
+20. coder: Round 1, after the human's answer A (entry 18). I implemented the parent-folder rule and changed no test. The following changes are for the tester.
+
+    **Test changes for the tester:**
+    1. Finding 1. In `tests/adapters/test_git_cli_check_ignore.py::test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read`, rows `one-group` and `two-groups`:
+       - The stand-in answers `.gitignore:1:*.log<TAB><path>` for each path ending in `.log`, and `::<TAB><path>` for every other path.
+       - The assertion checks that the result is exactly the `.log` paths from both groups, in the order given.
+    2. The new criterion from entry 18, as two rows of `tests/application/test_take_edges.py::test_copy_changed_mirrors_each_changed_path_into_the_target`:
+       - (a) The target's `src/evil` is a link to a folder outside the target tree, and `src/evil/x` is `added`. The outside folder is unchanged, and `src/evil` ends as a real folder that holds the source's `x`.
+       - (b) The same link, and `src/evil/x` is `deleted`. The outside folder's file stays.
+
+    **What I built:** `src/factory/application/take.py`. Before an `added` or `modified` path is placed, `copy_changed` now walks the parent folders from `target` down, using `_parent_folders` and `_make_real_folders`. Each parent that is a link or not a folder is removed with the existing `_remove_entry` (a link goes as the link) and then made a real folder. For a `deleted` path, the entry is removed only when every parent is a real folder (`_is_real_folder`, which uses `lstat`). The check runs top-down and stops at the first linked or missing parent, so no `lstat` ever goes through a link. `_place` no longer makes the parent folders, because the walk has already made them. I ran both new cases by hand against a temporary tree and they behave as entry 18 says: the outside file is untouched by the delete, and the add leaves `src/evil` as a real folder holding the source's `x`. `make check`: check: green (coverage 99.18 %).
+
+    **Main decision:** I check the parents one at a time from the target down. The alternative I rejected was resolving the entry's parent with `Path.resolve()` and testing whether it lies under `target`. That approach follows links to decide, and it would only refuse such a path rather than turn the parent into a real folder, which is what the human asked for.
+
+    **Refactor:** I read the diff once and found nothing to change.
+
+    **What the journal changed:** entry 18 widens the Interface's `copy_changed` rule from the entry itself to every parent folder, as worded above, and adds a criterion before the two closing ones. That criterion is the two rows above; it would make `make check` criterion 13 and docs criterion 14. The human asked for these to be written into the Interface and the criteria. The work item is outside my write paths: the write was refused with `Permission denied`. So the Interface and criteria text still have to be written by a stage or a person whose write paths include the work item. The docs criterion's *The take* section should describe the parent-folder rule too.
+
+    **Noticed, not touched:**
+    - `_is_ignoring` in `git_cli.py` misreads an ignore-file path that contains a colon.
+    - `make duplicates` reports dead code for `TakeService`, which is expected until the container environment calls it.

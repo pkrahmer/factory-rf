@@ -33,8 +33,14 @@ def copy_changed(source: Path, target: Path, changed: Sequence[ChangedPath]) -> 
         check_repository_path(change.path)
     for change in changed:
         entry = target / change.path
-        _remove_entry(entry)
-        if change.change != "deleted":
+        parents = _parent_folders(target, change.path)
+        if change.change == "deleted":
+            # Behind a linked or missing parent the entry is not in the tree; never follow one.
+            if all(_is_real_folder(folder) for folder in parents):
+                _remove_entry(entry)
+        else:
+            _make_real_folders(parents)
+            _remove_entry(entry)
             _place(source / change.path, entry)
 
 
@@ -97,8 +103,24 @@ def _remove_entry(entry: Path) -> None:
         entry.unlink()
 
 
+def _parent_folders(target: Path, path: str) -> list[Path]:
+    # From the target down, so each is looked at only once the one above is a real folder.
+    parts = PurePosixPath(path).parts[:-1]
+    return [target.joinpath(*parts[:depth]) for depth in range(1, len(parts) + 1)]
+
+
+def _is_real_folder(folder: Path) -> bool:
+    return os.path.lexists(folder) and stat.S_ISDIR(folder.lstat().st_mode)
+
+
+def _make_real_folders(folders: Sequence[Path]) -> None:
+    for folder in folders:
+        if not _is_real_folder(folder):
+            _remove_entry(folder)
+            folder.mkdir()
+
+
 def _place(source: Path, entry: Path) -> None:
-    entry.parent.mkdir(parents=True, exist_ok=True)
     mode = source.lstat().st_mode
     if stat.S_ISLNK(mode):
         entry.symlink_to(source.readlink())
