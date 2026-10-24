@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 422
-comments_read: []
+comments_read: [6389680101]
 handed_over: null
 claim: null
 journal:
@@ -37,6 +37,11 @@ journal:
   stage: tests
   run: fa5361a9f91c47f2bf0cbe9ef9709097
   blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-10-24T21:21:34.887322Z'
+  stage: tests
 ---
 
 # The preflight checks the container environment
@@ -155,3 +160,4 @@ Expect: `1`
    I'd choose A, because criterion 10 cites decision 15 for it and the host never runs `make` in a container instance. Please confirm, and say whether the Interface should name a constant for the container's tools (for example `CONTAINER_TOOLS = ("git", "uv")`), so the test can name it or just check the item names.
 
    What I did: I read the work item, `factory.application.preflight`, `factory.application.stage_environment`, the fake snapshots and containers, `ContainerMakeCommands`, `tests/container_support.py`, `tests/wiring_support.py` and the current probe, preflight-run, machine-checks and wiring-extras tests. The other criteria (1 to 9) can be tested as written. I wrote no tests and created no files, so I have not run `make test` or `make lint` in this run. I'll write all six test files once this is answered.
+6. 2026-10-24 human: A. Criterion 10 is right, by decision 15 of `feature.md` ("The item `tool:make` is not run for `container` either"): a `container` instance runs `make` only inside the sync and check containers, so the host checks `git` and `uv` only. Read the Interface sentence as "`REQUIRED_TOOLS` without `make` and without the runtime's executable". Name it as a constant in `factory.application.preflight`: `CONTAINER_TOOLS = ("git", "uv")`, beside `REQUIRED_TOOLS`, and `MachineChecks.run` uses it for `settings.stage_environment == "container"`; no filter on `REQUIRED_TOOLS`, so `tests/test_make_search.py` stays as it is. The test may name the constant and check the item names; for `inline` the items stay exactly as today.
