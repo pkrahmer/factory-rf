@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T18:33:53.815172Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-24T18:33:33.640085Z'
   stage: doing
   run: dd7e826751c9454084cad5dabfd3294f
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:33:53.815172Z'
+  stage: tests
 ---
 
 # The stall takes from the dataset
@@ -284,3 +293,4 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
     Nothing was built or refactored this round, so there is no diff to review, and I did not run `make check` again; entry 7 reported it green. Entry 9 renumbered the criteria and did not change what the task means, so `## Description` stays as it is.
 
     Noticed but did not touch: the reviewer stopped at group 1, so groups 2 to 5 of the review still need to run after the tests stage.
+12. factory: started tests as self.
