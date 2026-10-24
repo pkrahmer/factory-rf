@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-24T23:00:00.958116Z'
   stage: acceptance
   run: 8ea81bb1fa1a4e60a278ff501387b86d
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-24T23:01:21.854601Z'
+  stage: done
 stories: [F0042-S0001, F0042-S0002, F0042-S0003, F0042-S0004, F0042-S0005, F0042-S0006, F0042-S0007, F0042-S0008, F0042-S0009, F0042-S0010, F0042-S0011, F0042-S0012, F0042-S0013, F0042-S0014, F0042-S0015, F0042-S0016, F0042-S0017, F0042-S0018]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The stage environment behind one interface
@@ -218,3 +223,4 @@ Human interventions: 13 questions answered (12 questions and 1 round cap), with 
    6. Decisions: `feature.md` decisions 1 to 23 and the answers of S0001 to S0016, as in the first report. New: the human's answer (a) in S0017 on the smoke test's count. S0018 changed 17 earlier test files, all under the standing leave. No test changed without a leave.
    7. Slow checks: nothing beyond `make check`. The slowest tests are earlier features' `ROOMY_LIMIT` waits at 11.5 s; F0042's slowest is the podman 255 row at 10.0 s. `make duplicates` was not rerun (S0018 recorded 11 new, unchanged). Disk used on `/work` shrank from 0.5 to 0.0 GB, so there is no growth to explain.
    8. Cost: $72.64, 202 runs, 300.1 min. S0017 cost $1.06 and S0018 $3.35, with one rework round for a copied fixture. S0002 still stands out at $6.63 and needed the human most (3 answers). 13 questions answered, 0.4 h waited. The new one came from my own `Expect:` count in the S0017 story the first acceptance proposed.
+3. factory: done (pull request merged); cost: 1 runs, 7.4 min, 45 turns, 118816 tokens in (3546675 more from cache), 27954 out, $2.22
