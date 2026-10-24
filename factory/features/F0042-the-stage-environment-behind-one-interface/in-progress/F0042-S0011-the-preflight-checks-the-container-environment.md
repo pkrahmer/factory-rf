@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T21:21:52.918786Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-24T21:21:52.918786Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-24T21:27:46.697350Z'
+  stage: tests
+  run: 16d4bb7b605a458ea547ec9eae74b1ce
 ---
 
 # The preflight checks the container environment
@@ -171,3 +173,36 @@ Expect: `1`
    What I did: I read the work item, `factory.application.preflight`, `factory.application.stage_environment`, the fake snapshots and containers, `ContainerMakeCommands`, `tests/container_support.py`, `tests/wiring_support.py` and the current probe, preflight-run, machine-checks and wiring-extras tests. The other criteria (1 to 9) can be tested as written. I wrote no tests and created no files, so I have not run `make test` or `make lint` in this run. I'll write all six test files once this is answered.
 6. 2026-10-24 human: A. Criterion 10 is right, by decision 15 of `feature.md` ("The item `tool:make` is not run for `container` either"): a `container` instance runs `make` only inside the sync and check containers, so the host checks `git` and `uv` only. Read the Interface sentence as "`REQUIRED_TOOLS` without `make` and without the runtime's executable". Name it as a constant in `factory.application.preflight`: `CONTAINER_TOOLS = ("git", "uv")`, beside `REQUIRED_TOOLS`, and `MachineChecks.run` uses it for `settings.stage_environment == "container"`; no filter on `REQUIRED_TOOLS`, so `tests/test_make_search.py` stays as it is. The test may name the constant and check the item names; for `inline` the items stay exactly as today.
 7. factory: started tests as self.
+8. tester: I wrote the tests for criteria 1 to 10. The human's answer settled the `tool:make` question: a `container` instance checks `tool:git` and `tool:uv` only, through `CONTAINER_TOOLS`. The test checks the item names and does not name the constant.
+
+   Criterion → test:
+   - criterion 1: tests/application/test_container_items.py::test_a_tool_passes_with_its_version_line_or_fails_naming_the_error (rows: podman passes and fails, zfs passes and fails)
+   - criterion 2: tests/application/test_container_items.py::test_the_dataset_item_passes_when_the_dataset_exists_and_says_how_to_make_it
+   - criterion 3: tests/application/test_container_items.py::test_the_stage_image_item_passes_when_the_image_is_built_and_says_how_to_build_it
+   - criterion 4: tests/application/test_opencode_item_container.py::test_a_container_instance_s_opencode_item_ignores_the_path_and_checks_the_aliases
+   - criterion 5: tests/application/test_agent_run_probe_environment.py::test_the_probe_runs_after_the_dataset_is_prepared_for_main
+   - criterion 6: tests/application/test_agent_run_probe_environment.py::test_a_fault_of_preparing_the_environment_fails_the_probe_before_any_run (rows: no-main with an empty bare remote and its clone, no-base, sync-fails)
+   - criterion 7: tests/application/test_preflight_run_environment.py::test_the_lint_probe_runs_in_a_check_container_after_the_environment_is_prepared (rows: passes, sync-fails, no-base; `project_commands` is a `ContainerMakeCommands` on the fakes)
+   - criterion 8: tests/entry/test_wiring_container_extras.py::test_the_extras_are_chosen_by_the_stage_environment_in_the_operator_guides_order (four rows: container, container-opencode, and the two inline rows of test_wiring_extras.py)
+   - criterion 9: tests/entry/test_wiring_container_extras.py::test_the_container_items_run_the_podman_and_zfs_the_settings_name. Its last clause (no `agent-user`, `tool:sudo`, `agent-environment` or `confinement` for `container`) is covered by criterion 8's exact lists.
+   - criterion 10: tests/application/test_machine_checks_container.py::test_a_container_instance_checks_git_and_uv_but_no_make_and_no_runtime_executable (rows: container, container-opencode, inline). Each row passes one extra item, so the test also checks that the extras follow the first items.
+   - criteria 11 and 12: no test (make check, docs).
+
+   Two assertions go a little past the criteria's wording. Both follow from the Interface's order (prepare first, then run):
+   - Criterion 6's sync-fails row also checks that the runtime got no request. The criterion says this only for the other two rows.
+   - Criterion 7's `prepare` rows check that no `factory-check` call ran.
+
+   Files created:
+   - tests/application/test_container_items.py
+   - tests/application/test_opencode_item_container.py
+   - tests/application/test_machine_checks_container.py
+   - tests/application/test_agent_run_probe_environment.py
+   - tests/application/test_preflight_run_environment.py
+   - tests/entry/test_wiring_container_extras.py
+
+   I changed no earlier test file.
+
+   `make test` (one run, last five lines): tests/application/test_container_items.py cannot be imported, because `factory.application.preflight` has no `tool_version_item`, `dataset_item` or `stage_image_item` yet. The three rows of the probe-fault test fail with `assert not True`: today the probe passes without preparing. The five lines show nothing else; the factory records the full last line. `make lint`: green. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.6 s)
+   `test`: ERROR tests/application/test_container_items.py - ImportError while importing test module '/work/checkout/tests/application/test_container_items.py'.
