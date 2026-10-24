@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T23:41:30.922600Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-24T23:41:10.937405Z'
   stage: intake
   run: 27856411ac394dd1b90cd1d595a1fb8a
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:41:30.922600Z'
+  stage: tests
 ---
 
 # The stage image is the tools alone
@@ -93,3 +102,4 @@ Expect: `1`
    - Smoke test: the commands are runnable with grep, sed, cmp and pytest. Each `Expect:` line is checkable against the output. The pytest command passes no `-q`, and `addopts` in `pyproject.toml` already sets `-q`, so the `N passed in` summary line exists as the Expect assumes.
    - Architecture: no layer is touched. The file lives under `vm/`, which the feature's change 1 makes a coder write path. The tests read the file as text, as `tests/test_image*.py` do. The shared readers move to `tests/dockerfile_support.py` only under the standing leave in CLAUDE.md and decision 15 of `feature.md`.
    - Scope: within `feature.md`'s S0001 scope. Nothing under `image/` changes, and no story step runs podman, apt or the like. Out-of-scope items are not touched.
+4. factory: started tests as self.
