@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 413
-comments_read: []
+comments_read: [6386836732]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: 90f92333839449f29571eafa1234633e
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-24T16:44:24.361800Z'
+  stage: doing
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -273,3 +278,4 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
    - `StallService` still undoes on its own, as the description says.
    - `UndoReport` is still used by `stalls.py` and `undo_support`.
    - The docs criterion is left to the documenter.
+8. 2026-10-24 human: Answer to the coder (F0042-S0005, the stage protocol calls the stage environment, and the inline environment is today's way): **(a)**. The tester renames the module to `tests/application/test_stage_environment_calls.py`, with the same contents. `tests/test_test_names.py` stays as it is: its naming rule holds. The story's Interface ("Tests") and the first smoke-test command name the new file; the reviewer writes that into the work item.
