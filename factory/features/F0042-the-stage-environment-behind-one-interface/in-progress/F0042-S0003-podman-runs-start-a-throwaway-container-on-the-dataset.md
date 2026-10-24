@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T13:17:51.581655Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-24T13:17:51.581655Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-24T13:20:28.010060Z'
+  stage: tests
+  run: 0a8080cb32b649a18b3b4b06fd0972de
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -292,3 +294,14 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
 
     Noticed but did not touch: `make duplicates` lists `WORK_HOME` in `src/factory/domain/containers.py` as unused (vulture, 60 % confidence). This change did not cause it; the constant was already there. The journal changed nothing that calls for a rewrite of the Description: the reviewer had already written criteria 10 and 11 into it.
 15. factory: started tests as self.
+16. tester: Round 1. I wrote the tests for criteria 10 and 11, which the reviewer added and the coder's entry 14 handed over. They are already green, because the coder's code does both things. No test is red.
+
+    - criterion 10: tests/adapters/test_podman_runs_results.py::test_a_kill_at_the_limit_is_a_timed_out_run. I added one row, `other-status-after-the-limit`. A `Recorder` answers `ProcessResult(exit_status=1, stdout="", stderr="", timed_out=False, duration=timedelta(seconds=5))`, and `run` under `time_limit` 1 s gives `timed_out` false and `exit_status` 1. The row also runs the test's existing request checks: limit plus 30 s, `merge_stderr` true, `cwd` `/`.
+    - criterion 11: tests/adapters/test_podman_runs_results.py::test_version_is_the_first_line_podman_prints and ::test_image_exists_reads_podman_s_exit_status. Criterion 11 names the rows that read the call's arguments: `version` for the first test and `exists` for the second. In those rows the stand-in's recorded `working_directory` now equals the `workspace` fixture.
+
+    Files changed: tests/adapters/test_podman_runs_results.py, a test module I wrote at this story's first tests stage. No files created, and no earlier test of another story changed. The test runner could import every module.
+
+    `make test`: green (63.0 s). `make lint`: green. I set no skill or step aside.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (63.4 s)

@@ -101,6 +101,20 @@ def test_a_run_passes_the_command_s_status_and_output_through(
             None,
             id="the-factory-s-own-kill",
         ),
+        pytest.param(
+            PodmanPlan(),
+            ProcessResult(
+                exit_status=1,
+                stdout="",
+                stderr="",
+                timed_out=False,
+                duration=timedelta(seconds=5),
+            ),
+            timedelta(seconds=1),
+            False,
+            1,
+            id="other-status-after-the-limit",
+        ),
     ],
 )
 def test_a_kill_at_the_limit_is_a_timed_out_run(
@@ -246,6 +260,7 @@ def test_version_is_the_first_line_podman_prints(
     else:
         assert runs.version() == row.expected
         assert [call.arguments for call in podman.calls()] == [["--version"]]
+        assert [call.working_directory for call in podman.calls()] == [workspace]
 
     elapsed = time.monotonic() - started
     assert row.at_least_seconds <= elapsed < ROOMY_BOUND_SECONDS
@@ -297,3 +312,4 @@ def test_image_exists_reads_podman_s_exit_status(
     else:
         assert runs.image_exists() is row.expected
         assert [call.arguments for call in podman.calls()] == [["image", "exists", IMAGE]]
+        assert [call.working_directory for call in podman.calls()] == [workspace]
