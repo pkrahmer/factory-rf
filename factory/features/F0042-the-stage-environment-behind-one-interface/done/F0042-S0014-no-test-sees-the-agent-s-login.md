@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 1
@@ -98,6 +98,11 @@ journal:
   at: '2026-10-24T16:28:08.007002Z'
   stage: smoke-test
   run: dbe8e79ed26d4e38b060f878f462a1e6
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-24T16:29:27.717769Z'
+  stage: approval
 ---
 
 # No test sees the agent's login
@@ -254,3 +259,4 @@ Expect: one line that starts with `N passed` and names no `failed` and no `error
     - No criterion is contradicted. I did not re-run criteria 4 and 5 (the full suite and `make check`) here; they rest on the factory's earlier green `make check` on this tree (entries 10 and 14).
 
     Findings: none.
+17. factory: done (pull request merged); cost: 7 runs, 6.9 min, 40 turns, 131949 tokens in (699767 more from cache), 14035 out, $1.25
