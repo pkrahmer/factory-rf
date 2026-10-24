@@ -260,6 +260,27 @@ def test_a_failed_prepare_raises_and_leaves_the_base(
         assert 1 <= elapsed < 25
 
 
+@pytest.mark.parametrize(
+    ("limit", "detail"),
+    [
+        pytest.param(timedelta(seconds=1.2), "no end within 2 s", id="fraction-rounds-up"),
+        pytest.param(timedelta(seconds=3), "no end within 3 s", id="whole-stays"),
+    ],
+)
+def test_the_timeouts_seconds_are_rounded_up(
+    dataset: Dataset, *, limit: timedelta, detail: str
+) -> None:
+    timed_out = ContainerResult(exit_status=None, output="", timed_out=True, duration=limit)
+    environment = ContainerEnvironment(
+        dataset.boundaries, dataset.snapshots, ResultContainerRuns(timed_out)
+    )
+
+    with pytest.raises(ContainerError) as raised:
+        environment.prepare("a" * 40, "main", sync_time_limit=limit)
+
+    assert (raised.value.command, raised.value.detail) == ("sync", detail)
+
+
 def _git_modes(checkout: Path) -> tuple[int, int]:
     folder = checkout / ".git"
     return stat.S_IMODE(folder.stat().st_mode), stat.S_IMODE((folder / "config").stat().st_mode)

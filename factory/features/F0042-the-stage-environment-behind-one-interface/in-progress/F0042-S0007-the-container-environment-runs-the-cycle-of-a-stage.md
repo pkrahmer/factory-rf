@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T17:54:11.865297Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-24T17:54:11.865297Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-24T17:57:15.729183Z'
+  stage: tests
+  run: 1b3535e5354b4499a9ec45ae85dba96d
 ---
 
 # The container environment runs the cycle of a stage
@@ -304,3 +306,19 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
 
     Still open, untouched: a failed `prepare` keeps the durations of the last successful one.
 15. factory: started tests as self.
+16. tester: This was the approved test change from the coder's entry 14: the test for criterion 12, which the reviewer added. It checks that the timeout's seconds are rounded up. I edited no existing test.
+
+    - criterion 12: tests/application/test_container_environment.py::test_the_timeouts_seconds_are_rounded_up. It has two rows:
+      - `fraction-rounds-up`: a limit of 1.2 s gives `ContainerError("sync", "no end within 2 s")`.
+      - `whole-stays`: a limit of 3 s gives `ContainerError("sync", "no end within 3 s")`.
+
+    How the test works: it builds `ContainerEnvironment` on the `dataset` fixture's snapshots. For the container runs it reuses the module's own `ResultContainerRuns`, which here returns `ContainerResult(exit_status=None, output="", timed_out=True, duration=<the limit>)`. No container really runs and nothing sleeps. The test asserts `command` is `sync` and `detail` is the exact text above.
+
+    Files: I created no new file. I added the test to tests/application/test_container_environment.py, which this story's tester wrote earlier. No other earlier test file changed.
+
+    Imports: every module imported. The new rows pass at once, because the code from round 0 already rounds up with `math.ceil`. They are not red, and the coder expected that in entry 14. One `make test` run was green with 99.19 % coverage (`test: green (71.2 s)`), and `make lint` was green. I skipped the type check, as the stage says.
+
+    Still open from entries 10 and 12: after a failed `prepare`, the object keeps the durations of the last successful one. No criterion covers that case, so I wrote no test for it.
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (67.6 s)
