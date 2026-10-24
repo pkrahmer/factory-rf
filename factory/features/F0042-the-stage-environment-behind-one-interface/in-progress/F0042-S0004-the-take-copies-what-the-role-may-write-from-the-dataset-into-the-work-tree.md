@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 410
 comments_read: [6384920747]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T13:54:43.313108Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-24T13:54:22.385562Z'
   stage: doing
   run: b3467a976b584cf79f2e9a6a48dd76ac
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-24T13:54:43.313108Z'
+  stage: review
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -254,3 +263,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
 
     `check`: check: green
     `duplicates`: duplicates: 14 new, 38 known, 0 gone
+11. factory: started review as self.
