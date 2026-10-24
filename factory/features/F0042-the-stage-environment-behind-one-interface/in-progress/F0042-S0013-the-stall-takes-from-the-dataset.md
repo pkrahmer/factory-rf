@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T18:40:00.451147Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-24T18:39:39.884210Z'
   stage: doing
   run: 3c3eb7b70d754bd9904bb08d3eb1784a
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:40:00.451147Z'
+  stage: review
 ---
 
 # The stall takes from the dataset
@@ -349,3 +358,4 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
 
     `check`: check: green
     `duplicates`: duplicates: 9 new, 37 known, 1 gone
+16. factory: started review as self.
