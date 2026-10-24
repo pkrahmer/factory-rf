@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T21:07:43.375862Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-24T21:07:43.375862Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-24T21:10:42.176096Z'
+  stage: doing
+  run: 6b36e4c470da4ace880dc76c5ec670b8
 ---
 
 # The settings and the wiring choose the stage environment
@@ -305,3 +307,24 @@ Expect: `1`
     `lint`: lint: green (0.6 s)
     `test`: test: green (66.6 s)
 14. factory: started doing as self.
+15. coder: Round 1: the reviewer's two findings, the merged criterion 2 test and the criterion 8 rows, were test changes, and the tester made them in tests/domain/test_settings_stage_environment.py (entry 13). This round needed no change under src/, and I made none and touched no test. I ran `make check` on the committed state and it is green, with coverage at 99.19 %. The new rows pass against src/factory/domain/settings.py as it stands.
+
+    What this story built is unchanged from entry 7:
+    - src/factory/domain/settings.py: the six settings, `StageEnvironmentName`, and `stage_environment_fault`, which both the model validator and `read_settings` use.
+    - src/factory/application/project_commands.py: `RecordingProjectCommands.inner`.
+    - src/factory/entry/wiring.py: `_inline_environment` and `_container_environment` behind `build_boundaries`, `WORK_HOME_ENVIRONMENT`, and the container `HOME` in `agent_run_environment`.
+
+    Main choice (also unchanged): one rule function shared by the validator and `read_settings`. I rejected turning pydantic's `ValidationError` back into `SettingsInvalid`, because that would mean parsing pydantic's message text.
+
+    Refactor pass: I read the diff (three src files, about 217 lines added) and found nothing to change.
+
+    Noticed, not touched (still open from entries 7 and 11):
+    - src/factory/entry/wiring.py:364 is the `None` check in `_container_environment`. It exists only so mypy can narrow the types, the settings validator already rules it out, and it is the one uncovered line in that file.
+    - `FACTORY_AGENT_USER`'s "is not a name" fault now comes before faults in settings that are read later.
+
+    The journal added criterion 8, and the reviewer already wrote it into the Description, so I left the Description as it is.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 13 new, 36 known, 2 gone
