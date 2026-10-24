@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 413
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T16:37:13.005926Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-24T16:36:52.342214Z'
   stage: tests
   run: 7336a875eae54b5e9b26859bf910fcd0
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:37:13.005926Z'
+  stage: doing
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -222,3 +231,4 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
 
    `lint`: lint: green (0.6 s)
    `test`: ERROR tests/application/test_stage_environment_protocol.py - ImportError while importing test module '/work/checkout/tests/application/test_stage_environment_protocol.py'.
+6. factory: started doing as self.
