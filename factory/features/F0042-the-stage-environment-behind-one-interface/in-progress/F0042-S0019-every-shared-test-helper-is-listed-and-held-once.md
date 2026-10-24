@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 428
 comments_read: [6390818287]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T23:22:44.176618Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-24T23:22:44.176618Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T23:23:17.502729Z'
+  stage: review
+  run: 55e10946fb58483a85277181322abf1a
 ---
 
 # Every shared test helper is listed and held once
@@ -140,6 +142,8 @@ None under `src/factory/`: the tester's work and the documenter's only.
       """The names that a top-level assignment in `source` gives the string `value`."""
   ```
 
+  It also gains `modules_assigning(value: str) -> list[str]`, the sorted modules under `tests/` that assign `value` at top level; both guards call it, and a later guard calls `modules_assigning` instead of walking the modules again.
+
 - `tests/test_shared_stage_constants.py` (new) is the guard. It has one parametrized test whose rows are the three values. For each value, the modules under `tests/` that assign it at top level, under any name, are exactly its home.
 - The earlier modules that hold a copy import the value from its home and drop their copy, under the standing leave. A module that names the value differently (`WRITTEN`, `AGENT_FILE`) uses the home's name in its place. No test is renamed.
 
@@ -149,7 +153,7 @@ None under `src/factory/`: the tester's work and the documenter's only.
 2. `top_level_copies` counts a plain and an annotated top-level assignment, under any name. It counts no assignment of another value, no name used as a value, and no assignment inside a function or a class: the same seven rows as `tests/test_shared_constants.py::test_the_guard_counts_a_top_level_assignment_of_the_instance_name`, whose test keeps its name and its rows.
 3. Every test that existed before this story still exists under its name and passes. The tester's entry names each earlier test file it changed.
 4. `make check` stays green.
-5. docs: in `docs/project-guide/README.md`, *Shared test helpers*, the documenter adds one entry each for `home_files_support.py`, `leftovers_runtime_support.py`, `leftovers_support.py`, `root_support.py`, `stall_support.py`, `time_limits.py` and `torn_record_support.py`, each from its module's docstring and its public names. The `stage_run_support.py` entry gains `INSIDE` and `NOTES`, and the `container_support.py` entry no longer claims them. The `take_support.py` and `search_support.py` entries name the guard `tests/test_shared_stage_constants.py` and `top_level_copies`. Afterwards every module `tests/*.py` whose name does not start with `test_` has an entry.
+5. docs: in `docs/project-guide/README.md`, *Shared test helpers*, the documenter adds one entry each for `home_files_support.py`, `leftovers_runtime_support.py`, `leftovers_support.py`, `root_support.py`, `stall_support.py`, `time_limits.py` and `torn_record_support.py`, each from its module's docstring and its public names. The `stage_run_support.py` entry gains `INSIDE` and `NOTES`, and the `container_support.py` entry no longer claims them. The `take_support.py` and `search_support.py` entries name the guard `tests/test_shared_stage_constants.py` and `top_level_copies`; the `search_support.py` entry names `modules_matching`, `modules_assigning` and `top_level_copies`, and says that a later guard calls `modules_assigning` instead of walking the modules again. Afterwards every module `tests/*.py` whose name does not start with `test_` has an entry.
 
 ## Smoke test
 
@@ -377,3 +381,44 @@ Expect: 0
     - `tests/test_shared_stage_constants.py`: nothing to note.
 18. 2026-10-24 human: (a). You may add `modules_assigning` to criterion 5 and to the Interface's `search_support.py` bullet, one clause each, saying that the guide's `search_support.py` entry names `modules_matching`, `modules_assigning` and `top_level_copies`, and that a later guard calls `modules_assigning` instead of walking the modules again. Nothing else in the criteria changes. Then end with `docs`.
 19. factory: started review as self.
+20. reviewer: No findings. I followed the human's answer in entry 18, option (a), and made only the two changes it allows.
+
+    What I did:
+    - I checked the diff again. Since entry 17 the only new commit is the merge of `origin/main`, and it brought only `docs/runs/2026-10-12-overnight/night-log.md` onto the branch.
+    - `git diff --stat main...HEAD -- . ':!factory'` lists the same 22 files under `tests/` and nothing under `src/`.
+    - `tests/test_shared_stage_constants.py` still asserts `modules_assigning(value) == [home]` for each of its three rows.
+    - `modules_assigning` is still at `tests/search_support.py:37-44`.
+    - I ran smoke command 2 on the merged tree. It lists exactly `tests/stage_run_support.py` and `tests/take_support.py`.
+    - Groups 1 to 5 pass, as entry 17 found. The gap entry 17 raised is closed by the edits below.
+
+    Work item edits allowed by entry 18 (nothing else changed):
+    - Interface, `search_support.py` bullet: added one clause. `tests/search_support.py` also gains `modules_assigning(value: str) -> list[str]`, the sorted modules under `tests/` that assign `value` at top level. Both guards call it, and a later guard calls `modules_assigning` instead of walking the modules again.
+    - Criterion 5: added one clause. The guide's `search_support.py` entry names `modules_matching`, `modules_assigning` and `top_level_copies`, and says that a later guard calls `modules_assigning` instead of walking the modules again.
+
+    Rejected: `doing`. No finding is left for the coder or the tester.
+
+    Earlier tests changed (item 6), all status `M`:
+    - tests/application/test_after_agent.py: standing leave (`AGENT_TEXT` now imported from take_support)
+    - tests/application/test_container_stage_checks.py: standing leave (import home of `INSIDE`/`NOTES`)
+    - tests/application/test_costs.py: standing leave (imports only)
+    - tests/application/test_opening.py: standing leave (`NOTES`)
+    - tests/application/test_stage_environment.py: standing leave; `WRITTEN` → `INSIDE`, as the Interface states
+    - tests/application/test_stage_environment_calls.py: standing leave (`AGENT_TEXT`)
+    - tests/application/test_stage_finish.py: standing leave (`AGENT_TEXT`)
+    - tests/application/test_stage_run.py: standing leave (`INSIDE`, `NOTES`, `AGENT_TEXT`)
+    - tests/application/test_stall_container.py: standing leave (`NOTES`, import homes)
+    - tests/application/test_stall_edges.py: standing leave; `AGENT_FILE` → `INSIDE`, docstring included, as the Interface states
+    - tests/application/test_stall_environment.py: standing leave (import home of `INSIDE`)
+    - tests/application/test_stall_labels.py: standing leave (`NOTES`)
+    - tests/application/test_stall_reasons_recorded.py: standing leave (`NOTES`)
+    - tests/application/test_stalls.py: standing leave (import homes of `INSIDE`/`AGENT_TEXT`)
+    - tests/application/test_undo.py: standing leave (`AGENT_TEXT`)
+    - tests/application/test_undo_nested_claude.py: standing leave (`AGENT_TEXT`)
+    - tests/container_support.py: standing leave (`INSIDE`/`NOTES` moved to stage_run_support)
+    - tests/search_support.py: standing leave (`instance_copies` moved here as `top_level_copies`, and the shared walk as `modules_assigning`)
+    - tests/stage_run_support.py: standing leave (now the home of `INSIDE`/`NOTES`)
+    - tests/stall_support.py: standing leave (`INSIDE`/`AGENT_TEXT` copies dropped)
+    - tests/test_shared_constants.py: standing leave (uses search_support; its test names and rows are unchanged)
+
+    Notes:
+    - none.
