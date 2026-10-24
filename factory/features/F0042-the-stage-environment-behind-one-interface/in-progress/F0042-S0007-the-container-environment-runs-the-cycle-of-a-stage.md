@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T17:41:14.579408Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-24T17:40:53.044119Z'
   stage: tests
   run: ed791de863834dc98520aaa123c6058a
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:41:14.579408Z'
+  stage: doing
 ---
 
 # The container environment runs the cycle of a stage
@@ -203,3 +212,4 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
 
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/domain/test_checks_last_line.py - ImportError while importing test module '/work/checkout/tests/domain/test_checks_last_line.py'.
+9. factory: started doing as self.
