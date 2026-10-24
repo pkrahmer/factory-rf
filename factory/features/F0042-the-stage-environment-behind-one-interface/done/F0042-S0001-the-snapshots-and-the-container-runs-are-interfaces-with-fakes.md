@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-24T11:59:16.148911Z'
   stage: smoke-test
   run: 0d4f792cc7ff4877a41cbb4f4ba9c8da
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-24T12:01:39.977394Z'
+  stage: approval
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -629,3 +634,4 @@ Expect: `1`
     Criteria 13 (`make check`) and 14 (docs) are not things the smoke test checks. Journal entry 22 records `check: green`, `secrets: green` and `documents ok` for them.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 19.6 min, 110 turns, 480561 tokens in (3070249 more from cache), 62479 out, $5.12
