@@ -1,10 +1,10 @@
 """The snapshots of a ZFS dataset, reached through the `zfs` executable."""
 
-import math
 import re
 from datetime import timedelta
 from pathlib import Path, PurePosixPath
 
+from factory.adapters.printed_output import failure_detail, first_printed_line, no_end_detail
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.application.snapshots import Snapshots
 from factory.domain.errors import SnapshotError
@@ -22,24 +22,6 @@ _OCTAL_ESCAPE = re.compile(rb"\\([0-7]{3})")
 
 class _UnreadableLine(Exception):
     """A line of `zfs diff` the adapter cannot read; its message is the fault's detail."""
-
-
-def _printed_lines(output: str) -> list[str]:
-    return [line.strip() for line in output.splitlines() if line.strip()]
-
-
-def _last_line(output: str) -> str | None:
-    printed = _printed_lines(output)
-    return printed[-1] if printed else None
-
-
-def _first_line(output: str) -> str | None:
-    printed = _printed_lines(output)
-    return printed[0] if printed else None
-
-
-def _failure_detail(result: ProcessResult) -> str:
-    return _last_line(result.stdout) or f"exit status {result.exit_status}"
 
 
 def _unescape(path: str, line: str) -> str:
@@ -106,7 +88,7 @@ class ZfsSnapshots(Snapshots):
     def version(self) -> str:
         """The first non-blank line `<zfs> --version` prints; `SnapshotError` when it fails."""
         arguments = ["--version"]
-        version = _first_line(self._run(arguments).stdout)
+        version = first_printed_line(self._run(arguments).stdout)
         if version is None:
             raise SnapshotError(self._command(arguments), "printed nothing")
         return version
@@ -117,7 +99,7 @@ class ZfsSnapshots(Snapshots):
         result = self._run(arguments, accepted=(0, 1))
         if result.exit_status == 1:
             return False
-        named = _first_line(result.stdout)
+        named = first_printed_line(result.stdout)
         if named is None:
             raise SnapshotError(self._command(arguments), "printed nothing")
         if named != self._dataset:
@@ -163,10 +145,11 @@ class ZfsSnapshots(Snapshots):
         except OSError as error:
             raise SnapshotError(self._command(arguments), str(error)) from error
         if result.timed_out:
-            seconds = math.ceil(self._time_limit.total_seconds())
-            raise SnapshotError(self._command(arguments), f"no end within {seconds} s")
+            raise SnapshotError(self._command(arguments), no_end_detail(self._time_limit))
         if result.exit_status not in accepted:
-            raise SnapshotError(self._command(arguments), _failure_detail(result))
+            raise SnapshotError(
+                self._command(arguments), failure_detail(result.stdout, result.exit_status)
+            )
         return result
 
 

@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T13:08:29.171103Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-24T13:08:29.171103Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-24T13:13:13.210605Z'
+  stage: doing
+  run: 4f5c520f1348414780b8dba1ca4fca51
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -202,3 +204,26 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
    `lint`: lint: green (0.6 s)
    `test`: ERROR tests/adapters/test_podman_runs_results.py - ImportError while importing test module '/work/checkout/tests/adapters/test_podman_runs_results.py'.
 9. factory: started doing as self.
+10. coder: I added `PodmanRuns`, the first real implementation of `ContainerRuns`. `make test` and `make check` are both green, and I changed no test.
+
+    What I built:
+    - `src/factory/adapters/podman_runs.py` (new): `CONTAINER_GRACE`, `PODMAN_TIME_LIMIT` and `PodmanRuns`, with `launch`, `run`, `version` and `image_exists`.
+      - `launch` builds the `podman run` words in the order the Interface gives. It returns `env=None` and the time limit plus the grace.
+      - `run` calls `run_process` with `cwd` `/`, `env` `None` and stderr merged. It counts the run as timed out in two cases: `run_process` says it timed out, or the exit status is in `KILL_STATUSES` (imported from `agent_launch`) after at least the time limit asked for. When `podman` cannot start, the `OSError` becomes `ContainerError(command[0], ...)`.
+      - `version` and `image_exists` share a private `_query`: `cwd` is the workspace and the time limit is the one given to the constructor.
+      - The check that refuses a `/work` mount reuses `beneath_or_at` and the `WORK` constant, as `FakeContainerRuns` does.
+    - `src/factory/adapters/printed_output.py` (new): `printed_lines`, `first_printed_line`, `failure_detail(output, exit_status)` and `no_end_detail(time_limit)`. These were private helpers in `zfs_snapshots.py`, and podman's fault details needed the same ones. The module works on strings only, so it does not import `factory.adapters.process` and stays out of the list in `tests/test_wrapper_search.py`.
+    - `src/factory/adapters/zfs_snapshots.py`: its private copies are gone and it uses the shared helpers. Its behaviour is unchanged and the zfs tests still pass.
+
+    Main choice: I moved zfs's line helpers to one shared adapter module rather than copying them into `podman_runs.py`, because the reviewer counts a copy as a finding. The alternative I rejected was having `failure_detail` take a `ProcessResult`, as zfs's version did. That would have made the shared module import the process module, and the wrapper-search test would fail.
+
+    Refactor pass: after `make check` was green I read the diff; nothing needed changing beyond what is described above.
+
+    Noticed but did not touch:
+    - `agent_launch._limit_argument` also rounds a time limit up to whole seconds (with an `s` suffix). `podman_runs` uses `math.ceil` inline for `--timeout`. I left both alone.
+    - I could not run the smoke test: the command was not permitted in this session. The tests check every value in its three Expect lines through the same stand-in behaviour, but the work item's script itself has not run.
+
+    The journal changed nothing that needs the Description rewritten: entry 4's answers (`env` `None`, `cwd` `/`) were already written into the Interface and criteria at intake.
+
+    `check`: check: green
+    `duplicates`: duplicates: 12 new, 38 known, 0 gone
