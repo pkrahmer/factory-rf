@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T20:31:49.600984Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-24T20:31:49.600984Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-24T20:34:51.119017Z'
+  stage: doing
+  run: f7b7ea12a55d41b68e3e73b098468e55
 ---
 
 # Every container runs without rights and within limits
@@ -116,3 +118,17 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
    `lint`: lint: green (0.6 s)
    `test`: ERROR tests/adapters/test_podman_runs_fence.py - ImportError while importing test module '/work/checkout/tests/adapters/test_podman_runs_fence.py'.
 6. factory: started doing as self.
+7. coder: Built: `src/factory/adapters/podman_runs.py`. It gains the module constants `PIDS_LIMIT = 4096` and `MEMORY_LIMIT = "4g"`, with one comment on why those sizes. `PodmanRuns.launch` now puts four words right after `--timeout <seconds>` and before the first `--env`, in this order: `--cap-drop=all`, `--security-opt=no-new-privileges`, `f"--pids-limit={PIDS_LIMIT}"`, `f"--memory={MEMORY_LIMIT}"`. Each word has a comment that says what it keeps out. `run` still uses the words of `launch`, so it gets the fence too. No test was changed, and nothing else changed: `ContainerRuns`, `ContainerCall`, `FakeContainerRuns` and the callers are as they were.
+
+   Main choice: I wrote the four words inline in the argv list, each with its own comment, and read the constants each time `launch` is called. That way the monkeypatched values in criterion 3 take effect. I rejected a module-level `_FENCE` list built once at import. It would hide the per-word comments behind one name, and it would freeze the limits at import time, so the monkeypatch test would fail.
+
+   Refactor: I read the diff and found nothing to change.
+
+   Checks: `make check` is green (`check: green`, `test: green (67.7 s)`, coverage 99.20 %). The smoke test prints `['--cap-drop=all', '--security-opt=no-new-privileges', '--pids-limit=4096', '--memory=4g', '--volume']`.
+
+   Noticed but did not touch: nothing.
+
+   Open: the docs in criterion 6 are for the docs stage.
+
+   `check`: check: green
+   `duplicates`: duplicates: 16 new, 36 known, 2 gone

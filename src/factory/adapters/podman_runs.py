@@ -23,6 +23,11 @@ from factory.domain.errors import ContainerError
 CONTAINER_GRACE = timedelta(seconds=30)
 PODMAN_TIME_LIMIT = timedelta(minutes=2)
 
+# Room for the test suite's workers on every core of the machine, and for one container at a
+# time on a machine of 8 GB.
+PIDS_LIMIT = 4096
+MEMORY_LIMIT = "4g"
+
 # Podman reads no file from its working directory; the container's is `--workdir`.
 _ROOT = Path("/")
 
@@ -80,6 +85,14 @@ class PodmanRuns(ContainerRuns):
             "--userns=keep-id",
             "--timeout",
             str(math.ceil(time_limit.total_seconds())),
+            # No capability: code in the checkout cannot use root's rights inside its namespace.
+            "--cap-drop=all",
+            # No set-uid program gives the container's processes rights they were not started with.
+            "--security-opt=no-new-privileges",
+            # A fork bomb ends at the limit instead of taking the machine's process table.
+            f"--pids-limit={PIDS_LIMIT}",
+            # A runaway process is killed in its container instead of taking the machine's memory.
+            f"--memory={MEMORY_LIMIT}",
             *environment_words,
             *volume_words,
             "--workdir",
