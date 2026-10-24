@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T21:14:00.717754Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-24T21:14:00.717754Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T21:14:34.820065Z'
+  stage: smoke-test
+  run: 75c3abb052b540c59155fd3c7ad34044
 ---
 
 # The settings and the wiring choose the stage environment
@@ -417,3 +419,30 @@ Expect: `1`
     `secrets`: secrets: green (2.0 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test, round 1. I ran both commands under `## Smoke test` from the repository root, exactly as written and in order. I fixed nothing.
+
+    Command 1 (`uv run python - <<'EOF' … read_settings …`). Exit 0. uv first created `.venv` and printed its setup lines: "Using CPython 3.12.15…", "Creating virtual environment…", a hardlink warning, "Installed 106 packages", "Bytecode compiled…". After those, the script printed:
+    ```
+    container tank/factory/vm /srv/factory/vm/work factory-stage:1 podman zfs
+    inline None
+    FACTORY_STAGE_ENVIRONMENT | holds Container, which is neither inline nor container
+    FACTORY_DATASET | missing for the container environment
+    FACTORY_WORKSPACE | is not an absolute path
+    ```
+    Met `Expect:` — yes. These are the five lines expected, word for word. The uv lines are its one-time environment setup, not output of the script.
+
+    Command 2 (`uv run pytest <the three story test modules> 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '`). Exit 0.
+    ```
+    1
+    ```
+    Met `Expect:` — yes. To see the last line itself, I ran the same three modules once more without the pipe (`-p no:cacheprovider`). Its last line was `38 passed in 0.09s`.
+
+    Judgement against `## Acceptance criteria`: the smoke test contradicts no criterion.
+    - Line 1 of command 1 matches criterion 1: the container settings, with `podman` and `zfs` as defaults.
+    - Line 2 matches criterion 1 and the description: inline is the default, and `dataset` is `None` when unset.
+    - The three fault lines match criterion 2: the text for a wrong environment name, a missing dataset and a relative workspace.
+    - Command 2 shows the story's three test modules green; these cover criteria 1 to 8.
+
+    The smoke test does not exercise criterion 9 (`make check`) or criterion 10 (docs). The factory's checks and the docs stage cover those. Neither run left a tracked change. The only modified file is the work item's `.costs.jsonl` sidecar, which is the factory's.
+
+    Findings: none.
