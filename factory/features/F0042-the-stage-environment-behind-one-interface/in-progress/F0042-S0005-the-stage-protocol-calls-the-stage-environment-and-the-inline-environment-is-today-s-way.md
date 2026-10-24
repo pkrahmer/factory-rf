@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 413
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T16:31:13.045921Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-24T16:31:13.045921Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-24T16:36:52.342214Z'
+  stage: tests
+  run: 7336a875eae54b5e9b26859bf910fcd0
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -188,3 +190,35 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
    - Architecture: the interface sits in `factory.application` as an ABC with docstring-only abstract methods, as CLAUDE.md requires. `InlineEnvironment` composes existing application services and is the only place that knows `run_sealed` and the undo. Nothing in `domain` or `adapters` changes, so the layer order holds. It uses `TakeReport` from S0004, built before this story.
    - Scope: it is inside `feature.md`'s Scope for S0005 and decisions 1 to 4, 9 and 18 e. The journal sentence is unchanged (decision 9). `StallService` is left alone (decision 20). The only changes to earlier tests are the two assertions in `test_after_agent.py` and the `test_interfaces.py` addition, which decision 18 e allows.
 4. factory: started tests as self.
+5. tester: I wrote the tests for criteria 1 to 10 against the Interface. They are red on purpose: `make test` fails at collection because `factory.application.stage_environment` does not exist yet, and the after-agent tests fail with `AttributeError: 'AgentAftermath' object has no attribute 'take'`. `make lint` is green.
+
+   Criterion to test:
+   - criterion 1: tests/application/test_interfaces.py gains `StageEnvironment` as a row of `INTERFACES` (id `stage-environment`). That gives it rows in each_interface_is_an_abstract_base_class, no_class_in_the_interface_modules_derives_from_protocol, an_interface_has_no_public_member_but_its_abstract_operations, every_abstract_method_body_is_its_docstring_alone and an_interface_cannot_be_instantiated. It also gains one line in test_project_commands_and_agent_runtime_have_exactly_their_operations_abstract: `StageEnvironment.__abstractmethods__ == {"prepare", "run_agent", "take"}`.
+   - criterion 2: tests/application/test_stage_environment.py::test_prepare_does_nothing_and_reads_nothing
+   - criterion 3: tests/application/test_stage_environment.py::test_run_agent_is_the_sealed_run_through_the_runtime_or_the_given_run (rows runtime / given-run) and ::test_run_agent_removes_a_nested_repository_and_names_it
+   - criterion 4: tests/application/test_stage_environment.py::test_take_is_the_undo_turned_into_a_take_report (rows work-item-untouched / work-item-state-changed / work-item-absent)
+   - criterion 5: tests/application/test_stage_environment.py::test_the_environment_of_the_boundaries_is_the_inline_one
+   - criterion 6: tests/application/test_stage_environment_protocol.py::test_the_launch_prepares_after_the_claim_then_runs_the_agent_through_the_environment (rows sync-command / no-sync-command)
+   - criterion 7: tests/application/test_stage_environment_protocol.py::test_a_refused_prepare_ends_the_launch_after_the_claim_and_before_the_run
+   - criterion 8: tests/application/test_stage_environment_protocol.py::test_after_the_agent_the_environment_takes_and_its_report_closes_the_entry (rows one-path / own-cost-records-left-out / nothing-left)
+   - criterion 9: tests/application/test_stage_environment_protocol.py::test_a_stage_built_without_an_environment_runs_the_inline_one
+   - criterion 10: tests/application/test_stage_environment_protocol.py::test_the_preflight_does_not_import_the_sealed_run. This is a structural check over the `ImportFrom` names in `factory.application.preflight`. The probe's behaviour is still covered by tests/application/test_agent_run_probe*.py, which I did not change.
+   - criteria 11 and 12: `make check` and docs, so no test of mine.
+
+   How the tests work:
+   - The protocol tests use a stand-in, `RecordingEnvironment(StageEnvironment)`. It records the order of calls, the arguments and the remote branch head at the moment of `prepare`. Its `run_agent` calls the `run` it is given; that is how the tests show `run` runs the boundaries' runtime. Its `take` returns the report the test sets.
+   - Criterion 8 also checks that the undo did not run: the agent's `src/b.py` is still in the work tree.
+   - The inline tests reuse helpers from existing test modules (`ModeRecordingRuntime`, `Runner`, `NestingRuntime`, `_without_work_item`) and from `undo_support` / `stage_run_support`. I moved none of them.
+
+   Files created: tests/application/test_stage_environment.py and tests/application/test_stage_environment_protocol.py.
+
+   Earlier test files changed:
+   - tests/application/test_interfaces.py: the row and the one line above.
+   - tests/application/test_after_agent.py: the two assertions the description names (decision 18 e) now read `aftermath.take.left` instead of `aftermath.undo.reverted` / `deleted`: `OUTSIDE in aftermath.take.left` and `(PATH in aftermath.take.left) is not kept`.
+
+   Modules the test run could not import: `factory.application.stage_environment`. Because of it, tests/application/test_interfaces.py, test_stage_environment.py and test_stage_environment_protocol.py fail at collection.
+
+   Nothing open. No project skill applied.
+
+   `lint`: lint: green (0.6 s)
+   `test`: ERROR tests/application/test_stage_environment_protocol.py - ImportError while importing test module '/work/checkout/tests/application/test_stage_environment_protocol.py'.
