@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T13:24:12.105379Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-24T13:24:12.105379Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T13:25:55.940829Z'
+  stage: review
+  run: 2f7cf2db68704e7baa59407e68fd4620
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -168,8 +170,9 @@ Tests (the tester writes them): `tests/adapters/test_podman_runs.py` (the comman
 9. `PodmanRuns` is an instance of `ContainerRuns`, and `tests/test_wrapper_search.py` lists `factory.adapters.podman_runs` among the modules that import the process module (decision 18 c).
 10. An exit status outside `KILL_STATUSES` at or after the limit is the command's, not a time limit (a row of criterion 5's test): with `run_process` of `factory.adapters.podman_runs` replaced by a `Recorder` that answers `ProcessResult(exit_status=1, stdout="", stderr="", timed_out=False, duration=timedelta(seconds=5))`, `run` under `time_limit` 1 second gives `timed_out` false and `exit_status` 1.
 11. `version()` and `image_exists()` run with the workspace as their working directory: in the rows of criteria 7 and 8 that read the call's arguments, the stand-in's recorded working directory is the adapter's `workspace`.
-12. `make check` stays green.
-13. docs: `docs/project-guide/stage-environment.md` gains the section *The podman adapter*: the command line word by word and why each word is there (`--rm`, `--userns=keep-id`, `--timeout`, the `:ro` mounts as the protection of the host's repository and login files, the empty environment), the reading of the end (137 or -9 at or after the limit is the time limit; podman's 125), the 30 seconds of grace, `version` and `image_exists` for the preflight, the stand-in the tests use; `docs/project-guide/README.md`, *The files*, names `factory.adapters.podman_runs` for the file. `docs/decisions.md`: none.
+12. `image_exists()` reaching its time limit is the fault `version()` gives, with its own command, the seconds rounded up (a row of criterion 8's test): a stand-in that sleeps 60 seconds, under an adapter built with `time_limit` 1.5 seconds, raises `ContainerError` with `command` `<stand-in> image exists factory-stage:1` and `detail` `no end within 2 s`, after at least 1.5 and less than 25 seconds.
+13. `make check` stays green.
+14. docs: `docs/project-guide/stage-environment.md` gains the section *The podman adapter*: the command line word by word and why each word is there (`--rm`, `--userns=keep-id`, `--timeout`, the `:ro` mounts as the protection of the host's repository and login files, the empty environment), the reading of the end (137 or -9 at or after the limit is the time limit; podman's 125), the 30 seconds of grace, `version` and `image_exists` for the preflight, the stand-in the tests use; `docs/project-guide/README.md`, *The files*, names `factory.adapters.podman_runs` for the file. `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -351,3 +354,29 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
     `check`: check: green
     `duplicates`: duplicates: 11 new, 38 known, 0 gone
 19. factory: started review as self.
+20. reviewer: 1. Criterion 12 added: it needs its test. Location: the Interface's `image_exists()` bullet ("a time limit and an executable that cannot be started are the same faults as for `version()`, with this command"), code in `src/factory/adapters/podman_runs.py` (`_query`, the `no_end_detail` raise). Problem: this rule's failing side has no test. `tests/adapters/test_podman_runs_results.py::test_image_exists_reads_podman_s_exit_status` covers "cannot start" but has no row for the time limit. The podman rows also never check that the fraction in the detail is rounded up (the `version()` row uses a whole 1 s). Criterion 8 left this out, so the gap is in the story, not in the tester's work. Fix: the tester adds one row to that parametrized test. A stand-in sleeps 60 s under an adapter built with `time_limit` 1.5 s. Expect `ContainerError` with command `<stand-in> image exists factory-stage:1` and detail `no end within 2 s`, after at least 1.5 s and under `ROOMY_BOUND_SECONDS`. The code already does this, so nothing under `src/` changes. The old closing criteria 12 and 13 are now 13 and 14.
+
+    Checked and fine:
+    - Criteria 1–11 each have a test that checks what the criterion says:
+      - argv pinned word for word, with `env` `None` and the limit plus 30 s.
+      - `--timeout` rounding with 30 s, 1.5 s and 40 min as rows.
+      - `/work` and `/work/checkout` are refused and `/workspace` is accepted, for both `launch` and `run`.
+      - The 137 kill is tested at the limit and before it; -9 at the limit; a non-kill status after the limit (criterion 10).
+      - The recorded request has `cwd` `/`, `merge_stderr` true and the limit plus the grace.
+      - `version` and `image_exists` run with the workspace as their working directory (criterion 11).
+    - The factory's `make check` after the coder was green (entry 18).
+    - Round-0 finding 1 is fixed. `check_container_call` in `src/factory/domain/containers.py` is a pure rule in the domain, and `fake_containers.py` and `podman_runs.py` both call it.
+    - The zfs line helpers moved to `factory.adapters.printed_output`, which has no process import, and zfs behaves the same.
+    - `KILL_STATUSES` is imported, not copied.
+    - The layers hold. There are no markers, secrets or shell strings.
+    - `make duplicates` reports 11 new findings, and none needs a fix here:
+      - the dead `PodmanRuns` and `image_exists` stay unused until S0010 wires them;
+      - two similar-code pairs are each a `ProcessRequest` built and its `OSError` mapped, but to different error types, which round 0 also did not count;
+      - the rest predate the story.
+
+    Earlier tests:
+    - tests/conftest.py: none needed. The diff only adds the `podman` fixture and its import.
+    - tests/test_wrapper_search.py: the human's leave through the story (the Interface's `run` bullet and criterion 9, decision 18 c), for one added module name.
+
+    Notes:
+    - tests/adapters/test_podman_runs_results.py:44-48: the module's own `recorder` fixture shadows the one in `tests/conftest.py:312-316`, with the same body for a different module. A shared fixture that takes the module to patch would remove the copy.
