@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T19:19:21.338995Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-24T19:19:21.338995Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T19:20:23.329630Z'
+  stage: smoke-test
+  run: e29983a558fc4d3ea24e3900c30d1202
 ---
 
 # The agent runtimes start their process in a container
@@ -473,3 +475,31 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
     `secrets`: secrets: green (2.2 s)
     `documents`: documents ok
 23. factory: started smoke-test as self.
+24. smoke-tester: I ran the two commands under `## Smoke test` from the repository root, as written and in order. I fixed nothing.
+
+    Command 1 (pytest over the three new container test modules, last line counted against `^[0-9]+ passed in `):
+    ```
+    1
+    ```
+    Met `Expect: 1`. I ran it again without the `grep` to see the last line: `43 passed in 6.53s`.
+
+    Command 2 (`container_launch`, `killed_at_limit` and the `ClaudeCodeRuntime` construction rows on `FakeContainerRuns` in a temporary folder that removes itself):
+    ```
+    Bytecode compiled 4164 files in 81ms
+    D/work/checkout {'HOME': 'D/work/home'} True /work/checkout
+    True False
+    refused True
+    ```
+    Met the `Expect:` line. The program printed exactly the three expected lines, and the exit status was 0. The first line is uv's own message on stderr, not the program's output: `uv run python -c 'print("x")' 2>/dev/null` prints only `x`.
+
+    Against the acceptance criteria:
+    - `container_launch` passes the environment through, the mounts are read-only and the working directory is `/work/checkout` (criterion 1).
+    - `in_container=True` reads exit 137 after the limit as the time limit, and the default (`in_container=False`) does not (criterion 2).
+    - `containers` together with `confine_executable` raises `ValueError`, and the `containers` property returns the fake it was given (criterion 3).
+    - Criteria 4 to 12 are covered by the 43 passing tests of the first command.
+    - No output contradicts any criterion.
+    - I did not run `make check` (criterion 13): it is not one of the smoke-test commands, and the factory runs its own checks after this stage.
+
+    Findings: none.
+
+    Open: nothing. The working tree changed only in the work item's `.costs.jsonl`, which the factory writes, not this stage.
