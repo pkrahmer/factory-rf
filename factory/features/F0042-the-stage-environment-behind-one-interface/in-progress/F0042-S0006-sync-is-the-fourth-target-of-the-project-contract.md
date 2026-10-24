@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T17:18:51.175605Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -87,6 +91,11 @@ journal:
   at: '2026-10-24T17:18:30.422902Z'
   stage: doing
   run: afdb6bff59fa4788915964439779519b
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:18:51.175605Z'
+  stage: tests
 ---
 
 # `sync` is the fourth target of the project contract
@@ -289,3 +298,4 @@ Expect: four lines: `# The contract between a project and the factory is four ta
     - The docs stage still needs to add the entry for `tests/template_make_support.py` to `docs/project-guide/README.md`, *Shared test helpers*.
     - This repository's own `Makefile` and `factory/pipeline.yml` still have no `sync`; that is the human's change 1.
     - The journal did not change the meaning of the task, so `## Description` stays as it is.
+15. factory: started tests as self.
