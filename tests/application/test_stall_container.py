@@ -27,6 +27,7 @@ from stall_support import AGENT_TEXT, DIED, INSIDE
 from undo_support import BRANCH, GUIDE, PATH
 
 NOTES = "notes.md"
+LATER = "src/c.py"
 SYNC_TARGET = "\nsync:\n\t@echo synced\n"
 FIVE_MINUTES = timedelta(minutes=5)
 BLANK_ENTRY = AgentRunResult(
@@ -151,3 +152,28 @@ def test_the_first_take_after_a_prepare_writes_the_timing_line_and_a_second_none
         assert line.endswith(ending)
     if same_report:
         assert reports[1] == reports[0]
+
+
+def test_a_second_take_takes_what_the_dataset_gained_since_the_first(
+    boundaries: Boundaries,
+    human: HumanClone,
+    agent_home: Path,
+    tmp_path: Path,
+    clock: ManualClock,
+) -> None:
+    start = started_with_sync(boundaries, human, agent_home)
+    dataset = container_dataset(boundaries, tmp_path)
+    environment = clocked_environment(dataset, clock, Pace(steps=FIRST))
+    taken = boundaries.checkout / LATER
+
+    environment.prepare(start.commit, BRANCH, sync_time_limit=FIVE_MINUTES)
+    first = environment.take(start, PATH)
+    taken_after_first = taken.exists()
+    write_files(dataset.workspace / "checkout", {LATER: AGENT_TEXT, NOTES: AGENT_TEXT})
+    second = environment.take(start, PATH)
+
+    assert not taken_after_first
+    assert taken.read_text(encoding="utf-8") == AGENT_TEXT
+    assert NOTES not in first.left
+    assert NOTES in second.left
+    assert len(timing_lines(boundaries)) == 1

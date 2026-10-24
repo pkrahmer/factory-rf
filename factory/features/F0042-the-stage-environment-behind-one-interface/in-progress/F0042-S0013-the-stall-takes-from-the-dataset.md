@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T18:33:53.815172Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-24T18:33:53.815172Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-24T18:36:33.754072Z'
+  stage: tests
+  run: 688db30e2e364449854cbda7696b36cd
 ---
 
 # The stall takes from the dataset
@@ -294,3 +296,23 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
 
     Noticed but did not touch: the reviewer stopped at group 1, so groups 2 to 5 of the review still need to run after the tests stage.
 12. factory: started tests as self.
+13. tester: I added the test for criterion 9, which the reviewer added in entry 9 and the coder handed on in entry 11. I changed no earlier test and no code.
+
+    - criterion 9: tests/application/test_stall_container.py::test_a_second_take_takes_what_the_dataset_gained_since_the_first
+
+    How the test runs: one `ContainerEnvironment` is built as in criterion 7 (`started_with_sync`, write paths `src/*` and `{work_item}`, `clocked_environment`). It runs `prepare` and `take`, writes `src/c.py` and `notes.md` into `<workspace>/checkout`, then runs `take` again. It checks four things:
+    - `src/c.py` is not in the host's work tree after the first take.
+    - `src/c.py` is in the host's work tree after the second take.
+    - `notes.md` is in the second report's `left` and not in the first report's.
+    - The log holds exactly one `stage environment:` line.
+
+    Files changed: `tests/application/test_stall_container.py`. I added the test and a constant `LATER = "src/c.py"` beside `NOTES`. I created no new files.
+
+    Modules the test run could not import: none.
+
+    `make test` is green (`test: green`), and so is the new test, as the reviewer and the coder expected: `ContainerEnvironment.take` already runs `TakeService` on every take, so no code change is needed. `make lint` is green.
+
+    Open: the reviewer stopped after group 1, so review groups 2 to 5 still need to run.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (63.7 s)
