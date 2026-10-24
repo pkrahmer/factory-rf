@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 428
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T23:11:57.861363Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-24T23:11:57.861363Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-24T23:12:14.521763Z'
+  stage: doing
+  run: 5c658bcb9d5e4345923024151f917426
 ---
 
 # Every shared test helper is listed and held once
@@ -226,3 +228,12 @@ Expect: 0
 
    Not a finding, left open: `tests/application/test_stall_edges.py:44` still writes the literal `"written by the agent\n"` inside a method. The criteria count only top-level assignments.
 10. factory: started doing as self.
+11. coder: Built nothing and changed no file. Both findings in the reviewer's entry 9 are changes to tests, and the coder never edits tests (R9). The story's Interface puts no work under `src/factory/`, so no code change answers either finding. Because I changed nothing, I did not run `make check` this round.
+
+    The test changes the tester should make:
+    1. In `tests/search_support.py`, add one helper beside `modules_matching` that walks `TESTS` and returns the sorted module paths with a top-level copy of a value (for example `modules_assigning(value: str) -> list[str]`, built on `top_level_copies`). Then have `tests/test_shared_stage_constants.py` use it and drop its own `TESTS = Path(__file__).parent` and its walk (lines 9 and 21-25). Have `tests/test_shared_constants.py` use it too, in place of its copied walk (lines 13-17). The standing leave covers this. Both tests keep their names and check the same thing.
+    2. In `tests/application/test_costs.py:79`, remove the blank line that was added between `EARLIER` and `FAILED_REASONS`.
+
+    Main choice: I end with `tests` and name the changes, rather than `question`. Finding 1 is a shared-helper move, which CLAUDE.md's standing leave gives to the tester without asking. Finding 2 undoes a whitespace change that this story's own tester made. Neither needs the human's word.
+
+    Noticed, not touched: `tests/application/test_stall_edges.py:44` still writes the literal `"written by the agent\n"` inside a method. The reviewer called it not a finding, because the criteria count only top-level assignments. The work item's `.costs.jsonl` sidecar shows as modified in the working tree; that change is the factory's.
