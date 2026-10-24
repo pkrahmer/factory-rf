@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T13:34:29.986796Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -172,6 +168,12 @@ journal:
   kind: started
   at: '2026-10-24T13:34:29.986796Z'
   stage: docs
+- number: 30
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T13:35:18.582469Z'
+  stage: docs
+  run: d5ded46fafcb4c738bcfc45eda055256
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -522,3 +524,27 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
     Notes:
     - tests/adapters/test_podman_runs_results.py:33-37: the module's own `recorder` fixture repeats the one in `tests/conftest.py:312-316`, only for a different module. One shared fixture that takes the module to patch would remove the copy.
 29. factory: started docs as self.
+30. documenter: Docs round 2. The code matches the Interface and criteria 1–12; I found nothing for the coder.
+
+    Files changed (documents only, so I did not run `make check`; the factory's checks decide):
+    - `docs/project-guide/stage-environment.md`: new section *The podman adapter*, which docs criterion 14 asks for. It covers:
+      - the command line word by word and why each word is there (`--rm`, `--userns=keep-id`, `--timeout`, `--env`, the `--volume` order with `:ro` as the protection of the host's repository and login files, `--workdir`, the image and the unjoined command);
+      - `env=None` for the podman program, and the container getting only the `--env` pairs;
+      - `CONTAINER_GRACE`;
+      - the reading of the end (137 or -9 at or after the limit is the time limit, otherwise podman's status is the command's, 125 is podman's own fault, the 137 assumption that F0043 story 4 measures, `ContainerError` named after `command[0]`);
+      - `version` and `image_exists` for the preflight, with their faults;
+      - the stand-in `tests/podman_support.py`.
+      I also changed three existing places in this file: the intro (the module list, and "nothing wires `PodmanRuns`" instead of "Podman runs come in later stories"), and the container-runs section, which now says `check_container_call` is the `ValueError` rule shared by the fake and the adapter.
+    - `docs/project-guide/README.md`: *The files* entry for `stage-environment.md` now names `factory.adapters.podman_runs` and `factory.adapters.printed_output` (the line helpers moved out of `zfs_snapshots.py`) and the new section.
+
+    Run: I ran the story's smoke test and its three output lines match what the story expects. The command-line example in the docs is the same word order and the same limit-rounding behaviour as that run.
+
+    Cross-read and found current: the rest of `docs/project-guide/stage-environment.md` (the snapshots, the ZFS adapter, the fakes), `docs/project-guide/README.md` (including the `ContainerError` paragraph), and `README.md`. `docs/decisions.md` needs nothing, as the criterion says. `docs/openapi.json` is generated and was not touched.
+
+    Stale text that is not mine to fix:
+    - None in the docs.
+    - Code notes from earlier entries still stand and are not mine: the duplicated `recorder` fixture (`tests/adapters/test_podman_runs_results.py` and `tests/conftest.py`), the second rounding-up of a limit in `agent_launch._limit_argument`, and vulture's `WORK_HOME` report. I set no skill aside.
+
+    `check`: check: green (not run again: passed on tree 02adda16a395 at 2026-10-24T13:31:50Z)
+    `secrets`: secrets: green (0.9 s)
+    `documents`: documents ok
