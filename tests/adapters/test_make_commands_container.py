@@ -19,7 +19,7 @@ from factory.domain.checks import TargetTime
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.domain.errors import ContainerError, GitError, ProjectCommandError
 from factory.domain.git import ChangedPath, GitOptions
-from git_support import TEST_IDENTITY, commit_all, write_files
+from git_support import CHECKOUT, TEST_IDENTITY, commit_all, write_files
 
 LIMIT = timedelta(minutes=1)
 CHECK_MARKER = ".checked"
@@ -82,7 +82,7 @@ class Setup:
 @pytest.fixture
 def setup(tmp_path: Path, checkout: GitCli) -> Setup:
     """A host clone whose `HEAD` holds `HOST_FILES`, and an empty dataset with no base yet."""
-    host_directory = tmp_path / "checkout"
+    host_directory = tmp_path / CHECKOUT
     write_files(host_directory, HOST_FILES)
     commit_all(host_directory, "Add the host's files")
     workspace = tmp_path / "workspace"

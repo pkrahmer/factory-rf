@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T19:52:55.269748Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -105,6 +101,12 @@ journal:
   kind: started
   at: '2026-10-24T19:52:55.269748Z'
   stage: tests
+- number: 18
+  speaker: tester
+  kind: result
+  at: '2026-10-24T19:55:43.247958Z'
+  stage: tests
+  run: 916165c913ec4a8ba3bfd216323badd3
 ---
 
 # The project commands run in a check container on the taken result
@@ -260,3 +262,24 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
 
     Description: unchanged by me. The reviewer had already corrected it in entry 14.
 17. factory: started tests as self.
+18. tester: Round 1. I made the one test change the coder's entry 16 names, from the reviewer's finding 3 in entry 14. It is a change to my own test file from this story.
+
+    In tests/adapters/test_make_commands_container.py, the `setup` fixture now builds the host's directory as `tmp_path / CHECKOUT`, using the constant imported from `git_support`, instead of the literal `tmp_path / "checkout"`. This matches what tests/adapters/test_claude_runtime_environment.py does. If the `checkout` fixture ever clones into a different folder, the test now follows it instead of pointing at a stale path. I changed nothing else: no test was renamed and every test checks the same thing.
+
+    The criterion → test mapping is the same as in entry 10:
+    - criterion 1: tests/adapters/test_make_commands_container.py::test_check_runs_after_sync_in_the_container_and_its_files_stay_there and ::test_output_tail_is_the_last_thirty_lines
+    - criterion 2: ::test_check_sees_the_base_with_what_differs_from_head_on_the_host
+    - criterion 3: ::test_failing_sync_fails_and_check_does_not_run
+    - criterion 4: ::test_check_reaching_its_time_limit_is_a_time_limit_result
+    - criterion 5: ::test_refused_call_runs_nothing
+    - criterion 6: ::test_faults_are_project_command_errors_but_git_and_paths_propagate
+    - criterion 7: ::test_container_commands_are_project_commands, plus the existing, unchanged tests/test_make_search.py::test_only_the_make_class_names_make
+    - criterion 8: ::test_copy_writes_under_the_dataset_checkout_and_never_its_git
+    - criteria 9 and 10: no test; they are `make check` and the docs.
+
+    Files: I created none in this round and changed only tests/adapters/test_make_commands_container.py. I changed no earlier test file. Every module imports; nothing failed to import.
+
+    `make test`: test: green (69.4 s), total coverage 99.20 %. `make lint`: lint: green (0.2 s).
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (67.4 s)
