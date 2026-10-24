@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T18:41:43.598785Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-24T18:41:43.598785Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T18:42:19.266961Z'
+  stage: docs
+  run: 3607eab0434844b9b5c1b96c7115dd14
 ---
 
 # The stall takes from the dataset
@@ -392,3 +394,25 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
     2. `tests/application/test_stall_environment.py`, `test_the_take_runs_after_the_checkout_is_back_and_before_the_sidecar_is_written`: the two rows branch on `row ==` both in the setup and in the assertions. Putting the setup and the check in each row's parameters would remove the branching.
     3. `tests/application/test_stall_container.py:24-26`: `INSIDE` and `AGENT_TEXT` are imported from `stall_support`, but `BRANCH` and `PATH` from `undo_support`. The values agree, but the test draws its constants from two modules.
 18. factory: started docs as self.
+19. documenter: Docs, round 1. No findings: the code matches the Interface and the criteria. I changed only documents, so I did not run `make check`; the factory's checks run after this stage.
+
+    Files changed:
+    - `docs/project-guide/stages.md`, *Stalls* (`StallService.stall`): the constructor now shows `stage_environment=None`, and says who hands the environment over (`AfterAgent`, `StageFinisher`, `StageRunner`, one object per stage). Step 1 says the environment's `take` runs in place of `UndoService.undo`, whatever the reason and `check_red` included, with the report in `StallResult.take`. Without a `stage_start` nothing is taken and `take` is `None`. It also says a fault from the take propagates before anything is written. The paragraph after the steps names the take as what keeps the writes inside the write paths. The `StallResult` sentence names `take` in place of `undo`.
+    - `docs/project-guide/stages.md`, *The stage protocol*: item 2 (`StageRunner` hands its environment to its finisher and its own stall service) and `StageFinisher.finish` step 2 (the stall after a red check takes through the environment, and under `inline` the check's writes outside the write paths are undone as before; the checks see the tree after the take).
+    - `docs/project-guide/stage-environment.md`: three changes.
+      - *The inline environment*: replaced the sentence that said `StallService` still calls the undo itself.
+      - *Who calls what*: added the stall as a caller of `take`, a second take after `AfterAgent`'s. `StageFinisher` takes only through its stall service.
+      - *One environment per runner* and *The timing line* now follow the rule that the first `take` after a `prepare` writes the one line. The first `take` on an object without a `prepare` writes it too. A later take writes none and takes again. *`take`* says the same.
+
+    I ran no examples, because I wrote none.
+
+    Cross-read and found current: `docs/project-guide/write-guard.md` (*The undo* names no stall), `docs/operator-guide.md` ("one `stage environment:` line per stage" stays true), `docs/decisions.md`, `README.md`. The docs criterion says none for these.
+
+    Stale text I noticed and did not touch:
+    - `docs/project-guide/stages.md` line 19 still describes the stage-start commit as the baseline "for undoing it". It is still true under `inline` and unrelated to this story.
+    - The operator guide's stall paragraph says "undoes the rest"; the criterion assigns it to S0012's sweep.
+    - The reviewer's three test notes (the `CREATED` copy in `tests/stall_support.py`, the row branching in `test_stall_environment.py`, constants drawn from two modules in `test_stall_container.py`) are tester work and not mine.
+
+    `check`: check: green (not run again: passed on tree 8f59f230d08d at 2026-10-24T18:38:25Z)
+    `secrets`: secrets: green (1.1 s)
+    `documents`: documents ok

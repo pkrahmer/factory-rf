@@ -20,7 +20,7 @@ This file covers the two interfaces through which the factory reaches the datase
 - `run_agent` is `run_sealed(boundaries, request, run=run)`: the checkout's git folder is sealed around the run, the agent home is reset, the nested repositories and the ignored paths are removed (see `watching.md`, *Boundaries*).
 - `take` is `UndoService(boundaries).undo(stage_start, work_item_path)` (see *The undo*, `write-guard.md`) turned into a report: `left` is the undo's `reverted` and `deleted` paths, joined, sorted, each once; `restored_work_item` is the undo's.
 
-`InlineEnvironment` is the only module that calls `run_sealed` and `UndoService` for a stage. `StallService` still calls the undo itself after a stall; the stall's take under the container environment is a later story.
+`InlineEnvironment` is the only module that calls `run_sealed` and `UndoService` for a stage. `StallService` reaches the undo only through this environment: its stall takes like `AfterAgent` does.
 
 `stage_environment_of(boundaries)` gives the environment the boundaries describe. It gives a `ContainerEnvironment` when `boundaries.snapshots` and `boundaries.containers` are both set, and an `InlineEnvironment` when one or both is `None` (see *The container environment*).
 
@@ -29,7 +29,7 @@ This file covers the two interfaces through which the factory reaches the datase
 - `StageLauncher.launch`, after the claim is pushed and the pull request ensured and before the cost record begins: `prepare(stage_start.commit, branch, sync_time_limit=...)`, then `run_agent(request, run=PatientRuns(boundaries).run)`. An error from `prepare` ends the launch like one from the agent runtime, after the claim and before any run or cost record.
 - `AfterAgent.process`: `take(started.stage_start, started.path)` at the point where the undo was, once the result and the decision are accepted. `AgentAftermath.take` carries the report, and the entry's closing paragraph names `take.left` (see `stages.md`, *After the agent run*).
 - `agent_run_probe_item` (the preflight): `stage_environment_of(boundaries).run_agent(request)`. `factory.application.preflight` does not import `run_sealed`, so the probe cannot bypass the environment; a test pins that.
-- `StageFinisher` does not use the environment: the checks go through `boundaries.project_commands`.
+- `StallService.stall`, with a stage start, after the checkout is put back on the work item's branch: `take(context.stage_start, context.path)`, whatever the reason (`check_red` included), and its report is `StallResult.take`. A stall after `AfterAgent`'s take is a second take within one stage. `StageFinisher` takes only through its stall service: the checks go through `boundaries.project_commands`.
 
 ### The sync time limit
 
@@ -41,7 +41,7 @@ This file covers the two interfaces through which the factory reaches the datase
 
 ### One environment per runner
 
-`StageLauncher` and `AfterAgent` take an optional keyword `stage_environment`; `None` means `stage_environment_of(boundaries)`. `StageRunner` builds one environment and gives it to both, so that the object that saw a stage's `prepare` sees its `take`.
+`StageLauncher`, `AfterAgent`, `StageFinisher` and `StallService` take an optional keyword `stage_environment`; `None` means `stage_environment_of(boundaries)`. `StageRunner` builds one environment and gives it to all four, so that the object that saw a stage's `prepare` sees its `take`.
 
 Tests: `tests/application/test_stage_environment.py` (the interface and the inline environment against `run_sealed` and the undo), `tests/application/test_stage_environment_calls.py` (a stand-in environment that records its calls, given to `StageLauncher` and `AfterAgent`), and the interface's row in `tests/application/test_interfaces.py`.
 
@@ -239,17 +239,17 @@ The first `prepare` on a dataset creates the repository; the next ones reuse it,
 
 ### `take`
 
-`take(stage_start, work_item_path)` is `TakeService(boundaries, snapshots.mount_point).take(stage_start, work_item_path, snapshots.changed_paths())` (see *The take*): `src/new.py` written in the dataset's checkout reaches the host when the role may write it, a changed file outside the write paths stays in `left`, and nothing of `.venv` (ignored on the host) or of `home/` is taken. The report is returned as the service gives it.
+`take(stage_start, work_item_path)` is `TakeService(boundaries, snapshots.mount_point).take(stage_start, work_item_path, snapshots.changed_paths())` (see *The take*): `src/new.py` written in the dataset's checkout reaches the host when the role may write it, a changed file outside the write paths stays in `left`, and nothing of `.venv` (ignored on the host) or of `home/` is taken. The report is returned as the service gives it; a second `take` without a `prepare` between runs the service again on the dataset's changes then.
 
 ### The timing line
 
-After the take, one line goes to the factory log through `boundaries.log.line` (`TIMING_LINE`):
+After the first take of a stage, one line goes to the factory log through `boundaries.log.line` (`TIMING_LINE`):
 
 ```text
 2026-10-24T18:00:07Z stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s, take 0.2 s
 ```
 
-Each duration is in seconds with one decimal (Python's rounding). `reset`, `sync` and `advance` are those of the last successful `prepare` of the same object (replaced by each, never added), `take` is the time of this `take`, `changed_paths` included. A `take` without a `prepare` on the object writes `0.0` for the first three. One line per stage, written by `take`, none after `prepare` alone. To read the plan's measures, take the lines from `/state/factory.log`: `reset` and `advance` are the cost of the snapshots, `sync` the cost of the container with `make sync`, `take` the cost of listing the changes and copying them. The inline environment writes no such line.
+Each duration is in seconds with one decimal (Python's rounding). `reset`, `sync` and `advance` are those of the last successful `prepare` of the same object (replaced by each, never added), `take` is the time of this `take`, `changed_paths` included. A `take` without a `prepare` on the object writes `0.0` for the first three. One line per stage: the first `take` after a `prepare` on the object writes it (or the first `take` on an object without a `prepare`), none after `prepare` alone. A stall after `AfterAgent`'s take (an empty entry, a broken form, a red check) is a second take: it takes again from the dataset, as the first did, and writes no line. To read the plan's measures, take the lines from `/state/factory.log`: `reset` and `advance` are the cost of the snapshots, `sync` the cost of the container with `make sync`, `take` the cost of listing the changes and copying them. The inline environment writes no such line.
 
 ### Wiring and tests
 
