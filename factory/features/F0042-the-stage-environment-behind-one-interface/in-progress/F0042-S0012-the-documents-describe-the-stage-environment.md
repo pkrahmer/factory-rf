@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 423
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T22:00:32.372542Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-24T22:00:32.372542Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T22:01:11.503108Z'
+  stage: smoke-test
+  run: 921f191cc0d84df0838c58a7fbb7ef11
 ---
 
 # The documents describe the stage environment
@@ -180,3 +182,46 @@ Expect: `documents ok`
     `secrets`: secrets: green (2.5 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test passed: all three commands met their `Expect:` lines, and the smoke test contradicts none of the acceptance criteria. No findings.
+
+    Command 1:
+    ```
+    14
+    1
+    docs/operator-guide.md:0
+    docs/project-guide/processes-and-checks.md:0
+    ```
+    Met: four lines, `14`, `1`, `docs/operator-guide.md:0`, `docs/project-guide/processes-and-checks.md:0`.
+
+    Command 2:
+    ```
+    6
+    4
+    1
+    1
+    ```
+    Met: four lines, `6`, `4`, `1`, `1`.
+
+    Command 3:
+    ```
+    documents ok
+    ```
+    Met.
+
+    I also checked the parts of the criteria the commands do not target, by grep and by reading:
+    - Criterion 1: `git diff --stat main...HEAD` lists only `README.md`, `docs/decisions.md`, `docs/operator-guide.md`, `docs/project-guide/README.md`, `docs/project-guide/stage-environment.md`, `docs/project-guide/write-guard.md` and the work item with its `.costs.jsonl`. Nothing changed under `src/`, `tests/`, `image/`, `template/` or `claude/`. The tester's and the coder's entries each say so.
+    - Criterion 2: I did not run `make check`. This stage does not ask for it, and the factory's gate after `doing` was green (entry 7).
+    - Criterion 3, `stage-environment.md`:
+      - The fourteen `##` sections are in the order the criterion gives.
+      - Line 1 is `# The stage environment`, and the next non-blank line names what the file covers.
+      - *The cycle* is an eight-step numbered list. Each step names its section, and the list says that under `inline` `prepare` does nothing.
+      - Each required word appears at least once: `inline` and `container` (10 each), `FACTORY_STAGE_ENVIRONMENT` (2), `/work` (11), `@base` (8), `TakeReport` (2), `stage_environment_of` (6), `stage environment: reset` (1).
+    - Criterion 3, `docs/project-guide/README.md`: there is one `stage-environment.md` bullet. It names all ten modules and the fourteen sections in order. The `write-guard.md` bullet says "the undo (the inline environment's take)".
+    - Criterion 3, `write-guard.md`: under *The undo*, the `StallService` sentence now reads "A stall's undo is the inline environment's take too: `StallService` takes through the stage environment (`stage-environment.md`, *Who calls what*)". *Who calls what* is a `###` subsection of `stage-environment.md` (line 194). The diff changes only that one line.
+    - Criterion 3, `docs/decisions.md`: *One snapshot instead of many layers* names `2026-10-24`, `planning/v1.2-plan.md`, `StageEnvironment`, `InlineEnvironment`, `ContainerEnvironment`, `refusal`, `restore_state_and_journal` and `F0044`.
+    - Criterion 3, `docs/operator-guide.md`: it has the line `stage environment: reset` once.
+    - Criterion 3, `README.md`: line 25 is one paragraph for the newcomer. It names `FACTORY_STAGE_ENVIRONMENT` once, describes `inline` (v1.1's way, the default) and `container` (throwaway containers on a ZFS dataset, v1.2's way), and points to the operator guide.
+
+    One cosmetic point, which is not a finding: in `write-guard.md`, *The undo*, "A stall's" is capitalised after a semicolon.
+
+    Open: nothing.
