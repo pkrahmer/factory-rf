@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T18:11:31.560726Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -161,6 +157,12 @@ journal:
   kind: started
   at: '2026-10-24T18:11:31.560726Z'
   stage: review
+- number: 28
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T18:12:47.129251Z'
+  stage: review
+  run: 941f5ebbf440434f928748fdaf313d84
 ---
 
 # The container environment runs the cycle of a stage
@@ -477,3 +479,41 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
     `check`: check: green
     `duplicates`: duplicates: 9 new, 37 known, 1 gone
 27. factory: started review as self.
+28. reviewer: Review round 2. I read the work item and the whole diff of `src/` and `tests/` against it, and went through every criterion and every rule of the Interface again. The code under `src/` has not changed since round 0: one coder commit, 2d1d05b3. The only test change since round 1 is the `last-prepare-counts` row. I did not run `make check`, because the factory's run after the coder was green (entry 26).
+
+    no findings
+
+    What I checked:
+    - Criterion 1: `tests/application/test_stage_environment_of.py` has four rows covering both, one and neither of snapshots and containers.
+    - Criteria 2 to 4: the tests check
+      - HEAD, the branch and the local branches, including the `--prune` of `gone`;
+      - the sync marker and the agent file;
+      - that `changed_paths` is empty after the base moves;
+      - the exact command list after the script, the mounts, the environment, the time limit and the working directory, and that the script contains no container path;
+      - on the second prepare: the repository is reused, the stray files are gone, the changed agent file arrives and `extra.md` is removed.
+    - Criteria 5 and 12, the faults of `prepare`:
+      - `boom` with make's own line skipped, and the base kept until the next `reset()`;
+      - a timeout under 1.5 s whose elapsed time is bounded, plus the rounding-up rows 1.2 s → 2 s and 3 s → 3 s;
+      - `SnapshotError` with no container call;
+      - a commit that does not exist;
+      - `exit status 3` and `exit status 2` when the output has no usable line.
+    - Criterion 6:
+      - two parametrized rows, one through the runtime and one through a given `run`, and the `.git` modes are unchanged;
+      - the nested repository, the ignored `build/out.txt` and the file written into `agent_home` all stay in place.
+    - Criterion 7: `test_take_copies_the_snapshots_changes_the_role_may_write` checks that `src/new.py` is copied, `docs/guide.md` is left, nothing of `.venv` or `home` reaches the host, and the exact `TakeReport`.
+    - Criteria 8 and 13: one parametrized test with four rows (prepare-and-take, take-without-prepare, prepare-alone, last-prepare-counts). Each row checks the exact end of the line, or that no line was written.
+    - Criterion 9: a whole stage through `StageRunner` gives a result commit with `tests/test_a.py` and without `notes.md`, the journal names `notes.md`, the log holds one timing line, and the host's work tree is clean.
+    - Criteria 10 and 11: `last_line` has six parametrized rows. `make_commands` holds the domain's function and no private copy.
+    - Interface rules: the base does not move after a failed sync, and `SnapshotError` propagates as it is. Both are pinned. Exit status 0 passes in every success test.
+    - Architecture: `ContainerEnvironment`, `SHELL` and the constants are in `application`, and they import only `application` and `domain`. `last_line` and `MAKE_MESSAGE_PREFIXES` are in `domain`, and `make_commands` imports them without keeping a copy. `Boundaries` gains the two fields with `None` defaults, after `agent_home`.
+    - Security: no suppression markers and no command built from strings. The sync script gets every path, the branch and the commit as positional arguments, and the error detail is the last line of the recipe.
+    - Quality: the names fit, there is no dead code, and the comments say why. `make duplicates`: the 9 new findings are in modules of earlier stories (read in round 0, and `src/` has not changed since).
+    - Hygiene: the Description matches what was built. The journal gives the main choice (the durations kept as fields, replaced on each successful `prepare`) and the rejected option (a timing DTO). Docs criterion 15 still says what the documenter has to write.
+
+    Still open, as before, and not a finding: after a failed `prepare`, the object keeps the durations of the last successful one. The Interface does not settle that case.
+
+    Earlier tests: none. Every test file in the diff is new (`A`).
+
+    Notes:
+    1. `tests/application/test_container_environment.py:35` and `tests/application/test_container_environment_take.py:34`: `FIVE_MINUTES` is defined in both modules. It could live in `tests/container_support.py`.
+    2. `tests/application/test_container_environment_take.py`, `ClockedSnapshots` and `ClockedContainerRuns`: their overriding methods have no `@override`, while `ResultContainerRuns` and `ContainerEnvironment` have it.
