@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 412
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T16:22:34.652795Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -54,6 +58,11 @@ journal:
   stage: doing
   run: daf52a504a4f4087b8c9d4643812fd24
   reason: check_red
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:22:34.652795Z'
+  stage: doing
 ---
 
 # No test sees the agent's login
@@ -138,3 +147,4 @@ Expect: one line that starts with `N passed` and names no `failed` and no `error
    lint: green (0.5 s)
    Bytecode compiled 4164 files in 99ms
    make: *** [Makefile:39: types] Error 139
+9. factory: started doing as self.
