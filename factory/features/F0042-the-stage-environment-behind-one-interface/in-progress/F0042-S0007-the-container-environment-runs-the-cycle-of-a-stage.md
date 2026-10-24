@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T17:33:48.316182Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-24T17:33:48.316182Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-24T17:40:53.044119Z'
+  stage: tests
+  run: ed791de863834dc98520aaa123c6058a
 ---
 
 # The container environment runs the cycle of a stage
@@ -159,3 +161,45 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
    - Architecture: fits. The application layer holds `ContainerEnvironment` and `SHELL`, the domain holds `last_line`, and the adapters layer is not imported upward.
    - Scope: inside feature.md's S0007 entry. No earlier test changes, and decision 18 (g) holds.
 7. factory: started tests as self.
+8. tester: Wrote the tests for criteria 1 to 11 against the Interface. Criteria 12 and 13 are the check and the docs, so they get no test.
+
+   - criterion 1: tests/application/test_stage_environment_of.py::test_the_container_environment_needs_both_snapshots_and_containers (rows: both, snapshots-only, containers-only, neither)
+   - criterion 2: tests/application/test_container_environment.py::test_prepare_syncs_the_dataset_to_the_commit_and_moves_the_base
+   - criterion 3: tests/application/test_container_environment.py::test_the_sync_container_gets_container_paths_mounts_environment_and_limit
+   - criterion 4: tests/application/test_container_environment.py::test_a_second_prepare_reuses_the_repository_and_resets_everything_else
+   - criterion 5: tests/application/test_container_environment.py::test_a_failed_prepare_raises_and_leaves_the_base (rows: sync-fails, sync-times-out, no-base, no-such-commit, blank-output, make-messages-only)
+   - criterion 6: tests/application/test_container_environment.py::test_run_agent_runs_unsealed_through_the_runtime_or_the_given_run (rows: runtime, given-run) and ::test_run_agent_leaves_nested_repositories_ignored_files_and_the_home
+   - criterion 7: tests/application/test_container_environment_take.py::test_take_copies_the_snapshots_changes_the_role_may_write
+   - criterion 8: tests/application/test_container_environment_take.py::test_one_timing_line_per_take_carries_the_last_prepares_durations (rows: prepare-and-take, take-without-prepare, prepare-alone)
+   - criterion 9: tests/application/test_container_environment_take.py::test_a_whole_stage_takes_the_agents_work_from_the_dataset
+   - criterion 10: tests/domain/test_checks_last_line.py::test_the_last_line_is_the_recipes_own
+   - criterion 11: tests/adapters/test_make_last_line_shared.py::test_the_make_adapter_uses_the_domains_last_line_rule
+
+   Files created:
+   - tests/container_support.py: the shared helpers `container_dataset`, `push_main`, `sync_makefile`, `dataset_git`, `local_branches` and `timing_lines`.
+   - tests/application/test_container_environment.py
+   - tests/application/test_container_environment_take.py
+   - tests/application/test_stage_environment_of.py
+   - tests/domain/test_checks_last_line.py
+   - tests/adapters/test_make_last_line_shared.py
+
+   I changed no earlier test file. tests/conftest.py and tests/adapters/test_make_commands*.py are untouched.
+
+   Notes for the coder:
+   - Criterion 5, timeout row: I bound the elapsed time to at least 1 and less than 25 seconds, as the criterion says.
+   - Criterion 5, `base_kept`: the "changed paths not empty, then `reset()` empties the dataset" check runs only on the sync-fails row, where the criterion states it.
+   - Criterion 5, no-such-commit row: the test checks that `command` is `sync` and that `detail` is not empty. It does not pin git's exact message.
+   - Criterion 6: the agent-home row writes its file through the `run=` callable, which then calls the fake runtime.
+   - Criterion 9: the Makefile's `sync` writes `.synced` and the host's `.gitignore` ignores it. That way, if the stage also runs a sync on the host, the "host work tree clean" check is not affected.
+   - Criterion 11: the test reads `vars(make_commands)["last_line"]`, so `mypy --strict` passes without an explicit re-export.
+
+   `make test` ran once and the new tests are red for the right reason. Four modules could not be imported because `ContainerEnvironment` (factory.application.stage_environment) and `factory.domain.checks.last_line` do not exist yet:
+   - tests/application/test_container_environment.py
+   - tests/application/test_container_environment_take.py
+   - tests/application/test_stage_environment_of.py
+   - tests/domain/test_checks_last_line.py
+
+   tests/adapters/test_make_last_line_shared.py does import, and fails on the missing `last_line` in make_commands. `make lint` is green. I skipped the type check, as the stage says to.
+
+   `lint`: lint: green (0.5 s)
+   `test`: ERROR tests/domain/test_checks_last_line.py - ImportError while importing test module '/work/checkout/tests/domain/test_checks_last_line.py'.
