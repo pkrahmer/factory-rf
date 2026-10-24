@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: round_cap
-round: 3
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 408
-comments_read: [6383983454, 6384181638]
+comments_read: [6383983454, 6384181638, 6384356460]
 handed_over: null
 claim: null
 journal:
@@ -187,6 +187,11 @@ journal:
   stage: review
   run: 7b695dbcc45a4e47ac8fbeea3c84df32
   blocked: round_cap
+- number: 33
+  speaker: human
+  kind: comment
+  at: '2026-10-24T12:43:43.709052Z'
+  stage: review
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -499,3 +504,8 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     Earlier tests:
     - `tests/test_wrapper_search.py`: changed under the human's leave. Criterion 9, which the human wrote, names this test and the added `factory.adapters.zfs_snapshots`. The change only adds that name to the expected set, and the test keeps its name and what it checks.
 32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+33. 2026-10-24 human: Answer to the round cap (F0042-S0002, ZFS snapshots roll back, advance and diff the dataset): **continue**.
+
+    Each round closed its findings, and round 2's only finding is criterion 12, three test rows with no code change. The tester writes those rows, the coder changes nothing, and the review follows.
+
+    For the next review: please list every remaining coverage gap of the module in one round, so that the story does not come back for one row at a time. Only a gap in a rule the Interface states is a finding; a wording preference is not.
