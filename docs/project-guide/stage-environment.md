@@ -202,7 +202,7 @@ Tests: `tests/application/test_take.py` and `tests/application/test_take_edges.p
 
 ## The container environment
 
-`ContainerEnvironment(boundaries, snapshots, containers)` (`factory.application.stage_environment`) is v1.2's `StageEnvironment`: the agent works on the dataset of `Snapshots`, the sync runs in a container of `ContainerRuns`, and the take copies back what the role may write. It runs steps 2 to 4 and 6 of the cycle in `planning/v1.2-plan.md` ("The cycle of a stage"). The agent's own container (step 5) is not here: `run_agent` runs the request through the boundaries' runtime, which a later story starts in a container.
+`ContainerEnvironment(boundaries, snapshots, containers)` (`factory.application.stage_environment`) is v1.2's `StageEnvironment`: the agent works on the dataset of `Snapshots`, the sync runs in a container of `ContainerRuns`, and the take copies back what the role may write. It runs steps 2 to 4 and 6 of the cycle in `planning/v1.2-plan.md` ("The cycle of a stage"). The agent's own container (step 5) is not here: `run_agent` runs the request through the boundaries' runtime, which starts the container itself (below, *The agent's container*).
 
 ### `prepare`
 
@@ -236,6 +236,10 @@ The first `prepare` on a dataset creates the repository; the next ones reuse it,
 ### `run_agent`
 
 `run_agent(request, *, run=None)` calls `(run or boundaries.agent_runtime.run)(request)` and returns `SealedRun(result=<it>, nested_repositories=[])`. There is no seal of the git folder, no home reset, no search for nested repositories and no removal of ignored paths: the dataset is rolled back by the next `prepare`, so nothing the agent leaves survives.
+
+### The agent's container
+
+Step 5 of the cycle belongs to the agent runtimes, not to `ContainerEnvironment`: a runtime built with a `ContainerRuns` starts each call through `ContainerRuns.launch` (`container_launch` in `factory.adapters.agent_launch`) in a container of the stage image, with `/work` mounted, the login and instructions files mounted read-only at their own paths, the request's allow-list environment as `--env` entries and `/work/checkout` as the working directory, and it reads the kill at `--timeout` as `time_limit`. What it gets and what it lacks (`sudo`, `factory-confine`, a rules file, leftovers, a temporary folder) is in `agents.md`, *Calls in a container*. The wiring that gives a `container` instance's runtimes their `PodmanRuns` is a later story's.
 
 ### `take`
 

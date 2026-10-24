@@ -22,6 +22,7 @@ from pydantic import (
 from factory.adapters.agent_launch import (
     CLEANUP_SCRIPT,
     CLEANUP_TIME_LIMIT,
+    CONTAINER_OS_USER,
     ENTRY_DESCRIPTION,
     FINISH_MESSAGE,
     LOGIN_PREFIX,
@@ -37,24 +38,29 @@ from factory.adapters.agent_launch import (
     Starters,
     cleanup_launch,
     confined_argv,
+    container_launch,
     denied_path,
     device_confinement,
     due_leftovers_launch,
     finished_run,
     leftovers_fault,
     login_argv,
+    login_paths,
     login_used,
     read_call_end,
     request_home,
     resume_budget,
+    run_environment,
     run_launch,
     since,
     state_directory_error,
     temporary_folder,
+    version_launch,
     version_printed,
 )
 from factory.adapters.process import ProcessRequest, ProcessResult, own_identity, run_process
 from factory.application.agent_runtime import AgentRuntime
+from factory.application.containers import ContainerRuns
 from factory.domain.agent_runs import (
     AgentRunRequest,
     AgentRunResult,
@@ -357,6 +363,7 @@ class ClaudeCodeRuntime(AgentRuntime):
         api_login_file: Path | None = None,
         provider_limit: ProviderLimit | None = None,
         leftovers: Sequence[str] | None = None,
+        containers: ContainerRuns | None = None,
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
 
@@ -368,7 +375,12 @@ class ClaudeCodeRuntime(AgentRuntime):
         A call refused by `provider_limit`, the default limit when `None`, ends `provider_limit`.
         Every call as another user is followed by `leftovers`, the program that ends that
         user's processes, when it is set.
+        With `containers`, every call runs in a container; the kernel's guard does not reach
+        into one, so `ValueError` with a `confine_executable`.
         """
+        if containers is not None and confine_executable is not None:
+            raise ValueError("a run in a container is not confined by factory-confine")
+        self._containers = containers
         self._executable = executable
         self._starters = Starters(
             sudo_executable=sudo_executable,
@@ -399,13 +411,21 @@ class ClaudeCodeRuntime(AgentRuntime):
         """The words that start the program ending the agent's leftover processes, or `None`."""
         return self._starters.leftovers
 
+    @property
+    def containers(self) -> ContainerRuns | None:
+        """Where every call runs, or `None` when calls run on the host."""
+        return self._containers
+
     def run(self, request: AgentRunRequest) -> AgentRunResult:
         """Run the agent of `request` and turn the JSON it prints into a result.
 
         A request's `resume_session` is resumed; otherwise the run starts a new session.
         A budget stop resumes the session once within what is left of the time limit.
-        A call that cannot be started, or whose files cannot be written, is `AgentRuntimeError`.
+        A call that cannot be started, or whose files cannot be written, is `AgentRuntimeError`,
+        and so is a request with an operating-system user on a runtime with containers.
         """
+        if self._containers is not None and request.os_user is not None:
+            raise AgentRuntimeError(CONTAINER_OS_USER)
         started = time.monotonic()
         # The run's files take a fresh id even when the session is resumed, so no run's files
         # meet another's.
@@ -430,12 +450,10 @@ class ClaudeCodeRuntime(AgentRuntime):
         A call that cannot be started, fails, reaches its limit or prints nothing is
         `AgentRuntimeError`.
         """
-        process_request = ProcessRequest(
-            argv=[self._executable, "--version"],
-            cwd=Path.cwd(),
-            time_limit=self._version_time_limit,
+        started = version_launch(
+            self._executable, containers=self._containers, time_limit=self._version_time_limit
         )
-        process = self._start(process_request)
+        process = self._start(_request_of(started, Path.cwd()))
         return version_printed(
             self._executable,
             failed=process.timed_out or process.exit_status != 0,
@@ -499,7 +517,11 @@ class ClaudeCodeRuntime(AgentRuntime):
             timed_out=process.timed_out,
         )
         timed_out = read_call_end(
-            end, time_limit=time_limit, os_user=request.os_user, starters=self._starters
+            end,
+            time_limit=time_limit,
+            os_user=request.os_user,
+            starters=self._starters,
+            in_container=self._containers is not None,
         )
         process = process.model_copy(update={"timed_out": timed_out})
         if leftovers_error is not None:
@@ -544,15 +566,26 @@ class ClaudeCodeRuntime(AgentRuntime):
         arguments: list[str],
         time_limit: timedelta,
     ) -> ProcessRequest:
-        started = run_launch(
-            request,
-            confined_argv(
-                self._claude_argv(arguments), self._starters.confine_executable, files.rules
-            ),
-            {**self._config_folder(request), **SWITCHES},
-            sudo_executable=self._starters.sudo_executable,
-            time_limit=time_limit,
+        argv = confined_argv(
+            self._claude_argv(arguments), self._starters.confine_executable, files.rules
         )
+        runtime_environment = {**self._config_folder(request), **SWITCHES}
+        if self._containers is None:
+            started = run_launch(
+                request,
+                argv,
+                runtime_environment,
+                sudo_executable=self._starters.sudo_executable,
+                time_limit=time_limit,
+            )
+        else:
+            started = container_launch(
+                self._containers,
+                argv,
+                run_environment(request, runtime_environment),
+                files=[*login_paths(self._starters.login_files), files.instructions],
+                time_limit=time_limit,
+            )
         return _request_of(started, request.working_directory)
 
     def _start(self, process_request: ProcessRequest) -> ProcessResult:
