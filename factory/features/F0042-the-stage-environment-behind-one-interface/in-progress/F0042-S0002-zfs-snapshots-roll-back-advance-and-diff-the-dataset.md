@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638, 6384356460]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T12:54:54.147408Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -256,6 +252,12 @@ journal:
   kind: started
   at: '2026-10-24T12:54:54.147408Z'
   stage: docs
+- number: 45
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T12:55:31.599368Z'
+  stage: docs
+  run: d150416c81714253b7acc12c01078d81
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -685,3 +687,20 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     Notes:
     - `tests/adapters/test_zfs_snapshots.py`, `test_the_default_time_limit_is_ten_minutes_and_reaches_run_process` and `test_the_time_limit_is_named_in_whole_seconds_rounded_up`: both repeat the same setup (a `Recorder` patched into `zfs_snapshots.run_process`). A module fixture could share it. The `recorder` fixture in `tests/conftest.py` patches `claude_runtime`, so it cannot be reused as it is.
 44. factory: started docs as self.
+45. documenter: Docs, round 1. I read the story, the diff `git diff main...HEAD -- . ':!factory' ':!docs' ':!README.md'` and `src/factory/adapters/zfs_snapshots.py`, and found no contradiction between the Interface, the criteria and the code.
+
+    Files changed:
+    - `docs/project-guide/stage-environment.md`: new section *The ZFS adapter*, placed before *The container runs*. It covers the five commands and when each runs, how `zfs diff -FH` is read (kinds, rename, octal escapes, mount point, a path named twice), the faults and their details, `version` and `dataset_exists` for the preflight, and the stand-in the tests use. I also updated the intro's module list and its sentence "nothing uses them yet", which named the ZFS adapter as still to come.
+    - `docs/project-guide/README.md`: the entry for `stage-environment.md` now names `factory.adapters.zfs_snapshots` and lists the new section.
+
+    Cross-read and found current: `README.md`, `docs/operator-guide.md` and `docs/decisions.md` have nothing on ZFS or snapshots. The criterion also says nothing is due there for now (S0010 writes the settings, S0011 the items). The *Tests* paragraph of the same project-guide file now names the new tests in the new section.
+
+    I ran no examples: the section describes commands and has no runnable snippet. The factory's smoke-test stage runs the story's own script. I ran no `make check`, because I changed only documents; the factory's check decides.
+
+    Stale text I saw and left alone: none.
+
+    The reviewer's note (entry 43) about two tests that repeat a `Recorder` setup is the coder's and the tester's concern, not mine.
+
+    `check`: check: green (not run again: passed on tree 4b7edce0a272 at 2026-10-24T12:51:55Z)
+    `secrets`: secrets: green (1.1 s)
+    `documents`: documents ok
