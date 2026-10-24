@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T11:50:29.798511Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-24T11:50:29.798511Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T11:51:34.837316Z'
+  stage: review
+  run: fb967a6118304eed8a27e13de2d22fae
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -465,3 +467,23 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 8 new, 38 known, 0 gone
 15. factory: started review as self.
+16. reviewer: Round 1 review. Group 1 holds. Every criterion from 1 to 12 has a test that checks what it is named after. Each limit the Interface states is tested on both sides:
+    - `Mount.target` accepted and refused rows
+    - an empty `argv` refused and one word accepted
+    - a time limit of 0 and -1 s refused, 1 s accepted
+    - the four `exit_status`/`timed_out` combinations
+    - `/work` and `/work/checkout` refused, `/workspace` accepted
+    - the `/workspace` and `/mnt/deeper` words not mapped
+
+    The round-0 finding is fixed: `src/factory/domain/containers.py:15-20` now refuses only what the Interface states, so `/a/./b` is accepted. Journal entry 14 reports `check: green`.
+
+    Group 2 holds. The four layers are kept, both interfaces are ABCs whose method bodies are only their docstrings, and the DTOs live in `domain`. `fake_containers` reaches processes only through `run_process`, under decision 18 (a). Group 3 holds: no secrets and no silencing markers under `src/`. The test's `# noqa: PT011` gives its reason beside it, as `tests/domain/test_sessions.py:56` already does. Group 4 fails:
+
+    1. `src/factory/adapters/fake_containers.py:115-116` (`_lies_under`): this is a second copy of the existing helper `_beneath_or_at` in `src/factory/domain/agent_home.py:51-52`. Both return `path == above or path.startswith(f"{above}/")`. Fix: move that helper to one public place in `factory.domain`. Either rename it in `agent_home` (for example `beneath_or_at`) or move it to a domain module that both callers import. Then use it in `fake_containers` for the `/work` refusal (line 83) and for the path mapping (line 110), and delete `_lies_under`. No test changes.
+
+    Earlier tests:
+    - `tests/application/test_interfaces.py`: the human's leave in `feature.md`, decision 18 (a), named by the story's Interface and criterion 4. `INTERFACES` and `INTERFACE_IDS` each gain the two interfaces. The operations test gains exactly the two `__abstractmethods__` assertions. Every earlier test keeps its name.
+    - `tests/test_wrapper_search.py`: the human's leave in `feature.md`, decision 18 (a). The expected set gains `factory.adapters.fake_containers` and nothing else changes.
+
+    Notes:
+    - `tests/adapters/test_fake_containers.py`: `_run` (line 119) and `_run_with` (line 225) both call `runs.run` with nearly the same arguments, and `_launch` (line 216) repeats the pattern of `_launch_word` (line 29). One parametrized helper would do.
