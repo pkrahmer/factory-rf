@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-10-24T22:25:12.168367Z'
   stage: smoke-test
   run: f1b48d0dd7984416963c16ad13e580c9
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-24T22:25:58.911250Z'
+  stage: approval
 ---
 
 # The guides say what is true after the wiring
@@ -294,3 +299,4 @@ Expect: `documents ok`
     - Criterion 3: the diff touches exactly the five documents named, with 7 lines in and 7 out. I read each changed passage. The `sync` target and command, `ContainerMakeCommands` behind `RecordingProjectCommands`, `PodmanRuns` from `build_boundaries`, both `project_commands` cases in `watching.md`, the "Rewritten after every take" bullet with its `container` wording, and the stall note's "leaves out the rest" for both environments all say what the criterion asks. `make documents` ends with `documents ok`.
 
     Open: nothing for this story. The documenter's note (entry 11) still stands as a possible follow-up: `docs/decisions.md:166` and `:168` still say "after every undo", and it has not been checked whether the take path rewrites the sidecar through `AfterAgent.process`.
+17. factory: done (pull request merged); cost: 7 runs, 3.8 min, 34 turns, 122360 tokens in (523804 more from cache), 10959 out, $1.06
