@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T13:15:32.011144Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-24T13:15:10.506647Z'
   stage: review
   run: 1e200897652c40beaf8f7fe163da8969
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-24T13:15:32.011144Z'
+  stage: doing
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -252,3 +261,4 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
     Earlier tests:
     - tests/conftest.py: none needed (it only adds the `podman` fixture and its import).
     - tests/test_wrapper_search.py: the human's leave through the story (Interface `run` bullet and criterion 9, decision 18 c), one module name added.
+13. factory: started doing as self.
