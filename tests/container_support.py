@@ -18,14 +18,23 @@ from factory.application.stage_environment import ContainerEnvironment
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.domain.git import ChangedPath, CommitId
+from factory.domain.settings import InstanceSettings
 from git_support import install_agents, run_git, write_files
 from human_clone import HumanClone
+from podman_support import IMAGE
 from undo_support import start_stage
+from zfs_support import DATASET, MOUNT_POINT
 
 SYNC_MARKER = ".synced"
 SYNC_RECIPE = f"@echo synced > {SYNC_MARKER}"
 TIMING_PREFIX = "stage environment:"
 TAKE_SECONDS = 0.25
+CONTAINER: dict[str, object] = {
+    "stage_environment": "container",
+    "dataset": DATASET,
+    "workspace": str(MOUNT_POINT),
+    "stage_image": IMAGE,
+}
 
 
 def sync_makefile(recipe: str = SYNC_RECIPE) -> str:
@@ -42,6 +51,21 @@ class Dataset:
     containers: FakeContainerRuns
     workspace: Path
     base: Path
+
+
+def container_instance_settings(tmp_path: Path, agent_home: Path) -> InstanceSettings:
+    """Settings of a container instance: its workspace and state under `tmp_path`."""
+    return InstanceSettings.model_validate(
+        {
+            "repository_url": "/srv/project.git",
+            "instance": "factory-1",
+            "state_directory": tmp_path / "state",
+            "agent_home": agent_home,
+            "pinned_agent_version": "fake",
+            **CONTAINER,
+            "workspace": tmp_path / "workspace",
+        }
+    )
 
 
 def container_dataset(boundaries: Boundaries, tmp_path: Path, *, with_base: bool = True) -> Dataset:

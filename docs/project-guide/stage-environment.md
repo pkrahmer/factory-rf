@@ -301,13 +301,33 @@ One function, `stage_environment_fault` (`factory.domain.settings`), holds that 
 
 The arguments `which`, `confine_executable` and `end_leftovers` are read for `inline` only; a `container` build asks `which` for nothing. It runs no tool: `zfs` and `podman` start only when a stage uses them. `RecordingProjectCommands.inner` is the implementation it records, which the wiring's tests read.
 
-`agent_run_environment(settings, base)` copies `base` and sets `HOME`: for `container` to `/work/home` (`WORK_HOME_ENVIRONMENT`), on the dataset; for `inline` to the agent user's home when there is one, else the base's. The preflight's items for a container instance are not built yet. Tests: `tests/domain/test_settings_stage_environment.py`, `tests/entry/test_wiring_stage_environment.py` and `tests/entry/test_wiring_stage_environment_home.py`.
+`agent_run_environment(settings, base)` copies `base` and sets `HOME`: for `container` to `/work/home` (`WORK_HOME_ENVIRONMENT`), on the dataset; for `inline` to the agent user's home when there is one, else the base's. The preflight's items for a container instance are in *The preflight* below. Tests: `tests/domain/test_settings_stage_environment.py`, `tests/entry/test_wiring_stage_environment.py` and `tests/entry/test_wiring_stage_environment_home.py`.
 
 ## The checks
 
 Step 7 of the cycle in `planning/v1.2-plan.md` ("The cycle of a stage"): the stage's checks see the taken result on a clean base. `ContainerMakeCommands` (`factory.adapters.make_commands`) does it for every project command: it rolls the dataset back to the base, copies in the files the take brought into the host's work tree, and runs `make sync && make <command>` in a container with the command's time limit. The steps, the environment and the faults are in `processes-and-checks.md`, *Container project commands*. A file a check makes stays in its container's dataset and is reset away by the next run; it never reaches the host.
 
 What is copied is what differs from `HEAD` on the host (`git.changed_paths("HEAD")`), not a list the take kept. After the take that is the taken files, the restored work item and the factory's cost record; at the preflight's `lint` on `main` it is nothing. Nothing is remembered between the take and the checks (decision 7 of the feature): `HEAD` and the host's work tree already say what the take brought, so no list is kept that could disagree with them. The copy is `copy_changed`, the take's own mirror, so the two directions share one rule for links, modes, deletions and refused paths.
+
+## The preflight
+
+The preflight (`factory.application.preflight`; the tick, the stamp and the stops are in `watching.md`) chooses its items by `settings.stage_environment`. The `inline` items are unchanged and in their order.
+
+For `container`, `machine_extras` (`factory.entry.wiring`) gives, in this order: `token-file`, `podman`, `zfs`, `dataset`, `stage-image`, `opencode` under opencode only, `agent-run-probe`. It builds a `ZfsSnapshots` and a `PodmanRuns` of its own through `_container_adapters`, the function `_container_environment` also calls, because `boundaries.snapshots` and `boundaries.containers` are typed as the interfaces and nothing narrows them. Building them runs no command.
+
+The four new items take callables, so `application` knows no adapter:
+
+| Item | Function | Callable | Fails with |
+|---|---|---|---|
+| `podman`, `zfs` | `tool_version_item(name, version)` | `PodmanRuns.version`, `ZfsSnapshots.version` | `<name> does not answer --version: <error>` on `SnapshotError` or `ContainerError`; passes with the printed line as its detail |
+| `dataset` | `dataset_item(dataset, exists)` | `ZfsSnapshots.dataset_exists` | `the dataset <dataset> does not exist; make it with zfs create, and its base with zfs snapshot <dataset>@base`, or `cannot list the dataset <dataset>: <error>` on `SnapshotError` |
+| `stage-image` | `stage_image_item(image, exists)` | `PodmanRuns.image_exists` | `the stage image <image> is not built; build it with podman build`, or `cannot look for the stage image <image>: <error>` on `ContainerError` |
+
+The items left out for `container`: `agent-user`, `tool:sudo`, `confinement` and `agent-environment` check layers a container replaces, or a `HOME` that is a path inside the container. `MachineChecks.run` uses `CONTAINER_TOOLS` (`git`, `uv`) in place of `REQUIRED_TOOLS` plus the runtime's executable: no `tool:make` (it runs only in the sync and check containers) and no `tool:claude` or `tool:opencode` (the executable is the stage image's; `agent-runtime-version` runs it there and is the check of its presence). `opencode_item` checks the aliases only for `container`.
+
+Both probes go through the environment like a stage. `agent_run_probe_item` resolves `origin/main` (none fails the item with `no origin/main to prepare the stage environment from`, and no run starts), calls `stage_environment_of(boundaries).prepare(main, MAIN_BRANCH, sync_time_limit=PROBE_TIME_LIMIT)` and then `run_agent` on the same object; `SnapshotError` and `ContainerError` from `prepare` fail the item with their message. `Preflight._run_probe` calls the same `prepare` after it puts the checkout on `main` and before `lint`; `Preflight.run` catches both errors beside `GitError` and `ProjectCommandError` and stops with `the probe on main could not run: <error>`. For `inline`, `prepare` does nothing and `resolve` is the one new git call.
+
+Tests: `tests/application/test_container_items.py`, `test_opencode_item_container.py`, `test_machine_checks_container.py`, `test_agent_run_probe_environment.py`, `test_preflight_run_environment.py` and `tests/entry/test_wiring_container_extras.py`.
 
 ## The fakes
 

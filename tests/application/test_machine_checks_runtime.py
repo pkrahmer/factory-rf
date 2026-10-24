@@ -5,12 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import MachineChecks
 from factory.domain.settings import InstanceSettings
-from git_support import install_agents
 from wiring_support import every_tool
 
 MISMATCH = "the agent runtime reports 1.19.4, the image pins 1.19.3; "
@@ -27,13 +25,6 @@ def _settings(agent_home: Path, **fields: object) -> InstanceSettings:
             **fields,
         }
     )
-
-
-@pytest.fixture
-def installed(boundaries: Boundaries, agent_home: Path) -> Boundaries:
-    """Return boundaries whose agents are installed in the test's agent home."""
-    install_agents(agent_home, ["coder"])
-    return replace(boundaries, agent_definitions=FrontmatterAgentDefinitionReader(agent_home))
 
 
 @pytest.mark.parametrize(
