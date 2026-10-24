@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T20:15:24.738334Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-24T20:15:03.925456Z'
   stage: review
   run: ccb216ff9d89440ab4b3ea20967f3eb5
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:15:24.738334Z'
+  stage: doing
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -149,3 +158,4 @@ Expect: one line, `[-9, 137, 255] True False`
    - The new runtime tests mirroring S0008's 137 tests. The story asks for new modules and no change to earlier tests.
 
    Earlier tests: none. Every test file the diff touches is new (status `A`).
+10. factory: started doing as self.
