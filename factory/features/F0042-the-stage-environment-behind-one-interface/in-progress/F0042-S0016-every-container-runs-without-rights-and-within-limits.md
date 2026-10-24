@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T20:40:35.758204Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-24T20:40:14.958672Z'
   stage: tests
   run: 95756ae8e2284fbea4d2890f4c18ea65
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:40:35.758204Z'
+  stage: doing
 ---
 
 # Every container runs without rights and within limits
@@ -218,3 +227,4 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
 
     `lint`: lint: green (0.5 s)
     `test`: test: green (66.2 s)
+14. factory: started doing as self.
