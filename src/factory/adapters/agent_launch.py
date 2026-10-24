@@ -33,6 +33,9 @@ TIMEOUT_EXECUTABLE = "timeout"
 SUDO_GRACE = timedelta(seconds=30)
 # `timeout --signal=KILL` exits 128 + 9; `subprocess` reports a death by SIGKILL as -9.
 KILL_STATUSES = frozenset({137, -9})
+# podman's `--timeout` ends the container with 255, not 137 (podman 4.9.3, measured 2026-10-24).
+PODMAN_TIMEOUT_STATUS = 255
+CONTAINER_KILL_STATUSES = KILL_STATUSES | {PODMAN_TIMEOUT_STATUS}
 # The agent reads a run's files through its group and must not rewrite its own guard.
 RUN_FILE_MODE = 0o640
 TEMPORARY_PREFIX = "factory-run-"
@@ -360,10 +363,16 @@ def killed_at_limit(
 ) -> bool:
     """Whether a call run as `os_user`, or `in_container`, was ended by its own kill at the limit.
 
-    A container's kill at `--timeout` is read as the agent's own `timeout` under `sudo` is.
+    A container's kill at `--timeout` is read as the agent's own `timeout` under `sudo` is,
+    with podman's own status beside the kill's.
     """
-    killable = os_user is not None or in_container
-    if not killable or exit_status not in KILL_STATUSES:
+    if in_container:
+        kill_statuses = CONTAINER_KILL_STATUSES
+    elif os_user is not None:
+        kill_statuses = KILL_STATUSES
+    else:
+        return False
+    if exit_status not in kill_statuses:
         return False
     return duration >= time_limit
 

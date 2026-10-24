@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T20:10:41.274580Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-24T20:10:41.274580Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-24T20:13:42.882146Z'
+  stage: doing
+  run: cb14b2225e9a455c8ca2aa93c2311b71
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -113,3 +115,13 @@ Expect: one line, `[-9, 137, 255] True False`
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/adapters/test_agent_launch_container_kill.py - ImportError while importing test module '/work/checkout/tests/adapters/test_agent_launch_container_kill.py'.
 6. factory: started doing as self.
+7. coder: Built: `src/factory/adapters/agent_launch.py` adds `PODMAN_TIMEOUT_STATUS = 255`, with a comment saying why: podman 4.9.3's `--timeout` ends a container with 255 (measured 2026-10-24). It also adds `CONTAINER_KILL_STATUSES = KILL_STATUSES | {PODMAN_TIMEOUT_STATUS}`. `killed_at_limit` now picks which set of kill statuses to read. With `in_container=True` it reads `CONTAINER_KILL_STATUSES`. With an `os_user` and no container it reads `KILL_STATUSES` as before. With neither it returns `False`. `read_call_end` is unchanged and still passes `in_container` through. In `src/factory/adapters/podman_runs.py`, `_killed_at_limit` now imports and reads `CONTAINER_KILL_STATUSES` from `agent_launch` instead of `KILL_STATUSES`, so there is no copy of the set.
+
+   Main choice: I check `in_container` first and only then `os_user`. A container call can carry an `os_user` too, and it still has to accept 255. The alternative I rejected kept the old `killable` boolean and added a separate `exit_status == PODMAN_TIMEOUT_STATUS and in_container` clause. That puts two conditions on one decision and keeps the set out of sight. Picking one named set says the same thing directly.
+
+   Refactor: I read the diff once and nothing needed changing. `make check` is green (`check: green`). The smoke test prints `[-9, 137, 255] True False` as expected.
+
+   Noticed but did not touch: the docs this story's criterion 6 names, `docs/project-guide/stage-environment.md` and `docs/operator-guide.md`, are the documenter's job. The journal did not change what the task means, so I left the Description alone.
+
+   `check`: check: green
+   `duplicates`: duplicates: 16 new, 36 known, 2 gone
