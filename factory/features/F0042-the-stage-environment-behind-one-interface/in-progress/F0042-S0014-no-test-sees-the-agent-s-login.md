@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 412
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T16:26:56.963868Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -76,6 +80,11 @@ journal:
   at: '2026-10-24T16:26:36.727074Z'
   stage: review
   run: 72aeaf1ae32d40299e51b6dd06ff37b5
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:26:56.963868Z'
+  stage: docs
 ---
 
 # No test sees the agent's login
@@ -199,3 +208,4 @@ Expect: one line that starts with `N passed` and names no `failed` and no `error
     Earlier tests (`git diff --name-status main...HEAD`, status other than `A`):
     - `tests/conftest.py`: the human's leave, decision 18 (i) of `feature.md`, which the story names.
     - `tests/adapters/test_opencode_runtime_launch.py`: the human's leave, decision 18 (i) of `feature.md`, which the story names. Only the last assertion of `test_the_version_is_the_first_word_of_a_call_without_login_words` changed, within that leave.
+13. factory: started docs as self.
