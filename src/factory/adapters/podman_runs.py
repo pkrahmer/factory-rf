@@ -5,7 +5,7 @@ from collections.abc import Mapping, Sequence
 from datetime import timedelta
 from pathlib import Path
 
-from factory.adapters.agent_launch import KILL_STATUSES
+from factory.adapters.agent_launch import CONTAINER_KILL_STATUSES
 from factory.adapters.printed_output import failure_detail, first_printed_line, no_end_detail
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.application.containers import ContainerRuns
@@ -34,7 +34,7 @@ def _volume(mount: Mount) -> str:
 
 
 def _killed_at_limit(result: ProcessResult, time_limit: timedelta) -> bool:
-    return result.exit_status in KILL_STATUSES and result.duration >= time_limit
+    return result.exit_status in CONTAINER_KILL_STATUSES and result.duration >= time_limit
 
 
 class PodmanRuns(ContainerRuns):

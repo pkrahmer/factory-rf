@@ -11,7 +11,6 @@ from adapters.claude_stand_in import Step, read_calls, write_stand_in
 from adapters.container_runtime_support import (
     container_environment,
     files_in,
-    make_workspace,
     read_only,
     write_record_program,
 )
@@ -34,16 +33,6 @@ from time_limits import ROOMY_BOUND_SECONDS
 
 LIMIT = timedelta(seconds=30)
 OS_USER_DETAIL = "a run in a container has no operating-system user"
-
-
-@pytest.fixture
-def workspace(tmp_path: Path) -> Path:
-    return make_workspace(tmp_path)
-
-
-@pytest.fixture
-def fake(workspace: Path) -> FakeContainerRuns:
-    return FakeContainerRuns(workspace)
 
 
 def _request(

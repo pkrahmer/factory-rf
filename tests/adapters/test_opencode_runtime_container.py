@@ -9,16 +9,17 @@ import pytest
 
 from adapters.claude_stand_in import Step, read_calls
 from adapters.container_runtime_support import (
+    LIMIT,
     container_environment,
+    container_request,
     files_in,
-    make_workspace,
+    make_state,
     read_only,
     write_record_program,
 )
 from adapters.opencode_stand_in import (
     MODELS,
     REPLY,
-    opencode_request,
     stdout,
     step_finish,
     step_start,
@@ -35,35 +36,12 @@ from factory.adapters.agent_launch import (
 from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.process import ProcessRequest, ProcessResult, Stream
-from factory.domain.agent_runs import AgentRunRequest
 from factory.domain.containers import WORK_CHECKOUT, ContainerCall
 from factory.domain.errors import AgentRuntimeError
 from run_process_recorder import Recorder
 from time_limits import ROOMY_BOUND_SECONDS
 
-LIMIT = timedelta(seconds=30)
 OS_USER_DETAIL = "a run in a container has no operating-system user"
-
-
-@pytest.fixture
-def workspace(tmp_path: Path) -> Path:
-    return make_workspace(tmp_path)
-
-
-@pytest.fixture
-def fake(workspace: Path) -> FakeContainerRuns:
-    return FakeContainerRuns(workspace)
-
-
-def _request(
-    tmp_path: Path, *, time_limit: timedelta = LIMIT, os_user: str | None = None
-) -> AgentRunRequest:
-    return opencode_request(
-        tmp_path / "work",
-        environment=container_environment(tmp_path / "bin"),
-        time_limit=time_limit,
-        os_user=os_user,
-    )
 
 
 def _api_login(tmp_path: Path) -> Path:
@@ -71,12 +49,6 @@ def _api_login(tmp_path: Path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(f"{API_LOGIN}\n", encoding="utf-8")
     return path
-
-
-def _state(tmp_path: Path) -> Path:
-    state = tmp_path / "state"
-    state.mkdir(exist_ok=True)
-    return state
 
 
 def _runtime(
@@ -89,7 +61,7 @@ def _runtime(
     executable = write_opencode(tmp_path / "bin", steps)
     return OpencodeRuntime(
         str(executable),
-        _state(tmp_path),
+        make_state(tmp_path),
         models=MODELS,
         containers=fake,
         api_login_file=api_login_file,
@@ -113,7 +85,7 @@ def test_a_runtime_keeps_its_containers_and_refuses_them_with_a_confine_executab
     refused: bool,
 ) -> None:
     confine = "factory-confine" if with_confine else None
-    state = _state(tmp_path)
+    state = make_state(tmp_path)
 
     if not with_containers:
         assert OpencodeRuntime("opencode", state).containers is None
@@ -131,7 +103,7 @@ def test_a_run_in_a_container_mounts_the_login_and_configuration_and_completes(
 ) -> None:
     api_file = _api_login(tmp_path) if api else None
     runtime = _runtime(tmp_path, [REPLY], fake, api_login_file=api_file)
-    request = _request(tmp_path)
+    request = container_request(tmp_path)
     given = {**request.environment, LOGIN_VARIABLE: "request-login"}
     request = request.model_copy(update={"environment": given})
     state = tmp_path / "state"
@@ -173,7 +145,7 @@ def test_a_run_in_a_container_reports_the_login_read_from_the_mounted_file(
 ) -> None:
     runtime = _runtime(tmp_path, [REPLY], fake, api_login_file=_api_login(tmp_path))
 
-    result = runtime.run(_request(tmp_path))
+    result = runtime.run(container_request(tmp_path))
 
     assert result.login == "api_key"
 
@@ -184,7 +156,7 @@ def test_a_request_with_an_operating_system_user_is_refused_in_a_container(
     runtime = _runtime(tmp_path, [REPLY], fake)
 
     with pytest.raises(AgentRuntimeError) as raised:
-        runtime.run(_request(tmp_path, os_user="agent"))
+        runtime.run(container_request(tmp_path, os_user="agent"))
 
     assert raised.value.detail == OS_USER_DETAIL
     assert fake.calls == []
@@ -209,7 +181,7 @@ def test_a_container_killed_at_its_limit_ends_time_limit_without_a_resume(
     runtime = _runtime(tmp_path, [step], fake)
 
     started = time.monotonic()
-    result = runtime.run(_request(tmp_path, time_limit=time_limit))
+    result = runtime.run(container_request(tmp_path, time_limit=time_limit))
     elapsed = time.monotonic() - started
 
     assert result.end_reason == end_reason
@@ -244,9 +216,9 @@ def test_podman_s_kill_status_at_the_limit_is_read_as_the_time_limit(
         )
 
     monkeypatch.setattr(opencode_runtime, "run_streaming", answer)
-    runtime = OpencodeRuntime("opencode", _state(tmp_path), models=MODELS, containers=fake)
+    runtime = OpencodeRuntime("opencode", make_state(tmp_path), models=MODELS, containers=fake)
 
-    result = runtime.run(_request(tmp_path, time_limit=timedelta(seconds=30)))
+    result = runtime.run(container_request(tmp_path, time_limit=timedelta(seconds=30)))
 
     assert result.end_reason == end_reason
     assert len(requests) == 1
@@ -260,7 +232,7 @@ def test_the_version_runs_in_a_container_with_the_version_time_limit(
     tmp_path: Path, fake: FakeContainerRuns, version_time_limit: timedelta | None
 ) -> None:
     executable = write_opencode(tmp_path / "bin", [Step(stdout="1.19.3\n")])
-    state = _state(tmp_path)
+    state = make_state(tmp_path)
     runtime = (
         OpencodeRuntime(str(executable), state, containers=fake)
         if version_time_limit is None
@@ -287,8 +259,8 @@ def test_without_containers_the_call_runs_in_the_request_s_working_directory(
     tmp_path: Path,
 ) -> None:
     executable = write_opencode(tmp_path / "bin", [REPLY])
-    runtime = OpencodeRuntime(str(executable), _state(tmp_path), models=MODELS)
-    request = _request(tmp_path)
+    runtime = OpencodeRuntime(str(executable), make_state(tmp_path), models=MODELS)
+    request = container_request(tmp_path)
 
     result = runtime.run(request)
 
@@ -308,14 +280,14 @@ def test_a_call_in_a_container_starts_no_leftovers_program_and_no_temporary_fold
     executable = write_opencode(tmp_path / "bin", [REPLY])
     runtime = OpencodeRuntime(
         str(executable),
-        _state(tmp_path),
+        make_state(tmp_path),
         models=MODELS,
         containers=fake,
         leftovers=[str(program)],
         temporary_root=temporary_root,
     )
 
-    result = runtime.run(_request(tmp_path))
+    result = runtime.run(container_request(tmp_path))
 
     assert result.end_reason == "completed"
     assert not record.exists()

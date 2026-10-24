@@ -148,10 +148,10 @@ A `Mount` has a `source` (an absolute host path), a `target` (a container path) 
 
 `run` starts the launch's words through `run_process` (`factory.adapters.process`; `tests/test_wrapper_search.py` names the module) with the working directory `/` (podman reads no file from it; a missing workspace is podman's own fault, 125), the factory's environment and standard error merged into `output`.
 
-- `timed_out` is true when `run_process` says so, or when the exit status is in `KILL_STATUSES` (`factory.adapters.agent_launch`: 137 and -9) and the run lasted at least `time_limit`: podman's `--timeout` sent the kill. `exit_status` is then `None`.
+- `timed_out` is true when `run_process` says so, or when the exit status is in `CONTAINER_KILL_STATUSES` (`factory.adapters.agent_launch`: 137, -9 and 255) and the run lasted at least `time_limit`: podman's `--timeout` sent the kill. `exit_status` is then `None`.
 - The same statuses before the limit are the command's own, as is any other status at or after the limit.
 - Otherwise `exit_status` is podman's, which is the command's. Podman exits 125 for its own faults, such as a missing image; the result says 125 and podman's message is in `output`.
-- That podman exits 137 for a container its `--timeout` ended is an assumption; it is measured on the VM (F0043, story 4).
+- Podman's `--timeout` ends a container with exit status 255, not 137 (`PODMAN_TIMEOUT_STATUS`; podman 4.9.3, measured 2026-10-24 on the local VM: `podman run --rm --timeout 3 ... sleep 30` ended after 3.04 s with 255). The factory therefore reads 137, -9 or 255 at or after the limit as the time limit for a container call, and only 137 or -9 (`KILL_STATUSES`) for any other call, where 255 is no kill. 255 before the limit stays an ordinary exit status: a command can exit 255 by itself, and only the elapsed time tells that podman's timeout was the cause.
 - A `podman` that cannot start is `ContainerError(command[0], <operating system's message>)`: the first word of the command asked for, not `podman`.
 - `launch` and `run` raise `ValueError` as the interface says (`check_container_call`).
 
