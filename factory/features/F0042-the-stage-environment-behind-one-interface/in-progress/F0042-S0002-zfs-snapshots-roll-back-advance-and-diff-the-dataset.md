@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638, 6384356460]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T12:54:54.147408Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -247,6 +251,11 @@ journal:
   at: '2026-10-24T12:54:33.741125Z'
   stage: review
   run: f4bce65a6d5d40fa81720db3da806faa
+- number: 44
+  speaker: factory
+  kind: started
+  at: '2026-10-24T12:54:54.147408Z'
+  stage: docs
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -675,3 +684,4 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
 
     Notes:
     - `tests/adapters/test_zfs_snapshots.py`, `test_the_default_time_limit_is_ten_minutes_and_reaches_run_process` and `test_the_time_limit_is_named_in_whole_seconds_rounded_up`: both repeat the same setup (a `Recorder` patched into `zfs_snapshots.run_process`). A module fixture could share it. The `recorder` fixture in `tests/conftest.py` patches `claude_runtime`, so it cannot be reused as it is.
+44. factory: started docs as self.
