@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T20:24:00.735864Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-24T20:23:39.916899Z'
   stage: review
   run: 46789375852e4cb3b7f06ce1fa3334d9
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:24:00.735864Z'
+  stage: docs
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -264,3 +273,4 @@ Expect: one line, `[-9, 137, 255] True False`
     - `tests/adapters/container_runtime_support.py`: the standing leave to move a shared test helper. It receives `container_request`, `make_state` and `LIMIT`, moved from `test_opencode_runtime_container.py` with the same parameters and defaults.
     - `tests/adapters/test_claude_runtime_container.py`: the standing leave to move a shared test helper. Only its `workspace` and `fake` fixtures are removed; no test is renamed or changed.
     - `tests/adapters/test_opencode_runtime_container.py`: the standing leave to move a shared test helper. It now uses the moved fixtures, `container_request`, `make_state` and `LIMIT`; no test is renamed, and each checks the same thing.
+18. factory: started docs as self.
