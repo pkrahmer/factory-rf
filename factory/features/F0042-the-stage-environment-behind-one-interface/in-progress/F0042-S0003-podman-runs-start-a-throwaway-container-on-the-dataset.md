@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 409
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T13:00:18.711283Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-24T13:00:18.711283Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-24T13:00:36.695983Z'
+  stage: intake
+  run: 5b2c48fbf75643d4800ddf82be1ee79d
+  blocked: question
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -119,3 +122,8 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: 1. The story contradicts itself on the `env` of the launch and of the `run_process` call. The Interface's first bullet writes `ContainerLaunch(..., env={}, ...)` and then says "`env` is `None`". Criterion 1 and the smoke test's Expect line (`{}`) say `{}`. Feature decision 11 says `PodmanRuns.launch` returns `None`. The same split is in `run`: its bullet says `env` `{}`, but criterion 4 requires the stand-in's recorded environment to hold the test's `FACTORY_PROBE_VARIABLE`, so the environment must be inherited (`None`). Which is it? I would choose `None` for both the launch and the `run_process` call, as decision 11 and criterion 4 say. That means criterion 1 reads `env` `None` and the smoke test's first Expect line prints `None`, not `{}`.
+
+   2. The `cwd` of the `run_process` call in `run` is stated two ways. The Interface and criterion 4 say `/`, and criterion 4 expects the stand-in's working directory to be `/`. Criterion 5's Recorder row says the recorded request's `cwd` is "the workspace". I would choose `/` and change criterion 5 to say so.
+
+   3. After the answers, the smoke test's first Expect line must match the chosen `env`. The pipeline's other checks are fine: the Interface names concrete signatures, the criteria are testable, the layer placement is right, and the story is within scope.
