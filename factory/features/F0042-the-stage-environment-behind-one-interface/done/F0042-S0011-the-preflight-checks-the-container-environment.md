@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-24T21:50:18.108689Z'
   stage: smoke-test
   run: a1097ec95d054133bac3184a03e3c259
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-24T21:51:37.155845Z'
+  stage: approval
 ---
 
 # The preflight checks the container environment
@@ -482,3 +487,4 @@ Expect: `1`
     No findings.
 
     Open: nothing.
+25. factory: done (pull request merged); cost: 11 runs, 22.2 min, 131 turns, 467182 tokens in (4821637 more from cache), 70333 out, $5.66
