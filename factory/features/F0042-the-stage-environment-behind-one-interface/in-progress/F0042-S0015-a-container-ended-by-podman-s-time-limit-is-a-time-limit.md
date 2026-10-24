@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T20:14:03.938016Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-24T20:14:03.938016Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T20:15:03.925456Z'
+  stage: review
+  run: ccb216ff9d89440ab4b3ea20967f3eb5
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -135,3 +137,15 @@ Expect: one line, `[-9, 137, 255] True False`
    `check`: check: green
    `duplicates`: duplicates: 16 new, 36 known, 2 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. The source change matches the Interface. `PODMAN_TIMEOUT_STATUS = 255` has its why-comment, and `CONTAINER_KILL_STATUSES = KILL_STATUSES | {PODMAN_TIMEOUT_STATUS}`. `killed_at_limit` picks the set by `in_container` first, then by `os_user`. `read_call_end` is unchanged. `podman_runs._killed_at_limit` imports the shared set instead of keeping a copy.
+
+   Groups 1 to 3 pass. Criteria 1 to 4 each have a test that checks what the criterion says. Both sides are covered: 255 at 30 s and at 29.9 s, and 255 in and out of a container. In criterion 3 the stand-in waits `ROOMY_LIMIT` under a process limit of `ROOMY_LIMIT` plus the 30 s grace, so the 255 is the reading under test and not the factory's own kill. The coder's journal says `make check` was green. The layers hold, and no silencing marker was added. Group 4 fails, in a test file the diff adds. At round 0 that sends the work item back:
+
+   1. tests/adapters/test_runtime_podman_timeout_status.py:29-31: the `fake` fixture is a third copy of the `workspace` + `fake` fixtures in tests/adapters/test_claude_runtime_container.py:39-46 and tests/adapters/test_opencode_runtime_container.py:48-55. Fix: the tester moves `workspace` and `fake` to tests/conftest.py under the standing leave, and the three modules use them from there.
+   2. tests/adapters/test_runtime_podman_timeout_status.py:34-39 and :84-85: `_request` copies `_request` of tests/adapters/test_opencode_runtime_container.py:58-66 (that one also takes `time_limit` and `os_user`). The inline `state` setup copies `_state` of the same module. Fix: move both helpers to tests/adapters/container_runtime_support.py under the standing leave, and have the earlier module and the new one import them. Every earlier test keeps its name and what it checks.
+
+   Rejected as findings:
+   - `PODMAN_TIMEOUT = 255` in the new runtime test. A literal pins the measured value.
+   - The new runtime tests mirroring S0008's 137 tests. The story asks for new modules and no change to earlier tests.
+
+   Earlier tests: none. Every test file the diff touches is new (status `A`).
