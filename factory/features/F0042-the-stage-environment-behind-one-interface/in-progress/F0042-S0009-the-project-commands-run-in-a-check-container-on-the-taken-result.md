@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
-crashes: 1
+crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T19:38:48.719276Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -50,6 +46,12 @@ journal:
   kind: started
   at: '2026-10-24T19:38:48.719276Z'
   stage: intake
+- number: 8
+  speaker: intake
+  kind: result
+  at: '2026-10-24T19:39:04.533920Z'
+  stage: intake
+  run: fed9f2e9b5b94e998180e5c1dec17e0c
 ---
 
 # The project commands run in a check container on the taken result
@@ -90,8 +92,9 @@ Tests (the tester writes them): `tests/adapters/test_make_commands_container.py`
 5. Before anything runs (rows of one parametrized test): `time_limit` 0 and `time_limit` minus 1 second each raise `ValueError`; the command `Check` raises `ProjectCommandError` with `detail` `invalid command name 'Check'`; in both rows the fake recorded no call and the dataset was not reset (a `stray.txt` written after the base is still there).
 6. Faults (rows of one parametrized test): a `FakeSnapshots` without a base makes `run("check", ...)` raise `ProjectCommandError` whose `command` is `check` and whose `detail` starts with `snapshot command reset failed:`; a `ContainerRuns` of the test (a small class inheriting the interface) whose `run` raises `ContainerError("make", "[Errno 2] No such file or directory")` makes it raise `ProjectCommandError` with `detail` `container command make failed: [Errno 2] No such file or directory`; a `GitCli` of the test (a subclass of the `checkout` fixture's class) whose `changed_paths` raises `GitError("git diff", 128, "bad revision")` makes it raise that `GitError` itself, not a `ProjectCommandError`; one whose `changed_paths` returns `[ChangedPath(path="../x", change="added")]` makes it raise `ValueError`; in these two rows the fake recorded no call.
 7. `ContainerMakeCommands` is an instance of `ProjectCommands`, and `make` appears as a string literal in `factory.adapters.make_commands` and `factory.application.preflight` only (`tests/test_make_search.py`, unchanged).
-8. `make check` stays green.
-9. docs: `docs/project-guide/processes-and-checks.md`, *Project commands*: `ContainerMakeCommands` beside `MakeProjectCommands`, its steps (the reset, the copy of what differs from `HEAD`, the check container, the reading shared with the first implementation), its environment, its faults as `ProjectCommandError`, and that a check's files stay in the container; `docs/project-guide/stage-environment.md` gains the section *The checks* (step 7 of the cycle, pointing to `processes-and-checks.md`, and decision 7: why what differs from `HEAD` is copied and no list is kept). `docs/decisions.md`: none.
+8. The dataset's own `.git` is never touched (rows of one parametrized test): after a run with a host work tree that differs from `HEAD`, a marker file the test placed in the dataset's `checkout/.git` is intact and no host `.git` path was copied in; nothing is written outside `<mount_point>/checkout` (the files of the dataset's folder beside `checkout` are the same before and after the copy, apart from what the container itself writes).
+9. `make check` stays green.
+10. docs: `docs/project-guide/processes-and-checks.md`, *Project commands*: `ContainerMakeCommands` beside `MakeProjectCommands`, its steps (the reset, the copy of what differs from `HEAD`, the check container, the reading shared with the first implementation), its environment, its faults as `ProjectCommandError`, and that a check's files stay in the container; `docs/project-guide/stage-environment.md` gains the section *The checks* (step 7 of the cycle, pointing to `processes-and-checks.md`, and decision 7: why what differs from `HEAD` is copied and no list is kept). `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -131,3 +134,12 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
    - Scope: it is within S0009 of `feature.md` and decisions 7 and 8, and touches no out-of-scope item.
 6. 2026-10-24 human: Answer to the intake (F0042-S0009, the project commands run in a check container on the taken result): **(a)**. Add a criterion before the two closing ones, with two rows: (1) after a run with a host work tree that differs from `HEAD`, a marker file the test placed in the dataset's `checkout/.git` is intact and no host `.git` path was copied in; (2) nothing is written outside `<mount_point>/checkout`. The Interface's sentence stays. Please write it into the criteria as you accept.
 7. factory: started intake as self.
+8. intake: accepted
+
+   Carried in from journal entry 6 (the human's answer (a) to my question 1): I added a criterion before the two closing ones. It is now criterion 8, with two rows. Row 1: after a run with a host work tree that differs from `HEAD`, a marker file the test placed in the dataset's `checkout/.git` is intact and no host `.git` path was copied in. Row 2: nothing is written outside `<mount_point>/checkout`. `make check` is now criterion 9 and `docs:` is criterion 10. The Interface sentence stays as it was. I wrote the parenthesis in row 2 ("the files of the dataset's folder beside `checkout` are the same before and after the copy, apart from what the container itself writes") to make the row testable. It is my wording of the human's row.
+
+   - Interface: it names the module, `CHECK_ENVIRONMENT` and the `ContainerMakeCommands` signature. It gives the order of the checks and calls, the exact container command, and the `SnapshotError`/`ContainerError` mapping to `ProjectCommandError`. It also says that `GitError` and `ValueError` propagate.
+   - Criteria: criteria 1 to 8 are each testable by one test function. Every rule has its failing side: the `time_limit` and command-name refusals (5), the faults (6), the `sync` failure (3), the time limit (4) and the `.git` rule (8). The 30-line tail is in 1. The reset, copy, deletion and ignored-path cases are rows in 2.
+   - Smoke test: both commands are runnable. `pyproject.toml` sets `-q`, and the command passes none, so the `N passed in` line exists. Both `Expect:` lines can be checked against the output.
+   - Architecture: the class sits in `factory.adapters` behind the `ProjectCommands` interface. It reuses `copy_changed`, `last_line` and `status_of`, and the word `make` stays in the allowed modules.
+   - Scope: it is within S0009 of `feature.md` and decisions 7 and 8. It touches nothing under "Out of scope".
