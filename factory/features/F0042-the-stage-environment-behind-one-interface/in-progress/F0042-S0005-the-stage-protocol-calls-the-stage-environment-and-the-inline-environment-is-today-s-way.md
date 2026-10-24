@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T17:00:32.066560Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-24T17:00:32.066560Z'
   stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T17:01:38.426089Z'
+  stage: review
+  run: 8c5b4488064343d2ab66208237d04736
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -511,3 +513,33 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
     `check`: check: green
     `duplicates`: duplicates: 14 new, 37 known, 1 gone
 23. factory: started review as self.
+24. reviewer: no findings
+
+    Round 1. I checked the fix for my round-0 finding (criterion 11) and read the whole diff again against criteria 1 to 13 and every rule of the Interface.
+
+    - Criterion 11: `tests/application/test_stage_environment.py::test_take_is_the_undo_turned_into_a_take_report` now has the `work-item-unreadable` row, built with `_with_broken_work_item`. In both refusal rows it checks after the raise that `GUIDE` and `NEW_DOC` still hold `AGENT_TEXT`. The row's `change` now runs before the agent writes its files, which keeps the stage-start commit free of the agent's files. That order is right.
+    - Criteria 1 to 10: each has a test that checks what the criterion says.
+      - Sync limit: tested on both sides, 5 minutes with a `sync` command and 10 without.
+      - Order: `prepare` comes after the claim's push (the remote head is recorded at the call), before `run_agent`, and before the cost record (criterion 7 checks the sidecar).
+      - `run`: the `run` given to the environment runs the boundaries' runtime.
+      - Closing paragraph: rows for the own cost-records path and for an empty `left`.
+      - Probe: the structural check that `factory.application.preflight` no longer imports `run_sealed`.
+    - Criterion 9: its test goes through `StageRunner`, which passes the keyword. The criterion asks for exactly that test. The default for an omitted keyword is still covered by earlier tests that build without it and are unchanged and green: `tests/application/test_after_agent.py:138` and `tests/application/test_stage_launch.py:104`.
+    - `make check`: entry 22 reports `check: green`, coverage 99.19 %. I did not run it.
+    - Architecture:
+      - `src/factory/application/stage_environment.py` imports only application and domain modules.
+      - `StageEnvironment` is an ABC whose abstract methods have docstring-only bodies.
+      - `InlineEnvironment` is the only place that knows `run_sealed` and `UndoService`.
+      - `StageRunner` gives one environment object to both its launcher and its after-agent.
+      - `StallService` is untouched (decision 20).
+    - Security: no suppression markers, no strings built into commands.
+    - Quality: names and docstrings fit. The default sync limit reuses `ProjectCommandDefinition().time_limit` instead of a second constant.
+    - `make duplicates`: entry 22 reports 14 new findings. Two are from this diff: vulture's unused `sync_time_limit`, the parameter the inline no-op ignores by design. The rest are from earlier stories' modules.
+    - Work item: the Description matches what was built. The Interface's "Tests" paragraph and the first smoke-test command name `tests/application/test_stage_environment_calls.py` (the human's entry 8). Docs criterion 13 still says what the reader needs to know.
+
+    Notes:
+    1. `tests/application/test_stage_environment.py:11-14`: it imports the private helpers `_leave`, `_without_work_item` and `_with_broken_work_item` from other test modules. Under the standing leave they could move to a shared module under `tests/`.
+
+    Earlier tests:
+    - `tests/application/test_after_agent.py`: decision 18 (e) of `feature.md`, the human's leave. Only the two assertions changed, now reading `aftermath.take.left`. Each test keeps its name and rows.
+    - `tests/application/test_interfaces.py`: decision 18 (e) of `feature.md`, the human's leave. It gains the `StageEnvironment` row and the one `__abstractmethods__` assertion.
