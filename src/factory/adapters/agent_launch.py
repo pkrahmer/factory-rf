@@ -9,8 +9,10 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, JsonValue
 
+from factory.application.containers import ContainerRuns
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, GuardSettings, Login
 from factory.domain.confinement import Confinement, WriteTarget, confinement_of, write_targets
+from factory.domain.containers import WORK_CHECKOUT, Mount
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoint, KillPoints
 from factory.domain.leftovers import LEFTOVERS_PREFIX
@@ -41,6 +43,7 @@ CLEANUP_TIME_LIMIT = timedelta(seconds=60)
 CONFINE_PREFIX = "factory-confine:"
 LEFTOVERS_TIME_LIMIT = timedelta(seconds=30)
 LEFTOVERS_FAULT = "cannot end the agent's processes:"
+CONTAINER_OS_USER = "a run in a container has no operating-system user"
 
 SHELL_EXECUTABLE = "/bin/sh"
 # Claude Code's name for a token made by `claude setup-token`.
@@ -130,6 +133,11 @@ def login_argv(files: LoginFiles) -> list[str]:
     return [*shell, API_LOGIN_OPTION, str(files.api), subscription]
 
 
+def login_paths(files: LoginFiles) -> list[Path]:
+    """The login files that are set, the subscription file first."""
+    return [path for path in (files.subscription, files.api) if path is not None]
+
+
 def line_starting(stderr: str, prefix: str) -> str | None:
     """The first line of `stderr` that starts with `prefix`, or `None`."""
     for line in stderr.splitlines():
@@ -185,7 +193,8 @@ class Launch(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     argv: list[str]
-    env: dict[str, str]
+    # `None`: the process's own environment.
+    env: dict[str, str] | None
     time_limit: timedelta
 
 
@@ -223,6 +232,36 @@ def launch(
         env={},
         time_limit=time_limit + SUDO_GRACE,
     )
+
+
+def container_launch(
+    containers: ContainerRuns,
+    argv: Sequence[str],
+    environment: Mapping[str, str],
+    *,
+    files: Sequence[Path],
+    time_limit: timedelta,
+) -> Launch:
+    """`argv` with `environment` in a container; `files` mounted read-only at their own paths."""
+    mounts = [Mount(source=file, target=str(file), read_only=True) for file in dict.fromkeys(files)]
+    started = containers.launch(
+        argv,
+        mounts=mounts,
+        environment=environment,
+        time_limit=time_limit,
+        working_directory=WORK_CHECKOUT,
+    )
+    return Launch(argv=started.argv, env=started.env, time_limit=started.time_limit)
+
+
+def version_launch(
+    executable: str, *, containers: ContainerRuns | None, time_limit: timedelta
+) -> Launch:
+    """The call of `<executable> --version`, on the host or in a container."""
+    argv = [executable, "--version"]
+    if containers is None:
+        return Launch(argv=argv, env=None, time_limit=time_limit)
+    return container_launch(containers, argv, {}, files=[], time_limit=time_limit)
 
 
 def confined_argv(argv: Sequence[str], confine_executable: str | None, rules: Path) -> list[str]:
@@ -312,10 +351,19 @@ def device_confinement(
 
 
 def killed_at_limit(
-    *, os_user: str | None, exit_status: int | None, duration: timedelta, time_limit: timedelta
+    *,
+    os_user: str | None,
+    exit_status: int | None,
+    duration: timedelta,
+    time_limit: timedelta,
+    in_container: bool = False,
 ) -> bool:
-    """Whether a call run as `os_user` was ended by its own `timeout` at `time_limit`."""
-    if os_user is None or exit_status not in KILL_STATUSES:
+    """Whether a call run as `os_user`, or `in_container`, was ended by its own kill at the limit.
+
+    A container's kill at `--timeout` is read as the agent's own `timeout` under `sudo` is.
+    """
+    killable = os_user is not None or in_container
+    if not killable or exit_status not in KILL_STATUSES:
         return False
     return duration >= time_limit
 
@@ -377,6 +425,14 @@ def leftovers_fault(*, exit_status: int | None, timed_out: bool, stderr: str) ->
     return f"{LEFTOVERS_FAULT} {reason}"
 
 
+def run_environment(
+    request: AgentRunRequest, runtime_environment: Mapping[str, str]
+) -> dict[str, str]:
+    """The environment of a call for `request`: the request's without logins, with the runtime's."""
+    # The login comes from the files or not at all, never from the request.
+    return {**without_login(request.environment), **runtime_environment}
+
+
 def run_launch(
     request: AgentRunRequest,
     argv: Sequence[str],
@@ -386,11 +442,9 @@ def run_launch(
     time_limit: timedelta,
 ) -> Launch:
     """The call of a runtime's `argv` for `request`, its environment with `runtime_environment`."""
-    # The login comes from the files or not at all, never from the request.
-    environment = {**without_login(request.environment), **runtime_environment}
     return launch(
         argv,
-        environment,
+        run_environment(request, runtime_environment),
         os_user=request.os_user,
         sudo_executable=sudo_executable,
         time_limit=time_limit,
@@ -446,12 +500,21 @@ class CallEnd(BaseModel):
 
 
 def read_call_end(
-    end: CallEnd, *, time_limit: timedelta, os_user: str | None, starters: Starters
+    end: CallEnd,
+    *,
+    time_limit: timedelta,
+    os_user: str | None,
+    starters: Starters,
+    in_container: bool = False,
 ) -> bool:
     """Whether a call ended at its time limit; a call that was refused is `AgentRuntimeError`."""
     # The inner kill ends the call as the factory's own would: read as its time limit.
     timed_out = end.timed_out or killed_at_limit(
-        os_user=os_user, exit_status=end.exit_status, duration=end.duration, time_limit=time_limit
+        os_user=os_user,
+        exit_status=end.exit_status,
+        duration=end.duration,
+        time_limit=time_limit,
+        in_container=in_container,
     )
     refusal = call_refusal(
         end.stderr, printed=end.printed, timed_out=timed_out, os_user=os_user, starters=starters

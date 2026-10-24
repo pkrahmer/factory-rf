@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T18:57:17.441777Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-24T18:57:17.441777Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-24T19:05:29.875911Z'
+  stage: doing
+  run: 4f0f338ead6c4b8393e7d388f9feaff3
 ---
 
 # The agent runtimes start their process in a container
@@ -260,3 +262,34 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
    `lint`: lint: green (0.8 s)
    `test`: ERROR tests/adapters/test_agent_launch_container.py - ImportError while importing test module '/work/checkout/tests/adapters/test_agent_launch_container.py'.
 9. factory: started doing as self.
+10. coder: Both agent runtimes can now start each call in a container. The tester's new tests pass without changes and `make check` is green: lint, types, layers, sast, secrets, licenses, and test (65.3 s), ending with `check: green`.
+
+    What I built:
+    - `src/factory/adapters/agent_launch.py`:
+      - New `container_launch`: mounts the given files read-only at their own paths, in order, each once, sets the working directory to `WORK_CHECKOUT`, and turns the `ContainerLaunch` into a `Launch`.
+      - New `login_paths`, `version_launch` and `run_environment`; `run_environment` is the request's environment without the logins, plus the runtime's switches. `run_launch` now uses it and otherwise works as before.
+      - New constant `CONTAINER_OS_USER`: the error text both runtimes share.
+      - `Launch.env` is now `dict[str, str] | None`.
+      - `killed_at_limit` and `read_call_end` gain `in_container: bool = False`. With it true, exit status 137 or -9 at or after the limit counts as the time limit, as it does for a call with an `os_user`. The default changes nothing.
+      - The module still does not import the process module.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`:
+      - New keyword `containers` and a read-only `containers` property. Combining `containers` with a `confine_executable` raises `ValueError`.
+      - With containers, `run` raises `AgentRuntimeError(CONTAINER_OS_USER)` before writing any file when the request has an `os_user`.
+      - `_process_request` calls `container_launch` with the mounts `[*login_paths(...), <the call's file>]`. The call's end is read with `in_container=True`.
+      - `version()` in both runtimes now goes through `version_launch`. On the host it behaves as before, since `env=None` was already the default of `ProcessRequest`.
+      - No leftovers program runs and no temporary folder is made or removed. That already followed from `os_user is None` and no confine executable, so it needed no new code.
+
+    Main decision, and the alternative I rejected:
+    - The Interface wanted the container call made inside `run_launch`, with two more keywords (`containers`, `mounted`). That broke ruff's argument limit (PLR0913, 7 > 5). A `# noqa: PLR0913` then failed `tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper`, so I removed it.
+    - Instead `run_launch` keeps its old signature, and each runtime's `_process_request` picks `run_launch` or `container_launch`. Both get their environment from the shared `run_environment`.
+    - I also rejected a holder type carrying `containers` and the mounted files (a dataclass, or `ContainerRuns` added to `Starters` with `arbitrary_types_allowed`). It would have added a new type only to get under the argument limit.
+    - The cost: the reviewer will see a new similar-code finding in `make duplicates` for the `if self._containers is None:` branch in both runtimes.
+
+    Refactor pass: I read the diff once, and the `run_launch` restructuring above came out of it. Nothing else needed changing.
+
+    Noticed but did not touch:
+    - `make duplicates` reports 15 new findings. Mine are the container branch and the constructor and property lines in both runtimes; some others look like known similar code whose line ranges moved. It also reports `FakeContainerRuns`, `PodmanRuns`, `FakeSnapshots` and `ZfsSnapshots` as unused (vulture, 60 %), because nothing wires them yet; that is for S0010.
+    - The journal did not change what the task means, so the Description stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 15 new, 36 known, 2 gone

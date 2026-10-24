@@ -25,6 +25,7 @@ from pydantic import (
 
 from factory.adapters.agent_launch import (
     CLEANUP_TIME_LIMIT,
+    CONTAINER_OS_USER,
     ENTRY_DESCRIPTION,
     FINISH_MESSAGE,
     RUN_FILE_MODE,
@@ -37,19 +38,23 @@ from factory.adapters.agent_launch import (
     Starters,
     cleanup_launch,
     confined_argv,
+    container_launch,
     denied_path,
     device_confinement,
     due_leftovers_launch,
     finished_run,
     leftovers_fault,
     login_argv,
+    login_paths,
     login_used,
     read_call_end,
     resume_budget,
+    run_environment,
     run_launch,
     since,
     state_directory_error,
     temporary_folder,
+    version_launch,
     version_printed,
 )
 from factory.adapters.process import (
@@ -61,6 +66,7 @@ from factory.adapters.process import (
     run_streaming,
 )
 from factory.application.agent_runtime import AgentRuntime
+from factory.application.containers import ContainerRuns
 from factory.domain.agent_runs import (
     AgentDefinition,
     AgentRunRequest,
@@ -554,6 +560,7 @@ class OpencodeRuntime(AgentRuntime):
         provider_limit: ProviderLimit | None = None,
         runtime_folders: Sequence[str] = RUNTIME_FOLDERS,
         leftovers: Sequence[str] | None = None,
+        containers: ContainerRuns | None = None,
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
 
@@ -567,7 +574,12 @@ class OpencodeRuntime(AgentRuntime):
         A run's rules allow each of `runtime_folders` in the agent's home, in their order.
         Every call as another user is followed by `leftovers`, the program that ends that
         user's processes, when it is set.
+        With `containers`, every call runs in a container; the kernel's guard does not reach
+        into one, so `ValueError` with a `confine_executable`.
         """
+        if containers is not None and confine_executable is not None:
+            raise ValueError("a run in a container is not confined by factory-confine")
+        self._containers = containers
         self._executable = executable
         self._state_directory = state_directory
         self._kill_points = kill_points
@@ -591,14 +603,22 @@ class OpencodeRuntime(AgentRuntime):
         """The words that start the program ending the agent's leftover processes, or `None`."""
         return self._starters.leftovers
 
+    @property
+    def containers(self) -> ContainerRuns | None:
+        """Where every call runs, or `None` when calls run on the host."""
+        return self._containers
+
     def run(self, request: AgentRunRequest) -> AgentRunResult:
         """Run the agent of `request` and turn the JSON events it prints into a result.
 
         A call is stopped once the cost of its steps passes its budget, or at once when it shows
         the provider limit. A budget stop of a known session resumes it once within what is
         left of the time limit. A request the runtime cannot configure, a call that cannot be
-        started, or files that cannot be written are `AgentRuntimeError`.
+        started, or files that cannot be written are `AgentRuntimeError`, and so is a request
+        with an operating-system user on a runtime with containers.
         """
+        if self._containers is not None and request.os_user is not None:
+            raise AgentRuntimeError(CONTAINER_OS_USER)
         started = time.monotonic()
         model = _model(request.agent, self._models)
         configuration = _configuration(request, _bash_permission(self._settings_file))
@@ -618,13 +638,10 @@ class OpencodeRuntime(AgentRuntime):
         A call that cannot be started, fails, reaches its limit or prints nothing is
         `AgentRuntimeError`.
         """
-        process = self._start(
-            ProcessRequest(
-                argv=[self._executable, "--version"],
-                cwd=Path.cwd(),
-                time_limit=self._version_time_limit,
-            )
+        started = version_launch(
+            self._executable, containers=self._containers, time_limit=self._version_time_limit
         )
+        process = self._start(_request_of(started, Path.cwd()))
         return version_printed(
             self._executable,
             failed=process.timed_out or process.exit_status != 0,
@@ -684,7 +701,11 @@ class OpencodeRuntime(AgentRuntime):
             timed_out=process.timed_out,
         )
         timed_out = read_call_end(
-            end, time_limit=request.time_limit, os_user=request.os_user, starters=self._starters
+            end,
+            time_limit=request.time_limit,
+            os_user=request.os_user,
+            starters=self._starters,
+            in_container=self._containers is not None,
         )
         process = process.model_copy(update={"timed_out": timed_out})
         if leftovers_error is not None:
@@ -728,15 +749,26 @@ class OpencodeRuntime(AgentRuntime):
     def _process_request(
         self, request: AgentRunRequest, files: _RunFiles, model: str
     ) -> ProcessRequest:
-        started = run_launch(
-            request,
-            confined_argv(
-                self._opencode_argv(request, model), self._starters.confine_executable, files.rules
-            ),
-            {CONFIG_VARIABLE: str(files.config), **SWITCHES},
-            sudo_executable=self._starters.sudo_executable,
-            time_limit=request.time_limit,
+        argv = confined_argv(
+            self._opencode_argv(request, model), self._starters.confine_executable, files.rules
         )
+        runtime_environment = {CONFIG_VARIABLE: str(files.config), **SWITCHES}
+        if self._containers is None:
+            started = run_launch(
+                request,
+                argv,
+                runtime_environment,
+                sudo_executable=self._starters.sudo_executable,
+                time_limit=request.time_limit,
+            )
+        else:
+            started = container_launch(
+                self._containers,
+                argv,
+                run_environment(request, runtime_environment),
+                files=[*login_paths(self._starters.login_files), files.config],
+                time_limit=request.time_limit,
+            )
         return _request_of(started, request.working_directory)
 
     def _start(
