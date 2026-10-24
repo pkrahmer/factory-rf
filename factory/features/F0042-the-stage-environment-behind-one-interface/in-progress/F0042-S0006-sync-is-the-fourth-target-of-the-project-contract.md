@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T17:07:07.779610Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-24T17:07:07.773734Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:07:07.779610Z'
+  stage: intake
+---
+
 # `sync` is the fourth target of the project contract
 
 ## Description
@@ -56,3 +83,6 @@ sed -n '1p' template/Makefile; grep -c 'three targets' template/Makefile || true
 Expect: four lines: `# The contract between a project and the factory is four targets: `check`, `lint`, `test`, `sync`.`; `0`; `.PHONY: check lint types layers sast secrets licenses test sync duplicates mutants`; `  sync: {time_limit: 5}`
 
 ## Journal
+
+1. 2026-10-24 human: created.
+2. factory: started intake as self.
