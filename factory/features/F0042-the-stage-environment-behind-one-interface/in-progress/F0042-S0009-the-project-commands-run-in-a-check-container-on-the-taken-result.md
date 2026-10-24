@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T19:48:57.600260Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -74,6 +78,11 @@ journal:
   at: '2026-10-24T19:48:35.963725Z'
   stage: doing
   run: 9a4b17aba44746a7b43571307738335a
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-24T19:48:57.600260Z'
+  stage: review
 ---
 
 # The project commands run in a check container on the taken result
@@ -208,3 +217,4 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
 
     `check`: check: green
     `duplicates`: duplicates: 16 new, 36 known, 2 gone
+13. factory: started review as self.
