@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 423
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T21:58:28.277164Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-24T21:58:06.598068Z'
   stage: doing
   run: 8834f426cd0e49ce9cc690dd696ac384
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:58:28.277164Z'
+  stage: review
 ---
 
 # The documents describe the stage environment
@@ -119,3 +128,4 @@ Expect: `documents ok`
 
    `check`: check: green
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
+8. factory: started review as self.
