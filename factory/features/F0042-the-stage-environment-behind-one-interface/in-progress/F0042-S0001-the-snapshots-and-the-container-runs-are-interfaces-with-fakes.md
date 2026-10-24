@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T11:55:43.253649Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-24T11:55:43.253649Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T11:56:56.797029Z'
+  stage: review
+  run: 97a795eba6414b6ea423057d0ea41aec
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -527,3 +529,28 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 8 new, 38 known, 0 gone
 19. factory: started review as self.
+20. reviewer: Round 2 review: no findings.
+
+    - Round 1 finding fixed: `src/factory/domain/agent_home.py:51` makes the helper public as `beneath_or_at`, with a docstring. Its two callers in that module (`fate`, `removed_when_empty`) use the new name, and their behaviour is unchanged. `src/factory/adapters/fake_containers.py:84,111` uses it for the `/work` refusal and for the path mapping. The copy `_lies_under` is gone. Journal entry 18 reports `check: green`.
+    - Group 1, the acceptance criteria: I read the tests again against criteria 1–12. Each criterion has a test that checks what it is named after. Each limit the Interface states is tested on both sides:
+      - `Mount.target`: the accepted rows and the refused rows.
+      - `Mount.source`: absolute and relative.
+      - `argv`: `[]` refused, one word accepted.
+      - `time_limit`: 0 s and -1 s refused, 1 s accepted.
+      - `exit_status`/`timed_out`: all four combinations.
+      - Mounts: `/work` and `/work/checkout` refused, `/workspace` accepted and recorded.
+      - Words: `/workspace` and `/mnt/deeper` stay unmapped.
+      - Also tested: environment keys are never mapped, and nothing is recorded for a refused call.
+    - `run_process` gives `exit_status=None` exactly when the process timed out, so `ContainerResult`'s validator holds on the timeout path.
+    - Group 2, architecture: the interfaces are ABCs in `application`, and their method bodies are only the docstrings. The DTOs are in `domain`. The adapters import downward only (`domain.agent_home`, `domain.containers`). `fake_containers` reaches processes only through `run_process`, under feature decision 18 (a).
+    - Group 3, security: no secrets and no silencing markers under `src/`. The `/bin/sh -c` script is a fixed string, and the command words are passed as separate arguments.
+    - Group 4, quality: there are no second copies of existing helpers. `fake_snapshots._clear` is not a copy of `git_cli._remove_entry`: that helper turns errors into `RepositoryUnsealed`.
+    - Group 5, work item hygiene: the Description matches what was built, and the journal explains the main choices and what was rejected. Criterion 14 still says what the documenter must write.
+
+    Earlier tests:
+    - `tests/application/test_interfaces.py`: the human's leave in `feature.md`, decision 18 (a). `INTERFACES` and `INTERFACE_IDS` gain `Snapshots` and `ContainerRuns`, and the operations test gains exactly the two `__abstractmethods__` assertions. Every earlier test keeps its name.
+    - `tests/test_wrapper_search.py`: the human's leave in `feature.md`, decision 18 (a). The expected set gains `factory.adapters.fake_containers` and nothing else changes.
+
+    Notes:
+    - `tests/adapters/test_fake_containers.py:118,211`: `_run` and `_run_with` call `runs.run` with nearly the same arguments.
+    - `tests/adapters/test_fake_containers.py:30,201`: `_launch` repeats the pattern of `_launch_word`. One helper with parameters would cover both pairs.
