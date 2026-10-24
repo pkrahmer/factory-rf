@@ -1,6 +1,6 @@
 # The stage environment
 
-This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.stage_environment`, `factory.application.snapshots`, `factory.application.containers`, `factory.application.take`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.podman_runs`, `factory.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. The stage protocol calls the stage environment (*The stage environment*, first below). Its inline implementation is what runs: the container environment (*The container environment*, after the take) is built and tested on the fakes, but nothing wires `ZfsSnapshots`, `PodmanRuns` or the two new `Boundaries` fields yet, so no instance chooses it.
+This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.stage_environment`, `factory.application.snapshots`, `factory.application.containers`, `factory.application.take`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.podman_runs`, `factory.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. The stage protocol calls the stage environment (*The stage environment*, first below). An instance chooses its environment by setting (*The settings and the wiring*): `inline` is v1.1's way and the default, `container` is the dataset and the containers. The wiring also lives in `factory.domain.settings` and `factory.entry.wiring`.
 
 ## The stage environment
 
@@ -271,7 +271,37 @@ Each duration is in seconds with one decimal (Python's rounding). `reset`, `sync
 
 `Boundaries.snapshots` and `Boundaries.containers` (see `watching.md`, *Boundaries*) default to `None`; `stage_environment_of` picks the container environment only when both are set. `StageRunner` builds one environment per runner, as *One environment per runner* says.
 
-The suite runs it on `FakeSnapshots(workspace, base)` and `FakeContainerRuns(workspace)` under `tmp_path`, the host checkout of the `boundaries` fixture as the upstream, with real `git` and `make` as child processes on the host (the container is played, not run). `tests/container_support.py` holds the helpers: `container_dataset`, `push_main` and `sync_makefile` (a `Makefile` whose `sync` writes a marker), `dataset_git`, `local_branches` and `timing_lines`. Tests: `tests/application/test_container_environment.py` (`prepare` and `run_agent`), `tests/application/test_container_environment_take.py` (the take, the timing line and a whole stage through `StageRunner`), `tests/application/test_stage_environment_of.py`, `tests/domain/test_checks_last_line.py` and `tests/adapters/test_make_last_line_shared.py`. The real tools come with the wiring of a later story.
+The suite runs it on `FakeSnapshots(workspace, base)` and `FakeContainerRuns(workspace)` under `tmp_path`, the host checkout of the `boundaries` fixture as the upstream, with real `git` and `make` as child processes on the host (the container is played, not run). `tests/container_support.py` holds the helpers: `container_dataset`, `push_main` and `sync_makefile` (a `Makefile` whose `sync` writes a marker), `dataset_git`, `local_branches` and `timing_lines`. Tests: `tests/application/test_container_environment.py` (`prepare` and `run_agent`), `tests/application/test_container_environment_take.py` (the take, the timing line and a whole stage through `StageRunner`), `tests/application/test_stage_environment_of.py`, `tests/domain/test_checks_last_line.py` and `tests/adapters/test_make_last_line_shared.py`. The wiring of the real tools is *The settings and the wiring*.
+
+## The settings and the wiring
+
+An instance names its stage environment in its environment variables (`factory.domain.settings`; the operator guide, *Configuration*, has the table).
+
+| Variable | `InstanceSettings` field | Default |
+|---|---|---|
+| `FACTORY_STAGE_ENVIRONMENT` | `stage_environment` (`StageEnvironmentName`: `inline` or `container`) | `inline` |
+| `FACTORY_DATASET` | `dataset` | none |
+| `FACTORY_WORKSPACE` | `workspace` (`Path`) | none |
+| `FACTORY_STAGE_IMAGE` | `stage_image` | none |
+| `FACTORY_PODMAN` | `podman_executable` | `podman` |
+| `FACTORY_ZFS` | `zfs_executable` | `zfs` |
+
+`read_settings` strips each value and reads a blank one as unset. Anything but `inline` or `container` is `SettingsInvalid(FACTORY_STAGE_ENVIRONMENT, "holds <value>, which is neither inline nor container")`. For `container`, the first of these that applies is raised: `FACTORY_DATASET` missing, `FACTORY_WORKSPACE` missing (`missing for the container environment`) or relative (`is not an absolute path`), `FACTORY_STAGE_IMAGE` missing, `FACTORY_AGENT_USER` set (`is set, but the container environment runs no second user`). `inline` keeps the five other values and raises nothing for them.
+
+One function, `stage_environment_fault` (`factory.domain.settings`), holds that rule. `read_settings` calls it, and so does the model validator of `InstanceSettings`, so a model built directly refuses the same combinations with a `ValidationError` (the validator's message is `<variable>: <fault>`; it is not turned back into a `SettingsInvalid`).
+
+`build_boundaries` (`factory.entry.wiring`) builds the pieces that differ in `_inline_environment` or `_container_environment`, and the rest as before:
+
+| | `inline` | `container` |
+|---|---|---|
+| `snapshots`, `containers` | `None` | `ZfsSnapshots(dataset, workspace, executable=zfs_executable)` and `PodmanRuns(podman_executable, stage_image, workspace)` |
+| `agent_runtime` | as today: `sudo`, `factory-confine`, the leftovers program | the runtime of `FACTORY_AGENT_RUNTIME` given `containers`, with no confine executable and no leftovers program |
+| `project_commands` | `RecordingProjectCommands` around `SealedProjectCommands` | `RecordingProjectCommands` around `ContainerMakeCommands(snapshots, containers, git, checkout=settings.checkout)`, no `SealedProjectCommands` |
+| `agent_home` | the fresh-home reset, when there is an agent user | `None` |
+
+The arguments `which`, `confine_executable` and `end_leftovers` are read for `inline` only; a `container` build asks `which` for nothing. It runs no tool: `zfs` and `podman` start only when a stage uses them. `RecordingProjectCommands.inner` is the implementation it records, which the wiring's tests read.
+
+`agent_run_environment(settings, base)` copies `base` and sets `HOME`: for `container` to `/work/home` (`WORK_HOME_ENVIRONMENT`), on the dataset; for `inline` to the agent user's home when there is one, else the base's. The preflight's items for a container instance are not built yet. Tests: `tests/domain/test_settings_stage_environment.py`, `tests/entry/test_wiring_stage_environment.py` and `tests/entry/test_wiring_stage_environment_home.py`.
 
 ## The checks
 

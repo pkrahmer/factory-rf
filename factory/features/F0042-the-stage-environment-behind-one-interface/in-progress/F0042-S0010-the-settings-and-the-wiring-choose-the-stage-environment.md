@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T21:12:44.179338Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-24T21:12:44.179338Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T21:13:40.358664Z'
+  stage: docs
+  run: 4cd4b6be77db48448c3ca1f29b871f60
 ---
 
 # The settings and the wiring choose the stage environment
@@ -387,3 +389,21 @@ Expect: `1`
     1. `tests/entry/test_wiring_stage_environment.py`, `_recording_stand_in` and `_calls`: a second recording stand-in for `zfs` and `podman`. `tests/zfs_support.py` (`ZFS_SCRIPT`, `Zfs.arguments`) and `tests/podman_support.py` (`PODMAN_SCRIPT`, `PodmanPlan`) already provide these. The shared stand-ins could be used instead.
     2. `tests/entry/test_wiring_stage_environment.py`, `IMAGE` and `DATASET`: copies of `tests/podman_support.IMAGE` and `tests/zfs_support.DATASET`.
 18. factory: started docs as self.
+19. documenter: Docs round 1. I read the story, the diff of src and tests, and the documents below. The diff matches the Interface and the criteria, so I have no findings for the coder. I changed only documents, so I did not run `make check`; the factory's check after this stage decides. I ran no example, because I wrote no runnable one.
+
+    Files changed:
+    - docs/operator-guide.md, *Configuration*: six new rows in the settings table (`FACTORY_STAGE_ENVIRONMENT`, `FACTORY_DATASET`, `FACTORY_WORKSPACE`, `FACTORY_STAGE_IMAGE`, `FACTORY_PODMAN`, `FACTORY_ZFS`), each with its default and refusal text. A paragraph *The stage environment* follows the table. It says what `inline` and `container` are, that `container` needs the dataset, the workspace and the image, runs no second user and has no kernel guard, the order of the faults, and that the VM and stage image are F0043's and the preflight items S0011's.
+    - docs/project-guide/stage-environment.md: new section *The settings and the wiring* (the six settings and their faults, `stage_environment_fault` shared by `read_settings` and the model validator, what `build_boundaries` builds for each environment, `RecordingProjectCommands.inner`, `HOME` in `agent_run_environment`, the tests). I also corrected the intro, which said nothing wires `ZfsSnapshots` or `PodmanRuns` yet, and the closing line of *Wiring and tests*, which said the real tools come with a later story.
+    - docs/project-guide/watching.md, *Boundaries*: it said `build_boundaries` leaves `snapshots` and `containers` `None` for now. It now says they are `None` for `inline` and filled for `container`.
+    - docs/project-guide/git-and-hosting.md: one sentence in the `identity` row pointing to `stage-environment.md` for the new settings.
+    - docs/project-guide/README.md: the line of `stage-environment.md` now names *The settings and the wiring* and `factory.domain.settings` and `factory.entry.wiring`.
+
+    docs/decisions.md: none, as the criterion says.
+
+    Cross-read and found current: the rest of docs/operator-guide.md (the agent-user, leftovers and fresh-home passages still describe the `inline` environment correctly), and docs/project-guide/processes-and-checks.md, *Container project commands*, which already describes `ContainerMakeCommands`.
+
+    Stale, not mine, not touched: nothing found beyond the passages above. One note on code, not docs: in src/factory/entry/wiring.py, the `None` guard in `_container_environment` can never run (the validator rules it out) and is the one uncovered line there. The reviewer and the coder already named it.
+
+    `check`: check: green (not run again: passed on tree 65b825c80dd1 at 2026-10-24T21:09:24Z)
+    `secrets`: secrets: green (2.0 s)
+    `documents`: documents ok
