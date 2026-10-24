@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T13:02:12.552916Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-24T13:01:53.563030Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-24T13:02:12.552916Z'
   stage: intake
 ---
 
@@ -139,3 +148,4 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
    3. Yes: the smoke test's first `Expect:` line follows answer 1.
 
    Please write these three into the Description, the Interface and the criteria as you accept.
+5. factory: started intake as self.
