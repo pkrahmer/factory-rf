@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T20:45:34.423794Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-24T20:45:34.423794Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T20:45:57.639799Z'
+  stage: smoke-test
+  run: d236db92d025453f9c2f863a2f4aab60
 ---
 
 # Every container runs without rights and within limits
@@ -322,3 +324,27 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test, round 1. I ran the one command under `## Smoke test` exactly as written, from the repository root.
+
+    Command 1 (`uv run python -c '… PodmanRuns("podman", "img", P("/srv/w")).launch(["true"], mounts=[], environment={}, time_limit=t(seconds=5), working_directory="/work").argv[6:11]' 2>/dev/null`). Exit status 0.
+
+    ```
+    ['--cap-drop=all', '--security-opt=no-new-privileges', '--pids-limit=4096', '--memory=4g', '--volume']
+    ```
+
+    Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pids-limit=4096', '--memory=4g', '--volume']`. **Met.** The output is that line exactly.
+
+    Check against the criteria: I printed the full argv of the same call once more, this time with one environment entry, to see where the words sit next to `--env`. This was not a smoke-test command; I ran it only to judge the criteria.
+
+    ```
+    ['podman', 'run', '--rm', '--userns=keep-id', '--timeout', '5', '--cap-drop=all', '--security-opt=no-new-privileges', '--pids-limit=4096', '--memory=4g', '--env', 'A=b', '--volume', '/srv/w:/work', '--workdir', '/work', 'img', 'true']
+    ```
+
+    - The four words come right after `--timeout <seconds>`, in the stated order, and before the first `--env`.
+    - No word starts with `--network`, so the default network is kept.
+    - This agrees with criteria 1–3 and with the Interface. The smoke test contradicts no criterion.
+    - I did not run `make check` (criterion 5). Entry 15 records it green and the factory runs it as the gate. Criterion 6 (docs) is covered by entry 19.
+
+    Findings: none.
+
+    Open: nothing.
