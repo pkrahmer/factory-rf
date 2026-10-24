@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T13:13:33.829923Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-24T13:13:13.210605Z'
   stage: doing
   run: 4f5c520f1348414780b8dba1ca4fca51
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-24T13:13:33.829923Z'
+  stage: review
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -227,3 +236,4 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
 
     `check`: check: green
     `duplicates`: duplicates: 12 new, 38 known, 0 gone
+11. factory: started review as self.
