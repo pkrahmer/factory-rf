@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T20:36:20.848434Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-24T20:36:20.848434Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-24T20:36:48.258157Z'
+  stage: doing
+  run: b8cff0a2444e4b40bb77a72840f872a8
 ---
 
 # Every container runs without rights and within limits
@@ -163,3 +165,19 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
    Earlier tests:
    - tests/adapters/test_podman_runs.py (M): the human's leave. The story's Interface names `test_launch_pins_the_podman_command_line` under decision 18 (j), and the diff makes only the four-word change named there.
 10. factory: started doing as self.
+11. coder: Round 1. This entry deals only with the reviewer's finding in entry 9. I changed no code in `src/`, and I made no edits at all in this round.
+
+    The finding is a test helper copied between modules. Moving it is a change to tests, which the coder never makes. `CLAUDE.md`'s standing leave to move a shared test helper covers it, so I hand it to the tester.
+
+    The move for the tester:
+    - Move `IMAGE = "factory-stage:1"` to `tests/podman_support.py` (a shared module at the `tests/` root, next to the `Podman` stand-in).
+    - Move the `runs` fixture (`PodmanRuns(str(podman.path), IMAGE, Path("/srv/factory/vm/work"))`) to `tests/conftest.py`, next to the `podman` fixture.
+    - Change two earlier test files to use them from there:
+      - `tests/adapters/test_podman_runs.py` (remove its `IMAGE` and `runs`)
+      - `tests/adapters/test_podman_runs_fence.py` (remove its `IMAGE` and `runs`)
+    - Every test keeps its name and checks the same thing.
+    - The reviewer's optional point applies inside this story's own module: in `tests/adapters/test_podman_runs_fence.py::test_the_limits_are_built_from_the_constants`, build the expected words from `FENCE[:2]` instead of listing the two capability words again.
+
+    Rejected: changing anything in `src/factory/adapters/podman_runs.py`. The finding names no fault in the code.
+
+    Noticed, not touched: `tests/adapters/test_podman_runs_results.py:18` and `tests/adapters/test_podman_timeout_status.py:12` hold the same `IMAGE = "factory-stage:1"` copy. The leave covers moving them to the shared constant too, but the reviewer did not name them, so the tester decides. `test_podman_runs_results.py` has its own `runs` fixture over a `workspace` path, which is a different fixture and should stay.
