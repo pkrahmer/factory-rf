@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T20:00:33.245289Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -129,6 +133,11 @@ journal:
   at: '2026-10-24T20:00:11.969373Z'
   stage: review
   run: d9205f381b2e49ef89172234d26cce3d
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:00:33.245289Z'
+  stage: docs
 ---
 
 # The project commands run in a check container on the taken result
@@ -348,3 +357,4 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
     - Group 5 (work item hygiene): passes. The journal explains the shared reader and the alternative it rejected. The Description (corrected in round 0) matches the code. The docs criterion still says what the reader needs.
 
     Earlier tests: none. The diff only adds tests/adapters/test_make_commands_container.py (status `A`).
+23. factory: started docs as self.
