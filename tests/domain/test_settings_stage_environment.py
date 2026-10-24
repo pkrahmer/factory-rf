@@ -85,37 +85,50 @@ def test_read_settings_reads_the_stage_environment_and_its_values(
 
 
 @pytest.mark.parametrize(
-    ("extra", "variable", "fault"),
+    ("extra", "expected"),
     [
         pytest.param(
             {"FACTORY_STAGE_ENVIRONMENT": "Container"},
-            "FACTORY_STAGE_ENVIRONMENT",
-            "holds Container, which is neither inline nor container",
+            ("FACTORY_STAGE_ENVIRONMENT", "holds Container, which is neither inline nor container"),
             id="unknown-environment",
         ),
         pytest.param(
             {"FACTORY_STAGE_ENVIRONMENT": "container"},
-            "FACTORY_DATASET",
-            "missing for the container environment",
+            ("FACTORY_DATASET", "missing for the container environment"),
             id="no-dataset",
         ),
         pytest.param(
             {**CONTAINER, "FACTORY_DATASET": "  "},
-            "FACTORY_DATASET",
-            "missing for the container environment",
+            ("FACTORY_DATASET", "missing for the container environment"),
             id="blank-dataset",
         ),
         pytest.param(
             {"FACTORY_STAGE_ENVIRONMENT": "container", "FACTORY_DATASET": "tank/factory/vm"},
-            "FACTORY_WORKSPACE",
-            "missing for the container environment",
+            ("FACTORY_WORKSPACE", "missing for the container environment"),
             id="no-workspace",
         ),
         pytest.param(
+            {
+                "FACTORY_STAGE_ENVIRONMENT": "container",
+                "FACTORY_DATASET": "tank/factory/vm",
+                "FACTORY_WORKSPACE": "  ",
+            },
+            ("FACTORY_WORKSPACE", "missing for the container environment"),
+            id="blank-workspace",
+        ),
+        pytest.param(
             {**CONTAINER, "FACTORY_WORKSPACE": "srv/work"},
-            "FACTORY_WORKSPACE",
-            "is not an absolute path",
+            ("FACTORY_WORKSPACE", "is not an absolute path"),
             id="relative-workspace",
+        ),
+        pytest.param(
+            {
+                "FACTORY_STAGE_ENVIRONMENT": "container",
+                "FACTORY_DATASET": "tank/factory/vm",
+                "FACTORY_WORKSPACE": "srv/work",
+            },
+            ("FACTORY_WORKSPACE", "is not an absolute path"),
+            id="relative-workspace-before-no-image",
         ),
         pytest.param(
             {
@@ -123,53 +136,55 @@ def test_read_settings_reads_the_stage_environment_and_its_values(
                 "FACTORY_DATASET": "tank/factory/vm",
                 "FACTORY_WORKSPACE": "/srv/factory/vm/work",
             },
-            "FACTORY_STAGE_IMAGE",
-            "missing for the container environment",
+            ("FACTORY_STAGE_IMAGE", "missing for the container environment"),
             id="no-image",
         ),
         pytest.param(
+            {**CONTAINER, "FACTORY_STAGE_IMAGE": "  "},
+            ("FACTORY_STAGE_IMAGE", "missing for the container environment"),
+            id="blank-image",
+        ),
+        pytest.param(
             {**CONTAINER, "FACTORY_AGENT_USER": "agent"},
-            "FACTORY_AGENT_USER",
-            "is set, but the container environment runs no second user",
+            ("FACTORY_AGENT_USER", "is set, but the container environment runs no second user"),
             id="agent-user",
         ),
-    ],
-)
-def test_read_settings_refuses_a_stage_environment_it_cannot_run(
-    extra: dict[str, str], variable: str, fault: str
-) -> None:
-    with pytest.raises(SettingsInvalid) as raised:
-        read_settings({**BASE, **extra})
-
-    assert (raised.value.variable, raised.value.fault) == (variable, fault)
-
-
-@pytest.mark.parametrize(
-    ("extra", "expected"),
-    [
-        pytest.param({"FACTORY_STAGE_ENVIRONMENT": "inline"}, {"dataset": None}, id="none"),
+        pytest.param(
+            {"FACTORY_STAGE_ENVIRONMENT": "container", "FACTORY_AGENT_USER": "agent"},
+            ("FACTORY_DATASET", "missing for the container environment"),
+            id="agent-user-after-no-dataset",
+        ),
+        pytest.param(
+            {"FACTORY_STAGE_ENVIRONMENT": "inline"},
+            {"stage_environment": "inline", "dataset": None},
+            id="inline-none",
+        ),
         pytest.param(
             {
                 "FACTORY_STAGE_ENVIRONMENT": "inline",
                 "FACTORY_AGENT_USER": "agent",
                 "FACTORY_DATASET": "tank/x",
             },
-            {"agent_user": "agent", "dataset": "tank/x"},
-            id="agent-user-and-dataset",
+            {"stage_environment": "inline", "agent_user": "agent", "dataset": "tank/x"},
+            id="inline-agent-user-and-dataset",
         ),
         pytest.param(
             {"FACTORY_STAGE_ENVIRONMENT": "inline", "FACTORY_WORKSPACE": "srv/work"},
-            {"workspace": Path("srv/work")},
-            id="relative-workspace",
+            {"stage_environment": "inline", "workspace": Path("srv/work")},
+            id="inline-relative-workspace",
         ),
     ],
 )
-def test_read_settings_accepts_any_values_for_the_inline_environment(
-    extra: dict[str, str], expected: dict[str, object]
+def test_read_settings_runs_a_container_only_with_its_values_and_inline_with_any(
+    extra: dict[str, str], expected: tuple[str, str] | dict[str, object]
 ) -> None:
+    if isinstance(expected, tuple):
+        with pytest.raises(SettingsInvalid) as raised:
+            read_settings({**BASE, **extra})
+        assert (raised.value.variable, raised.value.fault) == expected
+        return
     settings = read_settings({**BASE, **extra})
 
-    assert settings.stage_environment == "inline"
     assert {name: getattr(settings, name) for name in expected} == expected
 
 

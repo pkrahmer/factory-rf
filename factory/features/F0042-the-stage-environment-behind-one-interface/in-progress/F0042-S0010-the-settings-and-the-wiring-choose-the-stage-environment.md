@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T21:04:28.265262Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-24T21:04:28.265262Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-24T21:07:22.771460Z'
+  stage: tests
+  run: b433c0869e2743c6b7cf764557595c0a
 ---
 
 # The settings and the wiring choose the stage environment
@@ -266,3 +268,30 @@ Expect: `1`
 
     Noticed, not touched: what entry 7 listed is still open. That is the unreachable `None` narrowing in `_container_environment` in `src/factory/entry/wiring.py`, and `FACTORY_AGENT_USER`'s "is not a name" fault now coming before other settings' faults. The Description is unchanged: the journal added criterion 8, and the reviewer already wrote it into the Description.
 12. factory: started tests as self.
+13. tester: Made the test change the coder's entry 11 names, which carries out the reviewer's findings 1 and 2 (criterion 8). The only file I changed is tests/domain/test_settings_stage_environment.py, a module I wrote in this story. I changed no earlier test file and created no new file.
+
+    What changed:
+    - `test_read_settings_refuses_a_stage_environment_it_cannot_run` and `test_read_settings_accepts_any_values_for_the_inline_environment` are now one parametrized test, `test_read_settings_runs_a_container_only_with_its_values_and_inline_with_any`. Each row expects one of two things:
+      - a `(variable, fault)` tuple, checked against the raised `SettingsInvalid`;
+      - or a dict of the values read, which includes `stage_environment: inline` for the accepted inline rows.
+    - The four rows of criterion 8 are added:
+      - `blank-workspace`: `FACTORY_WORKSPACE="  "` → FACTORY_WORKSPACE, "missing for the container environment"
+      - `blank-image`: `FACTORY_STAGE_IMAGE="  "` → FACTORY_STAGE_IMAGE, "missing for the container environment"
+      - `relative-workspace-before-no-image`: dataset and `srv/work`, no image → FACTORY_WORKSPACE, "is not an absolute path"
+      - `agent-user-after-no-dataset`: `container` with `FACTORY_AGENT_USER=agent` and no dataset → FACTORY_DATASET, "missing for the container environment"
+
+    Criterion → test now:
+    - criterion 1: tests/domain/test_settings_stage_environment.py::test_read_settings_reads_the_stage_environment_and_its_values
+    - criterion 2: tests/domain/test_settings_stage_environment.py::test_read_settings_runs_a_container_only_with_its_values_and_inline_with_any
+    - criterion 3: tests/domain/test_settings_stage_environment.py::test_instance_settings_built_directly_follow_the_stage_environment_rules
+    - criterion 4: tests/entry/test_wiring_stage_environment.py::test_an_inline_instance_has_no_snapshots_and_no_containers
+    - criterion 5: tests/entry/test_wiring_stage_environment.py::test_a_container_instance_gets_the_dataset_s_adapters_and_asks_for_no_tool, ::test_a_container_instance_s_runtime_runs_in_its_containers_unconfined, ::test_a_container_instance_s_runtime_mounts_its_login_file
+    - criterion 6: tests/entry/test_wiring_stage_environment_home.py::test_the_agent_run_s_home_follows_the_stage_environment
+    - criterion 7: tests/entry/test_wiring_stage_environment.py::test_wiring_a_container_instance_s_tick_starts_no_tool
+    - criterion 8: the four new rows of the criterion 2 test (named above)
+    - criteria 9 and 10 (make check, docs): no test.
+
+    `make test`, run once: green (coverage 99.19 %). The new rows pass against the current src/factory/domain/settings.py, as the coder expected. No module failed to import. `make lint`: green.
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (66.6 s)
