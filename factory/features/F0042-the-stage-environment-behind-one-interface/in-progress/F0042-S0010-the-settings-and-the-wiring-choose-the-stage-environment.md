@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T21:07:43.375862Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-24T21:07:22.771460Z'
   stage: tests
   run: b433c0869e2743c6b7cf764557595c0a
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:07:43.375862Z'
+  stage: doing
 ---
 
 # The settings and the wiring choose the stage environment
@@ -295,3 +304,4 @@ Expect: `1`
 
     `lint`: lint: green (0.6 s)
     `test`: test: green (66.6 s)
+14. factory: started doing as self.
