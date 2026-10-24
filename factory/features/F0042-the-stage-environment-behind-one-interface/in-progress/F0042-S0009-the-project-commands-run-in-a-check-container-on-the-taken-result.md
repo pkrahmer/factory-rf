@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T19:44:38.737624Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -72,6 +68,12 @@ journal:
   kind: started
   at: '2026-10-24T19:44:38.737624Z'
   stage: doing
+- number: 12
+  speaker: coder
+  kind: result
+  at: '2026-10-24T19:48:35.963725Z'
+  stage: doing
+  run: 9a4b17aba44746a7b43571307738335a
 ---
 
 # The project commands run in a check container on the taken result
@@ -184,3 +186,25 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
     `lint`: lint: green (0.6 s)
     `test`: ERROR tests/adapters/test_make_commands_container.py - ImportError while importing test module '/work/checkout/tests/adapters/test_make_commands_container.py'.
 11. factory: started doing as self.
+12. coder: Built `ContainerMakeCommands` and `CHECK_ENVIRONMENT` in src/factory/adapters/make_commands.py, beside `MakeProjectCommands`. It is the only file I changed. Every test in tests/adapters/test_make_commands_container.py passes, and so do the unchanged tests/adapters/test_make_commands.py and tests/test_make_search.py. `make check` is green: `test: green (66.0 s)`, `check: green`, total coverage 99.20 %. The second smoke command prints `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`.
+
+    `run` works in the order the Interface gives:
+    - It refuses a bad call before anything runs, through `_check_call`. This is the time-limit and command-name refusal that used to sit inline in `MakeProjectCommands.run`; both classes now call it.
+    - It runs `snapshots.reset()`. A `SnapshotError` becomes `ProjectCommandError(command, str(exc))`.
+    - It calls `copy_changed(checkout, mount_point / "checkout", git.changed_paths("HEAD"))`, reused from `factory.application.take`. `GitError` and `ValueError` pass through as they are.
+    - It calls `containers.run` with `/bin/sh -c '"$1" sync && "$1" --no-print-directory "$2"' factory-check make <command>`, no mounts, `CHECK_ENVIRONMENT`, the time limit and `/work/checkout`. A `ContainerError` becomes `ProjectCommandError(command, str(exc))`.
+    - It reads the result into a `CheckResult`.
+
+    Main choice: both classes read their output through one function. I split the old `_check_result` into a thin adapter over a new `_read_result(command, exit_status, output, duration)`. `MakeProjectCommands` passes in a `ProcessResult` and the new class a `ContainerResult`. Both get the same `status_of`, `last_line`, `_tail` and `target_times`. Alternative rejected: turning the `ContainerResult` into a `ProcessResult` and calling `_check_result` with it. That would build a fake process record just to reach the reader.
+
+    Refactor pass: I read the diff and found nothing to change.
+
+    Noticed but did not touch:
+    - `CHECK_ENVIRONMENT` has the same value as `SYNC_ENVIRONMENT` in `factory.application.stage_environment`. The Interface names it as a separate constant in this module, so I kept it separate rather than importing that one.
+    - `SHELL_EXECUTABLE` is imported from `factory.adapters.agent_launch`, its only definition.
+    - The `make` literal appears twice in this module: the existing `executable` default and the container command. `tests/test_make_search.py` allows both.
+
+    I did not rewrite `## Description`: the journal changed nothing in the task's meaning that the intake had not already written in as criterion 8.
+
+    `check`: check: green
+    `duplicates`: duplicates: 16 new, 36 known, 2 gone
