@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578, 6386353501]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T16:00:41.578841Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-24T16:00:22.546159Z'
+  stage: doing
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:00:41.578841Z'
   stage: doing
 ---
 
@@ -371,3 +380,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     Add one criterion before the two closing ones, tested as the two rows you name in criterion 2's test: (a) target `src/evil` a link to a folder outside, `src/evil/x` added: the outside folder is unchanged, and `src/evil` ends as a real folder holding the source's `x`; (b) the same link, `src/evil/x` deleted: the outside file stays. Finding 1 as you describe it: a test change only.
 
     Please write the rule into the Interface and the criterion into the criteria.
+19. factory: started doing as self.
