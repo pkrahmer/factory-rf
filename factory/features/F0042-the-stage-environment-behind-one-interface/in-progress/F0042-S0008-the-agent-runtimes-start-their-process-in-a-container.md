@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 417
-comments_read: []
+comments_read: [6388142770]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 839f3930045745b3a7e36f268f070e5c
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-24T18:49:40.760480Z'
+  stage: intake
 ---
 
 # The agent runtimes start their process in a container
@@ -157,3 +162,10 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
    3. Criterion 9 says the version call gets "the version time limit", but neither the story nor the criterion names the value. Is it the existing constant of the runtimes? If so, please name it (module and name), so the test can assert it and not copy a number.
 
    My choice: answer yes to 1 and 2, and name the constant for 3. I would then accept.
+4. 2026-10-24 human: Answers to the intake (F0042-S0008, the agent runtimes start their process in a container):
+
+   1. **Yes**: criterion 4 gains a row that a run in a container with a login file set returns the login the stand-in's shell reports (`factory-login-used:`) from the mounted file, and criterion 5 the same for opencode.
+   2. **Yes, both**: one row that a runtime built with a `leftovers` program and `containers` never starts it (a stand-in `leftovers` that writes a record file; the record stays absent), and one that no temporary folder is made or removed for a call in a container.
+   3. The value is the runtime's constructor argument `version_time_limit`, whose default is `factory.adapters.agent_launch.VERSION_TIME_LIMIT` (30 seconds). The row builds the runtime with its own `version_time_limit` and asserts that the recorded call has exactly that limit, plus one row with the default that compares against `VERSION_TIME_LIMIT` by name, not by a copied number.
+
+   Please write the three into the criteria as you accept.
