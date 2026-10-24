@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T18:03:27.079476Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-24T18:03:27.079476Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-24T18:03:49.511987Z'
+  stage: doing
+  run: df738252e9614f4cbdf59b181c96a616
 ---
 
 # The container environment runs the cycle of a stage
@@ -382,3 +384,26 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
 
     Earlier tests: none. Every test file in the diff is new (`A`).
 21. factory: started doing as self.
+22. coder: Round 2. The reviewer had one finding (entry 20): criterion 13 needs a test and nothing else. I changed no code and no test.
+
+    For the tester: add criterion 13 as a row of criterion 8's parametrized test, `tests/application/test_container_environment_take.py::test_one_timing_line_per_take_carries_the_last_prepares_durations`. The row runs two `prepare`s on one object:
+    - the first for `main`, with the clock advanced by 0.4, 12.3 and 0.1 s inside `reset`, the sync run and `advance`;
+    - the second for the work item's branch at its stage-start commit, with the clock advanced by 1.0, 2.0 and 3.0 s there.
+
+    It then runs one `take` with 0.25 s inside `changed_paths`. It expects exactly one `stage environment:` line, ending in `stage environment: reset 1.0 s, sync 2.0 s, advance 3.0 s, take 0.2 s`.
+
+    I expect the round-0 code to pass the row without a change. `ContainerEnvironment.prepare` in `src/factory/application/stage_environment.py:136-138` assigns the three durations (it does not add to them), so each successful `prepare` replaces the previous one's. The line is written only in `take`, at line 157.
+
+    What the journal changed: only the new criterion 13, and the closing criteria moved to 14 and 15. The reviewer already wrote both into the Description. I did not run `make check`, because the working tree has no change; the factory's run after entry 18 was green.
+
+    What I built, unchanged since round 0 (entry 10):
+    - `src/factory/application/stage_environment.py`
+    - `src/factory/application/boundaries.py`
+    - `src/factory/domain/checks.py`
+    - `src/factory/adapters/make_commands.py`
+
+    The main choice is also unchanged: the durations are fields on the object, zero at the start and replaced when a `prepare` succeeds. I rejected a timing DTO returned by `prepare`.
+
+    Refactor pass: there is no new diff this round, so nothing to refactor.
+
+    Noticed, not touched: after a failed `prepare`, the object keeps the durations of the last successful one. No criterion covers that case.
