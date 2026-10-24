@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T13:30:05.132096Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,12 @@ journal:
   kind: started
   at: '2026-10-24T13:30:05.132096Z'
   stage: doing
+- number: 26
+  speaker: coder
+  kind: result
+  at: '2026-10-24T13:33:02.875788Z'
+  stage: doing
+  run: 63b12331ac7d41e8af254c2174e35c7d
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -453,3 +455,29 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
     `lint`: lint: green (0.5 s)
     `test`: test: green (61.5 s)
 25. factory: started doing as self.
+26. coder: Round 2, after the tester's entry 24. The tester added the `time-limit` row for criterion 12 to `tests/adapters/test_podman_runs_results.py::test_image_exists_reads_podman_s_exit_status`. It passes against the code already in the tree, so this run changed no code and no test.
+
+    What the story built, unchanged since entry 18:
+    - `src/factory/adapters/podman_runs.py` (new): `CONTAINER_GRACE`, `PODMAN_TIME_LIMIT` and `PodmanRuns` (`launch`, `run`, `version`, `image_exists`).
+      - `version` and `image_exists` share `_query`.
+      - When `_query` reaches its time limit it raises `ContainerError(<command>, no_end_detail(time_limit))`, and `no_end_detail` rounds up, so 1.5 s gives `no end within 2 s`.
+    - `src/factory/adapters/printed_output.py` (new): the line helpers, moved out of `zfs_snapshots.py`.
+    - `src/factory/adapters/zfs_snapshots.py`: now uses those shared helpers.
+    - `src/factory/domain/containers.py`: `check_container_call`, which both `fake_containers.py` and `podman_runs.py` call.
+
+    Main choice (entry 14): the shared call check is a pure rule, so it lives in the domain beside `WORK` and `Mount`. I rejected a shared module under `factory.adapters`.
+
+    Refactor pass: I reread `podman_runs.py`. Nothing needed changing.
+
+    `make check` is green on this tree: `test: green (62.0 s)`, coverage 99.17 %, `check: green`.
+
+    Noticed but did not touch:
+    - The reviewer's note on the `recorder` fixture: `tests/adapters/test_podman_runs_results.py:44-48` repeats `tests/conftest.py:312-316` for a different module. The tester may move it under the standing leave; the coder may not.
+    - `agent_launch._limit_argument` and the `--timeout` of `podman_runs` both round a limit up to whole seconds.
+    - vulture reports `WORK_HOME` in `domain/containers.py` as unused. That predates this story.
+    - No one has run the work item's smoke test yet.
+
+    The journal changed nothing that calls for a Description rewrite: criterion 12 is already in it.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 38 known, 0 gone
