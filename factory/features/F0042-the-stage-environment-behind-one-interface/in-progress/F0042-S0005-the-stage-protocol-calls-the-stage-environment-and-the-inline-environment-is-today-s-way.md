@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T16:57:21.084274Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-24T16:57:21.084274Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-24T17:00:09.126606Z'
+  stage: doing
+  run: c412c0050d6d420a871282bcb34c6bcb
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -470,3 +472,32 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
     `lint`: lint: green (0.5 s)
     `test`: test: green (61.9 s)
 21. factory: started doing as self.
+22. coder: Round 1: the reviewer's one finding (entry 16, criterion 11) needed only a test. The tester added it in entry 20: the `work-item-unreadable` row, and a check in both refusal rows that the work tree is left untouched. It passes with no code change, so I changed no code in this run. `make check` is green: `check: green`, coverage 99.19 %. The working tree has no change from me. The only modified file is the work item's `.costs.jsonl` sidecar, which the factory writes.
+
+    What I built (from entry 7, already committed, unchanged):
+    - `src/factory/application/stage_environment.py`: the interface `StageEnvironment` (`prepare`, `run_agent`, `take`), the class `InlineEnvironment`, and `stage_environment_of`.
+      - `InlineEnvironment.prepare` does nothing.
+      - `InlineEnvironment.run_agent` is `run_sealed`.
+      - `InlineEnvironment.take` is `UndoService.undo` turned into `TakeReport(left=sorted({*reverted, *deleted}), ...)`.
+    - `src/factory/application/stage.py`:
+      - `StageLauncher` and `AfterAgent` take an optional keyword `stage_environment`.
+      - `launch` calls `prepare` before the cost record begins, then `run_agent(request, run=PatientRuns(...).run)`.
+      - `_sync_time_limit` gives the time limit for the `sync` command.
+      - `AgentAftermath.take` replaces `AgentAftermath.undo`.
+      - `StageRunner` gives one environment to both its launcher and its after-agent.
+    - `src/factory/application/preflight.py`: the probe runs through `stage_environment_of(boundaries).run_agent(request)` and no longer imports `run_sealed`.
+
+    Main choice (from entry 7, still the choice): with no `sync` command, the time limit is `ProjectCommandDefinition().time_limit`. I rejected a separate 10-minute constant, because it would be a second copy of the model's default and could drift from it.
+
+    Refactor: I read `stage_environment.py` and the diff stat again. Nothing needed changing.
+
+    Description: the reviewer already updated it in entry 16 (criterion 11 and the renamed test module). This round changed nothing in what the task means.
+
+    Noticed, not touched:
+    - `StallService` still runs the undo on its own, as the description says (S0007's work).
+    - `UndoReport` is still used by `stalls.py` and `undo_support`.
+    - vulture reports the ignored `sync_time_limit` as unused. The inline no-op ignores it on purpose, as the reviewer noted.
+    - The docs criterion (13) is the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 14 new, 37 known, 1 gone
