@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 412
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T16:25:55.653842Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -65,6 +69,11 @@ journal:
   at: '2026-10-24T16:25:34.180105Z'
   stage: doing
   run: ccd07be656f54f78b6fca331b7271f2c
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:25:55.653842Z'
+  stage: review
 ---
 
 # No test sees the agent's login
@@ -167,3 +176,4 @@ Expect: one line that starts with `N passed` and names no `failed` and no `error
 
     `check`: check: green
     `duplicates`: duplicates: 14 new, 38 known, 0 gone
+11. factory: started review as self.
