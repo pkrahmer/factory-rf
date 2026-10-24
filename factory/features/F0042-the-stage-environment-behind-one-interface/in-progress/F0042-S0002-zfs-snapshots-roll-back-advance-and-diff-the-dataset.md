@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638, 6384356460]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T12:44:02.024466Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -201,6 +197,12 @@ journal:
   kind: started
   at: '2026-10-24T12:44:02.024466Z'
   stage: review
+- number: 35
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T12:45:13.243529Z'
+  stage: review
+  run: fdd5579329ee4fa9a7f85d97fa17826b
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -262,8 +264,11 @@ Tests (the tester writes them): `tests/adapters/test_zfs_snapshots.py` and `test
 10. `changed_paths()` with `diff` planned to print the line `+\tF\t/srv/factory/vm/work/bad\377` (an escape whose byte is not UTF-8) raises `SnapshotError` with `command` `<stand-in> diff -FH tank/factory/vm@base` and `detail` `cannot read the line +\tF\t/srv/factory/vm/work/bad\377` (a row of criterion 4's parametrized test).
 11. `changed_paths()` with `diff` planned to print the lines `M\t/\t/srv/factory/vm/work` (the mount point itself, which the Interface accepts) and `M\tF\t/srv/factory/vm/work/checkout/a.py` returns exactly `[ChangedPath("checkout/a.py", "modified")]`: the mount point is no fault, and as a directory it is left out (a row of criterion 3's parametrized test).
 12. Blank lines are skipped, as the Interface's "non-blank line" says for the diff, the detail and the version: `changed_paths()` with `diff` planned to print `M\tF\t/srv/factory/vm/work/checkout/a.py`, an empty line and a line of two spaces returns exactly `[ChangedPath("checkout/a.py", "modified")]` (a row of criterion 3's parametrized test); a `reset()` whose stand-in exits 1 printing `rollback: dataset is busy` followed by an empty line gives `detail` `rollback: dataset is busy` (a row of criterion 5's parametrized test); `version()` with `--version` planned to print an empty line and then `zfs-2.2.2-0ubuntu9.1` returns `zfs-2.2.2-0ubuntu9.1` (a row of criterion 7's parametrized test).
-13. `make check` stays green.
-14. docs: `docs/project-guide/stage-environment.md` gains the section *The ZFS adapter*: the five commands and when each runs, the reading of `zfs diff -FH` (the kinds, the rename, the escapes, the mount point), the faults and their details, `version` and `dataset_exists` for the preflight, the stand-in the tests use; `docs/project-guide/README.md`, *The files*, names `factory.adapters.zfs_snapshots` for the file. `docs/operator-guide.md`: nothing yet (S0010 writes the settings, S0011 the items). `docs/decisions.md`: none.
+13. A file removed and made anew is listed once, as `added`, whichever line comes first: `changed_paths()` with `diff` planned to print `-\tF\t/srv/factory/vm/work/checkout/x.txt` and then `+\tF\t/srv/factory/vm/work/checkout/x.txt` returns exactly `[ChangedPath("checkout/x.txt", "added")]` (a row of criterion 3's parametrized test; criterion 3's rename row has the added line first).
+14. The seconds of `no end within <n> s` are rounded up, not to the nearest (rows of one parametrized test, the module's `run_process` replaced by a `Recorder` of `tests/run_process_recorder.py` whose planned result has `timed_out` true): `reset()` under an adapter built with `time_limit` 1.2 seconds gives `detail` `no end within 2 s`, and with `time_limit` 2 seconds gives `no end within 2 s`.
+15. `version()` returns its first non-blank line stripped: `--version` planned to print `  zfs-2.2.2-0ubuntu9.1  ` and then `zfs-kmod-2.2.2-0ubuntu9.1` returns `zfs-2.2.2-0ubuntu9.1` (a row of criterion 7's parametrized test).
+16. `make check` stays green.
+17. docs: `docs/project-guide/stage-environment.md` gains the section *The ZFS adapter*: the five commands and when each runs, the reading of `zfs diff -FH` (the kinds, the rename, the escapes, the mount point), the faults and their details, `version` and `dataset_exists` for the preflight, the stand-in the tests use; `docs/project-guide/README.md`, *The files*, names `factory.adapters.zfs_snapshots` for the file. `docs/operator-guide.md`: nothing yet (S0010 writes the settings, S0011 the items). `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -519,3 +524,19 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
 
     For the next review: please list every remaining coverage gap of the module in one round, so that the story does not come back for one row at a time. Only a gap in a rule the Interface states is a finding; a wording preference is not.
 34. factory: started review as self.
+35. reviewer: Review, round 0 (the human's answer in entry 33 reset the count). I read the work item and `git diff main...HEAD -- . ':!factory'`, which covers `src/factory/adapters/zfs_snapshots.py`, `tests/adapters/test_zfs_snapshots.py`, `tests/adapters/test_zfs_snapshots_diff.py`, `tests/zfs_support.py` and the one-line change to `tests/test_wrapper_search.py`. Criteria 1 to 11 each have a test that checks what the criterion says. The factory's `make check` after the coder was green (entry 29), and I did not run it. I stopped at group 1.
+
+    Entry 33 asked for every remaining gap in one round. So I compared each rule the Interface states with the tests, and I counted only rules that removing or changing the code would break without any test failing. I found three gaps beyond criterion 12. Each one needs only a test, so I wrote them into the work item as criteria 13 to 15. The closing criteria are now 16 (`make check`) and 17 (docs). All other Interface rules have a test on both sides: the `list` statuses 0, 1 and other; the field counts for `M` and `R`; the mount point itself, a path under it, a path outside it and the `workx` sibling; the unknown change; the link-count field; the escapes; the order; directories left out; and the faults `OSError`, time limit and empty output.
+
+    Findings:
+    1. `tests/adapters/test_zfs_snapshots_diff.py` and `tests/adapters/test_zfs_snapshots.py`: criterion 12 (blank lines skipped, added in round 2 and approved by the human in entry 33) has none of its three rows. The fix is three rows: the diff with an empty line and a two-space line in `test_changed_paths_reads_the_diff_relative_to_the_mount_point`; `rollback: dataset is busy` followed by an empty line in `test_a_failed_reset_names_its_detail`; an empty line before the version in `test_version_is_the_first_line_zfs_prints`.
+    2. Criterion 13 added; it needs its test. The rule is in `src/factory/adapters/zfs_snapshots.py` (`_record`): a path that two lines name is `added`. The test only has the added line first (the `R` line, then `-`), so a version that keeps the first line's change would still pass. The fix is a row of criterion 3's test: `-` then `+` for `checkout/x.txt`, which gives `[ChangedPath("checkout/x.txt", "added")]`.
+    3. Criterion 14 added; it needs its test. The rule is the rounding in `src/factory/adapters/zfs_snapshots.py` (`_run`, `math.ceil`). The Interface says "rounded up", but criterion 5's 1.5 s gives 2 s whether the code rounds up or to the nearest. The fix is a parametrized test using a `Recorder` with a timed-out result: a limit of 1.2 s gives `no end within 2 s`, and a limit of 2 s gives `no end within 2 s`. This runs no stand-in, so it does not slow the tests.
+    4. Criterion 15 added; it needs its test. The rule is in `src/factory/adapters/zfs_snapshots.py` (`_printed_lines`): `version()` returns its first line stripped, and no test prints surrounding spaces. The fix is a row of criterion 7's test: `  zfs-2.2.2-0ubuntu9.1  ` then `zfs-kmod-...` gives `zfs-2.2.2-0ubuntu9.1`.
+
+    None of these needs a change under `src/`: the code already behaves as each new criterion says. The coder hands them to the tester.
+
+    Considered and not raised: `make_commands._last_line`, `pipeline_yaml._first_line` and the non-blank-line idioms in `agent_home` and `hosting` are private to their own modules, or behave differently (make's messages are skipped), so the module's `_printed_lines` copies no shared helper. A directory line whose path is outside the mount point, and an `R` line whose old path is outside it, run the same code that the tested rows already cover, so they are not gaps.
+
+    Earlier tests:
+    - `tests/test_wrapper_search.py`: changed under the human's leave. Criterion 9 of the story, as the human wrote it, names this test and the added `factory.adapters.zfs_snapshots`. The change only adds that one name to the expected set, and the test keeps its name and what it checks.
