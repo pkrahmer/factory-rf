@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T17:33:04.281020Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-24T17:32:46.344793Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:33:04.281020Z'
   stage: intake
 ---
 
@@ -129,3 +138,4 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
    2. **Yes**: criterion 6 gains the row that a file the fake run writes into the host's `agent_home` is left as it is (no home reset).
 
    Please write both into the criteria as you accept.
+5. factory: started intake as self.
