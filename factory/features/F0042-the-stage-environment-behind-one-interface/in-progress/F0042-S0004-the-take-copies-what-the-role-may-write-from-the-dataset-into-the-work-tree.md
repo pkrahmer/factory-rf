@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 410
 comments_read: [6384920747]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T13:57:22.512357Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-24T13:57:02.186386Z'
   stage: doing
   run: 4b874b4b00b14c019a19e8cfe6cabd22
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-24T13:57:22.512357Z'
+  stage: tests
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -306,3 +315,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     - A failing test in `tests/adapters/test_opencode_runtime_launch.py` prints the leaked `ANTHROPIC_API_KEY` in full.
     - `copy_changed` does not check for a link at one of the target's parent folders.
     - A source entry missing for an `added` or `modified` path is not placed.
+15. factory: started tests as self.
