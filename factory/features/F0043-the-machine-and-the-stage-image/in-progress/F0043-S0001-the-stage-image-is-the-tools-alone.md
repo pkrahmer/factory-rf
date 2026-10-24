@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T23:52:04.405564Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-24T23:51:44.210461Z'
   stage: doing
   run: 330ccc8a90b84620b9d8d968b7661606
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:52:04.405564Z'
+  stage: tests
 ---
 
 # The stage image is the tools alone
@@ -226,3 +235,4 @@ Expect: `1`
     The `## Description` is unchanged, because the journal did not change what the task means. Criterion 9 and the renumbered closing criteria (10 and 11) are already in the work item.
 
     `image/` is still byte-for-byte as on `main`. Refactor: nothing to change, because this round has no code diff. I did not run `make check`, since nothing changed since round 0, where it was green.
+12. factory: started tests as self.
