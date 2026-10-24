@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 410
 comments_read: [6384920747]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T14:00:28.542500Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-24T14:00:07.868835Z'
   stage: tests
   run: 8519ce27c82945bc91f41d3703a11828
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-24T14:00:28.542500Z'
+  stage: doing
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -329,3 +338,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
 
     `lint`: lint: green (0.5 s)
     `test`: test: green (63.1 s)
+17. factory: started doing as self.
