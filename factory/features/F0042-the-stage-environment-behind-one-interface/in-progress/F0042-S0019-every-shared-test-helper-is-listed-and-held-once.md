@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 428
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T23:02:13.614741Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-24T23:02:13.614741Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-24T23:02:33.982843Z'
+  stage: intake
+  run: d968c5251dfd47df86c98016d4746881
 ---
 
 # Every shared test helper is listed and held once
@@ -78,3 +80,9 @@ Expect: 0
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: no `src/` change, which the story says. It names concrete test modules and one signature: `top_level_copies(source: str, value: str) -> list[str]` in `tests/search_support.py`. It also names the homes of the three values (`take_support.py`, `stage_run_support.py`), the new guard module and the import rule under `mypy --strict`. I checked the repo: `instance_copies` is in `tests/test_shared_constants.py:11` and `INSIDE`/`NOTES` are in `tests/container_support.py:37-38`. `stall_support.py` also holds `INSIDE` and `AGENT_TEXT` copies. All of this matches the Description.
+   Criteria: each is testable by one test function. 1 is the parametrized guard with three rows, and a failing row names the module. 2 pins `top_level_copies` to the same seven rows as the existing instance-name test. 3 and 4 are the usual ones. 5 is the documenter's list. The Interface states two behaviours, "assignment under any name" and "no import cycle". Criteria 1 and 2 cover the first. The second is a structural note that the import system enforces, so it needs no criterion.
+   Smoke test: the commands are runnable. The project's pytest config sets `-q` in `addopts` and the first command passes none, so `tail -1` gives the `N passed in Xs` summary line that the grep and the Expect: 1 can match. The second command expects exactly two files, which is checkable. The third counts the modules without an entry and expects 0.
+   Architecture: the work stays in `tests/`, uses the standing leave to move shared helpers, and matches the CLAUDE.md test layout. Nothing under `src/` changes.
+   Scope: it fits F0042's "the tests each story names" and breaks none of its Out of scope items. It changes earlier tests only under the standing leave, and criterion 3 requires the tester to name each earlier test file it changed.
