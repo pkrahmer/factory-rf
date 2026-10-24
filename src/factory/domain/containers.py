@@ -5,7 +5,6 @@ from typing import Annotated, Self
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
 
-from factory.domain.agent_home import inside_home
 from factory.domain.agent_runs import AbsolutePath
 
 WORK = "/work"
@@ -14,7 +13,9 @@ WORK_HOME = "/work/home"
 
 
 def _must_be_container_path(target: str) -> str:
-    if not target.startswith("/") or not inside_home(target.removeprefix("/")):
+    # Split by hand: `PurePosixPath` would fold `/a//b` and `/a/` into valid paths.
+    segments = target.removeprefix("/").split("/")
+    if not target.startswith("/") or any(segment in {"", ".."} for segment in segments):
         raise ValueError(f"not an absolute container path: {target!r}")
     return target
 

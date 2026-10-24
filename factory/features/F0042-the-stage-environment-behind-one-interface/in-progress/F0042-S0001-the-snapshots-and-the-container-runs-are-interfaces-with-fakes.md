@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T11:46:40.491756Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-24T11:46:40.491756Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-24T11:50:08.844469Z'
+  stage: doing
+  run: a7a0534a67a347b5b15153f9e83095c0
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -435,3 +437,21 @@ Expect: `1`
     - `tests/application/test_interfaces.py`: the human's leave in `feature.md` decision 18 (a). The story's Interface and criterion 4 name it. The diff stays within that leave: `INTERFACES` and `INTERFACE_IDS` each gain `Snapshots` and `ContainerRuns`, and `test_project_commands_and_agent_runtime_have_exactly_their_operations_abstract` gains the two assertions on `__abstractmethods__`. Every earlier test keeps its name.
     - `tests/test_wrapper_search.py`: the human's leave in `feature.md` decision 18 (a). The expected set gains `factory.adapters.fake_containers` and nothing else changes.
 13. factory: started doing as self.
+14. coder: Round 1. I fixed the reviewer's one finding with option (a), the story as written. No test was changed. `make check` is green.
+
+    - `src/factory/domain/containers.py` (`_must_be_container_path`): `Mount.target` is no longer checked with `inside_home` of `factory.domain.agent_home`. The check now refuses only what the Interface states:
+      - a target that does not start with `/`;
+      - an empty segment, which also covers `/` alone, `/a//b` and a trailing slash;
+      - a `..` segment.
+      So `/a/./b` is now accepted, as the Interface says. The import of `inside_home` is gone. The new comment says why the path is split by hand: `PurePosixPath` would fold `/a//b` and `/a/` into valid paths.
+
+    Main choice: I followed the Interface and did not ask. I rejected option (b), a question asking the human to add `.` segments to the refused list. It would widen the rule beyond the description just to keep one helper reused. I searched for an existing helper that refuses only empty and `..` segments. There are two `..` checks, in `factory.domain.git` and `factory.adapters.fake_agent_runtime`, but both go through `Path` parts, and `Path` folds `//`, so neither fits.
+
+    Refactor: the diff is three lines, and nothing more needed changing.
+
+    Noticed, not touched: no test pins `/a/./b` either way. If the reviewer wants that side pinned, it is a row for the tester in `tests/domain/test_containers.py`.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 8 new, 38 known, 0 gone
