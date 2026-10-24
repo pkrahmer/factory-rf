@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T21:42:45.019575Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-24T21:42:24.204925Z'
   stage: tests
   run: b9d7476cdffa441ebf90ccad8ec0fb5f
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:42:45.019575Z'
+  stage: doing
 ---
 
 # The preflight checks the container environment
@@ -338,3 +347,4 @@ Expect: `1`
 
     `lint`: lint: green (0.5 s)
     `test`: test: green (65.2 s)
+17. factory: started doing as self.
