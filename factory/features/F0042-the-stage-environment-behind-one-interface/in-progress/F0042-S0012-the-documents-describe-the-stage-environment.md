@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 423
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T22:00:32.372542Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-24T22:00:11.446492Z'
   stage: docs
   run: b2fc8bda33134e42ab1d1a1c81991fac
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:00:32.372542Z'
+  stage: smoke-test
 ---
 
 # The documents describe the stage environment
@@ -170,3 +179,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 3389db52e22b at 2026-10-24T21:56:50Z)
     `secrets`: secrets: green (2.5 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
