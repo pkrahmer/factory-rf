@@ -1,4 +1,4 @@
-# The contract between a project and the factory is three targets: `check`, `lint`, `test`.
+# The contract between a project and the factory is four targets: `check`, `lint`, `test`, `sync`.
 # `check` is what every stage must pass; `lint` and `test` are what the tests stage runs on its
 # own (the type check is skipped there, because the modules under test do not exist yet).
 # `duplicates` is a report outside `check`; `mutants` is for a sweep by hand, never a stage.
@@ -10,7 +10,7 @@
 # pyproject.toml configures them (coverage's `source` and `fail_under`, mypy's `strict`, and
 # `[tool.mutmut]`, whose runs leave out the tests that read the source); security/semgrep holds
 # the vendored semgrep rules and .secrets.baseline the reviewed findings of detect-secrets.
-.PHONY: check lint types layers sast secrets licenses test duplicates mutants
+.PHONY: check lint types layers sast secrets licenses test sync duplicates mutants
 .SILENT:
 
 # What the project decides: the folder of its package, and the command that checks its layers.
@@ -29,6 +29,14 @@ green = tenths=$$(( ($$(date +%s%N) - started) / 100000000 )); echo "$@: green (
 
 check: lint types layers sast secrets licenses test
 	echo "check: green"
+
+# The fourth target of the contract: the tools after a checkout. The stage environment runs it in its
+# sync container before every agent run, and before every check; a project of another stack names its
+# own command here.
+sync:
+	$(start)
+	uv sync --frozen
+	$(green)
 
 lint:
 	$(start)

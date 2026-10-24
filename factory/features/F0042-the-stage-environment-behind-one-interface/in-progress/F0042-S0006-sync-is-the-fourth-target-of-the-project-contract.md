@@ -2,16 +2,12 @@
 stage: doing
 blocked: null
 round: 0
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T17:11:36.820753Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,19 @@ journal:
   kind: started
   at: '2026-10-24T17:11:36.820753Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-24T17:13:27.776534Z'
+  stage: doing
+  run: fe44c1532a91496c8dad6882ce0df507
+- number: 8
+  speaker: factory
+  kind: stall
+  at: '2026-10-24T17:13:27.799635Z'
+  stage: doing
+  run: fe44c1532a91496c8dad6882ce0df507
+  reason: check_red
 ---
 
 # `sync` is the fourth target of the project contract
@@ -166,3 +175,32 @@ Expect: four lines: `# The contract between a project and the factory is four ta
    `lint`: lint: green (0.6 s)
    `test`: FAILED tests/test_template_sync.py::test_template_pipeline_definition_names_sync_and_no_stage_lists_it - AssertionError: assert ['check', 'lint', 'test'] == ['check', 'li...test', 'sync']
 6. factory: started doing as self.
+7. coder: I added `sync` to the template's project contract. No module under `src/factory/` changed, and `make check` is green (`test: green (62.5 s)`, then `check: green`).
+
+   What I built:
+   - `template/Makefile`:
+     - Line 1 now says four targets: `check`, `lint`, `test`, `sync`. Lines 2 to 5 are unchanged.
+     - The `.PHONY` line names `sync` after `test`.
+     - A new `sync:` target sits between `check:` and `lint:`. It has the comment the Interface gives and the recipe `$(start)` / `uv sync --frozen` / `$(green)`.
+     - `check:` is unchanged and does not run `sync`.
+   - `template/factory/pipeline.yml`: added `  sync: {time_limit: 5}  # the tools after a checkout: the stage environment runs it, no stage lists it` after `test`. No stage lists `sync` in its checks or reports.
+   - `template/CLAUDE.md`: "The pipeline definition names `check`, `lint` and `test`;" now reads "names `check`, `lint`, `test` and `sync`;". It matches the changed line of `TEMPLATE_RULES_LINES` word for word.
+
+   Main decision: `sync` uses the same `$(start)`/`$(green)` macros as the other targets, so its last line is `sync: green (<seconds> s)` like theirs. I rejected a plain one-line `uv sync --frozen` recipe: it prints no green line, which the factory's records of project commands read and criterion 3 requires. I put the trailing comment on the pipeline line rather than on a line of its own above it, because the Interface puts it "at its end".
+
+   Refactor: I read the diff and found nothing to change.
+
+   Noticed, not touched:
+   - The new shared test helper module `tests/template_make_support.py` still needs its entry in `docs/project-guide/README.md`, *Shared test helpers*. That is for the docs stage, as the tester noted.
+   - This repository's own `Makefile` and `factory/pipeline.yml` still have no `sync`. They are the human's change 1.
+   - The journal did not change the task's meaning, so I left `## Description` as it is.
+8. factory: Stage doing stalled (attempt 1 of 2): a check is red after the stage: `check`
+   Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+   Creating virtual environment at: .venv
+   Installed 106 packages in 83ms
+   Bytecode compiled 4164 files in 352ms
+   All checks passed!
+   Bytecode compiled 4164 files in 97ms
+   lint: green (0.5 s)
+   Bytecode compiled 4164 files in 89ms
+   make: *** [Makefile:39: types] Error 139
