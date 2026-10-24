@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638, 6384356460]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T12:53:36.838719Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -245,6 +241,12 @@ journal:
   kind: started
   at: '2026-10-24T12:53:36.838719Z'
   stage: review
+- number: 43
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T12:54:33.741125Z'
+  stage: review
+  run: f4bce65a6d5d40fa81720db3da806faa
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -641,3 +643,35 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     `check`: check: green
     `duplicates`: duplicates: 8 new, 38 known, 0 gone
 42. factory: started review as self.
+43. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`. The diff covers `src/factory/adapters/zfs_snapshots.py`, `tests/adapters/test_zfs_snapshots.py`, `tests/adapters/test_zfs_snapshots_diff.py`, `tests/zfs_support.py` and the one-line change to `tests/test_wrapper_search.py`. I did not run `make check`. Per the journal, the factory's run after the coder was green (entry 41: `check: green`).
+
+    Group 1 (acceptance criteria) holds. Criteria 1 to 15 each have a test that checks what the criterion says:
+    - Criterion 12 has three rows: `blank-lines`, `trailing-blank` and `leading-blank`.
+    - Criterion 13 has the row `removed-then-added`.
+    - Criterion 14 is `test_the_time_limit_is_named_in_whole_seconds_rounded_up`, with a 1.2 s row and a 2 s row, through a `Recorder`.
+    - Criterion 15 has the row `stripped`.
+
+    I checked each rule the Interface states against the tests, both sides, as entry 33 asked:
+    - the `list` statuses 0, 1 and other, in `advance` and in `dataset_exists`;
+    - the field counts for `M` and `R`;
+    - the mount point itself, a path under it, a path outside it and the `workx` sibling;
+    - an unknown change, a path that is not UTF-8, the link-count field, the escapes, directories left out, the order, and a path that two lines name, in either order;
+    - blank lines and stripping;
+    - the faults `OSError`, time limit (rounded up), empty output and last line;
+    - `cwd`, `env`, `merge_stderr` and the default limit.
+
+    I found no rule left untested.
+
+    Groups 2 to 5 hold:
+    - Architecture: the module is in `adapters` and implements the `Snapshots` interface from `application`. It reaches `zfs` only through `run_process`, with argv lists and no shell.
+    - Security: no secrets and no suppression markers.
+    - Quality: the docstrings are present. The inline `math.ceil` / `no end within` wording also appears in `agent_home.py` and `agent_launch.py`, but no shared helper exists to copy, so it is not a finding.
+    - Work item hygiene: the Description and the docs criterion match what was built.
+
+    no findings
+
+    Earlier tests:
+    - `tests/test_wrapper_search.py` (M): changed under the human's leave. Criterion 9, which the human wrote, names this test and the added `factory.adapters.zfs_snapshots`. The change only adds that one name to the expected set, and the test keeps its name and what it checks.
+
+    Notes:
+    - `tests/adapters/test_zfs_snapshots.py`, `test_the_default_time_limit_is_ten_minutes_and_reaches_run_process` and `test_the_time_limit_is_named_in_whole_seconds_rounded_up`: both repeat the same setup (a `Recorder` patched into `zfs_snapshots.run_process`). A module fixture could share it. The `recorder` fixture in `tests/conftest.py` patches `claude_runtime`, so it cannot be reused as it is.
