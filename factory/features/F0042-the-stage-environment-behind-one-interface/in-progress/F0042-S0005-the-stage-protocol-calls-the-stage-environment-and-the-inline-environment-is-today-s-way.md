@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T17:03:41.258091Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -161,6 +157,12 @@ journal:
   kind: started
   at: '2026-10-24T17:03:41.258091Z'
   stage: smoke-test
+- number: 28
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T17:04:31.557682Z'
+  stage: smoke-test
+  run: ebae4f4411f3498b9d918d7c8069ba19
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -601,3 +603,31 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
 27. factory: started smoke-test as self.
+28. smoke-tester: Smoke test, round 1: I ran both commands under `## Smoke test` from the repository root, as written and in order. Both met their `Expect:` lines and I found nothing wrong.
+
+    Command 1 (pytest over the five modules, last line counted by `grep -cE '^[0-9]+ passed in '`):
+    ```
+    1
+    ```
+    Met `Expect: 1`. I re-ran the same pytest command and kept the last three lines to see the summary itself. It reads `74 passed in 8.95s`, with no failures and no skips:
+    ```
+    ........................................................................ [ 97%]
+    ..                                                                       [100%]
+    74 passed in 8.95s
+    ```
+
+    Command 2 (the Python heredoc):
+    ```
+    Bytecode compiled 4164 files in 80ms
+    ['prepare', 'run_agent', 'take'] True
+    {'left': ['docs/new.md', 'docs/guide.md'], 'restored_work_item': False}
+    ```
+    Met `Expect: two lines, ['prepare', 'run_agent', 'take'] True and {'left': ['docs/new.md', 'docs/guide.md'], 'restored_work_item': False}`. The first line, `Bytecode compiled …`, is not the program's output. It is a one-time message uv prints on stderr when it compiles the environment's bytecode. A second `uv run python -c 'print(1)' 2>/dev/null` printed only `1`, and the program itself printed exactly the two expected lines.
+
+    Against the acceptance criteria:
+    - Criterion 1: confirmed. `StageEnvironment`'s abstract members are exactly `prepare`, `run_agent` and `take`.
+    - Criteria 2 to 11: the five modules that pin them (`test_stage_environment.py`, `test_stage_environment_calls.py`, `test_after_agent.py`, `test_stage_run.py`, `test_agent_run_probe.py`) all pass.
+    - Criterion 4: `TakeReport` dumps as `left` and `restored_work_item`, the shape it names. Command 2 builds the report directly rather than through `take`, so the output shows the model's shape, not the sorting of `left`.
+    - No criterion is contradicted. I did not run `make check` (criterion 12) or judge the docs (criterion 13). The smoke test does not cover them, and the factory's checks after this stage do.
+
+    Findings: none. I changed no files.
