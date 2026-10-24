@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T20:35:12.740377Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-24T20:35:12.740377Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T20:36:00.096264Z'
+  stage: review
+  run: 264b8004616848b7bc39e41b200b6664
 ---
 
 # Every container runs without rights and within limits
@@ -142,3 +144,12 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
    `check`: check: green
    `duplicates`: duplicates: 16 new, 36 known, 2 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (src/factory/adapters/podman_runs.py, tests/adapters/test_podman_runs.py, tests/adapters/test_podman_runs_fence.py) against the work item.
+
+   Groups 1 to 3 pass. Criteria 1 to 4 each have a test that checks what the criterion says. Criterion 1 pins the full argv and checks that no word starts with `--network`. Criterion 2 checks the recorded call's words right after `--timeout` and its seconds. Criterion 3 checks both constants and their monkeypatched values in one test. Criterion 4 is the earlier test with exactly the four added words. The Interface states no rule with a refused side, and the coder's journal entry 7 records `make check` green. In `src/`, the four words sit in the stated order between `--timeout <seconds>` and the `--env` words, each with a comment saying what it keeps out. The constants are read on every call, so `run` picks them up through `launch`. The change stays in the one podman adapter, with no marker and no secret. I also ran `make duplicates`: none of its new findings are in the lines this diff adds.
+
+   Findings:
+   1. tests/adapters/test_podman_runs_fence.py:13-24. The `IMAGE = "factory-stage:1"` constant and the `runs` fixture (`PodmanRuns(str(podman.path), IMAGE, Path("/srv/factory/vm/work"))`) are a second copy of `IMAGE` and the `runs` fixture in tests/adapters/test_podman_runs.py:13-18. Fix: the tester moves the fixture and its constant to `tests/conftest.py` (or a shared module at the `tests/` root) under the standing leave to move a shared test helper. Both modules then use it from there, and every earlier test keeps its name and what it checks. Criterion 3's test (lines 113-118) could also build its expected words from `FENCE` instead of listing the two capability words again.
+
+   Earlier tests:
+   - tests/adapters/test_podman_runs.py (M): the human's leave. The story's Interface names `test_launch_pins_the_podman_command_line` under decision 18 (j), and the diff makes only the four-word change named there.
