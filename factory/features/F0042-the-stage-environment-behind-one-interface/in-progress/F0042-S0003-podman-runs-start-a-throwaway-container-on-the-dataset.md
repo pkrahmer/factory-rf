@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T13:34:29.986796Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -163,6 +167,11 @@ journal:
   at: '2026-10-24T13:34:09.316593Z'
   stage: review
   run: 237c08be977c48629184921a37d1fba4
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-10-24T13:34:29.986796Z'
+  stage: docs
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -512,3 +521,4 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
 
     Notes:
     - tests/adapters/test_podman_runs_results.py:33-37: the module's own `recorder` fixture repeats the one in `tests/conftest.py:312-316`, only for a different module. One shared fixture that takes the module to patch would remove the copy.
+29. factory: started docs as self.
