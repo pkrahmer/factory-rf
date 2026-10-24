@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T18:50:42.109531Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-24T18:50:20.685252Z'
   stage: intake
   run: 0b59bccede91402db1d836f71031781c
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:50:42.109531Z'
+  stage: tests
 ---
 
 # The agent runtimes start their process in a container
@@ -192,3 +201,4 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
    - Smoke test: accepted. Both commands are runnable. The pytest command passes no `-q`, and the `Expect:` lines can be checked against the output (`1`, and three exact lines).
    - Architecture: accepted. All of it sits in `factory.adapters`, which imports `factory.application.containers` and `factory.domain.containers`. `agent_launch` stays free of the process module.
    - Scope: accepted. The story is feature `F0042`'s S0008, as listed in `feature.md`. Wiring is left to S0010 and no existing test is changed.
+7. factory: started tests as self.
