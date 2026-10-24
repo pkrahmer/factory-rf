@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T18:42:39.691117Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-24T18:42:39.691117Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T18:43:16.816780Z'
+  stage: smoke-test
+  run: a402cabfd54f4858abdb7b4c25418cac
 ---
 
 # The stall takes from the dataset
@@ -426,3 +428,35 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: Smoke test, round 1. I ran both commands under `## Smoke test` from the repository root, exactly as written and in order. I fixed nothing.
+
+    **Command 1**: the pytest run over `test_stall_environment.py`, `test_stall_container.py`, `test_stalls.py` and `test_stall_edges.py`, piped through `tail -1 | grep -cE '^[0-9]+ passed in '`.
+
+    ```
+    1
+    ```
+
+    Met `Expect: 1`. The last line of pytest's output was a plain `N passed in …` summary, so nothing in the four modules failed, errored or was skipped.
+
+    **Command 2**: the inspection script over `StallResult`, `StallService`, `StageFinisher` and the names in `factory.application.stalls`.
+
+    ```
+    Bytecode compiled 4164 files in 98ms
+    True False
+    StallService KEYWORD_ONLY None
+    StageFinisher KEYWORD_ONLY None
+    []
+    ```
+
+    Met the expectation: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinisher KEYWORD_ONLY None`, `[]`. The first line, `Bytecode compiled …`, is not from the script. It is uv's own status message, printed on stderr when uv compiles the virtual environment, and the shell shows it beside the output. The script printed exactly the four expected lines, so I do not count it as a finding.
+
+    **Against the acceptance criteria:**
+    - `StallResult` has `take` and no longer has `undo` (Interface; criteria 1 and 4).
+    - `stage_environment` is keyword-only with default `None` on both `StallService` and `StageFinisher` (Interface; criterion 8).
+    - `factory.application.stalls` exposes no `Undo*` name (criterion 1's structural assertion).
+    - Command 1 ran the tests behind criteria 1 to 9, including the inline red-check stall in `test_stall_edges.py`, and they passed.
+    - Nothing I saw contradicts any criterion. The smoke test does not run `make check` (criterion 10) or check the docs (criterion 11); the factory gates those after this stage.
+
+    **Findings:** none.
+
+    **Open:** nothing.
