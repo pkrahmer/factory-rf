@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578, 6386353501]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T16:11:17.366764Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -154,6 +158,11 @@ journal:
   at: '2026-10-24T16:10:56.502599Z'
   stage: review
   run: f314d8f9cbcb49a6adb3e0f9cf780f63
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:11:17.366764Z'
+  stage: docs
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -506,3 +515,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     Notes:
     - `tests/application/test_take.py:17` and `tests/application/test_take_edges.py:20`: both define the same `BROKEN_FRONT_MATTER` constant. It could live in `tests/take_support.py`.
     - `src/factory/application/take.py:71`: `taken` checks membership against the sorted list `left`. A set would avoid a linear scan for every candidate. This is not a finding: the behaviour is right.
+27. factory: started docs as self.
