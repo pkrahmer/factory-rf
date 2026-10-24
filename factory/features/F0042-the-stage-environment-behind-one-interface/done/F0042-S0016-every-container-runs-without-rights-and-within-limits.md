@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-24T20:45:57.639799Z'
   stage: smoke-test
   run: d236db92d025453f9c2f863a2f4aab60
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-24T20:48:20.918064Z'
+  stage: approval
 ---
 
 # Every container runs without rights and within limits
@@ -348,3 +353,4 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
     Findings: none.
 
     Open: nothing.
+22. factory: done (pull request merged); cost: 10 runs, 9.8 min, 58 turns, 218498 tokens in (1101592 more from cache), 22541 out, $2.13
