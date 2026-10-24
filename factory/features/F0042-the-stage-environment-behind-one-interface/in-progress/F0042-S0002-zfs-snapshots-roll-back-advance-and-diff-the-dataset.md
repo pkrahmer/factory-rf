@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T12:13:16.642623Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-24T12:12:55.974897Z'
   stage: tests
   run: 4bdacb36410d447da6c8dfb994d79f73
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-24T12:13:16.642623Z'
+  stage: doing
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -207,3 +216,4 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
 
    `lint`: lint: green (0.8 s)
    `test`: ERROR tests/adapters/test_zfs_snapshots_diff.py - ImportError while importing test module '/work/checkout/tests/adapters/test_zfs_snapshots_diff.py'.
+9. factory: started doing as self.
