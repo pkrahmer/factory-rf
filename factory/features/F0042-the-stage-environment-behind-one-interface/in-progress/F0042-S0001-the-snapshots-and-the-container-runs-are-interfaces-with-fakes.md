@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 407
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T11:28:00.792135Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-24T11:28:00.792135Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-24T11:28:27.473945Z'
+  stage: intake
+  run: 2aa2e15d4c0247088365607baa43d949
+  blocked: question
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -286,3 +289,12 @@ Expect: `1`
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: 1. The Interface says `FakeContainerRuns.launch` and `run` raise `ValueError` for a mount whose target "is `/work` or starts with `/work/`". Criterion 12 covers only the refused side (`/work`, `/work/checkout`). Nothing says that a mount with target `/workspace` or `/work-x` is accepted (and recorded in `calls`). Criterion 9 only maps a word `/workspace`, not a mount. Should I add a criterion, in the rows of criterion 12, that a mount with target `/workspace` is accepted? I would add it.
+
+   2. `ContainerLaunch.env` is `dict[str, str] | None`, and the Interface comment says `None` means "the process's own environment (decision 11)". Criterion 2 tests only `argv` and `time_limit`. Nothing checks that `env=None` is accepted, or that `ContainerLaunch` keeps `env` as given. Should I add `env=None` and `env={}` as accepted rows of criterion 2? I would add them.
+
+   3. `run(...)` returns `duration=<the process's>`. No criterion checks it. A coder could return a constant and pass every test. Should I add a criterion, in the timeout row of criterion 11, that `duration` is at least 1 second and under 25 seconds, and that it is greater than 0 for the successful run? I would add it.
+
+   4. Criterion 8 says `advance()` replaces the base, "what `base` held before is gone". Only the changed-then-advanced case is tested. A file that is in the old base but no longer in the folder is not covered. Should I add a row where a file is deleted, then `advance()` is called, and then `reset()` does not bring it back? I would add it.
+
+   The format check passed. The smoke test's pytest command passes no `-q`, and `addopts` already sets one, so the `passed in` line will be there. The architecture and the feature's scope check out, so I would accept once these four are settled.
