@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638, 6384356460]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T12:55:52.334057Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -267,6 +263,12 @@ journal:
   kind: started
   at: '2026-10-24T12:55:52.334057Z'
   stage: smoke-test
+- number: 47
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T12:56:28.456508Z'
+  stage: smoke-test
+  run: beae6e2841c54dc0b39ad92aad9106d6
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -714,3 +716,48 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
 46. factory: started smoke-test as self.
+47. smoke-tester: Ran the one command under `## Smoke test` exactly as written, from the repository root. It writes a stand-in `zfs` into a `mktemp -d` folder that removes itself, then runs the Python script against `ZfsSnapshots`. Nothing was changed. Before the script ran, `uv run` created `.venv`. That folder is git-ignored and the factory removes it after the run.
+
+    Command 1 (the whole bash block), output (exit status 0):
+
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 119ms
+    Bytecode compiled 4164 files in 421ms
+    [('checkout/new.md', 'added'), ('checkout/old.md', 'deleted'), ('checkout/src/a.py', 'modified'), ('checkout/with space.txt', 'added'), ('home/x', 'deleted')]
+    zfs-2.2.2-0ubuntu9.1 True
+    True True
+    rollback -r tank/factory/vm@base
+    list -H -o name -t snapshot tank/factory/vm@base
+    snapshot tank/factory/vm@base
+    diff -FH tank/factory/vm@base
+    --version
+    list -H -o name tank/factory/vm
+    ```
+
+    Met its `Expect:` line. The first seven lines come from uv's one-time environment setup and are not the script's output. The rest matches word for word:
+    - three lines of Python output: the sorted changed paths, `zfs-2.2.2-0ubuntu9.1 True`, `True True`;
+    - then the six recorded calls in the expected order.
+
+    Some details in this output:
+    - The directory line `M / …/checkout` is left out.
+    - The `\040` escape is read as a space.
+    - The rename gives `old.md` deleted and `new.md` added.
+    - `advance()` with `list` exiting 1 called `snapshot` and no `destroy`.
+    - The missing executable gave a `SnapshotError` whose command ends `nowhere rollback -r tank/factory/vm@base` and whose detail starts `[Errno 2]`.
+
+    Read against `## Acceptance criteria`: the output contradicts none of them. Here is what it shows for each criterion it touches:
+    - 1: one `rollback -r <dataset>@base` call.
+    - 2: the advance row where `list` exits 1 runs `list` and `snapshot` only.
+    - 3: directories left out, the escape decoded, the rename split, the paths sorted and relative to the mount point, and the `diff -FH` arguments as given.
+    - 5: an executable that does not exist gives `[Errno 2]`.
+    - 7: `version()` returns the first line.
+    - 8: `dataset_exists()` returns `True` with the arguments `list -H -o name tank/factory/vm`.
+
+    The other criteria (the time limit, `cwd`/`env`, the fault details of the diff, the docs, `make check`) are not exercised by this smoke test. The tests and the factory's checks cover them.
+
+    Findings: none. Open: nothing.
