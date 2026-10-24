@@ -4,18 +4,13 @@ from collections.abc import Callable
 
 import pytest
 
+from container_support import CONTAINER
 from factory.application.preflight import opencode_item
 from factory.domain.settings import InstanceSettings
 
 PATH = "/opt/factory/bin:/usr/bin"
 WITH_PATH = {"PATH": PATH, "HOME": "/home/agent"}
 WITHOUT_PATH = {"HOME": "/home/agent"}
-CONTAINER = {
-    "stage_environment": "container",
-    "dataset": "tank/factory/vm",
-    "workspace": "/srv/factory/vm/work",
-    "stage_image": "factory-stage:1",
-}
 
 
 def _settings(fields: dict[str, object]) -> InstanceSettings:

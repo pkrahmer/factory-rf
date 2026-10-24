@@ -7,9 +7,8 @@ import pytest
 from factory.application.preflight import dataset_item, stage_image_item, tool_version_item
 from factory.domain.errors import ContainerError, SnapshotError
 from factory.domain.preflight import PreflightItem
-
-DATASET = "tank/factory/vm"
-IMAGE = "factory-stage:1"
+from podman_support import IMAGE
+from zfs_support import DATASET
 
 
 def _returning[T](value: T) -> Callable[[], T]:

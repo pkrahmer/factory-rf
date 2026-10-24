@@ -6,13 +6,18 @@ from pathlib import Path
 
 import pytest
 
-from container_support import Dataset, container_dataset, push_main, sync_makefile
+from container_support import (
+    Dataset,
+    container_dataset,
+    container_instance_settings,
+    push_main,
+    sync_makefile,
+)
 from factory.adapters.make_commands import ContainerMakeCommands
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import MachineChecks, Preflight
 from factory.application.stops import StopService
-from factory.domain.settings import InstanceSettings
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 from wiring_support import every_tool
@@ -62,17 +67,7 @@ def test_the_lint_probe_runs_in_a_check_container_after_the_environment_is_prepa
     makefile = (sync_makefile() if sync_recipe is None else sync_makefile(sync_recipe)) + LINT
     main = push_main(boundaries, human, {"Makefile": makefile})
     dataset = _on_dataset(boundaries, tmp_path, with_base=with_base)
-    settings = InstanceSettings(
-        repository_url="/srv/project.git",
-        instance="factory-1",
-        state_directory=tmp_path / "state",
-        agent_home=agent_home,
-        pinned_agent_version="fake",
-        stage_environment="container",
-        dataset="tank/factory/vm",
-        workspace=dataset.workspace,
-        stage_image="factory-stage:1",
-    )
+    settings = container_instance_settings(tmp_path, agent_home)
     stamps = JsonPreflightStampFile(tmp_path / "state" / "preflight-stamp.json")
     checks = MachineChecks(dataset.boundaries, settings, every_tool)
     preflight = Preflight(

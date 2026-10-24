@@ -1,24 +1,16 @@
 """The machine's checks of a container instance look for no runtime executable and no make."""
 
-from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
-from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
+from container_support import CONTAINER
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import MachineChecks
 from factory.domain.preflight import PreflightItem
 from factory.domain.settings import InstanceSettings
-from git_support import install_agents
 from wiring_support import every_tool
 
-CONTAINER = {
-    "stage_environment": "container",
-    "dataset": "tank/factory/vm",
-    "workspace": "/srv/factory/vm/work",
-    "stage_image": "factory-stage:1",
-}
 CONTAINER_ITEMS = ["tool:git", "tool:uv", "hosting-service", "agents", "agent-runtime-version"]
 INLINE_CLAUDE_ITEMS = [
     "tool:git",
@@ -30,13 +22,6 @@ INLINE_CLAUDE_ITEMS = [
     "agent-runtime-version",
 ]
 EXTRA = "extra"
-
-
-@pytest.fixture
-def installed(boundaries: Boundaries, agent_home: Path) -> Boundaries:
-    """Return boundaries whose agents are installed in the test's agent home."""
-    install_agents(agent_home, ["coder"])
-    return replace(boundaries, agent_definitions=FrontmatterAgentDefinitionReader(agent_home))
 
 
 def _extra() -> PreflightItem:

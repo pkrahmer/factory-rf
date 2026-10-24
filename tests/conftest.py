@@ -2,6 +2,7 @@
 
 import os
 from collections.abc import Iterator
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -261,6 +262,13 @@ def boundaries(
 def definition(boundaries: Boundaries) -> PipelineDefinition:
     """Return the test remote's pipeline definition, with the acceptance stage `acceptance`."""
     return pipeline_definition(boundaries)
+
+
+@pytest.fixture
+def installed(boundaries: Boundaries, agent_home: Path) -> Boundaries:
+    """Return boundaries whose agents are installed in the test's agent home."""
+    install_agents(agent_home, ["coder"])
+    return replace(boundaries, agent_definitions=FrontmatterAgentDefinitionReader(agent_home))
 
 
 @pytest.fixture

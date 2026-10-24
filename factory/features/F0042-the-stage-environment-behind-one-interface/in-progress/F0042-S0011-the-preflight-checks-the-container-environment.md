@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T21:38:53.965728Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-24T21:38:53.965728Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-24T21:42:24.204925Z'
+  stage: tests
+  run: b9d7476cdffa441ebf90ccad8ec0fb5f
 ---
 
 # The preflight checks the container environment
@@ -313,3 +315,26 @@ Expect: `1`
 
     I did not run `make check` this round, because I changed nothing. The code under `src/factory` is as I left it in entry 10, when `make check` was green.
 15. factory: started tests as self.
+16. tester: I made the three helper moves the coder named in entry 14 for the reviewer's findings in entry 12. They fall under the standing leave in `CLAUDE.md`. Every test keeps its name and checks the same thing. I changed no code under `src/factory` and added no test.
+
+    1. The fixture `installed` now lives in `tests/conftest.py`. I removed its two copies, from `tests/application/test_machine_checks_container.py` and from `tests/application/test_machine_checks_runtime.py`. Both modules now use the shared fixture, and the imports it needed are gone from them.
+    2. `tests/container_support.py` now holds two shared pieces:
+       - `CONTAINER`, the settings fields of a container instance, built from `DATASET` and `MOUNT_POINT` of `tests/zfs_support.py` and `IMAGE` of `tests/podman_support.py`. The values are the same as before.
+       - `container_instance_settings(tmp_path, agent_home)`, which builds the container `InstanceSettings` with the state at `tmp_path/state` and the workspace at `tmp_path/workspace`. Those are the same values as before: `dataset.workspace` is `tmp_path/workspace`.
+
+       Four modules now use them:
+       - `tests/application/test_machine_checks_container.py` and `tests/application/test_opencode_item_container.py` import `CONTAINER` instead of their own dicts.
+       - The fixture `container_settings` in `tests/application/test_agent_run_probe_environment.py` returns `container_instance_settings(...)`.
+       - `tests/application/test_preflight_run_environment.py` calls `container_instance_settings(...)` instead of building the settings inline.
+    3. `tests/application/test_container_items.py` no longer defines its own `DATASET` and `IMAGE`. It imports them from `tests/zfs_support.py` and `tests/podman_support.py`.
+
+    Files I created: none.
+
+    Files I changed:
+    - New on this branch: the five test modules above, and `tests/container_support.py`.
+    - From earlier stories, changed under the standing leave: `tests/conftest.py` (added the fixture `installed`) and `tests/application/test_machine_checks_runtime.py` (now uses the shared fixture instead of its own copy).
+
+    Modules the test run could not import: none. The code already exists, so `make test` is green (last line `test: green (67.9 s)`, coverage 99.19 %). `make lint` is green after ruff sorted the imports in `test_container_items.py`. As the stage says, I did not run the type check.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (65.2 s)

@@ -11,6 +11,7 @@ from container_support import (
     SYNC_MARKER,
     Dataset,
     container_dataset,
+    container_instance_settings,
     dataset_git,
     push_main,
     sync_makefile,
@@ -29,17 +30,7 @@ from probe_support import COMPLETED, ENVIRONMENT
 @pytest.fixture
 def container_settings(tmp_path: Path, agent_home: Path) -> InstanceSettings:
     """Settings of a container instance whose agents are in the test's agent home."""
-    return InstanceSettings(
-        repository_url="/srv/project.git",
-        instance="factory-1",
-        state_directory=tmp_path / "state",
-        agent_home=agent_home,
-        pinned_agent_version="fake",
-        stage_environment="container",
-        dataset="tank/factory/vm",
-        workspace=tmp_path / "workspace",
-        stage_image="factory-stage:1",
-    )
+    return container_instance_settings(tmp_path, agent_home)
 
 
 @pytest.fixture
