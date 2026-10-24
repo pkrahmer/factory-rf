@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 1
 crashes: 0
 pull_request: 411
 comments_read: [6386154578]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T15:58:26.876598Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -102,6 +98,13 @@ journal:
   kind: started
   at: '2026-10-24T15:58:26.876598Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: question
+  at: '2026-10-24T15:59:06.416455Z'
+  stage: doing
+  run: 2eae9d8867be4fbeb4110cfeff5d219a
+  blocked: question
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -337,3 +340,20 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     - `tests/application/test_git_interface.py`: under the human's leave, feature.md decision 18 (d), which the story's Interface cites (`OPERATIONS` gains `ignored`, test renamed to twenty-six). It stays within that leave.
     - `tests/application/test_interfaces.py`: under the same leave, 18 (d) (`test_git_abstract_methods_are_exactly_its_twenty_five_operations` renamed to twenty-six, assertion unchanged). It stays within that leave.
 16. factory: started doing as self.
+17. coder: Round 1. I read the reviewer's two findings (entry 15) and `src/factory/application/take.py`. I changed no code. Finding 1 needs only a test change. Finding 2 needs your word on the scope before I or the tester can act.
+
+    **Question (finding 2): should `copy_changed` also refuse to write through a symbolic link at a *parent* folder of a path on the target?**
+
+    The Interface says the entry at `target / path` is removed before the source is placed, "so nothing is ever written through a link that stood at the target". `_place` (`src/factory/application/take.py:100`) calls `entry.parent.mkdir(parents=True, exist_ok=True)` and then `shutil.copyfile`. When the target holds `src/evil -> <folder outside>` and `src/evil/x` is added, the file is written outside the work tree. The same holds for a `deleted` path: `_remove_entry` on `src/evil/x` would remove the outside file. A link like that can reach the host's work tree through an earlier commit, since the take itself copies links the role may write. No criterion covers this side.
+
+    Options:
+    - **A (my choice):** widen the rule to every parent folder and add a criterion before the two closing ones. Before a path is placed or removed, each parent folder from `target` down to the entry is checked with `lstat`.
+      - For `added`/`modified`, a parent that is a link or not a folder is removed (the link as the link) and made a real folder. The source's file then lands inside the target tree, and nothing outside is written.
+      - For `deleted`, a parent that is a link or missing means the entry is not in the tree, so nothing is removed and nothing is followed.
+      - The tester adds two rows to criterion 2's test: (a) target `src/evil` a link to an outside folder, `src/evil/x` added. The outside folder is unchanged, and `src/evil` ends as a real folder holding the source's `x`. (b) The same link, `src/evil/x` deleted. The outside file stays.
+      - I then implement it in `copy_changed`, a small helper beside `_remove_entry`.
+    - **B:** narrow the Interface's sentence to the entry itself ("nothing is ever written through a link that stood at the entry's own place on the target"). The code stays as it is, and the parent-link case becomes a separate backlog story if you want one.
+
+    **Finding 1, after your answer.** This is only a test change, so I will end with `tests` and name it. In `tests/adapters/test_git_cli_check_ignore.py::test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read`, rows `one-group` and `two-groups`, the stand-in should answer an ignoring line (`.gitignore:1:*.log<TAB><path>`) for the paths ending in `.log`, and the assertion should check the joined result: those paths from both groups, in the order given. The code already joins with `extend`, so I expect it to pass unchanged. With A, the same `tests` hand-over also names the two new rows of criterion 2's test, and I write the code once the tester has added them.
+
+    Noticed, not touched: as entry 10 says, `_is_ignoring` misreads an ignore-file path that holds a colon. `make duplicates` reports dead code for `TakeService`, which is expected until the container environment calls it.
