@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 410
 comments_read: [6384920747]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T13:41:47.117118Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-24T13:41:28.362261Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-24T13:41:47.117118Z'
   stage: intake
 ---
 
@@ -160,3 +169,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
    2. **A**: one more row in criterion 2. An `added` file whose target is a folder holding a file: afterwards the folder and its contents are gone, and the target is a regular file with the source's bytes. The clause "a folder with what it holds" stays in the Interface.
 
    Please write both into the Smoke test and the criteria as you accept.
+5. factory: started intake as self.
