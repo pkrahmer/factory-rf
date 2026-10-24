@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T21:52:56.525084Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-24T21:52:56.519460Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:52:56.525084Z'
+  stage: intake
+---
+
 # The documents describe the stage environment
 
 ## Description
@@ -39,3 +66,6 @@ make documents 2>&1 | tail -n 1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-24 human: created.
+2. factory: started intake as self.
