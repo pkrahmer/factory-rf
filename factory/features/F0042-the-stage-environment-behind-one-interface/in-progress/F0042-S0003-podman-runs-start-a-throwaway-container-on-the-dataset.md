@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 409
-comments_read: []
+comments_read: [6384531243]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 5b2c48fbf75643d4800ddf82be1ee79d
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-24T13:01:53.563030Z'
+  stage: intake
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -127,3 +132,10 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
    2. The `cwd` of the `run_process` call in `run` is stated two ways. The Interface and criterion 4 say `/`, and criterion 4 expects the stand-in's working directory to be `/`. Criterion 5's Recorder row says the recorded request's `cwd` is "the workspace". I would choose `/` and change criterion 5 to say so.
 
    3. After the answers, the smoke test's first Expect line must match the chosen `env`. The pipeline's other checks are fine: the Interface names concrete signatures, the criteria are testable, the layer placement is right, and the story is within scope.
+4. 2026-10-24 human: Answers to the intake (F0042-S0003, podman runs start a throwaway container on the dataset):
+
+   1. **`None` for both**, as decision 11 says: the host-side podman inherits the factory's environment. `launch` returns `ContainerLaunch(..., env=None, ...)`, and the `run_process` call in `run` passes `env=None`, which is what criterion 4's inherited `FACTORY_PROBE_VARIABLE` needs. Criterion 1 reads `env` `None`, and the smoke test's first `Expect:` line prints `None`. The Interface's `env={}` and the `run` bullet's `{}` are slips of the draft.
+   2. **`/`**: the host-side `cwd` of the `run_process` call is `/`. The working directory inside the container is `--workdir`, not the host's `cwd`. Criterion 5's Recorder row says `/` in place of "the workspace".
+   3. Yes: the smoke test's first `Expect:` line follows answer 1.
+
+   Please write these three into the Description, the Interface and the criteria as you accept.
