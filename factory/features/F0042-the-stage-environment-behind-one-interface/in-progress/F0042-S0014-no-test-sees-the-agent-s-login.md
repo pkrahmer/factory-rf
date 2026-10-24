@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 412
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T16:27:45.537428Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -87,6 +91,11 @@ journal:
   at: '2026-10-24T16:27:25.106739Z'
   stage: docs
   run: c1f1e128dfa54140be528e322f384ef5
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:27:45.537428Z'
+  stage: smoke-test
 ---
 
 # No test sees the agent's login
@@ -225,3 +234,4 @@ Expect: one line that starts with `N passed` and names no `failed` and no `error
     `check`: check: green (not run again: passed on tree ca0ddc2bb546 at 2026-10-24T16:24:21Z)
     `secrets`: secrets: green (0.8 s)
     `documents`: documents ok
+15. factory: started smoke-test as self.
