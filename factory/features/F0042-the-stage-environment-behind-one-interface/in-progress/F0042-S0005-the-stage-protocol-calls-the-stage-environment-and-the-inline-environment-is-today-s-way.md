@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T16:51:23.262479Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-24T16:51:23.262479Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T16:53:17.071816Z'
+  stage: review
+  run: d34a0c10a37a4a1ba1bf7e7f48fb1b66
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -194,7 +196,7 @@ class AgentAftermath(BaseModel):
 - `StageFinisher` is unchanged (the checks go through `boundaries.project_commands`).
 - `factory.application.preflight.agent_run_probe_item`: `stage_environment_of(boundaries).run_agent(request)` in place of `run_sealed(boundaries, request)`; the item's reading of the result and of the nested repositories is unchanged.
 
-Tests (the tester writes them): `tests/application/test_stage_environment.py` (the interface and `InlineEnvironment` against `run_sealed` and the undo, on the `boundaries` fixture with `FakeAgentRuntime`), `tests/application/test_stage_environment_protocol.py` (a stand-in `StageEnvironment` that records its calls, given to `StageLauncher` and `AfterAgent`, to pin the order and the arguments), and the two assertions of `tests/application/test_after_agent.py` named in decision 18 e. `tests/application/test_stage_run.py`, `test_stage_launch.py`, `test_stage_finish.py`, `test_sealed_runs*.py`, `test_undo.py`, `test_agent_run_probe*.py` and the fault-path tests are not changed and stay green.
+Tests (the tester writes them): `tests/application/test_stage_environment.py` (the interface and `InlineEnvironment` against `run_sealed` and the undo, on the `boundaries` fixture with `FakeAgentRuntime`), `tests/application/test_stage_environment_calls.py` (a stand-in `StageEnvironment` that records its calls, given to `StageLauncher` and `AfterAgent`, to pin the order and the arguments), and the two assertions of `tests/application/test_after_agent.py` named in decision 18 e. `tests/application/test_stage_run.py`, `test_stage_launch.py`, `test_stage_finish.py`, `test_sealed_runs*.py`, `test_undo.py`, `test_agent_run_probe*.py` and the fault-path tests are not changed and stay green.
 
 ## Acceptance criteria
 
@@ -208,13 +210,14 @@ Tests (the tester writes them): `tests/application/test_stage_environment.py` (t
 8. `AfterAgent.process` calls `take(<the stage start>, PATH)` once on its environment and not the undo (a stand-in environment whose `take` returns `TakeReport(left=["src/b.py"], restored_work_item=False)`: the aftermath's `take` is that report, and the entry's text ends with `\n\nThe factory undid changes outside the write paths: src/b.py.`); a `left` that holds the own cost records path and `src/b.py` gives a paragraph naming `src/b.py` only; an empty `left` gives no paragraph (rows of one parametrized test).
 9. `StageLauncher(boundaries, INSTANCE, definition, ENVIRONMENT)` and `AfterAgent(boundaries, INSTANCE, definition)` built without the keyword run the inline environment: a whole stage through `StageRunner` on the `boundaries` fixture, whose agent writes a file outside the write paths, ends as today with that file put back and the entry's paragraph naming it (one test in the new module, beside `tests/application/test_stage_run.py`, which is unchanged and green). The one environment object per `StageRunner` is pinned by S0007 through its one timing line per stage.
 10. `agent_run_probe_item` runs the probe through the environment: on the `boundaries` fixture it behaves as today (`tests/application/test_agent_run_probe*.py` unchanged and green: a completed run passes, a run that leaves `x/.git` fails the item naming the path), and the module `factory.application.preflight` no longer imports `run_sealed` (a structural assertion in the new module over the module's imports, so that the probe cannot bypass the environment).
-11. `make check` stays green.
-12. docs: `docs/project-guide/stage-environment.md` gains the section *The stage environment* (the interface's three operations and their contracts, `InlineEnvironment` as v1.1's way, `stage_environment_of`, who calls what and when in the stage protocol, the `sync` time limit's source, the one environment object per `StageRunner`); `docs/project-guide/stages.md`, *Starting a stage* and *After the agent run*: the environment's `prepare`, `run_agent` and `take` in place of `run_sealed` and the undo, `AgentAftermath.take`; `docs/project-guide/write-guard.md`, *The undo*: the undo is the inline environment's take, and the container environment's take is in `stage-environment.md`; `docs/project-guide/README.md`, *The files*, names `factory.application.stage_environment`; `docs/decisions.md` gains the entry **One snapshot instead of many layers**: the design of 2026-10-24 (one ZFS dataset, one base snapshot, throwaway containers, the take), the human's decisions 1 to 9 of `planning/v1.2-plan.md` in one sentence each, what the take keeps from the undo (the refusal rule, the in-progress rule, the work item's restore, the journal's paragraph), that `InlineEnvironment` is the second implementation beside S0007's `ContainerEnvironment` until F0044 removes it, and that the journal sentence stays until then (decision 9 of `feature.md`).
+11. `InlineEnvironment(boundaries).take(start, PATH)` with the work item unreadable at the stage-start commit (its front matter broken there) raises `WorkItemFormatError` naming the path, as an absent one does; in both cases the work tree is left untouched: a file the agent wrote outside the write paths keeps the agent's text after the raise (rows of the parametrized test of criterion 4).
+12. `make check` stays green.
+13. docs: `docs/project-guide/stage-environment.md` gains the section *The stage environment* (the interface's three operations and their contracts, `InlineEnvironment` as v1.1's way, `stage_environment_of`, who calls what and when in the stage protocol, the `sync` time limit's source, the one environment object per `StageRunner`); `docs/project-guide/stages.md`, *Starting a stage* and *After the agent run*: the environment's `prepare`, `run_agent` and `take` in place of `run_sealed` and the undo, `AgentAftermath.take`; `docs/project-guide/write-guard.md`, *The undo*: the undo is the inline environment's take, and the container environment's take is in `stage-environment.md`; `docs/project-guide/README.md`, *The files*, names `factory.application.stage_environment`; `docs/decisions.md` gains the entry **One snapshot instead of many layers**: the design of 2026-10-24 (one ZFS dataset, one base snapshot, throwaway containers, the take), the human's decisions 1 to 9 of `planning/v1.2-plan.md` in one sentence each, what the take keeps from the undo (the refusal rule, the in-progress rule, the work item's restore, the journal's paragraph), that `InlineEnvironment` is the second implementation beside S0007's `ContainerEnvironment` until F0044 removes it, and that the journal sentence stays until then (decision 9 of `feature.md`).
 
 ## Smoke test
 
 ```bash
-uv run pytest tests/application/test_stage_environment.py tests/application/test_stage_environment_protocol.py tests/application/test_after_agent.py tests/application/test_stage_run.py tests/application/test_agent_run_probe.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '
+uv run pytest tests/application/test_stage_environment.py tests/application/test_stage_environment_calls.py tests/application/test_after_agent.py tests/application/test_stage_run.py tests/application/test_agent_run_probe.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '
 ```
 Expect: `1`
 
@@ -380,3 +383,20 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
     `check`: check: green
     `duplicates`: duplicates: 14 new, 37 known, 1 gone
 15. factory: started review as self.
+16. reviewer: 1. criterion 11 added: it needs its test. Location: `tests/application/test_stage_environment.py::test_take_is_the_undo_turned_into_a_take_report`. The Interface's `take` contract says `WorkItemFormatError` "when the work item is absent or unreadable at the stage-start commit; the work tree is then left untouched". The test has only the absent row, and that row returns right after `pytest.raises` without checking the work tree. No criterion covered the unreadable side or the untouched work tree. The fix is a tests-only change: add an unreadable row (the broken front matter, as `_with_broken_work_item` in `tests/application/test_undo.py` builds it, imported from there as `_without_work_item` already is), and after the raise assert in both refusal rows that the agent's outside file (`GUIDE` or `NEW_DOC`) still holds `AGENT_TEXT`. `src/` needs no change, because `UndoService` already behaves this way (see `test_undo.py::test_a_missing_or_unreadable_baseline_raises_before_any_path_is_changed`). The `make check` and docs criteria are renumbered to 12 and 13.
+
+    Work item changes the human asked for in entry 8, made here: the Interface's "Tests" paragraph and the first smoke-test command now name `tests/application/test_stage_environment_calls.py` instead of `test_stage_environment_protocol.py`. Nothing else in the Description or Interface changed.
+
+    What I checked and found sound:
+    - Criteria 1 to 10 each have a test that checks what the criterion says.
+    - The sync limit is tested on both sides: 5 minutes with a `sync` command, 10 minutes without.
+    - `prepare` is called after the claim push, before `run_agent`, and before the cost record. The raise path is covered.
+    - The paragraph rows cover the own cost-records path and an empty `left`.
+    - The layers hold: `stage_environment` imports only application and domain modules. The interface is an ABC whose abstract methods have docstring-only bodies.
+    - The diff has no suppression markers.
+    - `make duplicates` (I ran it to read the new findings) shows two new findings for this diff: vulture's "unused variable 'sync_time_limit'" at `src/factory/application/stage_environment.py:21` and `:58`. Both are the interface parameter that the inline no-op ignores by design, so they are not findings. The other twelve new findings come from earlier stories' modules (`fake_containers`, `podman_runs`, `zfs_snapshots`, `take`, `containers`).
+    - I did not run `make check`. Entry 14 says it was green.
+
+    Earlier tests:
+    - tests/application/test_after_agent.py: decision 18 (e) of `feature.md` (the human's leave). Only the two assertions changed, to read `aftermath.take.left`, and each test keeps its name and rows.
+    - tests/application/test_interfaces.py: decision 18 (e) of `feature.md` (the human's leave). It gains the `StageEnvironment` row and the one `__abstractmethods__` assertion.
