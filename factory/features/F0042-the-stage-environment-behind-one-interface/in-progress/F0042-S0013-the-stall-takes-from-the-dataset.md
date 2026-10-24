@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T18:19:26.912782Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-24T18:19:05.489715Z'
   stage: intake
   run: f8b411a2a094468f86bcea55b73830c2
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:19:26.912782Z'
+  stage: tests
 ---
 
 # The stall takes from the dataset
@@ -128,3 +137,4 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
    - Smoke test: the pytest command passes no `-q`, and the project's addopts already sets a single `-q`, so the `N passed in` summary line exists. The Python snippet only inspects signatures and fields, so it runs. Both `Expect:` lines can be checked against the output.
    - Architecture: the change stays in the application layer, with `StallService` reaching the undo only through `InlineEnvironment` (a structural criterion checks this). It adds no new package or dependency.
    - Scope: it matches decision 20 and the leave in decision 18 (g2) of `feature.md`, which is named for `tests/application/test_stalls.py`. Nothing in "Out of scope" is touched.
+4. factory: started tests as self.
