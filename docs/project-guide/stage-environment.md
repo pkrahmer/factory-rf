@@ -1,6 +1,45 @@
 # The stage environment
 
-This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.snapshots`, `factory.application.containers`, `factory.application.take`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.podman_runs`, `factory.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. Nothing in the factory uses them yet: nothing wires `ZfsSnapshots` or `PodmanRuns`, and the stage that wires them comes in later stories of the same feature.
+This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.stage_environment`, `factory.application.snapshots`, `factory.application.containers`, `factory.application.take`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.podman_runs`, `factory.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. The stage protocol already calls the stage environment (*The stage environment*, first below), but only its inline implementation exists: nothing wires `ZfsSnapshots` or `PodmanRuns`, and the container environment that will use them comes in a later story of the same feature.
+
+## The stage environment
+
+`StageEnvironment` (`factory.application.stage_environment`) is the one object the stage protocol calls for the cycle of a stage: it prepares the place the agent works in, runs the agent there, and takes the result back into the factory's work tree. It is an abstract base class with three operations; the stage protocol knows no `podman`, `zfs` or `sudo`.
+
+### The three operations
+
+- `prepare(commit, branch, *, sync_time_limit)`: makes the place hold `branch` at `commit`, its tools synced. `SnapshotError` or `ContainerError` when that cannot be done; the sync's container gets `sync_time_limit`.
+- `run_agent(request, *, run=None)`: runs the request's agent in this environment and returns a `SealedRun` (`factory.application.sealed_runs`: the `result` and the `nested_repositories` removed after it). With `run` the environment calls it once instead of the boundaries' runtime; whatever it does inside, such as the resumes of `PatientRuns` after a provider limit, happens in the same prepared place.
+- `take(stage_start, work_item_path)`: brings the agent's result into the work tree as far as the role may write, and returns a `TakeReport` (`left`, `restored_work_item`; see *The take*). `WorkItemFormatError` naming `work_item_path` when the work item is absent or unreadable at the stage-start commit; the work tree is then left untouched.
+
+### The inline environment
+
+`InlineEnvironment(boundaries)` is v1.1's way, the agent in the factory's own checkout:
+
+- `prepare` does nothing and reads nothing: the claim has left the checkout on the branch at the stage-start commit. Its arguments are accepted and ignored.
+- `run_agent` is `run_sealed(boundaries, request, run=run)`: the checkout's git folder is sealed around the run, the agent home is reset, the nested repositories and the ignored paths are removed (see `watching.md`, *Boundaries*).
+- `take` is `UndoService(boundaries).undo(stage_start, work_item_path)` (see *The undo*, `write-guard.md`) turned into a report: `left` is the undo's `reverted` and `deleted` paths, joined, sorted, each once; `restored_work_item` is the undo's.
+
+`InlineEnvironment` is the only module that calls `run_sealed` and `UndoService` for a stage. `StallService` still calls the undo itself after a stall; the stall's take under the container environment is a later story.
+
+`stage_environment_of(boundaries)` gives the environment the boundaries describe. For now it is always an `InlineEnvironment`; the container environment will be chosen here.
+
+### Who calls what
+
+- `StageLauncher.launch`, after the claim is pushed and the pull request ensured and before the cost record begins: `prepare(stage_start.commit, branch, sync_time_limit=...)`, then `run_agent(request, run=PatientRuns(boundaries).run)`. An error from `prepare` ends the launch like one from the agent runtime, after the claim and before any run or cost record.
+- `AfterAgent.process`: `take(started.stage_start, started.path)` at the point where the undo was, once the result and the decision are accepted. `AgentAftermath.take` carries the report, and the entry's closing paragraph names `take.left` (see `stages.md`, *After the agent run*).
+- `agent_run_probe_item` (the preflight): `stage_environment_of(boundaries).run_agent(request)`. `factory.application.preflight` does not import `run_sealed`, so the probe cannot bypass the environment; a test pins that.
+- `StageFinisher` does not use the environment: the checks go through `boundaries.project_commands`.
+
+### The sync time limit
+
+`StageLauncher` takes the limit from the pipeline definition: the `time_limit` of its `sync` project command, in minutes, and when the definition has no `sync` command the default of a project command, `ProjectCommandDefinition().time_limit` (10 minutes). The inline environment ignores it.
+
+### One environment per runner
+
+`StageLauncher` and `AfterAgent` take an optional keyword `stage_environment`; `None` means `stage_environment_of(boundaries)`. `StageRunner` builds one environment and gives it to both, so that the object that saw a stage's `prepare` sees its `take`.
+
+Tests: `tests/application/test_stage_environment.py` (the interface and the inline environment against `run_sealed` and the undo), `tests/application/test_stage_environment_calls.py` (a stand-in environment that records its calls, given to `StageLauncher` and `AfterAgent`), and the interface's row in `tests/application/test_interfaces.py`.
 
 ## The snapshots
 

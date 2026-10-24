@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T17:01:59.264521Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,12 @@ journal:
   kind: started
   at: '2026-10-24T17:01:59.264521Z'
   stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T17:03:20.606398Z'
+  stage: docs
+  run: 7770eff01e794165bec85b749586393f
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -553,3 +555,39 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
     - `tests/application/test_after_agent.py`: decision 18 (e) of `feature.md`, the human's leave. Only the two assertions changed, now reading `aftermath.take.left`. Each test keeps its name and rows.
     - `tests/application/test_interfaces.py`: decision 18 (e) of `feature.md`, the human's leave. It gains the `StageEnvironment` row and the one `__abstractmethods__` assertion.
 25. factory: started docs as self.
+26. documenter: No findings. The code matches the Interface and the criteria. I changed only documents, so I did not run `make check`; the factory's checks after this stage decide. I did not run the new text as examples, because it holds none. I read it against `src/factory/application/stage_environment.py` and the `stage.py` diff.
+
+    Files changed:
+    - `docs/project-guide/stage-environment.md`: new section *The stage environment*, placed first. It covers:
+      - the three operations and their errors;
+      - `InlineEnvironment` as v1.1's way (`prepare` does nothing, `run_agent` is `run_sealed`, `take` is the undo turned into a `TakeReport`);
+      - `stage_environment_of`;
+      - who calls what and when (`StageLauncher`, `AfterAgent`, the preflight probe, and `StageFinisher` not using it);
+      - the `sync` time limit (the definition's `sync` command, otherwise the 10-minute default);
+      - one environment per `StageRunner`.
+      The opening paragraph's "nothing uses them yet" is corrected: the stage protocol now calls the environment, but only the inline one exists and ZFS and podman are still unwired.
+    - `docs/project-guide/stages.md`:
+      - *Starting a stage*: the constructor signature, and step 9 now says `prepare` then `run_agent` instead of `run_sealed`.
+      - *After the agent run*: the signature, step 4 (take in place of undo), and `AgentAftermath.take: TakeReport`.
+      - *The stage protocol*: `prepare` in the launch step, the take in the after-agent line, and the one environment per runner.
+    - `docs/project-guide/write-guard.md`, *The undo*: the undo is the inline environment's take; the container environment's take is in `stage-environment.md`; `StallService` still calls the undo itself.
+    - `docs/project-guide/README.md`: the `stage-environment.md` entry names `factory.application.stage_environment` and the new section.
+    - `docs/decisions.md`: new entry **One snapshot instead of many layers**. It holds:
+      - the design of 2026-10-24;
+      - the human's decisions 1 to 9 of `planning/v1.2-plan.md`, one sentence each;
+      - what the take keeps from the undo (the refusal rule, the in-progress rule, the work item's restore, the journal paragraph);
+      - `InlineEnvironment` as the second implementation beside S0007's `ContainerEnvironment` until F0044 removes it;
+      - the journal sentence staying until then;
+      - the options rejected, taken from `planning/v1.2-plan.md`.
+
+    Cross-read and found current: `docs/operator-guide.md` and `docs/project-guide/{agents,git-and-hosting,processes-and-checks,watching,work-items,costs}.md`. Their mentions of `run_sealed` and the undo still describe what the inline environment does, and `run_sealed` and `UndoService` are unchanged. The README's test-helpers list is unaffected.
+
+    Stale text I noticed and did not touch:
+    - `docs/project-guide/costs.md` line 17 says the sidecar is "rewritten after every undo". It still holds for the inline environment, and `AfterAgent.process` now writes it after the take. The wording may need a change when S0007 adds the container environment.
+    - The reviewer's note about private test helpers imported across test modules (`_leave`, `_without_work_item`, `_with_broken_work_item`) stands; the tester can move them under the standing leave.
+
+    No project skill applied.
+
+    `check`: check: green (not run again: passed on tree f4f2ec122926 at 2026-10-24T16:58:54Z)
+    `secrets`: secrets: green (2.3 s)
+    `documents`: documents ok

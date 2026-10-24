@@ -182,7 +182,7 @@ Tests: `tests/application/test_opening.py`.
 
 ## Starting a stage
 
-`StageLauncher(boundaries, instance, definition, environment)` (`factory.application.stage`) takes a `PreparedWorkItem` from `WorkItemOpening.prepare` and runs the stage's agent. `instance` and `definition` go to `ClaimService`; `environment` is the environment of the agent run and reaches `TaskComposer` unchanged, so the run holds exactly those entries.
+`StageLauncher(boundaries, instance, definition, environment, *, stage_environment=None)` (`factory.application.stage`) takes a `PreparedWorkItem` from `WorkItemOpening.prepare` and runs the stage's agent. `instance` and `definition` go to `ClaimService`; `environment` is the environment of the agent run and reaches `TaskComposer` unchanged, so the run holds exactly those entries.
 
 `launch(prepared)` does these steps in this order. The claim in step 4 is the only write to the git remote.
 
@@ -194,7 +194,7 @@ Tests: `tests/application/test_opening.py`.
 6. `WorkItemOpening.ensure_pull_request`: find or create the pull request.
 7. `WritePathService.at(stage_start, path)` gives the guard, from the definition at the stage-start commit.
 8. `TaskComposer.compose` builds the request (prompt, guard, environment, allowed decisions).
-9. `run_sealed(boundaries, request, run=PatientRuns(boundaries).run)`: the agent runs, sealed (see `watching.md`, *Boundaries*), through `PatientRuns`. The cost record is begun before step 9 and completed after it.
+9. `stage_environment.prepare(stage_start.commit, branch, sync_time_limit=...)` after step 8, then `stage_environment.run_agent(request, run=PatientRuns(boundaries).run)`: the agent runs through `PatientRuns`, in the stage environment (see `stage-environment.md`, *The stage environment*). The inline environment prepares nothing and runs the agent sealed (see `watching.md`, *Boundaries*). The cost record is begun between the two and completed after the run. The sync limit is the `time_limit` of the definition's `sync` project command, or the default of a project command (10 minutes) without one. A `SnapshotError` or `ContainerError` from `prepare` ends the launch, after the claim and before any run.
 
 **`PatientRuns`** (`factory.application.provider_limits`; `PatientRuns(boundaries).run(request)`) wraps `boundaries.agent_runtime.run` for the stage launch. A result that does not end `provider_limit` comes back as it is. After a `provider_limit` it loops: (1) the budget left is the agent's `budget_usd` less the run's cost so far, and at or below zero the run ends `budget`; (2) the time left is the request's `time_limit` less the calls' durations (the waits do not count), and at or below zero it ends `time_limit`; (3) when the waits reach the ceiling it logs `provider limit: <agent> waited <s> s, the ceiling of <c> s; the run ends provider_limit` and returns the result; (4) otherwise it logs `provider limit: <agent> waits <w> s before it resumes <session>` (`a new run` without a session), waits the result's `limit_wait` or the cool-down, at most what is left of the ceiling, and (5) calls the runtime again with `request.model_copy(...)`: `CONTINUE_PROMPT` and `resume_session` with a session, the request's own prompt without one, and in both the budget and the time left; (6) `resumed_result` joins the calls. The cool-down and the ceiling are `boundaries.settings.provider_limit` (`ProviderLimit`, `factory.domain.provider_limits`, defaults 10 and 120 minutes, from `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` and `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES`). It builds no `AgentRunRequest` of its own. The preflight's probe uses `run_sealed` without `run` and never waits.
 
@@ -240,16 +240,16 @@ Tests: `tests/domain/test_decisions.py`, `tests/domain/test_stall_texts.py`, `te
 
 ## After the agent run
 
-The factory believes what it observes, not what the agent reports. `AfterAgent(boundaries, instance, definition).process(launched)` (`factory.application.stage`) takes the `LaunchedStage` that `StageLauncher` returns and goes through these steps in order. The first step that fails is a stall (see "Stalls"), which counts one attempt, and the later steps do not run.
+The factory believes what it observes, not what the agent reports. `AfterAgent(boundaries, instance, definition, *, stage_environment=None).process(launched)` (`factory.application.stage`) takes the `LaunchedStage` that `StageLauncher` returns and goes through these steps in order. The first step that fails is a stall (see "Stalls"), which counts one attempt, and the later steps do not run.
 
 1. **Nested repository.** When `launched.nested_repositories` is not empty (the run already removed them), the stall `nested_repository` with the paths joined by `, ` as detail, whatever else the agent did. Its sentence is `the agent left a git repository in the work tree, which the factory removed`.
 2. **Branch.** The checkout must still be on the work item's branch, otherwise the stall `left_branch`.
 3. **Result.** `stall_reason_of(result)` turns a run that died, ran out of budget or time, or gave no result into the stall of that reason; the detail is the first permission denial (`denied: <tool>: <detail>`), if any. A decision that is not one of the request's `allowed_decisions` is `decision_not_allowed`, with the decision and the allowed ones as detail.
-4. **Undo and restore.** `UndoService.undo` reverts the changes outside the write paths. Then the stage-start state (the claim included) and the stage-start journal are put back, whatever the agent wrote there: **the agent's edits to state and journal are always discarded.** The rest of the body keeps the agent's changes when the role may write the work item; when it may not, the undo has put the whole file back and lists it in `reverted`.
+4. **Take and restore.** `stage_environment.take(stage_start, path)` puts the changes outside the write paths back; the inline environment does it with `UndoService.undo`, and `left` of its `TakeReport` is the paths it reverted or deleted. Then the stage-start state (the claim included) and the stage-start journal are put back, whatever the agent wrote there: **the agent's edits to state and journal are always discarded.** The rest of the body keeps the agent's changes when the role may write the work item; when it may not, the take has put the whole file back and lists it in `left`.
 5. **The entry.** `factory.domain.decisions.agent_entry(role=, stage=, decision=, text=, undone=)` builds it, and code decides everything but the words. The speaker is the role. The kind is `question` for the decision `question`, otherwise `result`. The text is the agent's text, stripped, with one leading `<role>:` or `<stage>:` removed (the colon directly after the name; the role is tried first). A blank text gives `None`, which `AfterAgent` stalls as `no_result`. When paths were undone, the text ends with a blank line and `The factory undid changes outside the write paths: <paths sorted, joined by ", ">.`. The work item's own cost-record file, which the factory rewrites after the undo, is never named there.
 6. **The form again.** The story form is checked on the undone work item and compared with the findings from before the run (`StartedStage.findings`). Only a finding that was not there before stalls, as `form_invalid`, with the new messages joined by `; ` as detail. Findings are compared by message with every run of digits replaced by one mark, so a finding whose line number moved because the agent edited above it is the same finding. A kind that now occurs more often than before counts as new: of equal messages the earlier ones count as the old ones. Only in this stall is the entry appended (above the stall entry); otherwise it is built but not appended.
 
-What comes back is an `AgentAftermath` (frozen, no unknown keys): `started`, `request`, `result`, `decision`, `document` (the work item after step 3, without the entry), `entry`, `undo` (the `UndoReport`) and `form_findings` (all findings after the run). The stage's result commit ("The stage protocol", below) appends the entry.
+What comes back is an `AgentAftermath` (frozen, no unknown keys): `started`, `request`, `result`, `decision`, `document` (the work item after step 3, without the entry), `entry`, `take` (the `TakeReport`) and `form_findings` (all findings after the run). The stage's result commit ("The stage protocol", below) appends the entry.
 
 Tests: `tests/domain/test_agent_entry.py`, `tests/application/test_after_agent.py`. The latter starts stages with `StageLauncher` and the fake agent runtime, whose `ScriptedRun.writes` tampers with the work item, writes outside the write paths and breaks the form.
 
@@ -284,8 +284,8 @@ Tests: `tests/domain/test_decision_rules.py`, `tests/domain/test_question_texts.
 `run` does these steps in this order; a `StallResult` from any step ends the run with a report whose `rule` is `None`:
 
 1. `WorkItemOpening.prepare`. With `merge_conflict` set in the result, `StallService.stall` with reason `merge_conflict` and no stage start: no claim is pushed and no agent runs.
-2. `StageLauncher.launch`: claim, pull request, agent run. `environment` is passed unchanged.
-3. `AfterAgent.process`: branch, result, undo, entry, form.
+2. `StageLauncher.launch`: claim, pull request, prepare, agent run. `environment` is passed unchanged. `StageRunner` builds one stage environment and gives it to its launcher and its after-agent.
+3. `AfterAgent.process`: branch, result, take, entry, form.
 4. `StageFinisher.finish`: decision, checks and reports, result commit.
 
 ### `StageFinisher.finish(aftermath)`

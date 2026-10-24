@@ -997,3 +997,23 @@ Date: 2026-10-21 (F0038-S0009).
 - Why: a gap named "left for v2" reads as planned work, and no v2 will come.
 - Open: whether the open gap becomes v1.1 backlog is the human's decision.
 - Rejected: keeping "left for v2" in the documents.
+
+## One snapshot instead of many layers
+
+Date: 2026-10-24 (F0042-S0005; the design is `planning/v1.2-plan.md`, the human's answers of the same day). v1.1 runs a stage in one long-lived container and protects the factory from the agent with many layers: a second user with `sudo`, a umask and a group, a sealed git folder, the kernel's write guard, the undo, the removal of ignored files and nested repositories, the end of leftover processes, the fresh agent home. The stops of the night of 2026-10-20 came from those layers meeting each other.
+
+- Decision: v1.2 replaces the layers with one mechanism. The factory runs on a Linux VM with ZFS. A stage works on one ZFS dataset (a full clone with its `.venv`, the caches and the agent's home), brought up to date by a pull and the project's sync, and one base snapshot is moved forward to that state. Each step (the sync, the agent, every check) runs in a throwaway Podman container that mounts the dataset. The factory then takes from the dataset only what the role may write, and commits and pushes it with its own token. Everything else the container did dies with it, and the dataset is rolled back to the base.
+- The human's decisions of 2026-10-24, one sentence each:
+  1. The factory runs directly on the VM as a systemd service under `factory`, with rootless Podman and `zfs allow`.
+  2. The factory on the host pushes, from the files it takes; no container holds the hosting token.
+  3. `zfs allow` first, and one `sudoers` line for the four `zfs` commands that need root on the one dataset if the rollback needs it.
+  4. Landlock goes with the other layers.
+  5. The dataset holds a full clone, fetched from the host's repository through a read-only mount.
+  6. The machine's files live in a new top-level `vm/`, added to the coder's write paths.
+  7. One `Snapshots` adapter in v1.2, ZFS; the interface leaves room for another.
+  8. The instance on the VM is `vm`, on an `e2-standard-2` in `europe-west3`, with a budget alert of $120 a month.
+  9. The build order is add, switch, remove: F0042 and F0043 by `self` on Docker with the inline fallback, the first VM stage, then F0044 and F0045 by `vm`.
+- What the take keeps from the undo: the refusal rule of the write paths applied the other way round (a path the role may not write stays out of the work tree and is named); the in-progress rule (a path directly in another work item's `in-progress/` folder is refused); the work item's restore (state and journal put back from the stage-start commit, the agent's edits to its sections kept); and the journal's closing paragraph over the paths left. The take reads the baseline first and raises `WorkItemFormatError` before it changes anything, as the undo does.
+- The seam: the stage protocol calls `StageEnvironment` (`prepare`, `run_agent`, `take`), and no longer `run_sealed` or `UndoService`. `InlineEnvironment` is v1.1's way behind the interface and is the second implementation beside F0042-S0007's `ContainerEnvironment`, until F0044 removes it with the layers it uses. `StallService` still undoes on its own until then.
+- The journal sentence stays `The factory undid changes outside the write paths: ...` until F0044 (decision 9 of the feature F0042).
+- Rejected: a stage container that pushes with a token; the factory as root on the VM; keeping `factory-confine` inside the container as a second fence; a dataset with the work tree only (the agents would lose `git diff main`); a second snapshot adapter in v1.2.
