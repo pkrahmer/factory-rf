@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T17:18:17.428005Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-10-24T17:18:17.428005Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-24T17:18:30.422902Z'
+  stage: doing
+  run: afdb6bff59fa4788915964439779519b
 ---
 
 # `sync` is the fourth target of the project contract
@@ -275,3 +277,15 @@ Expect: four lines: `# The contract between a project and the factory is four ta
     - `FOURTH_LINE` in `tests/test_template_sync.py` repeats `_NEW_HEADER_LINE` of `tests/test_template_makefile_header.py`. The Interface keeps that header test unchanged, so sharing the constant is not possible here.
     - `duplicates: 14 new` in entry 10 does not come from this diff, which does not change `src/factory`.
 13. factory: started doing as self.
+14. coder: Round 1. Both of the reviewer's findings in entry 12 are changes to tests, and the coder never edits a test, so I am sending them to the tester. I changed no code: the template changes from entries 7 and 10 stand as they are.
+
+    What the tester needs to change:
+    1. Move `_makefile_lines` out of `tests/test_template_sync.py:24`. It is a copy of `_lines` in `tests/test_template_makefile.py:34`. The standing leave in `CLAUDE.md` covers moving it to `tests/template_make_support.py` (for example as `makefile_lines()`), with both modules then using it from there. Every test keeps its name and checks the same thing.
+    2. Change the name of `test_check_runs_the_other_targets_and_saysgreen_line` in `tests/test_template_makefile.py:67` back to `test_check_runs_the_other_targets_and_says_green`, and change nothing else in that test. This undoes a rename that went beyond the leave.
+
+    Built (unchanged): `template/Makefile`, `template/factory/pipeline.yml`, `template/CLAUDE.md`, as described in entry 10. The main decision also stands: `sync` uses the `$(start)`/`$(green)` macros, so it ends with the usual green line. I rejected a bare `uv sync --frozen` recipe because it prints no green line.
+
+    Noticed, not touched:
+    - The docs stage still needs to add the entry for `tests/template_make_support.py` to `docs/project-guide/README.md`, *Shared test helpers*.
+    - This repository's own `Makefile` and `factory/pipeline.yml` still have no `sync`; that is the human's change 1.
+    - The journal did not change the meaning of the task, so `## Description` stays as it is.
