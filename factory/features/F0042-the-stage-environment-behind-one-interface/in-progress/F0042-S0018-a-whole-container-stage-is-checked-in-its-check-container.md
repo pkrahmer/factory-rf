@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 426
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T22:27:30.567732Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-24T22:27:10.176523Z'
   stage: intake
   run: f1e50fe04e7a46a09640977d99ae4b1a
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:27:30.567732Z'
+  stage: tests
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -88,3 +97,4 @@ Expect: three lines, `2`, `1`, `1`
    - Smoke test: both commands are runnable. Pytest's `addopts` already sets `-q` and the command passes none, so the summary line `N passed in` exists. The second block's three lines (`2`, `1`, `1`) match the patterns of criterion 4.
    - Architecture: nothing is built under `src/`. The tests go in `tests/application/` (the stage and its environment) and use the shared helper modules at the `tests/` root. That fits the layout in `CLAUDE.md`.
    - Scope: this matches F0042's goal of a whole container stage, and it stays inside "Out of scope" because no layer is removed. The helper moves are under the standing leave in `CLAUDE.md`, and the story names each helper and each test file it affects.
+4. factory: started tests as self.
