@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T15:43:07.067570Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-24T15:43:07.067570Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-24T15:48:46.735356Z'
+  stage: tests
+  run: 8f412e333f2c4659b795d18cd90ed1ae
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -186,3 +188,42 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
    - Architecture: `factory.application.take` and the `Git` operation sit in `application`, `GitCli.ignored` in `adapters`, with no import against the layers. This matches CLAUDE.md.
    - Scope: inside F0042's scope (S0004, decisions 10 and 18 d). Nothing is in "Out of scope". The story changes tests that other stories wrote only where decision 18 d gives the leave.
 7. factory: started tests as self.
+8. tester: Wrote the red tests for the take and for the git operation `ignored`. One `make test` run: the failures are the right ones. `GitCli` has no attribute `ignored`, the Git interface tests count twenty-six operations and find twenty-five, and the two take modules fail at collection because `factory.application.take` does not exist yet. `make lint` is green. I did not run the type check (stage rule).
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_git_cli_check_ignore.py::test_ignored_names_the_paths_the_rules_ignore_in_the_order_given (real clone; `main` has `docs/kept.log` pushed before the `.gitignore`), ::test_ignored_runs_no_git_for_no_paths_or_a_refused_path (`[]`, `/abs`, `a/../b`; a recording stand-in records no call), ::test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read (1,000 → one call, 1,001 → two calls, the paths asked in order, `check-ignore --verbose --non-matching` just before `--`; exit 128 `fatal: boom` and a line short raise `GitError`)
+   - criterion 2: tests/application/test_take_edges.py::test_copy_changed_mirrors_each_changed_path_into_the_target
+   - criterion 3: tests/application/test_take.py::test_a_changed_path_is_taken_only_where_the_role_may_write[inside-the-write-paths]
+   - criterion 4: tests/application/test_take.py::test_a_changed_path_is_taken_only_where_the_role_may_write[outside-the-write-paths, protected]
+   - criterion 5: tests/application/test_take.py::test_every_other_file_directly_in_an_in_progress_folder_is_left
+   - criterion 6: tests/application/test_take_edges.py::test_a_dropped_path_is_neither_taken_nor_left
+   - criterion 7: tests/application/test_take.py::test_the_work_items_state_and_journal_come_back_from_the_stage_start
+   - criterion 8: tests/application/test_take_edges.py::test_a_missing_or_unreadable_baseline_raises_before_anything_is_taken
+   - criterion 9: tests/application/test_take.py::test_left_ascends_and_holds_a_path_given_twice_once (the model's frozen and unknown-key checks stay with tests/test_model_configuration.py)
+   - criterion 10: row `line-long` of criterion 1's stand-in test; row `deleted-dangling-link` of criterion 2's test
+   - criterion 11: tests/application/test_take.py::test_the_take_writes_nothing_in_the_dataset_and_no_commit
+   - criteria 12 and 13: no test (`make check` and docs)
+
+   Files created:
+   - tests/adapters/test_git_cli_check_ignore.py
+   - tests/application/test_take.py
+   - tests/application/test_take_edges.py
+   - tests/take_support.py: shared helpers for both take modules. It makes a dataset under `tmp_path/dataset` by copying the host checkout without `.git`, writes the agent's files there, builds the `ChangedPath` list, runs `TakeService` and snapshots a tree (kind, mode, bytes).
+
+   Earlier test files I changed, under decision 18 d that the Interface cites:
+   - tests/application/test_git_interface.py: `ignored` added to `OPERATIONS`, and the test renamed from `..._twenty_five_...` to `..._twenty_six_...`.
+   - tests/application/test_interfaces.py: the same rename.
+
+   tests/application/test_undo.py and tests/undo_support.py are untouched.
+
+   Module the test run could not import: `factory.application.take`, giving collection errors in test_take.py and test_take_edges.py. `GitCli.ignored` is missing too.
+
+   How some tests read the criteria:
+   - Criterion 6: "neither on the host" is tested as the host work tree outside `.git` and its `.git/config` being unchanged.
+   - The "the file a link points to is not read" row uses a dangling source link.
+   - The `ValueError` rows put a valid path before the refused one and check the target tree is unchanged.
+
+   Rejected: reusing the private `_recording_executable` from test_git_cli_arguments.py. The new stand-in also has to answer `check-ignore` lines, so it is a different helper, not a copy.
+
+   `lint`: lint: green (0.5 s)
+   `test`: ERROR tests/application/test_take_edges.py - ImportError while importing test module '/work/checkout/tests/application/test_take_edges.py'.
