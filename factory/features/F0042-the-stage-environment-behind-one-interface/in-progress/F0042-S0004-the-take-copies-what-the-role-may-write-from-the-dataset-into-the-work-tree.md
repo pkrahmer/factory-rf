@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578, 6386353501]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T16:05:35.692624Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -141,6 +137,12 @@ journal:
   kind: started
   at: '2026-10-24T16:05:35.692624Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-10-24T16:08:44.780418Z'
+  stage: doing
+  run: b0b358191a404f928d971270dff87988
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -448,3 +450,19 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     `lint`: lint: green (0.5 s)
     `test`: Bytecode compiled 4164 files in 88ms
 23. factory: started doing as self.
+24. coder: Round 1, after the tester's changes (entry 22). I changed no code in this run: the parent-folder rule from entry 18 was already in place, and the tester's changed and new rows pass against it unchanged. `make check`: check: green (test: green (65.7 s), coverage 99.18 %).
+
+    What I built (round 1, entry 20): `src/factory/application/take.py`. Before an `added` or `modified` path is placed, `copy_changed` walks the parent folders from `target` down (`_parent_folders`, `_make_real_folders`). A parent that is a link, or is not a folder, is removed as the link with `_remove_entry` and then made a real folder. A `deleted` path is removed only when every parent is a real folder (`_is_real_folder`, which uses `lstat`). `all()` stops at the first linked or missing parent, so no `lstat` ever goes through a link. The rest of the story (`TakeService`, `TakeReport`, `GitCli.ignored`) is unchanged since entry 13.
+
+    Main decision: I check the parents one at a time with `lstat`, from the target down. I rejected resolving the parent with `Path.resolve()` and comparing it with `target`. That approach follows links to decide, and it can only refuse the path. It cannot turn the parent into a real folder, which entry 18 asks for.
+
+    Refactor: I read the diff again and found nothing to change.
+
+    What the journal changed: entry 18 widens the Interface's `copy_changed` rule from the entry itself to every parent folder. It also adds a criterion before the two closing ones: rows `added-under-a-parent-link` and `deleted-under-a-parent-link` of `tests/application/test_take_edges.py::test_copy_changed_mirrors_each_changed_path_into_the_target`. With it, `make check` becomes criterion 13 and docs becomes criterion 14. The coder and tester write paths do not include the work item, so the Interface and the criteria still need this text from a stage or person whose write paths include `{work_item}`. The docs criterion's *The take* section should describe the parent-folder rule too.
+
+    Noticed, not touched:
+    - `_is_ignoring` in `src/factory/adapters/git_cli.py` misreads an ignore-file path that holds a colon.
+    - `make duplicates` reports dead code for `TakeService`. That is expected until the container environment calls it.
+
+    `check`: check: green
+    `duplicates`: duplicates: 14 new, 38 known, 0 gone
