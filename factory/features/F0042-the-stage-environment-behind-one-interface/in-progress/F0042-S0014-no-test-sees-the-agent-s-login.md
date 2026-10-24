@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 412
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T16:25:55.653842Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -74,6 +70,12 @@ journal:
   kind: started
   at: '2026-10-24T16:25:55.653842Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T16:26:36.727074Z'
+  stage: review
+  run: 72aeaf1ae32d40299e51b6dd06ff37b5
 ---
 
 # No test sees the agent's login
@@ -177,3 +179,23 @@ Expect: one line that starts with `N passed` and names no `failed` and no `error
     `check`: check: green
     `duplicates`: duplicates: 14 new, 38 known, 0 gone
 11. factory: started review as self.
+12. reviewer: no findings
+
+    What I read: the work item, and `git diff main...HEAD -- . ':!factory'`, which touches three files: `tests/conftest.py`, `tests/adapters/test_opencode_runtime_launch.py` and the new `tests/test_no_agent_login.py`. Nothing under `src/` changes, as the Interface says.
+
+    Checks against the criteria:
+    - criterion 1: `tests/test_no_agent_login.py::test_a_test_does_not_see_the_login` is one parametrized test with a row for each name. Each row asserts against `set(os.environ)`, so a failure prints names only. The started-with-both-set side belongs to the smoke test, as the criterion says.
+    - criterion 2, set side: `test_a_test_that_sets_the_login_sees_its_own_value` has one row per name.
+    - criterion 2, restore side: `test_the_login_is_removed_through_monkeypatch` checks the text of `tests/conftest.py` in three rows: `monkeypatch.delenv` present, no `os.environ.pop`, no `del os.environ`. On `main`, `tests/conftest.py` does not contain `monkeypatch.delenv`, so the present row pins the new fixture and not some earlier text.
+    - the fixture: `without_agent_login` at `tests/conftest.py:64` imports both names from `factory.adapters.agent_launch` instead of writing them again, and removes each through `monkeypatch.delenv(name, raising=False)`, as the Interface asks.
+    - criterion 3: the version test's last line is now `assert API_LOGIN_VARIABLE not in set(call.environment)` (`tests/adapters/test_opencode_runtime_launch.py:246`). `test_the_version_test_compares_variable_names_only` pins that line. The test's name and setup are unchanged; the diff changes only that line.
+    - criteria 4 and 5: the factory's `make check` after the coder was green (journal entry 10: `check: green`). That came after the stall in entry 8, a mypy segfault (exit 139) in a fresh venv, which entry 10 could not reproduce. This diff changes no file that bears on that crash.
+    - the Interface: it states no rejected input and no limit, so this group has no failing side to test.
+
+    Architecture and security: tests only, with the shared fixture in `tests/conftest.py` and the new module at the `tests/` root, as `CLAUDE.md` allows. No silencing marker and no secret; the test values are `"x"`.
+
+    Hygiene: the journal gives the main decision, nothing under `src/`, and what was rejected: stripping the login inside the runtimes' `version()` calls. The Description matches what was built. The docs criterion, criterion 6, still says what the reader must know.
+
+    Earlier tests (`git diff --name-status main...HEAD`, status other than `A`):
+    - `tests/conftest.py`: the human's leave, decision 18 (i) of `feature.md`, which the story names.
+    - `tests/adapters/test_opencode_runtime_launch.py`: the human's leave, decision 18 (i) of `feature.md`, which the story names. Only the last assertion of `test_the_version_is_the_first_word_of_a_call_without_login_words` changed, within that leave.
