@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T17:18:51.175605Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-10-24T17:18:51.175605Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-24T17:21:26.497801Z'
+  stage: tests
+  run: be4fa2f408cc4c7cb1e7acdc753661b4
 ---
 
 # `sync` is the fourth target of the project contract
@@ -299,3 +301,20 @@ Expect: four lines: `# The contract between a project and the factory is four ta
     - This repository's own `Makefile` and `factory/pipeline.yml` still have no `sync`; that is the human's change 1.
     - The journal did not change the meaning of the task, so `## Description` stays as it is.
 15. factory: started tests as self.
+16. tester: Round 1: I made the two test changes from the coder's entry 14, which come from the reviewer's findings in entry 12. Nothing else changed.
+
+    1. Moved the Makefile-lines helper, under the standing leave in `CLAUDE.md`:
+       - It is now `makefile_lines()` in `tests/template_make_support.py`, with a docstring.
+       - `tests/test_template_sync.py` no longer has its own `_makefile_lines`; it imports `makefile_lines` from the shared module.
+       - `tests/test_template_makefile.py` (an earlier story's file) no longer has its own `_lines`; it imports `makefile_lines` too, and I removed its `MAKEFILE` import, which nothing there used any more.
+       - Every test keeps its name and checks the same thing.
+    2. Gave the earlier test in `tests/test_template_makefile.py` back its name: `test_check_runs_the_other_targets_and_saysgreen_line` is `test_check_runs_the_other_targets_and_says_green` again, and nothing else in it changed.
+
+    Criterion to test (unchanged from entry 5; only the helper under the tests moved): criteria 1 to 4 are tested in `tests/test_template_sync.py`, and the earlier rows in `tests/test_template_makefile.py` and `tests/test_claude_files.py` stay as entry 12 lists them.
+
+    Files changed: `tests/template_make_support.py`, `tests/test_template_sync.py`, and `tests/test_template_makefile.py` (an earlier story's file, changed under the standing leave for the move and on the reviewer's finding 2 for the name). No files created. The test run imported every module: `make test` is green, `test: green (63.5 s)`, and `make lint` is green.
+
+    Open: the docs stage still needs to add `makefile_lines` to the entry for `tests/template_make_support.py` in `docs/project-guide/README.md`, *Shared test helpers*.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (61.2 s)

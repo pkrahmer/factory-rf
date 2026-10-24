@@ -11,8 +11,8 @@ import pytest
 from adapters.claude_stand_in import Step, read_calls
 from git_support import commit_all, run_git, write_files
 from template_make_support import (
-    MAKEFILE,
     green_line,
+    makefile_lines,
     run_make,
     stand_in_uv,
     template_project,
@@ -31,10 +31,6 @@ SIDECAR = "factory/features/F0001-todo/in-progress/F0001-S0001-add.costs.jsonl"
 SECOND_SIDECAR = "factory/features/F0001-todo/in-progress/F0001-S0002-list.costs.jsonl"
 
 
-def _lines() -> list[str]:
-    return MAKEFILE.read_text(encoding="utf-8").splitlines()
-
-
 @pytest.fixture
 def project(tmp_path: Path) -> Path:
     return template_project(tmp_path)
@@ -45,7 +41,7 @@ def _arguments(tmp_path: Path) -> list[list[str]]:
 
 
 def test_phony_line_names_the_targets_and_there_is_no_documents_target() -> None:
-    phony = [line for line in _lines() if line.startswith(".PHONY:")]
+    phony = [line for line in makefile_lines() if line.startswith(".PHONY:")]
 
     assert len(phony) == 1
     assert phony[0].removeprefix(".PHONY:").split() == [
@@ -61,11 +57,11 @@ def test_phony_line_names_the_targets_and_there_is_no_documents_target() -> None
         "duplicates",
         "mutants",
     ]
-    assert not [line for line in _lines() if re.match(r"^documents\s*:", line)]
+    assert not [line for line in makefile_lines() if re.match(r"^documents\s*:", line)]
 
 
-def test_check_runs_the_other_targets_and_saysgreen_line() -> None:
-    lines = _lines()
+def test_check_runs_the_other_targets_and_says_green() -> None:
+    lines = makefile_lines()
     heads = [index for index, line in enumerate(lines) if re.match(r"^check\s*:", line)]
 
     assert len(heads) == 1
@@ -88,7 +84,7 @@ def test_check_runs_the_other_targets_and_saysgreen_line() -> None:
 
 
 def test_package_folder_and_layers_command_are_placeholders() -> None:
-    lines = _lines()
+    lines = makefile_lines()
 
     assert "SOURCE = src/<package>" in lines
     assert "LAYERS = <layers command>" in lines
@@ -114,7 +110,7 @@ def test_package_folder_and_layers_command_are_placeholders() -> None:
 )
 def test_header_names_the_development_dependency(tool: str) -> None:
     header = []
-    for line in _lines():
+    for line in makefile_lines():
         if not line.startswith("#"):
             break
         header.append(line)

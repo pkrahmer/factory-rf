@@ -8,7 +8,14 @@ import pytest
 from adapters.claude_stand_in import Step, read_calls
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from shipped_agents import ROOT
-from template_make_support import MAKEFILE, green_line, run_make, stand_in_uv, template_project
+from template_make_support import (
+    MAKEFILE,
+    green_line,
+    makefile_lines,
+    run_make,
+    stand_in_uv,
+    template_project,
+)
 
 TEMPLATE = ROOT / "template"
 FIRST_LINE = (
@@ -21,19 +28,15 @@ FOURTH_LINE = (
 FIFTH_LINE = "# A Python example with a src layout."
 
 
-def _makefile_lines() -> list[str]:
-    return MAKEFILE.read_text(encoding="utf-8").splitlines()
-
-
 def _line_number(target: str) -> int:
-    lines = _makefile_lines()
+    lines = makefile_lines()
     heads = [index for index, line in enumerate(lines) if line.startswith(f"{target}:")]
     assert len(heads) == 1
     return heads[0]
 
 
 def _first_line_is_the_four_targets() -> None:
-    assert _makefile_lines()[0] == FIRST_LINE
+    assert makefile_lines()[0] == FIRST_LINE
 
 
 def _no_three_targets() -> None:
@@ -41,7 +44,7 @@ def _no_three_targets() -> None:
 
 
 def _lines_four_and_five_stay() -> None:
-    assert _makefile_lines()[3:5] == [FOURTH_LINE, FIFTH_LINE]
+    assert makefile_lines()[3:5] == [FOURTH_LINE, FIFTH_LINE]
 
 
 def _sync_lies_between_check_and_lint() -> None:

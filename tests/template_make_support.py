@@ -16,6 +16,11 @@ MAKEFILE = ROOT / "template" / "Makefile"
 DROPPED = {"MAKEFLAGS", "MFLAGS", "MAKELEVEL", "FEATURE", "SOURCE", "LAYERS"}
 
 
+def makefile_lines() -> list[str]:
+    """The lines of the template's Makefile."""
+    return MAKEFILE.read_text(encoding="utf-8").splitlines()
+
+
 def green_line(target: str) -> re.Pattern[str]:
     """The pattern of a target's last line when it passes."""
     return re.compile(rf"^{target}: green \(\d+\.\d s\)$")
