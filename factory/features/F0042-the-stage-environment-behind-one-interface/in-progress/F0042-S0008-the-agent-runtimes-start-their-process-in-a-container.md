@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T19:19:21.338995Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-24T19:19:00.587037Z'
   stage: docs
   run: 8fcd903a76954afb8c6286a0b629e1b3
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-24T19:19:21.338995Z'
+  stage: smoke-test
 ---
 
 # The agent runtimes start their process in a container
@@ -463,3 +472,4 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
     `check`: check: green (not run again: passed on tree 91e2040c66c5 at 2026-10-24T19:13:55Z)
     `secrets`: secrets: green (2.2 s)
     `documents`: documents ok
+23. factory: started smoke-test as self.
