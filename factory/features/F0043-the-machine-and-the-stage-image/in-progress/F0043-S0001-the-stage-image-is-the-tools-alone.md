@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 430
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T23:40:50.651792Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-24T23:40:50.651792Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-24T23:41:10.937405Z'
+  stage: intake
+  run: 27856411ac394dd1b90cd1d595a1fb8a
 ---
 
 # The stage image is the tools alone
@@ -85,3 +87,9 @@ Expect: `1`
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: concrete. It names one file, `vm/Dockerfile`, and states each instruction's form: the one FROM, the four ARGs, the apt, pip and npm installs, the COPY and chmod RUN, the six ENV names and values, the forbidden words, and the first-line comment. No `src/` module changes. `vm/*` is already in the coder's write paths in `factory/pipeline.yml`, so human change 1 is done.
+   - Criteria: criteria 1 to 7 are each testable by one parametrized test function, and they cover every Interface clause. The pass and fail sides are both covered: the absent words, `sudo` not among the packages, `FACTORY_IMAGE` used only in the LABEL, the exact ENV set, and the pins equal to `image/Dockerfile`. Criterion 8 (old image untouched) is covered by the unchanged tests plus the reviewer's diff. Criteria 9 and 10 are the closing `make check` and `docs:` criteria, in the right order.
+   - Smoke test: the commands are runnable with grep, sed, cmp and pytest. Each `Expect:` line is checkable against the output. The pytest command passes no `-q`, and `addopts` in `pyproject.toml` already sets `-q`, so the `N passed in` summary line exists as the Expect assumes.
+   - Architecture: no layer is touched. The file lives under `vm/`, which the feature's change 1 makes a coder write path. The tests read the file as text, as `tests/test_image*.py` do. The shared readers move to `tests/dockerfile_support.py` only under the standing leave in CLAUDE.md and decision 15 of `feature.md`.
+   - Scope: within `feature.md`'s S0001 scope. Nothing under `image/` changes, and no story step runs podman, apt or the like. Out-of-scope items are not touched.
