@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-24T21:14:34.820065Z'
   stage: smoke-test
   run: 75c3abb052b540c59155fd3c7ad34044
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-24T21:15:54.407608Z'
+  stage: approval
 ---
 
 # The settings and the wiring choose the stage environment
@@ -446,3 +451,4 @@ Expect: `1`
     The smoke test does not exercise criterion 9 (`make check`) or criterion 10 (docs). The factory's checks and the docs stage cover those. Neither run left a tracked change. The only modified file is the work item's `.costs.jsonl` sidecar, which is the factory's.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 16.3 min, 99 turns, 385245 tokens in (3333051 more from cache), 57884 out, $4.48
