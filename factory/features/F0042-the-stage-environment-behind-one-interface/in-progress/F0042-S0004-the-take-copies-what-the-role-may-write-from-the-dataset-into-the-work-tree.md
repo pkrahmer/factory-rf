@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T15:42:28.635491Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-24T15:42:28.635491Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-24T15:42:46.674332Z'
+  stage: intake
+  run: 4754a858818e49b1a2a322076c28cc25
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -115,8 +117,9 @@ Tests (the tester writes them): `tests/application/test_take.py` and `tests/appl
 8. A work item absent at the stage-start commit, and one whose front matter at that commit cannot be read (a commit of the test that breaks it, as `tests/application/test_undo.py` builds both baselines), each raise `WorkItemFormatError` naming `work_item_path`, and nothing on the host changed (a changed `checkout/src/new.py` did not arrive) (rows of one parametrized test).
 9. `left` is sorted and holds each path once when the same path is given twice among `changed_paths`; the report is frozen and refuses an unknown field (`tests/test_model_configuration.py` covers the model).
 10. The other sides of two rules the Interface states: a stand-in `git` that prints one line more than the paths it was given raises `GitError` (a row of criterion 1's stand-in test, beside the line-short row); a `deleted` path whose target entry is a dangling symbolic link removes the link and raises nothing (a row of criterion 2's test).
-11. `make check` stays green.
-12. docs: `docs/project-guide/stage-environment.md` gains the section *The take*: the seven steps in order, what is dropped, what is left, what is taken, the work item's restore shared with the undo, `copy_changed` and its two users, the errors, the tests; `docs/project-guide/git-and-hosting.md`, *The git wrapper*: the row for `ignored` in the operations table (the command, the groups, what is read from the lines, the three exit statuses), the count twenty-six, and a row for `ignored` in *Which part uses which operation* (the take, `stage-environment.md`); `docs/project-guide/README.md`, *The files*, names `factory.application.take` for the stage-environment file; `docs/project-guide/write-guard.md`, *The undo*: one sentence that the take (`stage-environment.md`) applies the same two rules the other way round, in the container environment. `docs/decisions.md`: none in this story.
+11. The dataset is not written: after `take` with criterion 3's rows and a work item restore (criterion 7's first row), every file under `mount_point` has the same bytes and mode as before, the listing under `mount_point` is unchanged, and the fixtures' git history has no new commit.
+12. `make check` stays green.
+13. docs: `docs/project-guide/stage-environment.md` gains the section *The take*: the seven steps in order, what is dropped, what is left, what is taken, the work item's restore shared with the undo, `copy_changed` and its two users, the errors, the tests; `docs/project-guide/git-and-hosting.md`, *The git wrapper*: the row for `ignored` in the operations table (the command, the groups, what is read from the lines, the three exit statuses), the count twenty-six, and a row for `ignored` in *Which part uses which operation* (the take, `stage-environment.md`); `docs/project-guide/README.md`, *The files*, names `factory.application.take` for the stage-environment file; `docs/project-guide/write-guard.md`, *The undo*: one sentence that the take (`stage-environment.md`) applies the same two rules the other way round, in the container environment. `docs/decisions.md`: none in this story.
 
 ## Smoke test
 
@@ -167,3 +170,9 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
    - **Scope:** within F0042.
 4. 2026-10-24 human: Answer to the intake (F0042-S0004, the take copies what the role may write from the dataset into the work tree): **A**. Add a criterion before the two closing ones: after `take` with criterion 3's rows and a work item restore, every file under `mount_point` has the same bytes and mode as before, the listing under `mount_point` is unchanged, and the fixtures' git history has no new commit. The Interface's sentence stays. Please write it into the criteria as you accept.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: names concrete modules and signatures (`Git.ignored`, `GitCli.ignored`, `TakeReport`, `copy_changed`, `TakeService.__init__` and `take`). Every behaviour stated in it has a criterion: the grouping at 1,000 and 1,001, the order, the negation, tracked paths, the three exit statuses, the line count (short and long), `ValueError` for absolute and `..` paths, the removal of links, the sorted report.
+   - Criteria: each is testable by one parametrized test. Every rule has both sides: taken and left, dropped paths, the work item's four restore cases, both baseline faults, the paths that fail `check_repository_path`. Per the human's answer in journal entry 4 (option A) I wrote the new criterion 11 (the dataset is not written: same bytes and mode, same listing, no new commit in the fixtures' history). The closing two are now 12 (`make check`) and 13 (`docs:`).
+   - Smoke test: both commands are runnable. pyproject sets `-q` in `addopts` and the pytest command passes none, so the `N passed in` line exists. Each `Expect:` line can be checked against the output.
+   - Architecture: `factory.application.take` and the `Git` operation sit in `application`, `GitCli.ignored` in `adapters`, with no import against the layers. This matches CLAUDE.md.
+   - Scope: inside F0042's scope (S0004, decisions 10 and 18 d). Nothing is in "Out of scope". The story changes tests that other stories wrote only where decision 18 d gives the leave.
