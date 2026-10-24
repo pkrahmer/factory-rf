@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T17:27:02.166210Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-10-24T17:27:02.166210Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T17:27:28.522625Z'
+  stage: smoke-test
+  run: a036ccc45c7e45718fe91ca01af93d8c
 ---
 
 # `sync` is the fourth target of the project contract
@@ -449,3 +451,30 @@ Expect: four lines: `# The contract between a project and the factory is four ta
     `secrets`: secrets: green (2.0 s)
     `documents`: documents ok
 23. factory: started smoke-test as self.
+24. smoke-tester: Smoke test, round 1. I ran both commands from the repository root exactly as written, in order. I fixed nothing.
+
+    **Command 1**: `make sync` on a copy of `template/Makefile`, with a stand-in `uv` on the `PATH`. In the run I also printed make's exit status (`exit=0`) after the pipeline. That line is not part of the command's output.
+    ```
+    uv sync --frozen
+    sync: green (N s)
+    ```
+    Expect: two lines, `uv sync --frozen` and `sync: green (N s)`. **Met.** make exited 0.
+
+    **Command 2**: line 1 of the Makefile, the count of `three targets`, the `.PHONY` line, and the `sync` line of the template's pipeline definition.
+    ```
+    # The contract between a project and the factory is four targets: `check`, `lint`, `test`, `sync`.
+    0
+    .PHONY: check lint types layers sast secrets licenses test sync duplicates mutants
+      sync: {time_limit: 5}
+    ```
+    Expect: those four lines. **Met.**
+
+    **Acceptance criteria checked again against the committed files:**
+    - `check:` (line 30) still runs exactly `lint types layers sast secrets licenses test`, with the recipe `echo "check: green"`.
+    - `sync:` is on line 36, after `check:` and before `lint:` (line 41).
+    - `template/CLAUDE.md` holds ``names `check`, `lint`, `test` and `sync` `` once and ``names `check`, `lint` and `test` `` zero times.
+    - In `template/factory/pipeline.yml`, `sync` appears only on its `project_commands` line, with the required trailing comment. No stage lists it in `checks` or `reports`.
+
+    The smoke test contradicts none of criteria 1 to 4. I did not run `make check` (criterion 5) in this stage; the factory runs it as the gate. I did not judge the docs criterion (6) here.
+
+    Findings: none.
