@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 410
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T13:40:20.774803Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-24T13:40:20.774803Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-24T13:40:43.860909Z'
+  stage: intake
+  run: a26bd2b1ba2c4990be6609f0e77301e8
+  blocked: question
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -141,3 +144,8 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: 1. The smoke test's first command runs `tests/adapters/test_git_cli_ignored.py`, the file that already holds the `remove_ignored` tests. The Interface and criterion 1 put the new `ignored` tests in `tests/adapters/test_git_cli_check_ignore.py`. As written, the smoke test never runs the new git tests, and the `Expect: 1` line would pass without them. Option A, which I would choose: name `tests/adapters/test_git_cli_check_ignore.py` in the command (add it, or replace the old file). Option B: keep it as it is, if the old file is meant to run as a regression check.
+
+   2. `copy_changed` says that for an `added` or `modified` path, an existing entry at the target is removed first, "a link as the link, a folder with what it holds". Criterion 2 has rows for a link at the target (the `modified` row) and for a deleted link. It has no row for a folder at the target replaced by a file, or for a file replaced by a folder. Without a criterion, two coders could read that clause two ways and both pass the tests. Option A, which I would choose: add one criterion 2 row, an `added` file whose target entry is a folder holding a file, where the folder and its contents are gone and the target holds a regular file with the source's bytes. Option B: drop "a folder with what it holds" from the Interface.
+
+   The format check passed and I found nothing else. The Interface is concrete, the failing sides are covered (`ValueError`, `GitError`, `WorkItemFormatError`, refused and dropped paths), the architecture fits the layers, and the story is within the feature's scope.
