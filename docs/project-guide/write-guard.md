@@ -83,6 +83,8 @@ The baseline is read first. When the stage-start commit does not hold the work i
 - Ignored paths are not seen by the undo and it does not judge them. `run_sealed` removes them before the undo (`remove_ignored()`), after every run that returned; a run that raised leaves them to the next restore. Anything outside the checkout is not seen and stays as it is.
 - Git's paths are taken as they are; renames show as a deletion and an addition (see "The git wrapper").
 
+In the container environment the take applies the same two rules the other way round: it copies what they allow from the dataset into the work tree and leaves the rest (see *The take*, `stage-environment.md`).
+
 Tests: `tests/application/test_undo.py`; a fake agent writes into `boundaries.checkout` between `ClaimService` and `undo`.
 
 ## The kernel's write guard

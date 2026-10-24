@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578, 6386353501]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T16:11:17.366764Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -163,6 +159,12 @@ journal:
   kind: started
   at: '2026-10-24T16:11:17.366764Z'
   stage: docs
+- number: 28
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T16:12:24.660859Z'
+  stage: docs
+  run: e3aa9f6f11524318919ee41c12c35443
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -516,3 +518,23 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     - `tests/application/test_take.py:17` and `tests/application/test_take_edges.py:20`: both define the same `BROKEN_FRONT_MATTER` constant. It could live in `tests/take_support.py`.
     - `src/factory/application/take.py:71`: `taken` checks membership against the sorted list `left`. A set would avoid a linear scan for every candidate. This is not a finding: the behaviour is right.
 27. factory: started docs as self.
+28. documenter: Docs, round 1. I read the story (Interface, criteria, journal), the diff of `src/` and `tests/` against `main`, and the existing project guide. Only documents changed, so I did not run `make check`; the factory's check after this stage decides. I did not run the smoke-test commands.
+
+    Files changed:
+    - `docs/project-guide/stage-environment.md`: new section *The take* (the seven steps in order, what is dropped, left and taken, the work item's restore shared with the undo, `copy_changed` with its parent-folder rule and its two users, the errors, the tests). The module list in the opening paragraph now names `factory.application.take`.
+    - `docs/project-guide/git-and-hosting.md`: the count is now twenty-six. The operations table has a row for `ignored` (command, groups of `IGNORE_GROUP`, how the lines are read, the exit statuses, the `ValueError` and `GitError` cases). The *Which part uses which operation* table has a row for `ignored` (the take).
+    - `docs/project-guide/README.md`: *The files* names `factory.application.take` and the new section for the stage-environment file.
+    - `docs/project-guide/write-guard.md`: *The undo* has one sentence that the take applies the same two rules the other way round, with a pointer to `stage-environment.md`.
+    - `docs/decisions.md`: unchanged, as the docs criterion says.
+
+    I compared the text with `take.py`, `git_cli.py` and the `Git` interface. The code matches the Interface, so I have no findings for the coder.
+
+    Cross-read and found current: `write-guard.md`, *The undo*. The undo's behaviour is unchanged. Only `read_baseline`, `restore_work_item` and `is_refused` became public, and the guide did not name them before.
+
+    Stale text I saw and did not touch:
+    - The coder's note that `_is_ignoring` in `src/factory/adapters/git_cli.py` misreads an ignore-file path that holds a colon. It is code, so it is not mine to edit.
+    - The reviewer's note that `BROKEN_FRONT_MATTER` is defined in both `test_take.py` and `test_take_edges.py`. It is test code.
+
+    `check`: check: green (not run again: passed on tree 1b43b70bb234 at 2026-10-24T16:07:29Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok

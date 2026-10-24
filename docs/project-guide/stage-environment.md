@@ -1,6 +1,6 @@
 # The stage environment
 
-This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.snapshots`, `factory.application.containers`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.podman_runs`, `factory.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. Nothing in the factory uses them yet: nothing wires `ZfsSnapshots` or `PodmanRuns`, and the stage that wires them comes in later stories of the same feature.
+This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.snapshots`, `factory.application.containers`, `factory.application.take`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.podman_runs`, `factory.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. Nothing in the factory uses them yet: nothing wires `ZfsSnapshots` or `PodmanRuns`, and the stage that wires them comes in later stories of the same feature.
 
 ## The snapshots
 
@@ -126,6 +126,36 @@ The preflight reads a missing `podman` from this error. The line helpers (`first
 ### The stand-in
 
 No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` writes a stand-in `podman` into `tmp_path`. It records its arguments, environment and working directory; it prints planned output, waits and exits with a planned status, or, when its arguments hold the image, runs the words after the image on the host, so that a command's own exit status and output pass through. Tests of the default limit and of the kill rule replace the module's `run_process` with the `Recorder` of `tests/run_process_recorder.py`. The tests are `tests/adapters/test_podman_runs.py` (the command line) and `tests/adapters/test_podman_runs_results.py` (results and faults).
+
+## The take
+
+In the container environment the agent works on the dataset and may write anywhere it reaches; nothing of that survives but what the take copies. `TakeService(boundaries, mount_point).take(stage_start, work_item_path, changed_paths)` (`factory.application.take`) is the write-path refusal of the undo (see *The undo*, `write-guard.md`) applied the other way round: what the role may write goes from the dataset at `mount_point` into the work tree `boundaries.checkout`, the rest stays in the dataset. `changed_paths` are those of `Snapshots.changed_paths()`, relative to `mount_point`. Nothing calls the service yet; the container environment will.
+
+### The seven steps
+
+1. The baseline: the work item at `stage_start.commit`, read as the undo reads it. When it is absent or unreadable there, `take` raises `WorkItemFormatError` naming `work_item_path`, before anything changes.
+2. The write paths: `WritePathService(boundaries).at(stage_start, work_item_path)`.
+3. The candidates: only paths under `checkout/` count, with that prefix removed. A path with a `.git` segment is dropped, and so is every path that `Git.ignored` names (`.venv/...`, `.reports/...`). The ignore rules asked are those of the factory's own repository on the host, never the dataset's git. A path under `home/` or anywhere else is dropped. A dropped path is neither taken nor listed.
+4. The refused: a candidate is refused when `refusal(path, settings)` is not `None` (outside the write paths, or protected), or when it lies directly in an `in-progress/` folder of a feature and is not the stage's own work item (the undo's second rule). `is_refused` is the undo's own function, shared. A refused path is listed in `left` and not copied; the dataset is never written.
+5. The taken: every other candidate is copied with `copy_changed(mount_point / "checkout", boundaries.checkout, ...)`.
+6. The work item: its state and journal are put back from the baseline with `restore_state_and_journal`, the agent's edits to its sections kept (the undo's `restore_work_item`, shared, not copied). A work item that was deleted, or whose front matter cannot be read, comes back whole from the stage-start commit. `restored_work_item` is true in all those cases and false when nothing changed. A work item the role may not write is refused like any path: it is in `left`, not copied, not restored, and `restored_work_item` is false.
+7. `TakeReport(left, restored_work_item)`, frozen: `left` is sorted and holds each path once.
+
+The service makes no commit, runs no git command on the dataset and never writes under `mount_point`. `read_baseline`, `restore_work_item` and `is_refused` were private to `factory.application.undo` and are now public for this; the undo's behaviour did not change.
+
+### copy_changed
+
+`copy_changed(source, target, changed)` mirrors each `ChangedPath` from the tree at `source` into the tree at `target`. The take uses it, and so will the check container's copy of the work tree. Every path is first checked with `check_repository_path`: an absolute path or one with a `..` segment raises `ValueError` naming it, before anything is copied.
+
+- `added` or `modified`: the entry at `target / path` is removed first (a link as the link, a folder with what it holds), then the source's entry is placed. A regular file arrives with its bytes and mode, so an executable bit stays. A symbolic link arrives as a link with the same target text and is never followed.
+- `deleted`: the entry at `target / path` is removed, a link as the link with its target untouched. A missing entry, a dangling link included, is no fault.
+- Parent folders: nothing is ever written or removed outside the target tree. For `added` or `modified`, each parent from `target` down is checked with `lstat`; a parent that is a link or no folder is removed (a link as the link) and made a real folder, so the entry lands inside the target. For `deleted`, a parent that is a link or missing means the entry is not in the tree: nothing is removed and nothing is followed.
+
+### Errors
+
+`WorkItemFormatError` (step 1), `ValueError` from `copy_changed`, and `GitError` from `ignored` (see *The git wrapper*, `git-and-hosting.md`). A `ValueError` or `GitError` can come after the baseline was read but before step 5 copies anything.
+
+Tests: `tests/application/test_take.py` and `tests/application/test_take_edges.py`, built on `tests/undo_support.py` and `tests/take_support.py` with a dataset folder in `tmp_path`; `tests/adapters/test_git_cli_check_ignore.py` for `ignored`.
 
 ## The fakes
 
