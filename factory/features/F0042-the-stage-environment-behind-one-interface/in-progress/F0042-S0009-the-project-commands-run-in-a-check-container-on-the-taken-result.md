@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 1
 pull_request: 418
-comments_read: []
+comments_read: [6388655761]
 handed_over: null
 claim: null
 journal:
@@ -36,6 +36,11 @@ journal:
   stage: intake
   run: 24d7204107f244b69644850876ed6e9d
   blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-10-24T19:38:29.772036Z'
+  stage: intake
 ---
 
 # The project commands run in a check container on the taken result
@@ -115,3 +120,4 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
    - Smoke test: the commands are runnable. `pyproject.toml` sets `-q` in `addopts` and the command passes none, so the `N passed in` line exists. The `Expect:` lines can be checked.
    - Architecture: it sits in `factory.adapters` behind the `ProjectCommands` interface, and `make` is allowed there.
    - Scope: it is within S0009 of `feature.md` and decisions 7 and 8, and touches no out-of-scope item.
+6. 2026-10-24 human: Answer to the intake (F0042-S0009, the project commands run in a check container on the taken result): **(a)**. Add a criterion before the two closing ones, with two rows: (1) after a run with a host work tree that differs from `HEAD`, a marker file the test placed in the dataset's `checkout/.git` is intact and no host `.git` path was copied in; (2) nothing is written outside `<mount_point>/checkout`. The Interface's sentence stays. Please write it into the criteria as you accept.
