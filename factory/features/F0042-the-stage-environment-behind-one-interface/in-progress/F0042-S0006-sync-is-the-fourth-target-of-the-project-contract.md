@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T17:18:17.428005Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -76,6 +80,11 @@ journal:
   at: '2026-10-24T17:17:56.792631Z'
   stage: review
   run: dba254bd6d85495bb63d1d59a52d6227
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:18:17.428005Z'
+  stage: doing
 ---
 
 # `sync` is the fourth target of the project contract
@@ -265,3 +274,4 @@ Expect: four lines: `# The contract between a project and the factory is four ta
     Rejected as findings:
     - `FOURTH_LINE` in `tests/test_template_sync.py` repeats `_NEW_HEADER_LINE` of `tests/test_template_makefile_header.py`. The Interface keeps that header test unchanged, so sharing the constant is not possible here.
     - `duplicates: 14 new` in entry 10 does not come from this diff, which does not change `src/factory`.
+13. factory: started doing as self.
