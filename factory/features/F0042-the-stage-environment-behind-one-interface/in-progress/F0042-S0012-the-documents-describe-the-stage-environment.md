@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 423
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T21:52:56.525084Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-24T21:52:56.525084Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-24T21:53:14.990447Z'
+  stage: intake
+  run: 8f2ef02b451d408484707bcf298e0347
 ---
 
 # The documents describe the stage environment
@@ -69,3 +71,9 @@ Expect: `documents ok`
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: "None" is concrete and right for a documents-only sweep. It names the six files the documenter changes (`README.md`, `docs/operator-guide.md`, `docs/project-guide/README.md`, `docs/project-guide/stage-environment.md`, `docs/project-guide/write-guard.md`, `docs/decisions.md`) and says nothing under `src/`, tests, image, template or agents changes. It states no behaviour or rule that would need a criterion of its own.
+   - Criteria: criterion 1 (nothing outside the docs changes), 2 (`make check` stays green) and 3 (docs) are each checkable. Criterion 3 splits into bullets that are each checkable by grep or by `make documents`: the fourteen `##` sections in order, the one bullet in the guide index, the six settings rows, the four preflight rows, the log line, no "three targets" sentence, the one-sentence change in the write-guard guide, the decision entry with its named terms, and one `FACTORY_STAGE_ENVIRONMENT` paragraph in the README. Every rule has both its present and absent side (for example "no sentence that says the contract is three targets", "exactly these sections"). No Interface comment states a behaviour without a criterion. No test reads the documents; the Interface says so and the smoke test and `make documents` are the check, which suits a documenter-only story.
+   - Smoke test: all three blocks are runnable `grep` or `make documents` commands. Each `Expect:` line is checkable: the counts `14`, `1`, `0`, `0`; `6`, `4`, `1`, `1`; and `documents ok`. No pytest command is involved, so there is no `-q` problem. One small gap, not a blocker: the smoke test also greps `docs/project-guide/processes-and-checks.md` for "three targets", while the criterion names only the operator guide. The expectation still reads true either way.
+   - Architecture: nothing under `src/` changes, so the four layers are untouched. The documents involved match the Docs section of `CLAUDE.md`, and the documenter's write paths are `README.md` and `docs/*`. The story does not touch `planning/` or `docs/runs/`.
+   - Scope: this is the sweep that the feature's Stories list and Scope ("The documents ... S0012 is the sweep") name. It changes nothing in the feature's "Out of scope": the inline environment's items and chain stay, since F0044 removes them. It changes no test another story wrote.
