@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638, 6384356460]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T12:46:24.976208Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -214,6 +218,11 @@ journal:
   at: '2026-10-24T12:46:04.403591Z'
   stage: doing
   run: 9695f5ff2173479788413854de1af272
+- number: 38
+  speaker: factory
+  kind: started
+  at: '2026-10-24T12:46:24.976208Z'
+  stage: tests
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -570,3 +579,4 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     Description: the reviewer already wrote criteria 12 to 15 into the work item in entry 35. The journal changed nothing else this round.
 
     Noticed, not touched: nothing new since round 0.
+38. factory: started tests as self.
