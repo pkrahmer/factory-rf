@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T13:33:23.502537Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -161,6 +157,12 @@ journal:
   kind: started
   at: '2026-10-24T13:33:23.502537Z'
   stage: review
+- number: 28
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T13:34:09.316593Z'
+  stage: review
+  run: 237c08be977c48629184921a37d1fba4
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -491,3 +493,22 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
     `check`: check: green
     `duplicates`: duplicates: 11 new, 38 known, 0 gone
 27. factory: started review as self.
+28. reviewer: no findings
+
+    Checked (round 2):
+    - Since the last review only `tests/adapters/test_podman_runs_results.py` changed (commit f8353f0c). It gains the `time-limit` row of `test_image_exists_reads_podman_s_exit_status`, which tests criterion 12 as worded. The adapter is built with `time_limit` 1.5 s and the stand-in sleeps 60 s. The test expects `ContainerError` with command `<stand-in> image exists factory-stage:1` and detail `no end within 2 s`, which is the fraction rounded up. The elapsed time must be at least 1.5 s and under `ROOMY_BOUND_SECONDS` (25). The other rows of that test now also get the upper time bound, and nothing they check has changed.
+    - Criteria 1–11 still have the tests reviewed in entry 20, unchanged since then.
+    - The factory's `make check` after the coder was green (entry 26).
+    - Under `src/`, `podman_runs.py`, `printed_output.py`, `zfs_snapshots.py`, `domain/containers.py` (`check_container_call`) and `fake_containers.py` are as reviewed in entry 20:
+      - The layers hold.
+      - `KILL_STATUSES` is imported, not copied.
+      - There are no markers, no secrets and no command line built from a string.
+      - `fake_containers.py` still uses the `beneath_or_at` and `WORK` it imports, so no import is dead.
+    - The Description, the Interface and docs criterion 14 still match what the story built.
+
+    Earlier tests:
+    - tests/conftest.py: none needed. The diff only adds the `podman` fixture and its import.
+    - tests/test_wrapper_search.py: the human's leave through the story (the Interface's `run` bullet and criterion 9, decision 18 c). It adds one module name.
+
+    Notes:
+    - tests/adapters/test_podman_runs_results.py:33-37: the module's own `recorder` fixture repeats the one in `tests/conftest.py:312-316`, only for a different module. One shared fixture that takes the module to patch would remove the copy.
