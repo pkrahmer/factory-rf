@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 410
 comments_read: [6384920747]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T13:48:33.988112Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-24T13:48:33.988112Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-24T13:54:22.385562Z'
+  stage: doing
+  run: b3467a976b584cf79f2e9a6a48dd76ac
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -226,3 +228,29 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/application/test_take_edges.py - ImportError while importing test module '/work/checkout/tests/application/test_take_edges.py'.
 9. factory: started doing as self.
+10. coder: I built the take and the git operation `ignored`. All the new tests pass, the tests of the undo still pass, and I changed no test.
+
+    What I built:
+    - `src/factory/application/git.py`: `Git.ignored` is the twenty-sixth abstract operation, with the docstring the Interface gives.
+    - `src/factory/adapters/git_cli.py`: `GitCli.ignored` checks every path with `check_repository_path` before git runs. It then runs `git check-ignore --verbose --non-matching -- <paths>` in groups of `IGNORE_GROUP` (1,000) and joins the answers in the order given. It accepts exit statuses 0 and 1. A line count that differs from the paths given is `GitError`; that error names the command without its thousand paths. A line is ignored unless the text before the tab is `::` or its pattern starts with `!`.
+    - `src/factory/application/undo.py`: the take shares three helpers, which are now public module functions: `read_baseline`, `restore_work_item` and `is_refused`. `UndoService` calls them and behaves exactly as before.
+    - `src/factory/application/take.py` (new) holds three things:
+      - `TakeReport`.
+      - `copy_changed`: it checks every path first, then removes whatever stands at the target (a link as the link, a folder with its contents). An `added` or `modified` path is then placed from the source: a link by its target text, never followed; a file by `copyfile` plus `copymode`, with `follow_symlinks=False`.
+      - `TakeService.take`: the seven steps of the Interface, in order. The candidates are the paths under `checkout/`; a path with a `.git` segment is dropped, and so is a path the host's `git.ignored` names. The refused paths go to `left`, sorted and unique, and the rest is copied. The work item is restored unless it is itself in `left`.
+
+    Main choice: I made the undo's private methods into public module functions that take `Boundaries`, so the undo and the take share one copy of each. The alternative I rejected was a mixin or base class shared by both services. That would bind two unrelated services together for three functions, and a reviewer would count a copied helper as a finding.
+
+    Refactor pass: in the take I replaced a list-membership filter with a partition by path. Nothing else needed changing.
+
+    `make check`: in this stage's shell it is red on exactly one test, `tests/adapters/test_opencode_runtime_launch.py::test_the_version_is_the_first_word_of_a_call_without_login_words`. pytest printed:
+    `E       AssertionError: assert 'ANTHROPIC_API_KEY' not in {'AI_AGENT': 'claude-code_2-1-296_agent', 'ANTHROPIC_API_KEY': 'sk-ant-…', 'CLAUDECODE': '1', ...}`.
+    It fails the same way when run alone. Neither the test nor `opencode_runtime` is part of this diff: the stage's own environment carries an `ANTHROPIC_API_KEY`, which the test's stand-in inherits. The tester reported the same failure. `env -u ANTHROPIC_API_KEY make check` is fully green: every target green, coverage 99 %, `check: green`. I expect the factory's own check, which runs under `env -i`, to be green too. If it is not, this is a pre-existing problem for the human.
+
+    Noticed, not touched:
+    1. That failing assertion prints the leaked API key in full into the test output and the logs. The human may want to rotate the key and stop the factory's environment from passing it into agent runs.
+    2. `copy_changed` guards against a link at the target path itself, but not against a link standing at one of the target's parent folders. That does not matter for the host work tree. It may matter for S0009's copy into the agent-writable dataset.
+    3. A source entry that is missing for an `added` or `modified` path is silently not placed (only the target is removed). The Interface does not say what should happen in that case.
+
+    `check`: check: green
+    `duplicates`: duplicates: 14 new, 38 known, 0 gone

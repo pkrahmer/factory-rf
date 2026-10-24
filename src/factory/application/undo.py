@@ -40,50 +40,59 @@ class UndoService:
         unreadable at the stage-start commit; the work tree is then left untouched.
         """
         settings = WritePathService(self._boundaries).at(stage_start, work_item_path)
-        baseline = self._baseline(stage_start.commit, work_item_path)
+        # Read before any path changes, so a fault here leaves the agent's work tree as it is.
+        baseline = read_baseline(self._boundaries, stage_start.commit, work_item_path)
         refused = [
             change
             for change in self._boundaries.git.changed_paths(stage_start.commit)
-            if _is_refused(change.path, settings, work_item_path)
+            if is_refused(change.path, settings, work_item_path)
         ]
         if refused:
             paths = [change.path for change in refused]
             self._boundaries.git.revert_paths(stage_start.commit, paths)
-        restored = self._restore_work_item(stage_start.commit, work_item_path, baseline)
+        restored = restore_work_item(self._boundaries, stage_start.commit, work_item_path, baseline)
         return UndoReport(
             reverted=_paths_of(refused, added=False),
             deleted=_paths_of(refused, added=True),
             restored_work_item=restored,
         )
 
-    def _baseline(self, commit: str, work_item_path: str) -> WorkItemDocument:
-        # Read before any path changes, so a fault here leaves the agent's work tree as it is.
-        text = self._boundaries.git.show_file(commit, work_item_path)
-        if text is None:
-            raise WorkItemFormatError(f"missing at {commit}", work_item_path)
-        try:
-            return self._boundaries.work_item_reader.parse(text)
-        except WorkItemFormatError as error:
-            raise WorkItemFormatError(error.fault, work_item_path) from error
 
-    def _restore_work_item(
-        self, commit: str, work_item_path: str, baseline: WorkItemDocument
-    ) -> bool:
-        target = self._boundaries.checkout / work_item_path
-        try:
-            current = self._boundaries.work_item_reader.read(target)
-        except WorkItemFormatError:
-            # A deleted or broken work item has no sections worth keeping: it comes back whole.
-            self._boundaries.git.revert_paths(commit, [work_item_path])
-            return True
-        restored = restore_state_and_journal(current, baseline)
-        if restored == current:
-            return False
-        self._boundaries.work_item_writer.write(target, restored)
+def read_baseline(boundaries: Boundaries, commit: str, work_item_path: str) -> WorkItemDocument:
+    """The work item at `commit`; `WorkItemFormatError` naming it when absent or unreadable."""
+    text = boundaries.git.show_file(commit, work_item_path)
+    if text is None:
+        raise WorkItemFormatError(f"missing at {commit}", work_item_path)
+    try:
+        return boundaries.work_item_reader.parse(text)
+    except WorkItemFormatError as error:
+        raise WorkItemFormatError(error.fault, work_item_path) from error
+
+
+def restore_work_item(
+    boundaries: Boundaries, commit: str, work_item_path: str, baseline: WorkItemDocument
+) -> bool:
+    """Put the checkout's work item state and journal back from `baseline`; whether it changed.
+
+    A deleted work item, or one whose front matter cannot be read, comes back whole from
+    `commit`.
+    """
+    target = boundaries.checkout / work_item_path
+    try:
+        current = boundaries.work_item_reader.read(target)
+    except WorkItemFormatError:
+        # A deleted or broken work item has no sections worth keeping: it comes back whole.
+        boundaries.git.revert_paths(commit, [work_item_path])
         return True
+    restored = restore_state_and_journal(current, baseline)
+    if restored == current:
+        return False
+    boundaries.work_item_writer.write(target, restored)
+    return True
 
 
-def _is_refused(path: str, settings: GuardSettings, work_item_path: str) -> bool:
+def is_refused(path: str, settings: GuardSettings, work_item_path: str) -> bool:
+    """Whether the role may not leave `path`: outside its write paths, or beside a work item."""
     if refusal(path, settings) is not None:
         return True
     return path != work_item_path and _is_in_an_in_progress_folder(path)

@@ -44,6 +44,12 @@ LOG_FORMAT = "%H%x00%P%x00%an%x00%ct%x00%B"
 LOG_FIELDS = 5
 # The write permission of the group and of others, which the git folder must not carry.
 SHARED_WRITE = 0o022
+# The most paths one `check-ignore` call is given, so no argument list outgrows the system's.
+IGNORE_GROUP = 1000
+# The exit statuses by which `check-ignore` answers: 0 when it matched a path, 1 when none.
+CHECK_IGNORE_ANSWERS = (0, ANSWER_NO)
+# `--non-matching` prints this before the tab for a path no rule matches, a tracked one included.
+NO_MATCH = "::"
 DIFF_KINDS: dict[str, ChangeKind] = {"A": "added", "D": "deleted"}
 UNREACHABLE_MARKERS = (
     "Could not read from remote repository",
@@ -51,6 +57,15 @@ UNREACHABLE_MARKERS = (
     "unable to access",
     "Could not resolve host",
 )
+
+
+def _is_ignored_line(line: str) -> bool:
+    # `<source>:<line>:<pattern><TAB><path>`; a pattern starting with `!` re-includes the path.
+    match = line.split("\t", 1)[0]
+    if match == NO_MATCH:
+        return False
+    pattern = match.split(":", 2)[-1]
+    return not pattern.startswith("!")
 
 
 def _tail(output: str) -> str:
@@ -414,6 +429,16 @@ class GitCli(Git):
         # The second `--force` also removes an ignored folder that holds a repository.
         self._run(["clean", "--quiet", "--force", "--force", "-d", "-X"])
 
+    def ignored(self, paths: Sequence[str]) -> list[str]:
+        """Ask `check-ignore` about `paths` in groups of `IGNORE_GROUP`, in the order given."""
+        for path in paths:
+            check_repository_path(path)
+        found: list[str] = []
+        for start in range(0, len(paths), IGNORE_GROUP):
+            group = list(paths[start : start + IGNORE_GROUP])
+            found.extend(self._ignored_in_group(group))
+        return found
+
     def work_tree_id(self, left_out: Sequence[str] = ()) -> TreeId:
         """Stage the work tree in a temporary index, drop the paths left out, write its tree."""
         with tempfile.TemporaryDirectory() as folder:
@@ -474,6 +499,16 @@ class GitCli(Git):
             self._run(["merge", "--abort"])
             return "conflict"
         raise GitError(_command(arguments), result.exit_status, _tail(result.stdout))
+
+    def _ignored_in_group(self, group: list[str]) -> list[str]:
+        # `-z` needs `--stdin`, which is not fed here; one line per path comes back instead.
+        options = ["check-ignore", "--verbose", "--non-matching"]
+        result = self._run([*options, "--", *group], accepted=CHECK_IGNORE_ANSWERS)
+        lines = result.stdout.splitlines()
+        if len(lines) != len(group):
+            # The command is named without its paths: a group of a thousand would bury the fault.
+            raise GitError(_command(options), result.exit_status, _tail(result.stdout))
+        return [path for path, line in zip(group, lines, strict=True) if _is_ignored_line(line)]
 
     def _untracked_paths(self) -> list[str]:
         listing = self._run(["ls-files", "--others", "--exclude-standard", "-z"]).stdout
