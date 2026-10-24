@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T18:14:35.494355Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -174,6 +178,11 @@ journal:
   at: '2026-10-24T18:14:14.761567Z'
   stage: docs
   run: 364e534559724c4c8c80c309e9c9bfce
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:14:35.494355Z'
+  stage: smoke-test
 ---
 
 # The container environment runs the cycle of a stage
@@ -557,3 +566,4 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
     `check`: check: green (not run again: passed on tree 27d3de5f1300 at 2026-10-24T18:09:51Z)
     `secrets`: secrets: green (1.8 s)
     `documents`: documents ok
+31. factory: started smoke-test as self.
