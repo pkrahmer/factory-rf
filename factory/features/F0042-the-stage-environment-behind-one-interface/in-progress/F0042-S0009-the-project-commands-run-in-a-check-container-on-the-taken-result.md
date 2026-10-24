@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 1
-pull_request: null
+pull_request: 418
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T19:35:49.622469Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -33,6 +29,13 @@ journal:
   kind: started
   at: '2026-10-24T19:35:49.622469Z'
   stage: intake
+- number: 5
+  speaker: intake
+  kind: question
+  at: '2026-10-24T19:36:08.915704Z'
+  stage: intake
+  run: 24d7204107f244b69644850876ed6e9d
+  blocked: question
 ---
 
 # The project commands run in a check container on the taken result
@@ -99,3 +102,16 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
 2. factory: started intake as self.
 3. factory: crash 1: the run of stage intake ended without a result. Its work is discarded back to commit 7ce230d8035ee0a60356a2aa5c50161e4b91e3d7.
 4. factory: started intake as self.
+5. intake: Format check passed. One finding from my own checks:
+
+   1. The Interface states a rule, "The dataset's own `.git` is never touched: `changed_paths` never lists a `.git` path, and `copy_changed` writes under `<mount_point>/checkout` only", and no acceptance criterion tests it. Two coders could read it two ways and both would pass the tests. Options:
+      (a) Add a criterion before the two closing ones. It would say: after a run with a host work tree that differs from `HEAD`, the dataset's checkout `.git` folder is byte-for-byte what it was before the run (a marker file the test placed in it is intact, and no host `.git` path was copied in). A second row would say that nothing is written outside `<mount_point>/checkout`.
+      (b) Drop the sentence from the Interface, since `changed_paths` and `copy_changed` are S0004's and are tested there.
+      I would choose (a), with the marker file in the dataset's `.git` checked after the run.
+
+   Everything else checked out:
+   - Interface: it names the module, the constant and the class signature, the call order, the exact container command and the error mappings.
+   - Criteria: criteria 1 to 6 cover the passing side, the `sync` failure, the time limit, the pre-run refusals, the faults and the 30-line tail. They are otherwise testable by one function each, with the failing sides present.
+   - Smoke test: the commands are runnable. `pyproject.toml` sets `-q` in `addopts` and the command passes none, so the `N passed in` line exists. The `Expect:` lines can be checked.
+   - Architecture: it sits in `factory.adapters` behind the `ProjectCommands` interface, and `make` is allowed there.
+   - Scope: it is within S0009 of `feature.md` and decisions 7 and 8, and touches no out-of-scope item.
