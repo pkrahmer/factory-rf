@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 412
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T16:20:38.845912Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-24T16:20:18.412903Z'
   stage: tests
   run: e824a66578b8489295ab5cf0ea526858
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:20:38.845912Z'
+  stage: doing
 ---
 
 # No test sees the agent's login
@@ -100,3 +109,4 @@ Expect: one line that starts with `N passed` and names no `failed` and no `error
 
    `lint`: lint: green (0.5 s)
    `test`: test: green (62.0 s)
+6. factory: started doing as self.
