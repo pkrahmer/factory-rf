@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578, 6386353501]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T16:03:21.598198Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -130,6 +126,12 @@ journal:
   kind: started
   at: '2026-10-24T16:03:21.598198Z'
   stage: tests
+- number: 22
+  speaker: tester
+  kind: result
+  at: '2026-10-24T16:05:15.131303Z'
+  stage: tests
+  run: 2badef93e33f4bb899672ef8d16ff0f6
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -414,3 +416,25 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     - `_is_ignoring` in `git_cli.py` misreads an ignore-file path that contains a colon.
     - `make duplicates` reports dead code for `TakeService`, which is expected until the container environment calls it.
 21. factory: started tests as self.
+22. tester: Round 1, a test change the human approved (entry 18), made as the coder named it in entry 20. I changed only those two tests and nothing else.
+
+    Changes:
+    1. Finding 1: `tests/adapters/test_git_cli_check_ignore.py::test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read`, rows `one-group` and `two-groups`.
+       - The stand-in now answers `.gitignore:1:*.log<TAB><path>` for each path ending in `.log`, and `::<TAB><path>` for every other path.
+       - The test's paths make every even-numbered path a `.log`, so both groups hold ignored paths. Path 1000, the only path in the second group of the 1,001 row, is a `.log`.
+       - The assertion is now that `cli.ignored(paths)` equals exactly the `.log` paths, in the order given. A version that kept only the last group's answer would now fail.
+    2. The parent-folder rule from entry 18: two new rows of `tests/application/test_take_edges.py::test_copy_changed_mirrors_each_changed_path_into_the_target`.
+       - `added-under-a-parent-link`: the target's `src/evil` is a link to the outside folder, and `src/evil/x` is added. The outside folder still holds only `file.txt` with its bytes. `src/evil` ends as a real folder that holds `x` with the source's bytes.
+       - `deleted-under-a-parent-link`: the same link, and `src/evil/file.txt` is deleted. The outside `file.txt` keeps its bytes.
+       - New helpers in the same module: `_parent_link`, `_added_under_parent_link`, `_parent_made_real`, `_deleted_under_parent_link`, `_outside_file_stays`.
+
+    Mapping for the new criterion (the parent-folder rule): tests/application/test_take_edges.py::test_copy_changed_mirrors_each_changed_path_into_the_target, rows `added-under-a-parent-link` and `deleted-under-a-parent-link`. Criterion 1's join of the groups' answers: tests/adapters/test_git_cli_check_ignore.py::test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read, rows `one-group` and `two-groups`.
+
+    Files changed: tests/adapters/test_git_cli_check_ignore.py and tests/application/test_take_edges.py. Both were written by this story's tester, so no other story's tests were touched. No file was created. The test run imported every module.
+
+    `make test`: green (65.9 s), coverage 99.18 %. The coder's code already meets both changes. `make lint`: green.
+
+    Open: entry 18 asks for the parent-folder rule to go into the Interface and for a new criterion before the two closing ones. The work item is outside the tester's write paths (`tests/*`) and also outside the coder's, so neither of us could write it. The Interface's `copy_changed` sentence and the criteria list still need that text, from the human or from a stage whose write paths include `{work_item}`. In this round, that stage is the reviewer.
+
+    `lint`: lint: green (0.5 s)
+    `test`: Bytecode compiled 4164 files in 88ms

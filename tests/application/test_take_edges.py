@@ -159,6 +159,35 @@ def _outside_kept(trees: Trees) -> None:
     assert (trees.outside / "file.txt").read_text(encoding="utf-8") == OUTSIDE_TEXT
 
 
+def _parent_link(trees: Trees) -> None:
+    (trees.target / "src").mkdir()
+    (trees.target / "src" / "evil").symlink_to(trees.outside, target_is_directory=True)
+
+
+def _added_under_parent_link(trees: Trees) -> list[ChangedPath]:
+    _parent_link(trees)
+    _file(trees.source / "src" / "evil" / "x", SOURCE_TEXT)
+    return changes(("src/evil/x", "added"))
+
+
+def _parent_made_real(trees: Trees) -> None:
+    assert sorted(entry.name for entry in trees.outside.iterdir()) == ["file.txt"]
+    assert (trees.outside / "file.txt").read_text(encoding="utf-8") == OUTSIDE_TEXT
+    parent = trees.target / "src" / "evil"
+    assert not parent.is_symlink()
+    assert parent.is_dir()
+    assert (parent / "x").read_text(encoding="utf-8") == SOURCE_TEXT
+
+
+def _deleted_under_parent_link(trees: Trees) -> list[ChangedPath]:
+    _parent_link(trees)
+    return changes(("src/evil/file.txt", "deleted"))
+
+
+def _outside_file_stays(trees: Trees) -> None:
+    assert (trees.outside / "file.txt").read_text(encoding="utf-8") == OUTSIDE_TEXT
+
+
 def _refused(path: str) -> Prepare:
     def prepare(trees: Trees) -> list[ChangedPath]:
         _file(trees.source / "src" / "first.py", SOURCE_TEXT)
@@ -180,6 +209,12 @@ def _refused(path: str) -> Prepare:
         pytest.param(_added_over_folder, _folder_replaced, None, id="added-over-a-folder"),
         pytest.param(_deleted_folder_link, _outside_kept, None, id="deleted-folder-link"),
         pytest.param(_deleted_dangling_link, _outside_kept, None, id="deleted-dangling-link"),
+        pytest.param(
+            _added_under_parent_link, _parent_made_real, None, id="added-under-a-parent-link"
+        ),
+        pytest.param(
+            _deleted_under_parent_link, _outside_file_stays, None, id="deleted-under-a-parent-link"
+        ),
         pytest.param(_refused("/abs"), None, "/abs", id="absolute"),
         pytest.param(_refused("a/../b"), None, "a/../b", id="dot-dot"),
     ],

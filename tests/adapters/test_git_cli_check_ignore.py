@@ -32,7 +32,10 @@ if mode == "short":
 if mode == "long":
     paths = [*paths, "extra"]
 for path in paths:
-    print("::\\t" + path)
+    if path.endswith(".log"):
+        print(".gitignore:1:*.log\\t" + path)
+    else:
+        print("::\\t" + path)
 """
 
 
@@ -118,14 +121,18 @@ def test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read(
     tmp_path: Path, count: int, mode: str, groups: list[int] | None
 ) -> None:
     cli, calls = _standin(tmp_path, mode)
-    paths = [f"src/file{number}.py" for number in range(count)]
+    # Every even path is a log, so both groups hold paths the stand-in names as ignored.
+    paths = [
+        f"src/file{number}.log" if number % 2 == 0 else f"src/file{number}.py"
+        for number in range(count)
+    ]
 
     if groups is None:
         with pytest.raises(GitError):
             cli.ignored(paths)
         return
 
-    assert cli.ignored(paths) == []
+    assert cli.ignored(paths) == [path for path in paths if path.endswith(".log")]
     recorded = _calls(calls)
     asked = [call[call.index("--") + 1 :] for call in recorded]
     assert [len(group) for group in asked] == groups
