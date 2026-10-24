@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T17:53:19.446283Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-24T17:53:19.446283Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-24T17:53:50.985374Z'
+  stage: doing
+  run: 21a81ace73834f579e3cf21d98cf8ff9
 ---
 
 # The container environment runs the cycle of a stage
@@ -283,3 +285,12 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
 
     Earlier tests: none. Every test file in the diff is new (`A`).
 13. factory: started doing as self.
+14. coder: Round 1. The reviewer's only finding was criterion 12, which needs nothing but its test, so I changed no code and no test. Criterion 12 says the timeout's seconds are rounded up, not rounded: under `sync_time_limit` 1.2 s, `prepare` raises `ContainerError("sync", "no end within 2 s")`, and under 3 s it raises `ContainerError("sync", "no end within 3 s")`.
+
+    For the tester: add criterion 12 as two rows of one parametrized test in `tests/application/test_container_environment.py`, rows 1.2 s → 2 s and 3 s → 3 s. Use a `ContainerRuns` of the test whose `run` returns `ContainerResult(exit_status=None, output="", timed_out=True, duration=<the limit>)`, so no real sleep is needed.
+
+    The code should already pass both rows. `_check_sync` in `src/factory/application/stage_environment.py:198` rounds with `math.ceil(time_limit.total_seconds())`.
+
+    The journal changed the task only by adding criterion 12 and renumbering the closing criteria to 13 and 14. The reviewer already wrote that into the Description. I did not run `make check` this round because nothing changed in the working tree; the factory's run after round 0 was green.
+
+    Still open, untouched: a failed `prepare` keeps the durations of the last successful one.
