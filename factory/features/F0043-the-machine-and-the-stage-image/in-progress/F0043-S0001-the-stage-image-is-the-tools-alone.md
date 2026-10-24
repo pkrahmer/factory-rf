@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T23:51:24.006921Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-24T23:51:03.505628Z'
   stage: review
   run: ed3c85a95744421194735fafeff354e5
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:51:24.006921Z'
+  stage: doing
 ---
 
 # The stage image is the tools alone
@@ -202,3 +211,4 @@ Expect: `1`
    Earlier tests: none changed. The diff's only test file is the new `tests/test_stage_image.py` (status `A`).
 
    Next: the coder hands finding 1 to the tester (criterion 9 needs its test), and the tester makes the moves in findings 2 and 3 under the standing leave. `vm/Dockerfile` needs no change.
+10. factory: started doing as self.
