@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T16:44:42.306544Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-24T16:44:24.361800Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:44:42.306544Z'
   stage: doing
 ---
 
@@ -279,3 +288,4 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
    - `UndoReport` is still used by `stalls.py` and `undo_support`.
    - The docs criterion is left to the documenter.
 8. 2026-10-24 human: Answer to the coder (F0042-S0005, the stage protocol calls the stage environment, and the inline environment is today's way): **(a)**. The tester renames the module to `tests/application/test_stage_environment_calls.py`, with the same contents. `tests/test_test_names.py` stays as it is: its naming rule holds. The story's Interface ("Tests") and the first smoke-test command name the new file; the reviewer writes that into the work item.
+9. factory: started doing as self.
