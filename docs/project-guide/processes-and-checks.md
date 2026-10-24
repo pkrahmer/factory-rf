@@ -8,7 +8,7 @@ The factory reaches a project's build only through the `ProjectCommands` interfa
 
 `run` starts `<executable> --no-print-directory <command>` in `directory` through `run_process`, with stderr merged into stdout. The environment is the current one less `MAKELEVEL`, `MAKEFLAGS` and `MFLAGS`. Without that, a run inside `make check` (where `MAKELEVEL` is set) would print `make[N]: Entering directory` lines that a run on its own does not. `directory` is where make finds the project's Makefile.
 
-The contract between a project and the factory is four make targets: `check`, `lint`, `test` and `sync`. `sync` is the fourth: the command that brings a checkout's tools up to date after a checkout (`uv sync --frozen` for Python; another stack names its own command in the same target). It is run by the stage environment, in its sync container before every agent run and in its check container before every check (`stage-environment.md`), and never as a stage's `checks` or `reports`; `check` does not run it. `template/Makefile` has the target and `template/factory/pipeline.yml` the command `sync` with a time limit. This repository's own `Makefile` and `factory/pipeline.yml` do not have it yet: that is the human's change.
+The contract between a project and the factory is four make targets: `check`, `lint`, `test` and `sync`. `sync` is the fourth: the command that brings a checkout's tools up to date after a checkout (`uv sync --frozen` for Python; another stack names its own command in the same target). It is run by the stage environment, in its sync container before every agent run and in its check container before every check (`stage-environment.md`), and never as a stage's `checks` or `reports`; `check` does not run it. `template/Makefile` has the target and `template/factory/pipeline.yml` the command `sync` with a time limit. This repository's own `Makefile` has the target `sync` (`uv sync --frozen`), and its `factory/pipeline.yml` has the command `sync` with `time_limit: 5`.
 
 ### Running as another user
 
@@ -44,7 +44,7 @@ Tests: `tests/application/test_sealed_project_commands.py` (a real clone and a r
 
 ### Container project commands
 
-`ContainerMakeCommands(snapshots, containers, git, *, checkout)` (`factory.adapters.make_commands`) is the second implementation, for the container stage environment: it runs a command in a check container on the dataset, not in a process on the host. It inherits `ProjectCommands`. The wiring that puts it behind `RecordingProjectCommands` for a `container` instance is a later story; until then nothing builds it. `stage-environment.md`, *The checks*, says where it sits in the cycle of a stage.
+`ContainerMakeCommands(snapshots, containers, git, *, checkout)` (`factory.adapters.make_commands`) is the second implementation, for the container stage environment: it runs a command in a check container on the dataset, not in a process on the host. It inherits `ProjectCommands`. `build_boundaries` puts it behind `RecordingProjectCommands` for a `container` instance (`stage-environment.md`, *The settings and the wiring*). `stage-environment.md`, *The checks*, says where it sits in the cycle of a stage.
 
 `run(command, *, time_limit)` does these steps in order:
 
