@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T20:50:38.866151Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-24T20:50:18.764440Z'
   stage: intake
   run: 75697f5e9a794850b72785b292792af0
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:50:38.866151Z'
+  stage: tests
 ---
 
 # The settings and the wiring choose the stage environment
@@ -138,3 +147,4 @@ Expect: `1`
    Smoke test: both commands are runnable. The pytest command passes no `-q`, and `pyproject.toml` `addopts` already sets `-q`, so the summary line `N passed in` exists for the `grep -c` to count. Every `Expect:` is checkable against the output.
    Architecture: settings and their faults stay in `domain`, the wiring in `entry`, and `RecordingProjectCommands.inner` in `application`. The adapters are reached only through their interfaces, and no new dependency or package is added.
    Scope: the story stays within F0042's scope line for S0010 and keeps to the feature's Out of scope list. Decisions 14 and 15 are carried as written, and no earlier test is changed (decision 18 (h)).
+4. factory: started tests as self.
