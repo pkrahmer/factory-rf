@@ -4,9 +4,16 @@ import re
 from collections.abc import Callable, Mapping
 from datetime import timedelta
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, PositiveInt, TypeAdapter, ValidationError
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    PositiveInt,
+    TypeAdapter,
+    ValidationError,
+    model_validator,
+)
 
 from factory.domain.agent_home import inside_home
 from factory.domain.errors import SettingsInvalid
@@ -52,13 +59,24 @@ OPENCODE_EXECUTABLE_VARIABLE = "FACTORY_OPENCODE"
 OPENCODE_VERSION_VARIABLE = "FACTORY_OPENCODE_VERSION"
 OPENCODE_MODELS_VARIABLE = "FACTORY_OPENCODE_MODELS"
 OPENCODE_FOLDERS_VARIABLE = "FACTORY_OPENCODE_FOLDERS"
+STAGE_ENVIRONMENT_VARIABLE = "FACTORY_STAGE_ENVIRONMENT"
+DATASET_VARIABLE = "FACTORY_DATASET"
+WORKSPACE_VARIABLE = "FACTORY_WORKSPACE"
+STAGE_IMAGE_VARIABLE = "FACTORY_STAGE_IMAGE"
+PODMAN_EXECUTABLE_VARIABLE = "FACTORY_PODMAN"
+ZFS_EXECUTABLE_VARIABLE = "FACTORY_ZFS"
 RUNS_DIRECTORY_NAME = "runs"
 _HOME_VARIABLE = "HOME"
 _CLAUDE_EXECUTABLE_DEFAULT = "claude"
 _OPENCODE_EXECUTABLE_DEFAULT = "opencode"
+_PODMAN_EXECUTABLE_DEFAULT = "podman"
+_ZFS_EXECUTABLE_DEFAULT = "zfs"
+_MISSING_FOR_CONTAINER = "missing for the container environment"
 
 AgentRuntimeName = Literal["claude", "opencode"]
 _AGENT_RUNTIMES: tuple[AgentRuntimeName, ...] = ("claude", "opencode")
+StageEnvironmentName = Literal["inline", "container"]
+_STAGE_ENVIRONMENTS: tuple[StageEnvironmentName, ...] = ("inline", "container")
 
 _NAME = TypeAdapter(Name)
 
@@ -89,6 +107,60 @@ class InstanceSettings(BaseModel):
     pinned_opencode_version: str | None = None
     opencode_models: dict[str, str] = {}
     opencode_folders: list[str] = []
+    stage_environment: StageEnvironmentName = "inline"
+    dataset: str | None = None
+    workspace: Path | None = None
+    stage_image: str | None = None
+    podman_executable: str = _PODMAN_EXECUTABLE_DEFAULT
+    zfs_executable: str = _ZFS_EXECUTABLE_DEFAULT
+
+    @model_validator(mode="after")
+    def _runnable_stage_environment(self) -> Self:
+        fault = stage_environment_fault(
+            self.stage_environment,
+            dataset=self.dataset,
+            workspace=self.workspace,
+            stage_image=self.stage_image,
+            agent_user=self.agent_user,
+        )
+        if fault is not None:
+            variable, text = fault
+            raise ValueError(f"{variable}: {text}")
+        return self
+
+
+def stage_environment_fault(
+    stage_environment: StageEnvironmentName,
+    *,
+    dataset: str | None,
+    workspace: Path | None,
+    stage_image: str | None,
+    agent_user: str | None,
+) -> tuple[str, str] | None:
+    """The variable and the fault that keep an instance from running `stage_environment`.
+
+    `None` when it can run: `inline` always can; `container` needs a dataset, an absolute
+    workspace and a stage image, and runs no second user.
+    """
+    if stage_environment == "inline":
+        return None
+    return _container_fault(dataset, workspace, stage_image, agent_user)
+
+
+def _container_fault(
+    dataset: str | None, workspace: Path | None, stage_image: str | None, agent_user: str | None
+) -> tuple[str, str] | None:
+    if dataset is None:
+        return DATASET_VARIABLE, _MISSING_FOR_CONTAINER
+    if workspace is None:
+        return WORKSPACE_VARIABLE, _MISSING_FOR_CONTAINER
+    if not workspace.is_absolute():
+        return WORKSPACE_VARIABLE, "is not an absolute path"
+    if stage_image is None:
+        return STAGE_IMAGE_VARIABLE, _MISSING_FOR_CONTAINER
+    if agent_user is not None:
+        return AGENT_USER_VARIABLE, "is set, but the container environment runs no second user"
+    return None
 
 
 def read_settings(
@@ -98,6 +170,21 @@ def read_settings(
     repository_url = _repository_url(environ)
     instance = _instance(environ)
     image = None if read_file is None else _image(environ, read_file)
+    agent_user = _agent_user(environ)
+    stage_environment = _stage_environment(environ)
+    dataset = _optional(environ, DATASET_VARIABLE) or None
+    workspace = _optional_path(environ, WORKSPACE_VARIABLE)
+    stage_image = _optional(environ, STAGE_IMAGE_VARIABLE) or None
+    # Checked here too, so that a fault names its variable instead of a validation error.
+    fault = stage_environment_fault(
+        stage_environment,
+        dataset=dataset,
+        workspace=workspace,
+        stage_image=stage_image,
+        agent_user=agent_user,
+    )
+    if fault is not None:
+        raise SettingsInvalid(*fault)
     return InstanceSettings(
         repository_url=repository_url,
         instance=instance,
@@ -110,7 +197,7 @@ def read_settings(
         claude_login_file=_optional_path(environ, CLAUDE_LOGIN_FILE_VARIABLE),
         api_login_file=_optional_path(environ, API_LOGIN_FILE_VARIABLE),
         pinned_agent_version=_optional(environ, CLAUDE_VERSION_VARIABLE) or None,
-        agent_user=_agent_user(environ),
+        agent_user=agent_user,
         min_free_gb=_min_free_gb(environ),
         provider_limit=_provider_limit(environ),
         agent_runtime=_agent_runtime(environ),
@@ -119,6 +206,13 @@ def read_settings(
         pinned_opencode_version=_optional(environ, OPENCODE_VERSION_VARIABLE) or None,
         opencode_models=_opencode_models(environ),
         opencode_folders=_opencode_folders(environ),
+        stage_environment=stage_environment,
+        dataset=dataset,
+        workspace=workspace,
+        stage_image=stage_image,
+        podman_executable=_optional(environ, PODMAN_EXECUTABLE_VARIABLE)
+        or _PODMAN_EXECUTABLE_DEFAULT,
+        zfs_executable=_optional(environ, ZFS_EXECUTABLE_VARIABLE) or _ZFS_EXECUTABLE_DEFAULT,
     )
 
 
@@ -166,6 +260,18 @@ def _agent_runtime(environ: Mapping[str, str]) -> AgentRuntimeName:
             return runtime
     raise SettingsInvalid(
         AGENT_RUNTIME_VARIABLE, f"holds {value}, which is neither claude nor opencode"
+    )
+
+
+def _stage_environment(environ: Mapping[str, str]) -> StageEnvironmentName:
+    value = _optional(environ, STAGE_ENVIRONMENT_VARIABLE)
+    if not value:
+        return "inline"
+    for environment in _STAGE_ENVIRONMENTS:
+        if value == environment:
+            return environment
+    raise SettingsInvalid(
+        STAGE_ENVIRONMENT_VARIABLE, f"holds {value}, which is neither inline nor container"
     )
 
 
