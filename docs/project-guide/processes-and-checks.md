@@ -4,7 +4,7 @@ This file covers processes, project commands and this repository's checks; read 
 
 ## Project commands
 
-The factory reaches a project's build only through the `ProjectCommands` interface (an abstract base class, `factory.application.project_commands`). It has one operation, `run(command, *, time_limit) -> CheckResult`. `MakeProjectCommands(directory, kill_points=None, *, executable="make", user=None)` (`factory.adapters.make_commands`) is the first implementation. It inherits `ProjectCommands`. The string `"make"` appears in this module and in `factory.application.preflight` (its `REQUIRED_TOOLS`); `tests/test_make_search.py` allows exactly those two. The pipeline uses the results, and so does the preflight's probe.
+The factory reaches a project's build only through the `ProjectCommands` interface (an abstract base class, `factory.application.project_commands`). It has one operation, `run(command, *, time_limit) -> CheckResult`. `MakeProjectCommands(directory, kill_points=None, *, executable="make", user=None)` (`factory.adapters.make_commands`) is the first implementation. It inherits `ProjectCommands`. `ContainerMakeCommands` is the second (*Container project commands* below). The string `"make"` appears in this module and in `factory.application.preflight` (its `REQUIRED_TOOLS`); `tests/test_make_search.py` allows exactly those two. The pipeline uses the results, and so does the preflight's probe.
 
 `run` starts `<executable> --no-print-directory <command>` in `directory` through `run_process`, with stderr merged into stdout. The environment is the current one less `MAKELEVEL`, `MAKEFLAGS` and `MFLAGS`. Without that, a run inside `make check` (where `MAKELEVEL` is set) would print `make[N]: Entering directory` lines that a run on its own does not. `directory` is where make finds the project's Makefile.
 
@@ -41,6 +41,24 @@ The inner result is returned unchanged. A `RepositoryUnsealed` of the check prop
 Wiring (`build_boundaries`, `factory.entry.wiring`): with `settings.agent_user` set, `boundaries.project_commands` is `RecordingProjectCommands(SealedProjectCommands(MakeProjectCommands(checkout, user=CommandUser(...)), git, log), git, records, clock, log)`, with the boundaries' own `git` and `log`, and `home` the `SudoAgentHome` that `build_boundaries` also sets as `Boundaries.agent_home`. With a `home`, `run` calls `home.reset()` after the seal and before the command; an `AgentRuntimeError` becomes `ProjectCommandError(command, <its detail>)`, the command does not run, and a stage's check counts an error (the preflight's `lint` on `main` stops with `preflight_failed`). See `agents.md`, *The fresh home*. The `CommandUser` holds the agent user, the `sudo` that `which` finds (else `SUDO_EXECUTABLE`), `project_command_environment(settings, production_environment())` (the agent run's environment with `PYTHONDONTWRITEBYTECODE=1` and `UV_LINK_MODE=copy`, nothing else) and the leftovers program the agent runtime gets (`None` with `end_leftovers=False`). Without `agent_user` it is `RecordingProjectCommands(MakeProjectCommands(checkout), ...)`, as before. Building starts no process. The records, `KnownResults` and the time limits are unchanged, and the preflight's `lint` goes through the same object.
 
 Tests: `tests/application/test_sealed_project_commands.py` (a real clone and a recording `ProjectCommands`), `tests/entry/test_wiring_project_command_user.py` (reads the built objects; no real `sudo`).
+
+### Container project commands
+
+`ContainerMakeCommands(snapshots, containers, git, *, checkout)` (`factory.adapters.make_commands`) is the second implementation, for the container stage environment: it runs a command in a check container on the dataset, not in a process on the host. It inherits `ProjectCommands`. The wiring that puts it behind `RecordingProjectCommands` for a `container` instance is a later story; until then nothing builds it. `stage-environment.md`, *The checks*, says where it sits in the cycle of a stage.
+
+`run(command, *, time_limit)` does these steps in order:
+
+1. The call is refused as `MakeProjectCommands` refuses it (the shared `_check_call`): a `time_limit` of zero or less raises `ValueError`, a `command` that does not match `^[a-z][a-z0-9-]*$` raises `ProjectCommandError` (`invalid command name 'Check'`). Nothing has run or been reset yet.
+2. `snapshots.reset()` rolls the dataset back to the base.
+3. `copy_changed(checkout, snapshots.mount_point / "checkout", git.changed_paths("HEAD"))` copies in what differs from `HEAD` on the host: after a take, the taken files, the restored work item and the cost record. Added and modified files arrive with the host's bytes, deleted ones are removed, and what the host's `.gitignore` ignores is not listed. With a work tree equal to `HEAD` nothing is copied. The dataset's own `.git` is never touched (`changed_paths` lists no `.git` path and `copy_changed` writes under `checkout` only).
+4. `containers.run` starts `/bin/sh -c '"$1" sync && "$1" --no-print-directory "$2"' factory-check make <command>` with no mounts, `time_limit` as the limit, `/work/checkout` as the working directory and `CHECK_ENVIRONMENT` as the environment: the `SYNC_ENVIRONMENT` of the stage environment (`PATH=/usr/local/bin:/usr/bin:/bin`, `HOME=/work/home`), so a check sees the same system and home as the sync before the agent. The command name is an argument, never part of the script text, so the shell never parses it. `sync` runs first, so a failing `sync` is the result (`failed`, exit status 2, the `last_line` of its output) and `<command>` does not run.
+5. The result is read by the code that `MakeProjectCommands` uses (`_read_result`): `status_of` the exit status (`time_limit` with `exit_status` `None` when the container timed out), `last_line`, the last 30 lines as `output_tail`, and `target_times` of the whole output, so `sync`'s own `sync: green (<seconds> s)` line is the first of `targets`.
+
+Faults: a `SnapshotError` of the reset and a `ContainerError` of the container become `ProjectCommandError(command, <the error's message>)`. A `GitError` of `changed_paths` and a `ValueError` of `copy_changed` (a path that is absolute or has `..`) propagate as they are, before any container starts.
+
+A check's files stay in the container's dataset: nothing is copied back, and the next `run` resets them away. The host's work tree is the same before and after a run.
+
+Tests: `tests/adapters/test_make_commands_container.py`, on `FakeSnapshots` and `FakeContainerRuns` under `tmp_path`, a real clone as the host's checkout and the real `make`.
 
 ### Rules of `run`
 

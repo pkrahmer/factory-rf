@@ -14,7 +14,7 @@ from factory.application.undo import is_refused, read_baseline, restore_work_ite
 from factory.application.write_paths import WritePathService
 from factory.domain.git import ChangedPath, check_repository_path
 
-_MOUNTED_CHECKOUT = "checkout"
+MOUNTED_CHECKOUT = "checkout"
 _GIT_FOLDER = ".git"
 
 
@@ -71,7 +71,7 @@ class TakeService:
             }
         )
         taken = [change for change in candidates if change.path not in left]
-        copy_changed(self._mount_point / _MOUNTED_CHECKOUT, self._boundaries.checkout, taken)
+        copy_changed(self._mount_point / MOUNTED_CHECKOUT, self._boundaries.checkout, taken)
         restored = work_item_path not in left and restore_work_item(
             self._boundaries, stage_start.commit, work_item_path, baseline
         )
@@ -80,7 +80,7 @@ class TakeService:
     def _candidates(self, changed_paths: Sequence[ChangedPath]) -> list[ChangedPath]:
         # The agent's home and the dataset's git are never the work tree's; what the host's
         # ignore rules ignore is the build's, never the agent's work.
-        prefix = _MOUNTED_CHECKOUT + "/"
+        prefix = MOUNTED_CHECKOUT + "/"
         inside = [
             ChangedPath(path=change.path.removeprefix(prefix), change=change.change)
             for change in changed_paths

@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict
 
 from factory.adapters.agent_launch import (
     LEFTOVERS_FAULT,
+    SHELL_EXECUTABLE,
     SUDO_PREFIX,
     Launch,
     killed_at_limit,
@@ -18,7 +19,12 @@ from factory.adapters.agent_launch import (
     leftovers_launch,
 )
 from factory.adapters.process import ProcessRequest, ProcessResult, own_identity, run_process
+from factory.application.containers import ContainerRuns
+from factory.application.git import Git
 from factory.application.project_commands import ProjectCommands
+from factory.application.snapshots import Snapshots
+from factory.application.stage_environment import SYNC_ENVIRONMENT
+from factory.application.take import MOUNTED_CHECKOUT, copy_changed
 from factory.domain.checks import (
     COMMAND_NAME_PATTERN,
     OUTPUT_TAIL_LINES,
@@ -27,10 +33,18 @@ from factory.domain.checks import (
     status_of,
     target_times,
 )
-from factory.domain.errors import ProjectCommandError
+from factory.domain.containers import WORK_CHECKOUT
+from factory.domain.errors import ContainerError, ProjectCommandError, SnapshotError
 from factory.domain.kill_points import KillPoints
 
 _COMMAND_NAME = re.compile(COMMAND_NAME_PATTERN)
+
+# A check sees the same system and home as the sync before the agent.
+CHECK_ENVIRONMENT = dict(SYNC_ENVIRONMENT)
+
+# The command's name is an argument, never part of the script, so the shell never parses it.
+_CHECK_SCRIPT = '"$1" sync && "$1" --no-print-directory "$2"'
+_CHECK_SCRIPT_NAME = "factory-check"
 
 # An outer make (the tests run under `make check`) exports these, and an inner make that
 # sees them prints "Entering directory" lines that a run on its own would not.
@@ -96,10 +110,7 @@ class MakeProjectCommands(ProjectCommands):
         through `sudo` as that user: a kill at the limit is a `time_limit` result, and a
         refusal by `sudo` or a fault of the leftovers program raises `ProjectCommandError`.
         """
-        if time_limit <= timedelta(0):
-            raise ValueError(f"time_limit must be positive, not {time_limit}")
-        if not _COMMAND_NAME.fullmatch(command):
-            raise ProjectCommandError(command, f"invalid command name {command!r}")
+        _check_call(command, time_limit)
         argv = [self._executable, "--no-print-directory", command]
         if self._user is None:
             return self._run_as_own_user(command, argv, time_limit)
@@ -171,6 +182,55 @@ class MakeProjectCommands(ProjectCommands):
             raise ProjectCommandError(command, str(exc)) from exc
 
 
+class ContainerMakeCommands(ProjectCommands):
+    """Runs `make sync && make <command>` in a check container on the base with the taken files."""
+
+    def __init__(
+        self, snapshots: Snapshots, containers: ContainerRuns, git: Git, *, checkout: Path
+    ) -> None:
+        """Reset the dataset of `snapshots`, copy in what differs from `HEAD` in `checkout`."""
+        self._snapshots = snapshots
+        self._containers = containers
+        self._git = git
+        self._checkout = checkout
+
+    def run(self, command: str, *, time_limit: timedelta) -> CheckResult:
+        """Run `command` after `sync` in a container on the base with the host's changes.
+
+        A fault of the reset or of the container raises `ProjectCommandError`; a `GitError`
+        or a `ValueError` of the copy propagates as it is.
+        """
+        _check_call(command, time_limit)
+        try:
+            self._snapshots.reset()
+        except SnapshotError as exc:
+            raise ProjectCommandError(command, str(exc)) from exc
+        # What differs from `HEAD` is what the take brought; nothing is remembered between them.
+        copy_changed(
+            self._checkout,
+            self._snapshots.mount_point / MOUNTED_CHECKOUT,
+            self._git.changed_paths("HEAD"),
+        )
+        try:
+            result = self._containers.run(
+                [SHELL_EXECUTABLE, "-c", _CHECK_SCRIPT, _CHECK_SCRIPT_NAME, "make", command],
+                mounts=[],
+                environment=CHECK_ENVIRONMENT,
+                time_limit=time_limit,
+                working_directory=WORK_CHECKOUT,
+            )
+        except ContainerError as exc:
+            raise ProjectCommandError(command, str(exc)) from exc
+        return _read_result(command, result.exit_status, result.output, result.duration)
+
+
+def _check_call(command: str, time_limit: timedelta) -> None:
+    if time_limit <= timedelta(0):
+        raise ValueError(f"time_limit must be positive, not {time_limit}")
+    if not _COMMAND_NAME.fullmatch(command):
+        raise ProjectCommandError(command, f"invalid command name {command!r}")
+
+
 def _refusal(user: CommandUser, result: ProcessResult) -> str | None:
     if result.exit_status in (0, None):
         return None
@@ -181,13 +241,19 @@ def _refusal(user: CommandUser, result: ProcessResult) -> str | None:
 
 
 def _check_result(command: str, result: ProcessResult) -> CheckResult:
-    lines = result.stdout.splitlines()
+    return _read_result(command, result.exit_status, result.stdout, result.duration)
+
+
+def _read_result(
+    command: str, exit_status: int | None, output: str, duration: timedelta
+) -> CheckResult:
+    lines = output.splitlines()
     return CheckResult(
         command=command,
-        status=status_of(result.exit_status),
-        exit_status=result.exit_status,
-        duration=result.duration,
+        status=status_of(exit_status),
+        exit_status=exit_status,
+        duration=duration,
         last_line=last_line(lines),
         output_tail=_tail(lines),
-        targets=target_times(result.stdout),
+        targets=target_times(output),
     )
