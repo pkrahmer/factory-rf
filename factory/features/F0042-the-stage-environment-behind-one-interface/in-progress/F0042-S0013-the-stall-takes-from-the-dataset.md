@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T18:40:00.451147Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-24T18:40:00.451147Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T18:41:23.475986Z'
+  stage: review
+  run: a824ba8cbbb5412386797f2780229753
 ---
 
 # The stall takes from the dataset
@@ -359,3 +361,24 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
     `check`: check: green
     `duplicates`: duplicates: 9 new, 37 known, 1 gone
 16. factory: started review as self.
+17. reviewer: no findings
+
+    I reviewed all five groups this round. Round 0 stopped at group 1, so groups 2 to 5 are reviewed here for the first time.
+
+    1. **Acceptance criteria:** criteria 1 to 9 each have a test that checks what the criterion names. I read each test against the code in `src/factory/application/stalls.py`, `stage.py` and `stage_environment.py`. Criterion 9 (`tests/application/test_stall_container.py::test_a_second_take_takes_what_the_dataset_gained_since_the_first`) now covers the failing side of "a second take takes again": `src/c.py` is absent after the first take and present after the second, and `notes.md` is in the second report's `left` only. Every Interface rule has a test for both sides: take or no take (`merge_conflict`), the three take faults with nothing written, the take placed after the checkout is put back and before the sidecar, the inline default for `StallService` and `StageFinisher`, each holder handing over its environment, and the timing line written once per `prepare` and once on an object without one. Entry 15 reports `make check` green.
+    2. **Architecture:** the change stays in `factory.application`. `stalls.py` reaches the undo only through `StageEnvironment`, so it no longer imports `factory.application.undo`. `StageRunner` builds one environment and gives it to its stall service, its launcher, its after-agent and its finisher. There is no new dependency.
+    3. **Security:** no new tool call, no string-built command, no suppression marker.
+    4. **Quality:** the names and docstrings fit. The `_timing_due` comment says why the flag exists. `_log_timing` only moved out of `take`, and the report is never stored. I ran `make duplicates` (`duplicates: 9 new, 37 known, 1 gone`). None of the 9 new entries is in a file this diff changes: they are in `fake_containers`, `podman_runs` and `zfs_snapshots`. The one gone entry is `undo.py`'s `restored_work_item`, which is now used through `TakeReport`.
+    5. **Work item hygiene:** the coder's journal entries (7 and 15) explain the main choice, a boolean flag, and the sentinel they rejected. `## Description` matches what was built. Docs criterion 11 still describes what the reader must know.
+
+    Earlier tests:
+    - `tests/application/test_stalls.py`, under two leaves:
+      - the human's leave in decision 18 (g2) of `feature.md`, named in the story: `result.undo is None` → `result.take is None`, and the `_result` row `"undo"` → `"take"`;
+      - the standing leave of `CLAUDE.md`: `_open`, `_launch`, `_started`, `_context`, `SwitchingRuntime` and the constants moved to `tests/stall_support.py`. `WORK_ITEM`, `BRANCH`, `PATH` and `BACKLOG_PATH` now come from `tests/stage_run_support.py`, with the same values. Every test keeps its name and what it checks.
+    - `tests/application/test_container_environment_take.py`, under the standing leave: `Steps`, `Pace`, `ClockedSnapshots`, `ClockedContainerRuns`, `FIRST`, `SECOND`, `TAKE_SECONDS`, `_started`, `_clocked` and `WorkspaceRuntime` moved to `tests/container_support.py`. `Pace.take` defaults to the old 0.25 s, and the earlier test passes `WorkspaceRuntime` the same two files it wrote before. Every test keeps its name and what it checks. As in round 0, I judged this within the leave.
+    - `tests/container_support.py`, none needed: it only gains helpers, and every helper it already held is unchanged.
+
+    Notes:
+    1. `tests/stall_support.py:27`: `CREATED` is a second copy of `stage_run_support.CREATED` (the same `JournalRecord`). Importing it from `stage_run_support` would remove the copy.
+    2. `tests/application/test_stall_environment.py`, `test_the_take_runs_after_the_checkout_is_back_and_before_the_sidecar_is_written`: the two rows branch on `row ==` both in the setup and in the assertions. Putting the setup and the check in each row's parameters would remove the branching.
+    3. `tests/application/test_stall_container.py:24-26`: `INSIDE` and `AGENT_TEXT` are imported from `stall_support`, but `BRANCH` and `PATH` from `undo_support`. The values agree, but the test draws its constants from two modules.
