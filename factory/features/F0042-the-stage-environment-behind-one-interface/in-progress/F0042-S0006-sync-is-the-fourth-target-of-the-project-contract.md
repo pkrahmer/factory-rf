@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T17:27:02.166210Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-10-24T17:26:41.671272Z'
   stage: docs
   run: d6985b66c57e41d9bc96663a69f5aa9c
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:27:02.166210Z'
+  stage: smoke-test
 ---
 
 # `sync` is the fourth target of the project contract
@@ -439,3 +448,4 @@ Expect: four lines: `# The contract between a project and the factory is four ta
     `check`: check: green (not run again: passed on tree 92aa3c08e121 at 2026-10-24T17:23:12Z)
     `secrets`: secrets: green (2.0 s)
     `documents`: documents ok
+23. factory: started smoke-test as self.
