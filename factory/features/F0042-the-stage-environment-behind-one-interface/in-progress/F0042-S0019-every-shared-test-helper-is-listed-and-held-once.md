@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 428
 comments_read: [6390818287]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T23:23:37.884971Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-24T23:23:17.502729Z'
   stage: review
   run: 55e10946fb58483a85277181322abf1a
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:23:37.884971Z'
+  stage: docs
 ---
 
 # Every shared test helper is listed and held once
@@ -422,3 +431,4 @@ Expect: 0
 
     Notes:
     - none.
+21. factory: started docs as self.
