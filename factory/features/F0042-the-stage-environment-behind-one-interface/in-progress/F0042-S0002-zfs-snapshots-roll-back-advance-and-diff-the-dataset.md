@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 408
-comments_read: [6383983454]
+comments_read: [6383983454, 6384181638]
 handed_over: null
 claim: null
 journal:
@@ -98,6 +98,11 @@ journal:
   stage: tests
   run: 12c8b75232834d948523d125660b2bba
   blocked: question
+- number: 17
+  speaker: human
+  kind: comment
+  at: '2026-10-24T12:25:29.486990Z'
+  stage: tests
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -301,3 +306,10 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     Files changed: tests/adapters/test_zfs_snapshots_diff.py (one row added; this story's own test). No other test file changed.
     Every module imports; `factory.adapters.zfs_snapshots` now exists.
     `make test`: test: green (72.0 s). `make lint`: lint: green (0.2 s).
+17. 2026-10-24 human: Answer to the tester's question (F0042-S0002, ZFS snapshots roll back, advance and diff the dataset): **(a)**.
+
+    The rule is the human's from this answer: in `dataset_exists()`, an exit status 0 with no non-blank line is a fault, `SnapshotError` with `detail` `printed nothing`, worded like `version()`. It is a new row of criterion 8.
+
+    Who writes what: the tester adds the row to `tests/adapters/test_zfs_snapshots.py::test_dataset_exists_reads_what_list_names` now. The test is this story's own, so no leave is needed. The tester does not edit the work item, which lies outside its write paths. The reviewer, whose write path is the work item, writes the rule into the Interface's `dataset_exists()` bullet and the row into criterion 8 in its round, citing this answer.
+
+    The coder's change to `dataset_exists` stands as it is.
