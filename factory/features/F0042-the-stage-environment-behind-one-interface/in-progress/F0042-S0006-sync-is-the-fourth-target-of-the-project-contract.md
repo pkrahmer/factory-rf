@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T17:25:55.366892Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   at: '2026-10-24T17:25:34.913697Z'
   stage: review
   run: 9c83e0d4e2af44e0b2ef2b3ec63d3315
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:25:55.366892Z'
+  stage: docs
 ---
 
 # `sync` is the fourth target of the project contract
@@ -410,3 +419,4 @@ Expect: four lines: `# The contract between a project and the factory is four ta
     Notes:
     - `tests/test_template_sync.py:31` `_line_number`: it repeats the head search that `test_check_runs_the_other_targets_and_says_green` does inline in `tests/test_template_makefile.py`. It could become a helper in `tests/template_make_support.py`.
     - `tests/test_template_sync.py:80`: `[Step(exit_status=status)] * 2` plans two answers for a run that makes one call. One step would say what the test expects.
+21. factory: started docs as self.
