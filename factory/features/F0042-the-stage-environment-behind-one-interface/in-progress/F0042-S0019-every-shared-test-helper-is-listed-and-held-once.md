@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 428
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T23:07:14.559563Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-24T23:06:53.511056Z'
   stage: tests
   run: a839b0968ece4c62a59790172bcff844
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:07:14.559563Z'
+  stage: doing
 ---
 
 # Every shared test helper is listed and held once
@@ -144,3 +153,4 @@ Expect: 0
 
    `lint`: lint: green (0.5 s)
    `test`: test: green (65.5 s)
+6. factory: started doing as self.
