@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T16:54:19.905053Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-24T16:54:19.905053Z'
   stage: tests
+- number: 20
+  speaker: tester
+  kind: result
+  at: '2026-10-24T16:57:00.412418Z'
+  stage: tests
+  run: 70ecb979916643a98ccacdc00357a86b
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -440,3 +442,21 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
     - `UndoReport` is still used by `stalls.py` and by `undo_support`.
     - The docs criterion (13) is the documenter's.
 19. factory: started tests as self.
+20. tester: I made the test change the coder's entry 18 asked for, so that criterion 11 is tested. The reviewer's entry 16 sets out what was missing.
+
+    Changed: `tests/application/test_stage_environment.py::test_take_is_the_undo_turned_into_a_take_report`
+    - New row `work-item-unreadable`. It uses `_with_broken_work_item`, imported from `tests/application/test_undo.py` next to `_without_work_item`.
+    - New check in both refusal rows (absent and unreadable): after the `WorkItemFormatError` is raised, the test asserts that `GUIDE` and `NEW_DOC` still hold `AGENT_TEXT`. That shows the work tree is left untouched.
+    - Reordered: the row's `change` now runs before the agent writes its files. `_with_broken_work_item` commits the checkout, so with the old order that commit would have taken in the agent's files and changed the stage-start commit. This matches the order in `test_undo.py::test_a_missing_or_unreadable_baseline_raises_before_any_path_is_changed`. The other rows don't depend on the order.
+
+    Mapping:
+    - criterion 4: tests/application/test_stage_environment.py::test_take_is_the_undo_turned_into_a_take_report (rows work-item-untouched, work-item-state-changed, work-item-absent)
+    - criterion 11: tests/application/test_stage_environment.py::test_take_is_the_undo_turned_into_a_take_report (rows work-item-absent, work-item-unreadable, each now checking the agent's files after the raise)
+    - criteria 1 to 3 and 5 to 10: unchanged, as listed in entries 5 and 12.
+
+    Files created: none. Earlier test files changed: none, apart from this story's own `test_stage_environment.py`. Modules the test run could not import: none.
+
+    `make test` is green and coverage is 99.19 %. The new rows pass without any code change because `UndoService` already raises before it changes a path, as the coder said in entry 18. `make lint` is green.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (61.9 s)

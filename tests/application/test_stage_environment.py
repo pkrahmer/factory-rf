@@ -11,7 +11,7 @@ import pytest
 from application.test_nested_repositories import NestingRuntime
 from application.test_sealed_runs import OPEN_FILE, OPEN_FOLDER, ModeRecordingRuntime, _leave
 from application.test_sealed_runs_runner import Runner
-from application.test_undo import _without_work_item
+from application.test_undo import _with_broken_work_item, _without_work_item
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
@@ -116,6 +116,7 @@ def _with_raised_attempts(boundaries: Boundaries, start: StageStart) -> StageSta
         pytest.param(_as_started, False, id="work-item-untouched"),
         pytest.param(_with_raised_attempts, True, id="work-item-state-changed"),
         pytest.param(_without_work_item, None, id="work-item-absent"),
+        pytest.param(_with_broken_work_item, None, id="work-item-unreadable"),
     ],
 )
 def test_take_is_the_undo_turned_into_a_take_report(
@@ -126,12 +127,14 @@ def test_take_is_the_undo_turned_into_a_take_report(
     restored: bool | None,
 ) -> None:
     start = start_stage(boundaries, human, write_paths=["src/*", "{work_item}"])
-    write_files(boundaries.checkout, {NEW_DOC: AGENT_TEXT, GUIDE: AGENT_TEXT, KEPT: AGENT_TEXT})
     used = change(boundaries, start)
+    write_files(boundaries.checkout, {NEW_DOC: AGENT_TEXT, GUIDE: AGENT_TEXT, KEPT: AGENT_TEXT})
 
     if restored is None:
         with pytest.raises(WorkItemFormatError, match=re.escape(PATH)):
             InlineEnvironment(boundaries).take(used, PATH)
+        assert checkout_text(boundaries, GUIDE) == AGENT_TEXT
+        assert checkout_text(boundaries, NEW_DOC) == AGENT_TEXT
         return
     report = InlineEnvironment(boundaries).take(used, PATH)
 
