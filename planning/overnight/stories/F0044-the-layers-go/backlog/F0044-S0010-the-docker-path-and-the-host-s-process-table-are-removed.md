@@ -1,0 +1,44 @@
+# The Docker path and the host's process table are removed
+
+## Description
+
+v1.1 runs as one long-lived Docker container: `image/Dockerfile` builds the factory with its two users, `sudo`, `/etc/gitconfig` and the read-only installs; `image/compose.yml` starts it with `init: true`, the volumes and the login mounts; `image/entrypoint.sh` sets the umask and installs the agents; and the process module ends a timed-out command by reading the kernel's process table, because an agent's code on the host could leave processes in groups of their own. On the VM of F0043 (the machine and the stage image) the factory runs as a systemd service from `vm/setup.sh`, the stages run in the stage image of `vm/Dockerfile`, and no agent code runs on the host: what the factory starts there is git, `zfs` and `podman`, and a container ends whole with its call. After S0008 (the inline environment and its setting are removed) and the human's change 0 of `feature.md` (`self` is stopped), nothing uses the Docker path. This story removes it: every file under `image/` but the credential helper, which moves to `vm/git-credential-factory` because the factory's git on the VM reaches the token only through it (decision 12 of `feature.md`), and every test that pins those files; and it shrinks the kill of a timed-out command to the kill of its process group, removing the process table reading and `factory.domain.sessions` (decision 7). What stays: `vm/Dockerfile`, `vm/setup.sh`, `vm/factory.service` and their tests; the credential helper's behaviour and its installed path `/usr/local/bin/git-credential-factory`; a command that reaches its time limit is ended with every process of its process group and read as `timed_out`.
+
+## Interface
+
+Removed: `image/Dockerfile`, `image/compose.yml`, `image/entrypoint.sh`, `image/sudoers-factory-agent`, `image/gitconfig`. Moved unchanged: `image/git-credential-factory` to `vm/git-credential-factory`. `image/secrets/` is the human's and untracked; no stage touches it.
+
+`vm/setup.sh`: the `tools` step installs `vm/git-credential-factory` of the checkout as `/usr/local/bin/git-credential-factory` (mode `0755`, unless identical), in place of `image/git-credential-factory`; nothing else in the script changes.
+
+Removed whole: `src/factory/domain/sessions.py`.
+
+`factory.adapters.process` (`adapters`): `read_process_table`, `_kill_one`, `_PROCESS_TABLE` and `_ROUND_PAUSE_SECONDS` go; `_kill_session(process)` sends `SIGKILL` to the child's process group (`os.killpg(process.pid, signal.SIGKILL)`, a group already gone being no error) and reads no table.
+
+Tests (the leave is decision 26 of `feature.md`):
+
+- Deleted whole: `tests/test_image.py`, `tests/test_image_credentials.py`, `tests/test_image_gitconfig.py`, `tests/test_image_users.py`, `tests/test_opencode_image.py`, `tests/test_opencode_config_folder.py`, `tests/test_compose.py`, `tests/test_compose_init.py`, `tests/test_compose_project.py`, `tests/test_entrypoint.py`, `tests/test_entrypoint_skills.py`, `tests/test_entrypoint_umask.py`, `tests/test_entrypoint_support.py`, `tests/test_agent_home_ownership.py`, `tests/test_api_login_mount.py`, `tests/test_claude_token_mount.py`, `tests/test_token_folder.py`, `tests/adapters/test_process_table.py`, `tests/domain/test_sessions.py`, and the helper modules `tests/compose_support.py`, `tests/entrypoint_support.py`, `tests/leftovers_support.py`. Before `tests/test_image.py` goes, the tester moves the Dockerfile readers F0043-S0001's `tests/test_stage_image*.py` still import from it into `tests/dockerfile_support.py` under the standing leave.
+- `tests/conftest.py`: the fixtures `compose_service` and `image_layout` go with their imports; `tests/test_shared_test_helpers.py::test_the_image_layout_fixture_returns_the_entrypoints_layout` is deleted.
+- `tests/test_git_credential_helper.py`: `HELPER` is `ROOT / "vm" / "git-credential-factory"`; every test keeps its name and assertions.
+- F0043-S0001's `tests/test_stage_image.py` (or the module its tester named for its criteria 2 and 3): the rows that compare `vm/Dockerfile` with `image/Dockerfile` go; the rows that check each pin's form (three numbers, a digest, a Debian version that is not `*`) stay.
+- F0043-S0003's `tests/test_vm_setup_text.py`: a row that names `image/git-credential-factory` names `vm/git-credential-factory`.
+- `tests/adapters/test_process_session.py`: `test_time_limit_of_a_make_target_ends_what_timeout_started` and `test_process_the_kill_cannot_reach_does_not_hold_the_call` are deleted; `test_time_limit_ends_every_process_of_the_session` becomes `test_time_limit_ends_every_process_of_the_group` and `test_stop_and_error_of_the_callback_end_every_process_of_the_session` becomes `..._of_the_group`, each with a grandchild in the child's own group.
+
+## Acceptance criteria
+
+1. The files (rows of one parametrized test over the repository root): `image/Dockerfile`, `image/compose.yml`, `image/entrypoint.sh`, `image/sudoers-factory-agent`, `image/gitconfig` and `image/git-credential-factory` do not exist; `vm/git-credential-factory` exists, is executable and holds the text `image/git-credential-factory` held on `main` before this story (the reviewer checks the move in the diff).
+2. The credential helper (the tests of `tests/test_git_credential_helper.py` on `vm/git-credential-factory`): `get` with a readable token file prints `username=x-access-token` and `password=<the token>`; `get` without a readable token file prints nothing and exits 1; any other operation prints nothing and exits 0; `git credential fill` through the factory's git environment gets the token.
+3. The script installs the moved helper (one test reading `vm/setup.sh` with its comment lines dropped): the `tools` step's text holds `vm/git-credential-factory` and `/usr/local/bin/git-credential-factory`, and the script holds `image/` nowhere; `sh -n vm/setup.sh` exits 0.
+4. The removed names (rows of one parametrized test): `importlib.util.find_spec("factory.domain.sessions")` is `None`; `read_process_table` is no attribute of `factory.adapters.process`; no module under `src/factory` reads `/proc`.
+5. The kill at the limit (rows of one parametrized test with `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS` of `tests/time_limits.py` where the child must start first): a child that starts a grandchild in its own process group and both sleep 60 seconds, under a time limit of 1 second, ends `timed_out` within the bound, and the grandchild's pid is gone afterwards; a child that ends by itself before its limit is not `timed_out` and keeps its exit status; a callback of `run_streaming` that asks to stop ends the child and its grandchild the same way.
+6. No test reads a file under `image/` (one test over the files under `tests/`): no module under `tests/` but the test of criterion 1 holds a string literal that begins `image/` or builds a path with the part `"image"`.
+7. `make check` stays green.
+8. docs: `docs/operator-guide.md`: the chapters `## The machine's image` and `## The container: compose, entrypoint and health check` go, and so do *Container runtimes*' subsections on Compose (*Podman: the Compose provider*, *Podman: the restart*) and every sentence that names `image/compose.yml`, `image/entrypoint.sh`, `init: true`, the `claude-home` volume or `docker compose`; what an operator of v1.1's container needs is one line that points to the tag `v1.1`; the list at the guide's top and `## The machine`'s rebuild step follow (`vm/git-credential-factory`); `docs/project-guide/processes-and-checks.md`, *Starting a process*: the kill of a timed-out command is the kill of its process group; `docs/project-guide/README.md`, *Shared test helpers*: the lines of the deleted helper modules go; `README.md`: no `docker compose` and no `image/`, and the run instructions point to `vm/setup.sh` and the chapter `## The machine`. `docs/decisions.md`: the entries "The container runtime's init reaps the processes a killed run leaves", "A command stopped at its time limit loses every process of its session", "The entrypoint sets no git configuration and starts in `/opt/factory`", "Every tool of the machine's image is pinned, and its identity is generated at build", "The compose project is named after the instance", "The agent home belongs to the factory; the agent adds files and cannot change the installed ones" and "opencode's configuration folder is made by the image, read-only to the agent" each gain one closing line: "Replaced by the machine of v1.2 (`vm/`), F0044-S0010" (the session entry: "The process group is killed; no agent code runs on the host since v1.2, F0044-S0010").
+
+## Smoke test
+
+```bash
+ls image/Dockerfile image/compose.yml image/entrypoint.sh 2>/dev/null | wc -l; test -x vm/git-credential-factory && echo helper-moved; uv run python -c 'import factory.domain.sessions' 2>/dev/null && echo present || echo gone
+```
+Expect: three lines: `0`; `helper-moved`; `gone`
+
+## Journal

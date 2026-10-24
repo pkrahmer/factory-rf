@@ -1,0 +1,172 @@
+# The layers go
+
+## Goal
+
+v1.1 protected itself from what an agent does in its long-lived container with many layers: the kernel's write guard (`factory-confine`, Landlock, the tool paths), a second user with `sudo` and `env -i`, the leftovers program, the fresh home, the seal of the checkout's `.git` with the removal of ignored files and nested repositories and the re-clone, the undo, and the Docker image, compose file and entrypoint that held it all together. v1.2 replaces them with one mechanism (`planning/v1.2-plan.md`, decided by the human on 2026-10-24): every stage runs in throwaway Podman containers on one ZFS dataset that is rolled back to its base, and the factory takes from the dataset only what the role may write. F0042 (the stage environment behind one interface) built that cycle and F0043 (the machine and the stage image) the machine it runs on. This feature is the third of v1.2 and removes every piece that existed only for the long-lived container, with its tests, its settings, its stall reason and its preflight items, closes each decision-log entry that described one with a line that says what replaced it, and replaces the guide sections. It is built by the instance `vm` on the VM with the `container` stage environment, after F0042 and F0043 are merged and the first VM stage of F0043 has run: the factory that removes the layers is the one that no longer needs them, which is the proof. It is for the human, who wants a factory with fewer moving parts, and for every later reader of the code, who meets one mechanism instead of eight. When it is done, `src/factory` holds one stage environment, the suite runs its stages on the container fakes, and the documents describe the machine of v1.2 only. Done when every story below is merged and `make check` is green; the acceptance reports the measures of decision 27 (the lines removed against the lines added since the tag `v1.1`, the suite's running time, and that no stall reason and no stop reason names a removed layer).
+
+## Scope
+
+- S0001: no agent call starts through the write guard's wrapper: the shared launch module, both runtimes, the wiring and the preflight lose the wrapper, its rules file, the run's temporary folder, `CLAUDE_CONFIG_DIR` and the item `confinement`; the agents' rule R14 (decision 4).
+- S0002: `factory.entry.confine`, `factory.adapters.landlock`, `factory.domain.confinement` and `replace_process` removed; the pipeline definition's `tool_paths`, `GuardSettings.tool_paths`, the guard of a request and of a task context; the records contract 2.0; `template/factory/pipeline.yml` without `tool_paths`.
+- S0003: `factory.entry.leftovers`, `factory.domain.leftovers`, `own_identity`, `signal_every_other`, the leftovers launches, the runtimes' and the commands' leftovers, `leftovers_command` and `end_leftovers`.
+- S0004: `factory.entry.fresh_home`, the adapters `agent_home` and `home_files`, `factory.domain.agent_home`, the interface `AgentHome` and `Boundaries.agent_home`, the home reset in the sealed runs, `FACTORY_OPENCODE_FOLDERS`, the runtimes' `LOGIN_STATE_FILE`.
+- S0005: the `sudo` chain and `env -i`, `AgentRunRequest.os_user`, the runtimes' `sudo_executable`, the run files' `0640`, `CommandUser`, `FACTORY_AGENT_USER`, the items `agent-user` and `tool:sudo`, the shared mode of the factory's git.
+- S0006: the seal, `check_seal`, the removal of nested repositories and ignored paths, `discard` and the re-clone, `RepositoryUnsealed`, `factory.application.sealed_runs`, the stall reason `nested_repository`, the records contract 3.0, the tests' umask.
+- S0007: the suite's `boundaries` fixture and world on `FakeSnapshots` and `FakeContainerRuns`, the remote's `Makefile` with `sync`, the request's working directory in the dataset's checkout.
+- S0008: `InlineEnvironment`, `FACTORY_STAGE_ENVIRONMENT`, the wiring's inline branch, the items `agent-environment`, `tool:make` and the runtime's tool, the `opencode` item's `PATH` check; `Boundaries.snapshots` and `containers` required.
+- S0009: `factory.application.undo`; the entry's closing sentence `The factory left out changes outside the write paths: ...`.
+- S0010: `image/` but the credential helper, which moves to `vm/git-credential-factory`; `factory.domain.sessions` and the process table reading.
+- S0011: the documents' sweep: the decision log's closing lines and the paragraph *What went*, the operator guide of the machine only, the project guide without removed modules, `README.md`.
+- The tests each story names, under `tests/`, deleted or changed by the leaves of decisions 17 to 26.
+
+## Out of scope
+
+- Any new mechanism, interface, setting or adapter: what stays is F0042's and F0043's, used as they define it.
+- The refusal rule of the write paths (`refusal`, `PROTECTED_PATHS`, the rule of the other work items in `in-progress/`, a `.claude` folder at any depth), `restore_state_and_journal`, the take, the login shell (`LOGIN_SCRIPT`), `git-credential-factory`'s behaviour, `reset_to`, the restore's switch to `main` and its deletion of local branches: they stay as they are.
+- Any change to an agent text under `claude/agents/` beyond R14 (decision 4), to the forms, or to `factory/pipeline.yml` beyond the human's changes below.
+- Anything on GCP or on the VM itself: the human's rebuilds of the instance `vm` between stories are the operator guide's (*The rebuild after a merge*), not a story.
+- The six smaller items of `planning/v1.2-candidates.md` (F0045): `leftovers_command` without `-B` and the "Open" of the kill under `sudo` fall with S0003 and S0005; `UV_LINK_MODE`, `output_abandoned`, the imports between test modules and the docs-only finding's long way stay F0045's.
+- The stall reason `left_branch`, the default `/home/agent/.claude` of `FACTORY_CLAUDE_HOME` and the default `/opt/factory/image-id` of `FACTORY_IMAGE_ID_FILE`: they name no removed layer (decisions 14 and 28).
+- The rename (step 9 of v1.1's plan), mutation testing, every paid call: no story and no smoke test makes one.
+
+## Stories
+
+The build order; start one at a time, the next when the one before is archived in `done/`. The plan's F0044 section sketches eight stories, one per layer; this split keeps one story per layer but splits two and changes the order where one layer is built on another (decision 1): the kernel's guard is two stories (S0001 the calls, S0002 the modules and the tool paths), so that each stays one coder's forty minutes; the leftovers program (S0003) and the fresh home (S0004) come before the second user (S0005), because both run only as that user; the inline environment is two stories (S0007 the suite on the container fakes, S0008 the environment and its setting), because the suite's move is a tester's work of its own; the undo (S0009) comes after the inline environment, whose take it is; the Docker path (S0010) carries the process table reading, which the inline environment's host runs needed until S0008 (decision 7); the documents' sweep is last (S0011).
+
+- S0001: No agent call starts through the write guard's wrapper
+- S0002: The wrapper, the kernel's rules and the tool paths are removed
+- S0003: The leftovers program is removed
+- S0004: The fresh home is removed
+- S0005: The second user is removed
+- S0006: The checkout's hygiene is removed
+- S0007: The suite's stages run on the container fakes
+- S0008: The inline environment and its setting are removed
+- S0009: The undo is removed
+- S0010: The Docker path and the host's process table are removed
+- S0011: The documents close the layers
+
+## The human's changes
+
+Checked against `factory/pipeline.yml` after F0043's change 1: the coder writes `src/*`, `image/*`, `template/*`, `claude/*` and `vm/*`, the tester `tests/*`, the documenter `README.md` and `docs/*`. Every story stays inside them: `template/factory/pipeline.yml` (S0002), `claude/agents/*.md` (S0001, the human's words of decision 4) and `vm/setup.sh` with `vm/git-credential-factory` (S0010) are the coder's; the structural tests (`tests/test_make_search.py`, `tests/test_process_search.py`, `tests/test_wrapper_search.py`, `tests/test_hook_removed.py`, `tests/application/test_interfaces.py`, `tests/application/test_git_interface.py`, `tests/entry/test_wiring_constants.py`) are the tester's under the leaves of decisions 17 to 26. No new dependency, no new console script, no `.secrets.baseline` entry, no `security/` change, no suppression marker (two go). The stages' limits are unchanged. What lies outside the write paths:
+
+0. **Before S0001 starts: `self` stops.** A work item has one claim, and the first instance to tick takes it; F0044 is built by `vm` (the plan's decision 9). Stop `self` on the work machine (`docker compose stop` in its checkout) before S0001 moves to `in-progress/`, and keep its volumes until S0010 is merged; the instance `vm` runs the code of `main` with F0042 and F0043 merged. After every story's merge the rebuild of `docs/operator-guide.md`, *The rebuild after a merge*, brings the merged code and agent files to `vm` (recommended between stories, required after S0001 so that the agents read the new R14, and after S0002, S0006 and S0008, which change what the factory reads).
+
+1. **Before S0001 starts** (the code before S0002 reads `tool_paths` with a default, so the key may go first), one commit on `main`:
+
+   - In `factory/pipeline.yml`, these three lines go:
+
+     ```yaml
+     # What every agent run may write for the project's tools, besides its write paths: git-ignored
+     # state in the checkout, and caches in the agent's home (~/). The kernel refuses every other write.
+     tool_paths: [".venv/*", ".mypy_cache/*", ".ruff_cache/*", "demo/todo-service/project/.ruff_cache/*", ".pytest_cache/*", ".import_linter_cache/*", ".reports/*", "~/.cache/*", "~/.semgrep/*"]
+     ```
+
+   - In `demo/todo-service/project/factory/pipeline.yml`, these two lines go:
+
+     ```yaml
+     # What every agent run may write for the project's tools, besides its write paths.
+     tool_paths: [".venv/*", ".mypy_cache/*", ".ruff_cache/*", ".pytest_cache/*", ".import_linter_cache/*", ".reports/*", "mutants/*", "~/.cache/*", "~/.semgrep/*"]
+     ```
+
+   - Confirm decision 4's text of R14 (the coder of S0001 writes it into the seven agent files).
+
+2. **After S0001 is merged**, in `pyproject.toml`, this line under `pytest_add_cli_args` goes (the test is deleted):
+
+   ```toml
+       "--deselect", "tests/entry/test_wiring_confinement.py::test_every_run_of_the_factory_builds_a_confined_runtime",
+   ```
+
+3. **After S0002 is merged**, one commit on `main`:
+
+   - In `pyproject.toml`, under `[project.scripts]`, this line goes:
+
+     ```toml
+     factory-confine = "factory.entry.confine:main"
+     ```
+
+   - In `CLAUDE.md`, *Not without asking*, the last bullet becomes:
+
+     ```markdown
+     - The one exception, decided with the seed: `src/factory/adapters/process.py`, the one module that starts processes (R5), may carry `# noqa: S404` and `# nosec B404` on its `subprocess` import and `# noqa: S603` and `# nosec B603` on its one `Popen` call; and nothing else.
+     ```
+
+4. **After S0003 is merged**, in `CLAUDE.md`, *Tests*, the whole bullet that begins "No test, no smoke test and no command a stage runs by hand runs" (the rule on the leftovers program) goes.
+
+5. **After S0004 is merged**, in `CLAUDE.md`, *Tests*, the whole bullet that begins "No test and no smoke test runs" (the rule on the fresh-home program) goes.
+
+6. **After S0005 is merged**, in `pyproject.toml`, the line `"src/factory/entry/wiring.py" = ["PLR0913"]  # F0027-S0002 gives build_boundaries a sixth argument, end_leftovers; no noqa in the source` goes when `uv run ruff check src/factory/entry/wiring.py` passes without it; otherwise its comment names the function that still takes six arguments.
+
+7. **After S0006 is merged**, one commit on `main`:
+
+   - In `Makefile`, the two comment lines above `export UV_COMPILE_BYTECODE := 1` become one (decision 8):
+
+     ```make
+     # uv compiles .venv's bytecode at its sync, so the dataset's base keeps it and no stage's container compiles it again.
+     ```
+
+   - In `Makefile`, recipe `test:`, the line `	# The tests set their own umask (tests/conftest.py); uv syncs .venv under the caller's.` goes; recipe `mutants:`, the line `	umask 022   # the seal refuses a group-writable checkout` goes.
+   - In `pyproject.toml`, `[tool.uv]`, the comment above `compile-bytecode = true` becomes `# Every sync writes .venv's bytecode, so the dataset's base keeps it (F0044, decision 8).`
+
+8. **After S0008 is merged**, in `CLAUDE.md`, *Vocabulary*, the last sentence of the bullet that begins "v1.2's words" becomes:
+
+   ```markdown
+   The **stage environment** is the interface behind which the container environment stands; v1.1's `inline` went with F0044.
+   ```
+
+9. **After S0009 is merged and before S0011 starts**, in `CLAUDE.md`, *Architecture*, the bullet that begins "Agent runtime (R12)." becomes:
+
+   ```markdown
+   - Agent runtime (R12). An agent-runtime interface with factory-shaped DTOs; the first implementation wraps `claude -p`, the second `opencode run`, each under the login its files hold (a subscription token or an API key) or, for an operator's opencode build, the login it keeps in the agent's home. Every agent call runs in a throwaway container of the stage image on the stage's dataset (`ContainerRuns`, `podman run --rm --userns=keep-id --timeout`), and every project command in a check container on the rolled-back base with the taken files. The dataset is rolled back to its base before every stage, so no run reads or inherits what an earlier one left, and the take after the run copies into the factory's work tree only the changed paths the role may write; no code an agent wrote runs on the host, and no hook judges a tool call. The runtime is chosen per instance (`FACTORY_AGENT_RUNTIME`).
+   ```
+
+10. **After S0010 is merged**, one commit on `main`, and on the work machine:
+
+    - In `factory/pipeline.yml`, the `coder:` line becomes (two spaces of indentation):
+
+      ```yaml
+        coder: {write_paths: ["src/*", "template/*", "claude/*", "vm/*"], time_limit: 40, lease_duration: 60}
+      ```
+
+    - In `pyproject.toml`, `[tool.mutmut]`, `also_copy` loses `"image/", ` and holds `"vm/"` (add it after `"template/", ` if F0043 did not).
+    - `.gitignore` keeps its two lines on `image/secrets/` until the human has removed that folder by hand from every machine that holds one (decision 12); no agent touches it.
+    - `self`'s containers, volumes and image are removed by hand (`docker compose down -v` in its old checkout, then `docker image rm`), which is the end of the Docker path (the plan's cut-over, step 3).
+
+## Decisions taken for the human
+
+1. **The split and the order** (all stories). One story per layer, as the plan says, with two layers split and three moved, each for a reason in the code: the kernel's guard is S0001 (the call path: the launch module, both runtimes, the wiring, the preflight, R14) and S0002 (the three modules, `replace_process`, the tool paths and the contract), because together they change some thirty test modules; the leftovers program (S0003) and the fresh home (S0004) come before the second user (S0005), because the program and the reset run only through `sudo` as that user, and the plan's order would make S0005 cut code that the next two stories delete; the inline environment is S0007 (the suite moves to the container fakes, a tester's work of its own) and S0008 (the environment, its setting and the wiring); the undo (S0009) comes after the inline environment, because `InlineEnvironment.take` is the undo, so the plan's order (undo fifth) would leave the inline environment without a take; the process table reading goes with the Docker path in S0010 and not with the leftovers program, because the session kill reads the table for the host runs of the inline environment until S0008 (the plan's own words: "the inline environment keeps its own kill until story 7"). Options: A, this (taken); B, the plan's order with S0005 cutting the leftovers' and the home's agent-user paths first; C, the inline environment first (S0001), every later removal then dead code.
+2. **The runtimes keep a call without a container** (S0001, S0005, S0008). After S0008 no instance runs an agent on the host: the wiring always gives the runtime its `ContainerRuns`. The runtime classes keep `containers: ContainerRuns | None = None` and the call started directly when it is `None`, because some forty runtime tests run the runtimes with stand-in executables on the host, and making `containers` required would rewrite them all for no behaviour of an instance. S0008's criterion 4 pins that the wiring always gives it. Options: A, this (taken); B, `containers` required, every runtime test through `FakeContainerRuns` (a later story if the human wants it).
+3. **`MakeProjectCommands` stays** (S0005, S0007, S0008). It loses `CommandUser` and its `sudo` path in S0005, and no instance uses it after S0008 (the wiring gives `ContainerMakeCommands`), but it is the suite's project commands on the host checkout and the home of the reading `ContainerMakeCommands` shares (F0042's decision 8). The suite's fixture keeps it, so the tests that push their own `Makefile` need no `sync` target unless their stage runs `prepare`.
+4. **R14's new text** (S0001; the human's words, to be confirmed before S0001 starts). The seven agent files' line that begins `R14.` becomes, word for word:
+
+   > R14. The pipeline's own files — `factory/pipeline.yml`, `factory/story-form.md`, every feature's `feature.md`, `backlog/`, `done/` and `.claude/` — change only with the human's commit or on their explicit instruction. You write only within your write paths in the pipeline definition (`{work_item}` there is your own work item, outside its front matter and journal), nothing else: after the stage the factory takes only the changed paths your role may write and leaves every other change out, whatever tool or command made it, so a write elsewhere is lost. When the work needs a path outside your write paths, end with `question` and name it. Make temporary files with `mktemp` or `tempfile`; they are lost with the stage.
+
+   On `vm` the kernel refuses nothing since F0042 (a call in a container is not confined), so today's R14 is already untrue there; S0001 is the first story after which no instance confines. `tests/test_claude_agent_refusal.py` pins the line; its leave is decision 17.
+5. **The records contract's major rises in each story that narrows it** (S0002, S0006). The decision log's rule says the major rises for a field removed or a type narrowed. S0002 removes `tool_paths` from the pipeline definition: `2.0`. S0006 removes the value `nested_repository` from the stall reasons of the work item and acceptance states: `3.0`. No record on `main` holds that value (checked on 2026-10-24). Options: A, this (taken; the reviewer checks each story by the rule as it stands); B, one rise to `2.0` for both, the rule read per release.
+6. **`tests/confine_support.py` keeps its shared helpers** (S0001, S0002). Its `Layout`, `build_layout`, `read_records` and `write_script` are imported by `tests/conftest.py`, `tests/podman_support.py`, `tests/zfs_support.py`, `tests/test_test_children.py` and others that have nothing to do with the guard; only its wrapper parts go. Moving them under another name is the standing leave's, the tester's choice.
+7. **The process table reading goes with the Docker path** (S0003, S0010). `read_process_table`, `_kill_one` and `factory.domain.sessions` serve the session kill of a timed-out command, which also ends what an agent's code started in a group of its own on the host. Until S0008 the inline environment runs agents on the host; after it the host runs git, `zfs` and `podman` only, and the kill of the process group is enough. S0010's criterion 5 pins it.
+8. **`UV_COMPILE_BYTECODE` and `compile-bytecode` stay** (the human's change 7). The plan's inventory names `UV_COMPILE_BYTECODE` as going with the umask. Its reason today is the umask, but it also makes the sync write `.venv`'s bytecode once, which the dataset's base keeps, while the stage image's `PYTHONDONTWRITEBYTECODE=1` keeps every container from writing it; without it every container would compile in memory at every start. Only the comments change.
+9. **The suite's stages run on the container fakes before the inline environment goes** (S0007). The `boundaries` fixture and the world of `tests/proof_support.py` get `FakeSnapshots` and `FakeContainerRuns` on `tmp_path`; the remote every test copies gains a `Makefile` whose `sync` is `@:`; and the request's working directory is the dataset's checkout whenever the boundaries hold snapshots, so `FakeAgentRuntime` writes where a real agent writes and the take brings the result in. This is the change with the widest reach in the feature: about thirty-four test modules run stages or ticks on these fixtures. **The pre-check of S0007 runs the whole suite on a copy with this fixture change** (a throwaway container of the image, no paid call) and adds every test that fails to S0007's Interface by name before the story starts; without that list the tester ends with questions. Options: A, this (taken); B, keep a reduced inline environment for the suite (the undo stays, against the plan); C, `ContainerMakeCommands` in the fixture too (every pushed `Makefile` needs `sync`). Open for the human: the pre-check's run of the suite (recommended), or a broader leave for S0007, "every test that fails only because the fixture holds the fakes or the remote a `Makefile`: its setup changed, never its assertions", which does not name its tests.
+10. **The settings without a switch** (S0008). `FACTORY_STAGE_ENVIRONMENT` goes; `InstanceSettings.dataset`, `workspace` and `stage_image` keep their `None` defaults, so the thirty-one test modules that build `InstanceSettings` and the readers that need no dataset (`factory-check-story`, `factory-bill`) are unchanged; `read_settings` reads them as optional; `build_boundaries` refuses the first missing one with `SettingsInvalid(<variable>, "missing")`, which `factory-run` reports as the stop of invalid settings (F0043-S0002's rule for a fault the runner raises). A relative `FACTORY_WORKSPACE` and F0043-S0002's workspace rule apply whenever the workspace is set. Options: A, this (taken); B, the three required in `read_settings` and in the model (every settings test changes).
+11. **The entry's closing sentence becomes `The factory left out changes outside the write paths: ...`** (S0009), as F0042's decision 9 planned for "the undo goes", and the keyword of `agent_entry` becomes `left_out`. The paths are the same ones the undo named.
+12. **The credential helper moves to `vm/git-credential-factory`** (S0010). The factory's git on the VM reaches the token only through `/usr/local/bin/git-credential-factory` (`CREDENTIAL_HELPER`), which F0043-S0003's script installs from the checkout's `image/`; with `image/` gone the file moves unchanged to `vm/`, the script installs it from there, and `tests/test_git_credential_helper.py` reads it there. `.gitignore`'s `image/secrets/` stays until the human has removed that untracked folder by hand everywhere, so no secret becomes committable by accident.
+13. **A layer's code may be left without a caller between two stories** (S0005, S0008). `SealedProjectCommands` has no caller between S0005 and S0006, and `UndoService` none between S0008 and S0009; each is removed by the next story. `make duplicates` may list them as dead code in that window; it is a record, not a check.
+14. **The stall reason `left_branch` stays** (S0006; open, A recommended). It names no layer; on a `container` instance the agent cannot move the host's branch, so it can no longer happen, but removing it is no part of the long-lived container's layers and would narrow the contract once more. Options: A, keep it (recommended); B, a story in F0045 that removes it with the contract's next major.
+15. **History stays history** (S0011, the human's changes). `CLAUDE.md`'s *Tests* bullet on `ROOMY_LIMIT` names `factory-confine` as the cause of a measurement on 2026-10-19; `docs/operator-playbook.md`'s incidents table and its rule on F0019's rebuild, and the night logs under `docs/runs/`, describe what happened then. None of them changes; the decision log's entries are closed, never deleted.
+16. **`opencode_item` narrows to `opencode_item(settings, agent_models)`** (S0008). After S0008 its `environment` and `find` parameters serve only the inline form, which goes; F0042-S0011's tests and `tests/application/test_opencode_item.py` call the narrowed form (leave of decision 24).
+17. **The human's leave for S0001, to be given before the story starts**: to delete and change the earlier tests the Interface of S0001 names (F0019, F0020, F0027, F0040, F0041 and F0042 wrote them), as it says; every other earlier test unchanged.
+18. **The human's leave for S0002, to be given before the story starts**: the tests the Interface of S0002 names (F0019, F0003, F0006, F0020, F0021 and F0042 wrote them), among them the structural `tests/test_process_search.py` (two tests, their names kept) and `tests/test_wrapper_search.py`.
+19. **The human's leave for S0003, to be given before the story starts**: the tests the Interface of S0003 names (F0027, F0030, F0040 and F0042 wrote them), among them `tests/test_process_search.py`, `tests/test_wrapper_search.py` and `tests/entry/test_wiring_constants.py`.
+20. **The human's leave for S0004, to be given before the story starts**: the tests the Interface of S0004 names (F0029, F0040 and F0042-S0010 wrote them).
+21. **The human's leave for S0005, to be given before the story starts**: the tests the Interface of S0005 names (F0012, F0014, F0020, F0027, F0040 and F0042-S0010, S0011 and S0015 wrote them), among them `tests/conftest.py`'s fixture `probe_settings`. For the modules F0042's unmerged stories add, the leave covers the rows the Interface describes, whatever names their testers gave the tests.
+22. **The human's leave for S0006, to be given before the story starts**: the tests the Interface of S0006 names (F0012, F0018, F0027, F0033, F0040 and F0042 wrote them), among them the structural `tests/application/test_interfaces.py` and `tests/application/test_git_interface.py` (renamed to twenty-one, the same assertions) and `tests/conftest.py` (the umask and `group_umask`).
+23. **The human's leave for S0007, to be given before the story starts**: the fixtures `boundaries` of `tests/conftest.py` and the world of `tests/proof_support.py`, `REMOTE_FILES` of `tests/git_support.py`, and the tests the Interface of S0007 names, with the list the pre-check adds (decision 9); each changed test keeps its name and what it checks of the result commit, the work tree and the entry, except the two it deletes.
+24. **The human's leave for S0008, to be given before the story starts**: the tests the Interface of S0008 names, among them the structural `tests/test_make_search.py::test_only_the_make_class_names_make` (its set becomes `{"factory.adapters.make_commands"}`), `tests/wiring_support.py`, the fixture `hosted_environment` of `tests/conftest.py`, and every module under `tests/entry/` that builds boundaries through the wiring, as the Interface lists them; for F0042-S0010's and S0011's and F0043-S0002's modules, the rows the Interface describes.
+25. **The human's leave for S0009, to be given before the story starts**: the tests the Interface of S0009 names (F0005, F0013, F0036, F0041 and F0042 wrote them), each keeping its name.
+26. **The human's leave for S0010, to be given before the story starts**: the tests the Interface of S0010 names (F0010, F0012, F0022, F0030, F0033, F0040, F0043 wrote them), among them `tests/conftest.py`'s fixtures `compose_service` and `image_layout`, and F0043-S0001's `tests/test_stage_image*.py` (the rows that compare with `image/Dockerfile`) and F0043-S0003's `tests/test_vm_setup_text.py` (a row that names `image/git-credential-factory`).
+27. **The measures in the acceptance** (the plan's measures; the acceptance reviewer writes them into the report, from `origin/main` after S0011):
+    - Simple: the lines removed and added since the tag `v1.1`, for `src/factory`, `tests` and the documents (`README.md`, `docs/`) apart and in total (`git diff --shortstat v1.1 origin/main -- <path>`), and the same for this feature's story commits alone; the plan's target is at least three removed per one added since `v1.1` (F0042 and F0043 count as the added part), reported, not a refusal.
+    - Fast: the suite's running time, the `test: green (<seconds> s)` line of `make test` on `origin/main` against the same line at `v1.1`, both from the run records of this repository (`/state/records/project-commands.jsonl` of `vm`, or a run of each on the same machine), reported, not a refusal.
+    - Clean: no value of `StallReason` (`factory.domain.journal`) and no value of `RepositoryStopReason` (`factory.domain.stops`) names a removed layer (none is `nested_repository`, and none names `seal`, `sudo`, `confine`, `leftovers`, `home`, `undo` or `inline`); this one is a criterion of the acceptance, and its failure is a proposed story.
+28. **Two defaults that name v1.1's image stay** (open, A recommended). `FACTORY_CLAUDE_HOME` defaults to `/home/agent/.claude` (the second user's home) and `FACTORY_IMAGE_ID_FILE` to `/opt/factory/image-id` (v1.1's image); the VM's environment file sets both, so neither is read there. Options: A, a small story in F0045 that makes both required or gives them the VM's paths (recommended); B, a story of this feature.
+29. **The number and the name.** F0044 is the next free number after F0043 in `factory/features/` and in `planning/overnight/stories/`; the plan names it. The name says what is true when it is done.
+
