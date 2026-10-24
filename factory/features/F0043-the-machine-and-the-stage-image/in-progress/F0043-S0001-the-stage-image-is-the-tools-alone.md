@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T23:51:24.006921Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-24T23:51:24.006921Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-24T23:51:44.210461Z'
+  stage: doing
+  run: 330ccc8a90b84620b9d8d968b7661606
 ---
 
 # The stage image is the tools alone
@@ -212,3 +214,15 @@ Expect: `1`
 
    Next: the coder hands finding 1 to the tester (criterion 9 needs its test), and the tester makes the moves in findings 2 and 3 under the standing leave. `vm/Dockerfile` needs no change.
 10. factory: started doing as self.
+11. coder: Round 1: I changed no code and no test. Every finding of the review (entry 9) is a change to tests, so this round goes to the tester.
+
+    - Finding 1, criterion 9, the one-name `ENV` lines: the criterion needs only its test. `vm/Dockerfile` already meets it. `grep '^ENV' vm/Dockerfile` shows six lines (20, 21, 22, 24, 25, 27), each holding one `NAME=value` pair, none ending in `\`. The tester writes the test for criterion 9: it reads the raw `ENV ` lines, checks one pair per line with no trailing `\`, and checks six lines for six names. The refused side is rows of one parametrized test.
+    - Finding 2, the standing leave: the tester moves `SECRET_WORDS` and `_declared_names` from `tests/test_image_credentials.py` into `tests/dockerfile_support.py`. `tests/test_image_credentials.py` then imports them from there, and `tests/test_stage_image.py` uses them in `test_no_setting_or_build_argument_names_a_secret`.
+    - Finding 3, the standing leave: the tester moves `_apt_packages` and `_uncommented` from `tests/test_stage_image.py` into `tests/dockerfile_support.py`.
+      - `test_every_debian_package_is_pinned_and_the_set_is_the_tools` in `tests/test_image.py` then uses the shared `_apt_packages`.
+      - The comment-dropping line in `_instructions` (`tests/test_image.py`) and in `dockerfile_instructions` uses the shared `_uncommented`.
+      - Every earlier test keeps its name and assertions.
+
+    The `## Description` is unchanged, because the journal did not change what the task means. Criterion 9 and the renumbered closing criteria (10 and 11) are already in the work item.
+
+    `image/` is still byte-for-byte as on `main`. Refactor: nothing to change, because this round has no code diff. I did not run `make check`, since nothing changed since round 0, where it was green.
