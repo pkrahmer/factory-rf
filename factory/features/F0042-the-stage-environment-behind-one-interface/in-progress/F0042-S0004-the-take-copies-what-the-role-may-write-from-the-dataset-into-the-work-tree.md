@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578, 6386353501]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T16:05:35.692624Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -132,6 +136,11 @@ journal:
   at: '2026-10-24T16:05:15.131303Z'
   stage: tests
   run: 2badef93e33f4bb899672ef8d16ff0f6
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:05:35.692624Z'
+  stage: doing
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -438,3 +447,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
 
     `lint`: lint: green (0.5 s)
     `test`: Bytecode compiled 4164 files in 88ms
+23. factory: started doing as self.
