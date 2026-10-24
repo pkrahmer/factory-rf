@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578, 6386353501]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T16:12:45.531384Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -174,6 +170,12 @@ journal:
   kind: started
   at: '2026-10-24T16:12:45.531384Z'
   stage: smoke-test
+- number: 30
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T16:13:27.894446Z'
+  stage: smoke-test
+  run: 3b35e64adfdf45d1b283b67c11d6aed7
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -548,3 +550,34 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 29. factory: started smoke-test as self.
+30. smoke-tester: Smoke test, round 1. I ran both commands from the repository root exactly as written, in order. I fixed nothing.
+
+    Command 1 (pytest over the take tests and both git test files, last line counted):
+    ```
+    1
+    ```
+    I ran the same pytest call again without the `grep -c` to see the line it counted:
+    ```
+    67 passed in 3.24s
+    ```
+    Met its `Expect:` (`1`). The last line is a single `<n> passed in <s>s` line covering all four files, including the old `test_git_cli_ignored.py`.
+
+    Command 2 (`copy_changed` script in a self-removing `mktemp -d` folder):
+    ```
+    Bytecode compiled 4164 files in 79ms
+    0o755 new False kept.py
+    refused True
+    ```
+    Met its `Expect:` (two lines, `0o755 new False kept.py` and `refused True`). The `Bytecode compiled …` line is uv's own note on stderr from its environment sync, not the script's output. The script printed exactly the two expected lines and exited 0. This shows:
+    - an added file kept its executable mode
+    - a modified file got the source's bytes
+    - a deleted file is gone
+    - an added symbolic link arrived with the same target text
+    - a deleted path missing on the target raised nothing
+    - a path with a `..` segment raised `ValueError` naming the path
+
+    Against the acceptance criteria: neither command contradicts any criterion. Command 2 is consistent with criteria 2 and 10 (the missing-deleted side). Command 1 covers the test files that criteria 1 to 12 name. Criterion 13 (`make check`) is the factory's gate and not part of this smoke test, so I did not run it here.
+
+    Afterwards the working tree holds only the factory's own change to the work item's `.costs.jsonl`. The temporary folder removed itself.
+
+    Findings: none.
