@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -269,6 +269,11 @@ journal:
   at: '2026-10-24T12:56:28.456508Z'
   stage: smoke-test
   run: beae6e2841c54dc0b39ad92aad9106d6
+- number: 48
+  speaker: factory
+  kind: done
+  at: '2026-10-24T12:58:52.433780Z'
+  stage: approval
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -761,3 +766,4 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     The other criteria (the time limit, `cwd`/`env`, the fault details of the diff, the docs, `make check`) are not exercised by this smoke test. The tests and the factory's checks cover them.
 
     Findings: none. Open: nothing.
+48. factory: done (pull request merged); cost: 21 runs, 31.2 min, 171 turns, 585391 tokens in (4084277 more from cache), 77338 out, $6.63
