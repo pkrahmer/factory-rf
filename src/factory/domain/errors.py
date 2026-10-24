@@ -82,6 +82,32 @@ class ProjectCommandError(BoundaryError):
         self.detail = detail
 
 
+class SnapshotError(BoundaryError):
+    """A snapshot command failed, could not start or reached its time limit."""
+
+    command: str
+    detail: str
+
+    def __init__(self, command: str, detail: str) -> None:
+        """Name the command and what went wrong."""
+        super().__init__(f"snapshot command {command} failed: {detail}")
+        self.command = command
+        self.detail = detail
+
+
+class ContainerError(BoundaryError):
+    """A container command failed, could not start or reached its time limit."""
+
+    command: str
+    detail: str
+
+    def __init__(self, command: str, detail: str) -> None:
+        """Name the command and what went wrong."""
+        super().__init__(f"container command {command} failed: {detail}")
+        self.command = command
+        self.detail = detail
+
+
 class AgentRuntimeError(BoundaryError):
     """The agent runtime could not run an agent; a dead or timed-out run is a result."""
 

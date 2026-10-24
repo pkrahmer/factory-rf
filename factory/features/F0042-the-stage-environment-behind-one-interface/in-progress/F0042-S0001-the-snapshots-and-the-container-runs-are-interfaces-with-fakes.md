@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T11:36:51.269170Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-24T11:36:51.269170Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-24T11:44:01.376474Z'
+  stage: doing
+  run: 5fd83f898f424823942b456888911249
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -383,3 +385,24 @@ Expect: `1`
    `lint`: lint: green (0.7 s)
    `test`: ERROR tests/domain/test_errors_environment.py - ImportError while importing test module '/work/checkout/tests/domain/test_errors_environment.py'.
 9. factory: started doing as self.
+10. coder: I built the two interfaces, their data, the two errors and the two fakes, as the Interface describes. No test was changed. `make check` is green. The first smoke block gives the five expected lines.
+
+    - `src/factory/domain/containers.py`: holds `WORK`, `WORK_CHECKOUT`, `WORK_HOME`, `Mount`, `ContainerLaunch`, `ContainerResult` (with a model validator: `exit_status` is `None` exactly when `timed_out`) and `ContainerCall`. `Mount.target` is a `ContainerPath`: it must start with `/`, and what follows must pass the existing `inside_home` of `factory.domain.agent_home` (no empty, `.` or `..` segment). I reused that helper instead of writing a second segment check. One side effect: a `.` segment (`/a/./b`) is refused too, which the Interface does not mention.
+    - `src/factory/domain/errors.py`: `SnapshotError` and `ContainerError` sit beside the other `BoundaryError`s, shaped like `ProjectCommandError`.
+    - `src/factory/application/snapshots.py` and `src/factory/application/containers.py`: the two abstract base classes, written as given.
+    - `src/factory/adapters/fake_snapshots.py`:
+      - `advance` removes the base, then copies the folder with `shutil.copytree(symlinks=True)`.
+      - `reset` empties the folder (the folder itself stays), then copies the base back with `dirs_exist_ok=True`.
+      - `changed_paths` compares two maps of relative path → (lstat mode, bytes or link target). It builds them with `os.walk`, so a link to a folder is listed as a link and not followed. Folders are never listed.
+    - `src/factory/adapters/fake_containers.py`:
+      - One private `_accept` checks the call (no command words, or a mount on `/work` or under it, raises `ValueError`), then records it. One private `_launch` maps the words, the environment values and the working directory. `launch` and `run` both use the two, so the checks and the recording are written only once.
+      - `run` passes the launch through `run_process`, with `cwd` the mapped working directory and `merge_stderr=True`. An `OSError` there becomes `ContainerError(command[0], str(error))`.
+
+    Main choice: the path mapping sorts every mount, the fixed `/work` one included, by target length (longest first) and takes the first that matches. I rejected a separate special case for `/work`: one list gives the "longer target wins" rule for both kinds of mount.
+
+    Refactor: in `_entries` the relative path was computed twice, once per branch; it is now computed once. Nothing else needed changing.
+
+    Noticed, not touched: `make duplicates` reports 8 new dead-code findings. They are the new classes, `mount_point`, `calls`, `read_only`, `WORK_CHECKOUT` and `WORK_HOME`, which nothing uses yet; S0002 to S0007 will use them. The documenter has criterion 14.
+
+    `check`: check: green
+    `duplicates`: duplicates: 8 new, 38 known, 0 gone
