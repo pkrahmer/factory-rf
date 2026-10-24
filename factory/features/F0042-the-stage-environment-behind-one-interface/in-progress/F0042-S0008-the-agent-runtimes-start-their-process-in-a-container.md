@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T19:17:58.680386Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-24T19:17:58.680386Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T19:19:00.587037Z'
+  stage: docs
+  run: 8fcd903a76954afb8c6286a0b629e1b3
 ---
 
 # The agent runtimes start their process in a container
@@ -442,3 +444,22 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
     - Both runtime test modules: `OS_USER_DETAIL` repeats the Interface's text and does not import `CONTAINER_OS_USER`. That pins the text, but it is a second copy.
     - `tests/adapters/test_claude_runtime_container.py::_write_login` and `test_opencode_runtime_container.py::_api_login` write a login file in nearly the same way. They could share one helper in `tests/adapters/container_runtime_support.py`.
 21. factory: started docs as self.
+22. documenter: Docs, round 1. I read the story, the diff of `src/factory/adapters/agent_launch.py`, `claude_runtime.py` and `opencode_runtime.py`, and the docs the criterion names. The code matches the Interface and criteria 1 to 12, so there are no findings for the coder. I ran no examples because I wrote none. I changed only documents, so I did not run `make check`; the factory's checks run after this stage.
+
+    Files changed:
+    - `docs/project-guide/agents.md`:
+      - Constructor signatures of both runtimes now show `containers=None`.
+      - New section *Calls in a container*: the `containers` keyword and property, the `ValueError` with a confine executable, and the `AgentRuntimeError` for an `os_user`. It lists what a call gets (the mounts, the environment, `/work/checkout`, `HOME`) and what it lacks (no `sudo`, `factory-confine`, rules file, leftovers, temporary folder or `CLAUDE_CONFIG_DIR`). It also covers the reading of the `--timeout` kill, the resume of a budget stop, and `version()`.
+      - *The shared launch module*: `Launch.env` may be `None`. Added `container_launch`, `run_environment`, `login_paths` and `version_launch`. `killed_at_limit` and `read_call_end` now show `in_container`.
+    - `docs/project-guide/stage-environment.md`: the stale sentence "a later story starts in a container" is replaced by a pointer to the new section *The agent's container* (step 5 of the cycle). That section is one paragraph pointing to `agents.md`.
+    - `docs/operator-guide.md`: new subsection *The agent in a container* under *The agent runtime*. It gives the `podman run ...` chain with the `:ro` mounts of the login and instructions files, the effect of `--timeout`, `version` in the stage image, and a pointer to F0043's image. It notes that the instance wiring is not yet part of a release.
+
+    Cross-read and found current: `docs/project-guide/README.md`, the *The fake* and *Faults* parts of `agents.md`, *The container runs* and *The podman adapter* in `stage-environment.md`, and the operator guide's login passages. I did not read `docs/decisions.md`; the criterion says none for it.
+
+    Stale or unrelated text I did not touch: nothing found.
+
+    Set aside: the story's Description says the runtime picks the launch in `run_launch`. The reviewer already corrected it to `_process_request`, and I documented the code as built.
+
+    `check`: check: green (not run again: passed on tree 91e2040c66c5 at 2026-10-24T19:13:55Z)
+    `secrets`: secrets: green (2.2 s)
+    `documents`: documents ok
