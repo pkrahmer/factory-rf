@@ -1,6 +1,6 @@
 # The stage environment
 
-This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.snapshots`, `factory.application.containers`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. Nothing in the factory uses them yet: nothing wires `ZfsSnapshots`, and the Podman runs and the stage that wires them come in later stories of the same feature.
+This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.snapshots`, `factory.application.containers`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.podman_runs`, `factory.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. Nothing in the factory uses them yet: nothing wires `ZfsSnapshots` or `PodmanRuns`, and the stage that wires them comes in later stories of the same feature.
 
 ## The snapshots
 
@@ -68,9 +68,64 @@ Both operations take the command words and, by keyword, `mounts`, `environment`,
 - `launch(...)` returns a `ContainerLaunch`: the `argv`, the `env` and the `time_limit` that start the command in a container. It runs nothing. A caller that starts the process itself, for example under the write guard, uses it. `env` of `None` means the process's own environment.
 - `run(...)` runs the command until it ends or reaches `time_limit` and returns a `ContainerResult`: `exit_status`, the merged `output`, `timed_out` and `duration`. `exit_status` is `None` exactly when `timed_out` is true (a model validator). A command that fails or times out is a result; `ContainerError` means the container could not be started.
 
-A `Mount` has a `source` (an absolute host path), a `target` (a container path) and `read_only` (default false). A target starts with `/` and has no empty segment and no `..` segment, so `/`, `a/b`, `/a//b`, `/a/` and `/a/../b` are refused with `ValidationError`; `/a/./b` is accepted. The dataset is the fixed `/work` mount of every run, so both operations raise `ValueError` for a mount whose target is `/work` or lies under it, and for a command without words.
+A `Mount` has a `source` (an absolute host path), a `target` (a container path) and `read_only` (default false). A target starts with `/` and has no empty segment and no `..` segment, so `/`, `a/b`, `/a//b`, `/a/` and `/a/../b` are refused with `ValidationError`; `/a/./b` is accepted. The dataset is the fixed `/work` mount of every run, so both operations raise `ValueError` for a mount whose target is `/work` or lies under it, and for a command without words. `check_container_call` (`factory.domain.containers`) is that rule; the fake and the podman adapter both call it.
 
 `ContainerError(command, detail)` is the interface's `BoundaryError`, with the message `container command <command> failed: <detail>`. `ContainerCall` records one call as it was asked; only the fake uses it.
+
+## The podman adapter
+
+`PodmanRuns(executable, image, workspace, *, time_limit=PODMAN_TIME_LIMIT)` (`factory.adapters.podman_runs`) implements `ContainerRuns` with the `podman` executable: every command runs in a throwaway container of `image`, `workspace` (the dataset's mount point) mounted at `/work`. `executable` is run as given, so an operator can pass a wrapper script. `time_limit` bounds only `version` and `image_exists`; `PODMAN_TIME_LIMIT` is two minutes.
+
+### The command line
+
+`launch` builds these words, in this order:
+
+```
+<executable> run --rm --userns=keep-id --timeout <seconds>
+    --env NAME=value ...
+    --volume <workspace>:/work --volume <source>:<target>[:ro] ...
+    --workdir <working_directory> <image> <command...>
+```
+
+- `--rm`: the container is removed when it ends, so nothing of one command is left for the next.
+- `--userns=keep-id`: rootless podman maps the container's user to the host user that runs podman, the `factory` user. Files the command writes into `/work` belong to that user on the host.
+- `--timeout <seconds>`: the container runtime ends the container at the limit. The seconds are the limit rounded up (`30s` is `30`, 1.5 seconds is `2`).
+- `--env NAME=value`: one pair per entry of `environment`, in its order. These are the only variables the command gets besides the image's own. Podman does not pass the factory's environment into the container, so a token or a path the factory holds reaches a command only when a caller names it here.
+- `--volume`: the workspace at `/work` comes first, then the given mounts in their order. A read-only mount gets `:ro`. A rootless container cannot write a `:ro` bind mount, and that is the whole protection of the host's repository and of the login files: a command can read them and never change them. The tests pin the words, `:ro` above all.
+- `--workdir`: the command's working directory in the container.
+- the image, then the command words, which are never joined into a string.
+
+`launch` returns `ContainerLaunch(argv, env=None, time_limit=<limit> + CONTAINER_GRACE)`. `env` is `None`: the `podman` program itself runs with the factory's environment (`HOME`, `XDG_RUNTIME_DIR` and `PATH` it needs), as `version` does.
+
+### The grace
+
+`CONTAINER_GRACE` is 30 seconds. The process request carries the limit plus the grace, so podman's `--timeout` fires first and the factory's own kill is the second line, for a podman that does not end. A `timed_out` result therefore usually comes from podman's kill, not the factory's.
+
+### Reading the end
+
+`run` starts the launch's words through `run_process` (`factory.adapters.process`; `tests/test_wrapper_search.py` names the module) with the working directory `/` (podman reads no file from it; a missing workspace is podman's own fault, 125), the factory's environment and standard error merged into `output`.
+
+- `timed_out` is true when `run_process` says so, or when the exit status is in `KILL_STATUSES` (`factory.adapters.agent_launch`: 137 and -9) and the run lasted at least `time_limit`: podman's `--timeout` sent the kill. `exit_status` is then `None`.
+- The same statuses before the limit are the command's own, as is any other status at or after the limit.
+- Otherwise `exit_status` is podman's, which is the command's. Podman exits 125 for its own faults, such as a missing image; the result says 125 and podman's message is in `output`.
+- That podman exits 137 for a container its `--timeout` ended is an assumption; it is measured on the VM (F0043, story 4).
+- A `podman` that cannot start is `ContainerError(command[0], <operating system's message>)`: the first word of the command asked for, not `podman`.
+- `launch` and `run` raise `ValueError` as the interface says (`check_container_call`).
+
+### For the preflight
+
+`version()` returns the first non-blank line of `<podman> --version` (`podman version 4.9.3`). `image_exists()` runs `<podman> image exists <image>`: exit status 0 is `True`, 1 is `False`. Both run with `workspace` as working directory and the constructor's `time_limit`, and every other outcome is `ContainerError(<command words joined by a space>, <detail>)`:
+
+- an exit status other than 0 (for `image_exists`, other than 0 or 1): the last non-blank output line, or `exit status <n>`;
+- `no end within <n> s`, `n` the limit rounded up;
+- `printed nothing`, for `version` only, when exit status 0 comes with no output;
+- the operating system's message when the executable cannot start.
+
+The preflight reads a missing `podman` from this error. The line helpers (`first_printed_line`, `failure_detail`, `no_end_detail`) are in `factory.adapters.printed_output`, shared with `ZfsSnapshots`.
+
+### The stand-in
+
+No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` writes a stand-in `podman` into `tmp_path`. It records its arguments, environment and working directory; it prints planned output, waits and exits with a planned status, or, when its arguments hold the image, runs the words after the image on the host, so that a command's own exit status and output pass through. Tests of the default limit and of the kill rule replace the module's `run_process` with the `Recorder` of `tests/run_process_recorder.py`. The tests are `tests/adapters/test_podman_runs.py` (the command line) and `tests/adapters/test_podman_runs_results.py` (results and faults).
 
 ## The fakes
 

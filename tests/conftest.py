@@ -46,6 +46,7 @@ from git_support import (
     make_remote,
 )
 from human_clone import HumanClone
+from podman_support import Podman, write_podman
 from proof_support import World, build_world, start_story
 from run_process_recorder import Recorder
 from tmp_path_support import reopen
@@ -313,3 +314,9 @@ def recorder(monkeypatch: pytest.MonkeyPatch) -> Recorder:
     recording = Recorder()
     monkeypatch.setattr(claude_runtime, "run_process", recording)
     return recording
+
+
+@pytest.fixture
+def podman(tmp_path: Path) -> Podman:
+    """Return a stand-in `podman` in `tmp_path`, planned to exit 0 silently."""
+    return write_podman(tmp_path / "podman-bin")

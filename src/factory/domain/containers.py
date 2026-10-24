@@ -1,10 +1,12 @@
 """The data of a container run: its mounts, the words that start it, its result and its call."""
 
+from collections.abc import Sequence
 from datetime import timedelta
 from typing import Annotated, Self
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
 
+from factory.domain.agent_home import beneath_or_at
 from factory.domain.agent_runs import AbsolutePath
 
 WORK = "/work"
@@ -31,6 +33,15 @@ class Mount(BaseModel):
     source: AbsolutePath
     target: ContainerPath
     read_only: bool = False
+
+
+def check_container_call(command: Sequence[str], mounts: Sequence[Mount]) -> None:
+    """Refuse with `ValueError` a run without command words or a mount on the dataset `/work`."""
+    if not command:
+        raise ValueError("a container run needs command words")
+    for mount in mounts:
+        if beneath_or_at(mount.target, WORK):
+            raise ValueError(f"a mount may not target {mount.target}: the dataset is {WORK}")
 
 
 class ContainerLaunch(BaseModel):
