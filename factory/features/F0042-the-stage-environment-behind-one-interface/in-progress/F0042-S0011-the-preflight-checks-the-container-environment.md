@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 422
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T21:17:54.169017Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-24T21:17:34.022830Z'
   stage: intake
   run: efd6e38c6de2461091caf450bc4a228c
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:17:54.169017Z'
+  stage: tests
 ---
 
 # The preflight checks the container environment
@@ -128,3 +137,4 @@ Expect: `1`
    Smoke test: both blocks are runnable. The pytest command passes no `-q`, and `pyproject.toml` `addopts` sets a single `-q`, so the last line is the `N passed in ...` summary that the `grep -cE` matches. Each Expect line gives an exact, checkable output.
    Architecture: the items and probes sit in `application`. The `podman`/`zfs` adapters are reached only through their wrapper classes, built in `entry.wiring`. `boundaries.snapshots` and `boundaries.containers` stay typed as the interfaces, which fits the layer rules and decisions 1 and 15 of `feature.md`.
    Scope: it matches the S0011 line in the feature's Scope. It removes no layer and does not touch the inline items. The test files it names are new, and it changes no earlier test.
+4. factory: started tests as self.
