@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T18:30:44.966168Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-24T18:30:44.966168Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T18:32:52.545779Z'
+  stage: review
+  run: ef83d7d290884d64acb8e894abe03c8f
 ---
 
 # The stall takes from the dataset
@@ -122,8 +124,9 @@ Tests (the tester writes them): `tests/application/test_stall_environment.py` (a
 6. Under `container`, a stall after the take (rows of one parametrized test): the same boundaries and stage with a `Makefile` whose `lint` exits 1 (`stage_makefile({"lint": 1})` followed by the same `sync` target) and a runtime that writes `tests/test_a.py` into `<workspace>/checkout` and returns a completed run with the decision `doing` and the entry `done.`; and the same with a green `Makefile` (`stage_makefile()` followed by the same `sync` target) and a run whose entry is `tester: ` (blank after the role's prefix, the `no_result` stall of `tests/application/test_after_agent.py`): the stall's reason is `check_red` and `no_result` respectively, the pushed stall commit holds `tests/test_a.py`, `report.stall.take` is `TakeReport(left=[], restored_work_item=False)`, and the factory log holds exactly one `stage environment:` line (the stall's take is the stage's second, and writes none).
 7. The timing line of a `ContainerEnvironment` on one object with the manual clock advanced inside the fakes as S0007's criterion 8 does (rows of one parametrized test): `prepare`, `take`, `take`, the clock advanced by 0.25 s inside the first take's `changed_paths` and by 0.5 s inside the second's, writes exactly one `stage environment:` line, ending `take 0.2 s`, and the second `take` returns the same report as the first (the dataset unchanged between them); `prepare`, `take`, `prepare`, `take` writes two lines; `take`, `take` on a fresh object without `prepare`, the clock advanced as in the first row, writes one line, `stage environment: reset 0.0 s, sync 0.0 s, advance 0.0 s, take 0.2 s`.
 8. Each holder hands its environment to its stall (rows of one parametrized test): `StageFinisher(boundaries, INSTANCE, definition, stage_environment=<a recording stand-in>).finish(aftermath)` for a stage whose `lint` exits 1 calls the stand-in's `take` exactly once with the stage start and `PATH`, and `report.stall.take` is the stand-in's report; `AfterAgent(boundaries, INSTANCE, definition, stage_environment=<a recording stand-in>).process(launched)` for a launched stage whose run died (an early stall, before the after-agent's own take) calls the stand-in's `take` exactly once with the stage start and `PATH`, and the returned `StallResult.take` is the stand-in's report. In a test of its own, `StageFinisher(boundaries, INSTANCE, definition)` built without the keyword, finishing the aftermath of a run on a stage whose `Makefile` is `stage_makefile({"lint": 1}, extra=["@echo checked > written-by-lint.txt"])`, stalls through the inline environment: `written-by-lint.txt` is neither in the stall commit nor in the work tree. `tests/application/test_stall_edges.py::test_a_red_check_stall_undoes_what_the_check_wrote` goes through `StageRunner`, which hands its own environment to the finisher, and stays unchanged and green. `StageRunner`'s own stall service stalls only a merge conflict, which has no stage start and takes nothing (criterion 1's `merge_conflict` row).
-9. `make check` stays green.
-10. docs: `docs/project-guide/stages.md`, *Stalls*: step 1 says the environment's `take` runs in place of `UndoService.undo`, whatever the reason, `check_red` included, its report `StallResult.take` (a `TakeReport`), nothing taken and `take` `None` without a stage start; the paragraph after the steps says a stall keeps the writes inside the write paths by the environment's take (the undo under `inline`, the take from the dataset under `container`); the `StallResult` sentence names `take` in place of `undo`; `StallService(boundaries, instance, definition, stage_environment=None)` and who hands the environment over (`AfterAgent`, `StageFinisher`, `StageRunner`: one object per stage); *The stage protocol*, `StageFinisher.finish` step 2: the stall's take after a red check, and that under `inline` the check's writes outside the write paths are undone as today. `docs/project-guide/stage-environment.md`, *The stage environment*: the stall as a caller of `take` beside `AfterAgent`; *The container environment*: the timing line's rule for a stage with two takes (one line, the first take's; the stall's second take writes none). `docs/project-guide/write-guard.md`: none, *The undo* names no stall (S0005's sentence covers the undo as the inline environment's take). `docs/operator-guide.md`: none, "one `stage environment:` line per stage" stays true; the stall paragraph's "undoes the rest" is S0012's sweep. `docs/decisions.md`: none.
+9. A second take takes again and returns no stored report: on one `ContainerEnvironment` built as in criterion 7 (write paths `src/*` and `{work_item}`), `prepare`, `take`, then `src/c.py` and `notes.md` written into `<workspace>/checkout`, then `take`. `src/c.py` is in the host's work tree after the second take and not after the first. The second report's `left` holds `notes.md` and the first report's does not. The log holds exactly one `stage environment:` line.
+10. `make check` stays green.
+11. docs: `docs/project-guide/stages.md`, *Stalls*: step 1 says the environment's `take` runs in place of `UndoService.undo`, whatever the reason, `check_red` included, its report `StallResult.take` (a `TakeReport`), nothing taken and `take` `None` without a stage start; the paragraph after the steps says a stall keeps the writes inside the write paths by the environment's take (the undo under `inline`, the take from the dataset under `container`); the `StallResult` sentence names `take` in place of `undo`; `StallService(boundaries, instance, definition, stage_environment=None)` and who hands the environment over (`AfterAgent`, `StageFinisher`, `StageRunner`: one object per stage); *The stage protocol*, `StageFinisher.finish` step 2: the stall's take after a red check, and that under `inline` the check's writes outside the write paths are undone as today. `docs/project-guide/stage-environment.md`, *The stage environment*: the stall as a caller of `take` beside `AfterAgent`; *The container environment*: the timing line's rule for a stage with two takes (one line, the first take's; the stall's second take writes none). `docs/project-guide/write-guard.md`: none, *The undo* names no stall (S0005's sentence covers the undo as the inline environment's take). `docs/operator-guide.md`: none, "one `stage environment:` line per stage" stays true; the stall paragraph's "undoes the rest" is S0012's sweep. `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -228,3 +231,32 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
    `check`: check: green
    `duplicates`: duplicates: 9 new, 37 known, 1 gone
 8. factory: started review as self.
+9. reviewer: Findings:
+
+   1. Criterion 9 added: it needs its test. `factory/features/F0042-the-stage-environment-behind-one-interface/in-progress/F0042-S0013-the-stall-takes-from-the-dataset.md`, `## Acceptance criteria`. The Interface says a `take` that follows another `take` on the same `ContainerEnvironment` "takes exactly as the first did (`TakeService` on `snapshots.changed_paths()`, the report as the service gives it)". No test covers the failing side, a second take that does not take again:
+      - criterion 7 keeps the dataset unchanged between the two takes, so a stored report passes it;
+      - in criterion 6, the stall commit's `tests/test_a.py` is already in the work tree from `AfterAgent`'s take, so a no-op second take passes it too.
+
+      The new criterion: on one `ContainerEnvironment` built as in criterion 7, run `prepare`, `take`, write `src/c.py` and `notes.md` into `<workspace>/checkout`, then `take` again. Then:
+      - `src/c.py` is in the host's work tree after the second take, not after the first;
+      - the second report's `left` holds `notes.md` and the first report's does not;
+      - the log holds one timing line.
+
+      Pinning this needs no change under `src/`; `ContainerEnvironment.take` in `src/factory/application/stage_environment.py` already runs `TakeService` on every take. Fix: the tester adds the test (it fits as a test of its own in `tests/application/test_stall_container.py`). The old criteria 9 (`make check`) and 10 (`docs:`) are now 10 and 11.
+
+   What I checked:
+   - Criteria 1 to 8 each have a test that checks what the criterion names, read against the code in `src/factory/application/stalls.py`, `stage.py` and `stage_environment.py`.
+   - The coder's entry (7) reports `make check` green.
+   - Every other Interface rule has a test for its failing side:
+     - the three take faults propagate with nothing written;
+     - `merge_conflict` takes nothing;
+     - the inline default holds for `StallService` and `StageFinisher`;
+     - `AfterAgent` hands its environment to its stall (criterion 8);
+     - `StageRunner` hands its environment to its finisher: criterion 6's one timing line would be two with a fresh environment;
+     - the timing line is written once per `prepare` and once on an object without one.
+   - I stopped at group 1, so groups 2 to 5 were not reviewed.
+
+   Earlier tests:
+   - `tests/application/test_stalls.py`: the human's leave in decision 18 (g2) of `feature.md`, named in the story (`result.undo is None` -> `result.take is None`, the `_result` row `"undo"` -> `"take"`). The standing leave of `CLAUDE.md` covers moving its helpers and constants to `tests/stall_support.py`: `_open`, `_launch`, `_started`, `_context` and `SwitchingRuntime` were moved, the four functions renamed, and every test keeps its name and checks.
+   - `tests/application/test_container_environment_take.py`: the standing leave. `Steps`, `Pace`, `ClockedSnapshots`, `ClockedContainerRuns`, `FIRST`, `SECOND`, `TAKE_SECONDS`, `_started`, `_clocked` and `WorkspaceRuntime` moved to `tests/container_support.py`. Two changes go slightly past a pure move: `WorkspaceRuntime` now takes its files as an argument, and `Pace` gained `take`, defaulting to the old 0.25 s. The earlier test passes the same two files, so each test keeps its name and checks the same thing. I judged this within the leave.
+   - `tests/container_support.py`: none needed. It only gains helpers, and every helper it held is unchanged.
