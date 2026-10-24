@@ -41,6 +41,11 @@ class RecordingProjectCommands(ProjectCommands):
         self._clock = clock
         self._log = log
 
+    @property
+    def inner(self) -> ProjectCommands:
+        """The implementation whose runs this one records."""
+        return self._inner
+
     @override
     def run(self, command: str, *, time_limit: timedelta) -> CheckResult:
         commit = self._head()

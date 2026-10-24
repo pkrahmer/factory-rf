@@ -6,6 +6,7 @@ import shutil
 import sys
 import tempfile
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 
 from factory.adapters import claude_runtime, opencode_runtime
@@ -19,13 +20,19 @@ from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.landlock import abi_version
-from factory.adapters.make_commands import CommandUser, MakeProjectCommands
+from factory.adapters.make_commands import (
+    CommandUser,
+    ContainerMakeCommands,
+    MakeProjectCommands,
+)
 from factory.adapters.opencode_runtime import RUNTIME_FOLDERS, OpencodeRuntime
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.adapters.podman_runs import PodmanRuns
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.adapters.pygithub_hosting import pygithub_service
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
+from factory.adapters.zfs_snapshots import ZfsSnapshots
 from factory.application.acceptance import (
     AcceptanceClosed,
     AcceptanceDueHandler,
@@ -71,6 +78,7 @@ from factory.application.tick import HandlerFactory, IdleHandler, Tick
 from factory.domain.agent_home import kept_paths
 from factory.domain.agent_runs import CONFINE_COMMAND, scrub_environment
 from factory.domain.command_records import CommandRecord
+from factory.domain.containers import WORK_HOME
 from factory.domain.disk import DiskRecord
 from factory.domain.errors import SettingsInvalid
 from factory.domain.events import EventKind
@@ -83,6 +91,7 @@ from factory.domain.settings import (
     CREDENTIAL_FILE_VARIABLE,
     REPOSITORY_URL_VARIABLE,
     RUNS_DIRECTORY_NAME,
+    STAGE_ENVIRONMENT_VARIABLE,
     InstanceSettings,
     read_setting_file,
     read_settings,
@@ -93,6 +102,7 @@ __all__ = [
     "CREDENTIAL_HELPER",
     "FRESH_HOME_MODULE",
     "UV_CACHE_FOLDER",
+    "WORK_HOME_ENVIRONMENT",
     "agent_environment",
     "agent_home_of",
     "agent_run_environment",
@@ -127,6 +137,8 @@ LEFTOVERS_MODULE = "factory.entry.leftovers"
 FRESH_HOME_MODULE = "factory.entry.fresh_home"
 # uv's package cache, which every run and command of the agent's user writes and reads.
 UV_CACHE_FOLDER = ".cache/uv"
+# A container's agent run keeps its home on the dataset, beside the checkout.
+WORK_HOME_ENVIRONMENT = {"HOME": WORK_HOME}
 
 _LOG_FILE_NAME = "factory.log"
 _HEALTH_FILE_NAME = "health.json"
@@ -252,9 +264,10 @@ def build_boundaries(
 ) -> Boundaries:
     """Return the boundaries of the instance of `settings`; `hosting` replaces PyGithub.
 
-    The agent runtime starts the `sudo` that `which` finds, the one the preflight checks,
-    and every call through `confine_executable`, unless it is `None`. With `end_leftovers`,
-    every call as the agent's user is followed by the program that ends its processes.
+    An inline instance's agent runtime starts the `sudo` that `which` finds, the one the
+    preflight checks, and every call through `confine_executable`, unless it is `None`. With
+    `end_leftovers`, every call as the agent's user is followed by the program that ends its
+    processes. A container instance reads none of the three: its container is the boundary.
     """
     if hosting is None:
         hosting = pygithub_service(repository_name(settings.repository_url), token)
@@ -262,17 +275,23 @@ def build_boundaries(
     clock = SystemClock()
     git = GitCli(settings.checkout, git_options(settings))
     log = machine_log(state, clock)
-    sudo_executable = which("sudo") or SUDO_EXECUTABLE
-    leftovers = leftovers_command() if end_leftovers else None
-    agent_home = agent_home_of(settings, sudo_executable)
+    if settings.stage_environment == "container":
+        environment = _container_environment(settings, git)
+    else:
+        environment = _inline_environment(
+            settings,
+            git,
+            log,
+            which=which,
+            confine_executable=confine_executable,
+            end_leftovers=end_leftovers,
+        )
     return Boundaries(
         git=git,
         hosting=hosting,
-        agent_runtime=_agent_runtime(settings, sudo_executable, confine_executable, leftovers),
+        agent_runtime=environment.agent_runtime,
         project_commands=RecordingProjectCommands(
-            _project_commands(
-                settings, git, log, sudo_executable, leftovers, agent_home=agent_home
-            ),
+            environment.project_commands,
             git,
             JsonLinesRecordLog(state / _COMMAND_RECORDS_PATH, CommandRecord),
             clock,
@@ -296,7 +315,64 @@ def build_boundaries(
         stop_records=JsonLinesRecordLog(state / _STOP_RECORDS_PATH, StopRecord),
         waiter=SleepingWaiter(),
         result_records=JsonLinesRecordLog(state / _RESULT_RECORDS_PATH, ResultRecord),
+        agent_home=environment.agent_home,
+        snapshots=environment.snapshots,
+        containers=environment.containers,
+    )
+
+
+@dataclass(frozen=True)
+class _StageEnvironmentBoundaries:
+    """The boundaries that differ between an inline and a container instance."""
+
+    agent_runtime: AgentRuntime
+    project_commands: ProjectCommands
+    agent_home: SudoAgentHome | None = None
+    snapshots: ZfsSnapshots | None = None
+    containers: PodmanRuns | None = None
+
+
+def _inline_environment(
+    settings: InstanceSettings,
+    git: GitCli,
+    log: FactoryLog,
+    *,
+    which: Callable[[str], str | None],
+    confine_executable: str | None,
+    end_leftovers: bool,
+) -> _StageEnvironmentBoundaries:
+    sudo_executable = which("sudo") or SUDO_EXECUTABLE
+    leftovers = leftovers_command() if end_leftovers else None
+    agent_home = agent_home_of(settings, sudo_executable)
+    return _StageEnvironmentBoundaries(
+        agent_runtime=_agent_runtime(
+            settings,
+            sudo_executable=sudo_executable,
+            confine_executable=confine_executable,
+            leftovers=leftovers,
+        ),
+        project_commands=_project_commands(
+            settings, git, log, sudo_executable, leftovers, agent_home=agent_home
+        ),
         agent_home=agent_home,
+    )
+
+
+def _container_environment(settings: InstanceSettings, git: GitCli) -> _StageEnvironmentBoundaries:
+    # The settings' validator has refused a container instance without these three.
+    if settings.dataset is None or settings.workspace is None or settings.stage_image is None:
+        raise SettingsInvalid(STAGE_ENVIRONMENT_VARIABLE, "container lacks its dataset or image")
+    snapshots = ZfsSnapshots(
+        settings.dataset, settings.workspace, executable=settings.zfs_executable
+    )
+    containers = PodmanRuns(settings.podman_executable, settings.stage_image, settings.workspace)
+    return _StageEnvironmentBoundaries(
+        agent_runtime=_agent_runtime(settings, containers=containers),
+        project_commands=ContainerMakeCommands(
+            snapshots, containers, git, checkout=settings.checkout
+        ),
+        snapshots=snapshots,
+        containers=containers,
     )
 
 
@@ -360,9 +436,11 @@ def _project_commands(
 
 def _agent_runtime(
     settings: InstanceSettings,
-    sudo_executable: str,
-    confine_executable: str | None,
-    leftovers: list[str] | None,
+    *,
+    sudo_executable: str = SUDO_EXECUTABLE,
+    confine_executable: str | None = None,
+    leftovers: list[str] | None = None,
+    containers: PodmanRuns | None = None,
 ) -> AgentRuntime:
     runs = settings.state_directory / RUNS_DIRECTORY_NAME
     if settings.agent_runtime == "opencode":
@@ -377,6 +455,7 @@ def _agent_runtime(
             provider_limit=settings.provider_limit,
             runtime_folders=(*RUNTIME_FOLDERS, *settings.opencode_folders),
             leftovers=leftovers,
+            containers=containers,
         )
     return ClaudeCodeRuntime(
         settings.claude_executable,
@@ -387,6 +466,7 @@ def _agent_runtime(
         confine_executable=confine_executable,
         provider_limit=settings.provider_limit,
         leftovers=leftovers,
+        containers=containers,
     )
 
 
@@ -408,9 +488,15 @@ def production_environment() -> dict[str, str]:
 
 
 def agent_run_environment(settings: InstanceSettings, base: Mapping[str, str]) -> dict[str, str]:
-    """Return a copy of `base`, its `HOME` the agent user's home when the agents run as one."""
+    """Return a copy of `base` with the agent run's `HOME`.
+
+    In a container that is the dataset's home; inline, the agent user's home when the agents
+    run as one, else the base's.
+    """
     environment = dict(base)
-    if settings.agent_user is not None:
+    if settings.stage_environment == "container":
+        environment.update(WORK_HOME_ENVIRONMENT)
+    elif settings.agent_user is not None:
         # The agent home is the `.claude` folder inside the agent user's own home.
         environment["HOME"] = str(settings.agent_home.parent)
     return environment

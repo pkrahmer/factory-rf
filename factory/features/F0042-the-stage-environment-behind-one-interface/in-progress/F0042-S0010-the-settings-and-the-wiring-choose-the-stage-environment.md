@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T20:56:26.241008Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-24T20:56:26.241008Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-24T21:01:26.948142Z'
+  stage: doing
+  run: 573f0956d74a43a0b08a6be4e1c02953
 ---
 
 # The settings and the wiring choose the stage environment
@@ -184,3 +186,24 @@ Expect: `1`
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/entry/test_wiring_stage_environment.py::test_wiring_a_container_instance_s_tick_starts_no_tool - pydantic_core._pydantic_core.ValidationError: 6 validation errors for InstanceSettings
 6. factory: started doing as self.
+7. coder: Built the stage environment's settings and wiring; `make check` green (coverage 99.19 %), the three new test modules pass, no test touched.
+
+   What I built:
+   - src/factory/domain/settings.py: the six variable constants, `StageEnvironmentName`, the six `InstanceSettings` fields, `_stage_environment` (blank → `inline`, anything but `inline`/`container` → the "neither inline nor container" fault, same shape as `_agent_runtime`), and one public rule `stage_environment_fault(stage_environment, *, dataset, workspace, stage_image, agent_user) -> (variable, fault) | None` (container checks in a private `_container_fault`, in the Interface's order: dataset, workspace missing, workspace relative, image, agent user). The model validator raises `ValueError` from it; `read_settings` calls it first and raises `SettingsInvalid(*fault)`, so the operator sees the variable instead of a pydantic error.
+   - src/factory/application/project_commands.py: `RecordingProjectCommands.inner` read-only property.
+   - src/factory/entry/wiring.py: `build_boundaries` picks `_inline_environment` (exactly today's sudo/leftovers/agent home/sealed commands, the only reader of `which`, `confine_executable`, `end_leftovers`) or `_container_environment` (`ZfsSnapshots`, `PodmanRuns`, runtime with `containers=` and no confine or leftovers, `ContainerMakeCommands`, no agent home). Each returns a private frozen dataclass `_StageEnvironmentBoundaries` holding the parts that differ. `_agent_runtime` now takes keyword arguments with defaults plus `containers`. New `WORK_HOME_ENVIRONMENT = {"HOME": WORK_HOME}` (reusing `factory.domain.containers.WORK_HOME`); `agent_run_environment` applies it for `container`.
+
+   Main choice: one rule function used by both the model validator and `read_settings`. Rejected: building the model in `read_settings` and turning its `ValidationError` back into `SettingsInvalid`, which would mean reading the variable and the fault text back out of pydantic's message.
+
+   Refactor pass: the only change was splitting `_container_fault` out to satisfy ruff's PLR0911 (too many return statements); otherwise nothing to change.
+
+   Noticed, not touched:
+   - `_container_environment` checks again that dataset, workspace and image are not `None`, only so mypy can narrow the types. The settings validator already guarantees them, so that line (`wiring.py:364`) can never run and is the one uncovered line in wiring.py.
+   - `read_settings` now reads `FACTORY_AGENT_USER` earlier than before. When both the agent user and another setting are wrong, the agent user's "is not a name" fault now comes first; no existing test depends on that order.
+   - `InstanceSettings` is not part of the records contract, so nothing was regenerated.
+   - Docs (criterion 9) are left to the documenter.
+
+   The journal changed nothing about the task's meaning; the Description stays as it is.
+
+   `check`: check: green
+   `duplicates`: duplicates: 13 new, 36 known, 2 gone
