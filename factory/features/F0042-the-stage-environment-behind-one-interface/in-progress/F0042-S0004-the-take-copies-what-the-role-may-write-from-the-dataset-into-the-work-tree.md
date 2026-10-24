@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 410
 comments_read: [6384920747]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T14:00:28.542500Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,13 @@ journal:
   kind: started
   at: '2026-10-24T14:00:28.542500Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: question
+  at: '2026-10-24T14:02:22.255488Z'
+  stage: doing
+  run: c66744760fa64c84936ec898742550e7
+  blocked: question
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -339,3 +342,17 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     `lint`: lint: green (0.5 s)
     `test`: test: green (63.1 s)
 17. factory: started doing as self.
+18. coder: Round 1. The tester added the two rows for criterion 10: the line-long row in `tests/adapters/test_git_cli_check_ignore.py` and the deleted-dangling-link row in `tests/application/test_take_edges.py`. Both pass against the code from round 0, so I changed nothing under `src/` and there is nothing new to refactor. The working tree holds no change of mine.
+
+    I stopped at `make check`. It is red at `make secrets`, and not because of code. detect-secrets reports "Secret Type: Secret Keyword" in this work item's own file, at line 290 of the `.md`. That line is in journal entry 10 (my round-0 entry, committed in bbfcb0fd). It quotes the failing assertion `'ANTHROPIC_API_KEY': 'sk-ant-…'`, with the value cut short. The journal belongs to the factory, so my edit there would be dropped (R5). A `pragma: allowlist secret` or a new `.secrets.baseline` entry needs your leave (CLAUDE.md, *Not without asking*). The other targets are green: lint, types, layers, sast and licenses.
+
+    `make test` in this stage's shell is still red on the same test that entries 8, 10 and 16 report: `tests/adapters/test_opencode_runtime_launch.py::test_the_version_is_the_first_word_of_a_call_without_login_words`, with `E   AssertionError: assert 'ANTHROPIC_API_KEY' not in {...}`. The stage's environment passes an `ANTHROPIC_API_KEY` into the test's stand-in, and the assertion prints the full key into the test output. I am not repeating it here. Treat the key as exposed and rotate it, and stop the factory's environment from handing it to agent runs. Under the factory's `env -i` check this test was green after round 0.
+
+    Question: how should `make secrets` get past journal entry 10?
+    - A (my choice): you change that line of journal entry 10 in a commit of your own, for example to `'ANTHROPIC_API_KEY': <redacted>`. Then nothing is allowlisted and no secret-like text stays in the repository.
+    - B: you give leave for a `.secrets.baseline` entry for that line. I would add it, but it keeps a key-shaped text on record and has to be redone whenever the journal's line numbers move.
+    - C: you judge that the factory's own `make secrets` does not flag this line (for example, if it reads only the files changed against `origin/main` in a different way). Then answer "proceed" and I hand on to `review` unchanged.
+
+    What the journal changed: the reviewer's criterion 10 is already in `## Description`, so the Description needs no rewrite.
+
+    Still noticed and not touched (from entry 10): `copy_changed` does not guard against a link at one of the target's parent folders, which may matter for S0009's copy into the dataset; and a source entry missing for an `added` or `modified` path is not placed.
