@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T19:15:31.454493Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,13 +113,19 @@ journal:
   kind: started
   at: '2026-10-24T19:15:31.454493Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T19:17:37.788152Z'
+  stage: review
+  run: 83cded0baeec4f4cb0a3819594e85f01
 ---
 
 # The agent runtimes start their process in a container
 
 ## Description
 
-Step 5 of the cycle (`planning/v1.2-plan.md`, "The cycle of a stage"): the agent's container runs today's chain minus `sudo`, `env -i` and `factory-confine`: the stage image, `/work` mounted, the login file mounted read-only, the request's allow-list environment as `--env` entries, the instructions file mounted read-only, `HOME=/work/home`, `--timeout` as the time limit, `--rm`. The two runtimes, `ClaudeCodeRuntime` and `OpencodeRuntime`, are not duplicated: each gets an optional `ContainerRuns`, and when it has one, every call's words come from `ContainerRuns.launch` instead of the `sudo` chain of the shared launch module, at the same place (`run_launch`). The call's files (the instructions file, opencode's configuration file) and the login files are mounted read-only at their own paths, so the words of the call do not change; the working directory inside the container is `/work/checkout`; a container ended by `--timeout` (exit status 137 or -9 at or after the limit) is read as `time_limit`, as the agent's own `timeout` under `sudo` is read today. No rules file, no temporary folder, no leftovers program and no `CLAUDE_CONFIG_DIR` in a container: those belong to the layers the container replaces. `version()` runs `<executable> --version` in a container too, so the preflight's `agent-runtime-version` reads the stage image's runtime. The runtimes are tested on `FakeContainerRuns` with the stand-in `claude` and `opencode` of the existing tests on the `PATH`; the wiring that gives a `container` instance's runtimes their `PodmanRuns` is S0010's. What stays: a runtime without a container behaves exactly as today, and every existing runtime test is unchanged.
+Step 5 of the cycle (`planning/v1.2-plan.md`, "The cycle of a stage"): the agent's container runs today's chain minus `sudo`, `env -i` and `factory-confine`: the stage image, `/work` mounted, the login file mounted read-only, the request's allow-list environment as `--env` entries, the instructions file mounted read-only, `HOME=/work/home`, `--timeout` as the time limit, `--rm`. The two runtimes, `ClaudeCodeRuntime` and `OpencodeRuntime`, are not duplicated: each gets an optional `ContainerRuns`, and when it has one, every call's words come from `ContainerRuns.launch`, through the shared launch module's `container_launch`, instead of the `sudo` chain of its `run_launch`: each runtime's `_process_request` picks one of the two, and both take the call's environment from the shared `run_environment`. The call's files (the instructions file, opencode's configuration file) and the login files are mounted read-only at their own paths, so the words of the call do not change; the working directory inside the container is `/work/checkout`; a container ended by `--timeout` (exit status 137 or -9 at or after the limit) is read as `time_limit`, as the agent's own `timeout` under `sudo` is read today. No rules file, no temporary folder, no leftovers program and no `CLAUDE_CONFIG_DIR` in a container: those belong to the layers the container replaces. `version()` runs `<executable> --version` in a container too, so the preflight's `agent-runtime-version` reads the stage image's runtime. The runtimes are tested on `FakeContainerRuns` with the stand-in `claude` and `opencode` of the existing tests on the `PATH`; the wiring that gives a `container` instance's runtimes their `PodmanRuns` is S0010's. What stays: a runtime without a container behaves exactly as today, and every existing runtime test is unchanged.
 
 ## Interface
 
@@ -406,3 +408,27 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
     `check`: check: green
     `duplicates`: duplicates: 15 new, 36 known, 2 gone
 19. factory: started review as self.
+20. reviewer: Review, round 1. I read the work item and the diff of `src/factory/adapters/agent_launch.py`, `claude_runtime.py` and `opencode_runtime.py` and of the four new test modules, against the Interface and criteria 1 to 12. I also ran `make duplicates` to read its new findings. I did not run `make check`: entry 18 records `check: green` on this state.
+
+    no findings
+
+    - Group 1, acceptance criteria. Every criterion has a test that checks what it says:
+      - Round 0's two gaps are closed. The `each-file-once` row covers criterion 12. The opencode request now carries `LOGIN_VARIABLE`, and the test asserts it is dropped (criterion 5).
+      - Each rule of the Interface has its failing side tested: the `ValueError` for `containers` with a confine executable; `AgentRuntimeError` for an `os_user`, with no call and no run file; the mount under `/work` refused, with no call recorded.
+      - The limit is tested on both sides: 59 s against 60 s in `killed_at_limit`, 29.9 s against 30 s for podman's recorded kill in both runtimes, and 137 at once giving `died`.
+    - Group 2, architecture. `agent_launch` imports only `factory.application.containers` and `factory.domain.containers`, and still not the process module. The runtimes reach containers only through the `ContainerRuns` interface.
+    - Group 3, security. No secrets. Two tests check that the token's text is in no word and no environment value. The one new `# noqa: PLR0913` is on a test function, with its reason beside it, as in `tests/adapters/test_opencode_runtime_leftovers.py`.
+    - Group 4, quality. `make duplicates` reports new similar code in this diff:
+      - the `if self._containers is None:` branch, at `claude_runtime.py:572-585` and `opencode_runtime.py:755-768`;
+      - the `containers` property beside the guard in `run`.
+      - I accept both. They extend the two runtimes' existing, accepted parallel call of `run_launch`. Moving the branch into one shared function needs seven parameters or a new holder type, and entry 10 weighs and rejects both. The dead-code findings (`FakeContainerRuns`, `PodmanRuns`, `ZfsSnapshots`, `FakeSnapshots`) are in modules this diff does not change; their wiring is S0010's.
+    - Group 5, hygiene. Entry 10 gives the main decision and what was rejected. The docs criterion (14) still describes what a reader needs to know.
+
+    description corrected: "every call's words come from `ContainerRuns.launch` instead of the `sudo` chain of the shared launch module, at the same place (`run_launch`)" -> "every call's words come from `ContainerRuns.launch`, through the shared launch module's `container_launch`, instead of the `sudo` chain of its `run_launch`: each runtime's `_process_request` picks one of the two, and both take the call's environment from the shared `run_environment`". The Interface settles this: each call's process request is `container_launch(...)`, and it gives `run_launch` no new signature.
+
+    Earlier tests: none. `git diff --name-status main...HEAD` lists every test file as `A`, so no test that `main` holds was changed, renamed or deleted.
+
+    Notes:
+    - `tests/adapters/test_claude_runtime_container.py` and `test_opencode_runtime_container.py`: for criterion 7, "rows of one parametrized test" is split into two functions, the stand-in kill and podman's recorded kill. For criterion 4, the login row is a separate function. Both splits follow the difference in setup.
+    - Both runtime test modules: `OS_USER_DETAIL` repeats the Interface's text and does not import `CONTAINER_OS_USER`. That pins the text, but it is a second copy.
+    - `tests/adapters/test_claude_runtime_container.py::_write_login` and `test_opencode_runtime_container.py::_api_login` write a login file in nearly the same way. They could share one helper in `tests/adapters/container_runtime_support.py`.
