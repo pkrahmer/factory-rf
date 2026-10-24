@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T20:19:49.101475Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-24T20:19:49.101475Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-24T20:22:32.401143Z'
+  stage: doing
+  run: 05329e6cb8d74ddaa7183e59dd51a273
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -207,3 +209,21 @@ Expect: one line, `[-9, 137, 255] True False`
     `lint`: lint: green (0.6 s)
     `test`: test: green (67.3 s)
 14. factory: started doing as self.
+15. coder: Round 1, after the tester's moves: I changed no code and no test this round. The reviewer's two findings in entry 9 were both about copied test helpers. In entry 13 the tester made both moves under the standing leave. The `workspace` and `fake` fixtures are now in `tests/conftest.py`. `container_request`, `make_state` and `LIMIT` are now in `tests/adapters/container_runtime_support.py`. Both findings are now addressed in the tests, so none is left for the code.
+
+    What I built is still the round-0 change the reviewer has already reviewed:
+    - `src/factory/adapters/agent_launch.py` adds `PODMAN_TIMEOUT_STATUS = 255`, with a comment saying why. It also adds `CONTAINER_KILL_STATUSES = KILL_STATUSES | {PODMAN_TIMEOUT_STATUS}`. `killed_at_limit` picks which set to read: the container set when `in_container`, otherwise `KILL_STATUSES` when there is an `os_user`, and with neither it returns `False`.
+    - `src/factory/adapters/podman_runs.py` reads the shared `CONTAINER_KILL_STATUSES` and keeps no copy of it.
+
+    Main choice, unchanged from round 0: `killed_at_limit` picks one named set, checking `in_container` before `os_user`. I rejected adding a separate `exit_status == 255 and in_container` clause next to the old `killable` boolean.
+
+    Refactor: nothing to change, because my diff is the same as round 0. The branch had a merge from `origin/main` since then, so I ran `make check` again: `check: green` (test: green, 64.5 s, coverage 99.20 %).
+
+    Description unchanged: the journal changed the shape of the tests, not what the task means.
+
+    Noticed but did not touch:
+    - The docs that criterion 6 names, `docs/project-guide/stage-environment.md` and `docs/operator-guide.md`, are the documenter's job.
+    - `tests/adapters/test_fake_containers.py` and `tests/adapters/test_podman_runs_results.py` each keep a local `workspace` fixture that makes no `home/`. The tester noted these in entry 13 and left them alone; they are outside this story.
+
+    `check`: check: green
+    `duplicates`: duplicates: 16 new, 36 known, 2 gone
