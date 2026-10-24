@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T18:42:39.691117Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-24T18:42:19.266961Z'
   stage: docs
   run: 3607eab0434844b9b5c1b96c7115dd14
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:42:39.691117Z'
+  stage: smoke-test
 ---
 
 # The stall takes from the dataset
@@ -416,3 +425,4 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
     `check`: check: green (not run again: passed on tree 8f59f230d08d at 2026-10-24T18:38:25Z)
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
