@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T20:31:49.600984Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-24T20:31:29.042732Z'
   stage: tests
   run: ad9b2dd47a044da191bc0b7ab0e0b513
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:31:49.600984Z'
+  stage: doing
 ---
 
 # Every container runs without rights and within limits
@@ -106,3 +115,4 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
 
    `lint`: lint: green (0.6 s)
    `test`: ERROR tests/adapters/test_podman_runs_fence.py - ImportError while importing test module '/work/checkout/tests/adapters/test_podman_runs_fence.py'.
+6. factory: started doing as self.
