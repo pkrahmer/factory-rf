@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T11:44:23.125283Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-24T11:44:01.376474Z'
   stage: doing
   run: 5fd83f898f424823942b456888911249
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-24T11:44:23.125283Z'
+  stage: review
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -406,3 +415,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 8 new, 38 known, 0 gone
+11. factory: started review as self.
