@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T15:49:08.723875Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-24T15:48:46.735356Z'
   stage: tests
   run: 8f412e333f2c4659b795d18cd90ed1ae
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-24T15:49:08.723875Z'
+  stage: doing
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -227,3 +236,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
 
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/application/test_take_edges.py - ImportError while importing test module '/work/checkout/tests/application/test_take_edges.py'.
+9. factory: started doing as self.
