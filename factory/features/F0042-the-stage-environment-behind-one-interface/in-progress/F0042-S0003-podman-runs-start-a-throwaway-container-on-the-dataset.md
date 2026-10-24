@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T13:27:05.222247Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-24T13:27:05.222247Z'
   stage: tests
+- number: 24
+  speaker: tester
+  kind: result
+  at: '2026-10-24T13:29:44.073440Z'
+  stage: tests
+  run: 98d83453161b4b3a8885e586bda07ab9
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -423,3 +425,21 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
 
     The journal changed nothing that calls for a Description rewrite: the reviewer already wrote criterion 12 into it.
 23. factory: started tests as self.
+24. tester: Round 2: I made the test change approved in the coder's entry 22, for criterion 12 (added by the reviewer in entry 20). This is a test-only change.
+
+    Criterion 12: tests/adapters/test_podman_runs_results.py::test_image_exists_reads_podman_s_exit_status, new row `time-limit`.
+
+    What changed, all in `tests/adapters/test_podman_runs_results.py` (no new files):
+    - The new row uses a stand-in planned with `wait_seconds=60`, under an adapter built with `time_limit` 1.5 s.
+    - It expects `ContainerError` with command `<stand-in> image exists factory-stage:1` and detail `no end within 2 s`.
+    - The test now times every row, as `test_version_is_the_first_line_podman_prints` already does: `row.at_least_seconds <= elapsed < ROOMY_BOUND_SECONDS`. The new row sets `at_least_seconds=1.5`. `ROOMY_BOUND_SECONDS` is 25, which matches the criterion's "less than 25 seconds". The earlier rows keep the default `at_least_seconds` of 0, so all they gain is the upper bound.
+
+    Results:
+    - `make test`: green (65.0 s), coverage 99.17 %. The row passed at once, as the coder expected, because the code already did this.
+    - `make lint`: green.
+    - Every module imported; nothing failed to import.
+
+    Not done: the reviewer's note about the duplicated `recorder` fixture. This mode allows only the named change, and nothing named that move. I set no skill aside.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (61.5 s)

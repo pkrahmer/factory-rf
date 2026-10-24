@@ -297,6 +297,15 @@ def test_version_runs_under_two_minutes_by_default(runs: PodmanRuns, recorder: R
             id="failed-with-a-line",
         ),
         pytest.param(Row(PodmanPlan(exit_status=2), Fault("exit status 2")), id="failed-silently"),
+        pytest.param(
+            Row(
+                PodmanPlan(wait_seconds=60),
+                Fault("no end within 2 s"),
+                time_limit=timedelta(seconds=1.5),
+                at_least_seconds=1.5,
+            ),
+            id="time-limit",
+        ),
         pytest.param(Row(None, Fault("[Errno 2]", prefix=True)), id="cannot-start"),
     ],
 )
@@ -304,6 +313,7 @@ def test_image_exists_reads_podman_s_exit_status(
     tmp_path: Path, podman: Podman, workspace: Path, row: Row
 ) -> None:
     executable, runs = _adapter(tmp_path, podman, workspace, row)
+    started = time.monotonic()
 
     if isinstance(row.expected, Fault):
         with pytest.raises(ContainerError) as raised:
@@ -313,3 +323,6 @@ def test_image_exists_reads_podman_s_exit_status(
         assert runs.image_exists() is row.expected
         assert [call.arguments for call in podman.calls()] == [["image", "exists", IMAGE]]
         assert [call.working_directory for call in podman.calls()] == [workspace]
+
+    elapsed = time.monotonic() - started
+    assert row.at_least_seconds <= elapsed < ROOMY_BOUND_SECONDS
