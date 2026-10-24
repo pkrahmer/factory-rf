@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T19:48:57.600260Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -83,13 +79,19 @@ journal:
   kind: started
   at: '2026-10-24T19:48:57.600260Z'
   stage: review
+- number: 14
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T19:50:22.256803Z'
+  stage: review
+  run: f1d8f1aa858c4049adcde09a38c768b5
 ---
 
 # The project commands run in a check container on the taken result
 
 ## Description
 
-Step 7 of the cycle (`planning/v1.2-plan.md`, "The cycle of a stage"): the checks see the taken result on a clean base. The dataset is rolled back to the base, the files the take brought into the host's work tree are copied in, and a container runs `make sync && make <command>` with `--timeout` as the command's time limit; a file a check makes stays in its container. This story adds `ContainerMakeCommands`, the second make-based implementation of `ProjectCommands`, beside `MakeProjectCommands` in `factory.adapters.make_commands`, which reads a command's output exactly as the first does. What to copy in is what differs from `HEAD` on the host (`git.changed_paths("HEAD")`: after the take, the taken files, the restored work item and the factory's cost record; at the preflight's `lint` on `main`, nothing), mirrored with `copy_changed` of S0004 (decision 7 of `feature.md`); so nothing is remembered between the take and the checks. `KnownResults` and `RecordingProjectCommands` are unchanged: the wiring (S0010) puts the class behind them for a `container` instance. The suite runs it on `FakeSnapshots` and `FakeContainerRuns` with a real `make` as the child process. What stays: `MakeProjectCommands` and `SealedProjectCommands`, the inline instance's commands, untouched.
+Step 7 of the cycle (`planning/v1.2-plan.md`, "The cycle of a stage"): the checks see the taken result on a clean base. The dataset is rolled back to the base, the files the take brought into the host's work tree are copied in, and a container runs `make sync && make <command>` with `--timeout` as the command's time limit; a file a check makes stays in its container. This story adds `ContainerMakeCommands`, the second make-based implementation of `ProjectCommands`, beside `MakeProjectCommands` in `factory.adapters.make_commands`, which reads a command's output exactly as the first does. What to copy in is what differs from `HEAD` on the host (`git.changed_paths("HEAD")`: after the take, the taken files, the restored work item and the factory's cost record; at the preflight's `lint` on `main`, nothing), mirrored with `copy_changed` of S0004 (decision 7 of `feature.md`); so nothing is remembered between the take and the checks. `KnownResults` and `RecordingProjectCommands` are unchanged: the wiring (S0010) puts the class behind them for a `container` instance. The suite runs it on `FakeSnapshots` and `FakeContainerRuns` with a real `make` as the child process. What stays: `MakeProjectCommands` and `SealedProjectCommands`, the inline instance's commands, unchanged in behaviour; `MakeProjectCommands` shares the refusal of a bad call and the reading of the output with the new class.
 
 ## Interface
 
@@ -218,3 +220,12 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
     `check`: check: green
     `duplicates`: duplicates: 16 new, 36 known, 2 gone
 13. factory: started review as self.
+14. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`: src/factory/adapters/make_commands.py and tests/adapters/test_make_commands_container.py. Group 1 passes. Every criterion from 1 to 8 has a test that checks what the criterion says. The Interface's refusals (a limit of 0 and of -1 s, the name `Check`) and its faults (snapshot, container, `GitError`, `../x`) are rows of parametrized tests. The positive side of the limit is covered by the 1-minute and 1-second runs. The coder's journal (entry 12) reports `check: green`. Groups 2 and 3 pass: the layers hold, `copy_changed` is reused from the application layer, the command name goes in as a shell argument and never into the script, and the diff adds no silencing markers. `make duplicates` finds one new item from this diff, the unused class `ContainerMakeCommands`. That is expected, because S0010 wires it. Group 4 fails on copies of existing constants:
+
+    1. src/factory/adapters/make_commands.py:46: `_DATASET_CHECKOUT = "checkout"` is a second copy of `_MOUNTED_CHECKOUT` in src/factory/application/take.py:17. That is the folder name of the dataset's checkout, and if only one copy changes, the take and the checks would use different folders. Fix: make that one constant public (in `factory.application.take`, or beside `WORK_CHECKOUT` in `factory.domain.containers`) and import it in both modules.
+    2. src/factory/adapters/make_commands.py:41: `CHECK_ENVIRONMENT` repeats the value of `SYNC_ENVIRONMENT` in src/factory/application/stage_environment.py:25 literally, including the PATH string. Fix: keep the name the Interface gives, but derive the value from the existing constant (`CHECK_ENVIRONMENT = dict(SYNC_ENVIRONMENT)`) or from one shared system-PATH constant, so the value is written once.
+    3. tests/adapters/test_make_commands_container.py:84 (`setup` fixture): `tmp_path / "checkout"` hard-codes the name the `checkout` fixture clones into. Fix: use `CHECKOUT` from `git_support`, as tests/adapters/test_claude_runtime_environment.py does.
+
+    description corrected: "`MakeProjectCommands` and `SealedProjectCommands` ... untouched" -> "unchanged in behaviour; `MakeProjectCommands` shares the refusal of a bad call and the reading of the output with the new class". The Interface requires the shared reader ("read by the same code", "shared, not copied"), and the diff splits `_check_call` and `_read_result` out of `MakeProjectCommands`.
+
+    Earlier tests: none. The diff only adds tests/adapters/test_make_commands_container.py (status `A`).
