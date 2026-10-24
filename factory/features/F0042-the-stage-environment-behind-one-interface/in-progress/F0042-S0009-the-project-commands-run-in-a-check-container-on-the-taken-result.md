@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T19:56:04.866469Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -107,6 +111,11 @@ journal:
   at: '2026-10-24T19:55:43.247958Z'
   stage: tests
   run: 916165c913ec4a8ba3bfd216323badd3
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-24T19:56:04.866469Z'
+  stage: doing
 ---
 
 # The project commands run in a check container on the taken result
@@ -283,3 +292,4 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
 
     `lint`: lint: green (0.6 s)
     `test`: test: green (67.4 s)
+19. factory: started doing as self.
