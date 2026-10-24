@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T21:42:45.019575Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-24T21:42:45.019575Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-24T21:45:36.324762Z'
+  stage: doing
+  run: df3572ec1d904ac08e709da366b2a19b
 ---
 
 # The preflight checks the container environment
@@ -348,3 +350,23 @@ Expect: `1`
     `lint`: lint: green (0.5 s)
     `test`: test: green (65.2 s)
 17. factory: started doing as self.
+18. coder: Round 1: the reviewer's three findings in entry 12 were changes to tests only. The tester has now made all three moves under the standing leave (entry 16): the fixture `installed` moved to `tests/conftest.py`; `CONTAINER` and `container_instance_settings` moved to `tests/container_support.py`; and `DATASET` and `IMAGE` are now imported from the support modules. That leaves nothing for code to change, so I changed no code and no test this round.
+
+    What I built (from entry 10, unchanged):
+    - `src/factory/application/preflight.py`: the four container items, `CONTAINER_TOOLS`, `opencode_item` checking aliases only for `container`, and both probes calling `prepare`.
+    - `src/factory/entry/wiring.py`: `machine_extras` picks the items by environment through `_container_adapters`.
+
+    Main choice (from entry 10): `_container_adapters` returns a small frozen dataclass holding the adapters plus the dataset and image names, already checked against `None`. I rejected adding public name properties to `ZfsSnapshots` and `PodmanRuns`, which would widen those adapters just for the wiring.
+
+    Refactor: I re-read the diff and found nothing more to change.
+
+    I ran `make check` on the current tree, including `mypy --strict` over the tester's moved helpers, which the tester did not run: `check: green`, coverage 99.19 %.
+
+    Noticed, not touched: `wiring.py:390` is still the one uncovered line, the `SettingsInvalid` raise that I moved into `_container_adapters`.
+
+    Journal: no entry since entry 12 changed the meaning of the task. The reviewer already corrected `## Description` to follow the human's answer in entry 6.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
