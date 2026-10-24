@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T20:37:08.716159Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-24T20:37:08.716159Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-24T20:40:14.958672Z'
+  stage: tests
+  run: 95756ae8e2284fbea4d2890f4c18ea65
 ---
 
 # Every container runs without rights and within limits
@@ -191,3 +193,28 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
 
     Noticed, not touched: `tests/adapters/test_podman_runs_results.py:18` and `tests/adapters/test_podman_timeout_status.py:12` hold the same `IMAGE = "factory-stage:1"` copy. The leave covers moving them to the shared constant too, but the reviewer did not name them, so the tester decides. `test_podman_runs_results.py` has its own `runs` fixture over a `workspace` path, which is a different fixture and should stay.
 12. factory: started tests as self.
+13. tester: Round 1, test change only. I moved the copied test helper that the reviewer flagged in entry 9 and the coder handed on in entry 11, under the standing leave in `CLAUDE.md` to move a shared test helper. Every test keeps its name and checks the same thing.
+
+    What I changed:
+    - tests/podman_support.py: it now holds `IMAGE = "factory-stage:1"`.
+    - tests/conftest.py: a new `runs` fixture (`PodmanRuns(str(podman.path), IMAGE, Path("/srv/factory/vm/work"))`) sits next to the `podman` fixture. I added the imports of `IMAGE` and `PodmanRuns` that it needs.
+    - tests/adapters/test_podman_runs.py (an earlier story's file, changed under the standing leave): I removed its own `IMAGE` and `runs` fixture. It now takes `IMAGE` from `podman_support` and `runs` from conftest.
+    - tests/adapters/test_podman_runs_fence.py (this story's file): the same removal. I also made the reviewer's optional change: `test_the_limits_are_built_from_the_constants` now builds the two capability words of its expected list from `FENCE[:2]`.
+
+    Criterion → test mapping (unchanged from entry 5):
+    - criterion 1: tests/adapters/test_podman_runs_fence.py::test_launch_drops_every_right_and_limits_the_container
+    - criterion 2: tests/adapters/test_podman_runs_fence.py::test_a_run_starts_its_container_without_rights_and_within_limits
+    - criterion 3: tests/adapters/test_podman_runs_fence.py::test_the_limits_are_built_from_the_constants
+    - criterion 4: tests/adapters/test_podman_runs.py::test_launch_pins_the_podman_command_line
+
+    Not changed, on purpose: tests/adapters/test_podman_runs_results.py:18 and tests/adapters/test_podman_timeout_status.py:12 still hold their own copies of `IMAGE`. The handover named only the two modules above, and I made exactly that move. Those copies could move under the same leave in a later story. `test_podman_runs_results.py` keeps its own module-level `runs` fixture over `workspace`. It overrides the conftest fixture, as it should.
+
+    Checks:
+    - `make test` is green (`test: green (67.2 s)`, coverage 99.20 %), and every module imports.
+    - `make lint` is green.
+    - I also ran `make types` after the conftest change, and it is green.
+
+    Open: nothing.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (66.2 s)

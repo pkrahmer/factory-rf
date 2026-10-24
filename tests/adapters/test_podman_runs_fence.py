@@ -8,20 +8,14 @@ import pytest
 from factory.adapters import podman_runs
 from factory.adapters.podman_runs import MEMORY_LIMIT, PIDS_LIMIT, PodmanRuns
 from factory.domain.containers import Mount
-from podman_support import Podman
+from podman_support import IMAGE, Podman
 
-IMAGE = "factory-stage:1"
 FENCE = [
     "--cap-drop=all",
     "--security-opt=no-new-privileges",
     "--pids-limit=4096",
     "--memory=4g",
 ]
-
-
-@pytest.fixture
-def runs(podman: Podman) -> PodmanRuns:
-    return PodmanRuns(str(podman.path), IMAGE, Path("/srv/factory/vm/work"))
 
 
 def test_launch_drops_every_right_and_limits_the_container(
@@ -112,8 +106,7 @@ def test_the_limits_are_built_from_the_constants(
 
     after_timeout = argv.index("--timeout") + 2
     assert argv[after_timeout : after_timeout + 4] == [
-        "--cap-drop=all",
-        "--security-opt=no-new-privileges",
+        *FENCE[:2],
         "--pids-limit=64",
         "--memory=64m",
     ]

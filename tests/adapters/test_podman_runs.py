@@ -8,14 +8,7 @@ import pytest
 from factory.adapters.podman_runs import PodmanRuns
 from factory.application.containers import ContainerRuns
 from factory.domain.containers import Mount
-from podman_support import Podman
-
-IMAGE = "factory-stage:1"
-
-
-@pytest.fixture
-def runs(podman: Podman) -> PodmanRuns:
-    return PodmanRuns(str(podman.path), IMAGE, Path("/srv/factory/vm/work"))
+from podman_support import IMAGE, Podman
 
 
 def test_launch_pins_the_podman_command_line(runs: PodmanRuns, podman: Podman) -> None:
