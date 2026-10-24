@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T11:31:06.820036Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-24T11:31:06.820036Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-24T11:31:26.244219Z'
+  stage: intake
+  run: 1063050e89f740548207d6a2045ba47f
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -233,17 +235,17 @@ Tests (the tester writes them): `tests/domain/test_containers.py` (the four mode
 ## Acceptance criteria
 
 1. `Mount.target` (rows of one parametrized test): `/work`, `/work/checkout` and `/etc/factory/claude` are accepted as given; `/`, `work/x`, `/a/../b`, `/a//b`, `` (empty) and `/a/` are refused with `ValidationError`. `Mount.source` must be absolute (`/srv/x` accepted, `srv/x` refused), and `read_only` defaults to `False`.
-2. `ContainerLaunch` refuses an empty `argv` and a `time_limit` of 0 and of -1 second, and accepts one word and 1 second (rows of one parametrized test). `ContainerResult` (rows of one parametrized test): `exit_status=None, timed_out=True` and `exit_status=0, timed_out=False` and `exit_status=137, timed_out=False` are accepted; `exit_status=None, timed_out=False` and `exit_status=137, timed_out=True` are refused with `ValidationError`.
+2. `ContainerLaunch` refuses an empty `argv` and a `time_limit` of 0 and of -1 second, and accepts one word and 1 second; it accepts `env=None` and `env={}` and keeps `env` as given (rows of one parametrized test). `ContainerResult` (rows of one parametrized test): `exit_status=None, timed_out=True` and `exit_status=0, timed_out=False` and `exit_status=137, timed_out=False` are accepted; `exit_status=None, timed_out=False` and `exit_status=137, timed_out=True` are refused with `ValidationError`.
 3. `SnapshotError("zfs rollback -r tank/f@base", "dataset is busy")` has `command` and `detail` as given and `str()` `snapshot command zfs rollback -r tank/f@base failed: dataset is busy`; `ContainerError("podman", "[Errno 2] No such file or directory")` likewise with `container command podman failed: [Errno 2] No such file or directory`; both are `BoundaryError`s and `FactoryError`s (rows of one parametrized test over the two classes).
 4. `Snapshots` and `ContainerRuns` are abstract base classes whose abstract members are exactly `{"mount_point", "reset", "advance", "changed_paths"}` and `{"launch", "run"}`; neither can be instantiated (`TypeError`); a subclass that leaves one out cannot be constructed and one that implements all is an instance of the interface; neither module names `Protocol` (rows of the parametrized tests of `tests/application/test_interfaces.py`, which gains the two interfaces, and two assertions in its operations test).
 5. `FakeSnapshots.advance()` then `changed_paths()` is `[]`; after `advance()`, writing a new file `b/new.txt`, changing the bytes of `a.txt`, removing `gone.txt` and making `empty/` gives `changed_paths()` `[ChangedPath("a.txt", "modified"), ChangedPath("b/new.txt", "added"), ChangedPath("gone.txt", "deleted")]`: the folder `empty/` and the folder `b/` are not listed, the order is by path.
 6. After `advance()`, a mode change alone (`chmod` of `a.txt` from `0o644` to `0o755`) is `modified`; a symbolic link whose target text changed is `modified`; a symbolic link that is new is `added` and is listed as a link, not as the file it points to (rows of one parametrized test).
 7. `reset()` after the changes of criterion 5, with a symbolic link `link` to `a.txt` made before `advance()` and removed after it, puts the folder back: `a.txt` has the base's bytes and mode, `b/new.txt` and `empty/` are gone, `gone.txt` is back, `link` is back as a link to `a.txt`, `changed_paths()` is `[]`, and `folder` itself still exists. `reset()` with no `base` folder raises `SnapshotError` whose `command` is `reset` and whose `detail` is `no base at <base>`, and the folder is unchanged; `changed_paths()` with no `base` raises it with `command` `changed_paths` (rows of one parametrized test).
-8. `advance()` a second time replaces the base: after `advance()`, a change, `advance()` again, `changed_paths()` is `[]` and `reset()` keeps the change. `mount_point` is the folder given.
+8. `advance()` a second time replaces the base: after `advance()`, a change, `advance()` again, `changed_paths()` is `[]` and `reset()` keeps the change. `mount_point` is the folder given. A file that is in the old base but was deleted from the folder before the second `advance()` is not brought back by `reset()` (a row of the same parametrized test).
 9. `FakeContainerRuns(workspace).launch(["/bin/sh", "-c", 'echo "$1" "$HOME"', "x", "/work/checkout/src"], mounts=[Mount(source=<tmp>/state/runs/i.md, target="/state/runs/i.md", read_only=True)], environment={"HOME": "/work/home", "PATH": "/usr/bin:/bin"}, time_limit=10 s, working_directory="/work/checkout")` returns `argv` `["/bin/sh", "-c", 'cd "$1" && shift && exec "$@"', "fake-container", "<workspace>/checkout", "/bin/sh", "-c", 'echo "$1" "$HOME"', "x", "<workspace>/checkout/src"]`, `env` `{"HOME": "<workspace>/home", "PATH": "/usr/bin:/bin"}` and `time_limit` 10 seconds; a word `/state/runs/i.md` maps to `<tmp>/state/runs/i.md`, a word `/workspace` (not `/work/...`) stays `/workspace`, `/work` alone maps to `<workspace>` (rows of one parametrized test over words), and a key of `environment` is never mapped: `environment={"/work": "/work"}` gives `env` `{"/work": "<workspace>"}`.
 10. The longer target wins: with the mounts `target="/mnt"` and `target="/mnt/deep"`, the word `/mnt/deep/x` maps to the deep mount's source, `/mnt/other` to the shallow one's, and `/mnt/deeper` (no slash after `/mnt/deep`) to the shallow one's too (rows of one parametrized test).
-11. `run(["/bin/sh", "-c", 'pwd; printf "%s\n" "$HOME"; echo "$1"; echo err >&2', "x", "/work/checkout"], mounts=[], environment={"HOME": "/work/home"}, time_limit=10 s, working_directory="/work/checkout")` on a `workspace` whose `checkout/` exists gives `exit_status` 0, `timed_out` false and `output` the three mapped lines `<workspace>/checkout`, `<workspace>/home`, `<workspace>/checkout` and then `err` (stderr merged); `run(["/bin/sh", "-c", "exit 3"], ...)` gives `exit_status` 3; `run(["/bin/sh", "-c", "sleep 30"], ..., time_limit=1 s)` gives `timed_out` true and `exit_status` `None` after at least 1 and less than 25 seconds (rows of one parametrized test); `run(["/nowhere/program"], ...)` gives `exit_status` 127, `timed_out` false and an `output` that contains `/nowhere/program` (the shell starts and cannot find the program inside); `run(["/bin/sh", "-c", "true"], ..., working_directory="/work/missing")` on a `workspace` without `missing/` raises `ContainerError` whose `command` is `/bin/sh` and whose `detail` starts with `[Errno 2]`.
-12. `launch` and `run` raise `ValueError` for a mount with target `/work` and for one with target `/work/checkout`, and for a `command` of `[]`, and `calls` records nothing of those (rows of one parametrized test); after one `launch` and one `run` that were accepted, `calls` holds two `ContainerCall`s with the command, mounts, environment, time limit and working directory exactly as given, in order.
+11. `run(["/bin/sh", "-c", 'pwd; printf "%s\n" "$HOME"; echo "$1"; echo err >&2', "x", "/work/checkout"], mounts=[], environment={"HOME": "/work/home"}, time_limit=10 s, working_directory="/work/checkout")` on a `workspace` whose `checkout/` exists gives `exit_status` 0, `timed_out` false and `output` the three mapped lines `<workspace>/checkout`, `<workspace>/home`, `<workspace>/checkout` and then `err` (stderr merged); `run(["/bin/sh", "-c", "exit 3"], ...)` gives `exit_status` 3; `run(["/bin/sh", "-c", "sleep 30"], ..., time_limit=1 s)` gives `timed_out` true and `exit_status` `None` after at least 1 and less than 25 seconds, with `duration` at least 1 second and under 25 seconds, and `duration` greater than 0 for the successful run (rows of one parametrized test); `run(["/nowhere/program"], ...)` gives `exit_status` 127, `timed_out` false and an `output` that contains `/nowhere/program` (the shell starts and cannot find the program inside); `run(["/bin/sh", "-c", "true"], ..., working_directory="/work/missing")` on a `workspace` without `missing/` raises `ContainerError` whose `command` is `/bin/sh` and whose `detail` starts with `[Errno 2]`.
+12. `launch` and `run` raise `ValueError` for a mount with target `/work` and for one with target `/work/checkout`, and for a `command` of `[]`, and `calls` records nothing of those; a mount with target `/workspace` is accepted and recorded in `calls` (rows of one parametrized test); after one `launch` and one `run` that were accepted, `calls` holds two `ContainerCall`s with the command, mounts, environment, time limit and working directory exactly as given, in order.
 13. `make check` stays green.
 14. docs: a new guide file `docs/project-guide/stage-environment.md`, with its title and a sentence on what it covers, named in `docs/project-guide/README.md`, *The files*, with the modules it describes (`factory.application.snapshots`, `factory.application.containers`, `factory.domain.containers`, `factory.adapters.fake_snapshots`, `factory.adapters.fake_containers`) and its sections: *The snapshots* (the interface, the base, what `changed_paths` lists and does not), *The container runs* (the interface, `launch` against `run`, the fixed `/work` mount and the refused targets), *The fakes* (the folder and the copy, the path mapping and what the fake cannot do: a read-only mount), each naming the errors and the tests. `docs/project-guide/README.md`, *Errors*: `SnapshotError` and `ContainerError` beside `ProjectCommandError`. `docs/decisions.md`: none in this story (S0005 writes the entry "One snapshot instead of many layers").
 
@@ -321,3 +323,9 @@ Expect: `1`
 
    You have leave to edit the Acceptance criteria for exactly these four additions; the Interface and the Description stay as they are.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete modules and signatures are named (`factory.domain.containers`, `factory.domain.errors`, `factory.application.snapshots`, `factory.application.containers`, `factory.adapters.fake_snapshots`, `factory.adapters.fake_containers`). The behaviours in the Interface text are all covered by criteria.
+   - Criteria: each can be tested by one parametrized test function. Each rule has its failing side: invalid `Mount.target` and `ContainerResult` combinations, empty `argv`, a zero or negative `time_limit`, no `base` for `reset` and `changed_paths`, `ValueError` for `/work` mounts and an empty command, and `ContainerError` for a missing working directory. Journal entry 4 (the human's answer to my four questions) is carried in as four additions, with no other change to the story. Criterion 2 gained `env=None` and `env={}` accepted and `env` kept as given. Criterion 8 gained the row where a file is deleted, `advance()` is called, and `reset()` does not bring it back. Criterion 11 gained `duration` at least 1 s and under 25 s on the timeout row, and greater than 0 on the successful run. Criterion 12 gained the row where a mount with target `/workspace` is accepted and recorded in `calls`.
+   - Smoke test: both blocks are runnable. Each has an `Expect:` line that can be checked against the output. The pytest command passes no `-q`, because `addopts` already sets one, so the `passed in` summary line is printed.
+   - Architecture: interfaces are ABCs in `application`, the DTOs are in `domain`, the fakes are in `adapters`, and the process module is used only through `run_process`. This matches the layering in `CLAUDE.md`.
+   - Scope: the story is within F0042's scope as feature.md lists it for S0001. It touches no "Out of scope" item. The tests it changes (`tests/application/test_interfaces.py`, `tests/test_wrapper_search.py`) are covered by decision 18 a of feature.md.
