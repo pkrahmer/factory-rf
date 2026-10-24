@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T12:13:16.642623Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-24T12:13:16.642623Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-24T12:17:32.587141Z'
+  stage: doing
+  run: 95cb37d0d0d644ea99ff8fee3c26f659
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -217,3 +219,16 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
    `lint`: lint: green (0.8 s)
    `test`: ERROR tests/adapters/test_zfs_snapshots_diff.py - ImportError while importing test module '/work/checkout/tests/adapters/test_zfs_snapshots_diff.py'.
 9. factory: started doing as self.
+10. coder: I built `src/factory/adapters/zfs_snapshots.py`: `BASE_SNAPSHOT`, `SNAPSHOT_TIME_LIMIT` and `ZfsSnapshots(Snapshots)` with `reset`, `advance`, `changed_paths`, `version` and `dataset_exists`, as the Interface describes. Every command goes through one private `_run`. It builds the `ProcessRequest` (cwd `/`, env `None`, the time limit given, `merge_stderr` true) and turns an `OSError`, a timed-out run or an exit status outside the accepted ones into `SnapshotError(command, detail)`. The two `list` commands accept 0 and 1. Every other command accepts only 0. `make check` is green (`check: green`). The tester's tests all pass unchanged, and the new module has 98 % branch coverage.
+
+    Main choice: `zfs diff -FH` is read line by line into a dict from path to change. A path that two lines name is recorded once by one rule in `_record`: it is `added` when either of the two lines adds it, otherwise the later line's change. That covers both cases the Interface names: a file removed and made anew, and a rename onto a removed path. The rejected alternative was to collect every pair and then merge only the remove/add pairs; that is more code for the same result. The mount-point check uses `PurePosixPath.is_relative_to`, so `<mount point>x/...` counts as outside without any string-prefix handling. Octal escapes are decoded on bytes before that check, so the detail names the decoded path.
+
+    Refactor: `_first_line` and `_last_line` built the same list, so that moved into one shared helper, `_printed_lines`. I also added the type annotation mypy needed on the rename's pair of changes. Nothing else needed changing.
+
+    Noticed, not touched:
+    - After decoding, a path that is not valid UTF-8 is reported as the fault `cannot read the line <line>`. The Interface does not say what should happen there. This is the only uncovered code in the module (lines 50-51), because no criterion has such a line. The reviewer may want a criterion for it, or a different reading.
+    - A line that names the mount point itself is made relative as `.`. In practice that line is always a directory and is left out.
+    - `make_commands._last_line` exists but skips make's own messages, so it is not the same helper. The adapter has its own small `_last_line`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 8 new, 38 known, 0 gone
