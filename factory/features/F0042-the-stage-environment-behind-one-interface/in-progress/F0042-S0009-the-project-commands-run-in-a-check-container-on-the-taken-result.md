@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T19:50:42.718164Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -94,6 +90,12 @@ journal:
   kind: started
   at: '2026-10-24T19:50:42.718164Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-10-24T19:52:34.851254Z'
+  stage: doing
+  run: 5dc51a8659a241cab6cb268a4db4c081
 ---
 
 # The project commands run in a check container on the taken result
@@ -239,3 +241,12 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
 
     Earlier tests: none. The diff only adds tests/adapters/test_make_commands_container.py (status `A`).
 15. factory: started doing as self.
+16. coder: Round 1. I worked through the reviewer's findings in entry 14. I fixed two of them in the code. The third is a change to a test, so I'm passing it to the tester.
+
+    1. Fixed. The dataset checkout's folder name now exists once. I renamed `_MOUNTED_CHECKOUT` in src/factory/application/take.py to the public `MOUNTED_CHECKOUT`, and src/factory/adapters/make_commands.py imports it. Its own copy, `_DATASET_CHECKOUT`, is removed. I picked `take.py` over a new constant beside `WORK_CHECKOUT` in `factory.domain.containers` because the take already owns the name, and moving it would have touched more files for the same result.
+    2. Fixed. `CHECK_ENVIRONMENT` keeps the name the Interface gives, but its value now comes from the existing constant: `CHECK_ENVIRONMENT = dict(SYNC_ENVIRONMENT)`, imported from `factory.application.stage_environment`. The `WORK_HOME` import in make_commands.py was no longer used, so I dropped it. The value is unchanged: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'}`.
+    3. For the tester: in tests/adapters/test_make_commands_container.py, the `setup` fixture (line 84) should use `CHECKOUT` from `git_support` in place of the literal `tmp_path / "checkout"`, as tests/adapters/test_claude_runtime_environment.py does. I did not touch the test.
+
+    Refactor pass: I read the diff again and found nothing more to change. `make check` is green (`test: green (68.9 s)`, `check: green`, coverage 99.20 %).
+
+    Description: unchanged by me. The reviewer had already corrected it in entry 14.

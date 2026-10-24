@@ -23,7 +23,8 @@ from factory.application.containers import ContainerRuns
 from factory.application.git import Git
 from factory.application.project_commands import ProjectCommands
 from factory.application.snapshots import Snapshots
-from factory.application.take import copy_changed
+from factory.application.stage_environment import SYNC_ENVIRONMENT
+from factory.application.take import MOUNTED_CHECKOUT, copy_changed
 from factory.domain.checks import (
     COMMAND_NAME_PATTERN,
     OUTPUT_TAIL_LINES,
@@ -32,18 +33,18 @@ from factory.domain.checks import (
     status_of,
     target_times,
 )
-from factory.domain.containers import WORK_CHECKOUT, WORK_HOME
+from factory.domain.containers import WORK_CHECKOUT
 from factory.domain.errors import ContainerError, ProjectCommandError, SnapshotError
 from factory.domain.kill_points import KillPoints
 
 _COMMAND_NAME = re.compile(COMMAND_NAME_PATTERN)
 
-CHECK_ENVIRONMENT = {"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": WORK_HOME}
+# A check sees the same system and home as the sync before the agent.
+CHECK_ENVIRONMENT = dict(SYNC_ENVIRONMENT)
 
 # The command's name is an argument, never part of the script, so the shell never parses it.
 _CHECK_SCRIPT = '"$1" sync && "$1" --no-print-directory "$2"'
 _CHECK_SCRIPT_NAME = "factory-check"
-_DATASET_CHECKOUT = "checkout"
 
 # An outer make (the tests run under `make check`) exports these, and an inner make that
 # sees them prints "Entering directory" lines that a run on its own would not.
@@ -207,7 +208,7 @@ class ContainerMakeCommands(ProjectCommands):
         # What differs from `HEAD` is what the take brought; nothing is remembered between them.
         copy_changed(
             self._checkout,
-            self._snapshots.mount_point / _DATASET_CHECKOUT,
+            self._snapshots.mount_point / MOUNTED_CHECKOUT,
             self._git.changed_paths("HEAD"),
         )
         try:
