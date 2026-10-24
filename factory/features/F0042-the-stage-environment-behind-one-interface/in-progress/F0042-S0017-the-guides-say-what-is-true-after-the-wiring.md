@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 425
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T22:16:43.495401Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-24T22:16:43.495401Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-24T22:19:26.871875Z'
+  stage: doing
+  run: 4eb10380a54445cea7cd89102f573d30
 ---
 
 # The guides say what is true after the wiring
@@ -117,3 +119,14 @@ Expect: `documents ok`
    `lint`: lint: green (0.5 s)
    `test`: test: green (65.6 s)
 6. factory: started doing as self.
+7. coder: No code written. This story only changes documents. Its Interface says nothing under `src/factory/`, in any test, the image, the template or an agent file changes, and the documenter writes the six passages.
+   criterion 1: nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changed in this stage. `git status --short` shows only the work item's `.costs.jsonl` sidecar, which the factory writes.
+   criterion 2: I ran `make check` in the foreground and it ended with `check: green` (`test: green (66.1 s)`, coverage 99.19 %).
+   criterion 3: left to the docs stage.
+   Main choice: I left the working tree as it was. The alternative I rejected was editing the five documents here, because `CLAUDE.md` gives the four guides to the documenter, not the coder.
+   Refactor: there is no diff, so nothing needed changing.
+   The journal did not change the meaning of the task.
+   Noticed but not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 11 new, 36 known, 2 gone
