@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T21:45:57.023311Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-24T21:45:36.324762Z'
   stage: doing
   run: df3572ec1d904ac08e709da366b2a19b
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:45:57.023311Z'
+  stage: review
 ---
 
 # The preflight checks the container environment
@@ -370,3 +379,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
+19. factory: started review as self.
