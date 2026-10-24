@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 425
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T22:21:29.505267Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-24T22:21:09.030902Z'
   stage: docs
   run: e6f33e5eefd24cde95b87fcdb743d2f7
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:21:29.505267Z'
+  stage: smoke-test
 ---
 
 # The guides say what is true after the wiring
@@ -194,3 +203,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 3389db52e22b at 2026-10-24T22:18:10Z)
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
