@@ -214,6 +214,7 @@ def test_version_is_the_first_line_zfs_prints(
         pytest.param(
             Answer(stdout="tank/other\n"), None, f"named tank/other, not {DATASET}", id="other"
         ),
+        pytest.param(Answer(), None, "printed nothing", id="nothing"),
         pytest.param(
             Answer(stdout=f"warning\ncannot open '{DATASET}': permission denied\n", exit_status=2),
             None,

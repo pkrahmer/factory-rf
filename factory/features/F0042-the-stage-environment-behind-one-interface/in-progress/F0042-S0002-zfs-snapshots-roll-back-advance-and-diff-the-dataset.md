@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T12:25:47.648551Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-24T12:25:47.648551Z'
   stage: tests
+- number: 19
+  speaker: tester
+  kind: result
+  at: '2026-10-24T12:28:41.092353Z'
+  stage: tests
+  run: 896ebbfa83054863b0a9713a128db3eb
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -323,3 +325,14 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
 
     The coder's change to `dataset_exists` stands as it is.
 18. factory: started tests as self.
+19. tester: Round 1: the test change the coder's entry 14 asked for, which the human approved as option (a) in entry 17.
+
+    Changed:
+    - criterion 8: tests/adapters/test_zfs_snapshots.py::test_dataset_exists_reads_what_list_names has a new row, `nothing`. `list -H -o name tank/factory/vm` exits 0 and prints nothing, and the test expects `SnapshotError` with `detail` `printed nothing`. The test's shared assertion also checks the arguments of the call. The coder's change to `dataset_exists` already does this, so the row passes.
+
+    Files changed: tests/adapters/test_zfs_snapshots.py (one row added; this story's own test). I created no files and changed no other test file. I did not edit the work item. Per entry 17, the reviewer writes the rule into the Interface's `dataset_exists()` bullet and adds the row to criterion 8.
+
+    Every module imports. `make test`: test: green (70.9 s). `make lint`: lint: green (0.2 s).
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (71.1 s)
