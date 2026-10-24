@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 423
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T21:55:18.592554Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-24T21:54:58.232201Z'
   stage: tests
   run: b0eb58c3995b4769b2d69350dbd2eb3f
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:55:18.592554Z'
+  stage: doing
 ---
 
 # The documents describe the stage environment
@@ -97,3 +106,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.6 s)
    `test`: test: green (65.2 s)
+6. factory: started doing as self.
