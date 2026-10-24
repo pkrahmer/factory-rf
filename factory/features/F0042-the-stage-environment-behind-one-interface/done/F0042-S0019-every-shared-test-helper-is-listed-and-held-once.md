@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-24T23:25:24.024302Z'
   stage: smoke-test
   run: 97c546a053f246beb370ab32abc36c15
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-24T23:29:50.528244Z'
+  stage: approval
 ---
 
 # Every shared test helper is listed and held once
@@ -495,3 +500,4 @@ Expect: 0
     - Criteria 2–4 (the seven guard rows, earlier tests unchanged, `make check`) are not exercised by the smoke test. Nothing here contradicts them. This stage did not run `make check`; the factory's checks cover it.
 
     Open, not a finding: the `take_support.py` entry names the guard but not `top_level_copies`; only the `search_support.py` entry names it. Criterion 5 says the two entries "name the guard … and `top_level_copies`". Read jointly, the docs meet it. Read as each entry on its own, the `take_support.py` entry falls one name short. I judged that the joint reading is what the criterion means and approved. The human can decide otherwise at the merge.
+25. factory: done (pull request merged); cost: 11 runs, 12.2 min, 74 turns, 256355 tokens in (1515694 more from cache), 35007 out, $2.74
