@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T16:44:42.306544Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-24T16:44:42.306544Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-24T16:45:03.263639Z'
+  stage: doing
+  run: 2cc9e218150b4d158b43ba0d0f35baf3
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -289,3 +291,12 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
    - The docs criterion is left to the documenter.
 8. 2026-10-24 human: Answer to the coder (F0042-S0005, the stage protocol calls the stage environment, and the inline environment is today's way): **(a)**. The tester renames the module to `tests/application/test_stage_environment_calls.py`, with the same contents. `tests/test_test_names.py` stays as it is: its naming rule holds. The story's Interface ("Tests") and the first smoke-test command name the new file; the reviewer writes that into the work item.
 9. factory: started doing as self.
+10. coder: The human chose (a), so the tester renames `tests/application/test_stage_environment_protocol.py` to `tests/application/test_stage_environment_calls.py`, with its contents unchanged. This clears the one red test, `tests/test_test_names.py::test_no_test_module_is_named_after_a_protocol`.
+
+    - **Code:** I changed nothing in this run. The code from my previous entry is already committed:
+      - `src/factory/application/stage_environment.py`
+      - `src/factory/application/stage.py`
+      - `src/factory/application/preflight.py`
+    - **Work item:** I did not touch the Description. The human's answer gives the update to the reviewer: the Interface's "Tests" paragraph and the first smoke-test command should name the new file.
+    - **Main choice:** none in this run; the choice from my previous entry stands.
+    - **Open:** after the rename, the stage comes back to me to confirm `make check` is green.
