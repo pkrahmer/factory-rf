@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T12:03:27.609452Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-24T12:03:27.602768Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-24T12:03:27.609452Z'
+  stage: intake
+---
+
 # ZFS snapshots roll back, advance and diff the dataset
 
 ## Description
@@ -96,3 +123,6 @@ EOF
 Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout/old.md', 'deleted'), ('checkout/src/a.py', 'modified'), ('checkout/with space.txt', 'added'), ('home/x', 'deleted')]`, `zfs-2.2.2-0ubuntu9.1 True`, `True True`; then the recorded calls, one per line: `rollback -r tank/factory/vm@base`, `list -H -o name -t snapshot tank/factory/vm@base`, `snapshot tank/factory/vm@base`, `diff -FH tank/factory/vm@base`, `--version`, `list -H -o name tank/factory/vm`
 
 ## Journal
+
+1. 2026-10-24 human: created.
+2. factory: started intake as self.
