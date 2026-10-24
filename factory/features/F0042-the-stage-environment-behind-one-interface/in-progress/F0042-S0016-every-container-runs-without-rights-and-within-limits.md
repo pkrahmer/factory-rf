@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T20:45:34.423794Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-24T20:45:13.938773Z'
   stage: docs
   run: 327527768b184a72a5e3f910982cf2fc
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:45:34.423794Z'
+  stage: smoke-test
 ---
 
 # Every container runs without rights and within limits
@@ -312,3 +321,4 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
     `check`: check: green (not run again: passed on tree c4ddd27c5f7f at 2026-10-24T20:42:07Z)
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
