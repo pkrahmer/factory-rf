@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-24T19:20:23.329630Z'
   stage: smoke-test
   run: e29983a558fc4d3ea24e3900c30d1202
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-24T19:21:43.203648Z'
+  stage: approval
 ---
 
 # The agent runtimes start their process in a container
@@ -503,3 +508,4 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
     Findings: none.
 
     Open: nothing. The working tree changed only in the work item's `.costs.jsonl`, which the factory writes, not this stage.
+25. factory: done (pull request merged); cost: 11 runs, 22.5 min, 127 turns, 468722 tokens in (4882375 more from cache), 81305 out, $5.78
