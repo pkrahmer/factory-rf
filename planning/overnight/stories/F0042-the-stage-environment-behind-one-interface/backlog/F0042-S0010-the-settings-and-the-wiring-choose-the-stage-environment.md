@@ -1,0 +1,102 @@
+# The settings and the wiring choose the stage environment
+
+## Description
+
+An instance is told which stage environment it runs through its environment variables, as it is told its runtime: `FACTORY_STAGE_ENVIRONMENT` is `inline` (the default, v1.1's way) or `container`; a `container` instance also names its ZFS dataset (`FACTORY_DATASET`, for example `tank/factory/vm`), the dataset's mount point on the host (`FACTORY_WORKSPACE`, an absolute path), the stage image (`FACTORY_STAGE_IMAGE`) and, with defaults, the two executables (`FACTORY_PODMAN`, `FACTORY_ZFS`). This story adds them to `InstanceSettings` with the faults the other settings have (a `container` environment without a dataset, a workspace or an image is `SettingsInvalid`, and so is one with an agent user: the container is the second user), and makes the wiring build a `container` instance's boundaries: `ZfsSnapshots` and `PodmanRuns` of S0002 and S0003 in `snapshots` and `containers`, the runtime of S0008 started in containers with no `sudo`, no `factory-confine` and no leftovers program, `ContainerMakeCommands` of S0009 behind the recording commands, no agent home to reset, and the agent run's `HOME` set to `/work/home`. An `inline` instance's boundaries are built exactly as today. With this story an operator can start a `container` instance; the preflight that checks its tools is S0011's, the machine F0043's. What stays: the image, `compose.yml` and every setting of today, unchanged; `self` runs on `inline` without setting anything.
+
+## Interface
+
+`factory.domain.settings` (`domain`):
+
+```python
+STAGE_ENVIRONMENT_VARIABLE = "FACTORY_STAGE_ENVIRONMENT"
+DATASET_VARIABLE = "FACTORY_DATASET"
+WORKSPACE_VARIABLE = "FACTORY_WORKSPACE"
+STAGE_IMAGE_VARIABLE = "FACTORY_STAGE_IMAGE"
+PODMAN_EXECUTABLE_VARIABLE = "FACTORY_PODMAN"
+ZFS_EXECUTABLE_VARIABLE = "FACTORY_ZFS"
+
+StageEnvironmentName = Literal["inline", "container"]
+
+
+class InstanceSettings(BaseModel):
+    ...
+    stage_environment: StageEnvironmentName = "inline"
+    dataset: str | None = None
+    workspace: Path | None = None
+    stage_image: str | None = None
+    podman_executable: str = "podman"
+    zfs_executable: str = "zfs"
+```
+
+- `read_settings(environ, ...)` reads the six variables, each stripped of surrounding whitespace; a blank value counts as unset. `FACTORY_STAGE_ENVIRONMENT` unset or blank is `inline`; `inline` and `container` are themselves; anything else (`Container`, `podman`) is `SettingsInvalid(STAGE_ENVIRONMENT_VARIABLE, "holds <value>, which is neither inline nor container")`. `FACTORY_PODMAN` and `FACTORY_ZFS` unset or blank give their defaults; any other value is taken as the executable (one word, decision 14 of `feature.md`).
+- For `container`, in this order: `FACTORY_DATASET` unset is `SettingsInvalid(DATASET_VARIABLE, "missing for the container environment")`; `FACTORY_WORKSPACE` unset is `SettingsInvalid(WORKSPACE_VARIABLE, "missing for the container environment")` and a relative value is `SettingsInvalid(WORKSPACE_VARIABLE, "is not an absolute path")`; `FACTORY_STAGE_IMAGE` unset is `SettingsInvalid(STAGE_IMAGE_VARIABLE, "missing for the container environment")`; `FACTORY_AGENT_USER` set is `SettingsInvalid(AGENT_USER_VARIABLE, "is set, but the container environment runs no second user")` (decision 15). For `inline` the five other variables are read and kept but no fault is raised for a missing one.
+- `InstanceSettings` built directly follows the same rules through a model validator: `stage_environment="container"` with `dataset`, `workspace` or `stage_image` `None`, or with `agent_user` set, or with a relative `workspace`, is `ValidationError`; `inline` accepts any combination.
+
+`factory.entry.wiring` (`entry`):
+
+```python
+WORK_HOME_ENVIRONMENT = {"HOME": WORK_HOME}
+
+
+def build_boundaries(
+    settings: InstanceSettings,
+    token: str,
+    *,
+    hosting: HostingService | None = None,
+    which: Callable[[str], str | None] = shutil.which,
+    confine_executable: str | None = CONFINE_COMMAND,
+    end_leftovers: bool = True,
+) -> Boundaries: ...
+
+
+def agent_run_environment(settings: InstanceSettings, base: Mapping[str, str]) -> dict[str, str]: ...
+```
+
+- `build_boundaries` with `settings.stage_environment == "inline"` returns exactly today's boundaries, `snapshots` and `containers` `None`. With `container`: `snapshots` is `ZfsSnapshots(settings.dataset, settings.workspace, executable=settings.zfs_executable)`; `containers` is `PodmanRuns(settings.podman_executable, settings.stage_image, settings.workspace)`; `agent_runtime` is the runtime of `settings.agent_runtime` built with `containers=<that PodmanRuns>`, `confine_executable=None`, `leftovers=None` and the login files, models and limits as today; `project_commands` is `RecordingProjectCommands(ContainerMakeCommands(snapshots, containers, git, checkout=settings.checkout), git, <the command records>, clock, log)`, with no `SealedProjectCommands` around it; `agent_home` is `None` (no agent user); everything else as today. The `which`, `confine_executable` and `end_leftovers` arguments are read for `inline` only.
+- `agent_run_environment(settings, base)`: for `container` the copy's `HOME` is `/work/home` (`WORK_HOME`); for `inline` as today (the agent user's home when one is set, else the base's).
+
+`factory.application.project_commands.RecordingProjectCommands` (`application`) gains a read-only property `inner -> ProjectCommands`, the implementation it records, so that the wiring's tests can see which one a `container` instance got (`SealedProjectCommands` has none: it is not used for `container`).
+
+Tests (the tester writes them): `tests/domain/test_settings_stage_environment.py`, `tests/entry/test_wiring_stage_environment.py` (with `hosting=FakeHostingService()`, a token file and an image file in `tmp_path`, as `tests/entry/test_wiring_boundaries.py` does; the adapters are read by type and by their arguments, nothing is run), `tests/entry/test_wiring_stage_environment_home.py`. The existing settings and wiring tests are unchanged.
+
+## Acceptance criteria
+
+1. `read_settings` (rows of one parametrized test over the base environment of `tests/settings_support.py`): no `FACTORY_STAGE_ENVIRONMENT`, an empty one and `  inline ` give `stage_environment` `inline`; `container` with `FACTORY_DATASET=tank/factory/vm`, `FACTORY_WORKSPACE=/srv/factory/vm/work` and `FACTORY_STAGE_IMAGE=factory-stage:1` gives `container`, `dataset` `tank/factory/vm`, `workspace` `Path("/srv/factory/vm/work")`, `stage_image` `factory-stage:1`, `podman_executable` `podman` and `zfs_executable` `zfs`; the same with `FACTORY_PODMAN=/usr/bin/podman` and `FACTORY_ZFS=/usr/local/bin/factory-zfs` gives those two.
+2. The faults (rows of one parametrized test, each `SettingsInvalid` with the named variable and the text): `FACTORY_STAGE_ENVIRONMENT=Container` gives `FACTORY_STAGE_ENVIRONMENT` and `holds Container, which is neither inline nor container`; `container` without `FACTORY_DATASET` gives `FACTORY_DATASET` and `missing for the container environment`; with the dataset but without `FACTORY_WORKSPACE` gives `FACTORY_WORKSPACE` and `missing for the container environment`; with `FACTORY_WORKSPACE=srv/work` gives `FACTORY_WORKSPACE` and `is not an absolute path`; with the dataset and the workspace but without `FACTORY_STAGE_IMAGE` gives `FACTORY_STAGE_IMAGE` and `missing for the container environment`; with all three and `FACTORY_AGENT_USER=agent` gives `FACTORY_AGENT_USER` and `is set, but the container environment runs no second user`; `inline` with none of the five is accepted, and `inline` with `FACTORY_AGENT_USER=agent` and `FACTORY_DATASET=tank/x` is accepted with `dataset` `tank/x`.
+3. `InstanceSettings` built directly (rows of one parametrized test through a `type[BaseModel]`): `stage_environment="container"` with the three set and no agent user is accepted; without `dataset`, without `workspace`, without `stage_image`, with `workspace=Path("srv/work")` and with `agent_user="agent"` each is `ValidationError`; `stage_environment="podman"` is `ValidationError`; `inline` without the three is accepted.
+4. `build_boundaries` for `inline` settings gives `snapshots` `None`, `containers` `None`, and the runtime, the project commands and the agent home as today (the existing `tests/entry/test_wiring_*.py` are unchanged and green; one row asserts the two `None`s).
+5. `build_boundaries` for `container` settings (dataset `tank/factory/vm`, workspace `<tmp>/work`, image `factory-stage:1`, `FACTORY_ZFS` and `FACTORY_PODMAN` set to two stand-in paths): `snapshots` is a `ZfsSnapshots` whose `mount_point` is `<tmp>/work`; `containers` is a `PodmanRuns`; `containers.launch(["true"], mounts=[], environment={}, time_limit=1 s, working_directory="/work")` gives words that start with the podman stand-in's path and hold `factory-stage:1`; `snapshots.reset()` with a stand-in `zfs` that records its arguments records `rollback -r tank/factory/vm@base` (the executable and the dataset reached the adapter); `agent_runtime` is a `ClaudeCodeRuntime` whose `containers is boundaries.containers` and whose `confine_executable` is `None` and `leftovers` `None`; with `FACTORY_AGENT_RUNTIME=opencode` an `OpencodeRuntime` with the same three; `project_commands` is a `RecordingProjectCommands` whose `inner` is a `ContainerMakeCommands`; `agent_home` is `None`.
+6. `agent_run_environment` (rows of one parametrized test): `container` settings give `HOME` `/work/home` and keep `PATH` and `LANG`; `inline` with an agent user gives the agent user's home; `inline` without one keeps the base's `HOME`; the base dict is not changed.
+7. `build_tick` on `container` settings with `hosting` the fake does not start any `zfs` or `podman` (the stand-ins record no call) and builds a tick (the preflight's items for a container instance are S0011's; this row only pins that wiring a container instance runs nothing).
+8. `make check` stays green.
+9. docs: `docs/operator-guide.md`, *Configuration*: the six rows in the table (variable, required, meaning, default, refusal text), a paragraph *The stage environment* after the table saying what `inline` and `container` are, that `container` needs the dataset, the workspace and the image, runs no second user and no kernel guard, and that F0043's chapter "The machine" explains the VM; `docs/project-guide/stage-environment.md` gains the section *The settings and the wiring* (the six settings and their faults, what `build_boundaries` builds for each environment, `agent_run_environment`'s `HOME`); `docs/project-guide/git-and-hosting.md` (which names `factory.domain.settings`): one sentence pointing to `stage-environment.md` for the new settings; `docs/project-guide/watching.md`, *Boundaries*: how the wiring fills `snapshots` and `containers`. `docs/decisions.md`: none.
+
+## Smoke test
+
+```bash
+uv run python - <<'EOF'
+from pathlib import Path
+
+from factory.domain.errors import SettingsInvalid
+from factory.domain.settings import read_settings
+
+base = {"FACTORY_REPOSITORY_URL": "/srv/project.git", "FACTORY_INSTANCE": "vm"}
+s = read_settings({**base, "FACTORY_STAGE_ENVIRONMENT": "container", "FACTORY_DATASET": "tank/factory/vm", "FACTORY_WORKSPACE": "/srv/factory/vm/work", "FACTORY_STAGE_IMAGE": "factory-stage:1"})
+print(s.stage_environment, s.dataset, s.workspace, s.stage_image, s.podman_executable, s.zfs_executable)
+print(read_settings(base).stage_environment, read_settings(base).dataset)
+for extra in ({"FACTORY_STAGE_ENVIRONMENT": "Container"}, {"FACTORY_STAGE_ENVIRONMENT": "container"}, {"FACTORY_STAGE_ENVIRONMENT": "container", "FACTORY_DATASET": "tank/x", "FACTORY_WORKSPACE": "srv/work"}):
+    try:
+        read_settings({**base, **extra})
+    except SettingsInvalid as error:
+        print(error.variable, "|", error.fault)
+EOF
+```
+Expect: five lines: `container tank/factory/vm /srv/factory/vm/work factory-stage:1 podman zfs`; `inline None`; `FACTORY_STAGE_ENVIRONMENT | holds Container, which is neither inline nor container`; `FACTORY_DATASET | missing for the container environment`; `FACTORY_WORKSPACE | is not an absolute path`
+
+```bash
+uv run pytest tests/domain/test_settings_stage_environment.py tests/entry/test_wiring_stage_environment.py tests/entry/test_wiring_stage_environment_home.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '
+```
+Expect: `1`
+
+## Journal

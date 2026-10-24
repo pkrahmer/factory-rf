@@ -1,9 +1,9 @@
-# The contract between a repository and the factory is three targets: `check`, `lint`, `test`.
+# The contract between a repository and the factory is four targets: `check`, `lint`, `test`, `sync`.
 # `check` is the gate every stage must pass; `lint` and `test` are what the tests stage runs on
 # its own (the type check is skipped there, because the modules under test do not exist yet).
 # What each target runs is the repository's business; this file is a Python example. `types` and
 # `layers` are in `check`, not in `lint`: the tests stage runs `lint` only.
-.PHONY: check lint types layers sast secrets licenses test duplicates documents mutants
+.PHONY: check lint types layers sast secrets licenses test sync duplicates documents mutants
 .SILENT:
 
 # One shell per recipe, stopped by its first failing line, so that a recipe can time itself.
@@ -21,6 +21,13 @@ green = tenths=$$(( ($$(date +%s%N) - started) / 100000000 )); echo "$@: green (
 
 check: lint types layers sast secrets licenses test
 	echo "check: green"
+
+# The fourth target (v1.2): the checkout's tools, brought up to date after a checkout. The stage
+# environment runs it in the sync container before every agent run and before every check.
+sync:
+	$(start)
+	uv sync --frozen
+	$(green)
 
 lint:
 	$(start)

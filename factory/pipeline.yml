@@ -13,6 +13,7 @@ project_commands:
   duplicates: {time_limit: 2}   # similar and dead code against security/duplicates-baseline.txt, for the reviewer
   documents: {time_limit: 2}    # the four documents against the document check: a check of the docs stage only
   secrets: {time_limit: 3}      # detect-secrets over the files changed on the branch, the documents and journals that check's not_read leaves out
+  sync: {time_limit: 5}         # v1.2: the checkout's tools after a checkout; the stage environment runs it, no stage lists it
 # What every agent run may write for the project's tools, besides its write paths: git-ignored
 # state in the checkout, and caches in the agent's home (~/). The kernel refuses every other write.
 tool_paths: [".venv/*", ".mypy_cache/*", ".ruff_cache/*", "demo/todo-service/project/.ruff_cache/*", ".pytest_cache/*", ".import_linter_cache/*", ".reports/*", "~/.cache/*", "~/.semgrep/*"]
