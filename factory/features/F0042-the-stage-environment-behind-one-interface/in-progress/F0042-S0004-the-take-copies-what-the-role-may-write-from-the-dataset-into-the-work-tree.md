@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 411
 comments_read: [6386154578]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T15:56:23.163657Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -91,6 +87,12 @@ journal:
   kind: started
   at: '2026-10-24T15:56:23.163657Z'
   stage: review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T15:58:06.222848Z'
+  stage: review
+  run: bd23e10c76e84ee19c75fd2c850cc8db
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -316,3 +318,12 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     `check`: check: green
     `duplicates`: duplicates: 14 new, 38 known, 0 gone
 14. factory: started review as self.
+15. reviewer: Review, round 0. I read the work item, `git diff main...HEAD -- . ':!factory'` (src: `git_cli.py`, `git.py`, `take.py`, `undo.py`; tests: `test_git_cli_check_ignore.py`, `test_take.py`, `test_take_edges.py`, `take_support.py`, and the two renamed interface tests) and the coder's journal. The factory's `make check` after the coder was green (entry 13). Group 1 (acceptance criteria) fails, so I stopped there and did not judge groups 2 to 5.
+
+    Findings:
+    1. `tests/adapters/test_git_cli_check_ignore.py::test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read`, rows `one-group` and `two-groups`: criterion 1 says 1,001 paths give two calls "the answer in the paths' order". The stand-in answers `::<TAB><path>` for every path, so `cli.ignored(paths)` is always `[]`. The rows never check how the two groups' answers are joined. A `GitCli.ignored` that kept only the last group's answer (`found = ...` instead of `found.extend(...)`) would still pass. Fix (tester): make the stand-in answer an ignoring rule line (e.g. `.gitignore:1:*.log<TAB><path>`) for some paths in both groups, e.g. every path whose name ends in `.log`. Then assert that the returned list holds exactly those paths from both groups, in the order given.
+    2. `src/factory/application/take.py:_place` / `copy_changed`, and the story's Interface: the Interface says "nothing is ever written through a link that stood at the target". No criterion covers its failing side for a link at a parent folder of the path (target `src/evil -> <folder outside>`, `src/evil/x` added). The code does `entry.parent.mkdir(..., exist_ok=True)` and `shutil.copyfile`, so it writes through such a link and out of the work tree; the coder noted this in entry 10. This gap is in the story, not in the tester's work. Fix: either a new row in criterion 2's test (a parent folder on the target that is a link to a folder outside: nothing is written outside, and the target ends as a real folder holding the source's file) plus the code to match, or the human narrows the Interface's sentence to the entry itself. Because it needs a code change or the human's word, the coder should ask (`question`) unless the answer is already clear.
+
+    Earlier tests (item 6):
+    - `tests/application/test_git_interface.py`: under the human's leave, feature.md decision 18 (d), which the story's Interface cites (`OPERATIONS` gains `ignored`, test renamed to twenty-six). It stays within that leave.
+    - `tests/application/test_interfaces.py`: under the same leave, 18 (d) (`test_git_abstract_methods_are_exactly_its_twenty_five_operations` renamed to twenty-six, assertion unchanged). It stays within that leave.
