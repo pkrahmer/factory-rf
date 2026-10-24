@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 428
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T23:02:54.198541Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-24T23:02:33.982843Z'
   stage: intake
   run: d968c5251dfd47df86c98016d4746881
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:02:54.198541Z'
+  stage: tests
 ---
 
 # Every shared test helper is listed and held once
@@ -86,3 +95,4 @@ Expect: 0
    Smoke test: the commands are runnable. The project's pytest config sets `-q` in `addopts` and the first command passes none, so `tail -1` gives the `N passed in Xs` summary line that the grep and the Expect: 1 can match. The second command expects exactly two files, which is checkable. The third counts the modules without an entry and expects 0.
    Architecture: the work stays in `tests/`, uses the standing leave to move shared helpers, and matches the CLAUDE.md test layout. Nothing under `src/` changes.
    Scope: it fits F0042's "the tests each story names" and breaks none of its Out of scope items. It changes earlier tests only under the standing leave, and criterion 3 requires the tester to name each earlier test file it changed.
+4. factory: started tests as self.
