@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T19:08:46.151423Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-24T19:08:46.151423Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-24T19:11:43.223128Z'
+  stage: tests
+  run: 2498a590f3b74e039c639ac1b4b74317
 ---
 
 # The agent runtimes start their process in a container
@@ -348,3 +350,21 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
     - The reviewer left one point for later rounds: calls are routed by a branch in each runtime's `_process_request`, not through `run_launch` as the Description says. Entry 10 gives the reason, ruff's argument limit (PLR0913). The reviewer did not judge it this round, so I left it as it is.
     - The journal added criterion 12, which the Description already holds. It changed nothing else about what the task means, so the Description stays as it is.
 15. factory: started tests as self.
+16. tester: Round 1, test change mode. I made the two test changes the coder named in entry 14, which come from the reviewer's findings in entry 12. No code changed. Nothing else changed.
+
+    1. Criterion 12 (each file mounted once, in the order given): `tests/adapters/test_agent_launch_container.py::test_a_container_launch_mounts_the_files_read_only_at_their_own_paths`
+       - New row `each-file-once` with the files `/state/a`, `/state/b`, `/state/a`.
+       - The expected mounts and the recorded `ContainerCall` are now built from the files with duplicates removed and order kept (`dict.fromkeys(files)`). For this row that is exactly `/state/a`, `/state/b`, both read-only at their own paths. The other rows have no duplicates, so they expect the same as before.
+       - If `container_launch` stopped removing duplicates, it would record three mounts, and this row would fail.
+    2. Criterion 5 (opencode drops the logins like criterion 4): `tests/adapters/test_opencode_runtime_container.py::test_a_run_in_a_container_mounts_the_login_and_configuration_and_completes`
+       - The request's environment now also holds `LOGIN_VARIABLE: "request-login"`, as in the Claude Code test.
+       - The assertion on the recorded environment is unchanged, so it still expects the environment without that variable.
+       - `LOGIN_VARIABLE` is now imported from `factory.adapters.agent_launch`.
+
+    Files changed: `tests/adapters/test_agent_launch_container.py` and `tests/adapters/test_opencode_runtime_container.py`. Both were written for this story in entry 8; no earlier story's test was touched. No files were created, and every module imported.
+
+    `make test`: test: green (64.5 s). Both changed tests pass against the coder's code, as entry 14 expected.
+    `make lint`: lint: green (0.8 s).
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (63.6 s)

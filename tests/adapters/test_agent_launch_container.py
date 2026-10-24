@@ -70,6 +70,15 @@ class _OwnEnvironmentRuns(FakeContainerRuns):
         ),
         pytest.param(
             FakeContainerRuns,
+            ["/bin/true"],
+            {},
+            [Path("/state/a"), Path("/state/b"), Path("/state/a")],
+            timedelta(seconds=1),
+            False,
+            id="each-file-once",
+        ),
+        pytest.param(
+            FakeContainerRuns,
             ["x"],
             {},
             [Path("/work/x")],
@@ -90,7 +99,7 @@ def test_a_container_launch_mounts_the_files_read_only_at_their_own_paths(  # no
     refused: bool,
 ) -> None:
     runs = runs_class(tmp_path / "workspace")
-    mounts = [read_only(file) for file in files]
+    mounts = [read_only(file) for file in dict.fromkeys(files)]
 
     if refused:
         with pytest.raises(ValueError, match="/work"):

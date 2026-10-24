@@ -26,7 +26,12 @@ from adapters.opencode_stand_in import (
 )
 from adapters.test_agent_launch_login import API_LOGIN
 from factory.adapters import opencode_runtime
-from factory.adapters.agent_launch import VERSION_TIME_LIMIT, LoginFiles, login_argv
+from factory.adapters.agent_launch import (
+    LOGIN_VARIABLE,
+    VERSION_TIME_LIMIT,
+    LoginFiles,
+    login_argv,
+)
 from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.process import ProcessRequest, ProcessResult, Stream
@@ -126,9 +131,12 @@ def test_a_run_in_a_container_mounts_the_login_and_configuration_and_completes(
 ) -> None:
     api_file = _api_login(tmp_path) if api else None
     runtime = _runtime(tmp_path, [REPLY], fake, api_login_file=api_file)
+    request = _request(tmp_path)
+    given = {**request.environment, LOGIN_VARIABLE: "request-login"}
+    request = request.model_copy(update={"environment": given})
     state = tmp_path / "state"
 
-    result = runtime.run(_request(tmp_path))
+    result = runtime.run(request)
 
     assert (result.end_reason, result.decision, result.entry) == (
         "completed",
