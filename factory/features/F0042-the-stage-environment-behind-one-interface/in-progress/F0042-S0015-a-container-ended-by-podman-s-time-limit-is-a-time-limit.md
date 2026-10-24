@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T20:16:04.304293Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-24T20:16:04.304293Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-24T20:19:27.237218Z'
+  stage: tests
+  run: fed54e185e0d4377a87ae77fd9755235
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -178,3 +180,20 @@ Expect: one line, `[-9, 137, 255] True False`
 
     Main choice: I end with `tests` rather than `question`, because the standing leave covers both moves. The alternative, asking the human, is not needed here. Description unchanged: the review changed what the tests look like, not what the task means. Noticed but did not touch: nothing new.
 12. factory: started tests as self.
+13. tester: Round 1, test change only. I made the two helper moves that the coder named in entry 11, under the standing leave in CLAUDE.md (*Tests*) to move a shared test helper. No test function was renamed, and every test checks the same thing as before.
+
+    1. The `workspace` and `fake` fixtures now live in `tests/conftest.py`, with docstrings. They are built on `make_workspace` and `FakeContainerRuns`. I removed the copies from `tests/adapters/test_claude_runtime_container.py` and `tests/adapters/test_opencode_runtime_container.py`, and removed the `fake` copy from `tests/adapters/test_runtime_podman_timeout_status.py`. `tests/adapters/test_fake_containers.py` and `tests/adapters/test_podman_runs_results.py` each keep their own `workspace` fixture, which overrides the shared one locally. Those fixtures differ: they make no `home/`. The coder did not name them, so I left them alone.
+    2. `_request` and `_state` of `tests/adapters/test_opencode_runtime_container.py` moved to `tests/adapters/container_runtime_support.py`. There they are `container_request(tmp_path, *, time_limit=LIMIT, os_user=None)` and `make_state(tmp_path)`. The module's `LIMIT = timedelta(seconds=30)` moved with them, and the opencode module now imports `LIMIT` from there. Both `test_opencode_runtime_container.py` and `test_runtime_podman_timeout_status.py` now import the helpers. The new module's own `_request` and its inline `state` setup are gone. Its 30 s time limit now comes from the helper's default `LIMIT`, so criterion 4 still runs at 30 s and 29.9 s.
+
+    Criterion → test mapping is unchanged from entry 5:
+    - criterion 1: tests/adapters/test_agent_launch_container_kill.py::test_a_container_s_kill_statuses_add_podman_s_timeout_status
+    - criterion 2: tests/adapters/test_agent_launch_container_kill.py::test_255_at_the_limit_is_a_kill_only_in_a_container
+    - criterion 3: tests/adapters/test_podman_timeout_status.py::test_podman_s_timeout_status_at_the_limit_is_a_timed_out_run
+    - criterion 4: tests/adapters/test_runtime_podman_timeout_status.py::test_claude_code_in_a_container_reads_podman_s_255_at_the_limit_as_the_time_limit and ::test_opencode_in_a_container_reads_podman_s_255_at_the_limit_as_the_time_limit
+
+    Earlier test files changed under the standing leave: tests/conftest.py, tests/adapters/container_runtime_support.py, tests/adapters/test_claude_runtime_container.py and tests/adapters/test_opencode_runtime_container.py. This story's own module tests/adapters/test_runtime_podman_timeout_status.py changed too. No new files. Every module imports; nothing failed to import.
+
+    `make lint`: lint: green (0.2 s). `make test`: test: green (67.1 s), coverage 99.20 %. The code from round 0 is already in, so the tests are green rather than red.
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (67.3 s)

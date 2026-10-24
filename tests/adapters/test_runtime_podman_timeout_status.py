@@ -6,37 +6,22 @@ from pathlib import Path
 
 import pytest
 
-from adapters.container_runtime_support import container_environment, make_workspace
-from adapters.opencode_stand_in import MODELS, opencode_request, stdout, step_finish, step_start
+from adapters.container_runtime_support import container_request, make_state
+from adapters.opencode_stand_in import MODELS, stdout, step_finish, step_start
 from adapters.test_claude_runtime_login import REPLY
 from factory.adapters import opencode_runtime
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.process import ProcessRequest, ProcessResult, Stream
-from factory.domain.agent_runs import AgentRunRequest
 from run_process_recorder import Recorder
 
-LIMIT = timedelta(seconds=30)
 PODMAN_TIMEOUT = 255
 
 ROWS = [
     pytest.param(30.0, "time_limit", id="at-the-limit"),
     pytest.param(29.9, "died", id="before-the-limit"),
 ]
-
-
-@pytest.fixture
-def fake(tmp_path: Path) -> FakeContainerRuns:
-    return FakeContainerRuns(make_workspace(tmp_path))
-
-
-def _request(tmp_path: Path) -> AgentRunRequest:
-    return opencode_request(
-        tmp_path / "work",
-        environment=container_environment(tmp_path / "bin"),
-        time_limit=LIMIT,
-    )
 
 
 def _ended(seconds: float, output: str) -> ProcessResult:
@@ -56,7 +41,7 @@ def test_claude_code_in_a_container_reads_podman_s_255_at_the_limit_as_the_time_
     recorder.results = [_ended(seconds, REPLY)]
     runtime = ClaudeCodeRuntime("claude", tmp_path / "state", containers=fake)
 
-    result = runtime.run(_request(tmp_path))
+    result = runtime.run(container_request(tmp_path))
 
     assert result.end_reason == end_reason
     if end_reason == "time_limit":
@@ -79,11 +64,9 @@ def test_opencode_in_a_container_reads_podman_s_255_at_the_limit_as_the_time_lim
         return _ended(seconds, stdout(step_start(), step_finish()))
 
     monkeypatch.setattr(opencode_runtime, "run_streaming", answer)
-    state = tmp_path / "state"
-    state.mkdir()
-    runtime = OpencodeRuntime("opencode", state, models=MODELS, containers=fake)
+    runtime = OpencodeRuntime("opencode", make_state(tmp_path), models=MODELS, containers=fake)
 
-    result = runtime.run(_request(tmp_path))
+    result = runtime.run(container_request(tmp_path))
 
     assert result.end_reason == end_reason
     if end_reason == "time_limit":

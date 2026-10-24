@@ -9,6 +9,7 @@ import pytest
 from ruamel.yaml import YAML
 
 from acceptance_walk import AcceptanceWalk
+from adapters.container_runtime_support import make_workspace
 from compose_support import COMPOSE
 from confine_support import Layout, build_layout
 from definition_support import pipeline_definition
@@ -21,6 +22,7 @@ from factory.adapters.clock import ManualClock, ManualWaiter
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
@@ -85,6 +87,18 @@ def group_umask() -> Iterator[None]:
     previous = os.umask(0o002)
     yield
     os.umask(previous)
+
+
+@pytest.fixture
+def workspace(tmp_path: Path) -> Path:
+    """Return the folder the fake container runs play `/work` as, `checkout/` and `home/` made."""
+    return make_workspace(tmp_path)
+
+
+@pytest.fixture
+def fake(workspace: Path) -> FakeContainerRuns:
+    """Return fake container runs on the test's `workspace`."""
+    return FakeContainerRuns(workspace)
 
 
 @pytest.fixture
