@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 410
-comments_read: []
+comments_read: [6384920747]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: a26bd2b1ba2c4990be6609f0e77301e8
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-24T13:41:28.362261Z'
+  stage: intake
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -149,3 +154,9 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
    2. `copy_changed` says that for an `added` or `modified` path, an existing entry at the target is removed first, "a link as the link, a folder with what it holds". Criterion 2 has rows for a link at the target (the `modified` row) and for a deleted link. It has no row for a folder at the target replaced by a file, or for a file replaced by a folder. Without a criterion, two coders could read that clause two ways and both pass the tests. Option A, which I would choose: add one criterion 2 row, an `added` file whose target entry is a folder holding a file, where the folder and its contents are gone and the target holds a regular file with the source's bytes. Option B: drop "a folder with what it holds" from the Interface.
 
    The format check passed and I found nothing else. The Interface is concrete, the failing sides are covered (`ValueError`, `GitError`, `WorkItemFormatError`, refused and dropped paths), the architecture fits the layers, and the story is within the feature's scope.
+4. 2026-10-24 human: Answers to the intake (F0042-S0004, the take copies what the role may write from the dataset into the work tree):
+
+   1. **A**, and add it: the smoke test's first command runs both `tests/adapters/test_git_cli_ignored.py` and `tests/adapters/test_git_cli_check_ignore.py`. The old file stays in as a check that `remove_ignored` still works. The `Expect:` line follows the command; please make it name what the two files print together.
+   2. **A**: one more row in criterion 2. An `added` file whose target is a folder holding a file: afterwards the folder and its contents are gone, and the target is a regular file with the source's bytes. The clause "a folder with what it holds" stays in the Interface.
+
+   Please write both into the Smoke test and the criteria as you accept.
