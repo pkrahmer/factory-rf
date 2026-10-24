@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T13:20:49.686645Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-24T13:20:49.686645Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-24T13:23:51.363159Z'
+  stage: doing
+  run: f0bd309f2297448aaada4dd1a8d73604
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -315,3 +317,27 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
     `lint`: lint: green (0.5 s)
     `test`: test: green (63.4 s)
 17. factory: started doing as self.
+18. coder: Round 1, second doing run. The tester's entry 16 added the tests for criteria 10 and 11 (in `tests/adapters/test_podman_runs_results.py`), and they pass against the code already in the tree. So nothing was left to build this run, and I changed no code and no test. Reviewer finding 1 (the duplicated call check) was fixed in entry 14 through `check_container_call` in `src/factory/domain/containers.py`. Findings 2 and 3 are now covered by the tester's rows.
+
+    What the story built, unchanged in this run:
+    - `src/factory/adapters/podman_runs.py` (new): `CONTAINER_GRACE`, `PODMAN_TIME_LIMIT` and `PodmanRuns`.
+    - `src/factory/adapters/printed_output.py` (new): line helpers moved out of `zfs_snapshots.py`.
+    - `src/factory/adapters/zfs_snapshots.py` now uses those shared helpers.
+    - `src/factory/domain/containers.py` gains `check_container_call`.
+    - `src/factory/adapters/fake_containers.py` now calls `check_container_call` instead of its own copy.
+
+    Main choice (from entry 14): the shared call check lives in the domain, beside `WORK` and `Mount`, because it is a pure rule. I rejected a small shared module under `factory.adapters`.
+
+    The branch has `origin/main` merged in (`269274f4`). `make check` is green on the merged tree: `test: green (63.7 s)`, `check: green`, coverage 99.17 %.
+
+    Refactor pass: I reread `podman_runs.py` and the diff against `main`. Nothing needed changing.
+
+    Noticed but did not touch:
+    - `agent_launch._limit_argument` also rounds a limit up to whole seconds, as `podman_runs` does with `math.ceil` inline.
+    - vulture reports `WORK_HOME` in `domain/containers.py` as unused. It predates this story.
+    - The work item's smoke test has still not been run by the coder; it was not permitted in the first run, and I did not try it again here.
+
+    The journal changed nothing that needs a Description rewrite: criteria 10 and 11 are already in it.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 38 known, 0 gone
