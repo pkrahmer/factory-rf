@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T20:28:30.160352Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-24T20:28:10.015632Z'
   stage: intake
   run: 9694797ef2ee49f2894d5aa27a9c98c9
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:28:30.160352Z'
+  stage: tests
 ---
 
 # Every container runs without rights and within limits
@@ -73,3 +82,4 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
    - Smoke test: the command is runnable. The `PodmanRuns("podman", "img", Path)` constructor matches, and with empty mounts and environment `argv[6:11]` is the four words followed by `--volume`, because `/work` is always the first volume. The `Expect:` line is a single exact list. No pytest is run, so the `-q` rule does not apply.
    - Architecture: the change stays in the adapters layer, in the one podman wrapper. `ContainerRuns` is untouched and the constants are module-level. The docs criterion names the files the documenter keeps.
    - Scope: this is S0016 of F0042, listed in the feature's Scope and Stories and Decision 23. It adds no `network` keyword, and removes no layer, so it stays outside the Out of scope list.
+4. factory: started tests as self.
