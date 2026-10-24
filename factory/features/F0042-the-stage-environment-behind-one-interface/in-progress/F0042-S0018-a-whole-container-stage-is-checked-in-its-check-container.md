@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 426
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T22:39:09.643795Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-24T22:39:09.643795Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-24T22:42:34.346236Z'
+  stage: tests
+  run: 29e98948b6ad45f9a1b79c0b7b10c6b4
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -219,3 +221,37 @@ Expect: three lines, `2`, `1`, `1`
     - Noticed, not touched: nothing further. The docs criterion is still the documenter's.
     - The journal did not change the meaning of the task.
 12. factory: started tests as self.
+13. tester: Round 1: I made the test change the coder asked for in entry 11, which answers the reviewer's finding in entry 9. I made it under the standing leave in `CLAUDE.md` to move a shared test helper. No test was renamed, and each still checks the same thing.
+
+    What changed:
+    - tests/container_support.py now holds `INSIDE` and `NOTES`.
+    - It also holds `whole_stage(boundaries, *, human, agent_home, agent_runtime, tmp_path, project_commands=None) -> tuple[Dataset, StageReport]`:
+      - it opens the story with `stage_makefile()` plus a `sync` target built from `SYNC_RECIPE`;
+      - it writes `.gitignore` from `SYNC_MARKER`;
+      - it builds the dataset, queues `completed("doing")` and writes `INSIDE`/`NOTES` through `WorkspaceRuntime` with `AGENT_TEXT` from `take_support`, then runs the stage.
+    - `project_commands` is an optional `Callable[[Dataset], ProjectCommands]`, because `ContainerMakeCommands` needs the dataset's fakes, which exist only once the helper has built the dataset. When it is not given, the host's project commands stay.
+    - It also holds `assert_taken_and_pushed(boundaries, remote, report)`, the five assertions the two whole-stage tests repeated. I chose the shared check over the reviewer's other option, one parametrized test, because a parametrized test would have merged two tests into one and lost a name.
+
+    Earlier test file changed under the standing leave:
+    - tests/application/test_container_environment_take.py: `test_a_whole_stage_takes_the_agents_work_from_the_dataset` now uses `whole_stage` and `assert_taken_and_pushed`. The module's own copies of `AGENT_TEXT` (now from `take_support`), `INSIDE` and `NOTES` are gone.
+
+    This story's own test file changed too:
+    - tests/application/test_container_stage_checks.py: the `staged` fixture calls `whole_stage` with `ContainerMakeCommands` as `project_commands`, and `test_a_whole_container_stage_pushes_the_taken_work_and_leaves_the_host_clean` calls `assert_taken_and_pushed`. Its copies of `AGENT_TEXT`, `INSIDE` and `NOTES` are gone.
+
+    Mapping (unchanged):
+    - criterion 1: tests/application/test_container_stage_checks.py::test_a_whole_container_stage_pushes_the_taken_work_and_leaves_the_host_clean
+    - criterion 2: tests/application/test_container_stage_checks.py::test_the_sync_and_each_check_run_in_their_containers_on_the_taken_result
+    - criterion 3: tests/application/test_container_stage_checks.py::test_the_next_prepare_starts_from_the_pushed_result_and_nothing_else
+    - criterion 4: the helper moves of entry 5, plus this one
+    - criteria 5 and 6: no test (`make check` and the docs)
+
+    Files created: none this round. Modules the test run could not import: none.
+
+    Checks:
+    - `make test` is green (64.2 s, coverage 99.19 %). I ran it once, before shortening a docstring line, which is the only change since.
+    - `make lint` and `make types` are green.
+
+    Open: nothing.
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (65.6 s)

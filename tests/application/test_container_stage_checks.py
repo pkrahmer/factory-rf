@@ -1,18 +1,19 @@
 """A whole container stage: the agent on the dataset, the take, the checks in a check container."""
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
 
 from container_support import (
     FIVE_MINUTES,
+    INSIDE,
+    NOTES,
     Dataset,
-    WorkspaceRuntime,
-    container_dataset,
-    timing_lines,
+    assert_taken_and_pushed,
+    whole_stage,
 )
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.adapters.make_commands import ContainerMakeCommands
 from factory.application.boundaries import Boundaries
 from factory.application.stage import StageReport
@@ -20,19 +21,9 @@ from factory.application.stage_environment import ContainerEnvironment
 from factory.domain.git import CommitId
 from git_support import write_files
 from human_clone import HumanClone
-from stage_run_support import (
-    BRANCH,
-    branch_head,
-    completed,
-    open_story,
-    pushed,
-    run_stage,
-    stage_makefile,
-)
+from stage_run_support import BRANCH, branch_head
+from take_support import AGENT_TEXT
 
-AGENT_TEXT = "written by the agent\n"
-INSIDE = "tests/test_a.py"
-NOTES = "notes.md"
 STRAY = "stray.txt"
 LEFTOVER = "leftover"
 
@@ -56,21 +47,16 @@ def staged(
     tmp_path: Path,
 ) -> Staged:
     """Run the story's `tests` stage on the dataset, its checks in check containers."""
-    makefile = stage_makefile() + "\nsync:\n\t@echo synced > .synced\n"
-    open_story(
-        boundaries, human, agent_home, makefile=makefile, main_files={".gitignore": ".synced\n"}
+    dataset, report = whole_stage(
+        boundaries,
+        human=human,
+        agent_home=agent_home,
+        agent_runtime=agent_runtime,
+        tmp_path=tmp_path,
+        project_commands=lambda given: ContainerMakeCommands(
+            given.snapshots, given.containers, boundaries.git, checkout=boundaries.checkout
+        ),
     )
-    dataset = container_dataset(boundaries, tmp_path)
-    commands = ContainerMakeCommands(
-        dataset.snapshots, dataset.containers, boundaries.git, checkout=boundaries.checkout
-    )
-    agent_runtime.queue(ScriptedRun(result=completed("doing")))
-    runtime = WorkspaceRuntime(
-        agent_runtime, dataset.workspace / "checkout", {INSIDE: AGENT_TEXT, NOTES: AGENT_TEXT}
-    )
-    stage_boundaries = replace(dataset.boundaries, agent_runtime=runtime, project_commands=commands)
-
-    report = run_stage(stage_boundaries)
 
     # The claim is the stage's first commit on the branch; the result commit follows it.
     stage_start = boundaries.git.resolve(f"{report.commit}^")
@@ -81,15 +67,7 @@ def staged(
 def test_a_whole_container_stage_pushes_the_taken_work_and_leaves_the_host_clean(
     boundaries: Boundaries, remote: Path, staged: Staged
 ) -> None:
-    commit = staged.report.commit
-
-    assert commit == branch_head(remote)
-    assert boundaries.git.show_file(commit, INSIDE) == AGENT_TEXT
-    assert boundaries.git.show_file(commit, NOTES) is None
-    journal = pushed(boundaries, remote).body.split("## Journal", 1)[1]
-    assert NOTES in journal
-    assert len(timing_lines(boundaries)) == 1
-    assert boundaries.git.status().changes == []
+    assert_taken_and_pushed(boundaries, remote, staged.report)
 
 
 def test_the_sync_and_each_check_run_in_their_containers_on_the_taken_result(
