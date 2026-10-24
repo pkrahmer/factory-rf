@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T20:27:49.244418Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-24T20:27:49.238444Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:27:49.244418Z'
+  stage: intake
+---
+
 # Every container runs without rights and within limits
 
 ## Description
@@ -35,3 +62,6 @@ uv run python -c 'from datetime import timedelta as t; from pathlib import Path 
 Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pids-limit=4096', '--memory=4g', '--volume']`
 
 ## Journal
+
+1. 2026-10-24 human: created.
+2. factory: started intake as self.
