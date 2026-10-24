@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T17:21:48.236909Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-10-24T17:21:48.236909Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-24T17:24:26.042989Z'
+  stage: doing
+  run: 22c5d27a2d494625a282ecb7259a5fac
 ---
 
 # `sync` is the fourth target of the project contract
@@ -328,3 +330,25 @@ Expect: four lines: `# The contract between a project and the factory is four ta
     `lint`: lint: green (0.5 s)
     `test`: test: green (61.2 s)
 17. factory: started doing as self.
+18. coder: Round 1, back from the tests stage. Both of the reviewer's findings in entry 12 were changes to tests, and the tester made them in entry 16. So there was no code left for me to change, and I changed none. I ran `make check` in the foreground against the committed state and it is green: `test: green (61.6 s)`, coverage 99.19 %, `check: green`.
+
+    What I built (unchanged since entries 7 and 10):
+    - `template/Makefile`:
+      - Line 1 says the contract is four targets: `check`, `lint`, `test`, `sync`.
+      - `.PHONY` names `sync` after `test`.
+      - A new `sync:` target sits between `check:` and `lint:`, with the comment from the Interface. Its recipe is `$(start)` / `uv sync --frozen` / `$(green)`.
+      - `check:` is unchanged and does not run `sync`.
+    - `template/factory/pipeline.yml`: a new line `  sync: {time_limit: 5}`, with the Interface's comment at its end. No stage lists `sync`.
+    - `template/CLAUDE.md`: now says "names `check`, `lint`, `test` and `sync`".
+
+    Main decision: `sync` uses the same `$(start)`/`$(green)` macros as the other targets, so it ends with the usual `sync: green (<seconds> s)` line. I rejected a bare `uv sync --frozen` recipe, because it prints no green line.
+
+    Refactor: I read the diff against `main` again and there is nothing to change.
+
+    Noticed, not touched:
+    - The docs stage still needs to add the entry for `tests/template_make_support.py` (with `makefile_lines`) in `docs/project-guide/README.md`, *Shared test helpers*.
+    - This repository's own `Makefile` and `factory/pipeline.yml` still have no `sync`; they are the human's change 1.
+    - The journal did not change the meaning of the task, so `## Description` stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 14 new, 37 known, 1 gone
