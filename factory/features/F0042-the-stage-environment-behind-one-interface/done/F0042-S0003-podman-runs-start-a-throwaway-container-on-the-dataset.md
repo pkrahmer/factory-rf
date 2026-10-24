@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -185,6 +185,11 @@ journal:
   at: '2026-10-24T13:36:09.950669Z'
   stage: smoke-test
   run: ccd121b2cfce477b95c2488417da92a6
+- number: 33
+  speaker: factory
+  kind: done
+  at: '2026-10-24T13:38:34.240018Z'
+  stage: approval
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -591,3 +596,4 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
     What the smoke test does not reach: the working directory `/` for `run`, the kill at the time limit (criterion 5) and the fault paths. The tests cover those, and the factory's checks run `make check`, so I did not run it here.
 
     Findings: none.
+33. factory: done (pull request merged); cost: 15 runs, 22.3 min, 137 turns, 486380 tokens in (3642692 more from cache), 64130 out, $5.46
