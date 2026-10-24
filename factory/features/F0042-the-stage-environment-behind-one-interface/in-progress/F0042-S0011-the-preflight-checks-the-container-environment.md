@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 422
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T21:17:54.169017Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,13 @@ journal:
   kind: started
   at: '2026-10-24T21:17:54.169017Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: question
+  at: '2026-10-24T21:19:13.665087Z'
+  stage: tests
+  run: fa5361a9f91c47f2bf0cbe9ef9709097
+  blocked: question
 ---
 
 # The preflight checks the container environment
@@ -138,3 +141,17 @@ Expect: `1`
    Architecture: the items and probes sit in `application`. The `podman`/`zfs` adapters are reached only through their wrapper classes, built in `entry.wiring`. `boundaries.snapshots` and `boundaries.containers` stay typed as the interfaces, which fits the layer rules and decisions 1 and 15 of `feature.md`.
    Scope: it matches the S0011 line in the feature's Scope. It removes no layer and does not touch the inline items. The test files it names are new, and it changes no earlier test.
 4. factory: started tests as self.
+5. tester: Question before the tests: does a `container` instance check `tool:make`?
+
+   The Interface and criterion 10 disagree:
+   - Interface, `MachineChecks.run`: "for `settings.stage_environment == "container"` the tools are `REQUIRED_TOOLS` alone, without the runtime's executable". `REQUIRED_TOOLS` is still `("git", "uv", "make")` (`src/factory/application/preflight.py:50`), so the items would be `tool:git`, `tool:uv`, `tool:make`, `hosting-service`, `agents`, `agent-runtime-version`.
+   - Criterion 10: "`container` settings ... give the first five item names `tool:git`, `tool:uv`, `hosting-service`, `agents`, `agent-runtime-version` (no `tool:make`: decision 15)". That leaves `make` out as well.
+   - The Description says only that the runtime's executable is left out for `container`. It says nothing about `make`.
+
+   Options:
+   A. Criterion 10 is right. A container instance runs `make` only inside the sync and check containers, so the host checks `git` and `uv` only. The Interface sentence would then read "`REQUIRED_TOOLS` without `make` and without the runtime's executable". It would also need to say how: a second constant, or a filter in `MachineChecks.run`. Note that `tests/test_make_search.py` allows the string `"make"` only in `make_commands` and in `preflight`'s `REQUIRED_TOOLS`, and a filter like that may touch it.
+   B. The Interface is right. For `container`, criterion 10's list becomes `tool:git`, `tool:uv`, `tool:make`, `hosting-service`, `agents`, `agent-runtime-version` (six names), and the "(no `tool:make`)" remark is dropped.
+
+   I'd choose A, because criterion 10 cites decision 15 for it and the host never runs `make` in a container instance. Please confirm, and say whether the Interface should name a constant for the container's tools (for example `CONTAINER_TOOLS = ("git", "uv")`), so the test can name it or just check the item names.
+
+   What I did: I read the work item, `factory.application.preflight`, `factory.application.stage_environment`, the fake snapshots and containers, `ContainerMakeCommands`, `tests/container_support.py`, `tests/wiring_support.py` and the current probe, preflight-run, machine-checks and wiring-extras tests. The other criteria (1 to 9) can be tested as written. I wrote no tests and created no files, so I have not run `make test` or `make lint` in this run. I'll write all six test files once this is answered.
