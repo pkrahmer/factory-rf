@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T11:31:46.552456Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-24T11:31:46.552456Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-24T11:36:30.531950Z'
+  stage: tests
+  run: ee5c2465faa04f918eacd1bcd6e8e185
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -339,3 +341,35 @@ Expect: `1`
    - Architecture: interfaces are ABCs in `application`, the DTOs are in `domain`, the fakes are in `adapters`, and the process module is used only through `run_process`. This matches the layering in `CLAUDE.md`.
    - Scope: the story is within F0042's scope as feature.md lists it for S0001. It touches no "Out of scope" item. The tests it changes (`tests/application/test_interfaces.py`, `tests/test_wrapper_search.py`) are covered by decision 18 a of feature.md.
 7. factory: started tests as self.
+8. tester: I wrote the red tests for every criterion, one test per criterion. Where a criterion has several cases, they are rows of one parametrized test. `make lint` is green. `make test` was run once: it fails at collection with ImportErrors, because the modules under test do not exist yet.
+
+   - criterion 1: tests/domain/test_containers.py::test_a_mount_target_is_an_absolute_container_path, ::test_a_mount_source_must_be_absolute, ::test_a_mount_is_writable_by_default
+   - criterion 2: tests/domain/test_containers.py::test_a_container_launch_needs_words_and_a_positive_limit_and_keeps_env, ::test_a_container_result_has_no_exit_status_exactly_when_it_timed_out
+   - criterion 3: tests/domain/test_errors_environment.py::test_an_environment_error_names_its_command_and_detail
+   - criterion 4: tests/application/test_interfaces.py (the `snapshots` and `container-runs` rows in INTERFACES, and two assertions added to ::test_project_commands_and_agent_runtime_have_exactly_their_operations_abstract), tests/application/test_snapshots_interface.py::test_a_snapshots_subclass_must_implement_every_operation_to_be_constructed, tests/application/test_containers_interface.py::test_a_container_runs_subclass_must_implement_every_operation_to_be_constructed
+   - criterion 5: tests/adapters/test_fake_snapshots.py::test_changed_paths_lists_added_modified_and_deleted_files_by_path
+   - criterion 6: tests/adapters/test_fake_snapshots.py::test_a_mode_or_a_link_change_is_listed
+   - criterion 7: tests/adapters/test_fake_snapshots.py::test_reset_puts_the_folder_back_to_the_base, ::test_without_a_base_the_operation_fails_and_leaves_the_folder
+   - criterion 8: tests/adapters/test_fake_snapshots.py::test_a_second_advance_replaces_the_base, ::test_the_mount_point_is_the_folder_given
+   - criterion 9: tests/adapters/test_fake_containers.py::test_launch_maps_the_words_environment_and_working_directory, ::test_a_word_maps_only_to_a_mount_it_equals_or_lies_under, ::test_an_environment_key_is_never_mapped
+   - criterion 10: tests/adapters/test_fake_containers.py::test_the_longer_mount_target_wins
+   - criterion 11: tests/adapters/test_fake_containers.py::test_run_returns_the_status_the_merged_output_and_the_end, ::test_a_program_the_shell_cannot_find_is_a_result_with_status_127, ::test_a_missing_working_directory_is_a_container_error
+   - criterion 12: tests/adapters/test_fake_containers.py::test_a_mount_on_work_and_an_empty_command_are_refused_and_not_recorded (rows × launch/run), ::test_calls_records_each_accepted_call_as_given_in_order
+   - criterion 13: the factory's `make check`. Criterion 14 (docs): no test.
+
+   Files created: tests/domain/test_containers.py, tests/domain/test_errors_environment.py, tests/application/test_snapshots_interface.py, tests/application/test_containers_interface.py, tests/adapters/test_fake_snapshots.py, tests/adapters/test_fake_containers.py.
+
+   Earlier test files changed:
+   - tests/application/test_interfaces.py: criterion 4 names this change.
+   - tests/test_wrapper_search.py: `factory.adapters.fake_containers` was added to the expected importers of the process module. The story's Interface names this change, citing decision 18 a of the feature. Every earlier test there keeps its name.
+
+   Modules the test run could not import: factory.domain.containers, factory.application.snapshots, factory.application.containers, factory.adapters.fake_snapshots, factory.adapters.fake_containers, and `SnapshotError`/`ContainerError` from factory.domain.errors. tests/test_wrapper_search.py fails on a wrong result until fake_containers imports the process module.
+
+   Two choices of mine, both within what the criteria say:
+   - In criterion 7's reset test, a.txt's mode is also changed to 0o755 before `reset()`. Without that change, the check that `reset()` restores the base's mode would prove nothing.
+   - Where a child must act before its limit (criteria 11 and 12), it gets `ROOMY_LIMIT` (10 s, the value criterion 11 gives). The timeout row keeps its 1 s limit and is bounded by `ROOMY_BOUND_SECONDS` (25 s).
+
+   Nothing is open.
+
+   `lint`: lint: green (0.7 s)
+   `test`: ERROR tests/domain/test_errors_environment.py - ImportError while importing test module '/work/checkout/tests/domain/test_errors_environment.py'.

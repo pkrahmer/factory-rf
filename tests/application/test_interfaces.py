@@ -13,13 +13,29 @@ import pytest
 from application.test_git_interface import OPERATIONS as GIT_OPERATIONS
 from application.test_hosting_interface import OPERATIONS as HOSTING_OPERATIONS
 from factory.application.agent_runtime import AgentRuntime
+from factory.application.containers import ContainerRuns
 from factory.application.git import Git
 from factory.application.hosting import HostingService
 from factory.application.project_commands import ProjectCommands
+from factory.application.snapshots import Snapshots
 from factory.domain.checks import CheckResult
 
-INTERFACES: list[type[object]] = [Git, HostingService, ProjectCommands, AgentRuntime]
-INTERFACE_IDS = ["git", "hosting", "project-commands", "agent-runtime"]
+INTERFACES: list[type[object]] = [
+    Git,
+    HostingService,
+    ProjectCommands,
+    AgentRuntime,
+    Snapshots,
+    ContainerRuns,
+]
+INTERFACE_IDS = [
+    "git",
+    "hosting",
+    "project-commands",
+    "agent-runtime",
+    "snapshots",
+    "container-runs",
+]
 TESTS = Path(__file__).parent.parent
 
 
@@ -70,6 +86,8 @@ def test_hosting_abstract_methods_are_its_ten_operations_with_their_return_types
 def test_project_commands_and_agent_runtime_have_exactly_their_operations_abstract() -> None:
     assert ProjectCommands.__abstractmethods__ == {"run"}
     assert AgentRuntime.__abstractmethods__ == {"run", "version"}
+    assert Snapshots.__abstractmethods__ == {"mount_point", "reset", "advance", "changed_paths"}
+    assert ContainerRuns.__abstractmethods__ == {"launch", "run"}
 
 
 @pytest.mark.parametrize("interface", INTERFACES, ids=INTERFACE_IDS)
