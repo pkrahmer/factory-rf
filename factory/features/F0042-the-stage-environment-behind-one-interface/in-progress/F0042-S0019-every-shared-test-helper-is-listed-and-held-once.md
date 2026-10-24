@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 428
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T23:15:54.523733Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-24T23:15:54.523733Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-24T23:18:41.062677Z'
+  stage: doing
+  run: 76d8c2f96e4a4484a23bf706c97a92bb
 ---
 
 # Every shared test helper is listed and held once
@@ -281,3 +283,18 @@ Expect: 0
     `lint`: lint: green (0.6 s)
     `test`: test: green (64.8 s)
 14. factory: started doing as self.
+15. coder: Built nothing and changed no file. This is round 1. The reviewer's two findings in entry 9 were both changes to tests. The tester made them in entry 13: `modules_assigning` in `tests/search_support.py`, which both guards now use, and the extra blank line taken out of `tests/application/test_costs.py`. That leaves no finding for the coder. The Interface puts no work under `src/factory/`, and `git diff main -- src` is empty.
+
+    Main choice: I hand the tester's round-1 changes to review as they are. The alternative was to refactor them, and I rejected it because the coder never edits tests (R9). With no diff of my own, the refactor step had nothing to change.
+
+    Checked: `make check` is green. Its last lines are `test: green (65.5 s)` and `check: green`, with total coverage at 99.19 %.
+
+    Noticed, not touched:
+    - `tests/application/test_stall_edges.py:44` still writes the literal `"written by the agent\n"` inside a method. The reviewer already ruled it not a finding, because the criteria count only top-level assignments.
+    - The third smoke command will pass only after the documenter adds the *Shared test helpers* entries (criterion 5).
+    - The work item's `.costs.jsonl` sidecar shows as modified in the working tree. That is the factory's change.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
