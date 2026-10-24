@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T13:08:29.171103Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-24T13:08:07.889183Z'
   stage: tests
   run: 24c8f5fdfa184b44a8badeced696ba9a
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-24T13:08:29.171103Z'
+  stage: doing
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -192,3 +201,4 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
 
    `lint`: lint: green (0.6 s)
    `test`: ERROR tests/adapters/test_podman_runs_results.py - ImportError while importing test module '/work/checkout/tests/adapters/test_podman_runs_results.py'.
+9. factory: started doing as self.
