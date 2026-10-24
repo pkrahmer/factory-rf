@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T16:48:13.023216Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-24T16:48:13.023216Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-24T16:51:02.354770Z'
+  stage: doing
+  run: 8139ab9e11214d67bc10b1d7bbb7e7bc
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -340,3 +342,31 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
     `lint`: lint: green (0.6 s)
     `test`: test: green (61.1 s)
 13. factory: started doing as self.
+14. coder: The tester renamed the test module as the human asked in entry 8 (now `tests/application/test_stage_environment_calls.py`). `make check` is now green: `check: green`, coverage 99.19 %. I changed no code in this run. The code from entry 7 is already committed and stays as it was.
+
+    What I built (from entry 7):
+    - `src/factory/application/stage_environment.py`, new:
+      - `StageEnvironment`: the interface with three operations, `prepare`, `run_agent` and `take`.
+      - `InlineEnvironment`: `prepare` does nothing; `run_agent` calls `run_sealed`; `take` runs `UndoService.undo` and turns its result into `TakeReport(left=sorted({*reverted, *deleted}), restored_work_item=...)`.
+      - `stage_environment_of(boundaries)`, which returns the inline environment.
+    - `src/factory/application/stage.py`:
+      - `StageLauncher` and `AfterAgent` take an optional keyword `stage_environment`.
+      - `launch` calls `prepare` after the claim and the request are made and before the cost record begins. It then calls `run_agent(request, run=PatientRuns(...).run)`.
+      - The time limit for the `sync` command comes from `_sync_time_limit`.
+      - `AgentAftermath.take: TakeReport` replaces `undo: UndoReport`. The journal's closing paragraph names `take.left` without the work item's own cost records file.
+      - `StageRunner` builds one environment and gives it to both the launcher and the after-agent.
+    - `src/factory/application/preflight.py`: the agent-run probe goes through `stage_environment_of(boundaries).run_agent(request)` and no longer imports `run_sealed`.
+
+    Main choice: when the pipeline definition has no `sync` command, the time limit is the model's own default, `ProjectCommandDefinition().time_limit`. I did not add a separate 10-minute constant, because a second copy of that default could drift from the model.
+
+    Refactor: I read my diff again in this run. Nothing needed changing.
+
+    Description: I did not edit it. Entry 8 does not change what the task means. It only changes the test module's name, and the human asked the reviewer to update the Interface's "Tests" paragraph and the first smoke-test command. Both still name `test_stage_environment_protocol.py` and need to say `test_stage_environment_calls.py`.
+
+    Noticed, not touched:
+    - `StallService` still undoes on its own, as the description says.
+    - `UndoReport` is still used by `stalls.py` and by the test helpers in `undo_support`.
+    - The docs criterion (12) is the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 14 new, 37 known, 1 gone
