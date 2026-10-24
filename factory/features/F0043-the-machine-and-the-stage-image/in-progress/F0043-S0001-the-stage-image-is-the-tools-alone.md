@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T23:46:05.548953Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-24T23:45:44.432262Z'
   stage: tests
   run: ebec7778843b414b897543179b9638ef
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:46:05.548953Z'
+  stage: doing
 ---
 
 # The stage image is the tools alone
@@ -127,3 +136,4 @@ Expect: `1`
 
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/test_stage_image.py::test_the_first_line_names_the_build_command - FileNotFoundError: [Errno 2] No such file or directory: '/work/checkout/vm/Dockerfile'
+6. factory: started doing as self.
