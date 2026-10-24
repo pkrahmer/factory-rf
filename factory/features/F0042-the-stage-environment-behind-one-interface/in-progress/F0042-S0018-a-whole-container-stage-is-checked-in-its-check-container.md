@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 426
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T22:33:08.785239Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-24T22:32:47.251790Z'
   stage: tests
   run: fd62ef8100b44778890aefae112363a0
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:33:08.785239Z'
+  stage: doing
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -127,3 +136,4 @@ Expect: three lines, `2`, `1`, `1`
 
    `lint`: lint: green (0.5 s)
    `test`: test: green (66.3 s)
+6. factory: started doing as self.
