@@ -23,7 +23,7 @@ tool_paths: [".venv/*", ".mypy_cache/*", ".ruff_cache/*", "demo/todo-service/pro
 roles:
   intake: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
   tester: {write_paths: ["tests/*"], time_limit: 40, lease_duration: 60}
-  coder: {write_paths: ["src/*", "image/*", "template/*", "claude/*"], time_limit: 40, lease_duration: 60}
+  coder: {write_paths: ["src/*", "image/*", "template/*", "claude/*", "vm/*"], time_limit: 40, lease_duration: 60}
   reviewer: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
   documenter: {write_paths: ["README.md", "docs/*"], time_limit: 40, lease_duration: 60}
   smoke-tester: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
