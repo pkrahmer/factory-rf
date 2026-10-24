@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 1
@@ -176,6 +176,11 @@ journal:
   at: '2026-10-24T16:13:27.894446Z'
   stage: smoke-test
   run: 3b35e64adfdf45d1b283b67c11d6aed7
+- number: 31
+  speaker: factory
+  kind: done
+  at: '2026-10-24T16:14:49.113964Z'
+  stage: approval
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -581,3 +586,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     Afterwards the working tree holds only the factory's own change to the work item's `.costs.jsonl`. The temporary folder removed itself.
 
     Findings: none.
+31. factory: done (pull request merged); cost: 13 runs, 22.1 min, 134 turns, 505391 tokens in (3877395 more from cache), 73790 out, $5.77
