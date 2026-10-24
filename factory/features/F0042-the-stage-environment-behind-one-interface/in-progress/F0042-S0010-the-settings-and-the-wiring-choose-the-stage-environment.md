@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T20:56:26.241008Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-24T20:56:04.534320Z'
   stage: tests
   run: 6c6af4f09a504bd9998ff153f12237d3
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:56:26.241008Z'
+  stage: doing
 ---
 
 # The settings and the wiring choose the stage environment
@@ -174,3 +183,4 @@ Expect: `1`
 
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/entry/test_wiring_stage_environment.py::test_wiring_a_container_instance_s_tick_starts_no_tool - pydantic_core._pydantic_core.ValidationError: 6 validation errors for InstanceSettings
+6. factory: started doing as self.
