@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T12:32:36.146366Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-10-24T12:32:15.401897Z'
   stage: doing
   run: 9d3415f63eb64c5aa418aad7e51db0e3
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-24T12:32:36.146366Z'
+  stage: review
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -363,3 +372,4 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
 
     `check`: check: green
     `duplicates`: duplicates: 8 new, 38 known, 0 gone
+22. factory: started review as self.
