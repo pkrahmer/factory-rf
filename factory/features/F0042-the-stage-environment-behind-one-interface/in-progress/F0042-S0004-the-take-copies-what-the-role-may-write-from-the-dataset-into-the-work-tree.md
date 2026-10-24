@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T15:53:03.039000Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -80,6 +76,12 @@ journal:
   kind: started
   at: '2026-10-24T15:53:03.039000Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-24T15:56:02.460237Z'
+  stage: doing
+  run: 4fe1b3939b4648df968fa852150687df
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -284,3 +286,23 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     Bytecode compiled 4164 files in 89ms
     make: *** [Makefile:39: types] Error 139
 12. factory: started doing as self.
+13. coder: The work is unchanged from the previous attempt (entry 10), and a fresh `make check` run is green throughout, `types` included. The stall in entry 11 was `make types` ending with exit 139, which is a mypy segfault and not a type error. It did not happen again: the full run ended with `test: green (65.9 s)`, total coverage 99.18 %, and `check: green`. I changed no code in this attempt.
+
+    What I built (paths, as entry 10 lists them):
+    - src/factory/application/git.py: adds `Git.ignored`, the twenty-sixth operation.
+    - src/factory/adapters/git_cli.py: adds `GitCli.ignored`. It first checks every path with `check_repository_path`. It then runs `check-ignore --verbose --non-matching --` in groups of `IGNORE_GROUP` (1,000) paths, and exit statuses 0 and `NONE_IGNORED` (1) both count as answers. A line count that differs from the path count raises `GitError`. A `::` rule or a `!` pattern means the path is not ignored.
+    - src/factory/application/take.py (new): `TakeReport`, `copy_changed` and `TakeService.take`, which runs the seven steps in order.
+    - src/factory/application/undo.py: three helpers are now public (`read_baseline`, `restore_work_item`, `is_refused`). The take shares them, so nothing is copied. The undo behaves as before, and tests/application/test_undo.py is untouched.
+
+    Main decision: the take skips the restore of the work item when the work item is in `left`, so a refused work item is never restored. I rejected always running the restore and relying on it returning false: that holds only while the host's copy still equals the stage-start commit.
+
+    Refactor: I read the diff again (take.py, git_cli.py) and found nothing to change.
+
+    Noticed, not touched (as in entry 10):
+    - `copy_changed` does not check whether a parent folder on the target is a symbolic link, so it can write through a linked parent. The Interface only requires that the entry itself is never written through.
+    - `_is_ignoring` reads the pattern as the text after the second colon. An ignore-file path that holds a colon, or a pattern that holds a tab, would be misread.
+    - `make duplicates` shows dead-code findings for `TakeService`, `take` and `restored_work_item`. They are expected until S0007 calls the service.
+    - The mypy segfault happened once and has not come back. If it recurs, it is a fault of the tool, not of this code.
+
+    `check`: check: green
+    `duplicates`: duplicates: 14 new, 38 known, 0 gone
