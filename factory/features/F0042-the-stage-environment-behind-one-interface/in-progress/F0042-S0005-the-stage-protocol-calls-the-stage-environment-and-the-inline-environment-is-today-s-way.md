@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T16:53:37.626414Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-24T16:53:17.071816Z'
   stage: review
   run: d34a0c10a37a4a1ba1bf7e7f48fb1b66
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:53:37.626414Z'
+  stage: doing
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -400,3 +409,4 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
     Earlier tests:
     - tests/application/test_after_agent.py: decision 18 (e) of `feature.md` (the human's leave). Only the two assertions changed, to read `aftermath.take.left`, and each test keeps its name and rows.
     - tests/application/test_interfaces.py: decision 18 (e) of `feature.md` (the human's leave). It gains the `StageEnvironment` row and the one `__abstractmethods__` assertion.
+17. factory: started doing as self.
