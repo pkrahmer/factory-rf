@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T21:03:43.462382Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-24T21:03:22.882308Z'
   stage: review
   run: 153a4a8f364747f98966b3d43d5433f0
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:03:43.462382Z'
+  stage: doing
 ---
 
 # The settings and the wiring choose the stage environment
@@ -227,3 +236,4 @@ Expect: `1`
    2. criterion 8 added: it needs its test. The Interface makes a blank value count as unset and fixes the order of the container faults, but no row covers a blank `FACTORY_WORKSPACE` or `FACTORY_STAGE_IMAGE`. Example: if `or None` is dropped after `_optional(environ, STAGE_IMAGE_VARIABLE)` in `src/factory/domain/settings.py`, a blank image is accepted and every test still passes. Two order cases are also untested: a relative workspace before a missing image, and the agent user checked last (`agent_user` with no dataset). The new criterion 8 (old 8 and 9 are now 9 and 10) adds these as rows of the criterion 2 test. They need no change under `src/`.
 
    Earlier tests: none. The diff only adds test files (`A`: the three new modules) and changes no test file that `main` already holds.
+10. factory: started doing as self.
