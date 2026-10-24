@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T20:06:35.163354Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-24T20:06:35.163354Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-24T20:10:20.546515Z'
+  stage: tests
+  run: 483b7d5bcedf4d32b0b62b5e2757e7b9
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -87,3 +89,17 @@ Expect: one line, `[-9, 137, 255] True False`
    Architecture: the change stays in `factory.adapters`, where `podman_runs` already imports from `agent_launch`. It reuses one constant instead of a copy, and no new dependency or layer is involved.
    Scope: it is within F0042 (decision 22, built after S0009 and before S0010). It changes no earlier test; the story says so. The docs criterion names its files and the content for each.
 4. factory: started tests as self.
+5. tester: Tests written for criteria 1–4. They fail for the right reasons: the import fails, or a 255 at the limit is read as a failure. `make lint` is green.
+
+   - criterion 1: tests/adapters/test_agent_launch_container_kill.py::test_a_container_s_kill_statuses_add_podman_s_timeout_status
+   - criterion 2: tests/adapters/test_agent_launch_container_kill.py::test_255_at_the_limit_is_a_kill_only_in_a_container (the seven rows, `time_limit` 30 s)
+   - criterion 3: tests/adapters/test_podman_timeout_status.py::test_podman_s_timeout_status_at_the_limit_is_a_timed_out_run. It uses the stand-in `podman`. Rows: 255 at the limit, 255 at once, 137 at the limit. The time limit is `ROOMY_LIMIT`. A row at the limit has its stand-in wait `ROOMY_LIMIT` before it exits, and each row checks that the elapsed time stays under `ROOMY_BOUND_SECONDS`.
+   - criterion 4: tests/adapters/test_runtime_podman_timeout_status.py::test_claude_code_in_a_container_reads_podman_s_255_at_the_limit_as_the_time_limit and ::test_opencode_in_a_container_reads_podman_s_255_at_the_limit_as_the_time_limit. Each has two rows, 30 s gives `time_limit` and 29.9 s gives `died`. The recorded `ProcessResult` has exit status 255 and `timed_out=False`. Claude goes through the `recorder` fixture. Opencode goes through a stand-in `run_streaming`, as in S0008's container tests. "Not resumed" is checked on the `time_limit` rows as exactly one recorded request. Both runtimes take their request from `opencode_request` of `tests/adapters/opencode_stand_in.py`.
+   - criteria 5 and 6 (`make check`, docs): no test.
+
+   Files created: tests/adapters/test_agent_launch_container_kill.py, tests/adapters/test_podman_timeout_status.py, tests/adapters/test_runtime_podman_timeout_status.py. No earlier test changed.
+
+   Could not import: in `factory.adapters.agent_launch`, the names `CONTAINER_KILL_STATUSES` and `PODMAN_TIMEOUT_STATUS` do not exist yet, so test_agent_launch_container_kill.py does not collect. The other two modules import and fail on their `at-the-limit` rows (255 is read as `died` / `timed_out=False`). Their before-the-limit rows and the 137 row already pass, as they should.
+
+   `lint`: lint: green (0.5 s)
+   `test`: ERROR tests/adapters/test_agent_launch_container_kill.py - ImportError while importing test module '/work/checkout/tests/adapters/test_agent_launch_container_kill.py'.
