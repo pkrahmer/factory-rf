@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T19:56:04.866469Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -116,6 +112,12 @@ journal:
   kind: started
   at: '2026-10-24T19:56:04.866469Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-10-24T19:58:57.232253Z'
+  stage: doing
+  run: 70a1943facb24333b472cefafd5d3dab
 ---
 
 # The project commands run in a check container on the taken result
@@ -293,3 +295,22 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
     `lint`: lint: green (0.6 s)
     `test`: test: green (67.4 s)
 19. factory: started doing as self.
+20. coder: Round 1, after the tester's change. I changed no code in this run. The reviewer's entry 14 had three findings, and all three are now done:
+    - Finding 1: `MOUNTED_CHECKOUT` is made public in src/factory/application/take.py, and src/factory/adapters/make_commands.py imports it (entry 16).
+    - Finding 2: `CHECK_ENVIRONMENT = dict(SYNC_ENVIRONMENT)` in src/factory/adapters/make_commands.py (entry 16).
+    - Finding 3: the tester's `setup` fixture now uses `tmp_path / CHECKOUT` from `git_support` (entry 18).
+
+    What I built across the story: `ContainerMakeCommands` and `CHECK_ENVIRONMENT` in src/factory/adapters/make_commands.py, plus the public `MOUNTED_CHECKOUT` in src/factory/application/take.py.
+
+    Main choice: `MakeProjectCommands` and the new class share two functions, `_check_call` (refuses a bad call) and `_read_result` (reads the output). I rejected building a fake `ProcessResult` out of a `ContainerResult` just to reuse the old reader.
+
+    Refactor pass: there was nothing new to read, because the working tree holds no code change from this run. The only modified file is the factory's own costs sidecar.
+
+    `make check` is green on the committed state: `test: green (69.3 s)`, coverage 99.20 %, `check: green`.
+
+    Noticed but did not touch: `make duplicates` still reports `ContainerMakeCommands` as unused. That is expected until the wiring story puts it in use.
+
+    Description: unchanged. The reviewer already corrected it in entry 14.
+
+    `check`: check: green
+    `duplicates`: duplicates: 16 new, 36 known, 2 gone
