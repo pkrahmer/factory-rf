@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 412
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T16:26:56.963868Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-10-24T16:26:56.963868Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T16:27:25.106739Z'
+  stage: docs
+  run: c1f1e128dfa54140be528e322f384ef5
 ---
 
 # No test sees the agent's login
@@ -209,3 +211,17 @@ Expect: one line that starts with `N passed` and names no `failed` and no `error
     - `tests/conftest.py`: the human's leave, decision 18 (i) of `feature.md`, which the story names.
     - `tests/adapters/test_opencode_runtime_launch.py`: the human's leave, decision 18 (i) of `feature.md`, which the story names. Only the last assertion of `test_the_version_is_the_first_word_of_a_call_without_login_words` changed, within that leave.
 13. factory: started docs as self.
+14. documenter: Docs written for criterion 6. I changed one file, and I did not run `make check`, because only a document changed (the factory's checks decide).
+
+    Changed:
+    - `docs/project-guide/processes-and-checks.md`: a new paragraph right after the umask paragraph, which is the passage on the tests' `tests/conftest.py` setup. It says the autouse fixture `without_agent_login` removes `CLAUDE_CODE_OAUTH_TOKEN` and `ANTHROPIC_API_KEY` from every test through `monkeypatch.delenv`, and names the two constants it takes from `factory.adapters.agent_launch`. It gives the three reasons: an agent's run holds the variables, a child process with the process's own environment inherits them, and an assertion message prints what it compares. It says a test may still set either name with `monkeypatch.setenv`, and that an assertion about an environment compares `set(environment)`, never the mapping. It points to `tests/test_no_agent_login.py`.
+
+    Cross-read against the diff (`tests/conftest.py`, the version test's last assertion, the new test module; nothing under `src/` changed) and found current: `README.md`, `docs/operator-guide.md` and `docs/decisions.md`. The story's docs criterion says none for them, because no behaviour of the factory changes. In `docs/project-guide/processes-and-checks.md`, the passages on the runtimes' `version()` calls and on the project commands' environment still hold. Neither the runtimes nor the commands changed.
+
+    Findings for the coder: none. The code matches the Interface: the fixture removes both names through `monkeypatch.delenv` with names imported from `agent_launch`, and the version test's last assertion is `assert API_LOGIN_VARIABLE not in set(call.environment)`.
+
+    Stale text I saw and did not touch: none.
+
+    `check`: check: green (not run again: passed on tree ca0ddc2bb546 at 2026-10-24T16:24:21Z)
+    `secrets`: secrets: green (0.8 s)
+    `documents`: documents ok
