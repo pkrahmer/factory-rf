@@ -9,8 +9,13 @@ from factory.adapters.agent_launch import KILL_STATUSES
 from factory.adapters.printed_output import failure_detail, first_printed_line, no_end_detail
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.application.containers import ContainerRuns
-from factory.domain.agent_home import beneath_or_at
-from factory.domain.containers import WORK, ContainerLaunch, ContainerResult, Mount
+from factory.domain.containers import (
+    WORK,
+    ContainerLaunch,
+    ContainerResult,
+    Mount,
+    check_container_call,
+)
 from factory.domain.errors import ContainerError
 
 # Podman's `--timeout` ends the container at its limit; the factory's own kill waits this
@@ -20,14 +25,6 @@ PODMAN_TIME_LIMIT = timedelta(minutes=2)
 
 # Podman reads no file from its working directory; the container's is `--workdir`.
 _ROOT = Path("/")
-
-
-def _check(command: Sequence[str], mounts: Sequence[Mount]) -> None:
-    if not command:
-        raise ValueError("a container run needs command words")
-    for mount in mounts:
-        if beneath_or_at(mount.target, WORK):
-            raise ValueError(f"a mount may not target {mount.target}: the dataset is {WORK}")
 
 
 def _volume(mount: Mount) -> str:
@@ -70,7 +67,7 @@ class PodmanRuns(ContainerRuns):
         working_directory: str,
     ) -> ContainerLaunch:
         """The `podman run` words, under the factory's environment and the limit plus the grace."""
-        _check(command, mounts)
+        check_container_call(command, mounts)
         environment_words = [
             word for name, value in environment.items() for word in ("--env", f"{name}={value}")
         ]

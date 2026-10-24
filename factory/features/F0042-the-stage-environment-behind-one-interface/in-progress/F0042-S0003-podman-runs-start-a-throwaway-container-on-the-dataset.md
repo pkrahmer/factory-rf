@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T13:15:32.011144Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-24T13:15:32.011144Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-24T13:17:31.151875Z'
+  stage: doing
+  run: a3e7e79b7eb746dcbe8ed30e4262ee29
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -262,3 +264,21 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
     - tests/conftest.py: none needed (it only adds the `podman` fixture and its import).
     - tests/test_wrapper_search.py: the human's leave through the story (Interface `run` bullet and criterion 9, decision 18 c), one module name added.
 13. factory: started doing as self.
+14. coder: Round 1. I fixed reviewer finding 1 in the code. Findings 2 and 3 add criteria 10 and 11, which need only their tests, so I am handing over to the tester.
+
+    Built (finding 1):
+    - `src/factory/domain/containers.py`: new `check_container_call(command, mounts)`, placed beside `WORK`. It refuses an empty command and a mount whose target is at or under `/work`, using `beneath_or_at` of `factory.domain.agent_home`. The messages are the same as before.
+    - `src/factory/adapters/podman_runs.py`: the private `_check` is gone; `launch` calls `check_container_call`.
+    - `src/factory/adapters/fake_containers.py`: `_accept` calls `check_container_call` instead of its own copy of the checks.
+    - Behaviour is unchanged and no test was touched. `make check` is green (`test: green (63.9 s)`, `check: green`). `make duplicates` now reports 11 new findings (12 before): the similar-code pair the reviewer named is gone.
+
+    Main choice: I put the check in the domain, beside `WORK` and the `Mount` model it validates. It is a pure rule, and both adapters can import it there. The alternative I rejected was a small shared module under `factory.adapters`: the rule needs no I/O, so the domain is where it belongs.
+
+    For the tester:
+    - Criterion 10: add the row to `tests/adapters/test_podman_runs_results.py::test_a_kill_at_the_limit_is_a_timed_out_run`. A `Recorder` answers `ProcessResult(exit_status=1, stdout="", stderr="", timed_out=False, duration=timedelta(seconds=5))`; under `time_limit` 1 s the result is `timed_out` false and `exit_status` 1.
+    - Criterion 11: in the success rows of `test_version_is_the_first_line_podman_prints` and `test_image_exists_reads_podman_s_exit_status`, assert that the stand-in's recorded working directory is the adapter's `workspace`.
+    - The code already does both: `_killed_at_limit` checks `KILL_STATUSES`, and `_query` passes `cwd` the workspace.
+
+    Refactor pass: I read the diff; nothing more needed changing.
+
+    Noticed but did not touch: `make duplicates` lists `WORK_HOME` in `src/factory/domain/containers.py` as unused (vulture, 60 % confidence). This change did not cause it; the constant was already there. The journal changed nothing that calls for a rewrite of the Description: the reviewer had already written criteria 10 and 11 into it.

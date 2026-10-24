@@ -7,7 +7,14 @@ from pathlib import Path
 from factory.adapters.process import ProcessRequest, run_process
 from factory.application.containers import ContainerRuns
 from factory.domain.agent_home import beneath_or_at
-from factory.domain.containers import WORK, ContainerCall, ContainerLaunch, ContainerResult, Mount
+from factory.domain.containers import (
+    WORK,
+    ContainerCall,
+    ContainerLaunch,
+    ContainerResult,
+    Mount,
+    check_container_call,
+)
 from factory.domain.errors import ContainerError
 
 # The shell goes to the working directory and then becomes the command, as a container would.
@@ -78,11 +85,7 @@ class FakeContainerRuns(ContainerRuns):
         time_limit: timedelta,
         working_directory: str,
     ) -> ContainerCall:
-        if not command:
-            raise ValueError("a container run needs command words")
-        for mount in mounts:
-            if beneath_or_at(mount.target, WORK):
-                raise ValueError(f"a mount may not target {mount.target}: the dataset is {WORK}")
+        check_container_call(command, mounts)
         call = ContainerCall(
             command=list(command),
             mounts=list(mounts),
