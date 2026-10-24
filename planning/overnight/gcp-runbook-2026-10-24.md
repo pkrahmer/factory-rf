@@ -79,7 +79,7 @@ zfs snapshot tank/factory/vm@base
 podman run --rm --userns=keep-id -v /srv/factory/vm/work:/work docker.io/library/alpine:3.20 \
   sh -c 'echo two > /work/checkout/b; rm /work/checkout/a; echo three > /work/home/c'
 ls -l checkout home                              # b and c belong to factory?
-zfs diff -H tank/factory/vm@base                 # expected: - .../checkout/a, + .../checkout/b, + .../home/c
+zfs diff -FH tank/factory/vm@base                # expected: - .../checkout/a, + .../checkout/b, + .../home/c
 # THE TEST THAT DECIDES: the rollback of a mounted dataset, as a user, through zfs allow
 time zfs rollback -r tank/factory/vm@base
 ls checkout home                                 # expected: a is back, b and c are gone
@@ -98,7 +98,7 @@ mkdir -p /tmp/ro && podman run --rm --userns=keep-id -v /tmp/ro:/upstream:ro doc
 
 ```bash
 sudo tee /etc/sudoers.d/factory-zfs >/dev/null <<'EOF'
-factory ALL=(root) NOPASSWD: /usr/sbin/zfs snapshot tank/factory/vm@base, /usr/sbin/zfs destroy tank/factory/vm@base, /usr/sbin/zfs rollback -r tank/factory/vm@base, /usr/sbin/zfs diff -H tank/factory/vm@base
+factory ALL=(root) NOPASSWD: /usr/sbin/zfs --version, /usr/sbin/zfs list -H -o name tank/factory/vm, /usr/sbin/zfs list -H -o name -t snapshot tank/factory/vm@base, /usr/sbin/zfs snapshot tank/factory/vm@base, /usr/sbin/zfs destroy tank/factory/vm@base, /usr/sbin/zfs rollback -r tank/factory/vm@base, /usr/sbin/zfs diff -FH tank/factory/vm@base
 EOF
 sudo chmod 0440 /etc/sudoers.d/factory-zfs && sudo visudo -cf /etc/sudoers.d/factory-zfs
 ```
@@ -113,7 +113,7 @@ EOF
 sudo chmod 0755 /usr/local/bin/zfs-factory
 ```
 
-and `FACTORY_ZFS=/usr/local/bin/zfs-factory`. Four exact commands on one dataset is all the `sudoers` line allows, whatever the wrapper is asked.
+and `FACTORY_ZFS=/usr/local/bin/zfs-factory`. Seven exact commands on one dataset, the ones the factory's adapter runs (F0042-S0002), is all the `sudoers` line allows, whatever the wrapper is asked.
 
 ## 6. A closer prototype of the cycle (optional, with git)
 
@@ -130,7 +130,7 @@ time podman run --rm --userns=keep-id -v /srv/factory/vm/work:/work -v /srv/fact
 time sh -c 'zfs destroy tank/factory/vm@base && zfs snapshot tank/factory/vm@base'
 time podman run --rm --userns=keep-id -v /srv/factory/vm/work:/work docker.io/alpine/git:v2.45.2 \
   sh -c 'cd /work/checkout && echo x > y && git -c user.email=a@b -c user.name=a commit -qam junk; git status --short | head'
-zfs diff -H tank/factory/vm@base | head
+zfs diff -FH tank/factory/vm@base | head
 time zfs rollback -r tank/factory/vm@base
 ```
 
