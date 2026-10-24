@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T18:14:35.494355Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -183,6 +179,12 @@ journal:
   kind: started
   at: '2026-10-24T18:14:35.494355Z'
   stage: smoke-test
+- number: 32
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T18:15:24.734443Z'
+  stage: smoke-test
+  run: 2539578023e945ee9598763a336c3820
 ---
 
 # The container environment runs the cycle of a stage
@@ -567,3 +569,32 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
     `secrets`: secrets: green (1.8 s)
     `documents`: documents ok
 31. factory: started smoke-test as self.
+32. smoke-tester: Smoke test, round 2. I ran both commands under `## Smoke test` exactly as written, from the repository root, and fixed nothing.
+
+    Command 1 (the pytest run of the three new test modules, the last line counted by `grep -cE '^[0-9]+ passed in '`):
+    ```
+    1
+    ```
+    Met `Expect: 1`. I ran the same pytest command again without the `grep`, only to see the last line: `24 passed in 3.63s`.
+
+    Command 2 (the `uv run python` heredoc):
+    ```
+    Bytecode compiled 4164 files in 70ms
+    stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s, take 0.2 s
+    {'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} StageEnvironment
+    None None
+    ```
+    Met the expectation. The three lines the script prints are exactly the expected ones. The first line, `Bytecode compiled ...`, is uv's own message about the environment, not the script's output, so I do not count it as a finding.
+
+    Against the acceptance criteria: nothing in the output contradicts any criterion.
+    - `TIMING_LINE` gives the exact line of criteria 8 and 13.
+    - `SYNC_ENVIRONMENT` is the environment of criterion 3.
+    - `ContainerEnvironment` derives from `StageEnvironment`.
+    - `Boundaries.snapshots` and `Boundaries.containers` default to `None`, as the Interface says.
+    - The 24 tests of criteria 1 to 9, 12 and 13 pass.
+
+    Criteria 10 and 11 (`last_line`, `make_commands`) and 14 (`make check`) are not exercised by the smoke test. The docs stage reports `make check` green on the current tree.
+
+    No findings.
+
+    Still open, carried over from the review and not a finding: after a failed `prepare`, the object keeps the durations of the last successful one. The Interface does not settle that case.
