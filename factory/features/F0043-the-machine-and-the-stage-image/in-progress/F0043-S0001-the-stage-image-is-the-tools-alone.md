@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T23:49:29.431914Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-24T23:49:29.431914Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T23:51:03.505628Z'
+  stage: review
+  run: ed3c85a95744421194735fafeff354e5
 ---
 
 # The stage image is the tools alone
@@ -90,8 +92,9 @@ Tests (the tester writes them): `tests/test_stage_image.py` (and further `tests/
 6. The environment (rows of one parametrized test): the `ENV` names are exactly `UV_LINK_MODE`, `PYTHONDONTWRITEBYTECODE`, `DISABLE_AUTOUPDATER`, `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION` and `FACTORY_OPENCODE_MODELS`, with `UV_LINK_MODE=copy`, `PYTHONDONTWRITEBYTECODE=1`, `DISABLE_AUTOUPDATER=1`, `FACTORY_CLAUDE_VERSION=${CLAUDE_CODE_VERSION}` and `FACTORY_OPENCODE_VERSION=${OPENCODE_VERSION}`; no `ENV` or `ARG` name holds the word TOKEN, SECRET, PASSWORD or CREDENTIAL (upper case, as a part of the name); `FACTORY_IMAGE` has the default `unlabelled`, is used by the `LABEL factory.image="${FACTORY_IMAGE}"` and by no other instruction.
 7. The absent words (rows of one parametrized test, one per word, over the file with comment lines dropped): none of `useradd`, `groupadd`, `sudo`, `sudoers`, `visudo`, `USER`, `WORKDIR`, `ENTRYPOINT`, `CMD`, `gitconfig`, `/opt/factory`, `src`, `pyproject.toml`, `uv.lock`, `image-id`, `entrypoint`, `/home/agent`, `/home/factory`, `FACTORY_AGENT_USER`, `FACTORY_CLAUDE_HOME`, `FACTORY_TOKEN_FILE`, `FACTORY_CLAUDE_LOGIN_FILE`, `FACTORY_API_LOGIN_FILE` and `latest` appears; and the first line of the file is a comment that holds `podman build -f vm/Dockerfile`.
 8. The old image is untouched: `tests/test_image.py`, `tests/test_image_credentials.py`, `tests/test_image_gitconfig.py`, `tests/test_image_users.py`, `tests/test_opencode_image.py`, `tests/test_compose*.py` and `tests/test_entrypoint*.py` are unchanged in their names and assertions and green, and `image/Dockerfile`, `image/compose.yml` and `image/entrypoint.sh` are byte-for-byte as on `main` (the coder's entry says so; the reviewer checks the diff).
-9. `make check` stays green.
-10. docs: `docs/operator-guide.md` gains the chapter `## The machine` (placed before `## The machine's image`) with its first section `### The stage image`: what the image holds and what it does not (the list of the Description), where the agent files are and who copies them (F0042's sync container, decision 9 of `feature.md`), the build on the VM as the user `factory` (`podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> <the checkout>`, with `--build-arg FACTORY_IMAGE=<ref>` for the label), that the label is not the identity: the settings read the identity from the file `FACTORY_IMAGE_ID_FILE` names, which the operator renews after every build (decision 6 of `feature.md`; S0003's documenter adds how `vm/setup.sh` makes that file), and how to update a pin (the same lines as *Update the pins* of `## The machine's image`, and that `tests/test_stage_image.py` holds the two files to the same pins until F0044); one sentence under `## The machine's image` saying that `vm/Dockerfile` is the stage image of v1.2 and `image/Dockerfile` the machine of v1.1 until F0044. `docs/project-guide/README.md`, *Shared test helpers*: the line of `dockerfile_support.py` names what it offers after this story (and any module the tester added). `docs/decisions.md`: none (S0004 writes the entry of the machine).
+9. Each `ENV` instruction of `vm/Dockerfile` sets exactly one name, as `ENV NAME=value` on one line of the file with no continuation (the form S0003's `vm/setup.sh` reads): every line of the file that starts with `ENV ` holds one `NAME=value` pair after the keyword and does not end in `\`, and the number of `ENV` lines equals the number of `ENV` names (six).
+10. `make check` stays green.
+11. docs: `docs/operator-guide.md` gains the chapter `## The machine` (placed before `## The machine's image`) with its first section `### The stage image`: what the image holds and what it does not (the list of the Description), where the agent files are and who copies them (F0042's sync container, decision 9 of `feature.md`), the build on the VM as the user `factory` (`podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> <the checkout>`, with `--build-arg FACTORY_IMAGE=<ref>` for the label), that the label is not the identity: the settings read the identity from the file `FACTORY_IMAGE_ID_FILE` names, which the operator renews after every build (decision 6 of `feature.md`; S0003's documenter adds how `vm/setup.sh` makes that file), and how to update a pin (the same lines as *Update the pins* of `## The machine's image`, and that `tests/test_stage_image.py` holds the two files to the same pins until F0044); one sentence under `## The machine's image` saying that `vm/Dockerfile` is the stage image of v1.2 and `image/Dockerfile` the machine of v1.1 until F0044. `docs/project-guide/README.md`, *Shared test helpers*: the line of `dockerfile_support.py` names what it offers after this story (and any module the tester added). `docs/decisions.md`: none (S0004 writes the entry of the machine).
 
 ## Smoke test
 
@@ -169,3 +172,33 @@ Expect: `1`
    `check`: check: green
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`. It adds two files, `vm/Dockerfile` and `tests/test_stage_image.py`; nothing else changed. I read both against the Description, the Interface and every criterion.
+
+   What holds:
+   - `vm/Dockerfile` matches each Interface clause: one digest-pinned `FROM ${BASE_IMAGE}`, the pins of `image/Dockerfile`, the seven packages, the pip and npm installs, `COPY claude /etc/factory/claude` with the chmod RUN and a comment above it, six one-name `ENV` lines, none of the forbidden words, and the first-line build comment.
+   - `image/` is untouched: the name-status lists no file under it.
+   - Criteria 1 to 7 each have tests that check what the criterion says.
+   - The coder's journal records `make check` green.
+
+   Findings:
+   1. criterion 9 added: it needs its test. The Interface's rule "Each `ENV` instruction sets one name on a line of its own" (the form S0003's `vm/setup.sh` reads) had no criterion and no test.
+      - Why the current tests miss it: `_env` (tests/test_image.py:200) splits multi-name `ENV` instructions, so `test_the_environment_names_are_the_runtimes_alone` and `test_each_runtime_setting_has_its_value` (tests/test_stage_image.py:263-282) pass for `ENV UV_LINK_MODE=copy PYTHONDONTWRITEBYTECODE=1`, or for a `\`-continued `ENV`.
+      - Fix: the tester writes the test for the new criterion 9. It checks the file's raw `ENV ` lines: one `NAME=value` pair each, no trailing `\`, and six lines for six names. Its refused side is rows of one parametrized test.
+      - The closing criteria are renumbered to 10 (`make check`) and 11 (docs).
+   2. tests/test_stage_image.py:285-293 copies existing code from tests/test_image_credentials.py:12-26:
+      - the parametrize list `["TOKEN", "SECRET", "PASSWORD", "CREDENTIAL"]` is a second copy of `SECRET_WORDS`;
+      - the inline collection of `ENV` and `ARG` names is a second copy of `_declared_names`.
+      - Fix: under the standing leave, the tester moves `SECRET_WORDS` and `_declared_names` into `tests/dockerfile_support.py`, has tests/test_image_credentials.py import them from there (its test keeps its name and assertions), and uses them in the new test.
+   3. tests/test_stage_image.py:95-101: `_apt_packages` copies the package comprehension of `test_every_debian_package_is_pinned_and_the_set_is_the_tools` (tests/test_image.py:319-324).
+      - Fix: under the standing leave, the tester moves `_apt_packages` to the shared readers (`tests/dockerfile_support.py`) and has that earlier test use it, keeping its name and assertions.
+      - The same holds for `_uncommented` (tests/test_stage_image.py:86-87). It repeats the comment-dropping line of `_instructions` (tests/test_image.py:34) and of `dockerfile_instructions` (tests/dockerfile_support.py:12). Move it there too.
+      - The docs criterion (now 11) already makes the documenter list what `dockerfile_support.py` offers.
+
+   Rejected as findings:
+   - `_pins` in the new module shares its name with `_pins()` in tests/test_image.py. It is a different, module-private function and is not imported.
+   - `uv sync` is missing from criterion 7's list of words. Criterion 4's `test_no_other_install_is_made` pins it.
+   - The duplicates record ("11 new") covers `src/factory`, which the diff does not touch.
+
+   Earlier tests: none changed. The diff's only test file is the new `tests/test_stage_image.py` (status `A`).
+
+   Next: the coder hands finding 1 to the tester (criterion 9 needs its test), and the tester makes the moves in findings 2 and 3 under the standing leave. `vm/Dockerfile` needs no change.
