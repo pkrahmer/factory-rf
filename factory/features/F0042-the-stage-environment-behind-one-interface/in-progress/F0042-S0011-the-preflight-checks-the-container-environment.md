@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T21:36:04.934432Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,13 +69,19 @@ journal:
   kind: started
   at: '2026-10-24T21:36:04.934432Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T21:37:55.204011Z'
+  stage: review
+  run: 60f5b852070644f686f6e0f91f92a0bf
 ---
 
 # The preflight checks the container environment
 
 ## Description
 
-The preflight checks the machine once per image build before any claim, and probes `main` once per commit (`docs/project-guide/watching.md`, the operator guide's *The preflight's items*). A `container` instance needs other items than an `inline` one: that `podman` and `zfs` answer `--version`, that the dataset exists (`zfs list -H -o name <dataset>` names it) and that the stage image is there (`podman image exists <image>`); and its two probes, the agent run and the `lint` on `main`, must go through the environment like a stage, so that the dataset is prepared for `main` before either runs. The items `agent-user`, `tool:sudo`, `confinement` and `agent-environment` check layers a container replaces, or a `HOME` that is a path inside the container, and the items `tool:claude` and `tool:opencode` look for the runtime's executable on the host's `PATH`, where a `container` instance has none; none of them is run for `container`; the `opencode` item checks the model aliases only, since the executable is the stage image's and `agent-runtime-version` runs it there (decision 15 of `feature.md`). The `inline` environment keeps today's items unchanged, in their order. This story adds the four items to `factory.application.preflight`, leaves the runtime's executable out of `MachineChecks.run`'s tools for `container`, makes both probes call `prepare`, and makes `machine_extras` of the wiring choose the items by the environment. The items are tested with callables and the stand-in adapters of S0002 and S0003; the probes with `FakeSnapshots` and `FakeContainerRuns`. What stays: every item an `inline` instance runs today, word for word; the probe of the agent run only resolves `origin/main` first, which an `inline` instance always has after the tick's restore.
+The preflight checks the machine once per image build before any claim, and probes `main` once per commit (`docs/project-guide/watching.md`, the operator guide's *The preflight's items*). A `container` instance needs other items than an `inline` one: that `podman` and `zfs` answer `--version`, that the dataset exists (`zfs list -H -o name <dataset>` names it) and that the stage image is there (`podman image exists <image>`); and its two probes, the agent run and the `lint` on `main`, must go through the environment like a stage, so that the dataset is prepared for `main` before either runs. The items `agent-user`, `tool:sudo`, `confinement` and `agent-environment` check layers a container replaces, or a `HOME` that is a path inside the container, and the items `tool:claude` and `tool:opencode` look for the runtime's executable on the host's `PATH`, where a `container` instance has none, and the item `tool:make` looks for `make`, which a `container` instance runs only inside its sync and check containers; none of them is run for `container`; the `opencode` item checks the model aliases only, since the executable is the stage image's and `agent-runtime-version` runs it there (decision 15 of `feature.md`). The `inline` environment keeps today's items unchanged, in their order. This story adds the four items to `factory.application.preflight`, gives `MachineChecks.run` the tools `CONTAINER_TOOLS` (`git` and `uv`, without `make` and the runtime's executable) for `container`, makes both probes call `prepare`, and makes `machine_extras` of the wiring choose the items by the environment. The items are tested with callables and the stand-in adapters of S0002 and S0003; the probes with `FakeSnapshots` and `FakeContainerRuns`. What stays: every item an `inline` instance runs today, word for word; the probe of the agent run only resolves `origin/main` first, which an `inline` instance always has after the tick's restore.
 
 ## Interface
 
@@ -255,3 +257,22 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 11. factory: started review as self.
+12. reviewer: Groups 1 to 3 pass. I read every criterion and every rule of the Interface against the six new test files, `src/factory/application/preflight.py` and `src/factory/entry/wiring.py`.
+    - Criteria 1 to 10 each have a parametrized test that checks what the criterion names. That includes both errors of `tool_version_item`, the three faults of the probe, both caught errors in `Preflight.run`, and both forms of the `opencode` item.
+    - The rule "building the adapters runs no command" stays covered by `tests/entry/test_wiring_stage_environment.py::test_wiring_a_container_instance_s_tick_starts_no_tool`, because `build_tick` calls `machine_extras`.
+    - Layers hold. No silencing marker was added. The coder's `make check` was green (entry 10).
+    - The 11 new findings from `make duplicates` all sit in modules this diff does not touch.
+
+    Group 4 (quality) fails. This is round 0, so test-file copies count as findings:
+
+    1. `tests/application/test_machine_checks_container.py:35-39`: the fixture `installed` is a word-for-word copy of `installed` in `tests/application/test_machine_checks_runtime.py:32-36`. Fix: the tester moves it to `tests/conftest.py` under the standing leave, and both modules use it from there.
+    2. `tests/application/test_machine_checks_container.py:16-21` and `tests/application/test_opencode_item_container.py:13-18`: the same `CONTAINER` settings dict is defined in two new modules. The container `InstanceSettings` is also built twice, in `test_agent_run_probe_environment.py:29-42` (fixture `container_settings`) and in `test_preflight_run_environment.py:66-76`. Fix: one shared constant or builder in a support module (e.g. `tests/container_support.py`), used by all four.
+    3. `tests/application/test_container_items.py:11-12`: it defines `DATASET` and `IMAGE` again, though `tests/zfs_support.py:14` and `tests/podman_support.py:10` already hold them. `tests/entry/test_wiring_container_extras.py` imports those. Fix: import them instead of redefining them.
+
+    Description corrected:
+    - It said: "leaves the runtime's executable out of `MachineChecks.run`'s tools for `container`". It now says: "gives `MachineChecks.run` the tools `CONTAINER_TOOLS` (`git` and `uv`, without `make` and the runtime's executable) for `container`".
+    - Added to the list of items not run for `container`: "the item `tool:make` looks for `make`, which a `container` instance runs only inside its sync and check containers".
+
+    Both corrections follow the human's answer in entry 6. Its Interface sentence ("`REQUIRED_TOOLS` alone") is left as the human said to read it.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`).
