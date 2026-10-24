@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T23:46:05.548953Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-24T23:46:05.548953Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-24T23:49:08.758717Z'
+  stage: doing
+  run: 12225bd6eed24b8ca21a897153dbd148
 ---
 
 # The stage image is the tools alone
@@ -137,3 +139,23 @@ Expect: `1`
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/test_stage_image.py::test_the_first_line_names_the_build_command - FileNotFoundError: [Errno 2] No such file or directory: '/work/checkout/vm/Dockerfile'
 6. factory: started doing as self.
+7. coder: Built `vm/Dockerfile`, the stage image, and nothing else. No module under `src/factory/` changed and no test changed. `image/Dockerfile`, `image/compose.yml` and `image/entrypoint.sh` are byte-for-byte as on `main`: `git diff main -- image` is empty.
+
+   What the file does:
+   - The first line is a comment that names the image's purpose and the build command `podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> .`.
+   - It has the same `BASE_IMAGE` default, with its digest, as `image/Dockerfile`. It also has the same `CLAUDE_CODE_VERSION`, `OPENCODE_VERSION` and `UV_VERSION` defaults, and the `ARG FACTORY_IMAGE=unlabelled` / `LABEL factory.image="${FACTORY_IMAGE}"` pair.
+   - One `apt-get install` of the seven packages, at `image/Dockerfile`'s versions and without `sudo`.
+   - The pip install of uv and the two npm installs, as in the machine image.
+   - `COPY claude /etc/factory/claude`, with a comment directly above it, followed directly by the chmod/find `RUN` the Interface gives. `claude/` holds only the folder `agents`, so the two folder modes cover every folder.
+   - Six `ENV` lines, one name each.
+
+   Main choice: I wrote the file fresh from the Interface, so each `ENV` is on its own line, the form S0003's `vm/setup.sh` will read. I rejected copying `image/Dockerfile` and cutting it down: that would keep its multi-name `ENV` block and its comments about the long-lived container. I kept the explanatory comments that still hold: the label is not the identity, why the version records exist, and what the model ids are.
+
+   Refactor: the diff is one new file that the tests pin line by line. Nothing needed changing.
+
+   `make check` is green. `tests/test_stage_image.py` passes all 62 cases.
+
+   Noticed, not touched: `vm/Dockerfile` repeats the seven Debian package versions of `image/Dockerfile` by hand. The pin tests keep the two files in agreement until F0044 removes `image/`. No other `vm/` file exists yet; S0003 adds `vm/setup.sh`.
+
+   `check`: check: green
+   `duplicates`: duplicates: 11 new, 36 known, 2 gone
