@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T12:22:17.366644Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-24T12:21:56.765538Z'
   stage: doing
   run: 82b591788b7e46c59dd380a11bfab51c
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-24T12:22:17.366644Z'
+  stage: tests
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -274,3 +283,4 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     Refactor: the diff is two lines, so nothing needed changing. `make check` is green after the change (`check: green`). No test was touched.
 
     Noticed, not touched: none beyond round 0's notes.
+15. factory: started tests as self.
