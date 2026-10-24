@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T12:19:30.559944Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-24T12:19:30.559944Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-24T12:21:56.765538Z'
+  stage: doing
+  run: 82b591788b7e46c59dd380a11bfab51c
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -263,3 +265,12 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     Earlier tests:
     - tests/test_wrapper_search.py: the human's leave. Criterion 9 of the story, as the human wrote it, names this test and the added `factory.adapters.zfs_snapshots`. The change only adds that one name to the expected set, and the test keeps its name.
 13. factory: started doing as self.
+14. coder: Round 1. I addressed the reviewer's two findings. Both now need only tests.
+
+    1. Criterion 10 (added by the reviewer) needs its test and no code change: a row in `tests/adapters/test_zfs_snapshots_diff.py::test_a_diff_it_cannot_read_is_a_fault` whose `diff` prints `+\tF\t/srv/factory/vm/work/bad\377`, expecting `command` `<stand-in> diff -FH tank/factory/vm@base` and `detail` `cannot read the line +\tF\t/srv/factory/vm/work/bad\377`. `src/factory/adapters/zfs_snapshots.py` (`_unescape`) already raises this. The row covers that path, which until now no test reached.
+
+    2. An empty output from `dataset_exists()`. In `src/factory/adapters/zfs_snapshots.py`, `dataset_exists` now raises `SnapshotError` with `detail` `printed nothing` when `list -H -o name <dataset>` exits 0 and prints nothing. Before, it gave `named None, not <dataset>`. I chose this detail because `version()` uses the same wording for an empty output. Rejected alternative: asking the human first. The Interface already calls a status-0 output that does not name the dataset a fault and only lacked this detail, and the reviewer proposed this fix. For the tester: please add a row to `tests/adapters/test_zfs_snapshots.py::test_dataset_exists_reads_what_list_names` where `list` exits 0 and prints nothing, expecting `SnapshotError` with `detail` `printed nothing`. I tried to write this rule into the work item (the Interface's `dataset_exists()` bullet and criterion 8), but the work item is outside my write paths (`Permission denied`), so it is still missing from the text. Whoever may write the work item should add it.
+
+    Refactor: the diff is two lines, so nothing needed changing. `make check` is green after the change (`check: green`). No test was touched.
+
+    Noticed, not touched: none beyond round 0's notes.

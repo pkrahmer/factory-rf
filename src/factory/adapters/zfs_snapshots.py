@@ -118,6 +118,8 @@ class ZfsSnapshots(Snapshots):
         if result.exit_status == 1:
             return False
         named = _first_line(result.stdout)
+        if named is None:
+            raise SnapshotError(self._command(arguments), "printed nothing")
         if named != self._dataset:
             raise SnapshotError(self._command(arguments), f"named {named}, not {self._dataset}")
         return True
