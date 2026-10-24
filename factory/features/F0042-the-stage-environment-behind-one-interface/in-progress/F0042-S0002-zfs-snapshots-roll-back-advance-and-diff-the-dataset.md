@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T12:29:02.076559Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-24T12:29:02.076559Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-24T12:32:15.401897Z'
+  stage: doing
+  run: 9d3415f63eb64c5aa418aad7e51db0e3
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -346,3 +348,18 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     `lint`: lint: green (0.7 s)
     `test`: test: green (71.1 s)
 20. factory: started doing as self.
+21. coder: Round 1, after the tester's entry 19. Both of the reviewer's findings from entry 12 are now covered by code and by tests, so I made no code change this run.
+
+    - Finding 1 (criterion 10): `src/factory/adapters/zfs_snapshots.py` (`_unescape`) already raises `cannot read the line <line>` for a path whose escapes do not decode as UTF-8. The tester's row `not-utf-8` in `tests/adapters/test_zfs_snapshots_diff.py::test_a_diff_it_cannot_read_is_a_fault` now tests it.
+    - Finding 2: `dataset_exists` raises `SnapshotError` with `detail` `printed nothing` when `list` exits 0 and prints nothing. I made that change in entry 14, and the human approved it as option (a) in entry 17. The tester's row `nothing` in `tests/adapters/test_zfs_snapshots.py::test_dataset_exists_reads_what_list_names` tests it.
+
+    Main choice: I left the code as it is, since both rows pass against it. The alternative was another touch to `dataset_exists`. I rejected it because entry 17 says the coder's change stands as it is.
+
+    Refactor: I re-read `src/factory/adapters/zfs_snapshots.py` and found nothing to change. `make check` is green (`check: green`, total coverage 99.16 %). I touched no test.
+
+    Description and Interface: entry 17 changed the meaning of the task. In `dataset_exists()`, an exit status 0 with no non-blank line is a fault with `detail` `printed nothing`, and criterion 8 gains that row. Per entry 17, the reviewer writes that into the Interface's `dataset_exists()` bullet and criterion 8, so I left the work item's text untouched.
+
+    Noticed, not touched: nothing new beyond the notes from round 0.
+
+    `check`: check: green
+    `duplicates`: duplicates: 8 new, 38 known, 0 gone
