@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T12:05:24.394519Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-24T12:05:06.383847Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-24T12:05:24.394519Z'
   stage: intake
 ---
 
@@ -148,3 +157,4 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
    3. Yes: add a `\134` path to criterion 3 (a row of its own is fine too).
 
    You have leave to edit the Acceptance criteria for exactly these additions; the Interface and the Description stay as they are.
+5. factory: started intake as self.
