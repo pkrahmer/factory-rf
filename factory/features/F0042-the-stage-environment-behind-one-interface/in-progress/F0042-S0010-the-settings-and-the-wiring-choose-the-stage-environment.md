@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 421
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T20:49:56.854221Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-24T20:49:56.854221Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-24T20:50:18.764440Z'
+  stage: intake
+  run: 75697f5e9a794850b72785b292792af0
 ---
 
 # The settings and the wiring choose the stage environment
@@ -130,3 +132,9 @@ Expect: `1`
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures (`factory.domain.settings` constants and six fields, `factory.entry.wiring.build_boundaries` and `agent_run_environment`, `RecordingProjectCommands.inner`). `WORK_HOME` and `CONFINE_COMMAND` exist in the source, and `build_boundaries` already takes `confine_executable`. Every behaviour in the Interface text (stripping, blank as unset, defaults, fault order and texts, the model validator, what each environment builds, `HOME`) has a criterion.
+   Criteria: each is testable by a parametrized test or one function. Both sides of each rule are covered: valid and invalid environment names, each missing or relative value, the agent user, `inline` accepting any combination, `container` and `inline` boundaries, and `HOME` for the three cases. Minor gaps I left alone: a blank `FACTORY_WORKSPACE` or `FACTORY_STAGE_IMAGE` has no row of its own (the blank-dataset row and the blank rule cover it), and the order of the agent-user fault against the other three is shown only where all three are set.
+   Smoke test: both commands are runnable. The pytest command passes no `-q`, and `pyproject.toml` `addopts` already sets `-q`, so the summary line `N passed in` exists for the `grep -c` to count. Every `Expect:` is checkable against the output.
+   Architecture: settings and their faults stay in `domain`, the wiring in `entry`, and `RecordingProjectCommands.inner` in `application`. The adapters are reached only through their interfaces, and no new dependency or package is added.
+   Scope: the story stays within F0042's scope line for S0010 and keeps to the feature's Out of scope list. Decisions 14 and 15 are carried as written, and no earlier test is changed (decision 18 (h)).
