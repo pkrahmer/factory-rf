@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T17:13:50.478301Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -54,6 +58,11 @@ journal:
   stage: doing
   run: fe44c1532a91496c8dad6882ce0df507
   reason: check_red
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:13:50.478301Z'
+  stage: doing
 ---
 
 # `sync` is the fourth target of the project contract
@@ -204,3 +213,4 @@ Expect: four lines: `# The contract between a project and the factory is four ta
    lint: green (0.5 s)
    Bytecode compiled 4164 files in 89ms
    make: *** [Makefile:39: types] Error 139
+9. factory: started doing as self.
