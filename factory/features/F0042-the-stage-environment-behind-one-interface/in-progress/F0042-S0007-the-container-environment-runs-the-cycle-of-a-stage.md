@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T18:07:59.666133Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,12 @@ journal:
   kind: started
   at: '2026-10-24T18:07:59.666133Z'
   stage: doing
+- number: 26
+  speaker: coder
+  kind: result
+  at: '2026-10-24T18:11:10.885200Z'
+  stage: doing
+  run: 5c864d1604504480b7500e443252e2dd
 ---
 
 # The container environment runs the cycle of a stage
@@ -446,3 +448,22 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
     `lint`: lint: green (0.7 s)
     `test`: test: green (70.9 s)
 25. factory: started doing as self.
+26. coder: Round 2, after the tester's change. The reviewer had one finding (entry 20): criterion 13. The tester has now written its test as the `last-prepare-counts` row of `tests/application/test_container_environment_take.py::test_one_timing_line_per_take_carries_the_last_prepares_durations`. The round-0 code passes that row without a change: `ContainerEnvironment.prepare` in `src/factory/application/stage_environment.py` replaces the three durations each time and does not add them up. So I changed no code and no test this round. `make check` is green: 99.19 % coverage, `test: green (69.9 s)`, ending in `check: green`.
+
+    What I built (unchanged since round 0, entry 10):
+    - `src/factory/application/stage_environment.py`: `ContainerEnvironment`, `stage_environment_of`, the constants and the sync script.
+    - `src/factory/application/boundaries.py`: the fields `snapshots` and `containers`.
+    - `src/factory/domain/checks.py`: `last_line` and `MAKE_MESSAGE_PREFIXES`. `src/factory/adapters/make_commands.py` now imports them and no longer keeps its own copy.
+
+    Main choice: the durations are fields on the object. They start at zero and are replaced when a `prepare` succeeds. I rejected a timing DTO returned by `prepare`, because the interface fixes `prepare` to return `None`.
+
+    Refactor pass: nothing to refactor, because this round added no code.
+
+    What the journal changed: only criterion 13, with the closing criteria renumbered to 14 and 15. The reviewer already wrote both into the Description.
+
+    Noticed, not touched: after a failed `prepare`, the object keeps the durations of the last successful one. No criterion covers that case.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 9 new, 37 known, 1 gone
