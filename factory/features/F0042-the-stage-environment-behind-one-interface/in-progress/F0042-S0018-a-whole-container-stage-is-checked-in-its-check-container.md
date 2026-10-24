@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 426
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T22:33:08.785239Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-24T22:33:08.785239Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-24T22:35:58.287184Z'
+  stage: doing
+  run: dd71fe0cc4bf49b1a3de66703c93450f
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -137,3 +139,14 @@ Expect: three lines, `2`, `1`, `1`
    `lint`: lint: green (0.5 s)
    `test`: test: green (66.3 s)
 6. factory: started doing as self.
+7. coder: No code was needed. The Interface says nothing under `src/factory/` changes, and the new tests in `tests/application/test_container_stage_checks.py`, along with the moved helpers, already pass against the existing behaviour. I ran `make check` in the foreground and it ends with `check: green` (`test: green (67.2 s)`, total coverage 99.19 %).
+
+   - Built: nothing. `git diff main -- src` is empty, and I changed no file.
+   - Main choice: I left `src/` alone. The other option was to tidy code the new tests touch, such as the container stage path. I rejected it because the story is limited to tests and helper moves, and anything more would go beyond its scope (R13).
+   - Refactor: there is no diff of mine to review, so nothing needed changing.
+   - Noticed, not touched: the tester also changed `tests/application/test_stall_container.py`, `tests/application/test_nested_repositories.py`, `tests/adapters/test_podman_timeout_status.py` and `tests/adapters/test_podman_runs_results.py`. The Interface does not name these files, but criterion 4's single-definition counts require the changes. The reviewer may want to confirm that each test there kept its name.
+   - The docs criterion (`docs/project-guide/stage-environment.md` and `docs/project-guide/README.md`) belongs to the documenter.
+   - The journal did not change the meaning of the task.
+
+   `check`: check: green
+   `duplicates`: duplicates: 11 new, 36 known, 2 gone
