@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638, 6384356460]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T12:55:52.334057Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -258,6 +262,11 @@ journal:
   at: '2026-10-24T12:55:31.599368Z'
   stage: docs
   run: d150416c81714253b7acc12c01078d81
+- number: 46
+  speaker: factory
+  kind: started
+  at: '2026-10-24T12:55:52.334057Z'
+  stage: smoke-test
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -704,3 +713,4 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     `check`: check: green (not run again: passed on tree 4b7edce0a272 at 2026-10-24T12:51:55Z)
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
+46. factory: started smoke-test as self.
