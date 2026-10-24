@@ -271,7 +271,7 @@ The suite runs it on `FakeSnapshots(workspace, base)` and `FakeContainerRuns(wor
 
 ## The agent's container
 
-Step 5 of the cycle belongs to the agent runtimes, not to `ContainerEnvironment`: a runtime built with a `ContainerRuns` starts each call through `ContainerRuns.launch` (`container_launch` in `factory.adapters.agent_launch`) in a container of the stage image, with `/work` mounted, the login and instructions files mounted read-only at their own paths, the request's allow-list environment as `--env` entries and `/work/checkout` as the working directory, and it reads the kill at `--timeout` as `time_limit`. What it gets and what it lacks (`sudo`, `factory-confine`, a rules file, leftovers, a temporary folder) is in `agents.md`, *Calls in a container*. The wiring that gives a `container` instance's runtimes their `PodmanRuns` is a later story's.
+Step 5 of the cycle belongs to the agent runtimes, not to `ContainerEnvironment`: a runtime built with a `ContainerRuns` starts each call through `ContainerRuns.launch` (`container_launch` in `factory.adapters.agent_launch`) in a container of the stage image, with `/work` mounted, the login and instructions files mounted read-only at their own paths, the request's allow-list environment as `--env` entries and `/work/checkout` as the working directory, and it reads the kill at `--timeout` as `time_limit`. What it gets and what it lacks (`sudo`, `factory-confine`, a rules file, leftovers, a temporary folder) is in `agents.md`, *Calls in a container*. `build_boundaries` gives the runtime of `FACTORY_AGENT_RUNTIME` its `PodmanRuns` for a `container` instance (*The settings and the wiring*).
 
 ## The take
 

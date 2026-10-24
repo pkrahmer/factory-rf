@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 425
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T22:20:38.596275Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-24T22:20:38.596275Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T22:21:09.030902Z'
+  stage: docs
+  run: e6f33e5eefd24cde95b87fcdb743d2f7
 ---
 
 # The guides say what is true after the wiring
@@ -165,3 +167,30 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: Docs: I corrected the six passages the docs criterion lists. Only documents changed, so I did not run `make check`. `make documents` ended with `documents ok`.
+
+    Files changed:
+    - `docs/project-guide/processes-and-checks.md`, *Project commands*: replaced "do not have it yet" with the fact that this repository's `Makefile` has `sync` (`uv sync --frozen`) and its `factory/pipeline.yml` has the command `sync` with `time_limit: 5`.
+    - `docs/project-guide/processes-and-checks.md`, *Container project commands*: replaced "a later story; until then nothing builds it" with the statement that `build_boundaries` puts `ContainerMakeCommands` behind `RecordingProjectCommands` for a `container` instance. It points to `stage-environment.md`.
+    - `docs/project-guide/stage-environment.md`, *The agent's container*: replaced "is a later story's" with the statement that `build_boundaries` gives the runtime of `FACTORY_AGENT_RUNTIME` its `PodmanRuns` for a `container` instance.
+    - `docs/project-guide/watching.md`, *Boundaries*: `project_commands` now names both cases. The `inline` chain is unchanged. For `container` it is `RecordingProjectCommands` around `ContainerMakeCommands`.
+    - `docs/project-guide/costs.md`: the bullet is now "Rewritten after every take". It says the rewrite happens after the take, which is the undo under `inline`. The "uncommitted" bullet now says the `git status` and `git diff` remark holds under `inline`. It adds that under `container` the agent works on the dataset, where the sidecar is the one committed at the stage-start commit, and that the factory writes the host's copy after the take.
+    - `docs/operator-guide.md`, *A stall: the stall note*: "undoes the rest" now says the factory keeps what is inside the write paths and leaves out the rest. An `inline` instance undoes it, and a `container` instance does not take it from the dataset.
+
+    Checked against the code on `main`, as the reviewer did:
+    - `Makefile:27` and `factory/pipeline.yml:16` match the `sync` text.
+    - `src/factory/entry/wiring.py:369` and `:397` build `ContainerMakeCommands` and `PodmanRuns` for a `container` instance.
+
+    I did not re-read the take or the sidecar rewrite in the code beyond that. The costs wording follows the criterion.
+
+    Cross-read and found current: the `Boundaries` field list in `watching.md`, which already described the container wiring of `snapshots` and `containers`.
+
+    Stale text I saw and did not touch:
+    - `docs/decisions.md:166` and `:168` still say "rewritten ... after every undo". It is the decision log and records the 2026-10-14 reasoning, so it is not mine to edit.
+    - The `costs.md` bullet "Rewritten after every take" still names `AfterAgent.process` as the place of the rewrite. I did not check whether the take path uses the same function. If it does not, that is a follow-up.
+
+    No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 3389db52e22b at 2026-10-24T22:18:10Z)
+    `secrets`: secrets: green (1.9 s)
+    `documents`: documents ok
