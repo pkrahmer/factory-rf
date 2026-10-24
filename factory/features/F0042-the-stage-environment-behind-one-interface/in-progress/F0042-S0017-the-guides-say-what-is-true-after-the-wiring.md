@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 425
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T22:19:47.365716Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-24T22:19:26.871875Z'
   stage: doing
   run: 4eb10380a54445cea7cd89102f573d30
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:19:47.365716Z'
+  stage: review
 ---
 
 # The guides say what is true after the wiring
@@ -130,3 +139,4 @@ Expect: `documents ok`
 
    `check`: check: green
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
+8. factory: started review as self.
