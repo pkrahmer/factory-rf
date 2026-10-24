@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 426
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T22:39:09.643795Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-24T22:38:48.173391Z'
   stage: doing
   run: 7367e26c2ffb4b698b02d55a05ed5c38
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:39:09.643795Z'
+  stage: tests
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -209,3 +218,4 @@ Expect: three lines, `2`, `1`, `1`
     - Refactor: nothing of mine to refactor.
     - Noticed, not touched: nothing further. The docs criterion is still the documenter's.
     - The journal did not change the meaning of the task.
+12. factory: started tests as self.
