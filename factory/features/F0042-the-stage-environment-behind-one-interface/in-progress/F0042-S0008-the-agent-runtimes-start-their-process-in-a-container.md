@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T19:08:46.151423Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-24T19:08:25.842662Z'
   stage: doing
   run: 243de73379d442819034d2b110c5664f
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-24T19:08:46.151423Z'
+  stage: tests
 ---
 
 # The agent runtimes start their process in a container
@@ -338,3 +347,4 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
     Noticed but did not touch:
     - The reviewer left one point for later rounds: calls are routed by a branch in each runtime's `_process_request`, not through `run_launch` as the Description says. Entry 10 gives the reason, ruff's argument limit (PLR0913). The reviewer did not judge it this round, so I left it as it is.
     - The journal added criterion 12, which the Description already holds. It changed nothing else about what the task means, so the Description stays as it is.
+15. factory: started tests as self.
