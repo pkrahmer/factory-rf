@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T20:16:04.304293Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-24T20:15:43.470907Z'
   stage: doing
   run: 4ffa9efacfa847e6ab9751266ae1e868
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:16:04.304293Z'
+  stage: tests
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -168,3 +177,4 @@ Expect: one line, `[-9, 137, 255] True False`
     2. Move `_request` and `_state` from `tests/adapters/test_opencode_runtime_container.py:58-66` to `tests/adapters/container_runtime_support.py`. `_request` keeps its `time_limit` and `os_user` parameters. Change `tests/adapters/test_opencode_runtime_container.py` and `tests/adapters/test_runtime_podman_timeout_status.py` to import them from there, replacing the new module's `_request` (:34-39) and its inline `state` setup (:84-85). Every earlier test keeps its name and what it checks.
 
     Main choice: I end with `tests` rather than `question`, because the standing leave covers both moves. The alternative, asking the human, is not needed here. Description unchanged: the review changed what the tests look like, not what the task means. Noticed but did not touch: nothing new.
+12. factory: started tests as self.
