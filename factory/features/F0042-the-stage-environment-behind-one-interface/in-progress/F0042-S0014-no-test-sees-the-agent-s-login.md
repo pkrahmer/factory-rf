@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 412
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T16:17:16.090225Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-24T16:17:16.090225Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-24T16:20:18.412903Z'
+  stage: tests
+  run: e824a66578b8489295ab5cf0ea526858
 ---
 
 # No test sees the agent's login
@@ -79,3 +81,22 @@ Expect: one line that starts with `N passed` and names no `failed` and no `error
    - Architecture: tests only, with the fixture in the shared `tests/conftest.py` and the new module at the `tests/` root, as CLAUDE.md allows. It imports the names from the adapters layer and does not repeat them.
    - Scope: it is listed in `feature.md`'s Scope ("`tests/conftest.py`: no test sees the agent's login (S0014)"), it is not in Out of scope, and it follows the human's decision 21. The change to the opencode version test, written by another story, has the leave in decision 18 (i).
 4. factory: started tests as self.
+5. tester: Tests written. The story is tests-only and the coder never edits tests (R9), so the tester stage also made the two test changes the Interface names: the conftest fixture and the version test's last assertion. Both have the leave of decision 18 (i).
+
+   - criterion 1: tests/test_no_agent_login.py::test_a_test_does_not_see_the_login (rows `subscription`, `api-key`)
+   - criterion 2: tests/test_no_agent_login.py::test_a_test_that_sets_the_login_sees_its_own_value (one row per name) and tests/test_no_agent_login.py::test_the_login_is_removed_through_monkeypatch (rows: `monkeypatch.delenv` present, no `os.environ.pop`, no `del os.environ` in tests/conftest.py)
+   - criterion 3: tests/adapters/test_opencode_runtime_launch.py::test_the_version_is_the_first_word_of_a_call_without_login_words (passing it with `ANTHROPIC_API_KEY` set is the smoke test's job). Its last line is pinned by tests/test_no_agent_login.py::test_the_version_test_compares_variable_names_only.
+   - criterion 4: the existing suite, unchanged apart from the one assertion above.
+   - criterion 5: `make check`, which is the coder's to run. Criterion 6 (docs) is the documenter's.
+
+   Files:
+   - created: tests/test_no_agent_login.py
+   - changed: tests/conftest.py, which has the new autouse fixture `without_agent_login`. It imports `LOGIN_VARIABLE` and `API_LOGIN_VARIABLE` from `factory.adapters.agent_launch` and calls `monkeypatch.delenv(name, raising=False)` for each.
+   - changed: tests/adapters/test_opencode_runtime_launch.py, where the last assertion is now `assert API_LOGIN_VARIABLE not in set(call.environment)`. The test keeps its name, setup and check.
+
+   Run: `make test` was green (62.3 s, coverage 99.18 %), and every import resolved. That run came before I added `test_the_version_test_compares_variable_names_only`, so the new test has not run yet; the factory's run will be its first. Because the fixture is already in place, these tests pass rather than fail red, and nothing under `src/` is meant to change. What is left for the coder is `make check` (the type check included) and handing on to the docs stage. `make lint` is green, after `ruff format` wrapped two lines.
+
+   Rejected: checking from inside the suite that the variable comes back after a test, because pytest's own process state cannot be seen across tests. Criterion 2 pins that through its text row instead, as it says.
+
+   `lint`: lint: green (0.5 s)
+   `test`: test: green (62.0 s)

@@ -16,6 +16,7 @@ from disk_support import FakeDiskSpace
 from entrypoint_support import Layout as ImageLayout
 from factory.adapters import claude_runtime
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
+from factory.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
 from factory.adapters.clock import ManualClock, ManualWaiter
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.factory_log import TimestampedFactoryLog
@@ -58,6 +59,13 @@ TESTS_UMASK = 0o022
 def pytest_configure() -> None:
     """Run every test under the umask `0o022`, whatever umask pytest was started under."""
     os.umask(TESTS_UMASK)
+
+
+@pytest.fixture(autouse=True)
+def without_agent_login(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Remove the agent's login from every test's environment, so no child process sees it."""
+    for name in (LOGIN_VARIABLE, API_LOGIN_VARIABLE):
+        monkeypatch.delenv(name, raising=False)
 
 
 @pytest.fixture(autouse=True)

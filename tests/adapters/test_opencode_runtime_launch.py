@@ -243,7 +243,7 @@ def test_the_version_is_the_first_word_of_a_call_without_login_words(tmp_path: P
     assert runtime.version() == "1.19.3"
     [call] = read_calls(tmp_path / "bin")
     assert call.arguments == ["--version"]
-    assert API_LOGIN_VARIABLE not in call.environment
+    assert API_LOGIN_VARIABLE not in set(call.environment)
 
 
 @pytest.mark.parametrize(
