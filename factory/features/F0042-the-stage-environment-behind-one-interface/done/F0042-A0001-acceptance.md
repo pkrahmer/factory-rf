@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-24T22:11:09.628880Z'
   stage: acceptance
   run: 34009df0969b4abcba55dbe03c5d1daf
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-24T22:13:33.589660Z'
+  stage: done
 stories: [F0042-S0001, F0042-S0002, F0042-S0003, F0042-S0004, F0042-S0005, F0042-S0006, F0042-S0007, F0042-S0008, F0042-S0009, F0042-S0010, F0042-S0011, F0042-S0012, F0042-S0013, F0042-S0014, F0042-S0015, F0042-S0016]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The stage environment behind one interface
@@ -224,3 +229,4 @@ Human interventions: 12 questions answered, 11 of them questions and 1 a round c
    6. Decisions: `feature.md` decisions 1 to 23 and the 12 answers in the story journals are listed in the report. Every changed earlier test had a leave. The S0006 rename beyond the leave was put back, and the S0013 reviewer judged a near-move within the standing leave, which the human may want to confirm.
    7. Slow checks: nothing beyond `make check`. `make test` ran 7572 tests in 67.2 s; this feature's slowest test is the podman 255 time-limit row at 10.0 s. `/work` used space is unchanged at 0.5 GB; the 0.5 GB drop in free space shows on the shared pool.
    8. Cost: $68.22, 185 runs, 282.8 min. S0002 stands out ($6.63, 21 runs, review findings one row at a time) and needed the human most (3 of the 12 answers, including the one round cap). 0.4 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 7.8 min, 50 turns, 158627 tokens in (4264081 more from cache), 35542 out, $2.83
