@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578, 6386353501]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T16:03:21.598198Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -121,6 +125,11 @@ journal:
   at: '2026-10-24T16:03:01.073392Z'
   stage: doing
   run: df6fd7d97aff467ea4cc5e53183a7649
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:03:21.598198Z'
+  stage: tests
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -404,3 +413,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     **Noticed, not touched:**
     - `_is_ignoring` in `git_cli.py` misreads an ignore-file path that contains a colon.
     - `make duplicates` reports dead code for `TakeService`, which is expected until the container environment calls it.
+21. factory: started tests as self.
