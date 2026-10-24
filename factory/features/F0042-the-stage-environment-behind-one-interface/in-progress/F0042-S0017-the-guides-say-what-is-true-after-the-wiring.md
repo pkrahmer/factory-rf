@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 425
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T22:19:47.365716Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-24T22:19:47.365716Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T22:20:17.952409Z'
+  stage: review
+  run: 9d0128124e5e4bea87fb40ce7b970de2
 ---
 
 # The guides say what is true after the wiring
@@ -140,3 +142,16 @@ Expect: `documents ok`
    `check`: check: green
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. The only changes on the branch are the work item and its `.costs.jsonl` sidecar, which the factory writes.
+   - Criterion 1: holds. Nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changed. The tester's entry (5) and the coder's entry (7) each say so.
+   - Criterion 2: the coder's `make check` ended with `check: green` (entry 7). The 11 new `duplicates` findings in that record cannot come from this diff, which has no code.
+   - Criterion 3: the docs criterion. I checked its six claims against `main`:
+     - `Makefile:27` has `sync` (`uv sync --frozen`), and `factory/pipeline.yml:16` has `sync: {time_limit: 5}`.
+     - `src/factory/entry/wiring.py:369` builds `ContainerMakeCommands` for a `container` instance, and `src/factory/entry/wiring.py:397` builds its `PodmanRuns`.
+     - All six stale passages are still in the documents: `docs/project-guide/processes-and-checks.md:11` and `:47`, `docs/project-guide/stage-environment.md:274`, `docs/project-guide/watching.md:264`, `docs/project-guide/costs.md:14` and `:17`, and `docs/operator-guide.md:833`. So the criterion still describes what the reader must know, and the documenter can write from it as it stands.
+   - Interface: it states no rule, so there is no failing side to test.
+   - Work item hygiene: the coder's entry gives the main choice (leave the documents to the documenter) and what was rejected (editing them in the doing stage). The Description matches what was built.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
