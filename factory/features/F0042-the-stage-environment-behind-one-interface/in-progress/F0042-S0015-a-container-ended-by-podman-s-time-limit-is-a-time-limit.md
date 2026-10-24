@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T20:24:51.273016Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-24T20:24:29.820837Z'
   stage: docs
   run: 0a84614acf0a4e41a763eccec1638dcb
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:24:51.273016Z'
+  stage: smoke-test
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -294,3 +303,4 @@ Expect: one line, `[-9, 137, 255] True False`
     `check`: check: green (not run again: passed on tree 52e1bbf4f44e at 2026-10-24T20:21:17Z)
     `secrets`: secrets: green (1.8 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
