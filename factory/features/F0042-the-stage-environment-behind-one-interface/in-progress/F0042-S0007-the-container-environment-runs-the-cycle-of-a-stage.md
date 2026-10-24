@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T17:57:36.646135Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-24T17:57:15.729183Z'
   stage: tests
   run: 1b3535e5354b4499a9ec45ae85dba96d
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:57:36.646135Z'
+  stage: doing
 ---
 
 # The container environment runs the cycle of a stage
@@ -322,3 +331,4 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
 
     `lint`: lint: green (0.7 s)
     `test`: test: green (67.6 s)
+17. factory: started doing as self.
