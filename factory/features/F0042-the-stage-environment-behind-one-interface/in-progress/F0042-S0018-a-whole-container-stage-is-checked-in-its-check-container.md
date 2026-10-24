@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 426
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T22:36:58.392115Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-24T22:36:58.392115Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T22:38:13.487460Z'
+  stage: review
+  run: 34f912027edc4fa6859d633387ef253e
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -160,3 +162,25 @@ Expect: three lines, `2`, `1`, `1`
    `check`: check: green
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
 8. factory: started review as self.
+9. reviewer: Review of `git diff main...HEAD -- . ':!factory'` (18 test files, nothing under `src/`) against criteria 1 to 4 and the Interface. The three new tests cover criteria 1, 2 and 3. The helper moves meet criterion 4: each of `FIVE_MINUTES`, `BROKEN_FRONT_MATTER`, `without_work_item`, `with_broken_work_item`, `IMAGE` and `leave` is now defined once. `test_stage_environment.py` imports no `_` name. No test was renamed. The coder's journal entry 7 reports `check: green`. Groups 1 to 3 pass. Group 4 fails on one copy:
+
+   1. `tests/application/test_container_stage_checks.py:59-70` (the `staged` fixture) and `:33-35`: the fixture copies the whole-stage setup of `tests/application/test_container_environment_take.py:128-135` line for line. That covers the inline sync target `"\nsync:\n\t@echo synced > .synced\n"` and `.gitignore` `".synced\n"`, which repeat `container_support.SYNC_RECIPE`/`SYNC_MARKER`, then `open_story`, `container_dataset`, the queued `completed("doing")` and `WorkspaceRuntime` writing `INSIDE`/`NOTES`. It also repeats the constants `AGENT_TEXT`, `INSIDE` and `NOTES`. `AGENT_TEXT` is already shared in `tests/take_support.py:15`. `test_a_whole_container_stage_pushes_the_taken_work_and_leaves_the_host_clean` then repeats the five assertions of `test_a_whole_stage_takes_the_agents_work_from_the_dataset` word for word. This is the kind of copy the story exists to remove. Fix: under the standing leave, the tester moves the setup into one shared helper in `tests/container_support.py`. It builds the sync target from `SYNC_RECIPE`/`SYNC_MARKER`, holds `INSIDE` and `NOTES`, takes `AGENT_TEXT` from `take_support`, and takes `project_commands` as an optional argument. `staged` and the earlier whole-stage test both use it. The five shared assertions can become one shared check, or the two whole-stage tests can be rows of one parametrized test over the project commands (host `MakeProjectCommands` against `ContainerMakeCommands`). Each earlier test keeps its name and what it checks.
+
+   Earlier tests: all 17 files below are changed under the standing leave to move a shared test helper. Each change only moves a constant or helper to a shared module or uses the shared one in place of a copy. Every test keeps its name and what it checks, and the tester's entry 5 names each file.
+   - tests/adapters/test_podman_runs_results.py: standing leave (`IMAGE` from `podman_support`)
+   - tests/adapters/test_podman_timeout_status.py: standing leave (`IMAGE` from `podman_support`)
+   - tests/application/test_container_environment.py: standing leave (`FIVE_MINUTES` from `container_support`)
+   - tests/application/test_container_environment_take.py: standing leave (`FIVE_MINUTES` from `container_support`)
+   - tests/application/test_nested_repositories.py: standing leave (`_leave` copy replaced by `sealed_run_support.leave`)
+   - tests/application/test_sealed_runs.py: standing leave (`_leave` moved to `sealed_run_support.leave`)
+   - tests/application/test_sealed_runs_runner.py: standing leave (`leave` from `sealed_run_support`)
+   - tests/application/test_stage_environment.py: standing leave (`leave`, `without_work_item`, `with_broken_work_item` from shared modules)
+   - tests/application/test_stall_container.py: standing leave (`FIVE_MINUTES` from `container_support`)
+   - tests/application/test_take.py: standing leave (`BROKEN_FRONT_MATTER` from `take_support`)
+   - tests/application/test_take_edges.py: standing leave (`BROKEN_FRONT_MATTER` copy and the two baseline helpers replaced by `undo_support`'s)
+   - tests/application/test_undo.py: standing leave (`BROKEN_FRONT_MATTER` from `take_support`, the two baseline helpers moved to `undo_support`)
+   - tests/container_support.py: standing leave (receives `FIVE_MINUTES`)
+   - tests/entry/test_wiring_stage_environment.py: standing leave (`IMAGE` from `podman_support`, `DATASET` from `zfs_support`, same values)
+   - tests/sealed_run_support.py: standing leave (receives `leave`)
+   - tests/take_support.py: standing leave (receives `BROKEN_FRONT_MATTER`; `PATH` now from `stage_run_support`, the same string, to avoid an import cycle)
+   - tests/undo_support.py: standing leave (receives `without_work_item`, `with_broken_work_item`)
