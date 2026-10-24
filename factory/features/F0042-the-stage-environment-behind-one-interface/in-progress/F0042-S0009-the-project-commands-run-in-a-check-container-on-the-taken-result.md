@@ -3,15 +3,11 @@ stage: intake
 blocked: null
 round: 0
 attempts: 0
-crashes: 0
+crashes: 1
 pull_request: null
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T19:27:01.649011Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -22,6 +18,11 @@ journal:
   speaker: factory
   kind: started
   at: '2026-10-24T19:27:01.649011Z'
+  stage: intake
+- number: 3
+  speaker: factory
+  kind: crash
+  at: '2026-10-24T19:35:48.210269Z'
   stage: intake
 ---
 
@@ -87,3 +88,4 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. factory: crash 1: the run of stage intake ended without a result. Its work is discarded back to commit 7ce230d8035ee0a60356a2aa5c50161e4b91e3d7.
