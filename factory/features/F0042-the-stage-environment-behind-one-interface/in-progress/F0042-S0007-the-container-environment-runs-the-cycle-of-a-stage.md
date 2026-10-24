@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T18:00:59.273832Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-24T18:00:59.273832Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T18:03:06.635018Z'
+  stage: review
+  run: b9e2cd083eff47deb8c5e8ec54d06997
 ---
 
 # The container environment runs the cycle of a stage
@@ -181,8 +183,9 @@ Tests (the tester writes them): `tests/application/test_container_environment.py
 10. `factory.domain.checks.last_line(lines)` (rows of one parametrized test): a line starting with `make:` is skipped, a line starting with `make[2]:` is skipped, a trailing blank line is skipped, the recipe's last line is returned, and `""` is returned for make messages alone and for no lines.
 11. `factory.adapters.make_commands` imports `last_line` from `factory.domain.checks` and defines neither `_last_line` nor `_MAKE_MESSAGE_PREFIXES`; `tests/adapters/test_make_commands*.py` stay unchanged and green.
 12. The timeout's seconds are rounded up, not rounded (rows of one parametrized test, with a `ContainerRuns` of the test whose `run` returns `ContainerResult(exit_status=None, output="", timed_out=True, duration=<the limit>)`): under `sync_time_limit` 1.2 seconds `prepare` raises `ContainerError("sync", "no end within 2 s")`, and under 3 seconds `ContainerError("sync", "no end within 3 s")`. (Criterion 5's 1.5 seconds cannot tell rounding up from Python's `round`, which also gives 2.)
-13. `make check` stays green.
-14. docs: `docs/project-guide/stage-environment.md` gains the section *The container environment*: the cycle step by step with the container paths and the mounts, the sync script's steps and why every branch is fetched (decision 5), the agent files (decision 6), the faults and what each leaves behind, `run_agent` without a seal, the take on the snapshots' changed paths, the timing line and how to read it against the plan's measures, `Boundaries.snapshots` and `containers`, `stage_environment_of`, the tests and their fakes; `docs/project-guide/watching.md`, *Boundaries*: the two new fields and what `None` means; `docs/operator-guide.md`, *The factory log*: the line `stage environment: reset <s> s, sync <s> s, advance <s> s, take <s> s`, one per stage of a `container` instance, and that an `inline` instance writes none. `docs/decisions.md`: none (S0005 wrote the entry).
+13. The timing line carries the durations of the last `prepare` of the object, neither the first's nor their sum (a row of criterion 8's parametrized test): after two `prepare`s on one object, the first for `main` with the clock advanced by 0.4, 12.3 and 0.1 seconds inside `reset`, the sync container's run and `advance`, the second for the work item's branch at its stage-start commit with the clock advanced by 1.0, 2.0 and 3.0 seconds there, and then one `take` with 0.25 seconds inside `changed_paths`, the factory log holds exactly one `stage environment:` line, and it ends with `stage environment: reset 1.0 s, sync 2.0 s, advance 3.0 s, take 0.2 s`.
+14. `make check` stays green.
+15. docs: `docs/project-guide/stage-environment.md` gains the section *The container environment*: the cycle step by step with the container paths and the mounts, the sync script's steps and why every branch is fetched (decision 5), the agent files (decision 6), the faults and what each leaves behind, `run_agent` without a seal, the take on the snapshots' changed paths, the timing line and how to read it against the plan's measures, `Boundaries.snapshots` and `containers`, `stage_environment_of`, the tests and their fakes; `docs/project-guide/watching.md`, *Boundaries*: the two new fields and what `None` means; `docs/operator-guide.md`, *The factory log*: the line `stage environment: reset <s> s, sync <s> s, advance <s> s, take <s> s`, one per stage of a `container` instance, and that an `inline` instance writes none. `docs/decisions.md`: none (S0005 wrote the entry).
 
 ## Smoke test
 
@@ -361,3 +364,11 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
     `check`: check: green
     `duplicates`: duplicates: 9 new, 37 known, 1 gone
 19. factory: started review as self.
+20. reviewer: Review round 1. I read the work item and the whole diff of `src/` and `tests/` against it, and went through every criterion and every rule of the Interface. Criteria 1 to 12 each have their test, and each test checks what its criterion says. I left out `make check`: the factory's run after the coder was green (entry 18).
+
+    Findings:
+    1. criterion 13 added: it needs its test. Where: `tests/application/test_container_environment_take.py::test_one_timing_line_per_take_carries_the_last_prepares_durations`, together with `src/factory/application/stage_environment.py` `ContainerEnvironment.prepare`/`take`. What's wrong: the Interface says the timing line carries "the three of the last `prepare` of this object". Every row runs at most one `prepare`, so code that added the durations of several prepares, or kept the first one's, would still pass. Fix: criterion 13 adds a row to criterion 8's parametrized test. It runs two prepares on one object, with the clock advanced by 0.4/12.3/0.1 s in the first and 1.0/2.0/3.0 s in the second, then one `take` with 0.25 s. The test expects exactly one line, ending `stage environment: reset 1.0 s, sync 2.0 s, advance 3.0 s, take 0.2 s`. The closing criteria are renumbered to 14 (`make check`) and 15 (docs). The tester adds the row. The code needs no change.
+
+    Still open, as before, and not a finding: after a failed `prepare` the object keeps the durations of the last successful one. The Interface does not settle that case.
+
+    Earlier tests: none. Every test file in the diff is new (`A`).
