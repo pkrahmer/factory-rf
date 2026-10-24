@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 428
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T23:11:57.861363Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-24T23:11:36.345017Z'
   stage: review
   run: 8bd782ead82344338a9fc2d5bdc16641
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:11:57.861363Z'
+  stage: doing
 ---
 
 # Every shared test helper is listed and held once
@@ -216,3 +225,4 @@ Expect: 0
    - tests/test_shared_constants.py: standing leave (uses `top_level_copies` from search_support; test names and rows unchanged)
 
    Not a finding, left open: `tests/application/test_stall_edges.py:44` still writes the literal `"written by the agent\n"` inside a method. The criteria count only top-level assignments.
+10. factory: started doing as self.
