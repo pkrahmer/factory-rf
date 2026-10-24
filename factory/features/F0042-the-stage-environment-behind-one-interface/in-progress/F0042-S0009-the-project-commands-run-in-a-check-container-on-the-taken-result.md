@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T19:52:55.269748Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -96,6 +100,11 @@ journal:
   at: '2026-10-24T19:52:34.851254Z'
   stage: doing
   run: 5dc51a8659a241cab6cb268a4db4c081
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-24T19:52:55.269748Z'
+  stage: tests
 ---
 
 # The project commands run in a check container on the taken result
@@ -250,3 +259,4 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
     Refactor pass: I read the diff again and found nothing more to change. `make check` is green (`test: green (68.9 s)`, `check: green`, coverage 99.20 %).
 
     Description: unchanged by me. The reviewer had already corrected it in entry 14.
+17. factory: started tests as self.
