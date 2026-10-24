@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 423
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T21:58:28.277164Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-24T21:58:28.277164Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T21:58:51.781794Z'
+  stage: review
+  run: 55ea1d3d3b2d499da950d8bebec88183
 ---
 
 # The documents describe the stage environment
@@ -129,3 +131,11 @@ Expect: `documents ok`
    `check`: check: green
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty. The only changes on the branch are the work item and its `.costs.jsonl` sidecar, both under `factory/`.
+   - Criterion 1 holds: nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changed. The tester (entry 5) and the coder (entry 7) each said so in their entries.
+   - Criterion 2 holds: the factory's `make check` after the coder was green (entry 7: `check: green`). The `duplicates: 11 new` record cannot come from this branch, because the branch changes no code.
+   - Criterion 3 (docs) is the documenter's work. It is checked by the smoke test and `make documents`, not by any test, as the Interface says. I checked the documents as they stand now. `stage-environment.md` has 11 `##` sections in a different order, and *The cycle*, *The agent's container* and *The sync command* are not sections yet. Neither `docs/operator-guide.md` nor `docs/project-guide/processes-and-checks.md` contains "three targets". So the smoke test's extra grep of `processes-and-checks.md`, which intake and the coder both raised, already passes without touching a file outside the Interface's list.
+   - Hygiene: the Description matches what was built (nothing yet; the documenter comes next). The tester's and coder's entries give the reason for the empty diff and the alternative they rejected. The docs criterion still says everything the documenter needs. Its bullet on `docs/decisions.md` repeats the README requirement of the next bullet, but both say the same thing.
+   - Earlier tests: the diff changes, renames or deletes no test file that `main` already holds.
