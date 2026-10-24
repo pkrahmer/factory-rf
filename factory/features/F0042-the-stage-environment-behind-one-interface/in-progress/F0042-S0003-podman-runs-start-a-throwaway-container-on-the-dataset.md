@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T13:35:39.022511Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -174,6 +178,11 @@ journal:
   at: '2026-10-24T13:35:18.582469Z'
   stage: docs
   run: d5ded46fafcb4c738bcfc45eda055256
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-10-24T13:35:39.022511Z'
+  stage: smoke-test
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -548,3 +557,4 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
     `check`: check: green (not run again: passed on tree 02adda16a395 at 2026-10-24T13:31:50Z)
     `secrets`: secrets: green (0.9 s)
     `documents`: documents ok
+31. factory: started smoke-test as self.
