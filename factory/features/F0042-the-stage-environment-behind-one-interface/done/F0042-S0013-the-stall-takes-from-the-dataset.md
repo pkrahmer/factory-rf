@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-24T18:43:16.816780Z'
   stage: smoke-test
   run: a402cabfd54f4858abdb7b4c25418cac
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-24T18:45:40.442634Z'
+  stage: approval
 ---
 
 # The stall takes from the dataset
@@ -460,3 +465,4 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
     **Findings:** none.
 
     **Open:** nothing.
+22. factory: done (pull request merged); cost: 10 runs, 16.5 min, 96 turns, 380973 tokens in (3498161 more from cache), 57916 out, $4.58
