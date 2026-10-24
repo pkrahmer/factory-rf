@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 411
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T15:39:27.161611Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-24T15:39:27.161611Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-24T15:39:49.304745Z'
+  stage: intake
+  run: 8990f54f66674414bb4064f56d1864e5
+  blocked: question
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -142,3 +145,9 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: 1. The Interface says "The service writes no commit, runs no git command on the dataset and never writes under `mount_point`", and step 4 says "the dataset is never written". Only the left paths have a check for this (criterion 4: the dataset's `checkout/docs/guide.md` keeps the agent's bytes). No criterion covers the taken paths (criterion 3), the restored work item (criterion 7) or the dataset as a whole. Two coders could read this two ways and both would pass the tests. Option A, the one I would choose: add a criterion before the two closing ones. After `take` with criterion 3's rows plus a work item restore, every file under `mount_point` has the same bytes, mode and listing as before, and the fixtures' git history has no new commit. Option B: drop the sentence from the Interface, which would be your edit. Intake otherwise found the story buildable, and the Format check passed. The checks I did:
+   - **Interface:** names concrete modules and signatures.
+   - **Criteria:** each is testable. Both sides of every other rule have a criterion.
+   - **Smoke test:** the commands are runnable. pyproject sets `-q` in `addopts`, and the pytest command passes none, so the `N passed in` line exists.
+   - **Architecture:** the layering is right.
+   - **Scope:** within F0042.
