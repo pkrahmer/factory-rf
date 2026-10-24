@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 411
-comments_read: []
+comments_read: [6386154578]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 8990f54f66674414bb4064f56d1864e5
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-24T15:42:10.728644Z'
+  stage: intake
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -151,3 +156,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
    - **Smoke test:** the commands are runnable. pyproject sets `-q` in `addopts`, and the pytest command passes none, so the `N passed in` line exists.
    - **Architecture:** the layering is right.
    - **Scope:** within F0042.
+4. 2026-10-24 human: Answer to the intake (F0042-S0004, the take copies what the role may write from the dataset into the work tree): **A**. Add a criterion before the two closing ones: after `take` with criterion 3's rows and a work item restore, every file under `mount_point` has the same bytes and mode as before, the listing under `mount_point` is unchanged, and the fixtures' git history has no new commit. The Interface's sentence stays. Please write it into the criteria as you accept.
