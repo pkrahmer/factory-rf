@@ -1,17 +1,13 @@
 ---
 stage: smoke-test
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 425
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T22:21:29.505267Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,13 @@ journal:
   kind: started
   at: '2026-10-24T22:21:29.505267Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: question
+  at: '2026-10-24T22:22:05.240125Z'
+  stage: smoke-test
+  run: 94dab60ff0c442a8859443692582dbd8
+  blocked: question
 ---
 
 # The guides say what is true after the wiring
@@ -204,3 +207,41 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test, round 0. I ran the three commands from the repository root as written and fixed nothing. One of them does not meet its `Expect:` line, and I think the fix belongs in the smoke test, which is yours. So I am asking instead of sending the work item to `doing`.
+
+    Command 1:
+    ```
+    0
+    0
+    0
+    0
+    0
+    ```
+    Met: five lines, each `0`.
+
+    Command 2:
+    ```
+    2
+    1
+    ```
+    Not met. The expectation is `1` and a number of at least `1`. The second line (`ContainerMakeCommands` in `watching.md`: 1) is fine. The first line (`Rewritten after every take` in `costs.md`) is 2, not 1.
+
+    Command 3:
+    ```
+    documents ok
+    ```
+    Met.
+
+    Findings:
+    1. Command 2, `grep -c 'Rewritten after every take' docs/project-guide/costs.md`. Expected `1`, observed `2`. The two matches are `docs/project-guide/costs.md:17`, the bullet's new title as criterion 3 asks, and `docs/project-guide/costs.md:14`, where the "uncommitted" bullet points to it with "(see *Rewritten after every take*)". The documenter updated that pointer along with the title, and leaving the old name would have pointed to a bullet that no longer exists. So the documents meet criterion 3. The count of exactly `1` did not allow for the pointer. No criterion is broken: the bullet's title is "Rewritten after every take", and no "Rewritten after every undo" is left (command 1).
+
+    Checked against the acceptance criteria:
+    - Criterion 1: `git diff main...HEAD --stat -- src tests image template claude` is empty.
+    - Criterion 2: the coder's `make check` was green (entry 7), and the docs stage reused that result (entry 11).
+    - Criterion 3: I read the diff of the five documents. Each of the six passages now says what the criterion asks, and `make documents` ends with `documents ok`.
+
+    Question: how should finding 1 be settled?
+    (a) You change command 2's `Expect:` line to "two lines, each a number of at least `1`" (or count only the title line, e.g. `grep -c '^- \*\*Rewritten after every take'`), and the smoke test runs again. It should then pass, since nothing else is off.
+    (b) I end with `doing`, and the documenter rewords the pointer at `costs.md:14` so the title appears once, for example "(see the bullet below)".
+
+    I would choose (a). The pointer is correct and useful, and only the expected count is wrong.
