@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T12:05:24.394519Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-24T12:05:24.394519Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-24T12:05:46.571528Z'
+  stage: intake
+  run: 67a7b64249d84542a8cec3f648751ed3
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -90,9 +92,9 @@ Tests (the tester writes them): `tests/adapters/test_zfs_snapshots.py` and `test
 ## Acceptance criteria
 
 1. `ZfsSnapshots("tank/factory/vm", Path("/srv/factory/vm/work"), executable=<stand-in>).reset()` makes exactly one call with the arguments `["rollback", "-r", "tank/factory/vm@base"]`, and `mount_point` is `Path("/srv/factory/vm/work")`.
-2. `advance()` (rows of one parametrized test): with `list` planned to exit 0, the calls are `["list", "-H", "-o", "name", "-t", "snapshot", "tank/factory/vm@base"]`, `["destroy", "tank/factory/vm@base"]`, `["snapshot", "tank/factory/vm@base"]` in that order; with `list` planned to exit 1 and print `cannot open 'tank/factory/vm@base': dataset does not exist` to standard error, the calls are the `list` and the `snapshot` only; with `list` planned to exit 2, `SnapshotError` is raised whose `command` is `<stand-in> list -H -o name -t snapshot tank/factory/vm@base` and nothing else is called.
-3. `changed_paths()` with `diff` planned to print, tab-separated, `M\t/\t/srv/factory/vm/work/checkout`, `+\t/\t/srv/factory/vm/work/checkout/newdir`, `M\tF\t/srv/factory/vm/work/checkout/src/a.py`, `+\tF\t/srv/factory/vm/work/checkout/new.txt`, `-\tF\t/srv/factory/vm/work/home/.claude.json`, `R\tF\t/srv/factory/vm/work/checkout/old.md\t/srv/factory/vm/work/checkout/renamed.md`, `-\tF\t/srv/factory/vm/work/checkout/renamed.md`, `+\t@\t/srv/factory/vm/work/checkout/link`, `+\tF\t/srv/factory/vm/work/checkout/with\040space.txt`, `+\tF\t/srv/factory/vm/work/checkout/caf\303\251.txt`, `M\tF\t/srv/factory/vm/work/home/.cache/uv/w\t(+1)` returns exactly `[ChangedPath("checkout/café.txt", "added"), ChangedPath("checkout/link", "added"), ChangedPath("checkout/new.txt", "added"), ChangedPath("checkout/old.md", "deleted"), ChangedPath("checkout/renamed.md", "added"), ChangedPath("checkout/src/a.py", "modified"), ChangedPath("checkout/with space.txt", "added"), ChangedPath("home/.cache/uv/w", "modified"), ChangedPath("home/.claude.json", "deleted")]` (the two directories left out, `checkout/renamed.md` once although two lines name it, the link-count field ignored), and the one call has the arguments `["diff", "-FH", "tank/factory/vm@base"]`. An empty output returns `[]`.
-4. `changed_paths()` faults (rows of one parametrized test, each `SnapshotError` with `command` `<stand-in> diff -FH tank/factory/vm@base`): the line `M\tF\t/elsewhere/a.py` gives `detail` `/elsewhere/a.py is outside /srv/factory/vm/work`, and so does `M\tF\t/srv/factory/vm/workx/a` with `/srv/factory/vm/workx/a is outside /srv/factory/vm/work`; the line `X\tF\t/srv/factory/vm/work/a` gives `cannot read the line X\tF\t/srv/factory/vm/work/a`; the line `M\tF` gives `cannot read the line M\tF`; `diff` planned to exit 1 with standard error `cannot open 'tank/factory/vm@base': dataset does not exist` gives `detail` `cannot open 'tank/factory/vm@base': dataset does not exist`.
+2. `advance()` (rows of one parametrized test): with `list` planned to exit 0, the calls are `["list", "-H", "-o", "name", "-t", "snapshot", "tank/factory/vm@base"]`, `["destroy", "tank/factory/vm@base"]`, `["snapshot", "tank/factory/vm@base"]` in that order; with `list` planned to exit 1 and print `cannot open 'tank/factory/vm@base': dataset does not exist` to standard error, the calls are the `list` and the `snapshot` only; with `list` planned to exit 2, `SnapshotError` is raised whose `command` is `<stand-in> list -H -o name -t snapshot tank/factory/vm@base` and nothing else is called; with `list` planned to exit 0 and `destroy` planned to exit 1 and print `cannot destroy 'tank/factory/vm@base': dataset is busy`, `SnapshotError` is raised whose `command` is `<stand-in> destroy tank/factory/vm@base` and whose `detail` is that printed line, and `snapshot` is not called; with `list` planned to exit 0 and `snapshot` planned to exit 1 and print `cannot create snapshot 'tank/factory/vm@base': out of space`, `SnapshotError` is raised whose `command` is `<stand-in> snapshot tank/factory/vm@base` and whose `detail` is that printed line.
+3. `changed_paths()` with `diff` planned to print, tab-separated, `M\t/\t/srv/factory/vm/work/checkout`, `+\t/\t/srv/factory/vm/work/checkout/newdir`, `M\tF\t/srv/factory/vm/work/checkout/src/a.py`, `+\tF\t/srv/factory/vm/work/checkout/new.txt`, `-\tF\t/srv/factory/vm/work/home/.claude.json`, `R\tF\t/srv/factory/vm/work/checkout/old.md\t/srv/factory/vm/work/checkout/renamed.md`, `-\tF\t/srv/factory/vm/work/checkout/renamed.md`, `+\t@\t/srv/factory/vm/work/checkout/link`, `+\tF\t/srv/factory/vm/work/checkout/with\040space.txt`, `+\tF\t/srv/factory/vm/work/checkout/caf\303\251.txt`, `+\tF\t/srv/factory/vm/work/checkout/back\134slash.txt`, `M\tF\t/srv/factory/vm/work/home/.cache/uv/w\t(+1)` returns exactly `[ChangedPath("checkout/back\\slash.txt", "added"), ChangedPath("checkout/café.txt", "added"), ChangedPath("checkout/link", "added"), ChangedPath("checkout/new.txt", "added"), ChangedPath("checkout/old.md", "deleted"), ChangedPath("checkout/renamed.md", "added"), ChangedPath("checkout/src/a.py", "modified"), ChangedPath("checkout/with space.txt", "added"), ChangedPath("home/.cache/uv/w", "modified"), ChangedPath("home/.claude.json", "deleted")]` (the two directories left out, `checkout/renamed.md` once although two lines name it, the link-count field ignored), and the one call has the arguments `["diff", "-FH", "tank/factory/vm@base"]`. An empty output returns `[]`.
+4. `changed_paths()` faults (rows of one parametrized test, each `SnapshotError` with `command` `<stand-in> diff -FH tank/factory/vm@base`): the line `M\tF\t/elsewhere/a.py` gives `detail` `/elsewhere/a.py is outside /srv/factory/vm/work`, and so does `M\tF\t/srv/factory/vm/workx/a` with `/srv/factory/vm/workx/a is outside /srv/factory/vm/work`; the line `X\tF\t/srv/factory/vm/work/a` gives `cannot read the line X\tF\t/srv/factory/vm/work/a`; the line `M\tF` gives `cannot read the line M\tF`; the line `R\tF\t/srv/factory/vm/work/a` gives `cannot read the line R\tF\t/srv/factory/vm/work/a`; the line `R\tF\t/srv/factory/vm/work/a\t/elsewhere/b` gives `/elsewhere/b is outside /srv/factory/vm/work`; `diff` planned to exit 1 with standard error `cannot open 'tank/factory/vm@base': dataset does not exist` gives `detail` `cannot open 'tank/factory/vm@base': dataset does not exist`.
 5. The fault's `detail` (rows of one parametrized test, on `reset()`): exit status 1 with the two lines `warning` and `rollback: dataset is busy` gives `rollback: dataset is busy`; exit status 1 with no output gives `exit status 1`; a stand-in that sleeps 60 seconds, under an adapter built with `time_limit` 1.5 seconds, gives `no end within 2 s` (the seconds rounded up) after at least 1 and less than 25 seconds; an executable that does not exist raises `SnapshotError` whose `command` starts with `/nowhere/zfs rollback` and whose `detail` starts with `[Errno 2]`. `SNAPSHOT_TIME_LIMIT` is 10 minutes, and an adapter built without `time_limit` passes it to `run_process` (read from a recorded `run_process` request: the module's `run_process` replaced by a `Recorder` of `tests/run_process_recorder.py`, as the `recorder` fixture of `tests/conftest.py` does for the runtime; a stand-in cannot see the limit it runs under).
 6. Standard error is merged, the working directory is the root and the environment is the factory's own: a `reset()` whose stand-in exits 1 writing `boom` to standard error only raises `SnapshotError` with `detail` `boom`, the stand-in's recorded working directory is `/`, and its recorded environment holds a variable the test set with `monkeypatch.setenv`.
 7. `version()` with `--version` planned to print `zfs-2.2.2-0ubuntu9.1\nzfs-kmod-2.2.2-0ubuntu9.1` returns `zfs-2.2.2-0ubuntu9.1`; planned to print nothing and exit 0 raises `SnapshotError` with `detail` `printed nothing`; planned to exit 1 with `zfs: command not found` raises it with that detail (rows of one parametrized test).
@@ -158,3 +160,9 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
 
    You have leave to edit the Acceptance criteria for exactly these additions; the Interface and the Description stay as they are.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: `factory.adapters.zfs_snapshots` names the constants, the `ZfsSnapshots(Snapshots)` constructor and signatures, `version()` and `dataset_exists()`. Every command, argv, cwd/env/time_limit/merge_stderr setting and fault form is stated concretely.
+   - Criteria: each is testable by one parametrized or plain test. Every rule has both sides: pass/fail for `list` exit 0/1/other, the diff change letters, the mount point (outside, `workx`), too few fields, timeouts, `OSError`, and `version`/`dataset_exists`. I carried in the human's answer (journal entry 4), which is the human's edit and not an improvement of mine. Criterion 2 gained two rows (`destroy` exit 1 with `snapshot` not called, and `snapshot` exit 1; each `detail` is the printed last line). Criterion 3 gained a `\134` path (`back\134slash.txt` → `checkout/back\slash.txt`, sorted first in the expected list). Criterion 4 gained the two `R` rows (three fields, and the new path outside the mount point). The Interface and Description are unchanged.
+   - Smoke test: the command is runnable. The stand-in script and the Python check cover reset, advance, diff, version, dataset_exists and the missing executable. The `Expect:` line is checkable against the output. It runs no pytest. The smoke test is unchanged, and the new `\134` and `destroy`/`snapshot` rows are covered by the tests only.
+   - Architecture: the new module is in `adapters`, reaches `zfs` only through `run_process` from `factory.adapters.process`, and implements the application-layer interface `Snapshots`. The layer rules and the wrapper rule (R5) hold. The wrapper-search leave is decision 18 b of `feature.md`.
+   - Scope: within F0042's scope, which lists `zfs_snapshots` as S0002. Nothing is wired, which is S0010's job. The docs criterion names the guide file and the README row.
