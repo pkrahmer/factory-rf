@@ -98,7 +98,7 @@ mkdir -p /tmp/ro && podman run --rm --userns=keep-id -v /tmp/ro:/upstream:ro doc
 
 ```bash
 sudo tee /etc/sudoers.d/factory-zfs >/dev/null <<'EOF'
-factory ALL=(root) NOPASSWD: /usr/sbin/zfs --version, /usr/sbin/zfs list -H -o name tank/factory/vm, /usr/sbin/zfs list -H -o name -t snapshot tank/factory/vm@base, /usr/sbin/zfs snapshot tank/factory/vm@base, /usr/sbin/zfs destroy tank/factory/vm@base, /usr/sbin/zfs rollback -r tank/factory/vm@base, /usr/sbin/zfs diff -FH tank/factory/vm@base
+factory ALL=(root) NOPASSWD: /usr/sbin/zfs snapshot tank/factory/vm@base, /usr/sbin/zfs destroy tank/factory/vm@base, /usr/sbin/zfs rollback -r tank/factory/vm@base, /usr/sbin/zfs diff -FH tank/factory/vm@base
 EOF
 sudo chmod 0440 /etc/sudoers.d/factory-zfs && sudo visudo -cf /etc/sudoers.d/factory-zfs
 ```
@@ -108,12 +108,16 @@ Then, as `factory`, repeat the rollback as `sudo -n zfs rollback -r tank/factory
 ```bash
 sudo tee /usr/local/bin/zfs-factory >/dev/null <<'EOF'
 #!/bin/sh
-exec sudo -n /usr/sbin/zfs "$@"
+# The four commands that need root go through sudo; list and --version run plain.
+case "$1" in
+  snapshot|destroy|rollback|diff) exec sudo -n /usr/sbin/zfs "$@" ;;
+  *) exec /usr/sbin/zfs "$@" ;;
+esac
 EOF
 sudo chmod 0755 /usr/local/bin/zfs-factory
 ```
 
-and `FACTORY_ZFS=/usr/local/bin/zfs-factory`. Seven exact commands on one dataset, the ones the factory's adapter runs (F0042-S0002), is all the `sudoers` line allows, whatever the wrapper is asked.
+and `FACTORY_ZFS=/usr/local/bin/zfs-factory`. Four exact commands on one dataset is all the `sudoers` line allows, whatever the wrapper is asked; the adapter's `list` and `--version` need no root (F0043's `setup.sh` writes this wrapper for you later; by hand it is the prototype's).
 
 ## 6. A closer prototype of the cycle (optional, with git)
 
