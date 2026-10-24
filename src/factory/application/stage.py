@@ -3,6 +3,7 @@
 import re
 from collections import Counter
 from collections.abc import Mapping
+from datetime import timedelta
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, PositiveInt
@@ -14,10 +15,10 @@ from factory.application.handlers.recording import commit_subject
 from factory.application.known_results import KnownResults
 from factory.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.application.provider_limits import PatientRuns
-from factory.application.sealed_runs import run_sealed
+from factory.application.stage_environment import StageEnvironment, stage_environment_of
 from factory.application.stalls import StallContext, StallResult, StallService
+from factory.application.take import TakeReport
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
-from factory.application.undo import UndoReport, UndoService
 from factory.application.write_paths import WritePathService
 from factory.domain.acceptance import acceptance_description
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
@@ -31,7 +32,7 @@ from factory.domain.identifiers import Name, WorkItemId, is_acceptance
 from factory.domain.journal import FACTORY, NewEntry, append_entry
 from factory.domain.labels import labels_for
 from factory.domain.paths import MAIN_BRANCH, cost_records_path
-from factory.domain.pipeline_definition import PipelineDefinition
+from factory.domain.pipeline_definition import PipelineDefinition, ProjectCommandDefinition
 from factory.domain.story_form import FormFinding
 from factory.domain.work_item import WorkItemDocument, require_state
 
@@ -74,24 +75,31 @@ class StageLauncher:
         instance: str,
         definition: PipelineDefinition,
         environment: Mapping[str, str],
+        *,
+        stage_environment: StageEnvironment | None = None,
     ) -> None:
-        """Launch as `instance` under `definition`; agent runs get `environment` unchanged."""
+        """Launch as `instance` under `definition`; agent runs get `environment` unchanged.
+
+        The agent runs in `stage_environment`, by default the one the boundaries describe.
+        """
         self._boundaries = boundaries
         self._definition = definition
+        self._stage_environment = stage_environment or stage_environment_of(boundaries)
         self._claims = ClaimService(boundaries, instance, definition)
         self._opening = WorkItemOpening(boundaries, definition)
         self._composer = TaskComposer(boundaries, definition, environment)
         self._costs = CostRecorder(boundaries)
 
     def launch(self, prepared: PreparedWorkItem) -> LaunchedStage:
-        """Push the claim, then ensure the pull request, compose the request and run the agent.
+        """Push the claim, ensure the pull request, prepare the environment and run the agent.
 
         Nothing reaches the remote but the claim, and no agent runs before it is pushed. The
         run's cost record is begun before it and completed after it, in the work tree only; a
         run that waits out the provider's spend limit and resumes is one run and one record.
         `ValueError` for a conflicted work item or a stage without a role, before anything is
-        read or pushed; `PushFailed`, `AgentDefinitionMissing`, `AgentRuntimeError` and
-        `RepositoryUnsealed` propagate. A run that ends early is a result, not an error.
+        read or pushed; `PushFailed`, `AgentDefinitionMissing`, `AgentRuntimeError`,
+        `RepositoryUnsealed`, and the environment's `SnapshotError` and `ContainerError`
+        propagate. A run that ends early is a result, not an error.
         """
         stage = self._launchable_stage(prepared)
         agent = self._composer.agent(stage)
@@ -108,8 +116,11 @@ class StageLauncher:
             guard=WritePathService(self._boundaries).at(started.stage_start, started.path),
         )
         request = self._composer.compose(context, agent)
+        self._stage_environment.prepare(
+            started.stage_start.commit, started.branch, sync_time_limit=self._sync_time_limit()
+        )
         begun = self._costs.begin(started, _role_of(self._definition, stage))
-        sealed = run_sealed(self._boundaries, request, run=PatientRuns(self._boundaries).run)
+        sealed = self._stage_environment.run_agent(request, run=PatientRuns(self._boundaries).run)
         cost = self._costs.complete(begun, sealed.result)
         return LaunchedStage(
             started=started,
@@ -118,6 +129,10 @@ class StageLauncher:
             cost=cost,
             nested_repositories=sealed.nested_repositories,
         )
+
+    def _sync_time_limit(self) -> timedelta:
+        sync = self._definition.project_commands.get("sync", ProjectCommandDefinition())
+        return timedelta(minutes=sync.time_limit)
 
     def _launchable_stage(self, prepared: PreparedWorkItem) -> str:
         if prepared.merge_conflict:
@@ -146,7 +161,7 @@ class StageLauncher:
 
 
 class AgentAftermath(BaseModel):
-    """A run the factory can keep: its decision, the undone work item, the entry and the form."""
+    """A run the factory can keep: its decision, the taken work item, the entry and the form."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -156,7 +171,7 @@ class AgentAftermath(BaseModel):
     decision: str
     document: WorkItemDocument
     entry: NewEntry
-    undo: UndoReport
+    take: TakeReport
     form_findings: list[FormFinding]
     cost: CostRun
 
@@ -165,16 +180,25 @@ class AfterAgent:
     """Turns a launched stage into what the factory observes, or into a stall."""
 
     def __init__(
-        self, boundaries: Boundaries, instance: str, definition: PipelineDefinition
+        self,
+        boundaries: Boundaries,
+        instance: str,
+        definition: PipelineDefinition,
+        *,
+        stage_environment: StageEnvironment | None = None,
     ) -> None:
-        """Process as `instance` under `definition`."""
+        """Process as `instance` under `definition`, taking the result from `stage_environment`.
+
+        By default the environment is the one the boundaries describe.
+        """
         self._boundaries = boundaries
         self._definition = definition
+        self._stage_environment = stage_environment or stage_environment_of(boundaries)
         self._stalls = StallService(boundaries, instance, definition)
         self._costs = CostRecorder(boundaries)
 
     def process(self, launched: LaunchedStage) -> AgentAftermath | StallResult:
-        """Test the work tree, the branch and the result, undo, build the entry, check the form.
+        """Test the work tree, the branch and the result, take, build the entry, check the form.
 
         Stops at the first step that cannot be kept and stalls it, one attempt counted: first a
         git repository the agent left in the work tree, which the run already removed. The
@@ -190,11 +214,11 @@ class AfterAgent:
         if decision is None or decision not in allowed:
             detail = f"decision '{decision}' is not one of {', '.join(allowed)}"
             return self._stall(launched, "decision_not_allowed", detail)
-        undo = UndoService(self._boundaries).undo(started.stage_start, started.path)
-        # The undo reverts the sidecar like any path outside the write paths.
+        take = self._stage_environment.take(started.stage_start, started.path)
+        # The take leaves the sidecar like any path outside the write paths.
         self._costs.write(launched.cost)
         document = self._boundaries.work_item_reader.read(self._boundaries.checkout / started.path)
-        entry = self._entry(started, decision, result.entry or "", undo)
+        entry = self._entry(started, decision, result.entry or "", take)
         if entry is None:
             return self._stall(launched, "no_result", "the entry is empty")
         findings = StoryFormChecker(self._boundaries).findings(document)
@@ -212,7 +236,7 @@ class AfterAgent:
             decision=decision,
             document=document,
             entry=entry,
-            undo=undo,
+            take=take,
             form_findings=findings,
             cost=launched.cost,
         )
@@ -230,12 +254,12 @@ class AfterAgent:
         return None
 
     def _entry(
-        self, started: StartedStage, decision: str, text: str, undo: UndoReport
+        self, started: StartedStage, decision: str, text: str, take: TakeReport
     ) -> NewEntry | None:
         role = _role_of(self._definition, started.stage)
-        # The factory rewrites its own cost records after the undo; that is no news to the agent.
+        # The factory rewrites its own cost records after the take; that is no news to the agent.
         sidecar = cost_records_path(started.path)
-        undone = sorted(path for path in [*undo.reverted, *undo.deleted] if path != sidecar)
+        undone = sorted(path for path in take.left if path != sidecar)
         return agent_entry(
             role=role, stage=started.stage, decision=decision, text=text, undone=undone
         )
@@ -428,8 +452,14 @@ class StageRunner:
         """Run as `instance` under `definition`; agent runs get `environment` unchanged."""
         self._opening = WorkItemOpening(boundaries, definition)
         self._stalls = StallService(boundaries, instance, definition)
-        self._launcher = StageLauncher(boundaries, instance, definition, environment)
-        self._after = AfterAgent(boundaries, instance, definition)
+        # One object sees both ends of a stage: what it prepared is what it takes from.
+        stage_environment = stage_environment_of(boundaries)
+        self._launcher = StageLauncher(
+            boundaries, instance, definition, environment, stage_environment=stage_environment
+        )
+        self._after = AfterAgent(
+            boundaries, instance, definition, stage_environment=stage_environment
+        )
         self._finisher = StageFinisher(boundaries, instance, definition)
 
     def run(self, work_item: WorkItemId, path: str) -> StageReport:

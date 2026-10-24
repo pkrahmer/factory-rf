@@ -18,6 +18,7 @@ from factory.application.git import Git
 from factory.application.hosting import HostingService
 from factory.application.project_commands import ProjectCommands
 from factory.application.snapshots import Snapshots
+from factory.application.stage_environment import StageEnvironment
 from factory.domain.checks import CheckResult
 
 INTERFACES: list[type[object]] = [
@@ -27,6 +28,7 @@ INTERFACES: list[type[object]] = [
     AgentRuntime,
     Snapshots,
     ContainerRuns,
+    StageEnvironment,
 ]
 INTERFACE_IDS = [
     "git",
@@ -35,6 +37,7 @@ INTERFACE_IDS = [
     "agent-runtime",
     "snapshots",
     "container-runs",
+    "stage-environment",
 ]
 TESTS = Path(__file__).parent.parent
 
@@ -88,6 +91,7 @@ def test_project_commands_and_agent_runtime_have_exactly_their_operations_abstra
     assert AgentRuntime.__abstractmethods__ == {"run", "version"}
     assert Snapshots.__abstractmethods__ == {"mount_point", "reset", "advance", "changed_paths"}
     assert ContainerRuns.__abstractmethods__ == {"launch", "run"}
+    assert StageEnvironment.__abstractmethods__ == {"prepare", "run_agent", "take"}
 
 
 @pytest.mark.parametrize("interface", INTERFACES, ids=INTERFACE_IDS)

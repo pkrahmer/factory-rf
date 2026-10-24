@@ -320,7 +320,7 @@ def test_a_file_written_outside_the_write_paths_is_undone_and_reported(
     aftermath = _aftermath(boundaries, launched)
 
     assert not (boundaries.checkout / OUTSIDE).exists()
-    assert OUTSIDE in [*aftermath.undo.reverted, *aftermath.undo.deleted]
+    assert OUTSIDE in aftermath.take.left
 
 
 def test_the_agents_state_and_journal_edits_give_way_to_the_stage_start(
@@ -391,7 +391,7 @@ def test_a_body_edit_is_kept_only_where_the_role_may_write_the_work_item(
     on_disk = (boundaries.checkout / PATH).read_text(encoding="utf-8")
     assert (paragraph in aftermath.document.body) is kept
     assert (paragraph in on_disk) is kept
-    assert (PATH in aftermath.undo.reverted) is not kept
+    assert (PATH in aftermath.take.left) is not kept
 
 
 def test_the_entry_is_the_roles_result_with_the_agents_text(

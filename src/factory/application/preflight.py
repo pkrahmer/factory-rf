@@ -9,7 +9,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from factory.application.boundaries import Boundaries
-from factory.application.sealed_runs import run_sealed
+from factory.application.stage_environment import stage_environment_of
 from factory.application.stops import StopService
 from factory.domain.agent_runs import (
     CONFINE_COMMAND,
@@ -248,7 +248,8 @@ def agent_run_probe_item(
     try:
         installed = boundaries.agent_definitions.read(PROBE_AGENT)
         agent = installed.model_copy(update={"budget_usd": PROBE_BUDGET_USD})
-        sealed = run_sealed(boundaries, _probe_request(boundaries, settings, agent, environment))
+        request = _probe_request(boundaries, settings, agent, environment)
+        sealed = stage_environment_of(boundaries).run_agent(request)
     except (AgentDefinitionError, AgentRuntimeError) as error:
         return PreflightItem(name=_PROBE_ITEM, passed=False, detail=str(error))
     if sealed.nested_repositories:
