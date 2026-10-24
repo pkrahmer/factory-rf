@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T18:41:43.598785Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-24T18:41:23.475986Z'
   stage: review
   run: a824ba8cbbb5412386797f2780229753
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:41:43.598785Z'
+  stage: docs
 ---
 
 # The stall takes from the dataset
@@ -382,3 +391,4 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
     1. `tests/stall_support.py:27`: `CREATED` is a second copy of `stage_run_support.CREATED` (the same `JournalRecord`). Importing it from `stage_run_support` would remove the copy.
     2. `tests/application/test_stall_environment.py`, `test_the_take_runs_after_the_checkout_is_back_and_before_the_sidecar_is_written`: the two rows branch on `row ==` both in the setup and in the assertions. Putting the setup and the check in each row's parameters would remove the branching.
     3. `tests/application/test_stall_container.py:24-26`: `INSIDE` and `AGENT_TEXT` are imported from `stall_support`, but `BRANCH` and `PATH` from `undo_support`. The values agree, but the test draws its constants from two modules.
+18. factory: started docs as self.
