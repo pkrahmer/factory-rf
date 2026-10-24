@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T20:44:36.477438Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-24T20:44:16.015645Z'
   stage: review
   run: 51c4ce2c6d0b44d89270c6e8dc6d2c39
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:44:36.477438Z'
+  stage: docs
 ---
 
 # Every container runs without rights and within limits
@@ -282,3 +291,4 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
 
     Notes:
     - tests/adapters/test_podman_runs_results.py:18 and tests/adapters/test_podman_timeout_status.py:12 still hold their own `IMAGE = "factory-stage:1"`, a copy of the shared one in tests/podman_support.py. Both files are outside this diff, so this is left for a later move under the same leave.
+18. factory: started docs as self.
