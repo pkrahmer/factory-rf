@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T20:06:35.163354Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-24T20:06:14.797307Z'
   stage: intake
   run: 85ee350dffac4aa2bd600fbd946aa375
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:06:35.163354Z'
+  stage: tests
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -77,3 +86,4 @@ Expect: one line, `[-9, 137, 255] True False`
    Smoke test: runnable. The one-line `python -c` uses the real keyword names, and the `Expect:` line `[-9, 137, 255] True False` can be checked exactly. It runs no pytest, so the `-q` rule does not apply.
    Architecture: the change stays in `factory.adapters`, where `podman_runs` already imports from `agent_launch`. It reuses one constant instead of a copy, and no new dependency or layer is involved.
    Scope: it is within F0042 (decision 22, built after S0009 and before S0010). It changes no earlier test; the story says so. The docs criterion names its files and the content for each.
+4. factory: started tests as self.
