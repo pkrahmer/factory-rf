@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T21:11:03.062008Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-24T21:10:42.176096Z'
   stage: doing
   run: 6b36e4c470da4ace880dc76c5ec670b8
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:11:03.062008Z'
+  stage: review
 ---
 
 # The settings and the wiring choose the stage environment
@@ -328,3 +337,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 13 new, 36 known, 2 gone
+16. factory: started review as self.
