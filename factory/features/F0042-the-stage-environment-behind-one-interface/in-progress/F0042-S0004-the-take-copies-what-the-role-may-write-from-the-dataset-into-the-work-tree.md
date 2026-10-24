@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578, 6386353501]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T16:12:45.531384Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -165,6 +169,11 @@ journal:
   at: '2026-10-24T16:12:24.660859Z'
   stage: docs
   run: e3aa9f6f11524318919ee41c12c35443
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:12:45.531384Z'
+  stage: smoke-test
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -538,3 +547,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     `check`: check: green (not run again: passed on tree 1b43b70bb234 at 2026-10-24T16:07:29Z)
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
+29. factory: started smoke-test as self.
