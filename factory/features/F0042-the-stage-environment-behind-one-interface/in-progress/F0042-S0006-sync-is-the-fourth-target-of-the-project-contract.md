@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T17:25:55.366892Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-10-24T17:25:55.366892Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T17:26:41.671272Z'
+  stage: docs
+  run: d6985b66c57e41d9bc96663a69f5aa9c
 ---
 
 # `sync` is the fourth target of the project contract
@@ -420,3 +422,20 @@ Expect: four lines: `# The contract between a project and the factory is four ta
     - `tests/test_template_sync.py:31` `_line_number`: it repeats the head search that `test_check_runs_the_other_targets_and_says_green` does inline in `tests/test_template_makefile.py`. It could become a helper in `tests/template_make_support.py`.
     - `tests/test_template_sync.py:80`: `[Step(exit_status=status)] * 2` plans two answers for a run that makes one call. One step would say what the test expects.
 21. factory: started docs as self.
+22. documenter: Docs, round 1. I read the story, the diff against `main` (three template files, four test files, no `src/` change) and the docs. I found no finding for the coder: the template matches the Interface and the criteria.
+
+    Files changed:
+    - `docs/operator-guide.md`, *The project's make targets*: "three targets" is now four. `sync` is named as the fourth: the tools after a checkout, `uv sync --frozen` here, the project's own command for another stack. It is run by the stage environment of a `container` instance, by no stage of an `inline` one, and listed by no stage. The phrase `three targets` is gone from the guide.
+    - `docs/operator-guide.md`, *The pipeline definition*: the `project_commands` row notes that the template also names `sync` (5 minutes). The paragraph on a given `project_commands` says `sync` is a command with a `time_limit`, that the sync container reads it, that no stage lists it so it never enters a lease, and that without it the default is 10 minutes.
+    - `docs/project-guide/processes-and-checks.md`, *Project commands*: a paragraph saying the contract is four targets and what `sync` is. It says who runs it (the sync container before every agent run and the check container before every check, never `checks` or `reports`, and `check` does not run it). It says the template has it and this repository's own `Makefile` and `factory/pipeline.yml` do not yet (the human's change).
+    - `docs/project-guide/agents.md`, *The template*: the template's pipeline definition holds four project commands, with `sync` run by the stage environment and listed by no stage. The template's `Makefile` has four contract targets, with `sync` between `check` and `lint` and not run by `check`.
+    - `docs/project-guide/stage-environment.md`: new section *The sync command*, one paragraph on what `make sync` must do for a project. It points to the existing *The sync time limit* for the container's limit.
+    - `docs/project-guide/README.md`, *Shared test helpers*: an entry for `tests/template_make_support.py` and its helpers. The tester, coder and reviewer all asked for it.
+
+    Cross-read and found current: `docs/project-guide/stages.md` (the default `project_commands` is still `check`, `lint`, `test`; that is the code's default and this story did not change it) and the rest of `stage-environment.md`. `README.md` and `docs/decisions.md` need nothing (the docs criterion says none for the decision log). I ran no command of my own: I only changed documents, so `make check` is left to the factory.
+
+    Stale text not touched: none seen that is unrelated to this story. Entry 20's two notes (`_line_number` in `tests/test_template_sync.py`, and `[Step(...)] * 2`) are test remarks for the human, not mine to fix.
+
+    `check`: check: green (not run again: passed on tree 92aa3c08e121 at 2026-10-24T17:23:12Z)
+    `secrets`: secrets: green (2.0 s)
+    `documents`: documents ok

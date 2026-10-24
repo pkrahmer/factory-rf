@@ -113,7 +113,7 @@ A folder with files and no `.git` is still refused: git will not clone into a no
 
 ## The project's make targets
 
-The factory runs a project's build through make and calls three targets: `check` (the full gate, which must be green before a stage hands forward), `lint` (run after the tester stage) and `test`. A project must define them in the Makefile at the root of its checkout. Each is judged by its exit status alone, and a target that does not exist counts as a failed command. A target that runs past its time limit is killed and counts as failed for that reason; the factory reads only the exit status, the last line and the last 30 lines of the output.
+The factory runs a project's build through make and calls four targets: `check` (the full gate, which must be green before a stage hands forward), `lint` (run after the tester stage), `test` and `sync`. `sync` is the fourth: it brings a checkout's tools up to date after a checkout, `uv sync --frozen` in a Python project and the project's own command in another stack. The stage environment of a `container` instance runs it before every agent run and before every check; no stage of an `inline` instance runs it, and no stage lists it in `checks` or `reports`. A project must define them in the Makefile at the root of its checkout. Each is judged by its exit status alone, and a target that does not exist counts as a failed command. A target that runs past its time limit is killed and counts as failed for that reason; the factory reads only the exit status, the last line and the last 30 lines of the output.
 
 The project's commands run on a checkout without any ignored state: the factory removes it after every agent run and at every restore. So each target builds what it needs (factory-rf's and the template's `uv run` create `.venv` from `uv.lock`; the first check after a rebuild of the image downloads the packages once), and a target that relies on an ignored file another stage left fails. The factory removes what an agent's run made there as its own user, through the group, so a project command an agent runs must leave its ignored files group-writable (the container's umask `002`); a stricter umask makes the removal fail with `checkout_restore_failed`. The usual cause is a bytecode folder: a Python that writes bytecode (`__pycache__`) under a umask stricter than `002`, such as factory-rf's tests under `022`, leaves a folder the factory cannot remove. It happens when the process does without the container's `PYTHONDONTWRITEBYTECODE=1`: an emptied environment drops it, and `-I` ignores it. factory-rf's `Makefile` exports `UV_COMPILE_BYTECODE=1`, so uv compiles `.venv`'s bytecode at its sync, under the caller's umask.
 
@@ -964,7 +964,7 @@ The keys, with what a left-out key takes:
 | `contract` | the contract version, quoted: `'1.0'` | required |
 | `stages` | name to stage; the order in the file is the pipeline's order | required |
 | `roles` | name to role; the name is also the agent file's name | required |
-| `project_commands` | name to `time_limit` in minutes and, optionally, `not_read` (see below) | `check`, `lint` and `test`, each 10 and `not_read: []` |
+| `project_commands` | name to `time_limit` in minutes and, optionally, `not_read` (see below) | `check`, `lint` and `test`, each 10 and `not_read: []` (the template's definition also names `sync`, 5 minutes) |
 | `attempts_cap` | attempts before the human is asked | 2 |
 | `crash_cap` | crashes before the human is asked | 2 |
 | `acceptance_stage` | the stage of the feature acceptance | none |
@@ -1010,7 +1010,7 @@ The rules you meet most often:
 - Every stage other than `done` needs a non-empty `next` and either a role or `approval: true`; every name in `next` must be a stage.
 - The lease: for each stage with a role, the role's `time_limit` plus the `time_limit` of every command in the stage's `checks` and `reports` must be at most the role's `lease_duration`. With the defaults, 40 + 10 (one check) + 10 (one report) = 60 fits; a stage with two checks and a report adds up to 70 and is refused. Raise the `lease_duration` or lower a limit.
 - Values are taken only in their YAML type: a limit is an integer (not `'30'`, `30.0` or `true`), `approval` is `true` or `false` (not `'yes'` or `1`), names and write paths are text. A write path must hold a character that is not whitespace.
-- A key that is not listed is refused, so a misspelt key is never ignored. A given `project_commands` replaces the default set as a whole: list `check`, `lint` and `test` again if you still want them.
+- A key that is not listed is refused, so a misspelt key is never ignored. A given `project_commands` replaces the default set as a whole: list `check`, `lint` and `test` again if you still want them. `sync` is a project command with a `time_limit` like the others (`sync: {time_limit: 5}` in the template), and the stage environment reads that limit for its sync container; no stage lists it in `checks` or `reports`, so it never enters a lease. A definition without `sync` gives the sync the default limit of 10 minutes.
 - Every role needs an agent file, a project's own or the installed one (see "The agent files").
 
 A refused definition raises the stop `pipeline_definition_invalid`, described above. `docs/project-guide/stages.md`, "The rules of the definition", lists every fault.
