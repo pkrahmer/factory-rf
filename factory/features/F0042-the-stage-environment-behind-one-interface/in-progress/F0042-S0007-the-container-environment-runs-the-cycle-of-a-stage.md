@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 415
-comments_read: []
+comments_read: [6387344840]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: cceae78738854d1989a0d139d5b73505
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-24T17:32:46.344793Z'
+  stage: intake
 ---
 
 # The container environment runs the cycle of a stage
@@ -118,3 +123,9 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
    2. `run_agent` says "no home reset", but no criterion pins that side. Criterion 6 covers no seal, no ignored-path removal and no nested-repository search, and says nothing about the agent home. Should criterion 6 gain a row showing that a file the fake run writes into the host's `agent_home` is left alone? I would add it.
 
    Everything else I checked is fine. The Interface is concrete. Criteria 1 to 9 are each testable. The smoke test commands are runnable, and the pytest command correctly passes no `-q` because `addopts` already sets it. The architecture fits: the application layer holds `ContainerEnvironment` and the domain holds `last_line`. The scope is inside the feature's S0007 entry.
+4. 2026-10-24 human: Answers to the intake (F0042-S0007, the container environment runs the cycle of a stage):
+
+   1. **(a)**: one criterion with a parametrized test of `factory.domain.checks.last_line`, with the rows you name: a `make:` line skipped, a `make[2]:` line skipped, a trailing blank line skipped, the recipe's last line returned, and `""` for make messages alone and for no lines. A second criterion checks that `factory.adapters.make_commands` imports `last_line` from `factory.domain.checks` and no longer defines `_last_line` or `_MAKE_MESSAGE_PREFIXES`. `tests/adapters/test_make_commands*.py` stay unchanged and green.
+   2. **Yes**: criterion 6 gains the row that a file the fake run writes into the host's `agent_home` is left as it is (no home reset).
+
+   Please write both into the criteria as you accept.
