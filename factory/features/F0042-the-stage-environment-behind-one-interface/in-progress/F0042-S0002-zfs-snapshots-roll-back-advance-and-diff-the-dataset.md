@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638, 6384356460]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T12:45:33.971126Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -212,6 +208,12 @@ journal:
   kind: started
   at: '2026-10-24T12:45:33.971126Z'
   stage: doing
+- number: 37
+  speaker: coder
+  kind: result
+  at: '2026-10-24T12:46:04.403591Z'
+  stage: doing
+  run: 9695f5ff2173479788413854de1af272
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -550,3 +552,21 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     Earlier tests:
     - `tests/test_wrapper_search.py`: changed under the human's leave. Criterion 9 of the story, as the human wrote it, names this test and the added `factory.adapters.zfs_snapshots`. The change only adds that one name to the expected set, and the test keeps its name and what it checks.
 36. factory: started doing as self.
+37. coder: Round 1, after the reviewer's entry 35. All four findings need only tests, so I changed no code. `src/factory/adapters/zfs_snapshots.py` is unchanged and already does what each new criterion says.
+
+    For the tester, the rows the reviewer named:
+    - Criterion 12 (blank lines are skipped), three rows:
+      - `tests/adapters/test_zfs_snapshots_diff.py::test_changed_paths_reads_the_diff_relative_to_the_mount_point`: `diff` prints `M\tF\t/srv/factory/vm/work/checkout/a.py`, an empty line and a line of two spaces, and the result is exactly `[ChangedPath("checkout/a.py", "modified")]`.
+      - `tests/adapters/test_zfs_snapshots.py::test_a_failed_reset_names_its_detail`: the stand-in exits 1 printing `rollback: dataset is busy` and then an empty line, and the `detail` is `rollback: dataset is busy`.
+      - `tests/adapters/test_zfs_snapshots.py::test_version_is_the_first_line_zfs_prints`: `--version` prints an empty line and then `zfs-2.2.2-0ubuntu9.1`, and the result is `zfs-2.2.2-0ubuntu9.1`.
+    - Criterion 13 (a path two lines name is `added`): a row in `test_changed_paths_reads_the_diff_relative_to_the_mount_point` where `-` comes before `+` for `checkout/x.txt`, giving `[ChangedPath("checkout/x.txt", "added")]`. In the code, `_record` gives `added` whichever line comes first.
+    - Criterion 14 (the time limit is rounded up): a parametrized test with a `Recorder` that returns a timed-out result. A limit of 1.2 s gives `no end within 2 s`, and a limit of 2 s also gives `no end within 2 s`. In the code, `_run` uses `math.ceil`.
+    - Criterion 15 (`version()` strips its line): a row in `test_version_is_the_first_line_zfs_prints` where the first line is `  zfs-2.2.2-0ubuntu9.1  ` and a `zfs-kmod-...` line follows. The result is `zfs-2.2.2-0ubuntu9.1`. In the code, `_printed_lines` strips each line.
+
+    Main choice: I end with `tests` and leave the code untouched. I rejected changing anything under `src/`: every rule above is already in the code, and entry 35 says none needs a code change. I checked the code by reading it; I did not run the new cases.
+
+    Refactor: there is no new diff, so nothing needed changing. I did not run `make check`, because nothing in the working tree changed. The last result was green (entry 29).
+
+    Description: the reviewer already wrote criteria 12 to 15 into the work item in entry 35. The journal changed nothing else this round.
+
+    Noticed, not touched: nothing new since round 0.
