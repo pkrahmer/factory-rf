@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T23:41:30.922600Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-24T23:41:30.922600Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-24T23:45:44.432262Z'
+  stage: tests
+  run: ebec7778843b414b897543179b9638ef
 ---
 
 # The stage image is the tools alone
@@ -103,3 +105,25 @@ Expect: `1`
    - Architecture: no layer is touched. The file lives under `vm/`, which the feature's change 1 makes a coder write path. The tests read the file as text, as `tests/test_image*.py` do. The shared readers move to `tests/dockerfile_support.py` only under the standing leave in CLAUDE.md and decision 15 of `feature.md`.
    - Scope: within `feature.md`'s S0001 scope. Nothing under `image/` changes, and no story step runs podman, apt or the like. Out-of-scope items are not touched.
 4. factory: started tests as self.
+5. tester: Wrote the tests for `vm/Dockerfile` in one new module, `tests/test_stage_image.py`. It reads the file with the readers `tests/test_image.py` already has (`floating_references`, `_instructions`, `_arg_defaults`, `_env`, `_commands`, `_after`, `_pipelines`, `_from_references`, `DIGEST`, `THREE_NUMBERS`, `DOCKERFILE`). Four earlier modules already import those readers from `test_image` the same way.
+
+   - criterion 1: tests/test_stage_image.py::test_the_stage_image_has_no_floating_reference, ::test_the_one_base_image_is_the_pinned_build_argument, ::test_the_stage_image_has_one_instruction_of_each_kind[FROM|LABEL|COPY]
+   - criterion 2: tests/test_stage_image.py::test_the_stage_image_carries_the_machine_images_pins[BASE_IMAGE|CLAUDE_CODE_VERSION|OPENCODE_VERSION|UV_VERSION|FACTORY_OPENCODE_MODELS]
+   - criterion 3: tests/test_stage_image.py::test_each_debian_package_is_pinned_as_the_machine_image_pins_it[one row per package], ::test_the_one_apt_install_is_the_tools_without_recommends (exactly the seven packages, so no `sudo`; `--no-install-recommends`; the same RUN removes `/var/lib/apt/lists`)
+   - criterion 4: tests/test_stage_image.py::test_each_tool_is_installed_once_at_its_pinned_version[uv|claude-code|opencode], ::test_opencode_is_installed_after_claude_code, ::test_no_other_install_is_made[npx|uv sync|uv tool install]
+   - criterion 5: tests/test_stage_image.py::test_the_agent_files_are_copied_read_only_to_their_place
+   - criterion 6: tests/test_stage_image.py::test_the_environment_names_are_the_runtimes_alone, ::test_each_runtime_setting_has_its_value[five rows], ::test_no_setting_or_build_argument_names_a_secret[TOKEN|SECRET|PASSWORD|CREDENTIAL], ::test_the_image_build_argument_is_only_the_label
+   - criterion 7: tests/test_stage_image.py::test_nothing_of_the_long_lived_container_is_left[one row per word, comment lines dropped first, substring match], ::test_the_first_line_names_the_build_command
+   - criterion 8: no new test. The existing `tests/test_image*.py`, `tests/test_opencode_image.py`, `tests/test_compose*.py` and `tests/test_entrypoint*.py` cover it, and the reviewer checks the diff. I changed no earlier test file.
+   - criteria 9 and 10: `make check` and docs; not mine to test.
+
+   Rejected: moving the readers into `tests/dockerfile_support.py` under the standing leave. The Interface makes the move optional. Making it would mean changing `test_image.py` and the four modules that import from it, because `mypy --strict` refuses implicit re-exports. So the documenter's line for `dockerfile_support.py` stays as it is (`dockerfile_instructions` only).
+
+   Check before handing over: I ran a temporary copy of the module against a draft `vm/Dockerfile` written from the Interface, kept in `$TMPDIR`. All 62 cases passed, and I removed the copy afterwards.
+
+   Run: `make test` fails as intended. Every case of `tests/test_stage_image.py` errors with `FileNotFoundError: ... /work/checkout/vm/Dockerfile`, because the file does not exist yet. No module failed to import (`test_image` imports fine). `make lint` is green.
+
+   Files created: tests/test_stage_image.py.
+
+   `lint`: lint: green (0.5 s)
+   `test`: ERROR tests/test_stage_image.py::test_the_first_line_names_the_build_command - FileNotFoundError: [Errno 2] No such file or directory: '/work/checkout/vm/Dockerfile'
