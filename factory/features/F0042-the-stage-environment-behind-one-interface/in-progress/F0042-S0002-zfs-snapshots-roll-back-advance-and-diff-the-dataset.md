@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T12:41:26.089688Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,19 @@ journal:
   kind: started
   at: '2026-10-24T12:41:26.089688Z'
   stage: review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T12:42:25.462933Z'
+  stage: review
+  run: 7b695dbcc45a4e47ac8fbeea3c84df32
+- number: 32
+  speaker: factory
+  kind: question
+  at: '2026-10-24T12:42:25.462933Z'
+  stage: review
+  run: 7b695dbcc45a4e47ac8fbeea3c84df32
+  blocked: round_cap
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -238,8 +247,9 @@ Tests (the tester writes them): `tests/adapters/test_zfs_snapshots.py` and `test
 9. `ZfsSnapshots` is an instance of `Snapshots`, and `tests/test_wrapper_search.py` lists `factory.adapters.zfs_snapshots` among the modules that import the process module (decision 18 b).
 10. `changed_paths()` with `diff` planned to print the line `+\tF\t/srv/factory/vm/work/bad\377` (an escape whose byte is not UTF-8) raises `SnapshotError` with `command` `<stand-in> diff -FH tank/factory/vm@base` and `detail` `cannot read the line +\tF\t/srv/factory/vm/work/bad\377` (a row of criterion 4's parametrized test).
 11. `changed_paths()` with `diff` planned to print the lines `M\t/\t/srv/factory/vm/work` (the mount point itself, which the Interface accepts) and `M\tF\t/srv/factory/vm/work/checkout/a.py` returns exactly `[ChangedPath("checkout/a.py", "modified")]`: the mount point is no fault, and as a directory it is left out (a row of criterion 3's parametrized test).
-12. `make check` stays green.
-13. docs: `docs/project-guide/stage-environment.md` gains the section *The ZFS adapter*: the five commands and when each runs, the reading of `zfs diff -FH` (the kinds, the rename, the escapes, the mount point), the faults and their details, `version` and `dataset_exists` for the preflight, the stand-in the tests use; `docs/project-guide/README.md`, *The files*, names `factory.adapters.zfs_snapshots` for the file. `docs/operator-guide.md`: nothing yet (S0010 writes the settings, S0011 the items). `docs/decisions.md`: none.
+12. Blank lines are skipped, as the Interface's "non-blank line" says for the diff, the detail and the version: `changed_paths()` with `diff` planned to print `M\tF\t/srv/factory/vm/work/checkout/a.py`, an empty line and a line of two spaces returns exactly `[ChangedPath("checkout/a.py", "modified")]` (a row of criterion 3's parametrized test); a `reset()` whose stand-in exits 1 printing `rollback: dataset is busy` followed by an empty line gives `detail` `rollback: dataset is busy` (a row of criterion 5's parametrized test); `version()` with `--version` planned to print an empty line and then `zfs-2.2.2-0ubuntu9.1` returns `zfs-2.2.2-0ubuntu9.1` (a row of criterion 7's parametrized test).
+13. `make check` stays green.
+14. docs: `docs/project-guide/stage-environment.md` gains the section *The ZFS adapter*: the five commands and when each runs, the reading of `zfs diff -FH` (the kinds, the rename, the escapes, the mount point), the faults and their details, `version` and `dataset_exists` for the preflight, the stand-in the tests use; `docs/project-guide/README.md`, *The files*, names `factory.adapters.zfs_snapshots` for the file. `docs/operator-guide.md`: nothing yet (S0010 writes the settings, S0011 the items). `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -472,3 +482,20 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     `check`: check: green
     `duplicates`: duplicates: 8 new, 38 known, 0 gone
 30. factory: started review as self.
+31. reviewer: Review, round 2. I read the work item and `git diff main...HEAD -- . ':!factory'`. The diff covers `src/factory/adapters/zfs_snapshots.py`, `tests/adapters/test_zfs_snapshots.py`, `tests/adapters/test_zfs_snapshots_diff.py`, `tests/zfs_support.py` and the one-line change to `tests/test_wrapper_search.py`.
+
+    Round 1's finding is closed: the `mount-point` row tests criterion 11. Criteria 1 to 11 each have a test that checks what it says. The factory's `make check` after the coder was green (entry 29: `check: green`). I did not run it. I stopped at group 1.
+
+    Findings:
+    1. criterion 12 added: it needs its test.
+       - Where: `src/factory/adapters/zfs_snapshots.py:27-28` (`_printed_lines`) and `:100-101` (`changed_paths`, `if line.strip()`).
+       - What is wrong: these lines skip blank lines, as the Interface says ("each non-blank line", "the last non-blank line", "first non-blank line"). No test has a blank line among the printed lines. Every output in the tests is either empty or has no blank lines, so removing either filter fails no test.
+       - Fix: three rows, no code change.
+         - Criterion 3's parametrized test `test_changed_paths_reads_the_diff_relative_to_the_mount_point`: `diff` prints `M\tF\t/srv/factory/vm/work/checkout/a.py`, an empty line and a line of two spaces, and gets exactly `[ChangedPath("checkout/a.py", "modified")]`.
+         - Criterion 5's `test_a_failed_reset_names_its_detail`: the stand-in exits 1 printing `rollback: dataset is busy` and then an empty line, and gets `detail` `rollback: dataset is busy`.
+         - Criterion 7's `test_version_is_the_first_line_zfs_prints`: `--version` prints an empty line and then `zfs-2.2.2-0ubuntu9.1`, and returns `zfs-2.2.2-0ubuntu9.1`.
+       - The old criteria 12 and 13 are now 13 and 14.
+
+    Earlier tests:
+    - `tests/test_wrapper_search.py`: changed under the human's leave. Criterion 9, which the human wrote, names this test and the added `factory.adapters.zfs_snapshots`. The change only adds that name to the expected set, and the test keeps its name and what it checks.
+32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
