@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 410
 comments_read: [6384920747]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T13:42:27.152958Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-24T13:42:06.905169Z'
   stage: intake
   run: 86bc64a38ea744aab677dee12c357483
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-24T13:42:27.152958Z'
+  stage: tests
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -178,3 +187,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
    - Smoke test: both commands are runnable. I carried in the human's answer 1 from journal entry 4: the first command now also runs `tests/adapters/test_git_cli_check_ignore.py` and keeps `test_git_cli_ignored.py`. Its `Expect:` line names the single `<n> passed in <s>s` line that covers both git files and the take tests. The second command prints two lines that can be checked against the `Expect:` line. The command passes no `-q`, and I did not check pytest's `addopts` for one.
    - Architecture: `application.take` and the `Git` operation sit in `application`, the `git check-ignore` call sits in `adapters.git_cli`, and no layer is crossed. The undo's helpers are made public and shared rather than copied.
    - Scope: the story is within F0042's scope, which lists `TakeService`, `TakeReport`, the shared copying and `ignored`, and it removes no layer. Decision 18 d gives the leave to change `test_git_interface.py` and `test_interfaces.py`.
+7. factory: started tests as self.
