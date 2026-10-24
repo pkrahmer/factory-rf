@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T20:24:00.735864Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-24T20:24:00.735864Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T20:24:29.820837Z'
+  stage: docs
+  run: 0a84614acf0a4e41a763eccec1638dcb
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -274,3 +276,21 @@ Expect: one line, `[-9, 137, 255] True False`
     - `tests/adapters/test_claude_runtime_container.py`: the standing leave to move a shared test helper. Only its `workspace` and `fake` fixtures are removed; no test is renamed or changed.
     - `tests/adapters/test_opencode_runtime_container.py`: the standing leave to move a shared test helper. It now uses the moved fixtures, `container_request`, `make_state` and `LIMIT`; no test is renamed, and each checks the same thing.
 18. factory: started docs as self.
+19. documenter: Docs round 1. I changed documents only, so I did not run `make check`. The factory's checks run after this stage. I found nothing in the code that contradicts the Interface or the criteria, so there are no findings.
+
+    Files changed:
+    - `docs/project-guide/stage-environment.md`, *Reading the end* of the podman adapter. The `timed_out` rule now names `CONTAINER_KILL_STATUSES` (137, -9, 255). I replaced the old bullet that called "podman exits 137" an assumption with the measured fact: podman 4.9.3 ends a container with 255 (measured 2026-10-24 on the local VM, `podman run --rm --timeout 3 ... sleep 30` ended after 3.04 s with 255). The same bullet says the factory reads 137, -9 or 255 at or after the limit as the time limit for a container call, and only 137 or -9 for any other call. It also says why 255 before the limit stays an ordinary exit status: a command can exit 255 by itself, and only the elapsed time shows podman's timeout was the cause.
+    - `docs/operator-guide.md`, *The agent in a container*. It now says podman ends the container with 255, which the factory reads as the time limit when the call lasted at least its limit. This is the place that explains a container call ending at `time_limit`. The `A time_limit under sudo` text is about hosts, so I left it alone.
+    - `docs/project-guide/agents.md`, which the docs criterion did not name but which the diff made stale. In the *Calls in a container* bullet, 255 joins 137 and -9. In the `killed_at_limit` description, `in_container` now reads `CONTAINER_KILL_STATUSES`, with or without a user.
+
+    Cross-read and found current: `docs/project-guide/processes-and-checks.md` (the `sudo` kill line, 137/-9, host-only), `docs/decisions.md` (the criterion says no entry), `README.md` (none).
+
+    Not run: the smoke test's `python -c` line from the story, and no docs example, because I wrote no runnable example.
+
+    Stale text I saw and did not touch: none that is unrelated to this story.
+
+    Reviewer's quality note, not mine: `tests/adapters/test_runtime_podman_timeout_status.py:11` imports `REPLY` from another test module.
+
+    `check`: check: green (not run again: passed on tree 52e1bbf4f44e at 2026-10-24T20:21:17Z)
+    `secrets`: secrets: green (1.8 s)
+    `documents`: documents ok
