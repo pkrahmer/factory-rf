@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T11:58:34.137156Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-24T11:58:12.651484Z'
   stage: docs
   run: 9846f9ab16484bf786777d767bdd5f10
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-24T11:58:34.137156Z'
+  stage: smoke-test
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -588,3 +597,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 05aa75c575e2 at 2026-10-24T11:53:57Z)
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
+23. factory: started smoke-test as self.
