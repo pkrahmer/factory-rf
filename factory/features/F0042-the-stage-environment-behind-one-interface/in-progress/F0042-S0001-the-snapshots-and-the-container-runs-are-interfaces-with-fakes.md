@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T11:51:55.237925Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-24T11:51:34.837316Z'
   stage: review
   run: fb967a6118304eed8a27e13de2d22fae
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-24T11:51:55.237925Z'
+  stage: doing
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -487,3 +496,4 @@ Expect: `1`
 
     Notes:
     - `tests/adapters/test_fake_containers.py`: `_run` (line 119) and `_run_with` (line 225) both call `runs.run` with nearly the same arguments, and `_launch` (line 216) repeats the pattern of `_launch_word` (line 29). One parametrized helper would do.
+17. factory: started doing as self.
