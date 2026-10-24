@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T21:04:28.265262Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-24T21:04:07.712611Z'
   stage: doing
   run: ee9ebf259a384d9f91c6d7ad75e9ab58
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:04:28.265262Z'
+  stage: tests
 ---
 
 # The settings and the wiring choose the stage environment
@@ -256,3 +265,4 @@ Expect: `1`
     If a row fails, it comes back to doing as a fix under `src/`.
 
     Noticed, not touched: what entry 7 listed is still open. That is the unreachable `None` narrowing in `_container_environment` in `src/factory/entry/wiring.py`, and `FACTORY_AGENT_USER`'s "is not a name" fault now coming before other settings' faults. The Description is unchanged: the journal added criterion 8, and the reviewer already wrote it into the Description.
+12. factory: started tests as self.
