@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -163,6 +163,11 @@ journal:
   at: '2026-10-24T17:04:31.557682Z'
   stage: smoke-test
   run: ebae4f4411f3498b9d918d7c8069ba19
+- number: 29
+  speaker: factory
+  kind: done
+  at: '2026-10-24T17:05:51.041486Z'
+  stage: approval
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -631,3 +636,4 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
     - No criterion is contradicted. I did not run `make check` (criterion 12) or judge the docs (criterion 13). The smoke test does not cover them, and the factory's checks after this stage do.
 
     Findings: none. I changed no files.
+29. factory: done (pull request merged); cost: 13 runs, 21.6 min, 125 turns, 439198 tokens in (3945628 more from cache), 57253 out, $4.95
