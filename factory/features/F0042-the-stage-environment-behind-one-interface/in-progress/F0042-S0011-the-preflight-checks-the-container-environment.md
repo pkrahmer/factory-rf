@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T21:49:44.272088Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-24T21:49:23.852191Z'
   stage: docs
   run: 028971d8d1f54abb9b00e8bd94884bf5
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:49:44.272088Z'
+  stage: smoke-test
 ---
 
 # The preflight checks the container environment
@@ -441,3 +450,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 3389db52e22b at 2026-10-24T21:44:20Z)
     `secrets`: secrets: green (2.2 s)
     `documents`: documents ok
+23. factory: started smoke-test as self.
