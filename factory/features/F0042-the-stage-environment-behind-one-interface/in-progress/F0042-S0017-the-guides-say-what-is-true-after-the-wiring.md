@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 425
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T22:16:43.495401Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-24T22:16:23.105444Z'
   stage: tests
   run: ddc4dcfe19af426ebd38905bf8b66130
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:16:43.495401Z'
+  stage: doing
 ---
 
 # The guides say what is true after the wiring
@@ -107,3 +116,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.5 s)
    `test`: test: green (65.6 s)
+6. factory: started doing as self.
