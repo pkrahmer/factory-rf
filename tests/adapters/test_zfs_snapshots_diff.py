@@ -51,6 +51,16 @@ DIFF_LINES = [
             [ChangedPath(path="checkout/a.py", change="modified")],
             id="mount-point",
         ),
+        pytest.param(
+            f"M\tF\t{WORK}/checkout/a.py\n\n  \n",
+            [ChangedPath(path="checkout/a.py", change="modified")],
+            id="blank-lines",
+        ),
+        pytest.param(
+            f"-\tF\t{WORK}/checkout/x.txt\n+\tF\t{WORK}/checkout/x.txt\n",
+            [ChangedPath(path="checkout/x.txt", change="added")],
+            id="removed-then-added",
+        ),
         pytest.param("", [], id="empty"),
     ],
 )

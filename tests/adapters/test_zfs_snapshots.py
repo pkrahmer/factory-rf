@@ -106,6 +106,13 @@ def test_advance_replaces_the_base_by_what_list_says(
             0,
             id="last-line",
         ),
+        pytest.param(
+            Answer(stdout="rollback: dataset is busy\n\n", exit_status=1),
+            SNAPSHOT_TIME_LIMIT,
+            re.escape("rollback: dataset is busy"),
+            0,
+            id="trailing-blank",
+        ),
         pytest.param(Answer(exit_status=1), SNAPSHOT_TIME_LIMIT, "exit status 1", 0, id="silent"),
         pytest.param(
             Answer(sleep_seconds=60),
@@ -154,6 +161,28 @@ def test_the_default_time_limit_is_ten_minutes_and_reaches_run_process(
     assert [request.time_limit for request in recording.requests] == [SNAPSHOT_TIME_LIMIT]
 
 
+@pytest.mark.parametrize(
+    "time_limit",
+    [
+        pytest.param(timedelta(seconds=1.2), id="fraction"),
+        pytest.param(timedelta(seconds=2), id="whole"),
+    ],
+)
+def test_the_time_limit_is_named_in_whole_seconds_rounded_up(
+    monkeypatch: pytest.MonkeyPatch, time_limit: timedelta
+) -> None:
+    recording = Recorder()
+    recording.results.append(
+        ProcessResult(exit_status=None, stdout="", stderr="", timed_out=True, duration=time_limit)
+    )
+    monkeypatch.setattr(zfs_snapshots, "run_process", recording)
+
+    with pytest.raises(SnapshotError) as raised:
+        ZfsSnapshots(DATASET, MOUNT_POINT, executable="/nowhere/zfs", time_limit=time_limit).reset()
+
+    assert raised.value.detail == "no end within 2 s"
+
+
 def test_a_command_merges_stderr_runs_at_the_root_in_the_factorys_environment(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -177,6 +206,18 @@ def test_a_command_merges_stderr_runs_at_the_root_in_the_factorys_environment(
             "zfs-2.2.2-0ubuntu9.1",
             None,
             id="first-line",
+        ),
+        pytest.param(
+            Answer(stdout="\nzfs-2.2.2-0ubuntu9.1\n"),
+            "zfs-2.2.2-0ubuntu9.1",
+            None,
+            id="leading-blank",
+        ),
+        pytest.param(
+            Answer(stdout="  zfs-2.2.2-0ubuntu9.1  \nzfs-kmod-2.2.2-0ubuntu9.1\n"),
+            "zfs-2.2.2-0ubuntu9.1",
+            None,
+            id="stripped",
         ),
         pytest.param(Answer(), None, "printed nothing", id="nothing"),
         pytest.param(

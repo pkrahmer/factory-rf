@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638, 6384356460]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T12:46:24.976208Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -223,6 +219,12 @@ journal:
   kind: started
   at: '2026-10-24T12:46:24.976208Z'
   stage: tests
+- number: 39
+  speaker: tester
+  kind: result
+  at: '2026-10-24T12:49:53.355790Z'
+  stage: tests
+  run: 659ba59091a246338d1deff861309c0d
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -580,3 +582,24 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
 
     Noticed, not touched: nothing new since round 0.
 38. factory: started tests as self.
+39. tester: Tester, round 1. Mode: a test change the human approved (coder's entry 37, from the reviewer's entry 35 and the human's entry 33). I added the rows and the one test that criteria 12 to 15 ask for. I changed no other test.
+
+    Criterion → test:
+    - criterion 12 (blank lines are skipped):
+      - `tests/adapters/test_zfs_snapshots_diff.py::test_changed_paths_reads_the_diff_relative_to_the_mount_point[blank-lines]`
+      - `tests/adapters/test_zfs_snapshots.py::test_a_failed_reset_names_its_detail[trailing-blank]`
+      - `tests/adapters/test_zfs_snapshots.py::test_version_is_the_first_line_zfs_prints[leading-blank]`
+    - criterion 13 (removed and then added gives `added`): `tests/adapters/test_zfs_snapshots_diff.py::test_changed_paths_reads_the_diff_relative_to_the_mount_point[removed-then-added]`
+    - criterion 14 (the seconds are rounded up): `tests/adapters/test_zfs_snapshots.py::test_the_time_limit_is_named_in_whole_seconds_rounded_up`, a new parametrized test with the rows `fraction` (1.2 s) and `whole` (2 s). It uses a `Recorder` whose planned `ProcessResult` has `timed_out=True` and `exit_status=None`, which is what `run_process` returns on a time limit.
+    - criterion 15 (the version line is stripped): `tests/adapters/test_zfs_snapshots.py::test_version_is_the_first_line_zfs_prints[stripped]`
+
+    Files changed: `tests/adapters/test_zfs_snapshots.py` and `tests/adapters/test_zfs_snapshots_diff.py`, both written by this story. I created no files.
+
+    Modules the test run could not import: none, because the code already exists.
+
+    `make test`: green (`test: green (69.4 s)`, coverage 99.17 %). The new tests pass against the current code, as entries 35 and 37 expected, since none of these criteria needs a code change. `make lint`: green.
+
+    Open: nothing.
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (68.2 s)
