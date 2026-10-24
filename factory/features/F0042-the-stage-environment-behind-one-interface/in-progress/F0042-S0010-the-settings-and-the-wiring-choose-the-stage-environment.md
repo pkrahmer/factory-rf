@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T20:50:38.866151Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-24T20:50:38.866151Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-24T20:56:04.534320Z'
+  stage: tests
+  run: 6c6af4f09a504bd9998ff153f12237d3
 ---
 
 # The settings and the wiring choose the stage environment
@@ -148,3 +150,27 @@ Expect: `1`
    Architecture: settings and their faults stay in `domain`, the wiring in `entry`, and `RecordingProjectCommands.inner` in `application`. The adapters are reached only through their interfaces, and no new dependency or package is added.
    Scope: the story stays within F0042's scope line for S0010 and keeps to the feature's Out of scope list. Decisions 14 and 15 are carried as written, and no earlier test is changed (decision 18 (h)).
 4. factory: started tests as self.
+5. tester: Wrote the tests of the stage environment's settings and wiring from the Interface and criteria 1–7.
+
+   Criterion → test:
+   - criterion 1: tests/domain/test_settings_stage_environment.py::test_read_settings_reads_the_stage_environment_and_its_values (rows unset, empty, `  inline `, container, executables, blank-executables, padded-values)
+   - criterion 2: tests/domain/test_settings_stage_environment.py::test_read_settings_refuses_a_stage_environment_it_cannot_run (the seven faults) and ::test_read_settings_accepts_any_values_for_the_inline_environment (the three accepted `inline` rows; they are a separate test because they assert values, not a fault)
+   - criterion 3: tests/domain/test_settings_stage_environment.py::test_instance_settings_built_directly_follow_the_stage_environment_rules (through `type[BaseModel]`)
+   - criterion 4: tests/entry/test_wiring_stage_environment.py::test_an_inline_instance_has_no_snapshots_and_no_containers (the existing wiring tests are unchanged)
+   - criterion 5: tests/entry/test_wiring_stage_environment.py::test_a_container_instance_gets_the_dataset_s_adapters_and_asks_for_no_tool (asks `which` for nothing, ZfsSnapshots mount point, PodmanRuns launch words, zfs stand-in records `rollback -r tank/factory/vm@base`, `RecordingProjectCommands.inner` is `ContainerMakeCommands`, `agent_home` None), ::test_a_container_instance_s_runtime_runs_in_its_containers_unconfined[claude|opencode], ::test_a_container_instance_s_runtime_mounts_its_login_file (podman stand-in prints the REPLY of tests/entry/test_wiring_login.py, run ends completed, words hold `--volume <login>:<login>:ro`)
+   - criterion 6: tests/entry/test_wiring_stage_environment_home.py::test_the_agent_run_s_home_follows_the_stage_environment
+   - criterion 7: tests/entry/test_wiring_stage_environment.py::test_wiring_a_container_instance_s_tick_starts_no_tool
+   - criteria 8 and 9 (make check, docs): no test.
+
+   Files created: tests/domain/test_settings_stage_environment.py, tests/entry/test_wiring_stage_environment.py, tests/entry/test_wiring_stage_environment_home.py. I changed no earlier test file.
+
+   Choices I made:
+   - The wiring tests build `InstanceSettings` directly, with the two stand-in paths as `zfs_executable` and `podman_executable`. They do not go through `read_environment_settings`, because that function fixes the checkout and state paths to `/work/checkout` and `/state`, outside `tmp_path`. The token is `CREDENTIAL` from tests/wiring_support.py, as in tests/entry/test_wiring_boundaries.py. The opencode row sets `agent_runtime` on the settings.
+   - The zfs and podman stand-ins are Python scripts written with `git_support.write_executable`. Each appends its arguments as one JSON line to a `calls` file beside it.
+
+   `make test`, run once: the new tests fail for the right reason. The read_settings rows fail with AttributeError (`stage_environment` is missing). The container fixture and rows fail with a pydantic ValidationError (unknown fields). `RecordingProjectCommands.inner` and the `container` handling do not exist yet. No module failed to import: every imported name exists already. Some rows that pin today's behaviour may already pass (the inline rows of criterion 6, the `podman` row of criterion 3).
+
+   `make lint`: green. I skipped the type check, as this stage says.
+
+   `lint`: lint: green (0.5 s)
+   `test`: ERROR tests/entry/test_wiring_stage_environment.py::test_wiring_a_container_instance_s_tick_starts_no_tool - pydantic_core._pydantic_core.ValidationError: 6 validation errors for InstanceSettings
