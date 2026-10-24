@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T12:37:57.517846Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-10-24T12:37:57.517846Z'
   stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-10-24T12:41:05.420096Z'
+  stage: doing
+  run: 97b4ee80ce504a06857e1b185f7256fc
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -444,3 +446,19 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     `lint`: lint: green (0.7 s)
     `test`: test: green (68.7 s)
 28. factory: started doing as self.
+29. coder: Round 2, after the tester's entry 27. The reviewer had one finding in entry 23, criterion 11. It needed only its test, and that test now exists: the row `mount-point` in `tests/adapters/test_zfs_snapshots_diff.py::test_changed_paths_reads_the_diff_relative_to_the_mount_point`. It passes against the code as it stands, so I changed no code this run. `src/factory/adapters/zfs_snapshots.py` is unchanged since round 1.
+
+    What I built (unchanged since round 1): `src/factory/adapters/zfs_snapshots.py`.
+
+    Main choice: leave the code as it is. `_relative` already accepts the mount point itself (it becomes `.`), and `_read_diff_line` leaves out directory lines. I rejected adding a special case for the mount point in `_relative`, because it would add code and change no behaviour.
+
+    Refactor: there is no new diff to refactor, so nothing needed changing. I touched no test and did not edit the work item.
+
+    Description: the journal changed nothing this round. The reviewer has already written criterion 11 into the work item.
+
+    Noticed, not touched: nothing new since round 0.
+
+    `make check`: green (`check: green`, total coverage 99.16 %).
+
+    `check`: check: green
+    `duplicates`: duplicates: 8 new, 38 known, 0 gone
