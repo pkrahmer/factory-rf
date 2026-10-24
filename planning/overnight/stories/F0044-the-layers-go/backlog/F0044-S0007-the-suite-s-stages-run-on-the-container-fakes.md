@@ -1,0 +1,48 @@
+# The suite's stages run on the container fakes
+
+## Description
+
+The suite runs a stage, a tick or a world of ticks on the `boundaries` fixture of `tests/conftest.py` and on the world of `tests/proof_support.py`, and both describe an `inline` instance: no snapshots, no containers, the agent's scripted writes in the factory's own checkout and the undo after them. Once the inline environment goes (S0008), every stage runs through `ContainerEnvironment`, so the suite must run its stages there first, on the fakes F0042 built: `FakeSnapshots` on a folder and `FakeContainerRuns`, which play the sync container as a child process on the host. This story moves the suite: the two places that build the suite's boundaries give them a dataset under `tmp_path` with an empty base, the remote every test copies holds a `Makefile` whose `sync` succeeds, and an agent's request names the dataset's checkout as its working directory whenever the boundaries hold snapshots, so `FakeAgentRuntime` writes where a real agent writes and the take brings the result in (decision 9 of `feature.md`). The tests that pin what only the inline environment does (the undo of the agent's writes in the factory's own checkout, the undo of what a red check wrote) are replaced by what the container environment does. What stays: the inline environment itself and its setting, until S0008; `MakeProjectCommands` as the suite's project commands on the host checkout (decision 3); every test of the stage protocol, the claims, the decisions and the stalls, with its name and what it checks.
+
+## Interface
+
+`factory.application.task.StageTask` and `factory.application.preflight._probe_request` (`application`): the request's `working_directory` is `boundaries.snapshots.mount_point / "checkout"` when `boundaries.snapshots` is set, and `boundaries.checkout` otherwise.
+
+- A real runtime in a container ignores it (the container's working directory is `/work/checkout`); the host-side process of a container call starts there, which exists after `prepare`.
+
+Tests (the leave is decision 23 of `feature.md`):
+
+- `tests/git_support.py`: `REMOTE_FILES` gains `"Makefile"` with a target `sync` whose recipe is `@:` (it prints nothing and succeeds); a test that pushes its own `Makefile` keeps doing so and adds `sync` only when its stage runs `prepare`.
+- `tests/conftest.py`: the fixture `boundaries` gives `snapshots=FakeSnapshots(<tmp_path>/workspace, <tmp_path>/workspace-base)` and `containers=FakeContainerRuns(<tmp_path>/workspace)`, the base made empty first as `container_dataset` of `tests/container_support.py` makes it (that helper may then take the fixture's fakes, under the standing leave); `project_commands` stays `MakeProjectCommands` on the host checkout.
+- `tests/proof_support.py`: the world's `Boundaries(...)` the same, and `_outside_writes_undone` reads that a write outside the write paths is not in the result commit (taken out, not undone).
+- `tests/application/test_stall_edges.py::test_a_red_check_stall_undoes_what_the_check_wrote` and `tests/application/test_stall_environment.py::test_a_finisher_built_without_an_environment_undoes_what_a_red_check_wrote` are deleted (a check's files stay in its container; `tests/application/test_stall_container.py` pins the take of a stall).
+- `tests/application/test_after_agent.py::test_a_file_written_outside_the_write_paths_is_undone_and_reported`, `::test_undone_paths_are_named_in_a_last_paragraph_of_the_entry`, `::test_the_own_cost_record_file_is_not_named_as_undone`, `tests/application/test_costs.py::test_the_sidecar_is_written_again_after_the_undo`, `::test_an_agent_inside_its_write_paths_is_not_told_of_the_sidecar_undo`, `tests/application/test_stage_finish.py::test_the_checks_see_the_work_tree_after_the_undo`, `tests/application/test_stalls.py::test_a_stall_keeps_the_writes_inside_the_write_paths_and_drops_the_rest`, `tests/test_kill_points.py::test_a_died_run_loses_its_writes_outside_the_write_paths`: the scripted writes reach the dataset and the take leaves out what the role may not write; each keeps its name and what it checks of the result commit, the work tree and the entry.
+- `tests/application/test_task.py::test_the_request_carries_the_agent_checkout_and_guard_without_os_user`: the working directory is the dataset's checkout; `tests/application/test_stage_launch.py::test_the_runtime_receives_the_request_with_the_guard_and_the_draft_number`: the same.
+- `tests/application/test_stage_environment_calls.py::test_a_stage_built_without_an_environment_runs_the_inline_one` and `tests/application/test_stall_environment.py::test_a_stall_built_without_an_environment_undoes_inline_as_before`: they replace the fixture's fakes with `None` (`dataclasses.replace`) to reach the inline environment, until S0008 deletes them.
+- `tests/application/test_stage_environment.py`: its five tests replace the fixture's fakes with `None`, until S0008 deletes the module.
+- An earlier test not named here that fails only because the fixture now holds the fakes or the remote now holds a `Makefile` is a question (R9) with its failing lines, as `CLAUDE.md` (*Tests*) says; decision 9 of `feature.md` asks the pre-check to run the suite on a copy with this fixture and name them before the story starts.
+
+## Acceptance criteria
+
+1. The fixture (one test): `boundaries.snapshots` is a `FakeSnapshots` whose `mount_point` is `<tmp_path>/workspace`, `boundaries.containers` a `FakeContainerRuns`, `stage_environment_of(boundaries)` a `ContainerEnvironment`, and `reset()` on the fresh fixture raises nothing (the base exists).
+2. The remote (one test): the `main` of the `remote` fixture holds a `Makefile`, and `make -s sync` in a clone of it exits 0 and prints nothing.
+3. The working directory (rows of one parametrized test over `StageTask` and the probe's request): with the fixture's snapshots it is `<tmp_path>/workspace/checkout`; with `snapshots` `None` it is the host checkout.
+4. A whole stage on the fixture (one test through `StageRunner`, a tester's stage whose scripted run writes `tests/test_new.py` and `src/forbidden.py` and decides `doing`, the checks' `Makefile` pushed with `sync`, `lint` and `check` targets that pass): the result commit on the branch holds `tests/test_new.py` and not `src/forbidden.py`; the entry's closing paragraph names `src/forbidden.py`; the factory log holds one line beginning `stage environment: reset`; the host checkout's work tree after the stage equals the result commit.
+5. A died run (one test through `StageRunner`, a scripted run that writes `src/forbidden.py` and ends `died`): the stall commit holds no `src/forbidden.py` and the stall entry is the factory's.
+6. The world (one test over `tests/proof_support.py`): a story walked from intake to approval in the world reaches approval with every stage's timing line in the factory log, and no stage's result commit holds a path its role may not write.
+7. `make check` stays green.
+8. docs: `docs/project-guide/README.md`, *Shared test helpers*: the `boundaries` fixture describes a `container` instance on `FakeSnapshots` and `FakeContainerRuns`, the remote's `Makefile` with `sync`, and the `container_support.py` line names what it still offers; `docs/project-guide/stage-environment.md`, *The fakes*: the suite's stages run on them, and the request's working directory is the dataset's checkout. `docs/decisions.md`: none (decision 9 of `feature.md` is a test fixture, the entry "One snapshot instead of many layers" covers it). `README.md`, `docs/operator-guide.md`: none.
+
+## Smoke test
+
+```bash
+uv run pytest tests/application/test_stage_run.py tests/application/test_after_agent.py tests/application/test_stalls.py tests/test_kill_points.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '
+```
+Expect: `1`
+
+```bash
+grep -c '"Makefile"' tests/git_support.py; grep -c 'FakeSnapshots(' tests/conftest.py
+```
+Expect: two lines: `1`; `1`
+
+## Journal
