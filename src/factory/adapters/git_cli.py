@@ -42,6 +42,12 @@ FATAL = 128
 # One log record is id, parents, author, committer timestamp and message, each ended by NUL.
 LOG_FORMAT = "%H%x00%P%x00%an%x00%ct%x00%B"
 LOG_FIELDS = 5
+# The most paths one `check-ignore` call is given, so that no argument list grows without bound.
+IGNORE_GROUP = 1000
+# The exit status by which `check-ignore` says none of the paths is ignored.
+NONE_IGNORED = 1
+# The source, line and pattern before the tab of a `check-ignore --verbose` line no rule matched.
+NO_RULE = "::"
 # The write permission of the group and of others, which the git folder must not carry.
 SHARED_WRITE = 0o022
 DIFF_KINDS: dict[str, ChangeKind] = {"A": "added", "D": "deleted"}
@@ -169,6 +175,15 @@ def _remove_entry(path: Path) -> None:
             path.unlink()
     except OSError as error:
         raise RepositoryUnsealed(f"{path}: {error}") from error
+
+
+def _is_ignoring(line: str) -> bool:
+    # `<source>:<line>:<pattern><TAB><path>`; the pattern starts after the second colon.
+    rule = line.split("\t", 1)[0]
+    if rule == NO_RULE:
+        return False
+    pattern = rule.split(":", 2)[-1]
+    return not pattern.startswith("!")
 
 
 def _is_rejected(porcelain: str) -> bool:
@@ -414,6 +429,15 @@ class GitCli(Git):
         # The second `--force` also removes an ignored folder that holds a repository.
         self._run(["clean", "--quiet", "--force", "--force", "-d", "-X"])
 
+    def ignored(self, paths: Sequence[str]) -> list[str]:
+        """Ask `check-ignore` about `paths` in groups and keep those a rule (not `!`) ignores."""
+        for path in paths:
+            check_repository_path(path)
+        found: list[str] = []
+        for start in range(0, len(paths), IGNORE_GROUP):
+            found.extend(self._ignored_group(list(paths[start : start + IGNORE_GROUP])))
+        return found
+
     def work_tree_id(self, left_out: Sequence[str] = ()) -> TreeId:
         """Stage the work tree in a temporary index, drop the paths left out, write its tree."""
         with tempfile.TemporaryDirectory() as folder:
@@ -458,6 +482,16 @@ class GitCli(Git):
     def _blob(self, ref: str, path: str) -> str | None:
         listing = self._run(["ls-tree", "-z", ref, "--", path]).stdout
         return _blob_in_listing(listing, path)
+
+    def _ignored_group(self, paths: list[str]) -> list[str]:
+        # Without `-z`, which git takes only with `--stdin`: one line per path, in their order.
+        arguments = ["check-ignore", "--verbose", "--non-matching", "--", *paths]
+        result = self._run(arguments, accepted=(0, NONE_IGNORED))
+        lines = result.stdout.splitlines()
+        if len(lines) != len(paths):
+            message = f"{len(lines)} lines for {len(paths)} paths"
+            raise GitError(_command(arguments), result.exit_status, message)
+        return [path for path, line in zip(paths, lines, strict=True) if _is_ignoring(line)]
 
     def _delete_path(self, path: str) -> None:
         self._run(["rm", "--quiet", "--cached", "--ignore-unmatch", "--", path])

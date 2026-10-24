@@ -1,3 +1,183 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 1
+crashes: 0
+pull_request: 411
+comments_read: [6386154578, 6386353501]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-24T15:39:27.156256Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-24T15:39:27.161611Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-24T15:39:49.304745Z'
+  stage: intake
+  run: 8990f54f66674414bb4064f56d1864e5
+  blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-24T15:42:10.728644Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-24T15:42:28.635491Z'
+  stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-24T15:42:46.674332Z'
+  stage: intake
+  run: 4754a858818e49b1a2a322076c28cc25
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-24T15:43:07.067570Z'
+  stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-24T15:48:46.735356Z'
+  stage: tests
+  run: 8f412e333f2c4659b795d18cd90ed1ae
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-24T15:49:08.723875Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-24T15:52:40.234471Z'
+  stage: doing
+  run: 03abec51b738400297d7e6b4031497f3
+- number: 11
+  speaker: factory
+  kind: stall
+  at: '2026-10-24T15:52:40.268302Z'
+  stage: doing
+  run: 03abec51b738400297d7e6b4031497f3
+  reason: check_red
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-24T15:53:03.039000Z'
+  stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-24T15:56:02.460237Z'
+  stage: doing
+  run: 4fe1b3939b4648df968fa852150687df
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-24T15:56:23.163657Z'
+  stage: review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T15:58:06.222848Z'
+  stage: review
+  run: bd23e10c76e84ee19c75fd2c850cc8db
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-24T15:58:26.876598Z'
+  stage: doing
+- number: 17
+  speaker: coder
+  kind: question
+  at: '2026-10-24T15:59:06.416455Z'
+  stage: doing
+  run: 2eae9d8867be4fbeb4110cfeff5d219a
+  blocked: question
+- number: 18
+  speaker: human
+  kind: comment
+  at: '2026-10-24T16:00:22.546159Z'
+  stage: doing
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:00:41.578841Z'
+  stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-10-24T16:03:01.073392Z'
+  stage: doing
+  run: df6fd7d97aff467ea4cc5e53183a7649
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:03:21.598198Z'
+  stage: tests
+- number: 22
+  speaker: tester
+  kind: result
+  at: '2026-10-24T16:05:15.131303Z'
+  stage: tests
+  run: 2badef93e33f4bb899672ef8d16ff0f6
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:05:35.692624Z'
+  stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-10-24T16:08:44.780418Z'
+  stage: doing
+  run: b0b358191a404f928d971270dff87988
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:09:05.807294Z'
+  stage: review
+- number: 26
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T16:10:56.502599Z'
+  stage: review
+  run: f314d8f9cbcb49a6adb3e0f9cf780f63
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:11:17.366764Z'
+  stage: docs
+- number: 28
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T16:12:24.660859Z'
+  stage: docs
+  run: e3aa9f6f11524318919ee41c12c35443
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:12:45.531384Z'
+  stage: smoke-test
+- number: 30
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T16:13:27.894446Z'
+  stage: smoke-test
+  run: 3b35e64adfdf45d1b283b67c11d6aed7
+---
+
 # The take copies what the role may write from the dataset into the work tree
 
 ## Description
@@ -46,7 +226,7 @@ class TakeService:
     ) -> TakeReport: ...
 ```
 
-- `copy_changed`: for an `added` or `modified` path, the entry at `target / path` is removed first when there is one (a link as the link, a folder with what it holds) and the entry at `source / path` is then placed, so nothing is ever written through a link that stood at the target: a regular file by its bytes and its mode (so an executable bit is kept), a symbolic link by a link with the same target text (never followed), the parent folders made as needed; for a `deleted` path, the entry at `target / path` is removed when there is one, a link as the link and its target untouched (a missing one, a dangling link included, is no fault). Every path is checked with `check_repository_path` of `factory.domain.git` before anything is copied: an absolute path or one with a `..` segment raises its `ValueError`, whose text names the path. It is the one copying of this feature: the take uses it, and S0009's check container uses it the other way round.
+- `copy_changed`: for an `added` or `modified` path, the entry at `target / path` is removed first when there is one (a link as the link, a folder with what it holds) and the entry at `source / path` is then placed, so nothing is ever written through a link that stood at the target: a regular file by its bytes and its mode (so an executable bit is kept), a symbolic link by a link with the same target text (never followed); for a `deleted` path, the entry at `target / path` is removed when there is one, a link as the link and its target untouched (a missing one, a dangling link included, is no fault). The take never writes or removes anything outside the target tree, through any link, so the rule covers every parent folder of the path too (the human's answer, journal entry 18): for an `added` or `modified` path, every parent folder from `target` down to the entry is checked with `lstat` before the entry is placed, and a parent that is a link, or no folder, is removed (a link as the link) and made a real folder, so the source's entry lands inside the target tree; for a `deleted` path, a parent that is a link or is missing means the entry is not in the tree, so nothing is removed and nothing is followed. Every path is checked with `check_repository_path` of `factory.domain.git` before anything is copied: an absolute path or one with a `..` segment raises its `ValueError`, whose text names the path. It is the one copying of this feature: the take uses it, and S0009's check container uses it the other way round.
 - `take(stage_start, work_item_path, changed_paths)`, in this order:
   1. The baseline: the work item at `stage_start.commit` through `boundaries.git.show_file` and `work_item_reader.parse`; absent or unreadable is `WorkItemFormatError` naming `work_item_path`, before anything changes, as in the undo.
   2. The write paths: `WritePathService(boundaries).at(stage_start, work_item_path)`.
@@ -61,7 +241,7 @@ Tests (the tester writes them): `tests/application/test_take.py` and `tests/appl
 
 ## Acceptance criteria
 
-1. `GitCli.ignored` (rows of one parametrized test on the real clone, whose `main` holds the tracked `docs/kept.log` and a `.gitignore` with `.venv/`, `*.log` and `!keep.log`, the file pushed before the `.gitignore` because `GitCli.commit` stages no ignored file; none of the asked paths need exist in the checkout): `[".venv/bin/python", "src/a.py", "run.log"]` gives `[".venv/bin/python", "run.log"]` in that order, and `["run.log", ".venv/bin/python"]` gives them in that order; `["src/a.py"]` gives `[]`; `["keep.log"]` gives `[]` (the negation); `["docs/kept.log"]` gives `[]` (tracked, although `*.log` matches it); `[]` gives `[]` and runs no git, and `["/abs"]` and `["a/../b"]` raise `ValueError` and run no git (through a recording `GitOptions.executable` stand-in, no call is recorded). Through a stand-in `git` that records its arguments and answers `::<TAB><path>` for each path after `--`: 1,000 paths are one call and 1,001 paths two calls, the answer in the paths' order; a stand-in that exits 128 printing `fatal: boom`, and one that prints one line fewer than the paths it was given, each raise `GitError` (rows of the same test).
+1. `GitCli.ignored` (rows of one parametrized test on the real clone, whose `main` holds the tracked `docs/kept.log` and a `.gitignore` with `.venv/`, `*.log` and `!keep.log`, the file pushed before the `.gitignore` because `GitCli.commit` stages no ignored file; none of the asked paths need exist in the checkout): `[".venv/bin/python", "src/a.py", "run.log"]` gives `[".venv/bin/python", "run.log"]` in that order, and `["run.log", ".venv/bin/python"]` gives them in that order; `["src/a.py"]` gives `[]`; `["keep.log"]` gives `[]` (the negation); `["docs/kept.log"]` gives `[]` (tracked, although `*.log` matches it); `[]` gives `[]` and runs no git, and `["/abs"]` and `["a/../b"]` raise `ValueError` and run no git (through a recording `GitOptions.executable` stand-in, no call is recorded). Through a stand-in `git` that records its arguments and answers, for each path after `--`, `.gitignore:1:*.log<TAB><path>` for a path ending in `.log` and `::<TAB><path>` for any other: 1,000 paths are one call and 1,001 paths two calls, the paths asked in their order, and the answer is exactly the `.log` paths of both groups joined in the paths' order (both groups holding such paths); a stand-in that exits 128 printing `fatal: boom`, and one that prints one line fewer than the paths it was given, each raise `GitError` (rows of the same test).
 2. `copy_changed` (rows of one parametrized test): an `added` regular file arrives with the same bytes and mode (`0o755` stays `0o755`, `0o644` stays `0o644`), its parent folders made; a `modified` file replaces the target's bytes and mode; a `deleted` path removes the target's file, and a `deleted` path missing on the target raises nothing; an `added` symbolic link arrives as a link with the same target text, and the file it points to is not read; a `modified` file whose target entry is a symbolic link to a file outside the target tree replaces the link by a regular file with the source's bytes, and the outside file keeps its bytes; an `added` file whose target entry is a folder holding a file leaves no folder and no contents, and the target is a regular file with the source's bytes; a `deleted` path whose target entry is a link to a folder outside the target tree removes the link, and the folder stays; `/abs` and `a/../b` raise `ValueError` before anything is copied (the target tree is unchanged).
 3. A changed path under `checkout/` inside the write paths (`checkout/src/new.py` added, `checkout/src/kept.py` modified, `checkout/src/old.py` deleted, role write paths `["src/*", "{work_item}"]`) is taken: after `take`, the host's `src/new.py` and `src/kept.py` hold the dataset's bytes, `src/old.py` is gone, and `left` is `[]`.
 4. A changed path outside the write paths (`checkout/docs/guide.md` modified) is left: the host's `docs/guide.md` keeps its bytes, the dataset's `checkout/docs/guide.md` keeps the agent's bytes, and `left` is `["docs/guide.md"]`. A protected path inside a write path that matches it (write paths `["*"]`, `checkout/pyproject.toml` added and `checkout/factory/story-form.md` modified) is left too: `left` is `["factory/story-form.md", "pyproject.toml"]` and neither reaches the host (rows of one parametrized test with criterion 3's row as the taken side).
@@ -71,8 +251,10 @@ Tests (the tester writes them): `tests/application/test_take.py` and `tests/appl
 8. A work item absent at the stage-start commit, and one whose front matter at that commit cannot be read (a commit of the test that breaks it, as `tests/application/test_undo.py` builds both baselines), each raise `WorkItemFormatError` naming `work_item_path`, and nothing on the host changed (a changed `checkout/src/new.py` did not arrive) (rows of one parametrized test).
 9. `left` is sorted and holds each path once when the same path is given twice among `changed_paths`; the report is frozen and refuses an unknown field (`tests/test_model_configuration.py` covers the model).
 10. The other sides of two rules the Interface states: a stand-in `git` that prints one line more than the paths it was given raises `GitError` (a row of criterion 1's stand-in test, beside the line-short row); a `deleted` path whose target entry is a dangling symbolic link removes the link and raises nothing (a row of criterion 2's test).
-11. `make check` stays green.
-12. docs: `docs/project-guide/stage-environment.md` gains the section *The take*: the seven steps in order, what is dropped, what is left, what is taken, the work item's restore shared with the undo, `copy_changed` and its two users, the errors, the tests; `docs/project-guide/git-and-hosting.md`, *The git wrapper*: the row for `ignored` in the operations table (the command, the groups, what is read from the lines, the three exit statuses), the count twenty-six, and a row for `ignored` in *Which part uses which operation* (the take, `stage-environment.md`); `docs/project-guide/README.md`, *The files*, names `factory.application.take` for the stage-environment file; `docs/project-guide/write-guard.md`, *The undo*: one sentence that the take (`stage-environment.md`) applies the same two rules the other way round, in the container environment. `docs/decisions.md`: none in this story.
+11. The dataset is not written: after `take` with criterion 3's rows and a work item restore (criterion 7's first row), every file under `mount_point` has the same bytes and mode as before, the listing under `mount_point` is unchanged, and the fixtures' git history has no new commit.
+12. The parent folders on the target (the human's answer, journal entry 18; rows of criterion 2's test): the target's `src/evil` is a link to a folder outside the target tree and `src/evil/x` is `added`: the outside folder is unchanged, and `src/evil` ends as a real folder holding `x` with the source's bytes; the same link and a `deleted` path through it (`src/evil/file.txt`, a file the outside folder holds): the outside file keeps its bytes.
+13. `make check` stays green.
+14. docs: `docs/project-guide/stage-environment.md` gains the section *The take*: the seven steps in order, what is dropped, what is left, what is taken, the work item's restore shared with the undo, `copy_changed` (the parent folders included) and its two users, the errors, the tests; `docs/project-guide/git-and-hosting.md`, *The git wrapper*: the row for `ignored` in the operations table (the command, the groups, what is read from the lines, the three exit statuses), the count twenty-six, and a row for `ignored` in *Which part uses which operation* (the take, `stage-environment.md`); `docs/project-guide/README.md`, *The files*, names `factory.application.take` for the stage-environment file; `docs/project-guide/write-guard.md`, *The undo*: one sentence that the take (`stage-environment.md`) applies the same two rules the other way round, in the container environment. `docs/decisions.md`: none in this story.
 
 ## Smoke test
 
@@ -112,3 +294,290 @@ EOF
 Expect: two lines, `0o755 new False kept.py` and `refused True`
 
 ## Journal
+
+1. 2026-10-24 human: created.
+2. factory: started intake as self.
+3. intake: 1. The Interface says "The service writes no commit, runs no git command on the dataset and never writes under `mount_point`", and step 4 says "the dataset is never written". Only the left paths have a check for this (criterion 4: the dataset's `checkout/docs/guide.md` keeps the agent's bytes). No criterion covers the taken paths (criterion 3), the restored work item (criterion 7) or the dataset as a whole. Two coders could read this two ways and both would pass the tests. Option A, the one I would choose: add a criterion before the two closing ones. After `take` with criterion 3's rows plus a work item restore, every file under `mount_point` has the same bytes, mode and listing as before, and the fixtures' git history has no new commit. Option B: drop the sentence from the Interface, which would be your edit. Intake otherwise found the story buildable, and the Format check passed. The checks I did:
+   - **Interface:** names concrete modules and signatures.
+   - **Criteria:** each is testable. Both sides of every other rule have a criterion.
+   - **Smoke test:** the commands are runnable. pyproject sets `-q` in `addopts`, and the pytest command passes none, so the `N passed in` line exists.
+   - **Architecture:** the layering is right.
+   - **Scope:** within F0042.
+4. 2026-10-24 human: Answer to the intake (F0042-S0004, the take copies what the role may write from the dataset into the work tree): **A**. Add a criterion before the two closing ones: after `take` with criterion 3's rows and a work item restore, every file under `mount_point` has the same bytes and mode as before, the listing under `mount_point` is unchanged, and the fixtures' git history has no new commit. The Interface's sentence stays. Please write it into the criteria as you accept.
+5. factory: started intake as self.
+6. intake: accepted
+   - Interface: names concrete modules and signatures (`Git.ignored`, `GitCli.ignored`, `TakeReport`, `copy_changed`, `TakeService.__init__` and `take`). Every behaviour stated in it has a criterion: the grouping at 1,000 and 1,001, the order, the negation, tracked paths, the three exit statuses, the line count (short and long), `ValueError` for absolute and `..` paths, the removal of links, the sorted report.
+   - Criteria: each is testable by one parametrized test. Every rule has both sides: taken and left, dropped paths, the work item's four restore cases, both baseline faults, the paths that fail `check_repository_path`. Per the human's answer in journal entry 4 (option A) I wrote the new criterion 11 (the dataset is not written: same bytes and mode, same listing, no new commit in the fixtures' history). The closing two are now 12 (`make check`) and 13 (`docs:`).
+   - Smoke test: both commands are runnable. pyproject sets `-q` in `addopts` and the pytest command passes none, so the `N passed in` line exists. Each `Expect:` line can be checked against the output.
+   - Architecture: `factory.application.take` and the `Git` operation sit in `application`, `GitCli.ignored` in `adapters`, with no import against the layers. This matches CLAUDE.md.
+   - Scope: inside F0042's scope (S0004, decisions 10 and 18 d). Nothing is in "Out of scope". The story changes tests that other stories wrote only where decision 18 d gives the leave.
+7. factory: started tests as self.
+8. tester: Wrote the red tests for the take and for the git operation `ignored`. One `make test` run: the failures are the right ones. `GitCli` has no attribute `ignored`, the Git interface tests count twenty-six operations and find twenty-five, and the two take modules fail at collection because `factory.application.take` does not exist yet. `make lint` is green. I did not run the type check (stage rule).
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_git_cli_check_ignore.py::test_ignored_names_the_paths_the_rules_ignore_in_the_order_given (real clone; `main` has `docs/kept.log` pushed before the `.gitignore`), ::test_ignored_runs_no_git_for_no_paths_or_a_refused_path (`[]`, `/abs`, `a/../b`; a recording stand-in records no call), ::test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read (1,000 → one call, 1,001 → two calls, the paths asked in order, `check-ignore --verbose --non-matching` just before `--`; exit 128 `fatal: boom` and a line short raise `GitError`)
+   - criterion 2: tests/application/test_take_edges.py::test_copy_changed_mirrors_each_changed_path_into_the_target
+   - criterion 3: tests/application/test_take.py::test_a_changed_path_is_taken_only_where_the_role_may_write[inside-the-write-paths]
+   - criterion 4: tests/application/test_take.py::test_a_changed_path_is_taken_only_where_the_role_may_write[outside-the-write-paths, protected]
+   - criterion 5: tests/application/test_take.py::test_every_other_file_directly_in_an_in_progress_folder_is_left
+   - criterion 6: tests/application/test_take_edges.py::test_a_dropped_path_is_neither_taken_nor_left
+   - criterion 7: tests/application/test_take.py::test_the_work_items_state_and_journal_come_back_from_the_stage_start
+   - criterion 8: tests/application/test_take_edges.py::test_a_missing_or_unreadable_baseline_raises_before_anything_is_taken
+   - criterion 9: tests/application/test_take.py::test_left_ascends_and_holds_a_path_given_twice_once (the model's frozen and unknown-key checks stay with tests/test_model_configuration.py)
+   - criterion 10: row `line-long` of criterion 1's stand-in test; row `deleted-dangling-link` of criterion 2's test
+   - criterion 11: tests/application/test_take.py::test_the_take_writes_nothing_in_the_dataset_and_no_commit
+   - criteria 12 and 13: no test (`make check` and docs)
+
+   Files created:
+   - tests/adapters/test_git_cli_check_ignore.py
+   - tests/application/test_take.py
+   - tests/application/test_take_edges.py
+   - tests/take_support.py: shared helpers for both take modules. It makes a dataset under `tmp_path/dataset` by copying the host checkout without `.git`, writes the agent's files there, builds the `ChangedPath` list, runs `TakeService` and snapshots a tree (kind, mode, bytes).
+
+   Earlier test files I changed, under decision 18 d that the Interface cites:
+   - tests/application/test_git_interface.py: `ignored` added to `OPERATIONS`, and the test renamed from `..._twenty_five_...` to `..._twenty_six_...`.
+   - tests/application/test_interfaces.py: the same rename.
+
+   tests/application/test_undo.py and tests/undo_support.py are untouched.
+
+   Module the test run could not import: `factory.application.take`, giving collection errors in test_take.py and test_take_edges.py. `GitCli.ignored` is missing too.
+
+   How some tests read the criteria:
+   - Criterion 6: "neither on the host" is tested as the host work tree outside `.git` and its `.git/config` being unchanged.
+   - The "the file a link points to is not read" row uses a dangling source link.
+   - The `ValueError` rows put a valid path before the refused one and check the target tree is unchanged.
+
+   Rejected: reusing the private `_recording_executable` from test_git_cli_arguments.py. The new stand-in also has to answer `check-ignore` lines, so it is a different helper, not a copy.
+
+   `lint`: lint: green (0.5 s)
+   `test`: ERROR tests/application/test_take_edges.py - ImportError while importing test module '/work/checkout/tests/application/test_take_edges.py'.
+9. factory: started doing as self.
+10. coder: Built the take and the git operation `ignored`; `make check` is green.
+
+    What I built (paths):
+    - src/factory/application/git.py: `Git.ignored`, the twenty-sixth operation.
+    - src/factory/adapters/git_cli.py: `GitCli.ignored`. It checks every path with `check_repository_path` first; `[]` runs no git. It then runs `git check-ignore --verbose --non-matching -- <paths>` per group of `IGNORE_GROUP` (1,000). Exit 0 and `NONE_IGNORED` (1) are both read as answers; any other exit status raises `GitError`, and so does a line count different from the path count (`_ignored_group`). A path is ignored when the rule before the tab is not `NO_RULE` (`::`) and its pattern, the text after the second colon, does not start with `!` (`_is_ignoring`).
+    - src/factory/application/take.py (new): `TakeReport`, `copy_changed`, `TakeService.take`. `copy_changed` checks every path before copying anything. It removes the target entry by `lstat`, so a link goes as the link, a folder with what it holds, and a missing entry is no fault. For added or modified it then places the source: a link by its target text, a regular file by `shutil.copyfile(follow_symlinks=False)` plus `chmod` to the source's mode, parents made. `take` follows the seven steps: baseline, write paths, candidates (under `checkout/`, prefix removed, no `.git` segment, minus `git.ignored`), refused into a sorted, deduplicated `left`, copy, work item restore unless refused, report.
+    - src/factory/application/undo.py: `_baseline`, `_restore_work_item` and `_is_refused` became the public module functions `read_baseline`, `restore_work_item` and `is_refused`, each taking `Boundaries` where it needs it. The take imports them, so nothing is copied. The undo's behaviour is unchanged, and tests/application/test_undo.py passes untouched.
+
+    Main decision: the take skips the restore through `work_item_path not in left`, which gives "a refused work item is not restored" directly. Rejected: always running the restore and relying on it returning false because the host's copy is unchanged. That holds only while the host's copy still equals the stage-start commit.
+
+    Refactor pass: renamed `tracked` to `outside_git` in `_candidates` (those paths are not about git tracking) and shortened two docstrings for the line length. Nothing else needed changing.
+
+    Noticed, not touched:
+    - `copy_changed` does not check whether a parent folder on the target is a symbolic link, so it would write through such a parent. The Interface only requires that the entry itself is never written through; this could be a follow-up story if wanted.
+    - `_is_ignoring` takes the pattern after the second colon. An ignore-file path holding a colon, or a pattern holding a tab, would be misread.
+    - `make duplicates` (a record, not a check): three new dead-code findings in take.py (`TakeService`, `take`, `restored_work_item`). They are expected, because nothing calls the service until S0007. A fourth, `WORK_HOME` in src/factory/domain/containers.py, does not come from this story.
+    - One `make check` run ended in `make types` with exit 139 (a mypy segfault, not a type error). The rerun was green throughout.
+    - A `git stash` I tried in order to compare the duplicates baseline created no stash and changed nothing; the working tree is intact.
+11. factory: Stage doing stalled (attempt 1 of 2): a check is red after the stage: `check`
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    Installed 106 packages in 97ms
+    Bytecode compiled 4164 files in 368ms
+    All checks passed!
+    Bytecode compiled 4164 files in 128ms
+    lint: green (0.6 s)
+    Bytecode compiled 4164 files in 89ms
+    make: *** [Makefile:39: types] Error 139
+12. factory: started doing as self.
+13. coder: The work is unchanged from the previous attempt (entry 10), and a fresh `make check` run is green throughout, `types` included. The stall in entry 11 was `make types` ending with exit 139, which is a mypy segfault and not a type error. It did not happen again: the full run ended with `test: green (65.9 s)`, total coverage 99.18 %, and `check: green`. I changed no code in this attempt.
+
+    What I built (paths, as entry 10 lists them):
+    - src/factory/application/git.py: adds `Git.ignored`, the twenty-sixth operation.
+    - src/factory/adapters/git_cli.py: adds `GitCli.ignored`. It first checks every path with `check_repository_path`. It then runs `check-ignore --verbose --non-matching --` in groups of `IGNORE_GROUP` (1,000) paths, and exit statuses 0 and `NONE_IGNORED` (1) both count as answers. A line count that differs from the path count raises `GitError`. A `::` rule or a `!` pattern means the path is not ignored.
+    - src/factory/application/take.py (new): `TakeReport`, `copy_changed` and `TakeService.take`, which runs the seven steps in order.
+    - src/factory/application/undo.py: three helpers are now public (`read_baseline`, `restore_work_item`, `is_refused`). The take shares them, so nothing is copied. The undo behaves as before, and tests/application/test_undo.py is untouched.
+
+    Main decision: the take skips the restore of the work item when the work item is in `left`, so a refused work item is never restored. I rejected always running the restore and relying on it returning false: that holds only while the host's copy still equals the stage-start commit.
+
+    Refactor: I read the diff again (take.py, git_cli.py) and found nothing to change.
+
+    Noticed, not touched (as in entry 10):
+    - `copy_changed` does not check whether a parent folder on the target is a symbolic link, so it can write through a linked parent. The Interface only requires that the entry itself is never written through.
+    - `_is_ignoring` reads the pattern as the text after the second colon. An ignore-file path that holds a colon, or a pattern that holds a tab, would be misread.
+    - `make duplicates` shows dead-code findings for `TakeService`, `take` and `restored_work_item`. They are expected until S0007 calls the service.
+    - The mypy segfault happened once and has not come back. If it recurs, it is a fault of the tool, not of this code.
+
+    `check`: check: green
+    `duplicates`: duplicates: 14 new, 38 known, 0 gone
+14. factory: started review as self.
+15. reviewer: Review, round 0. I read the work item, `git diff main...HEAD -- . ':!factory'` (src: `git_cli.py`, `git.py`, `take.py`, `undo.py`; tests: `test_git_cli_check_ignore.py`, `test_take.py`, `test_take_edges.py`, `take_support.py`, and the two renamed interface tests) and the coder's journal. The factory's `make check` after the coder was green (entry 13). Group 1 (acceptance criteria) fails, so I stopped there and did not judge groups 2 to 5.
+
+    Findings:
+    1. `tests/adapters/test_git_cli_check_ignore.py::test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read`, rows `one-group` and `two-groups`: criterion 1 says 1,001 paths give two calls "the answer in the paths' order". The stand-in answers `::<TAB><path>` for every path, so `cli.ignored(paths)` is always `[]`. The rows never check how the two groups' answers are joined. A `GitCli.ignored` that kept only the last group's answer (`found = ...` instead of `found.extend(...)`) would still pass. Fix (tester): make the stand-in answer an ignoring rule line (e.g. `.gitignore:1:*.log<TAB><path>`) for some paths in both groups, e.g. every path whose name ends in `.log`. Then assert that the returned list holds exactly those paths from both groups, in the order given.
+    2. `src/factory/application/take.py:_place` / `copy_changed`, and the story's Interface: the Interface says "nothing is ever written through a link that stood at the target". No criterion covers its failing side for a link at a parent folder of the path (target `src/evil -> <folder outside>`, `src/evil/x` added). The code does `entry.parent.mkdir(..., exist_ok=True)` and `shutil.copyfile`, so it writes through such a link and out of the work tree; the coder noted this in entry 10. This gap is in the story, not in the tester's work. Fix: either a new row in criterion 2's test (a parent folder on the target that is a link to a folder outside: nothing is written outside, and the target ends as a real folder holding the source's file) plus the code to match, or the human narrows the Interface's sentence to the entry itself. Because it needs a code change or the human's word, the coder should ask (`question`) unless the answer is already clear.
+
+    Earlier tests (item 6):
+    - `tests/application/test_git_interface.py`: under the human's leave, feature.md decision 18 (d), which the story's Interface cites (`OPERATIONS` gains `ignored`, test renamed to twenty-six). It stays within that leave.
+    - `tests/application/test_interfaces.py`: under the same leave, 18 (d) (`test_git_abstract_methods_are_exactly_its_twenty_five_operations` renamed to twenty-six, assertion unchanged). It stays within that leave.
+16. factory: started doing as self.
+17. coder: Round 1. I read the reviewer's two findings (entry 15) and `src/factory/application/take.py`. I changed no code. Finding 1 needs only a test change. Finding 2 needs your word on the scope before I or the tester can act.
+
+    **Question (finding 2): should `copy_changed` also refuse to write through a symbolic link at a *parent* folder of a path on the target?**
+
+    The Interface says the entry at `target / path` is removed before the source is placed, "so nothing is ever written through a link that stood at the target". `_place` (`src/factory/application/take.py:100`) calls `entry.parent.mkdir(parents=True, exist_ok=True)` and then `shutil.copyfile`. When the target holds `src/evil -> <folder outside>` and `src/evil/x` is added, the file is written outside the work tree. The same holds for a `deleted` path: `_remove_entry` on `src/evil/x` would remove the outside file. A link like that can reach the host's work tree through an earlier commit, since the take itself copies links the role may write. No criterion covers this side.
+
+    Options:
+    - **A (my choice):** widen the rule to every parent folder and add a criterion before the two closing ones. Before a path is placed or removed, each parent folder from `target` down to the entry is checked with `lstat`.
+      - For `added`/`modified`, a parent that is a link or not a folder is removed (the link as the link) and made a real folder. The source's file then lands inside the target tree, and nothing outside is written.
+      - For `deleted`, a parent that is a link or missing means the entry is not in the tree, so nothing is removed and nothing is followed.
+      - The tester adds two rows to criterion 2's test: (a) target `src/evil` a link to an outside folder, `src/evil/x` added. The outside folder is unchanged, and `src/evil` ends as a real folder holding the source's `x`. (b) The same link, `src/evil/x` deleted. The outside file stays.
+      - I then implement it in `copy_changed`, a small helper beside `_remove_entry`.
+    - **B:** narrow the Interface's sentence to the entry itself ("nothing is ever written through a link that stood at the entry's own place on the target"). The code stays as it is, and the parent-link case becomes a separate backlog story if you want one.
+
+    **Finding 1, after your answer.** This is only a test change, so I will end with `tests` and name it. In `tests/adapters/test_git_cli_check_ignore.py::test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read`, rows `one-group` and `two-groups`, the stand-in should answer an ignoring line (`.gitignore:1:*.log<TAB><path>`) for the paths ending in `.log`, and the assertion should check the joined result: those paths from both groups, in the order given. The code already joins with `extend`, so I expect it to pass unchanged. With A, the same `tests` hand-over also names the two new rows of criterion 2's test, and I write the code once the tester has added them.
+
+    Noticed, not touched: as entry 10 says, `_is_ignoring` misreads an ignore-file path that holds a colon. `make duplicates` reports dead code for `TakeService`, which is expected until the container environment calls it.
+18. 2026-10-24 human: Answer to the coder (F0042-S0004, the take copies what the role may write from the dataset into the work tree): **A**, as you propose.
+
+    The take must never write or remove anything outside the work tree, through any link, so the rule covers every parent folder:
+    - **added or modified:** before the entry is placed, every parent folder from `target` down to the entry is checked with `lstat`. A parent that is a link, or no folder, is removed (a link as the link) and made a real folder; the source's file then lands inside the target tree.
+    - **deleted:** a parent that is a link or is missing means the entry is not in the tree, so nothing is removed and nothing is followed.
+
+    Add one criterion before the two closing ones, tested as the two rows you name in criterion 2's test: (a) target `src/evil` a link to a folder outside, `src/evil/x` added: the outside folder is unchanged, and `src/evil` ends as a real folder holding the source's `x`; (b) the same link, `src/evil/x` deleted: the outside file stays. Finding 1 as you describe it: a test change only.
+
+    Please write the rule into the Interface and the criterion into the criteria.
+19. factory: started doing as self.
+20. coder: Round 1, after the human's answer A (entry 18). I implemented the parent-folder rule and changed no test. The following changes are for the tester.
+
+    **Test changes for the tester:**
+    1. Finding 1. In `tests/adapters/test_git_cli_check_ignore.py::test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read`, rows `one-group` and `two-groups`:
+       - The stand-in answers `.gitignore:1:*.log<TAB><path>` for each path ending in `.log`, and `::<TAB><path>` for every other path.
+       - The assertion checks that the result is exactly the `.log` paths from both groups, in the order given.
+    2. The new criterion from entry 18, as two rows of `tests/application/test_take_edges.py::test_copy_changed_mirrors_each_changed_path_into_the_target`:
+       - (a) The target's `src/evil` is a link to a folder outside the target tree, and `src/evil/x` is `added`. The outside folder is unchanged, and `src/evil` ends as a real folder that holds the source's `x`.
+       - (b) The same link, and `src/evil/x` is `deleted`. The outside folder's file stays.
+
+    **What I built:** `src/factory/application/take.py`. Before an `added` or `modified` path is placed, `copy_changed` now walks the parent folders from `target` down, using `_parent_folders` and `_make_real_folders`. Each parent that is a link or not a folder is removed with the existing `_remove_entry` (a link goes as the link) and then made a real folder. For a `deleted` path, the entry is removed only when every parent is a real folder (`_is_real_folder`, which uses `lstat`). The check runs top-down and stops at the first linked or missing parent, so no `lstat` ever goes through a link. `_place` no longer makes the parent folders, because the walk has already made them. I ran both new cases by hand against a temporary tree and they behave as entry 18 says: the outside file is untouched by the delete, and the add leaves `src/evil` as a real folder holding the source's `x`. `make check`: check: green (coverage 99.18 %).
+
+    **Main decision:** I check the parents one at a time from the target down. The alternative I rejected was resolving the entry's parent with `Path.resolve()` and testing whether it lies under `target`. That approach follows links to decide, and it would only refuse such a path rather than turn the parent into a real folder, which is what the human asked for.
+
+    **Refactor:** I read the diff once and found nothing to change.
+
+    **What the journal changed:** entry 18 widens the Interface's `copy_changed` rule from the entry itself to every parent folder, as worded above, and adds a criterion before the two closing ones. That criterion is the two rows above; it would make `make check` criterion 13 and docs criterion 14. The human asked for these to be written into the Interface and the criteria. The work item is outside my write paths: the write was refused with `Permission denied`. So the Interface and criteria text still have to be written by a stage or a person whose write paths include the work item. The docs criterion's *The take* section should describe the parent-folder rule too.
+
+    **Noticed, not touched:**
+    - `_is_ignoring` in `git_cli.py` misreads an ignore-file path that contains a colon.
+    - `make duplicates` reports dead code for `TakeService`, which is expected until the container environment calls it.
+21. factory: started tests as self.
+22. tester: Round 1, a test change the human approved (entry 18), made as the coder named it in entry 20. I changed only those two tests and nothing else.
+
+    Changes:
+    1. Finding 1: `tests/adapters/test_git_cli_check_ignore.py::test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read`, rows `one-group` and `two-groups`.
+       - The stand-in now answers `.gitignore:1:*.log<TAB><path>` for each path ending in `.log`, and `::<TAB><path>` for every other path.
+       - The test's paths make every even-numbered path a `.log`, so both groups hold ignored paths. Path 1000, the only path in the second group of the 1,001 row, is a `.log`.
+       - The assertion is now that `cli.ignored(paths)` equals exactly the `.log` paths, in the order given. A version that kept only the last group's answer would now fail.
+    2. The parent-folder rule from entry 18: two new rows of `tests/application/test_take_edges.py::test_copy_changed_mirrors_each_changed_path_into_the_target`.
+       - `added-under-a-parent-link`: the target's `src/evil` is a link to the outside folder, and `src/evil/x` is added. The outside folder still holds only `file.txt` with its bytes. `src/evil` ends as a real folder that holds `x` with the source's bytes.
+       - `deleted-under-a-parent-link`: the same link, and `src/evil/file.txt` is deleted. The outside `file.txt` keeps its bytes.
+       - New helpers in the same module: `_parent_link`, `_added_under_parent_link`, `_parent_made_real`, `_deleted_under_parent_link`, `_outside_file_stays`.
+
+    Mapping for the new criterion (the parent-folder rule): tests/application/test_take_edges.py::test_copy_changed_mirrors_each_changed_path_into_the_target, rows `added-under-a-parent-link` and `deleted-under-a-parent-link`. Criterion 1's join of the groups' answers: tests/adapters/test_git_cli_check_ignore.py::test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read, rows `one-group` and `two-groups`.
+
+    Files changed: tests/adapters/test_git_cli_check_ignore.py and tests/application/test_take_edges.py. Both were written by this story's tester, so no other story's tests were touched. No file was created. The test run imported every module.
+
+    `make test`: green (65.9 s), coverage 99.18 %. The coder's code already meets both changes. `make lint`: green.
+
+    Open: entry 18 asks for the parent-folder rule to go into the Interface and for a new criterion before the two closing ones. The work item is outside the tester's write paths (`tests/*`) and also outside the coder's, so neither of us could write it. The Interface's `copy_changed` sentence and the criteria list still need that text, from the human or from a stage whose write paths include `{work_item}`. In this round, that stage is the reviewer.
+
+    `lint`: lint: green (0.5 s)
+    `test`: Bytecode compiled 4164 files in 88ms
+23. factory: started doing as self.
+24. coder: Round 1, after the tester's changes (entry 22). I changed no code in this run: the parent-folder rule from entry 18 was already in place, and the tester's changed and new rows pass against it unchanged. `make check`: check: green (test: green (65.7 s), coverage 99.18 %).
+
+    What I built (round 1, entry 20): `src/factory/application/take.py`. Before an `added` or `modified` path is placed, `copy_changed` walks the parent folders from `target` down (`_parent_folders`, `_make_real_folders`). A parent that is a link, or is not a folder, is removed as the link with `_remove_entry` and then made a real folder. A `deleted` path is removed only when every parent is a real folder (`_is_real_folder`, which uses `lstat`). `all()` stops at the first linked or missing parent, so no `lstat` ever goes through a link. The rest of the story (`TakeService`, `TakeReport`, `GitCli.ignored`) is unchanged since entry 13.
+
+    Main decision: I check the parents one at a time with `lstat`, from the target down. I rejected resolving the parent with `Path.resolve()` and comparing it with `target`. That approach follows links to decide, and it can only refuse the path. It cannot turn the parent into a real folder, which entry 18 asks for.
+
+    Refactor: I read the diff again and found nothing to change.
+
+    What the journal changed: entry 18 widens the Interface's `copy_changed` rule from the entry itself to every parent folder. It also adds a criterion before the two closing ones: rows `added-under-a-parent-link` and `deleted-under-a-parent-link` of `tests/application/test_take_edges.py::test_copy_changed_mirrors_each_changed_path_into_the_target`. With it, `make check` becomes criterion 13 and docs becomes criterion 14. The coder and tester write paths do not include the work item, so the Interface and the criteria still need this text from a stage or person whose write paths include `{work_item}`. The docs criterion's *The take* section should describe the parent-folder rule too.
+
+    Noticed, not touched:
+    - `_is_ignoring` in `src/factory/adapters/git_cli.py` misreads an ignore-file path that holds a colon.
+    - `make duplicates` reports dead code for `TakeService`. That is expected until the container environment calls it.
+
+    `check`: check: green
+    `duplicates`: duplicates: 14 new, 38 known, 0 gone
+25. factory: started review as self.
+26. reviewer: Review, round 1. I read the work item, the diff `git diff main...HEAD -- . ':!factory'` (src: `git_cli.py`, `git.py`, `take.py`, `undo.py`; tests: `test_git_cli_check_ignore.py`, `test_take.py`, `test_take_edges.py`, `take_support.py`, plus the two renamed interface tests) and the `make duplicates` record. The factory's `make check` after the coder was green (entry 24).
+
+    Both round-0 findings are fixed.
+    - Finding 1: rows `one-group` and `two-groups` of `test_ignored_asks_git_in_groups_and_refuses_an_answer_it_cannot_read` now check the joined `.log` answer of both groups, so a version that kept only the last group would fail.
+    - Finding 2: `copy_changed` (`src/factory/application/take.py`) walks the parent folders from `target` down with `lstat`. For `added`/`modified` it replaces a linked or non-folder parent with a real folder. For `deleted` it removes nothing behind a linked or missing parent. The new rows `added-under-a-parent-link` and `deleted-under-a-parent-link` of `test_copy_changed_mirrors_each_changed_path_into_the_target` pin both sides.
+
+    Group by group:
+    - **Criteria:** criteria 1–11 each have a test that checks what the criterion says.
+    - **Architecture:** the layers hold. `take` imports only from application and domain. The undo's helpers are shared through the now-public `read_baseline`, `restore_work_item` and `is_refused`, not copied.
+    - **Security:** no markers or secrets, and no command is built from strings.
+    - **Quality:** there is no second copy of a helper. `git_cli._remove_entry` is in adapters, out of reach for application, and raises `RepositoryUnsealed`. The new public names have docstrings. Of the 14 new `make duplicates` findings, only three come from this story: `TakeService`, `take` and `restored_work_item` are unused. The story says nothing calls the service until S0007, so these are expected.
+
+    Work item, under the human's answer in journal entry 18, which asked for its text and which neither the coder nor the tester could write (outside their write paths):
+    - Interface corrected: the `copy_changed` bullet said "the parent folders made as needed", with only the entry itself protected from links -> it now states the parent-folder rule as entry 18 words it.
+    - Criterion 12 added (the parent folders, two rows of criterion 2's test). The tester already wrote and mapped these rows in entry 22 and they pass, so nothing goes back. Row (b) deletes `src/evil/file.txt`, a file the outside folder holds, which is stronger than entry 18's `src/evil/x`. The closing criteria are renumbered to 13 (`make check`) and 14 (docs).
+    - Criterion 1 corrected: the stand-in "answers `::<TAB><path>` for each path" -> "answers `.gitignore:1:*.log<TAB><path>` for `.log` paths and `::<TAB><path>` otherwise; the answer is exactly the `.log` paths of both groups, in order", matching finding 1's test change, which the human approved in entry 18.
+    - The docs criterion now says "`copy_changed` (the parent folders included)", so the documenter covers the rule.
+
+    no findings
+
+    Earlier tests:
+    - `tests/application/test_git_interface.py`: changed under the human's leave, feature.md decision 18 (d): `OPERATIONS` gains `ignored` and the test is renamed to twenty-six. It stays within that leave.
+    - `tests/application/test_interfaces.py`: changed under the same leave, 18 (d): the test is renamed to twenty-six and its assertion is unchanged. It stays within that leave.
+
+    Notes:
+    - `tests/application/test_take.py:17` and `tests/application/test_take_edges.py:20`: both define the same `BROKEN_FRONT_MATTER` constant. It could live in `tests/take_support.py`.
+    - `src/factory/application/take.py:71`: `taken` checks membership against the sorted list `left`. A set would avoid a linear scan for every candidate. This is not a finding: the behaviour is right.
+27. factory: started docs as self.
+28. documenter: Docs, round 1. I read the story (Interface, criteria, journal), the diff of `src/` and `tests/` against `main`, and the existing project guide. Only documents changed, so I did not run `make check`; the factory's check after this stage decides. I did not run the smoke-test commands.
+
+    Files changed:
+    - `docs/project-guide/stage-environment.md`: new section *The take* (the seven steps in order, what is dropped, left and taken, the work item's restore shared with the undo, `copy_changed` with its parent-folder rule and its two users, the errors, the tests). The module list in the opening paragraph now names `factory.application.take`.
+    - `docs/project-guide/git-and-hosting.md`: the count is now twenty-six. The operations table has a row for `ignored` (command, groups of `IGNORE_GROUP`, how the lines are read, the exit statuses, the `ValueError` and `GitError` cases). The *Which part uses which operation* table has a row for `ignored` (the take).
+    - `docs/project-guide/README.md`: *The files* names `factory.application.take` and the new section for the stage-environment file.
+    - `docs/project-guide/write-guard.md`: *The undo* has one sentence that the take applies the same two rules the other way round, with a pointer to `stage-environment.md`.
+    - `docs/decisions.md`: unchanged, as the docs criterion says.
+
+    I compared the text with `take.py`, `git_cli.py` and the `Git` interface. The code matches the Interface, so I have no findings for the coder.
+
+    Cross-read and found current: `write-guard.md`, *The undo*. The undo's behaviour is unchanged. Only `read_baseline`, `restore_work_item` and `is_refused` became public, and the guide did not name them before.
+
+    Stale text I saw and did not touch:
+    - The coder's note that `_is_ignoring` in `src/factory/adapters/git_cli.py` misreads an ignore-file path that holds a colon. It is code, so it is not mine to edit.
+    - The reviewer's note that `BROKEN_FRONT_MATTER` is defined in both `test_take.py` and `test_take_edges.py`. It is test code.
+
+    `check`: check: green (not run again: passed on tree 1b43b70bb234 at 2026-10-24T16:07:29Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
+29. factory: started smoke-test as self.
+30. smoke-tester: Smoke test, round 1. I ran both commands from the repository root exactly as written, in order. I fixed nothing.
+
+    Command 1 (pytest over the take tests and both git test files, last line counted):
+    ```
+    1
+    ```
+    I ran the same pytest call again without the `grep -c` to see the line it counted:
+    ```
+    67 passed in 3.24s
+    ```
+    Met its `Expect:` (`1`). The last line is a single `<n> passed in <s>s` line covering all four files, including the old `test_git_cli_ignored.py`.
+
+    Command 2 (`copy_changed` script in a self-removing `mktemp -d` folder):
+    ```
+    Bytecode compiled 4164 files in 79ms
+    0o755 new False kept.py
+    refused True
+    ```
+    Met its `Expect:` (two lines, `0o755 new False kept.py` and `refused True`). The `Bytecode compiled …` line is uv's own note on stderr from its environment sync, not the script's output. The script printed exactly the two expected lines and exited 0. This shows:
+    - an added file kept its executable mode
+    - a modified file got the source's bytes
+    - a deleted file is gone
+    - an added symbolic link arrived with the same target text
+    - a deleted path missing on the target raised nothing
+    - a path with a `..` segment raised `ValueError` naming the path
+
+    Against the acceptance criteria: neither command contradicts any criterion. Command 2 is consistent with criteria 2 and 10 (the missing-deleted side). Command 1 covers the test files that criteria 1 to 12 name. Criterion 13 (`make check`) is the factory's gate and not part of this smoke test, so I did not run it here.
+
+    Afterwards the working tree holds only the factory's own change to the work item's `.costs.jsonl`. The temporary folder removed itself.
+
+    Findings: none.
