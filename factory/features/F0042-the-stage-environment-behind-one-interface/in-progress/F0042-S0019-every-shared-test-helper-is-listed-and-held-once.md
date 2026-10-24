@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 428
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T23:19:01.557148Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-24T23:18:41.062677Z'
   stage: doing
   run: 76d8c2f96e4a4484a23bf706c97a92bb
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:19:01.557148Z'
+  stage: review
 ---
 
 # Every shared test helper is listed and held once
@@ -298,3 +307,4 @@ Expect: 0
 
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
+16. factory: started review as self.
