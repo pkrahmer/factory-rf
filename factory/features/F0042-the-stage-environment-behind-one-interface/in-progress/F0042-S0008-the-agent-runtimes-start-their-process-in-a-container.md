@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T18:49:58.659027Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-24T18:49:58.659027Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-24T18:50:20.685252Z'
+  stage: intake
+  run: 0b59bccede91402db1d836f71031781c
 ---
 
 # The agent runtimes start their process in a container
@@ -116,15 +118,16 @@ Tests (the tester writes them): `tests/adapters/test_claude_runtime_container.py
 1. `container_launch(fake, ["/bin/sh", "-c", "x"], {"HOME": "/work/home"}, files=[Path("/state/runs/instructions-1.md"), Path("/home/factory/.claude-token")], time_limit=timedelta(minutes=2))` returns a `Launch` whose `argv`, `env` and `time_limit` are the fake's `ContainerLaunch` fields, and the fake's recorded call has the mounts `[Mount(source=Path("/state/runs/instructions-1.md"), target="/state/runs/instructions-1.md", read_only=True), Mount(source=Path("/home/factory/.claude-token"), target="/home/factory/.claude-token", read_only=True)]`, the working directory `/work/checkout`, the environment and the time limit as given. `container_launch(fake, ["x"], {}, files=[Path("/work/x")], time_limit=timedelta(seconds=1))` raises `ValueError` (the fake's refusal of a target under `/work`) and the fake recorded no call. `Launch(argv=["/bin/true"], env=None, time_limit=timedelta(seconds=1))` is accepted with `env` `None`, and `container_launch` on a `ContainerRuns` of the test (a subclass of `FakeContainerRuns` whose `launch` returns the fake's `ContainerLaunch` with `env=None`) returns a `Launch` whose `env` is `None` (rows of one parametrized test).
 2. `killed_at_limit` (rows of one parametrized test): `in_container=True`, exit 137, duration 61 s, limit 60 s is `True`; `in_container=True`, exit -9, duration 60 s, limit 60 s is `True`; `in_container=True`, exit 137, duration 59 s is `False`; `in_container=True`, exit 1, duration 61 s is `False`; `in_container=False`, `os_user=None`, exit 137, duration 61 s is `False` (today's rule); `read_call_end` with `in_container=True` and an end of exit 137 after the limit returns `True` and raises nothing, even when `stderr` holds a `sudo:` line.
 3. `ClaudeCodeRuntime(<stand-in>, state, containers=fake, confine_executable="factory-confine")` raises `ValueError`; `ClaudeCodeRuntime(<stand-in>, state, containers=fake).containers is fake`; without the keyword `containers` is `None` (rows of one parametrized test; the same three rows for `OpencodeRuntime`).
-4. A Claude Code run in a container: the stand-in `claude` on the request's `PATH` prints a completed reply; `run(request)` returns a completed result with the decision and entry, the fake's recorded call has the command `[<login shell words when a login file is set>, <stand-in>, "-p", ...]` with the instructions file's path among the words, the mounts `[<the login file>, <the instructions file>]` read-only at their own paths, the environment the request's less the logins plus `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`, `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS=1` and `PYTHONDONTWRITEBYTECODE=1` and without `CLAUDE_CONFIG_DIR`, the time limit the request's, the working directory `/work/checkout`; the stand-in's recorded working directory is `<workspace>/checkout` and its `HOME` is `<workspace>/home`; no rules file was written into the state directory and the instructions file is removed after the run. A second row with both `login_file` and `api_login_file` set has the mounts `[<the token file>, <the API file>, <the instructions file>]` in that order (the Interface's order, subscription then API). In both rows the token file's text stands in no word of the recorded command and in no value of its environment (decision 16).
-5. An opencode run in a container: the same with the stand-in `opencode`, the mounts `[<the API login file when set>, <the configuration file>]`, the environment holding `OPENCODE_CONFIG=<the configuration file's path>` and `PYTHONDONTWRITEBYTECODE=1`, the configuration file removed after the run.
+4. A Claude Code run in a container: the stand-in `claude` on the request's `PATH` prints a completed reply; `run(request)` returns a completed result with the decision and entry, the fake's recorded call has the command `[<login shell words when a login file is set>, <stand-in>, "-p", ...]` with the instructions file's path among the words, the mounts `[<the login file>, <the instructions file>]` read-only at their own paths, the environment the request's less the logins plus `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`, `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS=1` and `PYTHONDONTWRITEBYTECODE=1` and without `CLAUDE_CONFIG_DIR`, the time limit the request's, the working directory `/work/checkout`; the stand-in's recorded working directory is `<workspace>/checkout` and its `HOME` is `<workspace>/home`; no rules file was written into the state directory and the instructions file is removed after the run. A second row with both `login_file` and `api_login_file` set has the mounts `[<the token file>, <the API file>, <the instructions file>]` in that order (the Interface's order, subscription then API). In both rows the token file's text stands in no word of the recorded command and in no value of its environment (decision 16). One more row: a run with a login file set returns the login the stand-in's shell reports (`factory-login-used:`) from the mounted file.
+5. An opencode run in a container: the same with the stand-in `opencode`, the mounts `[<the API login file when set>, <the configuration file>]`, the environment holding `OPENCODE_CONFIG=<the configuration file's path>` and `PYTHONDONTWRITEBYTECODE=1`, the configuration file removed after the run. One more row: a run with the API login file set returns the login the stand-in's shell reports (`factory-login-used:`) from the mounted file.
 6. A request with `os_user="agent"` on a runtime with containers raises `AgentRuntimeError` whose `detail` is `a run in a container has no operating-system user`, and the fake recorded no call and the state directory holds no run file (rows for both runtimes).
 7. The kill at the limit (rows of one parametrized test, both runtimes): a stand-in that exits 137 after 3 seconds under a request with `time_limit` 3 seconds gives `end_reason` `time_limit` with `cost_usd`, `turns` and `tokens` `None`, and the fake made exactly one call (no resume); a stand-in that exits 137 at once under `time_limit` 30 seconds gives `died`. The reading of podman's kill, which the fake cannot play (it adds no grace, so the factory's own kill fires at the limit too): with the call answered by a recorded `ProcessResult(exit_status=137, stdout=<a completed reply, or the events of one step for opencode>, stderr="", timed_out=False, duration=<d>)`, `d` of 30 seconds under `time_limit` 30 seconds gives `time_limit` and 29.9 seconds gives `died` (rows for both runtimes: the `recorder` fixture for Claude Code; for opencode `run_streaming` of `factory.adapters.opencode_runtime` replaced with `monkeypatch` by a function of the test that keeps the request and answers that result).
 8. A Claude Code budget stop in a container is resumed as today: the stand-in's first reply has the budget subtype, the second completes; the fake recorded two calls, the second's command holding `--resume` and the same mounts.
-9. `version()` with containers: the fake's recorded call has the command `[<stand-in>, "--version"]`, no mounts, an empty environment, the working directory `/work/checkout` and the version time limit; the return value is the stand-in's first word (rows for both runtimes). One more row pins `version_launch("claude", containers=None, time_limit=timedelta(seconds=30)) == Launch(argv=["claude", "--version"], env=None, time_limit=timedelta(seconds=30))`.
+9. `version()` with containers: the fake's recorded call has the command `[<stand-in>, "--version"]`, no mounts, an empty environment, the working directory `/work/checkout` and the version time limit (the runtime's constructor argument `version_time_limit`, default `factory.adapters.agent_launch.VERSION_TIME_LIMIT`: a row builds the runtime with its own `version_time_limit` and asserts the recorded call has exactly that limit, and one row with the default compares against `VERSION_TIME_LIMIT` by name); the return value is the stand-in's first word (rows for both runtimes). One more row pins `version_launch("claude", containers=None, time_limit=timedelta(seconds=30)) == Launch(argv=["claude", "--version"], env=None, time_limit=timedelta(seconds=30))`.
 10. Without `containers`, `run` and `version` behave as today: `tests/adapters/test_claude_runtime*.py`, `test_opencode_*.py` and `test_agent_launch*.py` are unchanged and green, and one row of the new modules runs the same completed request through a runtime without containers and sees the stand-in's recorded working directory equal to the request's `working_directory`.
-11. `make check` stays green.
-12. docs: `docs/project-guide/agents.md`, *The agent runtime* and *The shared launch module*: the `containers` keyword, `container_launch` beside `launch`, what a call in a container gets (the mounts, the environment, `/work/checkout`, `HOME`), what it does not (no `sudo`, no `factory-confine`, no rules file, no leftovers, no temporary folder, no `CLAUDE_CONFIG_DIR`), the reading of `--timeout`'s kill through `in_container`, `version` in the container, the `ValueError` and the `AgentRuntimeError`; `docs/project-guide/stage-environment.md` gains the section *The agent's container* (one paragraph pointing to `agents.md` and naming step 5 of the cycle); `docs/operator-guide.md`, *The agent runtime*: one paragraph on what the chain is on a `container` instance (`podman run ... <image> /bin/sh -c <login shell> ... claude -p ...`), with the `:ro` mounts of the login and instructions files, pointing to the stage image of F0043. `docs/decisions.md`: none.
+11. A runtime built with a `leftovers` program and `containers` never starts it: a stand-in `leftovers` that writes a record file leaves the record absent after a run; and no temporary folder is made or removed for a call in a container (rows for both runtimes).
+12. `make check` stays green.
+13. docs: `docs/project-guide/agents.md`, *The agent runtime* and *The shared launch module*: the `containers` keyword, `container_launch` beside `launch`, what a call in a container gets (the mounts, the environment, `/work/checkout`, `HOME`), what it does not (no `sudo`, no `factory-confine`, no rules file, no leftovers, no temporary folder, no `CLAUDE_CONFIG_DIR`), the reading of `--timeout`'s kill through `in_container`, `version` in the container, the `ValueError` and the `AgentRuntimeError`; `docs/project-guide/stage-environment.md` gains the section *The agent's container* (one paragraph pointing to `agents.md` and naming step 5 of the cycle); `docs/operator-guide.md`, *The agent runtime*: one paragraph on what the chain is on a `container` instance (`podman run ... <image> /bin/sh -c <login shell> ... claude -p ...`), with the `:ro` mounts of the login and instructions files, pointing to the stage image of F0043. `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -179,3 +182,13 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
 
    Please write the three into the criteria as you accept.
 5. factory: started intake as self.
+6. intake: accepted. The three changes below are the human's answers in journal entry 4, written into the criteria as they asked. They are not my own improvements.
+   - Interface: accepted. It names concrete modules and signatures (`agent_launch.container_launch`, `login_paths`, `version_launch`, `killed_at_limit`, `read_call_end`; the `containers` keyword and property on both runtimes). The `Launch.env` change and the `ValueError` and `AgentRuntimeError` rules are stated exactly.
+   - Criteria: accepted, with the answers carried in.
+     - Criteria 4 and 5 each gain a row: a run with a login file set returns the login line `factory-login-used:` read from the mounted file.
+     - Criterion 9 now names the version time limit: the runtime's constructor argument `version_time_limit`, default `factory.adapters.agent_launch.VERSION_TIME_LIMIT`. One row passes its own value and asserts it; one row compares the default against `VERSION_TIME_LIMIT` by name.
+     - New criterion 11 covers answer 2: a runtime built with a `leftovers` program and `containers` never starts it, and no temporary folder is made or removed. `make check` and `docs:` are now criteria 12 and 13, still last.
+     - Each Interface rule has a criterion for both sides: the `ValueError` and its construction without it (3), `os_user` refused (6), kill at or after the limit and before it (2 and 7), and no container behaviour when `containers` is absent (10).
+   - Smoke test: accepted. Both commands are runnable. The pytest command passes no `-q`, and the `Expect:` lines can be checked against the output (`1`, and three exact lines).
+   - Architecture: accepted. All of it sits in `factory.adapters`, which imports `factory.application.containers` and `factory.domain.containers`. `agent_launch` stays free of the process module.
+   - Scope: accepted. The story is feature `F0042`'s S0008, as listed in `feature.md`. Wiring is left to S0010 and no existing test is changed.
