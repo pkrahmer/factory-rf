@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T17:16:57.079128Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -74,6 +70,12 @@ journal:
   kind: started
   at: '2026-10-24T17:16:57.079128Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T17:17:56.792631Z'
+  stage: review
+  run: dba254bd6d85495bb63d1d59a52d6227
 ---
 
 # `sync` is the fourth target of the project contract
@@ -250,3 +252,16 @@ Expect: four lines: `# The contract between a project and the factory is four ta
     `check`: check: green
     `duplicates`: duplicates: 14 new, 37 known, 1 gone
 11. factory: started review as self.
+12. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'`. The template changes match the Interface word for word: line 1 of `template/Makefile`, the `.PHONY` line, the `sync:` comment and recipe between `check:` and `lint:`, `check:` unchanged, the `sync: {time_limit: 5}` line with its trailing comment in `template/factory/pipeline.yml`, and the one sentence in `template/CLAUDE.md`. Each of criteria 1 to 4 has a test that checks what the criterion says. Criterion 3's pass and fail sides are rows of one parametrized test. The journal reports `make check` green after the coder (entry 10). Architecture and security: nothing changed under `src/`, and no marker or secret was added. Groups 1 to 3 pass. Group 4 fails on one point, and item 6 has one point.
+
+    Findings:
+    1. `tests/test_template_sync.py:24`: `_makefile_lines` is a second copy of `_lines` in `tests/test_template_makefile.py:34` (`MAKEFILE.read_text(encoding="utf-8").splitlines()`). Fix: under the standing leave, the tester moves the helper to `tests/template_make_support.py` (for example as `makefile_lines()`) and both modules use it from there.
+    2. `tests/test_template_makefile.py:67`: the earlier test `test_check_runs_the_other_targets_and_says_green` was renamed to `test_check_runs_the_other_targets_and_saysgreen_line`. A search-and-replace of `_green` to `green_line` caught the test's name. This goes beyond the standing leave, which requires every earlier test to keep its name. Criterion 1 and the tester's entry 5 both treat this test as unchanged. Fix: the tester restores the name `test_check_runs_the_other_targets_and_says_green` and changes nothing else.
+
+    Earlier tests (item 6):
+    - `tests/test_template_makefile.py`: two leaves. The standing leave covers moving `_green`, `_stand_in`, `_make`, `MAKEFILE`, `DROPPED` and the body of the `project` fixture to `tests/template_make_support.py`. Decision 18 f of `feature.md` covers the `sync` row of `test_phony_line_names_the_targets_and_there_is_no_documents_target`. The rename in finding 2 is beyond both.
+    - `tests/test_claude_files.py`: decision 18 f of `feature.md`, the one `TEMPLATE_RULES_LINES` line that now names the four targets.
+
+    Rejected as findings:
+    - `FOURTH_LINE` in `tests/test_template_sync.py` repeats `_NEW_HEADER_LINE` of `tests/test_template_makefile_header.py`. The Interface keeps that header test unchanged, so sharing the constant is not possible here.
+    - `duplicates: 14 new` in entry 10 does not come from this diff, which does not change `src/factory`.
