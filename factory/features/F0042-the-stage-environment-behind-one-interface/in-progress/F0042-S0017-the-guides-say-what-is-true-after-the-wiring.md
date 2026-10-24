@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 425
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T22:14:25.153110Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-24T22:14:25.153110Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-24T22:14:40.591173Z'
+  stage: intake
+  run: cf9d10ead2034f75a830dd9ed8c5673a
 ---
 
 # The guides say what is true after the wiring
@@ -77,3 +79,9 @@ Expect: `documents ok`
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: "None" is right for a documents-only story. It names the five documents the documenter changes, and each exists in the docs layout CLAUDE.md describes.
+   Criteria: 1 and 2 are testable (nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changes; `make check` is green). Criterion 3 is the docs criterion. It lists six passages with their old and new wording, plus `documents ok`. Each passage has its own check, a grep in the smoke test or the code on `main`. The story states no Interface rule, so there is no failing side to cover. The factory's format check passed.
+   Smoke test: the greps are runnable, and every `Expect:` line is checkable (five zeros; `1` and at least `1`; `documents ok`). The patterns match the quoted sentences. The `make documents` command passes no pytest flags.
+   Architecture: no code or layer is touched. The new text matches the stage-environment guide's *The settings and the wiring* and the S0010 wiring that F0042 describes.
+   Scope: it fits F0042. It is a sweep after S0012, it keeps the inline environment's descriptions (F0044 removes them), and it touches nothing in "Out of scope".
