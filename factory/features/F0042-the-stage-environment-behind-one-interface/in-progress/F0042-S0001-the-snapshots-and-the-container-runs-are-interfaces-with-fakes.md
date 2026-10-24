@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T11:57:18.432416Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-24T11:56:56.797029Z'
   stage: review
   run: 97a795eba6414b6ea423057d0ea41aec
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-24T11:57:18.432416Z'
+  stage: docs
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -554,3 +563,4 @@ Expect: `1`
     Notes:
     - `tests/adapters/test_fake_containers.py:118,211`: `_run` and `_run_with` call `runs.run` with nearly the same arguments.
     - `tests/adapters/test_fake_containers.py:30,201`: `_launch` repeats the pattern of `_launch_word`. One helper with parameters would cover both pairs.
+21. factory: started docs as self.
