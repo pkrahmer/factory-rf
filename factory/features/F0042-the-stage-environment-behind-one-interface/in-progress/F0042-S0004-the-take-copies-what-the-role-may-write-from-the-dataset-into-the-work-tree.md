@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 410
 comments_read: [6384920747]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T13:54:43.313108Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-24T13:54:43.313108Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T13:56:17.773746Z'
+  stage: review
+  run: a085841994ec4f759bfcda2d4c4615d4
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -147,8 +149,9 @@ Tests (the tester writes them): `tests/application/test_take.py` and `tests/appl
 7. The work item (rows of one parametrized test, the own work item in the write paths): the agent changed a section and the state (`stage: done` in the front matter) on the dataset's copy: after `take`, the host's work item has the agent's section text, the baseline's state and journal, and `restored_work_item` is true; the agent changed nothing of state or journal: `restored_work_item` is false; the agent deleted the work item (`deleted`): it is back whole from the stage-start commit, `restored_work_item` true, not in `left`; the agent broke its front matter: back whole, `restored_work_item` true; the role may not write the work item (write paths `["src/*"]`, the work item modified): `left` holds its path, the host's file is unchanged, `restored_work_item` false.
 8. A work item absent at the stage-start commit, and one whose front matter at that commit cannot be read (a commit of the test that breaks it, as `tests/application/test_undo.py` builds both baselines), each raise `WorkItemFormatError` naming `work_item_path`, and nothing on the host changed (a changed `checkout/src/new.py` did not arrive) (rows of one parametrized test).
 9. `left` is sorted and holds each path once when the same path is given twice among `changed_paths`; the report is frozen and refuses an unknown field (`tests/test_model_configuration.py` covers the model).
-10. `make check` stays green.
-11. docs: `docs/project-guide/stage-environment.md` gains the section *The take*: the seven steps in order, what is dropped, what is left, what is taken, the work item's restore shared with the undo, `copy_changed` and its two users, the errors, the tests; `docs/project-guide/git-and-hosting.md`, *The git wrapper*: the row for `ignored` in the operations table (the command, the groups, what is read from the lines, the three exit statuses), the count twenty-six, and a row for `ignored` in *Which part uses which operation* (the take, `stage-environment.md`); `docs/project-guide/README.md`, *The files*, names `factory.application.take` for the stage-environment file; `docs/project-guide/write-guard.md`, *The undo*: one sentence that the take (`stage-environment.md`) applies the same two rules the other way round, in the container environment. `docs/decisions.md`: none in this story.
+10. The other sides of two rules the Interface states: a stand-in `git` that prints one line more than the paths it was given raises `GitError` (a row of criterion 1's stand-in test, beside the line-short row); a `deleted` path whose target entry is a dangling symbolic link removes the link and raises nothing (a row of criterion 2's test).
+11. `make check` stays green.
+12. docs: `docs/project-guide/stage-environment.md` gains the section *The take*: the seven steps in order, what is dropped, what is left, what is taken, the work item's restore shared with the undo, `copy_changed` and its two users, the errors, the tests; `docs/project-guide/git-and-hosting.md`, *The git wrapper*: the row for `ignored` in the operations table (the command, the groups, what is read from the lines, the three exit statuses), the count twenty-six, and a row for `ignored` in *Which part uses which operation* (the take, `stage-environment.md`); `docs/project-guide/README.md`, *The files*, names `factory.application.take` for the stage-environment file; `docs/project-guide/write-guard.md`, *The undo*: one sentence that the take (`stage-environment.md`) applies the same two rules the other way round, in the container environment. `docs/decisions.md`: none in this story.
 
 ## Smoke test
 
@@ -264,3 +267,10 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
     `check`: check: green
     `duplicates`: duplicates: 14 new, 38 known, 0 gone
 11. factory: started review as self.
+12. reviewer: 1. criterion 10 added: it needs its test. Two sides of rules the Interface states have no test. (a) `src/factory/adapters/git_cli.py` `_ignored_in_group` raises `GitError` when git prints more lines than it was given paths, and also when it prints fewer. Criterion 1 and `tests/adapters/test_git_cli_check_ignore.py::test_ignored_asks_git_in_groups_and_refuses_what_it_cannot_read` cover only the line-short row. (b) The `copy_changed` rule "a dangling link included, is no fault" for a `deleted` path has no row in `tests/application/test_take_edges.py::test_copy_changed_mirrors_each_change_without_following_a_link`. The code already does both, so pinning them needs no change under `src/`. Fix: the tester adds a line-long row to the stand-in test and a deleted-dangling-link row to the copy test.
+
+    I stopped at group 1 (acceptance criteria), as the checklist says. Under `src/`, the code matches the Interface: the seven steps of `take` run in order, `copy_changed` checks every path first and never follows a link, and the undo's three helpers are made public and shared, not copied. The journal records the factory's `make check` after the coder as green.
+
+    Earlier tests:
+    - tests/application/test_git_interface.py: the human's leave, decision 18 (d) of the feature's `feature.md` (`OPERATIONS` gains `ignored`, the test is renamed to twenty-six). The change is within that leave.
+    - tests/application/test_interfaces.py: the human's leave, decision 18 (d) of the feature's `feature.md` (`test_git_abstract_methods_are_exactly_its_twenty_five_operations` renamed to twenty-six, same assertion). The change is within that leave.
