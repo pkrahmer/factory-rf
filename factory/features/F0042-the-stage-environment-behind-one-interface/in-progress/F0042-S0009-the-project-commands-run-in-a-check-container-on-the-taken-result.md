@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T19:39:24.817213Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   at: '2026-10-24T19:39:04.533920Z'
   stage: intake
   run: fed9f2e9b5b94e998180e5c1dec17e0c
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-24T19:39:24.817213Z'
+  stage: tests
 ---
 
 # The project commands run in a check container on the taken result
@@ -143,3 +152,4 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
    - Smoke test: both commands are runnable. `pyproject.toml` sets `-q`, and the command passes none, so the `N passed in` line exists. Both `Expect:` lines can be checked against the output.
    - Architecture: the class sits in `factory.adapters` behind the `ProjectCommands` interface. It reuses `copy_changed`, `last_line` and `status_of`, and the word `make` stays in the allowed modules.
    - Scope: it is within S0009 of `feature.md` and decisions 7 and 8. It touches nothing under "Out of scope".
+9. factory: started tests as self.
