@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 413
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T16:30:19.883891Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-24T16:30:19.883891Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-24T16:30:52.089440Z'
+  stage: intake
+  run: eac3596abc704aee8bfdddc25a3e03c9
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -161,3 +163,18 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: `factory.application.stage_environment` names `StageEnvironment` (prepare, run_agent, take, with exact signatures and raised errors), `InlineEnvironment(boundaries)` and `stage_environment_of(boundaries)`. It also names the `StageLauncher`, `AfterAgent` and `AgentAftermath.take` changes and the preflight probe change. Each inline operation is defined by what it delegates to (`run_sealed`, `UndoService`, `TakeReport(left=sorted({*reverted, *deleted}), ...)`), and the sync-limit rule and the closing-paragraph rule are stated.
+   - Criteria: 1 to 10 are each testable by one test function or one parametrized test. Every Interface rule has its own criterion on both sides:
+     - sync limit: 5 min with a `sync` command, 10 min without (criterion 6).
+     - the order of prepare and run_agent, after the claim's push and before the cost record (6 and 7).
+     - `SnapshotError` from prepare (7).
+     - the cost-records path left out of the paragraph, and an empty `left` giving no paragraph (8).
+     - `WorkItemFormatError` on an absent work item (4).
+     - `run` given or not given, and nested repositories (3).
+     - the default environment when the keyword is omitted (9).
+     - the probe no longer importing `run_sealed` (10).
+     Criterion 11 is `make check`; criterion 12 is the docs criterion and closes the list. No Interface rule is left without a criterion.
+   - Smoke test: both blocks are runnable. The project's pytest `addopts` already holds `-q` and the first command passes none, so the `N passed in` summary line the `grep` expects is printed. Both `Expect:` lines are checkable against the output (`1`, and the two exact lines).
+   - Architecture: the interface sits in `factory.application` as an ABC with docstring-only abstract methods, as CLAUDE.md requires. `InlineEnvironment` composes existing application services and is the only place that knows `run_sealed` and the undo. Nothing in `domain` or `adapters` changes, so the layer order holds. It uses `TakeReport` from S0004, built before this story.
+   - Scope: it is inside `feature.md`'s Scope for S0005 and decisions 1 to 4, 9 and 18 e. The journal sentence is unchanged (decision 9). `StallService` is left alone (decision 20). The only changes to earlier tests are the two assertions in `test_after_agent.py` and the `test_interfaces.py` addition, which decision 18 e allows.
