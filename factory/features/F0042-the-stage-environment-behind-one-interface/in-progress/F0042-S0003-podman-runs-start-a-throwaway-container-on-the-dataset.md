@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T13:00:18.711283Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-24T13:00:18.704831Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-24T13:00:18.711283Z'
+  stage: intake
+---
+
 # Podman runs start a throwaway container on the dataset
 
 ## Description
@@ -89,3 +116,6 @@ EOF
 Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--env', 'HOME=/work/home', '--volume', 'D:/work', '--volume', 'D/repo.git:/upstream:ro', '--workdir', '/work/checkout', 'factory-stage:1', '/bin/sh', '-c', 'echo hi'] {} 0:02:00`; `3 False ['out', 'err']`; `podman version 4.9.3 False`
 
 ## Journal
+
+1. 2026-10-24 human: created.
+2. factory: started intake as self.
