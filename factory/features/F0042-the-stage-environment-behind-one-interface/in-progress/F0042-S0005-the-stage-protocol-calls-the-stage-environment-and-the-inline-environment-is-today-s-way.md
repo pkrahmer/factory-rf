@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T16:53:37.626414Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-24T16:53:37.626414Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-24T16:53:59.393253Z'
+  stage: doing
+  run: 7e0dc298ba894ff1a4794d9fdd3c29e3
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -410,3 +412,21 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
     - tests/application/test_after_agent.py: decision 18 (e) of `feature.md` (the human's leave). Only the two assertions changed, to read `aftermath.take.left`, and each test keeps its name and rows.
     - tests/application/test_interfaces.py: decision 18 (e) of `feature.md` (the human's leave). It gains the `StageEnvironment` row and the one `__abstractmethods__` assertion.
 17. factory: started doing as self.
+18. coder: The reviewer added criterion 11 in entry 16. It needs only a test, so I changed no code and I am handing the work item to the tester.
+
+    Criterion to test: criterion 11, in `tests/application/test_stage_environment.py::test_take_is_the_undo_turned_into_a_take_report`.
+    - Add a `work-item-unreadable` row: the work item's front matter is broken at the stage-start commit. `_with_broken_work_item` in `tests/application/test_undo.py` builds that case and can be imported, the same way `_without_work_item` already is.
+    - In both refusal rows (absent and unreadable), assert after the `WorkItemFormatError` that the agent's file outside the write paths (`GUIDE` or `NEW_DOC`) still holds `AGENT_TEXT`. That shows the work tree is left untouched.
+
+    No code change is needed. `InlineEnvironment.take` in `src/factory/application/stage_environment.py` passes the call to `UndoService.undo`, and that already raises before it changes any path. `tests/application/test_undo.py::test_a_missing_or_unreadable_baseline_raises_before_any_path_is_changed` pins this.
+
+    Built: nothing new this round. The code from entry 7 stands: `src/factory/application/stage_environment.py`, `src/factory/application/stage.py` and `src/factory/application/preflight.py`.
+
+    Main choice: I hand off with `tests` and do not add any code. The reviewer's finding asks only for a test, and this work item's role never changes tests. I rejected writing a guard of my own in `InlineEnvironment.take`, because it would copy the check the undo already makes.
+
+    Description: the reviewer already updated it in entry 16 (criterion 11, the renamed test module), so I did not rewrite it.
+
+    Noticed, not touched:
+    - `StallService` still runs the undo on its own, as the description says.
+    - `UndoReport` is still used by `stalls.py` and by `undo_support`.
+    - The docs criterion (13) is the documenter's.
