@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T18:13:07.710507Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -172,6 +168,12 @@ journal:
   kind: started
   at: '2026-10-24T18:13:07.710507Z'
   stage: docs
+- number: 30
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T18:14:14.761567Z'
+  stage: docs
+  run: 364e534559724c4c8c80c309e9c9bfce
 ---
 
 # The container environment runs the cycle of a stage
@@ -527,3 +529,31 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
     1. `tests/application/test_container_environment.py:35` and `tests/application/test_container_environment_take.py:34`: `FIVE_MINUTES` is defined in both modules. It could live in `tests/container_support.py`.
     2. `tests/application/test_container_environment_take.py`, `ClockedSnapshots` and `ClockedContainerRuns`: their overriding methods have no `@override`, while `ResultContainerRuns` and `ContainerEnvironment` have it.
 29. factory: started docs as self.
+30. documenter: Docs round 2. I found no code or docstring finding, so I end with `smoke-test`. I read the story and its journal, the code under `src/` (`stage_environment.py` in full) and the existing docs. The code matches the Interface. `build_boundaries` sets neither new field, so no instance chooses the container environment yet. I wrote that into the docs. I changed only documents, so I did not run `make check`. I ran `make documents`, which printed `documents ok`.
+
+    Files changed:
+    - `docs/project-guide/stage-environment.md`:
+      - New section *The container environment*. It covers:
+        - `prepare` step by step, with the container paths and the two read-only mounts;
+        - the sync script, the reason every branch is fetched (decision 5) and the agent-file copy that replaces the folder (decision 6);
+        - the faults and what each leaves behind, `run_agent` without a seal, and the take on the snapshots' changed paths;
+        - the timing line and how to read it, the wiring, and the tests with their fakes.
+      - I corrected three stale passages:
+        - the intro said only the inline environment exists;
+        - `stage_environment_of` was described as "always inline";
+        - *The take* said "Nothing calls the service yet".
+    - `docs/project-guide/watching.md`, *Boundaries*: the fields `snapshots` and `containers`. `None` means the inline environment. `build_boundaries` leaves both `None`, and the `boundaries` fixture is unchanged.
+    - `docs/operator-guide.md`, *The factory log*: the line `stage environment: reset <s> s, sync <s> s, advance <s> s, take <s> s`. It is written once per stage by a `container` instance and not by an `inline` one. I also said that no instance chooses the container environment yet.
+
+    Cross-read and found current: `README.md`, `docs/project-guide/README.md`, `docs/decisions.md` (none needed, S0005 wrote the entry), and the `make_commands` mentions in `docs/project-guide/processes-and-checks.md`. I found no mention of the private `_last_line` or `_MAKE_MESSAGE_PREFIXES` in the docs.
+
+    I did not test the doc example's timing line against a real run: the container environment is only played on the fakes. The example line is the shape that `TIMING_LINE` produces, and tests pin its exact ending.
+
+    Stale or open text I saw and did not touch, not mine to fix:
+    - After a failed `prepare` the object keeps the durations of the last successful one. This was open in the reviewer's notes. I only documented the behaviour as it stands.
+    - The reviewer's two test notes: `FIVE_MINUTES` is defined in two test modules, and `ClockedSnapshots` and `ClockedContainerRuns` lack `@override`. Both are for the tester or coder, not findings.
+    - A comment above `_SYNC_SCRIPT` in `src/factory/application/stage_environment.py` wraps oddly mid-sentence. That is a code comment, so it is not mine to edit.
+
+    `check`: check: green (not run again: passed on tree 27d3de5f1300 at 2026-10-24T18:09:51Z)
+    `secrets`: secrets: green (1.8 s)
+    `documents`: documents ok

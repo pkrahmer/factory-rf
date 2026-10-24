@@ -1,6 +1,6 @@
 # The stage environment
 
-This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.stage_environment`, `factory.application.snapshots`, `factory.application.containers`, `factory.application.take`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.podman_runs`, `factory.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. The stage protocol already calls the stage environment (*The stage environment*, first below), but only its inline implementation exists: nothing wires `ZfsSnapshots` or `PodmanRuns`, and the container environment that will use them comes in a later story of the same feature.
+This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.stage_environment`, `factory.application.snapshots`, `factory.application.containers`, `factory.application.take`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.podman_runs`, `factory.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. The stage protocol calls the stage environment (*The stage environment*, first below). Its inline implementation is what runs: the container environment (*The container environment*, after the take) is built and tested on the fakes, but nothing wires `ZfsSnapshots`, `PodmanRuns` or the two new `Boundaries` fields yet, so no instance chooses it.
 
 ## The stage environment
 
@@ -22,7 +22,7 @@ This file covers the two interfaces through which the factory reaches the datase
 
 `InlineEnvironment` is the only module that calls `run_sealed` and `UndoService` for a stage. `StallService` still calls the undo itself after a stall; the stall's take under the container environment is a later story.
 
-`stage_environment_of(boundaries)` gives the environment the boundaries describe. For now it is always an `InlineEnvironment`; the container environment will be chosen here.
+`stage_environment_of(boundaries)` gives the environment the boundaries describe. It gives a `ContainerEnvironment` when `boundaries.snapshots` and `boundaries.containers` are both set, and an `InlineEnvironment` when one or both is `None` (see *The container environment*).
 
 ### Who calls what
 
@@ -172,7 +172,7 @@ No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` 
 
 ## The take
 
-In the container environment the agent works on the dataset and may write anywhere it reaches; nothing of that survives but what the take copies. `TakeService(boundaries, mount_point).take(stage_start, work_item_path, changed_paths)` (`factory.application.take`) is the write-path refusal of the undo (see *The undo*, `write-guard.md`) applied the other way round: what the role may write goes from the dataset at `mount_point` into the work tree `boundaries.checkout`, the rest stays in the dataset. `changed_paths` are those of `Snapshots.changed_paths()`, relative to `mount_point`. Nothing calls the service yet; the container environment will.
+In the container environment the agent works on the dataset and may write anywhere it reaches; nothing of that survives but what the take copies. `TakeService(boundaries, mount_point).take(stage_start, work_item_path, changed_paths)` (`factory.application.take`) is the write-path refusal of the undo (see *The undo*, `write-guard.md`) applied the other way round: what the role may write goes from the dataset at `mount_point` into the work tree `boundaries.checkout`, the rest stays in the dataset. `changed_paths` are those of `Snapshots.changed_paths()`, relative to `mount_point`. `ContainerEnvironment.take` calls it (see *The container environment*).
 
 ### The seven steps
 
@@ -199,6 +199,63 @@ The service makes no commit, runs no git command on the dataset and never writes
 `WorkItemFormatError` (step 1), `ValueError` from `copy_changed`, and `GitError` from `ignored` (see *The git wrapper*, `git-and-hosting.md`). A `ValueError` or `GitError` can come after the baseline was read but before step 5 copies anything.
 
 Tests: `tests/application/test_take.py` and `tests/application/test_take_edges.py`, built on `tests/undo_support.py` and `tests/take_support.py` with a dataset folder in `tmp_path`; `tests/adapters/test_git_cli_check_ignore.py` for `ignored`.
+
+## The container environment
+
+`ContainerEnvironment(boundaries, snapshots, containers)` (`factory.application.stage_environment`) is v1.2's `StageEnvironment`: the agent works on the dataset of `Snapshots`, the sync runs in a container of `ContainerRuns`, and the take copies back what the role may write. It runs steps 2 to 4 and 6 of the cycle in `planning/v1.2-plan.md` ("The cycle of a stage"). The agent's own container (step 5) is not here: `run_agent` runs the request through the boundaries' runtime, which a later story starts in a container.
+
+### `prepare`
+
+`prepare(commit, branch, *, sync_time_limit)` does four things in this order, each timed with `boundaries.clock`:
+
+1. `snapshots.reset()`: the dataset goes back to its base. `SnapshotError` propagates as it is, and no container has run.
+2. The sync container: `containers.run(["/bin/sh", "-c", <script>, "factory-sync", "/work/checkout", "/work/home", "/upstream", "/etc/factory/claude", branch, commit], ...)` with these mounts, both read-only: the host checkout's `.git` at `/upstream` (`UPSTREAM`) and `settings.agent_home` at `/etc/factory/claude` (`AGENT_FILES`). The environment is `SYNC_ENVIRONMENT` (`PATH=/usr/local/bin:/usr/bin:/bin`, `HOME=/work/home`), the time limit is `sync_time_limit` and the working directory is `/work`. `/work` is the dataset, so `/work/checkout` and `/work/home` are its two folders.
+3. The result is judged. A timeout is `ContainerError("sync", "no end within <n> s")`, `n` the limit in seconds rounded up (1.2 s gives 2, 3 s gives 3). An exit status other than 0 is `ContainerError("sync", <detail>)`: the last non-blank line of the output that is no make message (`factory.domain.checks.last_line`, the rule `MakeProjectCommands` uses too: a line starting `make:` or `make[` is skipped, so a failed recipe's own last line is the detail), or `exit status <n>` when no such line exists.
+4. `snapshots.advance()`: the base moves to the synced dataset.
+
+#### The sync script
+
+The script is one literal, `_SYNC_SCRIPT`. Every container path reaches it as an argument (`$1` checkout, `$2` home, `$3` upstream, `$4` agent files, `$5` branch, `$6` commit) and none is written in its text, so that `FakeContainerRuns`, which maps paths in the command words, can play it on the host. With `set -eu` it stops at the first failure and:
+
+1. makes `$1` and `$2` when missing;
+2. replaces `$2/.claude` with a copy of `$4`: the copy replaces the folder, it does not merge, so an agent file removed on the host is gone in the next stage and one run cannot widen the tools of the next (decision 6 of F0042; the factory process copies no files itself);
+3. in `$1`, runs `git init -q` when there is no `.git`;
+4. fetches `+refs/heads/*:refs/heads/*` from `$3` with `--prune` and `--update-head-ok`: every branch, not only the stage's, because a detached checkout would leave the agent without `main` and the branch, and the coder's and reviewer's instructions read `git diff main` and the branch's log (decision 5); `--prune` drops a branch deleted on the host; `--update-head-ok` because git refuses to fetch into the checked-out branch, an unborn one included, as a fresh `git init` has;
+5. `git checkout -q -f "$5"` and `git reset -q --hard "$6"`, so `HEAD` is on the branch at the stage-start commit and never detached;
+6. `make sync` (see *The sync command*).
+
+The first `prepare` on a dataset creates the repository; the next ones reuse it, and objects of earlier stages stay in it.
+
+### What a fault leaves behind
+
+- `reset` fails (`SnapshotError`, for example a dataset without a base): nothing else ran, `containers` was not called.
+- The sync fails or times out: the dataset holds whatever the script did, and the base did **not** move. `snapshots.changed_paths()` is not empty, and the next `reset()` empties the dataset again. The stage ends with the error before any agent runs.
+- The commit is no commit: `git reset` fails, the detail is git's message.
+- The durations of a failed `prepare` are not kept: the timing line keeps those of the last successful one (the stage stops at the error, so no `take` follows).
+
+### `run_agent`
+
+`run_agent(request, *, run=None)` calls `(run or boundaries.agent_runtime.run)(request)` and returns `SealedRun(result=<it>, nested_repositories=[])`. There is no seal of the git folder, no home reset, no search for nested repositories and no removal of ignored paths: the dataset is rolled back by the next `prepare`, so nothing the agent leaves survives.
+
+### `take`
+
+`take(stage_start, work_item_path)` is `TakeService(boundaries, snapshots.mount_point).take(stage_start, work_item_path, snapshots.changed_paths())` (see *The take*): `src/new.py` written in the dataset's checkout reaches the host when the role may write it, a changed file outside the write paths stays in `left`, and nothing of `.venv` (ignored on the host) or of `home/` is taken. The report is returned as the service gives it.
+
+### The timing line
+
+After the take, one line goes to the factory log through `boundaries.log.line` (`TIMING_LINE`):
+
+```text
+2026-10-24T18:00:07Z stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s, take 0.2 s
+```
+
+Each duration is in seconds with one decimal (Python's rounding). `reset`, `sync` and `advance` are those of the last successful `prepare` of the same object (replaced by each, never added), `take` is the time of this `take`, `changed_paths` included. A `take` without a `prepare` on the object writes `0.0` for the first three. One line per stage, written by `take`, none after `prepare` alone. To read the plan's measures, take the lines from `/state/factory.log`: `reset` and `advance` are the cost of the snapshots, `sync` the cost of the container with `make sync`, `take` the cost of listing the changes and copying them. The inline environment writes no such line.
+
+### Wiring and tests
+
+`Boundaries.snapshots` and `Boundaries.containers` (see `watching.md`, *Boundaries*) default to `None`; `stage_environment_of` picks the container environment only when both are set. `StageRunner` builds one environment per runner, as *One environment per runner* says.
+
+The suite runs it on `FakeSnapshots(workspace, base)` and `FakeContainerRuns(workspace)` under `tmp_path`, the host checkout of the `boundaries` fixture as the upstream, with real `git` and `make` as child processes on the host (the container is played, not run). `tests/container_support.py` holds the helpers: `container_dataset`, `push_main` and `sync_makefile` (a `Makefile` whose `sync` writes a marker), `dataset_git`, `local_branches` and `timing_lines`. Tests: `tests/application/test_container_environment.py` (`prepare` and `run_agent`), `tests/application/test_container_environment_take.py` (the take, the timing line and a whole stage through `StageRunner`), `tests/application/test_stage_environment_of.py`, `tests/domain/test_checks_last_line.py` and `tests/adapters/test_make_last_line_shared.py`. The real tools come with the wiring of a later story.
 
 ## The fakes
 

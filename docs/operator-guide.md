@@ -606,6 +606,8 @@ The factory log writes every line twice: to standard output and, appended, to a 
 2026-10-12T12:00:12Z third
 ```
 
+**The stage environment's timing line.** An instance with the `container` stage environment writes one line per stage, after the take: `stage environment: reset <s> s, sync <s> s, advance <s> s, take <s> s`, each in seconds with one decimal, for example `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s, take 0.2 s`. `reset` and `advance` are the dataset's roll-back and the move of its base, `sync` the sync container (`make sync` included), `take` the copy of the agent's result into the checkout; read the cost of a stage's setup from these lines in `/state/factory.log`. An `inline` instance writes none. No instance chooses the container environment yet.
+
 Missing parent directories are created. If the file cannot be written, the line has still reached standard output, and the write fails with an `OSError`.
 
 ### The health status file
