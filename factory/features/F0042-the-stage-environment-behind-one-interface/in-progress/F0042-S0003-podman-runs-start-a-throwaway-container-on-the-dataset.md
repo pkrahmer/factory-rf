@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T13:35:39.022511Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -183,6 +179,12 @@ journal:
   kind: started
   at: '2026-10-24T13:35:39.022511Z'
   stage: smoke-test
+- number: 32
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T13:36:09.950669Z'
+  stage: smoke-test
+  run: ccd121b2cfce477b95c2488417da92a6
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -558,3 +560,34 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
     `secrets`: secrets: green (0.9 s)
     `documents`: documents ok
 31. factory: started smoke-test as self.
+32. smoke-tester: Smoke test, round 2: I ran the one command under `## Smoke test` from the repository root, exactly as written, in a bash shell. It exited 0. I fixed nothing.
+
+    Command 1 (stand-in `podman` in a `mktemp -d` folder, then the `uv run python -` script). Output (the first lines are uv building `.venv`, which is git-ignored):
+
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 102ms
+    Bytecode compiled 4164 files in 356ms
+    ['run', '--rm', '--userns=keep-id', '--timeout', '90', '--env', 'HOME=/work/home', '--volume', 'D:/work', '--volume', 'D/repo.git:/upstream:ro', '--workdir', '/work/checkout', 'factory-stage:1', '/bin/sh', '-c', 'echo hi'] None 0:02:00
+    3 False ['out', 'err']
+    podman version 4.9.3 False
+    ```
+
+    Expect: met. The script printed three lines, and each matches its expected line character for character:
+    - the launch words, with `env` `None` and a time limit of 0:02:00 (90 s plus the 30 s `CONTAINER_GRACE`);
+    - `3 False ['out', 'err']`;
+    - `podman version 4.9.3 False`.
+
+    Against the acceptance criteria: the smoke test contradicts none of them.
+    - The words follow the order criterion 1 pins: `--rm`, `--userns=keep-id`, `--timeout` in whole seconds, `--env` pairs, the workspace volume first, the read-only mount with `:ro`, `--workdir`, the image, the command.
+    - `env` is `None` and the time limit includes the grace (criterion 1).
+    - The exit status passes through and stdout and stderr are merged (criterion 4).
+    - `version()` returns the first line (criterion 7), and `image_exists()` reads exit status 1 as `False` (criterion 8).
+
+    What the smoke test does not reach: the working directory `/` for `run`, the kill at the time limit (criterion 5) and the fault paths. The tests cover those, and the factory's checks run `make check`, so I did not run it here.
+
+    Findings: none.
