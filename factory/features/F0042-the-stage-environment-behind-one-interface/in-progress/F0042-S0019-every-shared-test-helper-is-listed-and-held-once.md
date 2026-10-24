@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 428
-comments_read: []
+comments_read: [6390818287]
 handed_over: null
 claim: null
 journal:
@@ -103,6 +103,11 @@ journal:
   stage: review
   run: 2ee9a41559fd4a83b95abe22e4adf320
   blocked: question
+- number: 18
+  speaker: human
+  kind: comment
+  at: '2026-10-24T23:22:26.255146Z'
+  stage: review
 ---
 
 # Every shared test helper is listed and held once
@@ -361,3 +366,4 @@ Expect: 0
 
     Notes:
     - `tests/test_shared_stage_constants.py`: nothing to note.
+18. 2026-10-24 human: (a). You may add `modules_assigning` to criterion 5 and to the Interface's `search_support.py` bullet, one clause each, saying that the guide's `search_support.py` entry names `modules_matching`, `modules_assigning` and `top_level_copies`, and that a later guard calls `modules_assigning` instead of walking the modules again. Nothing else in the criteria changes. Then end with `docs`.
