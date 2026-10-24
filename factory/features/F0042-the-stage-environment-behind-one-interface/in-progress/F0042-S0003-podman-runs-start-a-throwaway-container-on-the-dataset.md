@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T13:17:51.581655Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-24T13:17:31.151875Z'
   stage: doing
   run: a3e7e79b7eb746dcbe8ed30e4262ee29
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-24T13:17:51.581655Z'
+  stage: tests
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -282,3 +291,4 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
     Refactor pass: I read the diff; nothing more needed changing.
 
     Noticed but did not touch: `make duplicates` lists `WORK_HOME` in `src/factory/domain/containers.py` as unused (vulture, 60 % confidence). This change did not cause it; the constant was already there. The journal changed nothing that calls for a rewrite of the Description: the reviewer had already written criteria 10 and 11 into it.
+15. factory: started tests as self.
