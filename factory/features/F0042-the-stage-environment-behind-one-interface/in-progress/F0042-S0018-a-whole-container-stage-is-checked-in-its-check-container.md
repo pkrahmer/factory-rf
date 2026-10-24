@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T22:26:50.697079Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-24T22:26:50.691104Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-24T22:26:50.697079Z'
+  stage: intake
+---
+
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
 
 <!-- proposed by feature acceptance of 2026-10-24; refine before starting -->
@@ -50,3 +77,6 @@ grep -rlE '^(FIVE_MINUTES|BROKEN_FRONT_MATTER) = ' tests | wc -l; grep -rlE '^de
 Expect: three lines, `2`, `1`, `1`
 
 ## Journal
+
+1. 2026-10-24 human: created.
+2. factory: started intake as self.
