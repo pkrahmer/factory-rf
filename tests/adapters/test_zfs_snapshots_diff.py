@@ -86,6 +86,11 @@ def test_changed_paths_reads_the_diff_relative_to_the_mount_point(
             id="rename-outside",
         ),
         pytest.param(
+            Answer(stdout=f"+\tF\t{WORK}/bad\\377\n"),
+            f"cannot read the line +\tF\t{WORK}/bad\\377",
+            id="not-utf-8",
+        ),
+        pytest.param(
             Answer(stderr=f"cannot open '{DATASET}@base': dataset does not exist\n", exit_status=1),
             f"cannot open '{DATASET}@base': dataset does not exist",
             id="fails",

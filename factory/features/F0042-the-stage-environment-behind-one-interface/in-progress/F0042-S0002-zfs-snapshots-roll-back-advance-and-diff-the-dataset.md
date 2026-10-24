@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 408
 comments_read: [6383983454]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T12:22:17.366644Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,13 @@ journal:
   kind: started
   at: '2026-10-24T12:22:17.366644Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: question
+  at: '2026-10-24T12:24:10.783530Z'
+  stage: tests
+  run: 12c8b75232834d948523d125660b2bba
+  blocked: question
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -284,3 +287,17 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
 
     Noticed, not touched: none beyond round 0's notes.
 15. factory: started tests as self.
+16. tester: Round 1, a test change the coder's entry 14 names. I made one of its two changes and stopped before the other, which no criterion covers.
+
+    Done:
+    - criterion 10: tests/adapters/test_zfs_snapshots_diff.py::test_a_diff_it_cannot_read_is_a_fault, new row `not-utf-8`. `diff` prints `+\tF\t/srv/factory/vm/work/bad\377` and the test expects `detail` `cannot read the line +\tF\t/srv/factory/vm/work/bad\377`. Its `command` is checked by the test's shared assertion. The reviewer added this criterion and only its test was missing, so step 0 lets me write it. The code already behaves this way, so the row passes.
+
+    Not done, and this is the question: the coder asked for a row in tests/adapters/test_zfs_snapshots.py::test_dataset_exists_reads_what_list_names where `list -H -o name tank/factory/vm` exits 0, prints nothing, and raises `SnapshotError` with `detail` `printed nothing`. The coder has already changed `dataset_exists` to do that. But neither the Interface nor criterion 8 says what an empty status-0 output should give. Criterion 8 covers only "another first line" (`named <line>, not <dataset>`). No human answer has approved this rule; it was the coder's own call, because they could not write the work item. I test what the criteria say, so this open case goes to you. Options:
+      (a) Add the rule to the work item: in the Interface's `dataset_exists()` bullet, "exit status 0 with no non-blank line is a fault with `detail` `printed nothing`", and in criterion 8 a row "exit 0 printing nothing raises `SnapshotError` with `detail` `printed nothing`". Then I add that row. This is the one I would choose, because it matches `version()`'s wording and the code already does it.
+      (b) Treat an empty output as `False` (the dataset is not named). That changes the code and gets a row of its own.
+      (c) Leave the case untested and unspecified.
+    Please also say who writes the work item's text for (a): the human, or the tester with your leave.
+
+    Files changed: tests/adapters/test_zfs_snapshots_diff.py (one row added; this story's own test). No other test file changed.
+    Every module imports; `factory.adapters.zfs_snapshots` now exists.
+    `make test`: test: green (72.0 s). `make lint`: lint: green (0.2 s).
