@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T18:57:17.441777Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-24T18:56:56.806381Z'
   stage: tests
   run: 7c61b85e5b5f4dc8b07a32b94e40dab4
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:57:17.441777Z'
+  stage: doing
 ---
 
 # The agent runtimes start their process in a container
@@ -250,3 +259,4 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
 
    `lint`: lint: green (0.8 s)
    `test`: ERROR tests/adapters/test_agent_launch_container.py - ImportError while importing test module '/work/checkout/tests/adapters/test_agent_launch_container.py'.
+9. factory: started doing as self.
