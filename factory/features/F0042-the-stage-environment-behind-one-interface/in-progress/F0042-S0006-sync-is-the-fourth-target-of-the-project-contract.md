@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T17:21:48.236909Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-10-24T17:21:26.497801Z'
   stage: tests
   run: be4fa2f408cc4c7cb1e7acdc753661b4
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:21:48.236909Z'
+  stage: doing
 ---
 
 # `sync` is the fourth target of the project contract
@@ -318,3 +327,4 @@ Expect: four lines: `# The contract between a project and the factory is four ta
 
     `lint`: lint: green (0.5 s)
     `test`: test: green (61.2 s)
+17. factory: started doing as self.
