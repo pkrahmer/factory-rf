@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T17:24:46.837227Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-10-24T17:24:46.837227Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T17:25:34.913697Z'
+  stage: review
+  run: 9c83e0d4e2af44e0b2ef2b3ec63d3315
 ---
 
 # `sync` is the fourth target of the project contract
@@ -362,3 +364,49 @@ Expect: four lines: `# The contract between a project and the factory is four ta
     `check`: check: green
     `duplicates`: duplicates: 14 new, 37 known, 1 gone
 19. factory: started review as self.
+20. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'` (7 files: three under `template/`, four under `tests/`), and checked decision 18 (f) in `feature.md` and the types of `Stage.checks`/`reports` (`list[str]`, `src/factory/domain`), so that criterion 4's `"sync" not in stage.checks` test really tests something.
+
+    The round-0 findings are fixed:
+    - Finding 1 is fixed. `makefile_lines()` now exists once, in `tests/template_make_support.py:19`. Both `tests/test_template_sync.py` and `tests/test_template_makefile.py` use it, and neither keeps its own copy.
+    - Finding 2 is fixed. `tests/test_template_makefile.py::test_check_runs_the_other_targets_and_says_green` has its name back, and its body only switched to the shared helper.
+
+    The template changes match the Interface word for word:
+    - line 1 of `template/Makefile`;
+    - the `.PHONY` line with `sync` after `test`;
+    - the `sync:` comment and its recipe `$(start)` / `uv sync --frozen` / `$(green)`, placed between `check:` and `lint:`;
+    - `check:` unchanged, with no `sync`;
+    - the line `  sync: {time_limit: 5}` in `template/factory/pipeline.yml`, with the Interface's comment at its end;
+    - the one sentence in `template/CLAUDE.md`.
+
+    Each criterion has a test, and each test checks what its criterion says:
+    - Criterion 1: the `.PHONY` test with `sync` added, plus the unchanged `check` test.
+    - Criterion 2: `test_template_sync.py::test_template_says_the_contract_is_four_targets`, five rows: first line, no `three targets`, lines 4 and 5, `sync:` between `check:` and `lint:`, and the rules-file wording counted once and zero times.
+    - Criterion 3: `test_sync_runs_uv_sync_frozen_once_and_says_green`. Its two rows test both sides of one rule: `uv` exits 0, so `make` exits 0 and prints the green line; `uv` exits 1, so `make` exits 2 and prints no green line. Both rows also assert exactly one call with `["sync", "--frozen"]`.
+    - Criterion 4: `test_template_pipeline_definition_names_sync_and_no_stage_lists_it`. It parses with `RuamelPipelineDefinitionReader().parse` and checks:
+      - the keys in their order;
+      - `time_limit == 5` and `not_read == []`;
+      - no stage's `checks` or `reports` names `sync`.
+
+    The journal reports `make check` green after the coder (entries 10 and 18). No rule the Interface states lacks its failing side.
+
+    Architecture and security: nothing under `src/` changed, and no secret, string-built shell command or silencing marker was added.
+
+    Quality and hygiene:
+    - `tests/template_make_support.py` has docstrings that say what each helper is.
+    - The journal gives the main decision: the `$(start)`/`$(green)` macros, not a bare recipe that prints no green line.
+    - The Description matches what was built.
+    - Criterion 6 still says what the reader must know. The docs stage should also add `tests/template_make_support.py` to *Shared test helpers* in `docs/project-guide/README.md`, as the tester and coder noted.
+
+    Rejected as a finding: the Interface says "three files" but lists two. `template/CLAUDE.md` is named by the Description and criterion 2, and the build matches them.
+
+    no findings
+
+    Earlier tests (item 6):
+    - `tests/test_template_makefile.py`: two leaves.
+      - The standing leave to move a shared test helper covers moving `MAKEFILE`, `DROPPED`, `_lines` (now `makefile_lines`), `_green` (now `green_line`), `_stand_in` (now `stand_in_uv`), `_make` (now `run_make`) and the `project` fixture's body (now `template_project`) to `tests/template_make_support.py`. Every test keeps its name and checks the same thing.
+      - Decision 18 (f) in `feature.md` covers the `sync` row in `test_phony_line_names_the_targets_and_there_is_no_documents_target`.
+    - `tests/test_claude_files.py`: decision 18 (f) in `feature.md`. It covers the one `TEMPLATE_RULES_LINES` line, which now names `check`, `lint`, `test` and `sync`.
+
+    Notes:
+    - `tests/test_template_sync.py:31` `_line_number`: it repeats the head search that `test_check_runs_the_other_targets_and_says_green` does inline in `tests/test_template_makefile.py`. It could become a helper in `tests/template_make_support.py`.
+    - `tests/test_template_sync.py:80`: `[Step(exit_status=status)] * 2` plans two answers for a run that makes one call. One step would say what the test expects.
