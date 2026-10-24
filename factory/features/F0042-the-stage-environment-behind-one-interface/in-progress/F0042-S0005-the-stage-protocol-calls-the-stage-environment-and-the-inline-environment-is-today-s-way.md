@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 413
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T16:37:13.005926Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,13 @@ journal:
   kind: started
   at: '2026-10-24T16:37:13.005926Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-24T16:42:02.763957Z'
+  stage: doing
+  run: 90f92333839449f29571eafa1234633e
+  blocked: question
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -232,3 +235,41 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
    `lint`: lint: green (0.6 s)
    `test`: ERROR tests/application/test_stage_environment_protocol.py - ImportError while importing test module '/work/checkout/tests/application/test_stage_environment_protocol.py'.
 6. factory: started doing as self.
+7. coder: The code is in place, but two tests contradict each other and `make check` is red on one of them.
+
+   **The conflict.** `make test` fails only `tests/test_test_names.py::test_no_test_module_is_named_after_a_protocol`:
+
+   ```
+   E   AssertionError: assert [PosixPath('/...protocol.py')] == []
+   FAILED tests/test_test_names.py::test_no_test_module_is_named_after_a_protocol
+   ```
+
+   That existing test refuses any test module with "protocol" in its file name. The tester's new module is `tests/application/test_stage_environment_protocol.py`, and the work item asks for that exact name in its Interface ("Tests") and in the first smoke-test command. Every other test is green, coverage is 99.19 %, and lint, types, layers, sast, secrets and licenses are green. I changed no test.
+
+   **Options:**
+   - (a) The tester renames the module, for example to `tests/application/test_stage_environment_calls.py`. Its contents stay the same. The work item's Interface and smoke test then name the new file.
+   - (b) Relax `tests/test_test_names.py` so it allows this module. That is a change to another story's test, and that test records a naming rule of the project.
+
+   I would choose (a). With your answer I end with `tests`, naming the rename, and the tester makes it.
+
+   **What I built:**
+   - `src/factory/application/stage_environment.py` (new):
+     - `StageEnvironment`: an abstract base class with `prepare`, `run_agent` and `take`.
+     - `InlineEnvironment`: `prepare` does nothing, `run_agent` is `run_sealed`, and `take` is `UndoService.undo` turned into `TakeReport(left=sorted({*reverted, *deleted}), ...)`.
+     - `stage_environment_of`, which returns the inline environment.
+   - `src/factory/application/stage.py`:
+     - `StageLauncher` and `AfterAgent` take a keyword-only `stage_environment`; the default is `stage_environment_of(boundaries)`.
+     - `launch` calls `prepare(stage_start.commit, branch, sync_time_limit=...)` after composing the request and before `CostRecorder.begin`, then calls `run_agent(request, run=PatientRuns(...).run)`.
+     - The sync limit comes from `_sync_time_limit`: the definition's `sync` command when it has one, otherwise `ProjectCommandDefinition()`.
+     - `AgentAftermath.undo: UndoReport` is now `take: TakeReport`. The journal's closing paragraph names `take.left` without the sidecar.
+     - `StageRunner` builds one environment and gives it to both its launcher and its after-agent.
+   - `src/factory/application/preflight.py`: the probe now runs through `stage_environment_of(boundaries).run_agent(request)` and no longer imports `run_sealed`.
+
+   **Main choice:** the default sync limit comes from the model's own default, `ProjectCommandDefinition().time_limit`. I rejected a separate 10-minute constant in `stage.py`, which would be a second copy of the default that could drift.
+
+   **Refactor:** I read my diff and nothing needed changing.
+
+   **Not touched:**
+   - `StallService` still undoes on its own, as the description says.
+   - `UndoReport` is still used by `stalls.py` and `undo_support`.
+   - The docs criterion is left to the documenter.
