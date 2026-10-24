@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -151,6 +151,11 @@ journal:
   at: '2026-10-24T20:02:04.211509Z'
   stage: smoke-test
   run: 04b311ebf4134b6ca01c1cebabc896e9
+- number: 27
+  speaker: factory
+  kind: done
+  at: '2026-10-24T20:04:26.164093Z'
+  stage: approval
 ---
 
 # The project commands run in a check container on the taken result
@@ -424,3 +429,4 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
     **Findings:** none.
 
     **Open:** nothing.
+27. factory: done (pull request merged); cost: 11 runs, 15.2 min, 83 turns, 323768 tokens in (2092607 more from cache), 44182 out, $3.47
