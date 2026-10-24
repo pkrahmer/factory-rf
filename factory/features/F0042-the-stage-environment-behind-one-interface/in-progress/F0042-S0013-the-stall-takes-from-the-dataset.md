@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T18:33:13.435136Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-24T18:32:52.545779Z'
   stage: review
   run: ef83d7d290884d64acb8e894abe03c8f
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:33:13.435136Z'
+  stage: doing
 ---
 
 # The stall takes from the dataset
@@ -260,3 +269,4 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
    - `tests/application/test_stalls.py`: the human's leave in decision 18 (g2) of `feature.md`, named in the story (`result.undo is None` -> `result.take is None`, the `_result` row `"undo"` -> `"take"`). The standing leave of `CLAUDE.md` covers moving its helpers and constants to `tests/stall_support.py`: `_open`, `_launch`, `_started`, `_context` and `SwitchingRuntime` were moved, the four functions renamed, and every test keeps its name and checks.
    - `tests/application/test_container_environment_take.py`: the standing leave. `Steps`, `Pace`, `ClockedSnapshots`, `ClockedContainerRuns`, `FIRST`, `SECOND`, `TAKE_SECONDS`, `_started`, `_clocked` and `WorkspaceRuntime` moved to `tests/container_support.py`. Two changes go slightly past a pure move: `WorkspaceRuntime` now takes its files as an argument, and `Pace` gained `take`, defaulting to the old 0.25 s. The earlier test passes the same two files, so each test keeps its name and checks the same thing. I judged this within the leave.
    - `tests/container_support.py`: none needed. It only gains helpers, and every helper it held is unchanged.
+10. factory: started doing as self.
