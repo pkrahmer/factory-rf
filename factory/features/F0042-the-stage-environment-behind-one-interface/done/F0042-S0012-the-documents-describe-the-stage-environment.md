@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-24T22:01:11.503108Z'
   stage: smoke-test
   run: 921f191cc0d84df0838c58a7fbb7ef11
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-24T22:02:31.184683Z'
+  stage: approval
 ---
 
 # The documents describe the stage environment
@@ -225,3 +230,4 @@ Expect: `documents ok`
     One cosmetic point, which is not a finding: in `write-guard.md`, *The undo*, "A stall's" is capitalised after a semicolon.
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 3.8 min, 33 turns, 133711 tokens in (658435 more from cache), 13183 out, $1.08
