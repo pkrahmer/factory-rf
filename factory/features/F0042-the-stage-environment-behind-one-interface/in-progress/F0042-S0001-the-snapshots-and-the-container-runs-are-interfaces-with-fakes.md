@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T11:44:23.125283Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-24T11:44:23.125283Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T11:46:19.808017Z'
+  stage: review
+  run: 626c0b678e454eaab931856ddbd7bc41
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -416,3 +418,10 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 8 new, 38 known, 0 gone
 11. factory: started review as self.
+12. reviewer: 1. `src/factory/domain/containers.py:16-19` (`_must_be_container_path`): the code refuses a `Mount.target` that the Interface accepts. The Interface gives the rule as: starts with `/`, names at least one segment, no `..` segment, no empty segment, no trailing slash. `/a/./b` meets every one of those conditions, so the Interface accepts it. The code checks targets with `inside_home` of `factory.domain.agent_home`, which also refuses a `.` segment, so `/a/./b` is refused. The coder's entry 10 names this side effect, but no criterion or answer from the human allows it, and no test pins it. Fix, either way: (a) refuse only what the Interface states, meaning an empty segment, a `..` segment and a trailing slash, so `/a/./b` is accepted; or (b) end with `question` and ask the human to add `.` segments to the Interface's refused list and a `/a/./b` row to criterion 1. Option (b) fits the reuse of `inside_home` and the refusal of `..`; option (a) is the story as written.
+
+    I stopped at group 1, as the checklist says. The criteria tests I read do match criteria 1–12. The coder's journal entry 10 reports `check: green`.
+
+    Earlier tests:
+    - `tests/application/test_interfaces.py`: the human's leave in `feature.md` decision 18 (a). The story's Interface and criterion 4 name it. The diff stays within that leave: `INTERFACES` and `INTERFACE_IDS` each gain `Snapshots` and `ContainerRuns`, and `test_project_commands_and_agent_runtime_have_exactly_their_operations_abstract` gains the two assertions on `__abstractmethods__`. Every earlier test keeps its name.
+    - `tests/test_wrapper_search.py`: the human's leave in `feature.md` decision 18 (a). The expected set gains `factory.adapters.fake_containers` and nothing else changes.
