@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T20:14:03.938016Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-24T20:13:42.882146Z'
   stage: doing
   run: cb14b2225e9a455c8ca2aa93c2311b71
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:14:03.938016Z'
+  stage: review
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -125,3 +134,4 @@ Expect: one line, `[-9, 137, 255] True False`
 
    `check`: check: green
    `duplicates`: duplicates: 16 new, 36 known, 2 gone
+8. factory: started review as self.
