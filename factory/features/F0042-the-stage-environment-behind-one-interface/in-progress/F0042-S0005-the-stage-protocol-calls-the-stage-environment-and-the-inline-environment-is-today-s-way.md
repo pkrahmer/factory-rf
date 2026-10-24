@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T16:45:23.705334Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-24T16:45:23.705334Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-10-24T16:47:51.373709Z'
+  stage: tests
+  run: 356cf8efca6d43f19ad5b62713c47446
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -310,3 +312,21 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
     - **Main choice:** none in this run; the choice from my previous entry stands.
     - **Open:** after the rename, the stage comes back to me to confirm `make check` is green.
 11. factory: started tests as self.
+12. tester: I made the rename the human approved in entry 8 and the coder named in entry 10. I renamed `tests/application/test_stage_environment_protocol.py` to `tests/application/test_stage_environment_calls.py` and left its contents unchanged. No other file referred to the old module name, so nothing else changed.
+
+    The test functions and their criteria are the same as in entry 5. Only the module path is new:
+    - criterion 6: tests/application/test_stage_environment_calls.py::test_the_launch_prepares_after_the_claim_then_runs_the_agent_through_the_environment
+    - criterion 7: tests/application/test_stage_environment_calls.py::test_a_refused_prepare_ends_the_launch_after_the_claim_and_before_the_run
+    - criterion 8: tests/application/test_stage_environment_calls.py::test_after_the_agent_the_environment_takes_and_its_report_closes_the_entry
+    - criterion 9: tests/application/test_stage_environment_calls.py::test_a_stage_built_without_an_environment_runs_the_inline_one
+    - criterion 10: tests/application/test_stage_environment_calls.py::test_the_preflight_does_not_import_the_sealed_run
+    - criteria 1 to 5: unchanged, as listed in entry 5.
+
+    Files created: none; one file renamed. Modules the test run could not import: none.
+
+    `make test` is now green, with coverage at 99.19 %, so `tests/test_test_names.py::test_no_test_module_is_named_after_a_protocol` passes. `make lint` is green.
+
+    Open: the reviewer still has to change the work item's Interface ("Tests") and its first smoke-test command to name the new file, as the human's answer says.
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (61.1 s)
