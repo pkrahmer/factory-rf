@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T11:36:51.269170Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-24T11:36:30.531950Z'
   stage: tests
   run: ee5c2465faa04f918eacd1bcd6e8e185
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-24T11:36:51.269170Z'
+  stage: doing
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -373,3 +382,4 @@ Expect: `1`
 
    `lint`: lint: green (0.7 s)
    `test`: ERROR tests/domain/test_errors_environment.py - ImportError while importing test module '/work/checkout/tests/domain/test_errors_environment.py'.
+9. factory: started doing as self.
