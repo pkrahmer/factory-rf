@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 411
 comments_read: [6386154578]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T15:42:28.635491Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-24T15:42:10.728644Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-24T15:42:28.635491Z'
   stage: intake
 ---
 
@@ -157,3 +166,4 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
    - **Architecture:** the layering is right.
    - **Scope:** within F0042.
 4. 2026-10-24 human: Answer to the intake (F0042-S0004, the take copies what the role may write from the dataset into the work tree): **A**. Add a criterion before the two closing ones: after `take` with criterion 3's rows and a work item restore, every file under `mount_point` has the same bytes and mode as before, the listing under `mount_point` is unchanged, and the fixtures' git history has no new commit. The Interface's sentence stays. Please write it into the criteria as you accept.
+5. factory: started intake as self.
