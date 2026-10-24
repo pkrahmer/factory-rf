@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T20:37:08.716159Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-24T20:36:48.258157Z'
   stage: doing
   run: b8cff0a2444e4b40bb77a72840f872a8
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:37:08.716159Z'
+  stage: tests
 ---
 
 # Every container runs without rights and within limits
@@ -181,3 +190,4 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
     Rejected: changing anything in `src/factory/adapters/podman_runs.py`. The finding names no fault in the code.
 
     Noticed, not touched: `tests/adapters/test_podman_runs_results.py:18` and `tests/adapters/test_podman_timeout_status.py:12` hold the same `IMAGE = "factory-stage:1"` copy. The leave covers moving them to the shared constant too, but the reviewer did not name them, so the tester decides. `test_podman_runs_results.py` has its own `runs` fixture over a `workspace` path, which is a different fixture and should stay.
+12. factory: started tests as self.
