@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T20:10:41.274580Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-24T20:10:20.546515Z'
   stage: tests
   run: 483b7d5bcedf4d32b0b62b5e2757e7b9
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:10:41.274580Z'
+  stage: doing
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -103,3 +112,4 @@ Expect: one line, `[-9, 137, 255] True False`
 
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/adapters/test_agent_launch_container_kill.py - ImportError while importing test module '/work/checkout/tests/adapters/test_agent_launch_container_kill.py'.
+6. factory: started doing as self.
