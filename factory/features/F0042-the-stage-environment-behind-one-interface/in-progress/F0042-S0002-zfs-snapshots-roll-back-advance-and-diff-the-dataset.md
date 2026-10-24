@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T12:06:06.993656Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-24T12:05:46.571528Z'
   stage: intake
   run: 67a7b64249d84542a8cec3f648751ed3
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-24T12:06:06.993656Z'
+  stage: tests
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -166,3 +175,4 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
    - Smoke test: the command is runnable. The stand-in script and the Python check cover reset, advance, diff, version, dataset_exists and the missing executable. The `Expect:` line is checkable against the output. It runs no pytest. The smoke test is unchanged, and the new `\134` and `destroy`/`snapshot` rows are covered by the tests only.
    - Architecture: the new module is in `adapters`, reaches `zfs` only through `run_process` from `factory.adapters.process`, and implements the application-layer interface `Snapshots`. The layer rules and the wrapper rule (R5) hold. The wrapper-search leave is decision 18 b of `feature.md`.
    - Scope: within F0042's scope, which lists `zfs_snapshots` as S0002. Nothing is wired, which is S0010's job. The docs criterion names the guide file and the README row.
+7. factory: started tests as self.
