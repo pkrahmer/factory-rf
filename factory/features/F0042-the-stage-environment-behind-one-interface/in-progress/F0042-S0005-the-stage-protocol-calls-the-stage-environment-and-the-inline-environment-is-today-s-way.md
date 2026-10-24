@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T16:30:19.883891Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-24T16:30:19.878240Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:30:19.883891Z'
+  stage: intake
+---
+
 # The stage protocol calls the stage environment, and the inline environment is today's way
 
 ## Description
@@ -131,3 +158,6 @@ EOF
 Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/new.md', 'docs/guide.md'], 'restored_work_item': False}`
 
 ## Journal
+
+1. 2026-10-24 human: created.
+2. factory: started intake as self.
