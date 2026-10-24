@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T19:39:24.817213Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -61,6 +57,12 @@ journal:
   kind: started
   at: '2026-10-24T19:39:24.817213Z'
   stage: tests
+- number: 10
+  speaker: tester
+  kind: result
+  at: '2026-10-24T19:44:16.998358Z'
+  stage: tests
+  run: 55c412574715431da102ebec770f6285
 ---
 
 # The project commands run in a check container on the taken result
@@ -153,3 +155,22 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
    - Architecture: the class sits in `factory.adapters` behind the `ProjectCommands` interface. It reuses `copy_changed`, `last_line` and `status_of`, and the word `make` stays in the allowed modules.
    - Scope: it is within S0009 of `feature.md` and decisions 7 and 8. It touches nothing under "Out of scope".
 9. factory: started tests as self.
+10. tester: Wrote the tests for `ContainerMakeCommands`. They use `FakeSnapshots` and `FakeContainerRuns` on `tmp_path`, the `checkout` fixture as the host clone, and the real `make`. The fixture `setup` commits `.gitignore` (`.venv/`), `src/kept.py` and `src/old.py` on the host. For each test it then builds the base: the host's files plus that test's own `Makefile`, a marker in `checkout/.git`, and `home/kept.txt` beside `checkout`.
+
+    Criterion → test:
+    - criterion 1: tests/adapters/test_make_commands_container.py::test_check_runs_after_sync_in_the_container_and_its_files_stay_there. The 40-line tail part is in ::test_output_tail_is_the_last_thirty_lines.
+    - criterion 2: tests/adapters/test_make_commands_container.py::test_check_sees_the_base_with_what_differs_from_head_on_the_host. Rows: stray file reset, added and changed copied with the host's bytes, deleted removed, ignored `.venv/x` not copied, nothing changed. The `check` recipe lists the checkout's files outside `.git`, and the test compares that listing exactly.
+    - criterion 3: tests/adapters/test_make_commands_container.py::test_failing_sync_fails_and_check_does_not_run
+    - criterion 4: tests/adapters/test_make_commands_container.py::test_check_reaching_its_time_limit_is_a_time_limit_result. The limit is 1 s and the bound is 1 ≤ elapsed < 25. The child need not start to be killed, so the short limit stays.
+    - criterion 5: tests/adapters/test_make_commands_container.py::test_refused_call_runs_nothing. Rows: limit 0, limit −1 s, and the name `Check`. The positive side of the limit is the 1-minute and 1-second runs in criteria 1 and 4.
+    - criterion 6: tests/adapters/test_make_commands_container.py::test_faults_are_project_command_errors_but_git_and_paths_propagate. Rows: no base, a container that cannot start (a small `ContainerRuns` subclass), a `GitCli` subclass whose `changed_paths` raises (the test checks it gets that same `GitError` object back), and one that returns `../x`. The last two rows also check that no container call was recorded.
+    - criterion 7: tests/adapters/test_make_commands_container.py::test_container_commands_are_project_commands. The search for the word `make` is the existing, unchanged tests/test_make_search.py::test_only_the_make_class_names_make.
+    - criterion 8: tests/adapters/test_make_commands_container.py::test_copy_writes_under_the_dataset_checkout_and_never_its_git. Rows: the files under the dataset's `checkout/.git` equal the base's, and the files beside `checkout` equal the base's, both after a run with host changes.
+    - criteria 9 and 10: no test; they are `make check` and the docs.
+
+    Files created: tests/adapters/test_make_commands_container.py. No earlier test file changed.
+
+    Module the test run could not import: `make test` ends in a collection error, an `ImportError` on tests/adapters/test_make_commands_container.py, because `ContainerMakeCommands` does not exist yet in `factory.adapters.make_commands`. `make lint` is green. The fake classes mark their unused arguments with `del`, to satisfy ruff's ARG002 rule.
+
+    `lint`: lint: green (0.6 s)
+    `test`: ERROR tests/adapters/test_make_commands_container.py - ImportError while importing test module '/work/checkout/tests/adapters/test_make_commands_container.py'.
