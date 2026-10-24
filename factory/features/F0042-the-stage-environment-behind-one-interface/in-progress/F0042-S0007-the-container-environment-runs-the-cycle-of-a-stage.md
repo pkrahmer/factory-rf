@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T18:04:09.742474Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-24T18:04:09.742474Z'
   stage: tests
+- number: 24
+  speaker: tester
+  kind: result
+  at: '2026-10-24T18:07:37.517110Z'
+  stage: tests
+  run: e13775572dac41ae88f0b762b7479703
 ---
 
 # The container environment runs the cycle of a stage
@@ -417,3 +419,20 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
 
     Noticed, not touched: after a failed `prepare`, the object keeps the durations of the last successful one. No criterion covers that case.
 23. factory: started tests as self.
+24. tester: Mode: the approved test change from the coder's entry 22. The reviewer added criterion 13, and it needed only its test, so I wrote it as a new row of criterion 8's parametrized test. The three existing rows still check what they checked before.
+
+    - criterion 13: tests/application/test_container_environment_take.py::test_one_timing_line_per_take_carries_the_last_prepares_durations, row `last-prepare-counts`.
+      - What it does: two `prepare`s on one object, the first for `main` at the host's `main` commit with steps 0.4/12.3/0.1 s, the second for the work item's branch at its stage-start commit with steps 1.0/2.0/3.0 s. Then one `take`, with 0.25 s inside `changed_paths`.
+      - What it expects: exactly one `stage environment:` line, ending in `stage environment: reset 1.0 s, sync 2.0 s, advance 3.0 s, take 0.2 s`.
+    - criterion 8: the same test, rows `prepare-and-take`, `take-without-prepare` and `prepare-alone`, unchanged in what they check.
+
+    How the test changed: until now the clocked fakes always advanced the clock by the same fixed amounts. Now `ClockedSnapshots` and `ClockedContainerRuns` read their seconds from a shared, mutable `Pace` that holds a frozen `Steps` (reset, sync, advance), and the test sets the pace before each `prepare`. The amount inside `changed_paths` stays fixed at 0.25 s (`TAKE_SECONDS`). The `prepares` parameter is now a tuple of (branch, steps) pairs instead of a bool; an empty tuple keeps the unclocked object for the take-without-prepare row.
+
+    Files: I created no new file. I edited only tests/application/test_container_environment_take.py, which this story's tester wrote. No other earlier test file changed.
+
+    Imports: every module imported. The new row passes at once, as the coder expected: `prepare` replaces the durations rather than adding to them. One `make test` run was green (99.19 % coverage, `test: green (71.1 s)`), and `make lint` was green.
+
+    Still open, as before: after a failed `prepare`, the object keeps the durations of the last successful one. No criterion covers that case, so there is no test for it.
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (70.9 s)

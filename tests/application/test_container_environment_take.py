@@ -1,7 +1,7 @@
 """The container environment's take on the snapshots' changes, its timing line, a whole stage."""
 
 from collections.abc import Mapping, Sequence
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from datetime import timedelta
 from pathlib import Path
 
@@ -65,13 +65,35 @@ def test_take_copies_the_snapshots_changes_the_role_may_write(
     assert report == TakeReport(left=[GUIDE], restored_work_item=False)
 
 
+@dataclass(frozen=True)
+class Steps:
+    """The seconds one `prepare` spends inside `reset`, the sync container's run and `advance`."""
+
+    reset: float
+    sync: float
+    advance: float
+
+
+@dataclass
+class Pace:
+    """The steps the clocked fakes advance the clock by; the test sets them before each prepare."""
+
+    steps: Steps
+
+
+FIRST = Steps(reset=0.4, sync=12.3, advance=0.1)
+SECOND = Steps(reset=1.0, sync=2.0, advance=3.0)
+TAKE_SECONDS = 0.25
+
+
 class ClockedSnapshots(Snapshots):
     """Snapshots that advance the manual clock inside `reset`, `advance` and `changed_paths`."""
 
-    def __init__(self, delegate: Snapshots, clock: ManualClock) -> None:
-        """Delegate to `delegate`, advancing `clock`."""
+    def __init__(self, delegate: Snapshots, clock: ManualClock, pace: Pace) -> None:
+        """Delegate to `delegate`, advancing `clock` by `pace`."""
         self._delegate = delegate
         self._clock = clock
+        self._pace = pace
 
     @property
     def mount_point(self) -> Path:
@@ -79,28 +101,29 @@ class ClockedSnapshots(Snapshots):
         return self._delegate.mount_point
 
     def reset(self) -> None:
-        """Advance 0.4 s, then reset."""
-        self._clock.advance(timedelta(seconds=0.4))
+        """Advance by the pace's reset, then reset."""
+        self._clock.advance(timedelta(seconds=self._pace.steps.reset))
         self._delegate.reset()
 
     def advance(self) -> None:
-        """Advance 0.1 s, then move the base."""
-        self._clock.advance(timedelta(seconds=0.1))
+        """Advance by the pace's advance, then move the base."""
+        self._clock.advance(timedelta(seconds=self._pace.steps.advance))
         self._delegate.advance()
 
     def changed_paths(self) -> list[ChangedPath]:
         """Advance 0.25 s, then compare."""
-        self._clock.advance(timedelta(seconds=0.25))
+        self._clock.advance(timedelta(seconds=TAKE_SECONDS))
         return self._delegate.changed_paths()
 
 
 class ClockedContainerRuns(ContainerRuns):
-    """Container runs that advance the manual clock by 12.3 s inside each run."""
+    """Container runs that advance the manual clock by the pace's sync inside each run."""
 
-    def __init__(self, delegate: ContainerRuns, clock: ManualClock) -> None:
-        """Delegate to `delegate`, advancing `clock`."""
+    def __init__(self, delegate: ContainerRuns, clock: ManualClock, pace: Pace) -> None:
+        """Delegate to `delegate`, advancing `clock` by `pace`."""
         self._delegate = delegate
         self._clock = clock
+        self._pace = pace
 
     def launch(
         self,
@@ -129,8 +152,8 @@ class ClockedContainerRuns(ContainerRuns):
         time_limit: timedelta,
         working_directory: str,
     ) -> ContainerResult:
-        """Advance 12.3 s, then run on the delegate."""
-        self._clock.advance(timedelta(seconds=12.3))
+        """Advance by the pace's sync, then run on the delegate."""
+        self._clock.advance(timedelta(seconds=self._pace.steps.sync))
         return self._delegate.run(
             command,
             mounts=mounts,
@@ -140,11 +163,11 @@ class ClockedContainerRuns(ContainerRuns):
         )
 
 
-def _clocked(dataset: Dataset, clock: ManualClock) -> ContainerEnvironment:
+def _clocked(dataset: Dataset, clock: ManualClock, pace: Pace) -> ContainerEnvironment:
     return ContainerEnvironment(
         dataset.boundaries,
-        ClockedSnapshots(dataset.snapshots, clock),
-        ClockedContainerRuns(dataset.containers, clock),
+        ClockedSnapshots(dataset.snapshots, clock, pace),
+        ClockedContainerRuns(dataset.containers, clock, pace),
     )
 
 
@@ -152,18 +175,24 @@ def _clocked(dataset: Dataset, clock: ManualClock) -> ContainerEnvironment:
     ("prepares", "takes", "expected"),
     [
         pytest.param(
-            True,
+            ((BRANCH, FIRST),),
             True,
             "stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s, take 0.2 s",
             id="prepare-and-take",
         ),
         pytest.param(
-            False,
+            (),
             True,
             "stage environment: reset 0.0 s, sync 0.0 s, advance 0.0 s, take 0.0 s",
             id="take-without-prepare",
         ),
-        pytest.param(True, False, None, id="prepare-alone"),
+        pytest.param(((BRANCH, FIRST),), False, None, id="prepare-alone"),
+        pytest.param(
+            (("main", FIRST), (BRANCH, SECOND)),
+            True,
+            "stage environment: reset 1.0 s, sync 2.0 s, advance 3.0 s, take 0.2 s",
+            id="last-prepare-counts",
+        ),
     ],
 )
 def test_one_timing_line_per_take_carries_the_last_prepares_durations(
@@ -173,15 +202,21 @@ def test_one_timing_line_per_take_carries_the_last_prepares_durations(
     tmp_path: Path,
     clock: ManualClock,
     *,
-    prepares: bool,
+    prepares: tuple[tuple[str, Steps], ...],
     takes: bool,
     expected: str | None,
 ) -> None:
     start = _started(boundaries, human, agent_home)
+    main = boundaries.git.resolve("main")
+    assert main is not None
+    commits = {"main": main, BRANCH: start.commit}
     dataset = container_dataset(boundaries, tmp_path)
     if prepares:
-        environment = _clocked(dataset, clock)
-        environment.prepare(start.commit, BRANCH, sync_time_limit=FIVE_MINUTES)
+        pace = Pace(steps=prepares[0][1])
+        environment = _clocked(dataset, clock, pace)
+        for branch, steps in prepares:
+            pace.steps = steps
+            environment.prepare(commits[branch], branch, sync_time_limit=FIVE_MINUTES)
     else:
         environment = ContainerEnvironment(
             dataset.boundaries, dataset.snapshots, dataset.containers
