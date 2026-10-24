@@ -103,7 +103,17 @@ EOF
 sudo chmod 0440 /etc/sudoers.d/factory-zfs && sudo visudo -cf /etc/sudoers.d/factory-zfs
 ```
 
-Then, as `factory`, repeat the rollback as `sudo -n zfs rollback -r tank/factory/vm@base` and note that the factory's setting `FACTORY_ZFS` will be `sudo -n zfs` on this machine. Four exact commands on one dataset is all that line allows.
+Then, as `factory`, repeat the rollback as `sudo -n zfs rollback -r tank/factory/vm@base`. The factory's setting `FACTORY_ZFS` is one executable (F0042, decision 14), so on this machine it names a one-line wrapper script that the operator writes once, as root:
+
+```bash
+sudo tee /usr/local/bin/zfs-factory >/dev/null <<'EOF'
+#!/bin/sh
+exec sudo -n /usr/sbin/zfs "$@"
+EOF
+sudo chmod 0755 /usr/local/bin/zfs-factory
+```
+
+and `FACTORY_ZFS=/usr/local/bin/zfs-factory`. Four exact commands on one dataset is all the `sudoers` line allows, whatever the wrapper is asked.
 
 ## 6. A closer prototype of the cycle (optional, with git)
 
