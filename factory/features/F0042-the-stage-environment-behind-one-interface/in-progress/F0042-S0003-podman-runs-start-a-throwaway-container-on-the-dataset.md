@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 409
 comments_read: [6384531243]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T13:02:53.769459Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-24T13:02:53.769459Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-24T13:08:07.889183Z'
+  stage: tests
+  run: 24c8f5fdfa184b44a8badeced696ba9a
 ---
 
 # Podman runs start a throwaway container on the dataset
@@ -168,3 +170,25 @@ Expect: three lines: `['run', '--rm', '--userns=keep-id', '--timeout', '90', '--
    - Scope: within the feature's scope list and decision 11. Nothing is removed and no new dependency is added.
    - Description: needs no rewrite. It states no `env` value, and entry 4's three answers are in the Interface and criteria.
 7. factory: started tests as self.
+8. tester: Wrote the tests of `factory.adapters.podman_runs` from the Interface and criteria 1–9. Each test runs against a stand-in `podman` that records its calls. No real podman is run.
+
+   - criterion 1: tests/adapters/test_podman_runs.py::test_launch_pins_the_podman_command_line
+   - criterion 2: tests/adapters/test_podman_runs.py::test_timeout_is_the_time_limit_in_whole_seconds_rounded_up (rows 30 s → `30`, 1.5 s → `2`, 40 min → `2400`; each row has no mounts and no environment and checks for one `--volume` (the workspace) and no `--env`)
+   - criterion 3: tests/adapters/test_podman_runs.py::test_a_mount_on_the_dataset_or_no_command_is_refused (`launch` and `run` × the targets `/work`, `/work/checkout` and `/workspace`, plus `[]` as the command)
+   - criterion 4: tests/adapters/test_podman_runs_results.py::test_a_run_passes_the_command_s_status_and_output_through
+   - criterion 5: tests/adapters/test_podman_runs_results.py::test_a_kill_at_the_limit_is_a_timed_out_run (137 at the limit, 137 before it, -9 at the limit, the factory's own kill through a `Recorder` answer). Every row runs through a `Recorder` in place of `podman_runs.run_process`; with no answer queued, the `Recorder` runs the real process. So every row also checks the request: `time_limit` is the limit plus 30 s, `merge_stderr` is true, `cwd` is `/`.
+   - criterion 6: tests/adapters/test_podman_runs_results.py::test_podman_s_own_fault_is_its_exit_status and ::test_a_podman_that_cannot_start_is_a_container_error_of_the_command
+   - criterion 7: tests/adapters/test_podman_runs_results.py::test_version_is_the_first_line_podman_prints (six rows) and ::test_version_runs_under_two_minutes_by_default (`PODMAN_TIME_LIMIT`, and the default limit read from a `Recorder` request)
+   - criterion 8: tests/adapters/test_podman_runs_results.py::test_image_exists_reads_podman_s_exit_status (five rows)
+   - criterion 9: tests/adapters/test_podman_runs.py::test_podman_runs_are_container_runs, plus `factory.adapters.podman_runs` added to the expected set in tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module (the story names this test; decision 18 c)
+
+   Files created: tests/podman_support.py (the stand-in `podman`, modelled on `write_sudo`, with plan fields stdout/stderr/wait/exit status, where -9 means it kills itself with SIGKILL; when its arguments contain the image word it runs the words after it), tests/adapters/test_podman_runs.py, tests/adapters/test_podman_runs_results.py.
+
+   Files changed: tests/conftest.py (new fixture `podman`, the stand-in in `tmp_path`) and tests/test_wrapper_search.py (one added module name, as criterion 9 asks).
+
+   In the stand-in, error messages go to stderr so that the merged output is exercised. I did not test the Interface's `cwd` of `version()`, because no criterion names it.
+
+   `make test` result: the test runner could not import `factory.adapters.podman_runs`, so both new modules fail at collection. `test_wrapper_search` fails until the module exists. All three are red on purpose. `make lint`: green. I set no skill or step aside.
+
+   `lint`: lint: green (0.6 s)
+   `test`: ERROR tests/adapters/test_podman_runs_results.py - ImportError while importing test module '/work/checkout/tests/adapters/test_podman_runs_results.py'.
