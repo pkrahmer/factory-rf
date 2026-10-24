@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-24T20:00:33.245289Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -138,6 +134,12 @@ journal:
   kind: started
   at: '2026-10-24T20:00:33.245289Z'
   stage: docs
+- number: 24
+  speaker: documenter
+  kind: result
+  at: '2026-10-24T20:01:14.667225Z'
+  stage: docs
+  run: 60c15c9ef7d6489eab0abb64f412c847
 ---
 
 # The project commands run in a check container on the taken result
@@ -358,3 +360,27 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
 
     Earlier tests: none. The diff only adds tests/adapters/test_make_commands_container.py (status `A`).
 23. factory: started docs as self.
+24. documenter: Docs round 1. Only documents changed, so I did not run `make check`; the factory's checks follow.
+
+    Files changed:
+    - docs/project-guide/processes-and-checks.md: new subsection *Container project commands*, before *Rules of `run`*. It covers `ContainerMakeCommands` and `CHECK_ENVIRONMENT`, the steps (the shared refusal of a bad call, the reset, the copy of what differs from `HEAD`, the check container, the shared reading of the output), the faults, and that a check's files stay in the container. The opening paragraph of *Project commands* now names it as the second implementation.
+    - docs/project-guide/stage-environment.md: new section *The checks* (step 7 of the cycle, a pointer to the subsection above, and why what differs from `HEAD` is copied and no list is kept). The sentence in *copy_changed* that said the check container's copy "will" use it now says it does.
+
+    The wording on decision 7 is mine. I did not read `feature.md`, which my instructions exclude. I stated only the reasoning the story itself gives: `HEAD` and the host's work tree already say what the take brought, so nothing is remembered between the take and the checks. If the feature's own reasoning differs, the human should correct that sentence.
+
+    Cross-read against the diff and found current:
+    - the rest of processes-and-checks.md (*Rules of `run`*, *Known results*, *Sealed project commands*);
+    - the *take* and *container environment* sections of stage-environment.md;
+    - agents.md, watching.md and decisions.md, where I checked only the `MakeProjectCommands` mentions.
+
+    `docs/decisions.md` is unchanged, as the docs criterion says. I did not run the examples, because I wrote none. I took the command line and the environment from the source and the Interface.
+
+    Stale text I saw and left alone:
+    - The README sentence that "This repository's own `Makefile` and `factory/pipeline.yml` do not have [sync] yet" is the human's change.
+    - The `make duplicates` report still lists `ContainerMakeCommands` as unused; that is expected until S0010 wires it.
+
+    Code findings: none. The code matches the Interface and the criteria.
+
+    `check`: check: green (not run again: passed on tree 75a4af8630b7 at 2026-10-24T19:57:40Z)
+    `secrets`: secrets: green (1.1 s)
+    `documents`: documents ok

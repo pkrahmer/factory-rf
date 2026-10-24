@@ -188,7 +188,7 @@ The service makes no commit, runs no git command on the dataset and never writes
 
 ### copy_changed
 
-`copy_changed(source, target, changed)` mirrors each `ChangedPath` from the tree at `source` into the tree at `target`. The take uses it, and so will the check container's copy of the work tree. Every path is first checked with `check_repository_path`: an absolute path or one with a `..` segment raises `ValueError` naming it, before anything is copied.
+`copy_changed(source, target, changed)` mirrors each `ChangedPath` from the tree at `source` into the tree at `target`. The take uses it, and so does the check container's copy of the work tree (*The checks* below). Every path is first checked with `check_repository_path`: an absolute path or one with a `..` segment raises `ValueError` naming it, before anything is copied.
 
 - `added` or `modified`: the entry at `target / path` is removed first (a link as the link, a folder with what it holds), then the source's entry is placed. A regular file arrives with its bytes and mode, so an executable bit stays. A symbolic link arrives as a link with the same target text and is never followed.
 - `deleted`: the entry at `target / path` is removed, a link as the link with its target untouched. A missing entry, a dangling link included, is no fault.
@@ -260,6 +260,12 @@ Each duration is in seconds with one decimal (Python's rounding). `reset`, `sync
 `Boundaries.snapshots` and `Boundaries.containers` (see `watching.md`, *Boundaries*) default to `None`; `stage_environment_of` picks the container environment only when both are set. `StageRunner` builds one environment per runner, as *One environment per runner* says.
 
 The suite runs it on `FakeSnapshots(workspace, base)` and `FakeContainerRuns(workspace)` under `tmp_path`, the host checkout of the `boundaries` fixture as the upstream, with real `git` and `make` as child processes on the host (the container is played, not run). `tests/container_support.py` holds the helpers: `container_dataset`, `push_main` and `sync_makefile` (a `Makefile` whose `sync` writes a marker), `dataset_git`, `local_branches` and `timing_lines`. Tests: `tests/application/test_container_environment.py` (`prepare` and `run_agent`), `tests/application/test_container_environment_take.py` (the take, the timing line and a whole stage through `StageRunner`), `tests/application/test_stage_environment_of.py`, `tests/domain/test_checks_last_line.py` and `tests/adapters/test_make_last_line_shared.py`. The real tools come with the wiring of a later story.
+
+## The checks
+
+Step 7 of the cycle in `planning/v1.2-plan.md` ("The cycle of a stage"): the stage's checks see the taken result on a clean base. `ContainerMakeCommands` (`factory.adapters.make_commands`) does it for every project command: it rolls the dataset back to the base, copies in the files the take brought into the host's work tree, and runs `make sync && make <command>` in a container with the command's time limit. The steps, the environment and the faults are in `processes-and-checks.md`, *Container project commands*. A file a check makes stays in its container's dataset and is reset away by the next run; it never reaches the host.
+
+What is copied is what differs from `HEAD` on the host (`git.changed_paths("HEAD")`), not a list the take kept. After the take that is the taken files, the restored work item and the factory's cost record; at the preflight's `lint` on `main` it is nothing. Nothing is remembered between the take and the checks (decision 7 of the feature): `HEAD` and the host's work tree already say what the take brought, so no list is kept that could disagree with them. The copy is `copy_changed`, the take's own mirror, so the two directions share one rule for links, modes, deletions and refused paths.
 
 ## The fakes
 
