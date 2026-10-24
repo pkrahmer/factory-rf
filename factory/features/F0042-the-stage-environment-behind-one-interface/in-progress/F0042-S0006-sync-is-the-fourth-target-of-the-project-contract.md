@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T17:07:51.860763Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-24T17:07:51.860763Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-24T17:11:16.227846Z'
+  stage: tests
+  run: 8ae6fd9f0cc4454cb4a6fb41a0a79a58
 ---
 
 # `sync` is the fourth target of the project contract
@@ -110,3 +112,47 @@ Expect: four lines: `# The contract between a project and the factory is four ta
    - Architecture: this is template-only, with no layer change, which fits `CLAUDE.md`. The edit leaves to `tests/test_template_makefile.py` and `tests/test_claude_files.py` are named and rest on decision 18 f. `tests/test_template_makefile_header.py` stays unchanged.
    - Scope: it is within `feature.md`. This repository's own `Makefile` and `factory/pipeline.yml`, and the `planning/overnight/templates/` designs, are left to the human (changes 1 and 3). No stage lists `sync`, so no lease math changes.
 4. factory: started tests as self.
+5. tester: I wrote the tests for criteria 1 to 4. They fail as they should: the template has no `sync` target or command yet, and its `CLAUDE.md` still names three targets. `make lint` is green.
+
+   Criterion → test:
+   - criterion 1: `tests/test_template_makefile.py::test_phony_line_names_the_targets_and_there_is_no_documents_target` now expects `sync` after `test`. `tests/test_template_makefile.py::test_check_runs_the_other_targets_and_says_green` is unchanged.
+   - criterion 2: `tests/test_template_sync.py::test_template_says_the_contract_is_four_targets` has five rows:
+     - `first-line`
+     - `no-three-targets`
+     - `lines-four-and-five`
+     - `sync-after-check-before-lint`
+     - `rules-file`: `template/CLAUDE.md` says "names `check`, `lint`, `test` and `sync`" once and the three-target wording zero times.
+
+     `tests/test_template_makefile_header.py` is unchanged. The `TEMPLATE_RULES_LINES` line in `tests/test_claude_files.py` now reads "The pipeline definition names `check`, `lint`, `test` and `sync`; …".
+   - criterion 3: `tests/test_template_sync.py::test_sync_runs_uv_sync_frozen_once_and_says_green` has two rows:
+     - Stand-in exits 0: `make sync` exits 0, calls `uv` once with `["sync", "--frozen"]`, and the last line is `sync: green (<s> s)`.
+     - Stand-in exits 1: `make sync` exits 2, calls `uv` once, and prints no green line.
+   - criterion 4: `tests/test_template_sync.py::test_template_pipeline_definition_names_sync_and_no_stage_lists_it` parses with `RuamelPipelineDefinitionReader().parse`. It expects the `project_commands` keys in order `check, lint, test, sync`, `sync` with `time_limit == 5` and `not_read == []`, and no stage naming `sync` in `checks` or `reports`.
+   - criteria 5 and 6: `make check` and docs, nothing to test.
+
+   Files:
+   - New: `tests/test_template_sync.py`.
+   - New: `tests/template_make_support.py`, a shared helper module:
+     - `MAKEFILE` and `DROPPED`
+     - `green_line` (was `_green`)
+     - `template_project` (the body of the `project` fixture)
+     - `stand_in_uv` (was `_stand_in`)
+     - `run_make` (was `_make`)
+   - Changed: `tests/test_template_makefile.py`. I moved its helpers into the shared module under the standing leave in `CLAUDE.md`. Every test keeps its name and checks the same thing; the `project` fixture stays and calls `template_project`. The `sync` row in the `.PHONY` test falls under decision 18 f, as the Interface says.
+   - Changed: `tests/test_claude_files.py`, the one `TEMPLATE_RULES_LINES` line, also under decision 18 f.
+
+   Before implementation, `make test` fails on these:
+   - the five-row test (the `rules-file` row fails)
+   - both `make sync` rows (`No rule to make target 'sync'`)
+   - the pipeline test (keys are `['check', 'lint', 'test']`)
+   - the `.PHONY` test
+   - `test_template_rules_file_is_the_python_project_text` in `tests/test_claude_files.py`
+
+   The other modules are not shown in the five lines I read.
+
+   Every module imported; none were missing.
+
+   Open: the new list entry for `tests/template_make_support.py` in `docs/project-guide/README.md`, *Shared test helpers*, is for the docs stage.
+
+   `lint`: lint: green (0.6 s)
+   `test`: FAILED tests/test_template_sync.py::test_template_pipeline_definition_names_sync_and_no_stage_lists_it - AssertionError: assert ['check', 'lint', 'test'] == ['check', 'li...test', 'sync']

@@ -1,25 +1,23 @@
 """The template's Makefile: its text, and its targets run with a stand-in `uv`."""
 
 import json
-import os
 import re
-import shutil
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls, write_stand_in
-from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from adapters.claude_stand_in import Step, read_calls
 from git_support import commit_all, run_git, write_files
-from shipped_agents import ROOT
+from template_make_support import (
+    MAKEFILE,
+    green_line,
+    run_make,
+    stand_in_uv,
+    template_project,
+)
 
-MAKEFILE = ROOT / "template" / "Makefile"
-
-# An outer `make` passes its variables on through these; the run must see none of them.
-DROPPED = {"MAKEFLAGS", "MFLAGS", "MAKELEVEL", "FEATURE", "SOURCE", "LAYERS"}
 VARIABLES = ["SOURCE=src/todo", "LAYERS=uv run lint-imports"]
 
 TRACKED = {
@@ -37,36 +35,9 @@ def _lines() -> list[str]:
     return MAKEFILE.read_text(encoding="utf-8").splitlines()
 
 
-def _green(target: str) -> re.Pattern[str]:
-    return re.compile(rf"^{target}: green \(\d+\.\d s\)$")
-
-
 @pytest.fixture
 def project(tmp_path: Path) -> Path:
-    folder = tmp_path / "project"
-    folder.mkdir()
-    shutil.copyfile(MAKEFILE, folder / "Makefile")
-    return folder
-
-
-def _stand_in(tmp_path: Path, steps: list[Step]) -> Path:
-    path = write_stand_in(tmp_path / "bin", steps)
-    path.rename(path.with_name("uv"))
-    return tmp_path / "bin"
-
-
-def _make(tmp_path: Path, *args: str) -> ProcessResult:
-    environment = {key: value for key, value in os.environ.items() if key not in DROPPED}
-    environment["PATH"] = f"{tmp_path / 'bin'}{os.pathsep}{os.environ['PATH']}"
-    return run_process(
-        ProcessRequest(
-            argv=["make", *args],
-            cwd=tmp_path / "project",
-            env=environment,
-            time_limit=timedelta(seconds=120),
-            merge_stderr=True,
-        )
-    )
+    return template_project(tmp_path)
 
 
 def _arguments(tmp_path: Path) -> list[list[str]]:
@@ -86,13 +57,14 @@ def test_phony_line_names_the_targets_and_there_is_no_documents_target() -> None
         "secrets",
         "licenses",
         "test",
+        "sync",
         "duplicates",
         "mutants",
     ]
     assert not [line for line in _lines() if re.match(r"^documents\s*:", line)]
 
 
-def test_check_runs_the_other_targets_and_says_green() -> None:
+def test_check_runs_the_other_targets_and_saysgreen_line() -> None:
     lines = _lines()
     heads = [index for index, line in enumerate(lines) if re.match(r"^check\s*:", line)]
 
@@ -156,13 +128,13 @@ def test_header_names_the_development_dependency(tool: str) -> None:
 def test_target_is_timed_green_and_stops_at_its_first_failing_line(
     tmp_path: Path, target: str, status: int
 ) -> None:
-    _stand_in(tmp_path, [Step(exit_status=status)] * 4)
+    stand_in_uv(tmp_path, [Step(exit_status=status)] * 4)
 
-    result = _make(tmp_path, target, *VARIABLES)
+    result = run_make(tmp_path, target, *VARIABLES)
 
     if status == 0:
         assert result.exit_status == 0, result.stdout
-        assert _green(target).match(result.stdout.splitlines()[-1]), result.stdout
+        assert green_line(target).match(result.stdout.splitlines()[-1]), result.stdout
     else:
         assert result.exit_status != 0
         assert "green" not in result.stdout
@@ -170,9 +142,9 @@ def test_target_is_timed_green_and_stops_at_its_first_failing_line(
 
 
 def test_test_runs_pytest_on_every_core_with_a_junit_report(tmp_path: Path, project: Path) -> None:
-    _stand_in(tmp_path, [Step()])
+    stand_in_uv(tmp_path, [Step()])
 
-    _make(tmp_path, "test", *VARIABLES)
+    run_make(tmp_path, "test", *VARIABLES)
 
     calls = _arguments(tmp_path)
     assert len(calls) == 1
@@ -185,12 +157,12 @@ def test_test_runs_pytest_on_every_core_with_a_junit_report(tmp_path: Path, proj
 
 @pytest.mark.usefixtures("project")
 def test_test_is_green_when_no_test_is_collected(tmp_path: Path) -> None:
-    _stand_in(tmp_path, [Step(exit_status=5)])
+    stand_in_uv(tmp_path, [Step(exit_status=5)])
 
-    result = _make(tmp_path, "test", *VARIABLES)
+    result = run_make(tmp_path, "test", *VARIABLES)
 
     assert result.exit_status == 0, result.stdout
-    assert _green("test").match(result.stdout.splitlines()[-1]), result.stdout
+    assert green_line("test").match(result.stdout.splitlines()[-1]), result.stdout
 
 
 def _set_origin_main(folder: Path) -> None:
@@ -289,9 +261,9 @@ def test_secrets_scans_the_changed_files_or_every_tracked_file(
     write_files(project, TRACKED)
     commit_all(project, "seed")
     setup(project)
-    _stand_in(tmp_path, [Step(exit_status=status)])
+    stand_in_uv(tmp_path, [Step(exit_status=status)])
 
-    result = _make(tmp_path, "secrets", *VARIABLES)
+    result = run_make(tmp_path, "secrets", *VARIABLES)
 
     if files is None:
         assert _arguments(tmp_path) == []
@@ -301,7 +273,7 @@ def test_secrets_scans_the_changed_files_or_every_tracked_file(
         ]
     if status == 0:
         assert result.exit_status == 0, result.stdout
-        assert _green("secrets").match(result.stdout.splitlines()[-1]), result.stdout
+        assert green_line("secrets").match(result.stdout.splitlines()[-1]), result.stdout
     else:
         assert result.exit_status != 0
         assert "green" not in result.stdout
@@ -357,9 +329,9 @@ def test_duplicates_counts_similar_and_dead_code(
     last_line: str | None,
     calls: int | None,
 ) -> None:
-    _stand_in(tmp_path, steps)
+    stand_in_uv(tmp_path, steps)
 
-    result = _make(tmp_path, "duplicates", "SOURCE=src/todo")
+    result = run_make(tmp_path, "duplicates", "SOURCE=src/todo")
 
     if last_line is not None:
         assert result.exit_status == 0, result.stdout
@@ -448,9 +420,9 @@ def test_mutants_runs_mutmut_over_the_modules_the_feature_changed(
     tmp_path: Path, project: Path, case: MutantsCase
 ) -> None:
     case.setup(project)
-    _stand_in(tmp_path, [Step(), Step(stdout=RESULTS)])
+    stand_in_uv(tmp_path, [Step(), Step(stdout=RESULTS)])
 
-    result = _make(tmp_path, "mutants", "SOURCE=src/todo", *case.extra)
+    result = run_make(tmp_path, "mutants", "SOURCE=src/todo", *case.extra)
 
     lines = result.stdout.splitlines()
     assert result.exit_status == case.status, result.stdout
@@ -460,4 +432,4 @@ def test_mutants_runs_mutmut_over_the_modules_the_feature_changed(
     for line in case.not_printed:
         assert line not in lines
     if case.green:
-        assert _green("mutants").match(lines[-1]), result.stdout
+        assert green_line("mutants").match(lines[-1]), result.stdout
