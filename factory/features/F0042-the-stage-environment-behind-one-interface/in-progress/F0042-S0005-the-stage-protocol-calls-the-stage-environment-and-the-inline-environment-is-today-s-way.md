@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-24T16:45:23.705334Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-24T16:45:03.263639Z'
   stage: doing
   run: 2cc9e218150b4d158b43ba0d0f35baf3
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-24T16:45:23.705334Z'
+  stage: tests
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -300,3 +309,4 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
     - **Work item:** I did not touch the Description. The human's answer gives the update to the reviewer: the Interface's "Tests" paragraph and the first smoke-test command should name the new file.
     - **Main choice:** none in this run; the choice from my previous entry stands.
     - **Open:** after the rename, the stage comes back to me to confirm `make check` is green.
+11. factory: started tests as self.
