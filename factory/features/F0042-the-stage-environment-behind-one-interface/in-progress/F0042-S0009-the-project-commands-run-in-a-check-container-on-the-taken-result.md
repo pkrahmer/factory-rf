@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T20:01:35.453466Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -149,6 +145,12 @@ journal:
   kind: started
   at: '2026-10-24T20:01:35.453466Z'
   stage: smoke-test
+- number: 26
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T20:02:04.211509Z'
+  stage: smoke-test
+  run: 04b311ebf4134b6ca01c1cebabc896e9
 ---
 
 # The project commands run in a check container on the taken result
@@ -394,3 +396,31 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
 25. factory: started smoke-test as self.
+26. smoke-tester: Smoke test, round 1. I ran both commands under `## Smoke test` exactly as written, from the repository root and in order. I changed nothing.
+
+    **Command 1:** `uv run pytest tests/adapters/test_make_commands_container.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '`
+    ```
+    1
+    ```
+    Met `Expect: 1`. For context, I ran pytest a second time without the grep. Its last lines were:
+    ```
+    ...................                                                      [100%]
+    19 passed in 1.57s
+    ```
+
+    **Command 2:** the `uv run python -` heredoc that imports `CHECK_ENVIRONMENT` and `ContainerMakeCommands` and checks the class against `ProjectCommands`
+    ```
+    Bytecode compiled 4164 files in 92ms
+    {'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True
+    ```
+    Met `Expect: {'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`. The line before it is uv's own bytecode-compile notice, not output of the script. The process exited with 0.
+
+    **Against the acceptance criteria:**
+    - Command 2 matches the environment given in criterion 1 and the `ProjectCommands` instance check in criterion 7.
+    - Command 1 shows that the container suite passes. That suite is the one criteria 1 to 8 are written against.
+    - Nothing either command showed contradicts any criterion.
+    - Criterion 9 (`make check`) and criterion 10 (docs) are not covered by the smoke test, and I did not run or judge them here. The factory gates `make check`, and the docs stage covers criterion 10.
+
+    **Findings:** none.
+
+    **Open:** nothing.
