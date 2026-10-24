@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 408
-comments_read: []
+comments_read: [6383983454]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: a82df3871ab5413b9471660bef0892ca
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-24T12:05:06.383847Z'
+  stage: intake
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -136,3 +141,10 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
    2. The Interface says an `R` line with fewer fields than its form needs is a fault, meaning four fields: `<change> <kind> <old path> <new path>`. Criterion 4 covers only `M\tF` (too few fields) and `X\tF\t...` (unknown change). Nothing covers an `R` line with only three fields, or an `R` line whose new path is outside the mount point. I would add two rows to criterion 4. First, `R\tF\t/srv/factory/vm/work/a` gives `cannot read the line R\tF\t/srv/factory/vm/work/a`. Second, `R\tF\t/srv/factory/vm/work/a\t/elsewhere/b` gives `/elsewhere/b is outside /srv/factory/vm/work`.
 
    Smaller gap, no question needed if you agree: no criterion has the backslash escape `\134`, which the Interface names. I would add a `\134` path to criterion 3 or to a row of its own.
+4. 2026-10-24 human: All as you propose, in your exact words:
+
+   1. Yes: two rows in criterion 2. `destroy` planned to exit 1 raises `SnapshotError` with `command` `<stand-in> destroy tank/factory/vm@base` and `snapshot` is not called; `snapshot` planned to exit 1 raises it with `command` `<stand-in> snapshot tank/factory/vm@base`. Each row says what `detail` is (the last non-blank line of the stand-in's output, as the Interface says for every failed command).
+   2. Yes: two rows in criterion 4. `R\tF\t/srv/factory/vm/work/a` gives `cannot read the line R\tF\t/srv/factory/vm/work/a`; `R\tF\t/srv/factory/vm/work/a\t/elsewhere/b` gives `/elsewhere/b is outside /srv/factory/vm/work`.
+   3. Yes: add a `\134` path to criterion 3 (a row of its own is fine too).
+
+   You have leave to edit the Acceptance criteria for exactly these additions; the Interface and the Description stay as they are.
