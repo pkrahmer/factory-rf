@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T19:05:51.697626Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-24T19:05:51.697626Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T19:07:38.062287Z'
+  stage: review
+  run: 1824b636982b4d9dac55668c57af8af5
 ---
 
 # The agent runtimes start their process in a container
@@ -157,8 +159,9 @@ Tests (the tester writes them): `tests/adapters/test_claude_runtime_container.py
 9. `version()` with containers: the fake's recorded call has the command `[<stand-in>, "--version"]`, no mounts, an empty environment, the working directory `/work/checkout` and the version time limit (the runtime's constructor argument `version_time_limit`, default `factory.adapters.agent_launch.VERSION_TIME_LIMIT`: a row builds the runtime with its own `version_time_limit` and asserts the recorded call has exactly that limit, and one row with the default compares against `VERSION_TIME_LIMIT` by name); the return value is the stand-in's first word (rows for both runtimes). One more row pins `version_launch("claude", containers=None, time_limit=timedelta(seconds=30)) == Launch(argv=["claude", "--version"], env=None, time_limit=timedelta(seconds=30))`.
 10. Without `containers`, `run` and `version` behave as today: `tests/adapters/test_claude_runtime*.py`, `test_opencode_*.py` and `test_agent_launch*.py` are unchanged and green, and one row of the new modules runs the same completed request through a runtime without containers and sees the stand-in's recorded working directory equal to the request's `working_directory`.
 11. A runtime built with a `leftovers` program and `containers` never starts it: a stand-in `leftovers` that writes a record file leaves the record absent after a run; and no temporary folder is made or removed for a call in a container (rows for both runtimes).
-12. `make check` stays green.
-13. docs: `docs/project-guide/agents.md`, *The agent runtime* and *The shared launch module*: the `containers` keyword, `container_launch` beside `launch`, what a call in a container gets (the mounts, the environment, `/work/checkout`, `HOME`), what it does not (no `sudo`, no `factory-confine`, no rules file, no leftovers, no temporary folder, no `CLAUDE_CONFIG_DIR`), the reading of `--timeout`'s kill through `in_container`, `version` in the container, the `ValueError` and the `AgentRuntimeError`; `docs/project-guide/stage-environment.md` gains the section *The agent's container* (one paragraph pointing to `agents.md` and naming step 5 of the cycle); `docs/operator-guide.md`, *The agent runtime*: one paragraph on what the chain is on a `container` instance (`podman run ... <image> /bin/sh -c <login shell> ... claude -p ...`), with the `:ro` mounts of the login and instructions files, pointing to the stage image of F0043. `docs/decisions.md`: none.
+12. `container_launch` mounts each file once, in the order first given: `container_launch(fake, ["x"], {}, files=[Path("/state/a"), Path("/state/b"), Path("/state/a")], time_limit=timedelta(seconds=1))` records the mounts `[Mount(source=Path("/state/a"), target="/state/a", read_only=True), Mount(source=Path("/state/b"), target="/state/b", read_only=True)]` (a row of criterion 1's parametrized test).
+13. `make check` stays green.
+14. docs: `docs/project-guide/agents.md`, *The agent runtime* and *The shared launch module*: the `containers` keyword, `container_launch` beside `launch`, what a call in a container gets (the mounts, the environment, `/work/checkout`, `HOME`), what it does not (no `sudo`, no `factory-confine`, no rules file, no leftovers, no temporary folder, no `CLAUDE_CONFIG_DIR`), the reading of `--timeout`'s kill through `in_container`, `version` in the container, the `ValueError` and the `AgentRuntimeError`; `docs/project-guide/stage-environment.md` gains the section *The agent's container* (one paragraph pointing to `agents.md` and naming step 5 of the cycle); `docs/operator-guide.md`, *The agent runtime*: one paragraph on what the chain is on a `container` instance (`podman run ... <image> /bin/sh -c <login shell> ... claude -p ...`), with the `:ro` mounts of the login and instructions files, pointing to the stage image of F0043. `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -303,3 +306,11 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
     `check`: check: green
     `duplicates`: duplicates: 15 new, 36 known, 2 gone
 11. factory: started review as self.
+12. reviewer: Review, round 0. I read the diff of `src/factory/adapters/agent_launch.py`, `claude_runtime.py` and `opencode_runtime.py` and the four new test modules against the Interface and criteria 1 to 11. The coder's `make check` was green (entry 10). Group 1 (acceptance criteria) fails, so I stopped there. The architecture holds: `agent_launch` imports `factory.application.containers` and `factory.domain.containers`, and still does not import the process module.
+
+    1. criterion 12 added: it needs its test. The Interface says `container_launch` mounts "the files in the order given, each once", and `src/factory/adapters/agent_launch.py:246` builds this with `dict.fromkeys(files)`. No criterion or test covers a duplicate file, so removing the dedupe would leave every test green. Fix: add a row to `tests/adapters/test_agent_launch_container.py::test_a_container_launch_mounts_the_files_read_only_at_their_own_paths` with `/state/a`, `/state/b`, `/state/a` that expects the two mounts `/state/a`, `/state/b`. The old criteria 12 and 13 are renumbered to 13 and 14.
+    2. `tests/adapters/test_opencode_runtime_container.py::test_a_run_in_a_container_mounts_the_login_and_configuration_and_completes`: criterion 5 asks for "the same" as criterion 4, which includes "the environment the request's less the logins". But the opencode request's environment holds no `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`, so if `run_environment`/`without_login` were dropped from the opencode container path, this test would still pass. Fix: add a login variable to the request's environment, as the Claude Code test does with `LOGIN_VARIABLE: "request-login"`, and keep asserting that the recorded environment equals the one without it.
+
+    The coder routes calls with a branch in each runtime's `_process_request`, not through `run_launch` as the Description says (entry 10 gives the reason, PLR0913). That is a Description and quality point for groups 4 and 5. I did not judge it this round because group 1 failed first.
+
+    Earlier tests: none. `git diff --name-status main...HEAD` lists only added test files (`A`), so no test that `main` already holds was changed, renamed or deleted.
