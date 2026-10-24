@@ -17,7 +17,7 @@ No module under `src/factory/` changes. The coder changes three files of the tem
   ```make
   # The fourth target of the contract: the tools after a checkout. The stage environment runs it in its
   # sync container before every agent run, and before every check; a project of another stack names its
-  # own command here (the Java and TypeScript designs do).
+  # own command here.
   sync:
   	$(start)
   	uv sync --frozen
