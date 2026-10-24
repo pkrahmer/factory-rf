@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638, 6384356460]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T12:50:14.697330Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -234,6 +230,12 @@ journal:
   kind: started
   at: '2026-10-24T12:50:14.697330Z'
   stage: doing
+- number: 41
+  speaker: coder
+  kind: result
+  at: '2026-10-24T12:53:15.449983Z'
+  stage: doing
+  run: 8fbc515ed1c249efbcda2e8045ab6ba4
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -613,3 +615,19 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     `lint`: lint: green (0.7 s)
     `test`: test: green (68.2 s)
 40. factory: started doing as self.
+41. coder: Round 1, after the tester's entry 39. The tester added the rows and the test for criteria 12 to 15, and they pass against the code as it is. So I changed no code this run. `src/factory/adapters/zfs_snapshots.py` has not changed since entry 29.
+
+    What I built: `src/factory/adapters/zfs_snapshots.py`, unchanged this round.
+
+    Main choice: I left the code untouched. `_printed_lines` already skips blank lines and strips each line, `_record` gives `added` to a path that two lines name, whatever their order, and `_run` rounds the seconds up with `math.ceil`. I rejected touching `src/`, because the new tests already pass, and a change with no test asking for it would go beyond the findings.
+
+    Refactor: this round has no new diff, so nothing needed changing. I touched no test and did not edit the work item.
+
+    Description: the reviewer wrote criteria 12 to 15 into the work item in entry 35. The journal changed nothing else.
+
+    Noticed, not touched: nothing new since round 0.
+
+    `make check`: green (`check: green`, total coverage 99.17 %).
+
+    `check`: check: green
+    `duplicates`: duplicates: 8 new, 38 known, 0 gone
