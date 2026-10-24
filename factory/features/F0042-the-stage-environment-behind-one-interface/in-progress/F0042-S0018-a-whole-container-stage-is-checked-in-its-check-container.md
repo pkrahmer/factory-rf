@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 426
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T22:26:50.697079Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-24T22:26:50.697079Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-24T22:27:10.176523Z'
+  stage: intake
+  run: f1e50fe04e7a46a09640977d99ae4b1a
 ---
 
 # A whole container stage is checked in its check container, and the stage environment's tests share their helpers
@@ -80,3 +82,9 @@ Expect: three lines, `2`, `1`, `1`
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: no `src/` change. It names the new test module and its fixtures (`boundaries`, `FakeSnapshots`, `FakeContainerRuns`, `ContainerMakeCommands`, `WorkspaceRuntime`, `open_story`, `stage_makefile`, `PIPELINE_YAML`). It names the target of each helper move. I checked that `container_support.container_dataset`, `WorkspaceRuntime`, `stage_run_support.open_story` and `stage_makefile`, and the `take_support`, `undo_support`, `podman_support` and `zfs_support` modules exist under `tests/`.
+   - Criteria: each is testable. Criterion 1 is one stage with five assertions. Criterion 2 pins the three calls and their order. Criterion 3 is a parametrized test with one result per row. Criterion 4 is a count of definitions, with `make check` as the check on the earlier test names. The failing side of the write-path rule (`notes.md` is left out and named in the journal) is covered in criteria 1 and 2.
+   - Smoke test: both commands are runnable. Pytest's `addopts` already sets `-q` and the command passes none, so the summary line `N passed in` exists. The second block's three lines (`2`, `1`, `1`) match the patterns of criterion 4.
+   - Architecture: nothing is built under `src/`. The tests go in `tests/application/` (the stage and its environment) and use the shared helper modules at the `tests/` root. That fits the layout in `CLAUDE.md`.
+   - Scope: this matches F0042's goal of a whole container stage, and it stays inside "Out of scope" because no layer is removed. The helper moves are under the standing leave in `CLAUDE.md`, and the story names each helper and each test file it affects.
