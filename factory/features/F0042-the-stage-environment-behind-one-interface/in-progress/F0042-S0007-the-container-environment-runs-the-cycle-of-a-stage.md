@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T17:51:30.808318Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-24T17:51:30.808318Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T17:52:58.830648Z'
+  stage: review
+  run: f1c5ed444ab14fe8ae5b6012e590b28b
 ---
 
 # The container environment runs the cycle of a stage
@@ -136,8 +138,9 @@ Tests (the tester writes them): `tests/application/test_container_environment.py
 9. A whole stage through `StageRunner` on boundaries with the two fakes and a runtime of the test (an `AgentRuntime` like `CommittingRuntime` of `tests/application/test_stage_run.py`) that writes `tests/test_a.py` and `notes.md` into `<workspace>/checkout` and returns a completed run with the decision `doing`, in the stage `tests`, ends with the pushed result commit holding `tests/test_a.py` and not `notes.md`, the entry's paragraph naming `notes.md`, the factory log holding exactly one `stage environment:` line, and the host's work tree clean afterwards. (The agent's own container, which makes the real runtime write there, is S0008's.)
 10. `factory.domain.checks.last_line(lines)` (rows of one parametrized test): a line starting with `make:` is skipped, a line starting with `make[2]:` is skipped, a trailing blank line is skipped, the recipe's last line is returned, and `""` is returned for make messages alone and for no lines.
 11. `factory.adapters.make_commands` imports `last_line` from `factory.domain.checks` and defines neither `_last_line` nor `_MAKE_MESSAGE_PREFIXES`; `tests/adapters/test_make_commands*.py` stay unchanged and green.
-12. `make check` stays green.
-13. docs: `docs/project-guide/stage-environment.md` gains the section *The container environment*: the cycle step by step with the container paths and the mounts, the sync script's steps and why every branch is fetched (decision 5), the agent files (decision 6), the faults and what each leaves behind, `run_agent` without a seal, the take on the snapshots' changed paths, the timing line and how to read it against the plan's measures, `Boundaries.snapshots` and `containers`, `stage_environment_of`, the tests and their fakes; `docs/project-guide/watching.md`, *Boundaries*: the two new fields and what `None` means; `docs/operator-guide.md`, *The factory log*: the line `stage environment: reset <s> s, sync <s> s, advance <s> s, take <s> s`, one per stage of a `container` instance, and that an `inline` instance writes none. `docs/decisions.md`: none (S0005 wrote the entry).
+12. The timeout's seconds are rounded up, not rounded (rows of one parametrized test, with a `ContainerRuns` of the test whose `run` returns `ContainerResult(exit_status=None, output="", timed_out=True, duration=<the limit>)`): under `sync_time_limit` 1.2 seconds `prepare` raises `ContainerError("sync", "no end within 2 s")`, and under 3 seconds `ContainerError("sync", "no end within 3 s")`. (Criterion 5's 1.5 seconds cannot tell rounding up from Python's `round`, which also gives 2.)
+13. `make check` stays green.
+14. docs: `docs/project-guide/stage-environment.md` gains the section *The container environment*: the cycle step by step with the container paths and the mounts, the sync script's steps and why every branch is fetched (decision 5), the agent files (decision 6), the faults and what each leaves behind, `run_agent` without a seal, the take on the snapshots' changed paths, the timing line and how to read it against the plan's measures, `Boundaries.snapshots` and `containers`, `stage_environment_of`, the tests and their fakes; `docs/project-guide/watching.md`, *Boundaries*: the two new fields and what `None` means; `docs/operator-guide.md`, *The factory log*: the line `stage environment: reset <s> s, sync <s> s, advance <s> s, take <s> s`, one per stage of a `container` instance, and that an `inline` instance writes none. `docs/decisions.md`: none (S0005 wrote the entry).
 
 ## Smoke test
 
@@ -255,3 +258,18 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
     `check`: check: green
     `duplicates`: duplicates: 9 new, 37 known, 1 gone
 11. factory: started review as self.
+12. reviewer: Review round 0. I read the work item and the whole diff of `src/` and `tests/` against it. I left out `make check`, as the stage says: the factory's run after the coder was green (entry 10). I ran `make duplicates` to read its new findings. All 9 are in modules of earlier stories (`fake_containers`, `fake_snapshots`, `podman_runs`, `zfs_snapshots`), none in this diff.
+
+    Findings:
+    1. criterion 12 added: it needs its test. Where: `tests/application/test_container_environment.py::test_a_failed_prepare_raises_and_leaves_the_base`, row `sync-times-out`, together with `src/factory/application/stage_environment.py` `_check_sync`. What's wrong: the Interface says `n` is the seconds "rounded up". The only row uses 1.5 s, and that gives 2 under `math.ceil`, under Python's `round` (half to even) and under `int(x) + 1` alike. So nothing pins rounding up, and nothing pins that a whole number stays as it is. The new criterion 12 adds two rows with a `ContainerRuns` of the test that returns `timed_out=True`, so they need no real sleep: 1.2 s gives `no end within 2 s`, and 3 s gives `no end within 3 s`. The closing criteria are renumbered to 13 (`make check`) and 14 (docs). The tester adds the rows. The code needs no change.
+
+    Everything else checked and in order:
+    - Criteria 1 to 11: each has its test, and each test checks what its criterion says. Criteria 1, 5, 6, 8 and 10 have their sides as rows of one parametrized test.
+    - Architecture: `ContainerEnvironment` and `SHELL` are in `application`, and `last_line` is in `domain`. `make_commands` imports it and keeps no copy.
+    - Security: no marker and no string-built command. The sync script takes every path as an argument.
+    - Code quality: no copied helper. The new stand-ins (`ResultContainerRuns`, `ClockedSnapshots`, `ClockedContainerRuns`, `WorkspaceRuntime`, `RecordingRun`) copy no shared helper of `tests/`.
+    - The Description matches what was built.
+
+    Not a finding, kept open from the coder's note: a failed `prepare` keeps the previous successful `prepare`'s durations. The Interface's "the three of the last `prepare`" does not settle that case, and the stage stops at the error anyway.
+
+    Earlier tests: none. Every test file in the diff is new (`A`).
