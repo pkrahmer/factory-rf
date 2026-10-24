@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 416
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T18:19:26.912782Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-24T18:19:26.912782Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-24T18:26:32.838917Z'
+  stage: tests
+  run: 73954258a1dd42a29a099314394e8288
 ---
 
 # The stall takes from the dataset
@@ -138,3 +140,40 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
    - Architecture: the change stays in the application layer, with `StallService` reaching the undo only through `InlineEnvironment` (a structural criterion checks this). It adds no new package or dependency.
    - Scope: it matches decision 20 and the leave in decision 18 (g2) of `feature.md`, which is named for `tests/application/test_stalls.py`. Nothing in "Out of scope" is touched.
 4. factory: started tests as self.
+5. tester: I wrote the tests for criteria 1 to 8. One run of `make test` shows them red for the expected reasons. `StallService` and `StageFinisher` do not take the `stage_environment` keyword yet, `StallResult` has no `take` field, the stalls still undo through `UndoService`, and `ContainerEnvironment.take` writes a timing line on every take. `make lint` is green.
+
+   Criterion → test:
+   - criterion 1: `tests/application/test_stall_environment.py::test_a_stall_with_a_stage_start_takes_once_through_its_environment_whatever_the_reason` (one row per reason in `get_args(StallReason)`; the `merge_conflict` row has no stage start), and `tests/application/test_stall_environment.py::test_the_stall_module_imports_no_name_of_the_undo` (the import check)
+   - criterion 2: `tests/application/test_stall_environment.py::test_the_take_runs_after_the_checkout_is_back_and_before_the_sidecar_is_written` (rows `checkout-back-on-the-branch`, `sidecar-after-the-take`)
+   - criterion 3: `tests/application/test_stall_environment.py::test_a_fault_of_the_take_ends_the_stall_before_anything_is_written_or_said` (rows `snapshot`, `container`, `work-item-format`; the labels are compared before and after the stall)
+   - criterion 4: `tests/application/test_stall_environment.py::test_a_stall_built_without_an_environment_undoes_inline_as_before`, plus the two decision 18 (g2) edits in `tests/application/test_stalls.py`
+   - criterion 5: `tests/application/test_stall_container.py::test_a_stall_before_the_take_takes_the_agents_writes_from_the_dataset`
+   - criterion 6: `tests/application/test_stall_container.py::test_a_stall_after_the_take_takes_again_and_writes_no_second_timing_line` (rows `red-check`, `blank-entry`)
+   - criterion 7: `tests/application/test_stall_container.py::test_the_first_take_after_a_prepare_writes_the_timing_line_and_a_second_none` (rows `two-takes-after-one-prepare`, `a-prepare-between-the-takes`, `two-takes-without-a-prepare`)
+   - criterion 8: `tests/application/test_stall_environment.py::test_each_holder_hands_its_environment_to_its_stall` (rows `finisher-red-check`, `after-agent-early-stall`), and `tests/application/test_stall_environment.py::test_a_finisher_built_without_an_environment_undoes_what_a_red_check_wrote`
+
+   Already green before implementation, as the criteria describe them:
+   - the `a-prepare-between-the-takes` row of criterion 7 (S0007's behaviour)
+   - the inline `StageFinisher` test of criterion 8
+
+   Files created:
+   - `tests/stall_support.py`
+   - `tests/application/test_stall_environment.py`
+   - `tests/application/test_stall_container.py`
+
+   Earlier test files changed:
+   - `tests/application/test_stalls.py`:
+     - under the decision 18 (g2) leave: `result.undo is None` now reads `result.take is None`, and the `_result` row `"undo": None` is now `"take": None`.
+     - under the standing leave of `CLAUDE.md`: its helpers and constants moved to `tests/stall_support.py`. `_open`, `_launch`, `_started` and `_context` became `open_work_item`, `launch_stage`, `started_stage` and `stall_context`; `SwitchingRuntime`, `WRITES`, `DIED` and the rest of the constants keep their names. A new `launched_stage` returns the `LaunchedStage` with its `cost`, and `launch_stage` is its `.started`. Every test keeps its name and checks the same thing.
+   - `tests/container_support.py` and `tests/application/test_container_environment_take.py`, under the standing leave: `Steps`, `Pace`, `ClockedSnapshots`, `ClockedContainerRuns`, `FIRST`, `SECOND`, `TAKE_SECONDS` and `WorkspaceRuntime` moved to `tests/container_support.py`. `_clocked` became `clocked_environment` and `_started` became `started_with_sync`.
+     - `Pace` gains `take: float = TAKE_SECONDS`, which `ClockedSnapshots.changed_paths` advances by. The default keeps the old 0.25 s; criterion 7 needs 0.5 s for the second take.
+     - `WorkspaceRuntime` now takes the files it writes as an argument. The earlier test passes the same two files it wrote before (`tests/test_a.py` and `notes.md`).
+     - The earlier tests keep their names and check the same things.
+
+   Choices:
+   - I wrote my own stand-in, `TakingEnvironment`, instead of reusing `RecordingEnvironment` from `test_stage_environment_calls.py`. The stalls need a take that runs an action or raises, which that class does not support.
+
+   Modules the test run could not import: none. All test modules import; the failures are a missing keyword, a missing `take` field, or a wrong result.
+
+   `lint`: lint: green (0.5 s)
+   `test`: FAILED tests/application/test_stall_environment.py::test_each_holder_hands_its_environment_to_its_stall[after-agent-early-stall] - AssertionError: assert [] == [(StageStart(...01-first.md')]

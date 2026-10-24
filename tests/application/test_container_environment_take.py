@@ -1,35 +1,31 @@
 """The container environment's take on the snapshots' changes, its timing line, a whole stage."""
 
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
 from container_support import (
-    Dataset,
+    FIRST,
+    SECOND,
+    Pace,
+    Steps,
+    WorkspaceRuntime,
+    clocked_environment,
     container_dataset,
-    push_main,
-    sync_makefile,
+    started_with_sync,
     timing_lines,
 )
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.application.agent_runtime import AgentRuntime
 from factory.application.boundaries import Boundaries
-from factory.application.claims import StageStart
-from factory.application.containers import ContainerRuns
-from factory.application.snapshots import Snapshots
 from factory.application.stage_environment import ContainerEnvironment
 from factory.application.take import TakeReport
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
-from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
-from factory.domain.git import ChangedPath
-from git_support import install_agents, write_files
+from git_support import write_files
 from human_clone import HumanClone
 from stage_run_support import branch_head, completed, open_story, pushed, run_stage, stage_makefile
-from undo_support import BRANCH, GUIDE, GUIDE_TEXT, PATH, start_stage
+from undo_support import BRANCH, GUIDE, GUIDE_TEXT, PATH
 
 FIVE_MINUTES = timedelta(minutes=5)
 AGENT_TEXT = "written by the agent\n"
@@ -38,16 +34,10 @@ INSIDE = "tests/test_a.py"
 NOTES = "notes.md"
 
 
-def _started(boundaries: Boundaries, human: HumanClone, agent_home: Path) -> StageStart:
-    push_main(boundaries, human, {"Makefile": sync_makefile(), ".gitignore": ".venv/\n"})
-    install_agents(agent_home, ["tester"])
-    return start_stage(boundaries, human, write_paths=["src/*", "{work_item}"])
-
-
 def test_take_copies_the_snapshots_changes_the_role_may_write(
     boundaries: Boundaries, human: HumanClone, agent_home: Path, tmp_path: Path
 ) -> None:
-    start = _started(boundaries, human, agent_home)
+    start = started_with_sync(boundaries, human, agent_home)
     dataset = container_dataset(boundaries, tmp_path)
     environment = ContainerEnvironment(dataset.boundaries, dataset.snapshots, dataset.containers)
     environment.prepare(start.commit, BRANCH, sync_time_limit=FIVE_MINUTES)
@@ -63,112 +53,6 @@ def test_take_copies_the_snapshots_changes_the_role_may_write(
     assert not (boundaries.checkout / "home").exists()
     assert not (boundaries.checkout / ".claude.json").exists()
     assert report == TakeReport(left=[GUIDE], restored_work_item=False)
-
-
-@dataclass(frozen=True)
-class Steps:
-    """The seconds one `prepare` spends inside `reset`, the sync container's run and `advance`."""
-
-    reset: float
-    sync: float
-    advance: float
-
-
-@dataclass
-class Pace:
-    """The steps the clocked fakes advance the clock by; the test sets them before each prepare."""
-
-    steps: Steps
-
-
-FIRST = Steps(reset=0.4, sync=12.3, advance=0.1)
-SECOND = Steps(reset=1.0, sync=2.0, advance=3.0)
-TAKE_SECONDS = 0.25
-
-
-class ClockedSnapshots(Snapshots):
-    """Snapshots that advance the manual clock inside `reset`, `advance` and `changed_paths`."""
-
-    def __init__(self, delegate: Snapshots, clock: ManualClock, pace: Pace) -> None:
-        """Delegate to `delegate`, advancing `clock` by `pace`."""
-        self._delegate = delegate
-        self._clock = clock
-        self._pace = pace
-
-    @property
-    def mount_point(self) -> Path:
-        """The delegate's mount point."""
-        return self._delegate.mount_point
-
-    def reset(self) -> None:
-        """Advance by the pace's reset, then reset."""
-        self._clock.advance(timedelta(seconds=self._pace.steps.reset))
-        self._delegate.reset()
-
-    def advance(self) -> None:
-        """Advance by the pace's advance, then move the base."""
-        self._clock.advance(timedelta(seconds=self._pace.steps.advance))
-        self._delegate.advance()
-
-    def changed_paths(self) -> list[ChangedPath]:
-        """Advance 0.25 s, then compare."""
-        self._clock.advance(timedelta(seconds=TAKE_SECONDS))
-        return self._delegate.changed_paths()
-
-
-class ClockedContainerRuns(ContainerRuns):
-    """Container runs that advance the manual clock by the pace's sync inside each run."""
-
-    def __init__(self, delegate: ContainerRuns, clock: ManualClock, pace: Pace) -> None:
-        """Delegate to `delegate`, advancing `clock` by `pace`."""
-        self._delegate = delegate
-        self._clock = clock
-        self._pace = pace
-
-    def launch(
-        self,
-        command: Sequence[str],
-        *,
-        mounts: Sequence[Mount],
-        environment: Mapping[str, str],
-        time_limit: timedelta,
-        working_directory: str,
-    ) -> ContainerLaunch:
-        """The delegate's launch."""
-        return self._delegate.launch(
-            command,
-            mounts=mounts,
-            environment=environment,
-            time_limit=time_limit,
-            working_directory=working_directory,
-        )
-
-    def run(
-        self,
-        command: Sequence[str],
-        *,
-        mounts: Sequence[Mount],
-        environment: Mapping[str, str],
-        time_limit: timedelta,
-        working_directory: str,
-    ) -> ContainerResult:
-        """Advance by the pace's sync, then run on the delegate."""
-        self._clock.advance(timedelta(seconds=self._pace.steps.sync))
-        return self._delegate.run(
-            command,
-            mounts=mounts,
-            environment=environment,
-            time_limit=time_limit,
-            working_directory=working_directory,
-        )
-
-
-def _clocked(dataset: Dataset, clock: ManualClock, pace: Pace) -> ContainerEnvironment:
-    return ContainerEnvironment(
-        dataset.boundaries,
-        ClockedSnapshots(dataset.snapshots, clock, pace),
-        ClockedContainerRuns(dataset.containers, clock, pace),
-    )
 
 
 @pytest.mark.parametrize(
@@ -206,14 +90,14 @@ def test_one_timing_line_per_take_carries_the_last_prepares_durations(
     takes: bool,
     expected: str | None,
 ) -> None:
-    start = _started(boundaries, human, agent_home)
+    start = started_with_sync(boundaries, human, agent_home)
     main = boundaries.git.resolve("main")
     assert main is not None
     commits = {"main": main, BRANCH: start.commit}
     dataset = container_dataset(boundaries, tmp_path)
     if prepares:
         pace = Pace(steps=prepares[0][1])
-        environment = _clocked(dataset, clock, pace)
+        environment = clocked_environment(dataset, clock, pace)
         for branch, steps in prepares:
             pace.steps = steps
             environment.prepare(commits[branch], branch, sync_time_limit=FIVE_MINUTES)
@@ -233,24 +117,6 @@ def test_one_timing_line_per_take_carries_the_last_prepares_durations(
         assert line.endswith(expected)
 
 
-class WorkspaceRuntime(AgentRuntime):
-    """Writes the agent's files into the dataset's checkout, then lets the delegate play."""
-
-    def __init__(self, delegate: FakeAgentRuntime, checkout: Path) -> None:
-        """Write into `checkout`, then run on `delegate`."""
-        self._delegate = delegate
-        self._checkout = checkout
-
-    def run(self, request: AgentRunRequest) -> AgentRunResult:
-        """Write `tests/test_a.py` and `notes.md` into the dataset's checkout, then delegate."""
-        write_files(self._checkout, {INSIDE: AGENT_TEXT, NOTES: AGENT_TEXT})
-        return self._delegate.run(request)
-
-    def version(self) -> str:
-        """The delegate's version."""
-        return self._delegate.version()
-
-
 def test_a_whole_stage_takes_the_agents_work_from_the_dataset(
     boundaries: Boundaries,
     *,
@@ -266,7 +132,9 @@ def test_a_whole_stage_takes_the_agents_work_from_the_dataset(
     )
     dataset = container_dataset(boundaries, tmp_path)
     agent_runtime.queue(ScriptedRun(result=completed("doing")))
-    runtime = WorkspaceRuntime(agent_runtime, dataset.workspace / "checkout")
+    runtime = WorkspaceRuntime(
+        agent_runtime, dataset.workspace / "checkout", {INSIDE: AGENT_TEXT, NOTES: AGENT_TEXT}
+    )
 
     report = run_stage(replace(dataset.boundaries, agent_runtime=runtime))
 
