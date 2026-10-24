@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 422
 comments_read: [6389680101]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-24T21:49:44.272088Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-24T21:49:44.272088Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-24T21:50:18.108689Z'
+  stage: smoke-test
+  run: a1097ec95d054133bac3184a03e3c259
 ---
 
 # The preflight checks the container environment
@@ -451,3 +453,32 @@ Expect: `1`
     `secrets`: secrets: green (2.2 s)
     `documents`: documents ok
 23. factory: started smoke-test as self.
+24. smoke-tester: Ran both commands under `## Smoke test` from the repository root, as written and in order. I fixed nothing.
+
+    Command 1 (the three item constructors through `uv run python`):
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 100ms
+    Bytecode compiled 4164 files in 358ms
+    {'name': 'podman', 'passed': True, 'detail': 'podman version 4.9.3'}
+    zfs does not answer --version: snapshot command zfs --version failed: exit status 127
+    the dataset tank/factory/vm does not exist; make it with zfs create, and its base with zfs snapshot tank/factory/vm@base
+    cannot look for the stage image factory-stage:1: container command podman image exists factory-stage:1 failed: cannot connect
+    ```
+    Exit status 0. Met its `Expect:` line: the program printed exactly the four expected lines, word for word. The lines above them are uv setting up `.venv` on stderr, not output of the program.
+
+    Command 2 (the story's six test modules, piped through `tail -1 | grep -cE '^[0-9]+ passed in '`):
+    ```
+    1
+    ```
+    Met its `Expect:` line (`1`). To see what had been counted, I ran the same pytest once more without the grep. Its last line was `29 passed in 0.95s`.
+
+    Judged against `## Acceptance criteria`: the first command's lines match the details that criteria 1 (the `zfs`/`SnapshotError` row), 2 (the `False` row) and 3 (the `ContainerError` row) give. The passing `podman` item has the shape criterion 1 gives. The second command's tests target criteria 1 to 10, and all of them passed. The smoke test contradicts no criterion, including the ones it does not target (11 `make check` and 12 docs). It does not exercise those two, so it says nothing about them either way; the factory's checks are the gate for criterion 11. I did not run `make check` myself, because this stage only runs the smoke test.
+
+    No findings.
+
+    Open: nothing.
