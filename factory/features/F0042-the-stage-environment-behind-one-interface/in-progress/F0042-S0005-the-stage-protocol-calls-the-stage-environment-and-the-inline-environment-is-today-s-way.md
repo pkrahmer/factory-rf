@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 413
 comments_read: [6386836732]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T17:00:32.066560Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-24T17:00:09.126606Z'
   stage: doing
   run: c412c0050d6d420a871282bcb34c6bcb
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:00:32.066560Z'
+  stage: review
 ---
 
 # The stage protocol calls the stage environment, and the inline environment is today's way
@@ -501,3 +510,4 @@ Expect: two lines, `['prepare', 'run_agent', 'take'] True` and `{'left': ['docs/
 
     `check`: check: green
     `duplicates`: duplicates: 14 new, 37 known, 1 gone
+23. factory: started review as self.
