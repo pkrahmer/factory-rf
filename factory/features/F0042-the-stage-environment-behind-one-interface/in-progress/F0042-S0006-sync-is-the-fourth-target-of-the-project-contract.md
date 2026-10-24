@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 414
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T17:07:07.779610Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-24T17:07:07.779610Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-24T17:07:31.222622Z'
+  stage: intake
+  run: da4bca229a64443992ab7b91b91dc0f8
 ---
 
 # `sync` is the fourth target of the project contract
@@ -86,3 +88,15 @@ Expect: four lines: `# The contract between a project and the factory is four ta
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: concrete. It names the three template files, the exact line 1, the `.PHONY` line, the `sync:` recipe and its place, and the pipeline line with its comment. No `src/` module changes. One slip: it says "three files" but lists only `template/Makefile` and `template/factory/pipeline.yml`. The third, `template/CLAUDE.md`, is named by the Description and by criterion 2 (the words "names `check`, `lint`, `test` and `sync`" once, the old three-target wording zero times). I read the Interface as including it and did not ask, because criterion 2 fixes the wording.
+   - Criteria: each one is testable by a parametrized test function.
+     - 1: the `.PHONY` line, and `check:` unchanged with no `sync`.
+     - 2: line 1, no "three targets", lines 4 and 5 pinned, the order of `sync:` between `check:` and `lint:`, and the `CLAUDE.md` wording.
+     - 3: `uv` called once with `["sync", "--frozen"]`, exit 0 and the green last line; and the failing side, a stand-in `uv` that exits 1 gives `make` exit 2 and no green line.
+     - 4: `project_commands` has the keys in order, `sync` has `time_limit` 5 and `not_read` `[]`, and no stage lists `sync` in `checks` or `reports`.
+     - 5 and 6 are the usual `make check` and `docs:` criteria.
+     - Every rule the Interface states has a criterion.
+   - Smoke test: both blocks are runnable and run no pytest, so the `-q` rule does not apply. Each `Expect:` line is checkable. The first has two exact lines, with the seconds normalised by `sed`. The second has four exact lines; `grep -c ... || true` still prints `0`.
+   - Architecture: this is template-only, with no layer change, which fits `CLAUDE.md`. The edit leaves to `tests/test_template_makefile.py` and `tests/test_claude_files.py` are named and rest on decision 18 f. `tests/test_template_makefile_header.py` stays unchanged.
+   - Scope: it is within `feature.md`. This repository's own `Makefile` and `factory/pipeline.yml`, and the `planning/overnight/templates/` designs, are left to the human (changes 1 and 3). No stage lists `sync`, so no lease math changes.
