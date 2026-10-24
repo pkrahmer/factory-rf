@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 414
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T17:11:36.820753Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-24T17:11:16.227846Z'
   stage: tests
   run: 8ae6fd9f0cc4454cb4a6fb41a0a79a58
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-24T17:11:36.820753Z'
+  stage: doing
 ---
 
 # `sync` is the fourth target of the project contract
@@ -156,3 +165,4 @@ Expect: four lines: `# The contract between a project and the factory is four ta
 
    `lint`: lint: green (0.6 s)
    `test`: FAILED tests/test_template_sync.py::test_template_pipeline_definition_names_sync_and_no_stage_lists_it - AssertionError: assert ['check', 'lint', 'test'] == ['check', 'li...test', 'sync']
+6. factory: started doing as self.
