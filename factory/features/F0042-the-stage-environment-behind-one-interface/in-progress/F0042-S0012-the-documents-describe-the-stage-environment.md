@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 423
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T21:55:18.592554Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-24T21:55:18.592554Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-24T21:58:06.598068Z'
+  stage: doing
+  run: 8834f426cd0e49ce9cc690dd696ac384
 ---
 
 # The documents describe the stage environment
@@ -107,3 +109,13 @@ Expect: `documents ok`
    `lint`: lint: green (0.6 s)
    `test`: test: green (65.2 s)
 6. factory: started doing as self.
+7. coder: No code written. Nothing under `src/`, `tests/`, `image/`, `template/` or `claude/` changed in this stage (criterion 1).
+   - What I built: nothing. The Interface says "None": nothing changes under `src/factory/` or in any test. The tester wrote no tests, so no test was failing for me to fix. The documenter will make the docs criterion true: the six files `README.md`, `docs/operator-guide.md`, `docs/project-guide/README.md`, `docs/project-guide/stage-environment.md`, `docs/project-guide/write-guard.md` and `docs/decisions.md`. The coder does not write those (CLAUDE.md, *Docs*).
+   - Main choice: hand forward with an empty diff. Alternative rejected: starting on the documents here. They are outside the coder's job, and the docs stage owns them.
+   - Refactor: no diff to refactor.
+   - The journal did not change what the task means, so the Description stays as it is.
+   - Noticed but did not touch: as intake noted, the smoke test also greps `docs/project-guide/processes-and-checks.md` for "three targets", but criterion 3 names only the operator guide. The documenter should check both files.
+   - `make check`: green (`test: green (66.8 s)`, `check: green`, total coverage 99.19 %).
+
+   `check`: check: green
+   `duplicates`: duplicates: 11 new, 36 known, 2 gone
