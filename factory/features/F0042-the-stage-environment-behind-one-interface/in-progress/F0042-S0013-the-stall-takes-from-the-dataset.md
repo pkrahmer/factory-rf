@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 416
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T18:18:35.425627Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-24T18:18:35.425627Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-24T18:19:05.489715Z'
+  stage: intake
+  run: f8b411a2a094468f86bcea55b73830c2
 ---
 
 # The stall takes from the dataset
@@ -120,3 +122,9 @@ Expect: four lines, `True False`, `StallService KEYWORD_ONLY None`, `StageFinish
 
 1. 2026-10-24 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: `StallService.__init__` and `StageFinisher.__init__` get a keyword-only `stage_environment: StageEnvironment | None = None`, and `StallResult.take` is `TakeReport | None`. Both are given with module and signature. `None` means `stage_environment_of(boundaries)`. The step 1 order is stated: take after the checkout is put back, then the sidecar, then `take` is `None` without a `stage_start`. The `ContainerEnvironment.take` timing-line rule is stated too.
+   - Criteria: each has one parametrized test or one scenario. Criterion 1 covers the ten reasons with `take` called once, and `merge_conflict` with `take` not called. Criterion 2 covers the order (checkout and head before the take, sidecar after it). Criterion 3 covers the three error types propagating with nothing written, committed or posted. Criterion 4 covers the inline default, with the `left` list and the files kept or undone. Criteria 5 and 6 cover the container stall after the agent's run, and after a red check or `no_result`, with one timing line. Criterion 7 covers the timing rule on three sequences (two takes, `prepare` between takes, takes with no `prepare`). Criterion 8 covers `StageFinisher` and `AfterAgent` handing over the environment, plus the inline default of `StageFinisher`. The rules have both sides: take versus no take, one line versus two, with and without `prepare`.
+   - Smoke test: the pytest command passes no `-q`, and the project's addopts already sets a single `-q`, so the `N passed in` summary line exists. The Python snippet only inspects signatures and fields, so it runs. Both `Expect:` lines can be checked against the output.
+   - Architecture: the change stays in the application layer, with `StallService` reaching the undo only through `InlineEnvironment` (a structural criterion checks this). It adds no new package or dependency.
+   - Scope: it matches decision 20 and the leave in decision 18 (g2) of `feature.md`, which is named for `tests/application/test_stalls.py`. Nothing in "Out of scope" is touched.
