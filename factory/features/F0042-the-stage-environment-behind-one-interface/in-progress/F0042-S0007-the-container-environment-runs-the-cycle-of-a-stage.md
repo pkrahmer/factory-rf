@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T17:33:04.281020Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-24T17:33:04.281020Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-24T17:33:27.916072Z'
+  stage: intake
+  run: 2533ea2b6a634cc3af93bef9a10c7590
 ---
 
 # The container environment runs the cycle of a stage
@@ -97,12 +99,14 @@ Tests (the tester writes them): `tests/application/test_container_environment.py
 3. The sync container's call, read from `containers.calls`: the command starts with `/bin/sh`, `-c`, holds the words `factory-sync`, `/work/checkout`, `/work/home`, `/upstream`, `/etc/factory/claude`, `main` and the commit in that order after the script, and the script text holds none of `/work`, `/upstream`, `/etc/factory`; the mounts are exactly `[Mount(source=<checkout>/.git, target="/upstream", read_only=True), Mount(source=<agent_home>, target="/etc/factory/claude", read_only=True)]`; the environment is `{"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": "/work/home"}`; the time limit is 5 minutes; the working directory `/work`.
 4. A second `prepare` on the same dataset for another commit and branch (the work item's branch at its stage-start commit, after the first prepared `main`): the dataset's repository is reused (the first prepare's commit is still an object of it, `git cat-file -e <first commit>` succeeds, and `containers.calls` holds exactly two sync calls), `HEAD` is the new commit on the new branch, a branch `gone` the test made on the host before the first prepare and deleted before the second is no longer listed by `git branch` in the dataset (the `--prune`), a file the test wrote into `<workspace>/checkout/` and into `<workspace>/home/` between the two prepares is gone (the reset), a changed agent file in `agent_home` reaches `<workspace>/home/.claude/agents/`, and an agent file `agents/extra.md` that `agent_home` held at the first prepare and lost before the second is gone from `<workspace>/home/.claude/agents/` (the copy replaces the folder, it does not merge).
 5. Faults of `prepare` (rows of one parametrized test): a `Makefile` whose `sync` exits 1 printing `boom` raises `ContainerError` with `command` `sync` and `detail` `boom` (make's own `make: *** ... Error 1` line after it is skipped), and `snapshots.changed_paths()` afterwards is not `[]` (the base did not move) while a following `reset()` empties the dataset again; a `sync` that sleeps 30 seconds under `sync_time_limit` 1.5 seconds raises `ContainerError("sync", "no end within 2 s")` (the seconds rounded up) after at least 1 and less than 25 seconds; a `FakeSnapshots` without a base raises `SnapshotError` from `reset` and no container runs (`containers.calls` is empty); a commit that is no commit (`"a" * 40`) raises `ContainerError` whose `command` is `sync` (git's message in `detail`); with a `ContainerRuns` of the test (a small class inheriting the interface) whose `run` returns `ContainerResult(exit_status=3, output="\n", timed_out=False, duration=timedelta(seconds=1))`, `prepare` raises `ContainerError("sync", "exit status 3")`, and with one whose `run` returns `ContainerResult(exit_status=2, output="make: *** [Makefile:3: sync] Error 2\n", timed_out=False, duration=timedelta(seconds=1))` it raises `ContainerError("sync", "exit status 2")` (make messages alone are no detail).
-6. `run_agent(request)` with a queued fake run returns `SealedRun(result=<the queued result>, nested_repositories=[])`, makes no git call on the host (its `.git` mode is unchanged: no seal), and with `run=<a recorder>` calls the recorder once and the runtime not at all (rows of one parametrized test); a repository the fake run writes as `notes/.git/HEAD` under the request's working directory is not removed and not listed, and an ignored file the fake run writes (`build/out.txt`, the host's `.gitignore` holding `build/`) is still there afterwards (no removal of ignored paths).
+6. `run_agent(request)` with a queued fake run returns `SealedRun(result=<the queued result>, nested_repositories=[])`, makes no git call on the host (its `.git` mode is unchanged: no seal), and with `run=<a recorder>` calls the recorder once and the runtime not at all (rows of one parametrized test); a repository the fake run writes as `notes/.git/HEAD` under the request's working directory is not removed and not listed, and an ignored file the fake run writes (`build/out.txt`, the host's `.gitignore` holding `build/`) is still there afterwards (no removal of ignored paths); a file the fake run writes into the host's `agent_home` is left as it is (no home reset).
 7. `take(start, PATH)` after the dataset's checkout got `src/new.py` (inside the write paths), `docs/guide.md` changed (outside) and `.venv/bin/x` (ignored by the host's `.gitignore`), and the dataset's `home/.claude.json` was written: the host's `src/new.py` holds the dataset's bytes, `docs/guide.md` is unchanged on the host, nothing of `.venv` or `home` reached the host, and the report is `TakeReport(left=["docs/guide.md"], restored_work_item=False)`.
 8. The timing line: after `prepare(...)` and `take(...)` on one object, with the manual clock advanced by 0.4, 12.3, 0.1 and 0.25 seconds inside `reset`, the sync container's run, `advance` and `changed_paths` (fakes wrapped by the test to advance the clock), the factory log's last line ends with `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s, take 0.2 s` (one decimal, Python's rounding); `take` on a fresh object without `prepare` writes `... reset 0.0 s, sync 0.0 s, advance 0.0 s, take 0.0 s`; exactly one such line per stage, none after `prepare` alone (rows of one parametrized test).
 9. A whole stage through `StageRunner` on boundaries with the two fakes and a runtime of the test (an `AgentRuntime` like `CommittingRuntime` of `tests/application/test_stage_run.py`) that writes `tests/test_a.py` and `notes.md` into `<workspace>/checkout` and returns a completed run with the decision `doing`, in the stage `tests`, ends with the pushed result commit holding `tests/test_a.py` and not `notes.md`, the entry's paragraph naming `notes.md`, the factory log holding exactly one `stage environment:` line, and the host's work tree clean afterwards. (The agent's own container, which makes the real runtime write there, is S0008's.)
-10. `make check` stays green.
-11. docs: `docs/project-guide/stage-environment.md` gains the section *The container environment*: the cycle step by step with the container paths and the mounts, the sync script's steps and why every branch is fetched (decision 5), the agent files (decision 6), the faults and what each leaves behind, `run_agent` without a seal, the take on the snapshots' changed paths, the timing line and how to read it against the plan's measures, `Boundaries.snapshots` and `containers`, `stage_environment_of`, the tests and their fakes; `docs/project-guide/watching.md`, *Boundaries*: the two new fields and what `None` means; `docs/operator-guide.md`, *The factory log*: the line `stage environment: reset <s> s, sync <s> s, advance <s> s, take <s> s`, one per stage of a `container` instance, and that an `inline` instance writes none. `docs/decisions.md`: none (S0005 wrote the entry).
+10. `factory.domain.checks.last_line(lines)` (rows of one parametrized test): a line starting with `make:` is skipped, a line starting with `make[2]:` is skipped, a trailing blank line is skipped, the recipe's last line is returned, and `""` is returned for make messages alone and for no lines.
+11. `factory.adapters.make_commands` imports `last_line` from `factory.domain.checks` and defines neither `_last_line` nor `_MAKE_MESSAGE_PREFIXES`; `tests/adapters/test_make_commands*.py` stay unchanged and green.
+12. `make check` stays green.
+13. docs: `docs/project-guide/stage-environment.md` gains the section *The container environment*: the cycle step by step with the container paths and the mounts, the sync script's steps and why every branch is fetched (decision 5), the agent files (decision 6), the faults and what each leaves behind, `run_agent` without a seal, the take on the snapshots' changed paths, the timing line and how to read it against the plan's measures, `Boundaries.snapshots` and `containers`, `stage_environment_of`, the tests and their fakes; `docs/project-guide/watching.md`, *Boundaries*: the two new fields and what `None` means; `docs/operator-guide.md`, *The factory log*: the line `stage environment: reset <s> s, sync <s> s, advance <s> s, take <s> s`, one per stage of a `container` instance, and that an `inline` instance writes none. `docs/decisions.md`: none (S0005 wrote the entry).
 
 ## Smoke test
 
@@ -139,3 +143,9 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
 
    Please write both into the criteria as you accept.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete. The `Boundaries` fields, the `ContainerEnvironment` constructor, `stage_environment_of`, the module constants, the sync call's argument order and mounts, and the `last_line` move into `factory.domain.checks` are all named.
+   - Criteria: after the human's answers (journal entry 4) every criterion is testable by one test function, and every Interface rule has criteria for both sides. Criteria 1 to 9 are unchanged. Carried in from entry 4, not improvements of mine: (1) criterion 6 gains the row that a file the fake run writes into the host's `agent_home` is left as it is (no home reset). (2) A new criterion 10 tests `factory.domain.checks.last_line` in a parametrized test with the rows entry 4 names. (3) A new criterion 11 checks that `make_commands` imports `last_line` and no longer defines `_last_line` or `_MAKE_MESSAGE_PREFIXES`, with `tests/adapters/test_make_commands*.py` unchanged. Both new criteria stand before the closing two, so `make check` is now 12 and `docs:` is 13.
+   - Smoke test: runnable. The pytest command passes no `-q` because `addopts` already sets one. Each `Expect:` line is checkable. I left the smoke test as it was. The tests for criteria 10 and 11 are the tester's to place, and the pytest command does not name them.
+   - Architecture: fits. The application layer holds `ContainerEnvironment` and `SHELL`, the domain holds `last_line`, and the adapters layer is not imported upward.
+   - Scope: inside feature.md's S0007 entry. No earlier test changes, and decision 18 (g) holds.
