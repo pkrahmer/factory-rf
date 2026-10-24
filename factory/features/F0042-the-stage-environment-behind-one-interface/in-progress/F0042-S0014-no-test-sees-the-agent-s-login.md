@@ -2,16 +2,12 @@
 stage: doing
 blocked: null
 round: 0
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 412
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T16:20:38.845912Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,19 @@ journal:
   kind: started
   at: '2026-10-24T16:20:38.845912Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-24T16:22:11.933821Z'
+  stage: doing
+  run: daf52a504a4f4087b8c9d4643812fd24
+- number: 8
+  speaker: factory
+  kind: stall
+  at: '2026-10-24T16:22:11.956154Z'
+  stage: doing
+  run: daf52a504a4f4087b8c9d4643812fd24
+  reason: check_red
 ---
 
 # No test sees the agent's login
@@ -110,3 +119,22 @@ Expect: one line that starts with `N passed` and names no `failed` and no `error
    `lint`: lint: green (0.5 s)
    `test`: test: green (62.0 s)
 6. factory: started doing as self.
+7. coder: No code changed. As the Interface says, nothing under `src/factory/` changes in this story. The tester already made the only changes it needs: the autouse fixture `without_agent_login` in `tests/conftest.py`, the version test's last assertion in `tests/adapters/test_opencode_runtime_launch.py`, and the new `tests/test_no_agent_login.py`. They are on this branch, and I left them as they are (R9).
+
+   What I did: ran `make check`, which ended with `check: green` (test: green, 63.4 s, coverage 99.18 %). That run includes `test_the_version_test_compares_variable_names_only`, which the tester had not run yet. I also ran the smoke test's pytest command with both login variables set to `x`: `9 passed`, no failures and no errors.
+
+   Main choice: to add nothing under `src/`. The alternative I rejected was to strip the login variables inside the runtimes' `version()` calls. That would change the factory's behaviour, which is outside this story's scope, since the story says the runtimes keep passing the login exactly as they do today.
+
+   Refactor: there is no diff of mine to refactor.
+
+   Noticed but did not touch: none. The Description is unchanged, because no journal entry changed what the task means. Criterion 6 (the paragraph in `docs/project-guide/processes-and-checks.md`) is for the documenter.
+8. factory: Stage doing stalled (attempt 1 of 2): a check is red after the stage: `check`
+   Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+   Creating virtual environment at: .venv
+   Installed 106 packages in 90ms
+   Bytecode compiled 4164 files in 337ms
+   All checks passed!
+   Bytecode compiled 4164 files in 77ms
+   lint: green (0.5 s)
+   Bytecode compiled 4164 files in 99ms
+   make: *** [Makefile:39: types] Error 139
