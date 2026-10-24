@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638, 6384356460]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T12:44:02.024466Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -191,6 +195,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-24T12:43:43.709052Z'
+  stage: review
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-10-24T12:44:02.024466Z'
   stage: review
 ---
 
@@ -509,3 +518,4 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     Each round closed its findings, and round 2's only finding is criterion 12, three test rows with no code change. The tester writes those rows, the coder changes nothing, and the review follows.
 
     For the next review: please list every remaining coverage gap of the module in one round, so that the story does not come back for one row at a time. Only a gap in a rule the Interface states is a finding; a wording preference is not.
+34. factory: started review as self.
