@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 417
 comments_read: [6388142770]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T18:50:42.109531Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-24T18:50:42.109531Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-24T18:56:56.806381Z'
+  stage: tests
+  run: 7c61b85e5b5f4dc8b07a32b94e40dab4
 ---
 
 # The agent runtimes start their process in a container
@@ -202,3 +204,49 @@ Expect: three lines, `D/work/checkout {'HOME': 'D/work/home'} True /work/checkou
    - Architecture: accepted. All of it sits in `factory.adapters`, which imports `factory.application.containers` and `factory.domain.containers`. `agent_launch` stays free of the process module.
    - Scope: accepted. The story is feature `F0042`'s S0008, as listed in `feature.md`. Wiring is left to S0010 and no existing test is changed.
 7. factory: started tests as self.
+8. tester: I wrote the red tests from the Interface and the 13 criteria. `make test` fails for the right reasons: an ImportError for the new names in `factory.adapters.agent_launch`, and `TypeError: ... unexpected keyword argument 'containers'` from both runtimes. `make lint` is green. I skipped the type check, as this stage's instructions say.
+
+   Criteria → tests:
+   - criterion 1: tests/adapters/test_agent_launch_container.py::test_a_container_launch_mounts_the_files_read_only_at_their_own_paths. Three rows:
+     - `mounted`: the two files mounted in order, the working directory `/work/checkout`, the environment and the time limit as given.
+     - `own-environment`: a subclass of `FakeContainerRuns` whose `launch` returns `env=None`. The expected `Launch(env=None)` is built in the test, which also checks that the model accepts `None`.
+     - `mount-under-work`: `/work/x` raises `ValueError` and the fake records no call.
+   - criterion 2:
+     - tests/adapters/test_agent_launch_container.py::test_in_a_container_a_kill_status_at_the_limit_is_the_limit, with five rows covering both sides of the limit and today's rule.
+     - tests/adapters/test_agent_launch_container.py::test_a_container_call_killed_at_the_limit_is_read_as_the_limit_and_no_refusal, with two rows: no stderr, and a `sudo:` line in stderr.
+   - criterion 3: test_claude_runtime_container.py and test_opencode_runtime_container.py, each ::test_a_runtime_keeps_its_containers_and_refuses_them_with_a_confine_executable (three rows each).
+   - criterion 4: tests/adapters/test_claude_runtime_container.py::test_a_run_in_a_container_mounts_the_logins_and_instructions_and_completes (rows: token file; token and API files), plus ::test_a_run_in_a_container_reports_the_login_read_from_the_mounted_file.
+   - criterion 5: tests/adapters/test_opencode_runtime_container.py::test_a_run_in_a_container_mounts_the_login_and_configuration_and_completes (rows: no login; API login), plus ::test_a_run_in_a_container_reports_the_login_read_from_the_mounted_file.
+   - criterion 6: in both runtime modules, ::test_a_request_with_an_operating_system_user_is_refused_in_a_container.
+   - criterion 7: in both runtime modules:
+     - ::test_a_container_killed_at_its_limit_ends_time_limit_without_a_resume, a real stand-in exiting 137 (3 s at a 3 s limit; at once under 30 s).
+     - ::test_podman_s_kill_status_at_the_limit_is_read_as_the_time_limit, a recorded `ProcessResult` with 137 at 30 s and at 29.9 s. Claude Code uses the `recorder` fixture; opencode replaces `run_streaming` via `monkeypatch`.
+   - criterion 8: tests/adapters/test_claude_runtime_container.py::test_a_budget_stop_in_a_container_is_resumed_with_the_same_mounts.
+   - criterion 9:
+     - in both runtime modules, ::test_the_version_runs_in_a_container_with_the_version_time_limit (rows: the default, compared against `VERSION_TIME_LIMIT` by name; a given 7 s).
+     - tests/adapters/test_agent_launch_container.py::test_the_version_call_on_the_host_has_the_process_s_own_environment, for the `version_launch(..., containers=None)` row.
+   - criterion 10: in both runtime modules, ::test_without_containers_the_call_runs_in_the_request_s_working_directory. No existing test was changed.
+   - criterion 11: in both runtime modules, ::test_a_call_in_a_container_starts_no_leftovers_program_and_no_temporary_folder.
+     - A stand-in `leftovers` writes a record file, and the record stays absent.
+     - The `temporary_root` folder stays empty.
+     - No call other than the agent's goes through `run_process`: Claude Code counts the `recorder` fixture's requests; opencode monkeypatches `run_process` with a `Recorder`.
+   - criteria 12 and 13: not for this stage (`make check`; docs).
+
+   Files created:
+   - tests/adapters/container_runtime_support.py: shared helpers (the played workspace with `checkout/` and `home/`, the container environment with `HOME=/work/home` and the stand-in on `PATH`, the `read_only` mount, the record-writing program, the files in a folder).
+   - tests/adapters/test_agent_launch_container.py
+   - tests/adapters/test_claude_runtime_container.py
+   - tests/adapters/test_opencode_runtime_container.py
+
+   What the test run could not import, or failed on:
+   - tests/adapters/test_agent_launch_container.py is a collection error: `container_launch` and `version_launch` do not exist in `factory.adapters.agent_launch` yet.
+   - The two runtime modules import; their tests fail with `TypeError` on the `containers` keyword.
+
+   Choices I made:
+   - The criteria spread the "rows for both runtimes" over the two runtime modules the Interface names. Each module has its own parametrized test, not one test across both modules.
+   - The constructor's `ValueError` is checked only for being raised; its message is not pinned, because the Interface gives none.
+
+   Nothing is open.
+
+   `lint`: lint: green (0.8 s)
+   `test`: ERROR tests/adapters/test_agent_launch_container.py - ImportError while importing test module '/work/checkout/tests/adapters/test_agent_launch_container.py'.
