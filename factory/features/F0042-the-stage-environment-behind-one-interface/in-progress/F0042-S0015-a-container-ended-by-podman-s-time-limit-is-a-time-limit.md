@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 419
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T20:22:53.437062Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-24T20:22:53.437062Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T20:23:39.916899Z'
+  stage: review
+  run: 46789375852e4cb3b7f06ce1fa3334d9
 ---
 
 # A container ended by podman's time limit is a time limit
@@ -237,3 +239,28 @@ Expect: one line, `[-9, 137, 255] True False`
     `check`: check: green
     `duplicates`: duplicates: 16 new, 36 known, 2 gone
 16. factory: started review as self.
+17. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`, read against the work item.
+
+    no findings
+
+    What I checked:
+    - **Source:** `src/factory/adapters/agent_launch.py` adds `PODMAN_TIMEOUT_STATUS = 255`, with a comment that says why. It adds `CONTAINER_KILL_STATUSES = KILL_STATUSES | {PODMAN_TIMEOUT_STATUS}`, and `KILL_STATUSES` is unchanged. In `killed_at_limit`, `in_container` picks the container set, an `os_user` alone picks `KILL_STATUSES`, and with neither the result is `False`. `read_call_end` is untouched. `src/factory/adapters/podman_runs.py:37` reads the shared `CONTAINER_KILL_STATUSES` and keeps no copy of it. This all matches the Interface.
+    - **Criteria 1 to 4:**
+      - Criterion 1 is `test_a_container_s_kill_statuses_add_podman_s_timeout_status`.
+      - Criterion 2 is the seven rows the story lists, at 30 s.
+      - Criterion 3 has rows for 255 at the limit, 255 at once and 137 at the limit, through the stand-in `podman`. It uses `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS`, and the process limit is `ROOMY_LIMIT` plus `CONTAINER_GRACE` (30 s). So the reading under test is the 255 itself, not the factory's own kill.
+      - Criterion 4 has 30 s → `time_limit` with one request (not resumed) and 29.9 s → `died`, for Claude Code and for opencode. Both use the default `LIMIT` of 30 s that `container_request` now takes.
+    - **Failing sides:** the failing side of every Interface rule is tested: 255 before the limit, 255 outside a container with and without `os_user`, and 1 at the limit. The cases the story keeps "as today" are still covered by `tests/adapters/test_agent_launch.py:218` and `tests/adapters/test_agent_launch_container.py:144`.
+    - **`make check`:** green after the coder (entry 15, `check: green`).
+    - **Architecture and security:** the change stays in `factory.adapters` and adds no marker.
+    - **Round-0 findings:** both are resolved by the tester's moves in entry 13.
+    - **Description:** it still matches what was built.
+
+    Notes:
+    1. `tests/adapters/test_runtime_podman_timeout_status.py:11` imports `REPLY` from another test module (`adapters.test_claude_runtime_login`) rather than from a support module. This is quality only, in a test file the diff adds.
+
+    Earlier tests:
+    - `tests/conftest.py`: the standing leave to move a shared test helper. It receives the `workspace` and `fake` fixtures, unchanged.
+    - `tests/adapters/container_runtime_support.py`: the standing leave to move a shared test helper. It receives `container_request`, `make_state` and `LIMIT`, moved from `test_opencode_runtime_container.py` with the same parameters and defaults.
+    - `tests/adapters/test_claude_runtime_container.py`: the standing leave to move a shared test helper. Only its `workspace` and `fake` fixtures are removed; no test is renamed or changed.
+    - `tests/adapters/test_opencode_runtime_container.py`: the standing leave to move a shared test helper. It now uses the moved fixtures, `container_request`, `make_state` and `LIMIT`; no test is renamed, and each checks the same thing.
