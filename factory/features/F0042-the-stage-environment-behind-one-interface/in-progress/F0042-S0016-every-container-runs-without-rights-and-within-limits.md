@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T20:28:30.160352Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-24T20:28:30.160352Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-24T20:31:29.042732Z'
+  stage: tests
+  run: ad9b2dd47a044da191bc0b7ab0e0b513
 ---
 
 # Every container runs without rights and within limits
@@ -83,3 +85,24 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
    - Architecture: the change stays in the adapters layer, in the one podman wrapper. `ContainerRuns` is untouched and the constants are module-level. The docs criterion names the files the documenter keeps.
    - Scope: this is S0016 of F0042, listed in the feature's Scope and Stories and Decision 23. It adds no `network` keyword, and removes no layer, so it stays outside the Out of scope list.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1–4. On purpose, they fail until the coder makes the change. Criteria 5 (`make check`) and 6 (docs) are for the coder's checks and the docs stage, so they have no test of their own.
+
+   - criterion 1: tests/adapters/test_podman_runs_fence.py::test_launch_drops_every_right_and_limits_the_container. It uses the same mounts, environment and 40-minute limit as the earlier test, pins the full list of words with the four new ones after "2400", and checks that no word starts with `--network`.
+   - criterion 2: tests/adapters/test_podman_runs_fence.py::test_a_run_starts_its_container_without_rights_and_within_limits. It runs through the stand-in `podman` with its default plan, and the four words must come right after the `--timeout` word and its seconds in `podman.calls()`.
+   - criterion 3: tests/adapters/test_podman_runs_fence.py::test_the_limits_are_built_from_the_constants. It checks `PIDS_LIMIT == 4096` and `MEMORY_LIMIT == "4g"`, then uses `monkeypatch.setattr` to set them to 64 and "64m" and checks for `--pids-limit=64` and `--memory=64m` in their places.
+   - criterion 4: tests/adapters/test_podman_runs.py::test_launch_pins_the_podman_command_line. The only change is the four words `--cap-drop=all`, `--security-opt=no-new-privileges`, `--pids-limit=4096` and `--memory=4g` added after "2400", as the Interface names under decision 18 (j).
+
+   Files: I created tests/adapters/test_podman_runs_fence.py and changed tests/adapters/test_podman_runs.py, which an earlier story wrote; the change is only the one the Interface names.
+
+   `make test` result:
+   - tests/adapters/test_podman_runs_fence.py could not be imported. The cause is the names `PIDS_LIMIT` and `MEMORY_LIMIT`, which `factory.adapters.podman_runs` does not define yet.
+   - test_launch_pins_the_podman_command_line fails on the list of words, because the four new words are not there yet.
+
+   `make lint` is green. I skipped the type check, as this stage's instructions say.
+
+   I considered building criterion 1's call from a helper shared with the earlier module, and decided against it. Criterion 4 allows only the one change in that test, so I wrote the call again in the new module.
+
+   Nothing in the criteria needed my interpretation, so there is no open question.
+
+   `lint`: lint: green (0.6 s)
+   `test`: ERROR tests/adapters/test_podman_runs_fence.py - ImportError while importing test module '/work/checkout/tests/adapters/test_podman_runs_fence.py'.
