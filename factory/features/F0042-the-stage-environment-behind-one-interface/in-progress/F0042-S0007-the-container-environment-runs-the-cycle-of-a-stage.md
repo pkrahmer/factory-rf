@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T18:00:59.273832Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-24T18:00:38.302438Z'
   stage: doing
   run: e1600c0606d14d59bc8217ca9eb215c8
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-24T18:00:59.273832Z'
+  stage: review
 ---
 
 # The container environment runs the cycle of a stage
@@ -351,3 +360,4 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
 
     `check`: check: green
     `duplicates`: duplicates: 9 new, 37 known, 1 gone
+19. factory: started review as self.
