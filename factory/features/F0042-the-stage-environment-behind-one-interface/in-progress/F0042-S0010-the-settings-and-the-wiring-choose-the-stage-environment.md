@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 421
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T21:11:03.062008Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-24T21:11:03.062008Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T21:12:23.441219Z'
+  stage: review
+  run: e3f18e78d38a498bb121efd69f53eab0
 ---
 
 # The settings and the wiring choose the stage environment
@@ -338,3 +340,40 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 13 new, 36 known, 2 gone
 16. factory: started review as self.
+17. reviewer: Review, round 1. I read the work item, the diff's stat and name-status, the diff under `src/` and the three new test modules.
+
+    Group 1 (acceptance criteria) passes. I checked every criterion from 1 to 8 and every rule of the Interface:
+    - criterion 1: `test_read_settings_reads_the_stage_environment_and_its_values`.
+    - criteria 2 and 8: the merged `test_read_settings_runs_a_container_only_with_its_values_and_inline_with_any`. It has the faults, the four rows of criterion 8 (blank workspace, blank image, relative workspace before missing image, agent user after missing dataset) and the accepted `inline` rows, all in one parametrized test.
+    - criterion 3: through `type[BaseModel]`.
+    - criterion 4: the two `None`s.
+    - criterion 5: `which` is never asked, `ZfsSnapshots.mount_point`, the podman words, `rollback -r tank/factory/vm@base`, `inner` is `ContainerMakeCommands`, `agent_home` is `None`, the claude and opencode rows, and the login volume.
+    - criterion 6: `HOME` in three rows, and the base dict is unchanged.
+    - criterion 7: the tick starts no tool.
+
+    The coder's `make check` was green (entries 7 and 15).
+
+    Group 2 (architecture) passes:
+    - The settings rule is pure and sits in `domain` (`stage_environment_fault`, shared by the model validator and `read_settings`).
+    - `RecordingProjectCommands.inner` is in `application`.
+    - Only `factory.entry.wiring` builds `ZfsSnapshots`, `PodmanRuns` and `ContainerMakeCommands`.
+
+    Group 3 (security) passes: no silencing marker, and no strings built into commands.
+
+    Group 4 (quality) passes:
+    - The docstrings on `stage_environment_fault`, `inner`, `build_boundaries` and `agent_run_environment` say what they do.
+    - I ran `make duplicates` (13 new, 36 known, 2 gone; it exits with an error because new findings exist). All 13 new findings are in modules from earlier stories (`claude_runtime`/`opencode_runtime`, `podman_runs`, `zfs_snapshots`, `fake_containers`, `fake_snapshots`). None is in the three files this diff changes.
+
+    Considered and not counted as findings:
+    - The `None` guard in `_container_environment` (`src/factory/entry/wiring.py`) can never run, because the settings validator already rules it out. It is there only so mypy can narrow the types, so I did not count it as dead code.
+    - `FACTORY_AGENT_USER` is now read earlier in `read_settings`. That changes only which fault is reported first when two settings are wrong; no rule fixes that order.
+
+    Group 5 (work item hygiene) passes. The Description matches what was built, and the journal names the main choice (one rule function) and what was rejected (parsing pydantic's error text back). The docs criterion (now 10) still lists what the reader must know.
+
+    no findings
+
+    Earlier tests: none needed. The diff only adds test files (`A`: `tests/domain/test_settings_stage_environment.py`, `tests/entry/test_wiring_stage_environment.py`, `tests/entry/test_wiring_stage_environment_home.py`) and changes no test file that `main` already holds.
+
+    Notes:
+    1. `tests/entry/test_wiring_stage_environment.py`, `_recording_stand_in` and `_calls`: a second recording stand-in for `zfs` and `podman`. `tests/zfs_support.py` (`ZFS_SCRIPT`, `Zfs.arguments`) and `tests/podman_support.py` (`PODMAN_SCRIPT`, `PodmanPlan`) already provide these. The shared stand-ins could be used instead.
+    2. `tests/entry/test_wiring_stage_environment.py`, `IMAGE` and `DATASET`: copies of `tests/podman_support.IMAGE` and `tests/zfs_support.DATASET`.
