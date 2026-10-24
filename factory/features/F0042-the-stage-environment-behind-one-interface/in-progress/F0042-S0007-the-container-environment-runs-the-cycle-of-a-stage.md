@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 415
 comments_read: [6387344840]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T17:41:14.579408Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-24T17:41:14.579408Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-24T17:51:08.719413Z'
+  stage: doing
+  run: e5e0aa19908f49e2b0bc5d99ba406130
 ---
 
 # The container environment runs the cycle of a stage
@@ -213,3 +215,33 @@ Expect: three lines, `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s
    `lint`: lint: green (0.5 s)
    `test`: ERROR tests/domain/test_checks_last_line.py - ImportError while importing test module '/work/checkout/tests/domain/test_checks_last_line.py'.
 9. factory: started doing as self.
+10. coder: I built `ContainerEnvironment` and the choice between the two environments. `make check` is green: 99.19 % coverage, ending in `check: green`. The tester's 28 new tests pass, and no test was changed.
+
+    What I built:
+    - `src/factory/application/stage_environment.py`:
+      - It holds `UPSTREAM`, `AGENT_FILES`, `SHELL`, `SYNC_ENVIRONMENT` and `TIMING_LINE`, and the sync script as one literal.
+      - `ContainerEnvironment.prepare` runs reset, then the sync container, then advance. Each step is timed with `boundaries.clock`, and the durations are kept only when all three succeed.
+      - `_check_sync` turns a failed result into `ContainerError("sync", …)`. A timeout gives "no end within n s", with the seconds rounded up. A non-zero exit gives the domain's `last_line` of the output, or `exit status <n>` when that is empty.
+      - `run_agent` is the runtime's run or the given one, with no seal.
+      - `take` is `TakeService` on `changed_paths()`, followed by one `TIMING_LINE` through `boundaries.log.line`, each duration to one decimal with `.1f`.
+      - `stage_environment_of` returns the container environment when both fields are set, else the inline one.
+    - `src/factory/application/boundaries.py`: the new fields `snapshots` and `containers`, both defaulting to `None`, after `agent_home`.
+    - `src/factory/domain/checks.py`: `MAKE_MESSAGE_PREFIXES` and the public `last_line`, moved here from `src/factory/adapters/make_commands.py`. That module now imports `last_line` and no longer has `_last_line` or `_MAKE_MESSAGE_PREFIXES`.
+
+    The sync script:
+    - It does `set -eu`, then `mkdir -p "$1" "$2"`.
+    - It replaces the agent files with `rm -rf "$2/.claude"` followed by `cp -R "$4" "$2/.claude"`.
+    - It then `cd`s into `$1` and runs `git init -q` when there is no `.git`.
+    - Then the fetch with `--prune --update-head-ok` of every branch, `checkout -f "$5"`, `reset --hard "$6"` and `make sync`.
+    - Its text holds no container path.
+
+    Main choice: the durations are fields on the object, set at the end of a successful `prepare` and zero from the start. A `take` without a `prepare` therefore writes `0.0` with no special case. I rejected a separate timing DTO returned by `prepare`. The interface fixes `prepare` to return `None`, and the line belongs to `take` alone.
+
+    Refactor pass: I read the diff and found nothing to change beyond one docstring I shortened to fit the line length.
+
+    Noticed but not touched:
+    - The comment on the sync script gives its reason directly and cites no date in `docs/decisions.md`. The "paths as arguments" decision is decision 5 of `feature.md`, and the log has no entry of its own for it.
+    - A failed `prepare` does not reset the kept durations. If a later `take` ran on the same object after a failed `prepare`, it would report the last successful `prepare`'s timings. The stage protocol stops at the error, so that case does not come up.
+
+    `check`: check: green
+    `duplicates`: duplicates: 9 new, 37 known, 1 gone

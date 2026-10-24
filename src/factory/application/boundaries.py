@@ -5,6 +5,7 @@ from pathlib import Path
 
 from factory.application.agent_home import AgentHome
 from factory.application.agent_runtime import AgentDefinitionReader, AgentRuntime
+from factory.application.containers import ContainerRuns
 from factory.application.files import (
     CostRecordReader,
     CostRecordWriter,
@@ -17,6 +18,7 @@ from factory.application.git import Git
 from factory.application.hosting import HostingService
 from factory.application.machine import Clock, DiskSpace, FactoryLog, HealthStatusStore, Waiter
 from factory.application.project_commands import ProjectCommands
+from factory.application.snapshots import Snapshots
 from factory.domain.disk import DiskRecord
 from factory.domain.known_results import ResultRecord
 from factory.domain.settings import InstanceSettings
@@ -50,3 +52,6 @@ class Boundaries:
     result_records: RecordLog[ResultRecord]
     # `None` when the agents run as no second user: then no agent home is reset before a run.
     agent_home: AgentHome | None = None
+    # Both `None` while the stages run inline; with both set they run in containers on the dataset.
+    snapshots: Snapshots | None = None
+    containers: ContainerRuns | None = None
