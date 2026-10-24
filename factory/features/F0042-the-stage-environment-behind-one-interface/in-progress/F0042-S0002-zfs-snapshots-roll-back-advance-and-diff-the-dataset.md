@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 408
 comments_read: [6383983454]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T12:17:54.336794Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-24T12:17:54.336794Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T12:19:10.000638Z'
+  stage: review
+  run: b631ce38ecf54c5faf4844beba7f1e2e
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -131,8 +133,9 @@ Tests (the tester writes them): `tests/adapters/test_zfs_snapshots.py` and `test
 7. `version()` with `--version` planned to print `zfs-2.2.2-0ubuntu9.1\nzfs-kmod-2.2.2-0ubuntu9.1` returns `zfs-2.2.2-0ubuntu9.1`; planned to print nothing and exit 0 raises `SnapshotError` with `detail` `printed nothing`; planned to exit 1 with `zfs: command not found` raises it with that detail (rows of one parametrized test).
 8. `dataset_exists()` (rows of one parametrized test): `list` planned to exit 0 and print `tank/factory/vm` returns `True` and the call's arguments are `["list", "-H", "-o", "name", "tank/factory/vm"]`; exit 1 returns `False`; exit 0 printing `tank/other` raises `SnapshotError` with `detail` `named tank/other, not tank/factory/vm`; exit 2 raises it with the output's last line.
 9. `ZfsSnapshots` is an instance of `Snapshots`, and `tests/test_wrapper_search.py` lists `factory.adapters.zfs_snapshots` among the modules that import the process module (decision 18 b).
-10. `make check` stays green.
-11. docs: `docs/project-guide/stage-environment.md` gains the section *The ZFS adapter*: the five commands and when each runs, the reading of `zfs diff -FH` (the kinds, the rename, the escapes, the mount point), the faults and their details, `version` and `dataset_exists` for the preflight, the stand-in the tests use; `docs/project-guide/README.md`, *The files*, names `factory.adapters.zfs_snapshots` for the file. `docs/operator-guide.md`: nothing yet (S0010 writes the settings, S0011 the items). `docs/decisions.md`: none.
+10. `changed_paths()` with `diff` planned to print the line `+\tF\t/srv/factory/vm/work/bad\377` (an escape whose byte is not UTF-8) raises `SnapshotError` with `command` `<stand-in> diff -FH tank/factory/vm@base` and `detail` `cannot read the line +\tF\t/srv/factory/vm/work/bad\377` (a row of criterion 4's parametrized test).
+11. `make check` stays green.
+12. docs: `docs/project-guide/stage-environment.md` gains the section *The ZFS adapter*: the five commands and when each runs, the reading of `zfs diff -FH` (the kinds, the rename, the escapes, the mount point), the faults and their details, `version` and `dataset_exists` for the preflight, the stand-in the tests use; `docs/project-guide/README.md`, *The files*, names `factory.adapters.zfs_snapshots` for the file. `docs/operator-guide.md`: nothing yet (S0010 writes the settings, S0011 the items). `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -242,3 +245,11 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
     `check`: check: green
     `duplicates`: duplicates: 8 new, 38 known, 0 gone
 11. factory: started review as self.
+12. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'` against criteria 1 to 9 and the Interface. Criteria 1 to 9 each have a test that checks what they say. The faults of `list` (status 0, 1 and other), of the field counts (`M` 3 fields, `R` 4), of the mount point (outside and the `workx` sibling) and of the time limit (1.5 s rounded up to 2) are tested on both sides. I did not run `make check`: per the journal, the factory's run after the coder was green. I did run `make duplicates`. Its two new findings in this module (`ZfsSnapshots` and `dataset_exists` unused) are expected until S0010 wires the class, so they are not findings. `pipeline_yaml._first_line` and the non-blank-lines idiom in `agent_home` are private to their own modules, and no shared helper holds them, so no copy finding. I stopped at group 1, as the checklist says.
+
+    Findings:
+    1. criterion 10 added: it needs its test. `src/factory/adapters/zfs_snapshots.py:45-51` (`_unescape`) raises `cannot read the line <line>` when a decoded path is not UTF-8. No criterion names this behaviour, and lines 50-51 are the module's only uncovered code. The fix is a row in `tests/adapters/test_zfs_snapshots_diff.py::test_a_diff_it_cannot_read_is_a_fault` with the line `+\tF\t/srv/factory/vm/work/bad\377`. The old criteria 10 and 11 are now 11 and 12.
+    2. `src/factory/adapters/zfs_snapshots.py:117-122` (`dataset_exists`): when `list -H -o name <dataset>` exits 0 and prints nothing, `named` is `None` and the detail reads `named None, not tank/factory/vm`, which leaks a Python value into the fault. The Interface's rule covers only "another first line", and no criterion covers an empty output. Fix: give an empty output its own detail, `printed nothing` as `version()` does, and add a row for it to criterion 8's parametrized test. This needs a code change, so I did not add the criterion myself. If the coder reads the Interface as leaving this open, it is a question for the human.
+
+    Earlier tests:
+    - tests/test_wrapper_search.py: the human's leave. Criterion 9 of the story, as the human wrote it, names this test and the added `factory.adapters.zfs_snapshots`. The change only adds that one name to the expected set, and the test keeps its name.
