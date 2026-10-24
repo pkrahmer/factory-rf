@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-24T23:56:29.318735Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-24T23:56:29.318735Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-24T23:59:17.454361Z'
+  stage: doing
+  run: aa57ad799fa64b6f8c8d93dd933e855c
 ---
 
 # The stage image is the tools alone
@@ -272,3 +274,25 @@ Expect: `1`
     `lint`: lint: green (0.5 s)
     `test`: test: green (65.9 s)
 14. factory: started doing as self.
+15. coder: Round 1, after the tester's entry 13: I changed no code and no test. Nothing in the tester's changes calls for a change to `vm/Dockerfile`.
+    - Criterion 9's test (`tests/test_stage_image.py::test_each_setting_is_one_name_on_a_line_of_its_own`) passes against the file as round 0 built it.
+    - The moves under the standing leave are all test-side: into `tests/dockerfile_support.py` went `SECRET_WORDS`, `_declared_names`, `_uncommented`, `_after` and `_apt_packages`.
+
+    What this story built: `vm/Dockerfile`, unchanged since round 0. `git diff main --stat -- . ':!factory'` lists five files:
+    - `vm/Dockerfile`
+    - the four test files the tester wrote or moved: `tests/dockerfile_support.py`, `tests/test_image.py`, `tests/test_image_credentials.py`, `tests/test_stage_image.py`
+
+    `image/Dockerfile`, `image/compose.yml` and `image/entrypoint.sh` are byte-for-byte as on `main`: no file under `image/` appears in the diff.
+
+    Main choice (from round 0, still holds): I wrote `vm/Dockerfile` fresh from the Interface, with one `ENV` per line. I rejected cutting down a copy of `image/Dockerfile`, because that would keep its multi-name `ENV` block and its comments about the long-lived container.
+
+    Refactor: no code diff this round, so nothing to change. `make check` is green, with total coverage at 99.19 %.
+
+    Noticed, not touched:
+    - The seven Debian package versions are written out by hand in both Dockerfiles. The pin tests keep them in agreement until F0044 removes `image/`.
+    - The Description needs no rewrite: the journal added criterion 9, which is already in the work item, and did not change what the task means.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
