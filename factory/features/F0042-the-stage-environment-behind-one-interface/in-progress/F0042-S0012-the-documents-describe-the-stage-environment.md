@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 423
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-24T21:59:12.524894Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-24T21:58:51.781794Z'
   stage: review
   run: 55ea1d3d3b2d499da950d8bebec88183
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-24T21:59:12.524894Z'
+  stage: docs
 ---
 
 # The documents describe the stage environment
@@ -139,3 +148,4 @@ Expect: `documents ok`
    - Criterion 3 (docs) is the documenter's work. It is checked by the smoke test and `make documents`, not by any test, as the Interface says. I checked the documents as they stand now. `stage-environment.md` has 11 `##` sections in a different order, and *The cycle*, *The agent's container* and *The sync command* are not sections yet. Neither `docs/operator-guide.md` nor `docs/project-guide/processes-and-checks.md` contains "three targets". So the smoke test's extra grep of `processes-and-checks.md`, which intake and the coder both raised, already passes without touching a file outside the Interface's list.
    - Hygiene: the Description matches what was built (nothing yet; the documenter comes next). The tester's and coder's entries give the reason for the empty diff and the alternative they rejected. The docs criterion still says everything the documenter needs. Its bullet on `docs/decisions.md` repeats the README requirement of the next bullet, but both say the same thing.
    - Earlier tests: the diff changes, renames or deletes no test file that `main` already holds.
+10. factory: started docs as self.
