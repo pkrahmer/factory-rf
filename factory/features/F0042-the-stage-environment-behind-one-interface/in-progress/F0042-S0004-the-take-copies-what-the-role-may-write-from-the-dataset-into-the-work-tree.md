@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 410
 comments_read: [6384920747]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-24T13:41:47.117118Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-24T13:41:47.117118Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-24T13:42:06.905169Z'
+  stage: intake
+  run: 86bc64a38ea744aab677dee12c357483
 ---
 
 # The take copies what the role may write from the dataset into the work tree
@@ -106,7 +108,7 @@ Tests (the tester writes them): `tests/application/test_take.py` and `tests/appl
 ## Acceptance criteria
 
 1. `GitCli.ignored` (rows of one parametrized test on the real clone, whose `main` holds the tracked `docs/kept.log` and a `.gitignore` with `.venv/`, `*.log` and `!keep.log`, the file pushed before the `.gitignore` because `GitCli.commit` stages no ignored file; none of the asked paths need exist in the checkout): `[".venv/bin/python", "src/a.py", "run.log"]` gives `[".venv/bin/python", "run.log"]` in that order, and `["run.log", ".venv/bin/python"]` gives them in that order; `["src/a.py"]` gives `[]`; `["keep.log"]` gives `[]` (the negation); `["docs/kept.log"]` gives `[]` (tracked, although `*.log` matches it); `[]` gives `[]` and runs no git, and `["/abs"]` and `["a/../b"]` raise `ValueError` and run no git (through a recording `GitOptions.executable` stand-in, no call is recorded). Through a stand-in `git` that records its arguments and answers `::<TAB><path>` for each path after `--`: 1,000 paths are one call and 1,001 paths two calls, the answer in the paths' order; a stand-in that exits 128 printing `fatal: boom`, and one that prints one line fewer than the paths it was given, each raise `GitError` (rows of the same test).
-2. `copy_changed` (rows of one parametrized test): an `added` regular file arrives with the same bytes and mode (`0o755` stays `0o755`, `0o644` stays `0o644`), its parent folders made; a `modified` file replaces the target's bytes and mode; a `deleted` path removes the target's file, and a `deleted` path missing on the target raises nothing; an `added` symbolic link arrives as a link with the same target text, and the file it points to is not read; a `modified` file whose target entry is a symbolic link to a file outside the target tree replaces the link by a regular file with the source's bytes, and the outside file keeps its bytes; a `deleted` path whose target entry is a link to a folder outside the target tree removes the link, and the folder stays; `/abs` and `a/../b` raise `ValueError` before anything is copied (the target tree is unchanged).
+2. `copy_changed` (rows of one parametrized test): an `added` regular file arrives with the same bytes and mode (`0o755` stays `0o755`, `0o644` stays `0o644`), its parent folders made; a `modified` file replaces the target's bytes and mode; a `deleted` path removes the target's file, and a `deleted` path missing on the target raises nothing; an `added` symbolic link arrives as a link with the same target text, and the file it points to is not read; a `modified` file whose target entry is a symbolic link to a file outside the target tree replaces the link by a regular file with the source's bytes, and the outside file keeps its bytes; an `added` file whose target entry is a folder holding a file leaves no folder and no contents, and the target is a regular file with the source's bytes; a `deleted` path whose target entry is a link to a folder outside the target tree removes the link, and the folder stays; `/abs` and `a/../b` raise `ValueError` before anything is copied (the target tree is unchanged).
 3. A changed path under `checkout/` inside the write paths (`checkout/src/new.py` added, `checkout/src/kept.py` modified, `checkout/src/old.py` deleted, role write paths `["src/*", "{work_item}"]`) is taken: after `take`, the host's `src/new.py` and `src/kept.py` hold the dataset's bytes, `src/old.py` is gone, and `left` is `[]`.
 4. A changed path outside the write paths (`checkout/docs/guide.md` modified) is left: the host's `docs/guide.md` keeps its bytes, the dataset's `checkout/docs/guide.md` keeps the agent's bytes, and `left` is `["docs/guide.md"]`. A protected path inside a write path that matches it (write paths `["*"]`, `checkout/pyproject.toml` added and `checkout/factory/story-form.md` modified) is left too: `left` is `["factory/story-form.md", "pyproject.toml"]` and neither reaches the host (rows of one parametrized test with criterion 3's row as the taken side).
 5. The undo's second rule: with write paths `["*"]`, a second work item `checkout/factory/features/F0001-example/in-progress/F0001-S0002-second.md` modified, the own cost record `...-S0001-first.costs.jsonl` added, `.../in-progress/notes.txt` added and `.../in-progress/sub/x` added are judged as `left` `["factory/features/F0001-example/in-progress/F0001-S0001-first.costs.jsonl", "factory/features/F0001-example/in-progress/F0001-S0002-second.md", "factory/features/F0001-example/in-progress/notes.txt"]`, while `.../in-progress/sub/x` is taken (rows of one parametrized test).
@@ -120,9 +122,9 @@ Tests (the tester writes them): `tests/application/test_take.py` and `tests/appl
 ## Smoke test
 
 ```bash
-uv run pytest tests/application/test_take.py tests/application/test_take_edges.py tests/adapters/test_git_cli_ignored.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '
+uv run pytest tests/application/test_take.py tests/application/test_take_edges.py tests/adapters/test_git_cli_ignored.py tests/adapters/test_git_cli_check_ignore.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '
 ```
-Expect: `1`
+Expect: `1` (the last line pytest prints is one `<n> passed in <s>s` line that counts the take tests and both git test files together, the old `test_git_cli_ignored.py` staying in as the check that `remove_ignored` still works)
 
 ```bash
 d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
@@ -170,3 +172,9 @@ Expect: two lines, `0o755 new False kept.py` and `refused True`
 
    Please write both into the Smoke test and the criteria as you accept.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete. `Git.ignored` is specified with its signature, `GitCli.ignored` with the exact command, the groups of 1,000, how the lines are read and the errors. `TakeReport`, `copy_changed` and `TakeService.take` are specified with their signatures and seven ordered steps.
+   - Criteria: each is testable by a parametrized test. Every rule has its failing side: `ValueError` for an absolute path or one with `..`, `GitError` for exit 128 and for a short answer, `WorkItemFormatError` for an absent or unreadable baseline, and the refused, left and dropped paths. I carried in the human's answer 2 from journal entry 4: criterion 2 gains the row for an `added` file whose target is a folder holding a file. That clause was the one the Interface had without a criterion.
+   - Smoke test: both commands are runnable. I carried in the human's answer 1 from journal entry 4: the first command now also runs `tests/adapters/test_git_cli_check_ignore.py` and keeps `test_git_cli_ignored.py`. Its `Expect:` line names the single `<n> passed in <s>s` line that covers both git files and the take tests. The second command prints two lines that can be checked against the `Expect:` line. The command passes no `-q`, and I did not check pytest's `addopts` for one.
+   - Architecture: `application.take` and the `Git` operation sit in `application`, the `git check-ignore` call sits in `adapters.git_cli`, and no layer is crossed. The undo's helpers are made public and shared rather than copied.
+   - Scope: the story is within F0042's scope, which lists `TakeService`, `TakeReport`, the shared copying and `ignored`, and it removes no layer. Decision 18 d gives the leave to change `test_git_interface.py` and `test_interfaces.py`.
