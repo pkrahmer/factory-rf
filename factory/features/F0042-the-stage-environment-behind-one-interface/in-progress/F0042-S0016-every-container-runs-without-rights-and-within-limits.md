@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T20:36:20.848434Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-24T20:36:00.096264Z'
   stage: review
   run: 264b8004616848b7bc39e41b200b6664
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:36:20.848434Z'
+  stage: doing
 ---
 
 # Every container runs without rights and within limits
@@ -153,3 +162,4 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
 
    Earlier tests:
    - tests/adapters/test_podman_runs.py (M): the human's leave. The story's Interface names `test_launch_pins_the_podman_command_line` under decision 18 (j), and the diff makes only the four-word change named there.
+10. factory: started doing as self.
