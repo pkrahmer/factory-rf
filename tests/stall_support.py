@@ -19,16 +19,15 @@ from factory.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import install_agents
 from human_clone import HumanClone
 from observing_runtime import ObservingRuntime
-from stage_run_support import BACKLOG_PATH, BRANCH, ENVIRONMENT, INSTANCE, PATH, WORK_ITEM
+from stage_run_support import BACKLOG_PATH, BRANCH, ENVIRONMENT, INSIDE, INSTANCE, PATH, WORK_ITEM
+from take_support import AGENT_TEXT
 
 ELSEWHERE = "elsewhere"
 STORY = "# First story\n\n## Description\n\nText.\n\n## Journal\n"
 BRANCH_BODY = STORY + "\n1. 2026-10-12 human: created.\n"
 CREATED = JournalRecord(number=1, speaker="human", kind="created")
-INSIDE = "tests/test_a.py"
 OUTSIDE = "src/b.py"
 COMMITTED_ELSEWHERE = "tests/test_elsewhere.py"
-AGENT_TEXT = "written by the agent\n"
 WRITES = {INSIDE: AGENT_TEXT, OUTSIDE: AGENT_TEXT}
 DIED = AgentRunResult(end_reason="died", duration=timedelta(minutes=3))
 

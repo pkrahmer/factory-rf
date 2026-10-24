@@ -17,6 +17,7 @@ from stage_run_support import (
     BRANCH,
     CREATED,
     INSTANCE,
+    NOTES,
     PATH,
     WORK_ITEM,
     completed,
@@ -25,8 +26,6 @@ from stage_run_support import (
     run_stage,
     stage_makefile,
 )
-
-NOTES = "notes.md"
 
 
 @pytest.mark.parametrize("reason", typing.get_args(StallReason))

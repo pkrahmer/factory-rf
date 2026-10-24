@@ -25,6 +25,7 @@ from git_support import install_agents, remote_commit
 from human_clone import HumanClone
 from stage_run_support import (
     BRANCH,
+    INSIDE,
     INSTANCE,
     PATH,
     WORK_ITEM,
@@ -33,12 +34,10 @@ from stage_run_support import (
     pushed_state,
 )
 from stall_support import (
-    AGENT_TEXT,
     COMMITTED_ELSEWHERE,
     CREATED,
     DIED,
     ELSEWHERE,
-    INSIDE,
     OUTSIDE,
     WRITES,
     SwitchingRuntime,
@@ -47,6 +46,7 @@ from stall_support import (
     stall_context,
     started_stage,
 )
+from take_support import AGENT_TEXT
 
 STALL_PREFIX = "Stage tests stalled (attempt 1 of 2): "
 

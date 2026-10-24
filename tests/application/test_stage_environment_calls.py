@@ -36,10 +36,10 @@ from stage_run_support import (
     pushed_state,
     run_stage,
 )
+from take_support import AGENT_TEXT
 from work_item_support import checkout_text
 
 OUTSIDE = "src/b.py"
-AGENT_TEXT = "written by the agent\n"
 UNDONE_PARAGRAPH = "The factory undid changes outside the write paths: "
 TEST_COMMAND = "  test: {time_limit: 10}\n"
 WITH_SYNC = PIPELINE_YAML.replace(TEST_COMMAND, TEST_COMMAND + "  sync: {time_limit: 5}\n")

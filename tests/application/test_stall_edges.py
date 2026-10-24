@@ -16,6 +16,8 @@ from factory.domain.journal import entry_text
 from human_clone import HumanClone
 from stage_run_support import (
     BRANCH,
+    INSIDE,
+    NOTES,
     PATH,
     completed,
     open_story,
@@ -23,9 +25,7 @@ from stage_run_support import (
     stage_makefile,
 )
 
-AGENT_FILE = "tests/test_a.py"
 ELSEWHERE = "elsewhere"
-NOTES = "notes.md"
 WRITTEN = "written-by-lint.txt"
 
 
@@ -38,8 +38,8 @@ class CommitThenLeaveRuntime(AgentRuntime):
         self._git = git
 
     def run(self, request: AgentRunRequest) -> AgentRunResult:
-        """Commit `AGENT_FILE`, switch to `ELSEWHERE` at `HEAD`, then let the delegate play."""
-        target = request.working_directory / AGENT_FILE
+        """Commit `INSIDE`, switch to `ELSEWHERE` at `HEAD`, then let the delegate play."""
+        target = request.working_directory / INSIDE
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("written by the agent\n", encoding="utf-8")
         self._git.commit("the agent's commit")
@@ -131,7 +131,7 @@ def test_a_stall_after_the_agent_left_drops_its_commit_on_the_branch(
         "work item F0001-S0001: tests starts as factory-1",
         "write factory/features/F0001-example/in-progress/F0001-S0001-first.md",
     ]
-    assert boundaries.git.show_file(report.commit, AGENT_FILE) is None
+    assert boundaries.git.show_file(report.commit, INSIDE) is None
 
 
 def test_a_red_check_stall_undoes_what_the_check_wrote(

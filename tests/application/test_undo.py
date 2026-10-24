@@ -15,7 +15,7 @@ from factory.domain.paths import cost_records_path
 from factory.domain.write_paths import refusal
 from git_support import PIPELINE_YAML, write_files
 from human_clone import HumanClone
-from take_support import BROKEN_FRONT_MATTER
+from take_support import AGENT_TEXT, BROKEN_FRONT_MATTER
 from undo_support import (
     GUIDE,
     GUIDE_TEXT,
@@ -35,7 +35,6 @@ from work_item_support import checkout_text
 THIRD_COSTS = f"{IN_PROGRESS}/F0001-S0003-third.costs.jsonl"
 NOTES = f"{IN_PROGRESS}/notes.txt"
 STORY_FORM_FILE = "factory/story-form.md"
-AGENT_TEXT = "written by the agent\n"
 
 
 def _at_start(boundaries: Boundaries, start: StageStart, path: str) -> str:

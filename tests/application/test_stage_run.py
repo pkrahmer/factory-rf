@@ -16,6 +16,8 @@ from human_clone import HumanClone
 from stage_run_support import (
     BRANCH,
     ENVIRONMENT,
+    INSIDE,
+    NOTES,
     branch_head,
     completed,
     open_story,
@@ -23,10 +25,8 @@ from stage_run_support import (
     run_stage,
     stage_makefile,
 )
+from take_support import AGENT_TEXT
 
-INSIDE = "tests/test_a.py"
-AGENT_TEXT = "written by the agent\n"
-NOTES = "notes.md"
 BUILT = "build/out.txt"
 IGNORED = "ignored/out.txt"
 

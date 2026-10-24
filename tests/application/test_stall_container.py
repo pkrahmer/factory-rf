@@ -23,11 +23,19 @@ from factory.application.take import TakeReport
 from factory.domain.agent_runs import AgentRunResult
 from git_support import write_files
 from human_clone import HumanClone
-from stage_run_support import branch_head, completed, open_story, run_stage, stage_makefile
-from stall_support import AGENT_TEXT, DIED, INSIDE
+from stage_run_support import (
+    INSIDE,
+    NOTES,
+    branch_head,
+    completed,
+    open_story,
+    run_stage,
+    stage_makefile,
+)
+from stall_support import DIED
+from take_support import AGENT_TEXT
 from undo_support import BRANCH, GUIDE, PATH
 
-NOTES = "notes.md"
 LATER = "src/c.py"
 SYNC_TARGET = "\nsync:\n\t@echo synced\n"
 BLANK_ENTRY = AgentRunResult(

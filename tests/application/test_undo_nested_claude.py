@@ -3,13 +3,13 @@
 from factory.application.boundaries import Boundaries
 from git_support import write_files
 from human_clone import HumanClone
+from take_support import AGENT_TEXT
 from undo_support import start_stage, undo_stage
 from work_item_support import checkout_text
 
 NESTED_SKILL = "src/.claude/skills/x/SKILL.md"
 LOOKALIKE = "src/.claudex/notes.md"
 SOURCE = "src/a.py"
-AGENT_TEXT = "written by the agent\n"
 
 
 def test_the_undo_removes_a_nested_claude_folder_and_keeps_the_rest(

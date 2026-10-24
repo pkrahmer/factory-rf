@@ -20,6 +20,8 @@ from factory.domain.errors import WorkItemFormatError
 from git_support import run_git, write_files
 from human_clone import HumanClone
 from sealed_run_support import COMPLETED, leave, run_request
+from stage_run_support import INSIDE
+from take_support import AGENT_TEXT
 from undo_support import (
     GUIDE,
     GUIDE_TEXT,
@@ -31,9 +33,7 @@ from undo_support import (
 )
 from work_item_support import checkout_text
 
-WRITTEN = "tests/test_a.py"
 NEW_DOC = "docs/new.md"
-AGENT_TEXT = "written by the agent\n"
 SEALED_MODES = (0o2755, 0o644)
 
 
@@ -71,13 +71,13 @@ def test_run_agent_is_the_sealed_run_through_the_runtime_or_the_given_run(
         assert runner.modes == [SEALED_MODES]
         assert agent_runtime.requests() == []
     else:
-        agent_runtime.queue(ScriptedRun(writes={WRITTEN: AGENT_TEXT}, result=COMPLETED))
+        agent_runtime.queue(ScriptedRun(writes={INSIDE: AGENT_TEXT}, result=COMPLETED))
         runtime = ModeRecordingRuntime(agent_runtime, boundaries.checkout)
         recording = replace(boundaries, agent_runtime=runtime)
         sealed = InlineEnvironment(recording).run_agent(request)
         assert runtime.modes == [SEALED_MODES]
         assert agent_runtime.requests() == [request]
-        assert checkout_text(boundaries, WRITTEN) == AGENT_TEXT
+        assert checkout_text(boundaries, INSIDE) == AGENT_TEXT
 
     assert sealed.result == COMPLETED
     assert sealed.nested_repositories == []
