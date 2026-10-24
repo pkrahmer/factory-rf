@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-24T11:46:40.491756Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-24T11:46:19.808017Z'
   stage: review
   run: 626c0b678e454eaab931856ddbd7bc41
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-24T11:46:40.491756Z'
+  stage: doing
 ---
 
 # The snapshots and the container runs are interfaces with fakes
@@ -425,3 +434,4 @@ Expect: `1`
     Earlier tests:
     - `tests/application/test_interfaces.py`: the human's leave in `feature.md` decision 18 (a). The story's Interface and criterion 4 name it. The diff stays within that leave: `INTERFACES` and `INTERFACE_IDS` each gain `Snapshots` and `ContainerRuns`, and `test_project_commands_and_agent_runtime_have_exactly_their_operations_abstract` gains the two assertions on `__abstractmethods__`. Every earlier test keeps its name.
     - `tests/test_wrapper_search.py`: the human's leave in `feature.md` decision 18 (a). The expected set gains `factory.adapters.fake_containers` and nothing else changes.
+13. factory: started doing as self.
