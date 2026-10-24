@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T11:28:00.792135Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-24T11:28:00.785243Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-24T11:28:00.792135Z'
+  stage: intake
+---
+
 # The snapshots and the container runs are interfaces with fakes
 
 ## Description
@@ -256,3 +283,6 @@ uv run pytest tests/application/test_interfaces.py tests/adapters/test_fake_snap
 Expect: `1`
 
 ## Journal
+
+1. 2026-10-24 human: created.
+2. factory: started intake as self.
