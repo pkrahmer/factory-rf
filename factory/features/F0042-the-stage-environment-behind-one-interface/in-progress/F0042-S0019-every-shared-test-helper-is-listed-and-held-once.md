@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 428
 comments_read: [6390818287]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-24T23:24:37.086488Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-24T23:24:16.530955Z'
   stage: docs
   run: efb8851d14f7402d878c07852ebac167
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-24T23:24:37.086488Z'
+  stage: smoke-test
 ---
 
 # Every shared test helper is listed and held once
@@ -452,3 +461,4 @@ Expect: 0
     `check`: check: green (not run again: passed on tree ae650560410b at 2026-10-24T23:17:23Z)
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
+23. factory: started smoke-test as self.
