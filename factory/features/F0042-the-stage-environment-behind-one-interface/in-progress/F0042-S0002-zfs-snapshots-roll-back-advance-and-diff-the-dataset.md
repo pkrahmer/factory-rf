@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T12:06:06.993656Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-24T12:06:06.993656Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-24T12:12:55.974897Z'
+  stage: tests
+  run: 4bdacb36410d447da6c8dfb994d79f73
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -176,3 +178,32 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
    - Architecture: the new module is in `adapters`, reaches `zfs` only through `run_process` from `factory.adapters.process`, and implements the application-layer interface `Snapshots`. The layer rules and the wrapper rule (R5) hold. The wrapper-search leave is decision 18 b of `feature.md`.
    - Scope: within F0042's scope, which lists `zfs_snapshots` as S0002. Nothing is wired, which is S0010's job. The docs criterion names the guide file and the README row.
 7. factory: started tests as self.
+8. tester: I wrote the tests for every criterion against the Interface, on a stand-in `zfs`. The stand-in records each call's arguments, environment and working directory, and answers by a plan keyed on its first argument.
+
+   Mapping:
+   - criterion 1: tests/adapters/test_zfs_snapshots.py::test_reset_rolls_back_to_the_base_and_keeps_the_mount_point
+   - criterion 2: tests/adapters/test_zfs_snapshots.py::test_advance_replaces_the_base_by_what_list_says (rows base, no-base, list-2, destroy-fails, snapshot-fails)
+   - criterion 3: tests/adapters/test_zfs_snapshots_diff.py::test_changed_paths_reads_the_diff_relative_to_the_mount_point (rows lines, empty)
+   - criterion 4: tests/adapters/test_zfs_snapshots_diff.py::test_a_diff_it_cannot_read_is_a_fault (rows outside, sibling, unknown-change, short, short-rename, rename-outside, fails)
+   - criterion 5: tests/adapters/test_zfs_snapshots.py::test_a_failed_reset_names_its_detail (rows last-line, silent, time-limit with 1.5 s and elapsed in [1, ROOMY_BOUND_SECONDS), missing `/nowhere/zfs`); tests/adapters/test_zfs_snapshots.py::test_the_default_time_limit_is_ten_minutes_and_reaches_run_process (the module's `run_process` replaced by a `Recorder` with one planned result)
+   - criterion 6: tests/adapters/test_zfs_snapshots.py::test_a_command_merges_stderr_runs_at_the_root_in_the_factorys_environment
+   - criterion 7: tests/adapters/test_zfs_snapshots.py::test_version_is_the_first_line_zfs_prints (rows first-line, nothing, fails)
+   - criterion 8: tests/adapters/test_zfs_snapshots.py::test_dataset_exists_reads_what_list_names (rows named, none, other, fails). The exit-2 row prints `warning` and then `cannot open 'tank/factory/vm': permission denied`, so the expected detail is the last line.
+   - criterion 9: tests/adapters/test_zfs_snapshots.py::test_the_adapter_implements_the_snapshots_interface; tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module
+   - criteria 10 and 11: no test (make check, docs).
+
+   Files created:
+   - tests/zfs_support.py: the shared stand-in (`write_zfs`, `Answer`, `Zfs`, `ZfsCall`), the constants `DATASET` and `MOUNT_POINT`, and `snapshots_on`. Both test modules use it, so it lives in one place.
+   - tests/adapters/test_zfs_snapshots.py
+   - tests/adapters/test_zfs_snapshots_diff.py
+
+   Earlier test file changed: tests/test_wrapper_search.py. It now has `factory.adapters.zfs_snapshots` in the expected set. Criterion 9 of this story names that test and that change; the test's name and docstring are unchanged.
+
+   The stand-in prints planned output to standard output for the rows where criteria 2, 5, 7 and 8 say "print". It prints to standard error only where a criterion names it (criterion 6's `boom`, the `list`/`diff` exit-1 rows), so the multi-line rows have a set order under the merge.
+
+   The one `make test` run failed for the right reasons. Both new modules raised ImportError at collection, because `factory.adapters.zfs_snapshots` does not exist; `tests/zfs_support.py` imports it too. The wrapper-search test failed its assertion because the module does not import the process module yet. After that run I fixed only lint and format (ruff format and the parameter layout of the reset test); no test changed meaning. `make lint` is green. The type check was skipped, as the stage says.
+
+   Could not be imported: `factory.adapters.zfs_snapshots`.
+
+   `lint`: lint: green (0.8 s)
+   `test`: ERROR tests/adapters/test_zfs_snapshots_diff.py - ImportError while importing test module '/work/checkout/tests/adapters/test_zfs_snapshots_diff.py'.
