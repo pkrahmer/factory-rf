@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 408
 comments_read: [6383983454, 6384181638]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-24T12:34:50.006299Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-10-24T12:34:50.006299Z'
   stage: tests
+- number: 27
+  speaker: tester
+  kind: result
+  at: '2026-10-24T12:37:36.821229Z'
+  stage: tests
+  run: 4cc5a6eb092d4aa1a140227d7c3d8a4c
 ---
 
 # ZFS snapshots roll back, advance and diff the dataset
@@ -421,3 +423,14 @@ Expect: three lines of Python output, `[('checkout/new.md', 'added'), ('checkout
 
     Noticed, not touched: nothing new beyond the notes from round 0. I did not run `make check` this run, because nothing in the working tree changed.
 26. factory: started tests as self.
+27. tester: Round 2: I wrote the test for criterion 11, which the reviewer added in entry 23. The coder's entry 25 names it, and it needs only its test.
+
+    Changed:
+    - criterion 11: tests/adapters/test_zfs_snapshots_diff.py::test_changed_paths_reads_the_diff_relative_to_the_mount_point has a new row, `mount-point`. In it `diff` prints `M\t/\t/srv/factory/vm/work` and `M\tF\t/srv/factory/vm/work/checkout/a.py`, and the test expects exactly `[ChangedPath("checkout/a.py", "modified")]`. The test's shared assertion also checks the call's arguments. The code already behaves this way, so the row passes, as the coder's entry 25 said it would.
+
+    Files changed: tests/adapters/test_zfs_snapshots_diff.py (one row added; it is this story's own test). I created no files, changed no other test file and did not edit the work item.
+
+    Every module imports. `make test`: test: green (72.0 s). `make lint`: lint: green (0.2 s).
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (68.7 s)
