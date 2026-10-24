@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 420
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-24T20:35:12.740377Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-24T20:34:51.119017Z'
   stage: doing
   run: f7b7ea12a55d41b68e3e73b098468e55
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:35:12.740377Z'
+  stage: review
 ---
 
 # Every container runs without rights and within limits
@@ -132,3 +141,4 @@ Expect: one line, `['--cap-drop=all', '--security-opt=no-new-privileges', '--pid
 
    `check`: check: green
    `duplicates`: duplicates: 16 new, 36 known, 2 gone
+8. factory: started review as self.
