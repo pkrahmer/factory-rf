@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 407
 comments_read: [6383665028]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T11:31:06.820036Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-24T11:30:48.737650Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-24T11:31:06.820036Z'
   stage: intake
 ---
 
@@ -311,3 +320,4 @@ Expect: `1`
    4. Yes: add a row to criterion 8 where a file is deleted, then `advance()` is called, and then `reset()` does not bring it back.
 
    You have leave to edit the Acceptance criteria for exactly these four additions; the Interface and the Description stay as they are.
+5. factory: started intake as self.
