@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-24T20:49:56.854221Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-24T20:49:56.848201Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-24T20:49:56.854221Z'
+  stage: intake
+---
+
 # The settings and the wiring choose the stage environment
 
 ## Description
@@ -100,3 +127,6 @@ uv run pytest tests/domain/test_settings_stage_environment.py tests/entry/test_w
 Expect: `1`
 
 ## Journal
+
+1. 2026-10-24 human: created.
+2. factory: started intake as self.
