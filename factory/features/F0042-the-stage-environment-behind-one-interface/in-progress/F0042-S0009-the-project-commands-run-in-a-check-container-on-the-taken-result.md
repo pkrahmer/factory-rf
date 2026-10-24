@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 418
 comments_read: [6388655761]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T19:59:18.160401Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -127,6 +123,12 @@ journal:
   kind: started
   at: '2026-10-24T19:59:18.160401Z'
   stage: review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-10-24T20:00:11.969373Z'
+  stage: review
+  run: d9205f381b2e49ef89172234d26cce3d
 ---
 
 # The project commands run in a check container on the taken result
@@ -324,3 +326,25 @@ Expect: `{'PATH': '/usr/local/bin:/usr/bin:/bin', 'HOME': '/work/home'} True`
     `check`: check: green
     `duplicates`: duplicates: 16 new, 36 known, 2 gone
 21. factory: started review as self.
+22. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`. The diff covers src/factory/adapters/make_commands.py, src/factory/application/take.py and tests/adapters/test_make_commands_container.py.
+
+    no findings
+
+    - Round 0's findings (entry 14) are all fixed. Finding 1: `MOUNTED_CHECKOUT` is now public in src/factory/application/take.py:17 and imported in make_commands.py:27, and no copy of `_MOUNTED_CHECKOUT` is left anywhere in src or tests. Finding 2: `CHECK_ENVIRONMENT = dict(SYNC_ENVIRONMENT)` (make_commands.py:43), with the value unchanged. Finding 3: the `setup` fixture now uses `tmp_path / CHECKOUT`.
+    - Group 1 (acceptance criteria): passes.
+      - Criteria 1 to 8 each have a test that checks what the criterion says, and I checked them against the criteria myself.
+      - Criterion 1: the container call is checked field by field, plus the marker file in the dataset and not on the host, the host's `git.status()`, and the 30-line tail.
+      - Criterion 2: five rows, each comparing the dataset's file listing exactly and the host's bytes.
+      - Criterion 3: exit status 2, `last_line` `boom`, and no marker.
+      - Criterion 4: `time_limit` with exit status None, bounded 1 ≤ elapsed < 25.
+      - Criterion 5: rows for a limit of 0, a limit of -1 s and the name `Check`, each with no call and the stray file still there. The positive side of the limit is covered by the 1 min and 1 s runs.
+      - Criterion 6: rows for the snapshot fault, the container fault, the same `GitError` object propagating, and `ValueError` for `../x`, with no call in the last two.
+      - Criterion 7: `isinstance`, plus the unchanged test_make_search.py.
+      - Criterion 8: the files under the dataset's `checkout/.git`, and the files beside `checkout`, are each compared with the base.
+      - Every Interface rule has its refused side tested. The factory's `make check` after the coder was green (entry 20: `check: green`).
+    - Group 2 (architecture): passes. adapters → application imports are allowed. The containers are reached only through `ContainerRuns`, and `make` stays in the make wrapper.
+    - Group 3 (security): passes. The command name goes in as a shell argument (`"$1"`/`"$2"`), never into the script text, and it is checked against `COMMAND_NAME_PATTERN` first. The diff adds no markers that silence a check.
+    - Group 4 (quality): passes. The refusal and the reading of the output are shared through `_check_call` and `_read_result`, not copied. I ran `make duplicates` (`16 new, 36 known, 2 gone`). The only new item from this diff is the unused class `ContainerMakeCommands` (make_commands.py:185), which is expected until S0010 wires it. The other new items are in modules this diff does not touch.
+    - Group 5 (work item hygiene): passes. The journal explains the shared reader and the alternative it rejected. The Description (corrected in round 0) matches the code. The docs criterion still says what the reader needs.
+
+    Earlier tests: none. The diff only adds tests/adapters/test_make_commands_container.py (status `A`).
