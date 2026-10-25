@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-25T19:42:38.605417Z'
   stage: smoke-test
   run: 91db60aadfe64687a79719e1942eace1
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-25T19:47:03.777143Z'
+  stage: approval
 ---
 
 # The undo is removed
@@ -422,3 +427,4 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
     - `agent_entry(..., left_out=[])` gives the text `'done'` with no closing paragraph.
 
     Not covered here: criteria 3 and 4 (the whole stage on the `boundaries` fixture, and the refusal rule through the take) are left to the tests, and the factory runs `make check` (criterion 5) itself. Criterion 6 (docs) was not part of this smoke test.
+22. factory: done (pull request merged); cost: 10 runs, 13.6 min, 95 turns, 309994 tokens in (2771996 more from cache), 39993 out, $3.36
