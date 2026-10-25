@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 449
-comments_read: []
+comments_read: [6399896604]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 651421fbcf5d441390ae072b8393d807
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-25T16:04:22.002047Z'
+  stage: intake
 ---
 
 # The checkout's hygiene is removed
@@ -115,3 +120,8 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
    - The architecture matches the layers.
    - The scope is inside feature S0006.
    - Every other Interface clause has a criterion on both sides.
+4. 2026-10-25 human: Yes to all three, as you propose:
+   1. Add a criterion: the probe, run with a scripted agent that writes `sub/.git/HEAD`, reports no fault (one row, the probe item passes).
+   2. Add a row to criterion 2: `CheckoutPreparer.prepare`'s docstring equals "Clone when the checkout holds no `.git`; keep any checkout that does."
+   3. Add a row to criterion 1: no post text built for a stall mentions a nested repository.
+   New tests and rows need no leave beyond decisions 22 and 35(a).
