@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T00:35:35.257037Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-25T00:35:35.257037Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-25T00:41:48.223076Z'
+  stage: tests
+  run: 6a2115083e014220b8316dcc63048cdb
 ---
 
 # The setup script prepares the machine and installs the service
@@ -156,3 +158,36 @@ Expect: `1`
 
    I added criterion 11 and the extension to criterion 7 from journal entry 4, which is the human's edit carried in. The Description is unchanged because the meaning of the task did not change.
 7. factory: started tests as self.
+8. tester: I wrote the tests for criteria 1 to 11. They are red for the right reason: `vm/setup.sh` and `vm/factory.service` do not exist yet, so every test fails with `FileNotFoundError` on those paths. `make lint` is green. I skipped the type check, as the stage says.
+
+   Criterion → test:
+   - criterion 1: tests/test_vm_setup.py::test_the_script_parses_and_starts_with_its_shebang_and_set_eu
+   - criterion 2: tests/test_vm_setup.py::test_an_argument_fault_prints_the_usage_and_exits_2 (the six rows) and tests/test_vm_setup.py::test_help_prints_the_usage_to_standard_output_and_exits_0
+   - criterion 3: tests/test_vm_setup.py::test_a_user_other_than_root_is_refused_before_the_steps (two rows; a stand-in `id` in `tmp_path/bin` prints `1000`)
+   - criterion 4: tests/test_vm_setup_text.py::test_the_commands_and_the_steps_come_in_their_order
+   - criterion 5: tests/test_vm_setup_text.py::test_the_packages_are_the_seven_and_updated_before_install and tests/test_vm_setup_text.py::test_the_script_holds_no_forbidden_form (one row per forbidden form)
+   - criterion 6: tests/test_vm_setup_text.py::test_the_sudoers_rule_names_each_zfs_command_once_on_base (the four `/usr/sbin/zfs …` rules) and tests/test_vm_setup_text.py::test_the_sudoers_fallback_is_written_only_when_asked (the other literals, the `if` before the files, the line for the flag not set)
+   - criterion 7: tests/test_vm_setup_text.py::test_the_environment_file_holds_each_name_once_with_its_value (twenty rows: once, between `factory.env` and `factory@.service`, after the name before it, the exact value form) and tests/test_vm_setup_text.py::test_the_environment_file_reads_its_pins_and_picks_the_zfs_command (the three Dockerfile keys, no `FACTORY_PODMAN`, `=zfs` and `=/usr/local/bin/zfs-factory` in the sudoers step)
+   - criterion 8: tests/test_vm_setup_text.py::test_the_checkout_waits_for_the_token_and_clones_as_factory
+   - criterion 9: tests/test_vm_setup_text.py::test_the_refusals_modes_and_rerun_guards_are_in_their_steps
+   - criterion 10: tests/test_vm_service.py::test_each_section_holds_exactly_its_keys (one row per section) and tests/test_vm_service.py::test_the_unit_has_three_sections_and_no_environment_pre_start_or_type
+   - criterion 11: tests/test_vm_setup_text.py::test_each_default_is_assigned_once_before_the_option_parsing (five rows) and tests/test_vm_setup_text.py::test_the_options_land_in_their_named_variables (eight rows, plus `image=factory-stage:$instance`)
+   - criteria 12 and 13 have no test: 12 is the checks, 13 is the docs stage's.
+
+   Files created:
+   - tests/vm_support.py: `SETUP`, `SERVICE`, `STEPS`, `REQUIRED`, `setup_code`, `step_texts`, `run_setup`, `entries`. It reuses `ROOT` and `SYSTEM_PATH` from `entrypoint_support` and `_uncommented` from `dockerfile_support`. The docs criterion names this module for *Shared test helpers*.
+   - tests/test_vm_setup.py
+   - tests/test_vm_setup_text.py
+   - tests/test_vm_service.py
+
+   Modules the test run could not import: none. The failures are the missing files `vm/setup.sh` and `vm/factory.service`. I changed no earlier test file.
+
+   Choices in reading the text, which the coder should know:
+   - **Package list:** read as the run of words that starts at `zfsutils-linux`, after joining `\`-continued lines. It must occur exactly once.
+   - **Start of the option parsing (criterion 11):** the first `case "$1"`, `case $1` or `case ${1…`.
+   - **Value forms (criterion 7):** each must be followed by a quote, a space or the end of the line. `${instance}` or a printf `%s` form fails.
+   - **The three pins:** each must be `$<variable>`, and some line that assigns that variable must also hold its Dockerfile key (`ARG CLAUDE_CODE_VERSION=`, `ARG OPENCODE_VERSION=` or `ENV FACTORY_OPENCODE_MODELS=`).
+   - **Step texts:** cut as the criteria say: each step ends at the end of the line of its own last `setup: <step>: ` text.
+
+   `lint`: lint: green (0.6 s)
+   `test`: ERROR tests/test_vm_setup_text.py::test_the_options_land_in_their_named_variables[repository_url] - FileNotFoundError: [Errno 2] No such file or directory: '/work/checkout/vm/setup.sh'
