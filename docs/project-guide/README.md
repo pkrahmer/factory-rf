@@ -38,7 +38,7 @@ Every module `tests/*.py` whose name does not start with `test_`:
 - `crash_support.py`: a work item claimed by this instance, ready to crash (`claim`, `expired_claim`, `crash_event`, `handler`), for the crash-cap tests.
 - `definition_support.py`: `pipeline_definition`, the test remote's pipeline definition read through the boundaries' reader, which the `definition` fixture returns too, for helpers that take no fixtures.
 - `disk_support.py`: `FakeDiskSpace`, a fake of the disk-space interface that answers per path.
-- `dockerfile_support.py`: `dockerfile_instructions` and `DOCKERFILE`, for tests that read the image's Dockerfile.
+- `dockerfile_support.py`: readers of a Dockerfile's text, for the tests of `image/Dockerfile` and `vm/Dockerfile`: `DOCKERFILE` (the path of `image/Dockerfile`), `dockerfile_instructions` (its instructions on one line each), `SECRET_WORDS`, `_uncommented` (a text without its comment lines), `_declared_names` (the names `ENV` and `ARG` declare), `_after` (the subcommand after a program in a command) and `_apt_packages` (the packages of every `apt-get install`).
 - `document_texts.py`: builders for the four documents' texts, clean unless a test asks for a fault (`readme`, `operator_guide`, `project_guide`, `decision_log`, `write_documents`).
 - `entrypoint_support.py`: the entrypoint tests' layout, stub executables and stamped lines.
 - `evaluation_support.py`: the shared inputs of the evaluation's tests (a pipeline definition, snapshots, lookups, claims).
