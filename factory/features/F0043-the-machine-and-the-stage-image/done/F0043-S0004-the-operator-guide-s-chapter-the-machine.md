@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -114,6 +114,11 @@ journal:
   at: '2026-10-25T07:26:18.106938Z'
   stage: smoke-test
   run: 83cc8d6045ff48e8ad03412bdbaafe78
+- number: 20
+  speaker: factory
+  kind: done
+  at: '2026-10-25T07:30:42.861318Z'
+  stage: approval
 ---
 
 # The operator guide's chapter "The machine"
@@ -332,3 +337,4 @@ Expect: `documents ok`
     - `docs/decisions.md`: only additions (12 lines). The new section is dated 2026-10-24 and names every required term (`2026-10-24`, `planning/v1.2-plan.md`, `F0043`, `systemd`, `factory@`, `zfs allow`, `sudoers`, `/etc/factory/claude`, `FACTORY_IMAGE_ID_FILE`, `F0044`).
 
     Open: nothing.
+20. factory: done (pull request merged); cost: 8 runs, 12.8 min, 53 turns, 182057 tokens in (1209632 more from cache), 29936 out, $1.62
