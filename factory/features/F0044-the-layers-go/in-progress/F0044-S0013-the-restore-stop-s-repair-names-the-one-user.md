@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 457
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T21:10:26.584942Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T21:10:06.469080Z'
   stage: intake
   run: 48eca49b303c4235b3161d4dd60c316a
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T21:10:26.584942Z'
+  stage: tests
 ---
 
 # The restore stop's repair names the one user
@@ -72,3 +81,4 @@ Expect: `documents ok`
    Smoke test: all three commands are runnable. The paragraph is a single line starting with `` `checkout_restore_failed` comes``, so the `awk` pattern selects it. The first command's `|| true` keeps the exit code 0 when grep counts 0. The third runs `factory.entry.check_documents`. Each `Expect:` is a concrete output (`0`, `1`, `documents ok`). No pytest command is used, so there is no `-q` issue.
    Architecture: the change is to documents only, which the documenter owns. `README.md` and `docs/decisions.md` stay untouched, as the criterion says.
    Scope: it stays within F0044 as acceptance story A0001 proposed it (decision 42). It does not touch the restore, the stop or the crash cap, which are in the feature's "stay as they are" list.
+4. factory: started tests as self.
