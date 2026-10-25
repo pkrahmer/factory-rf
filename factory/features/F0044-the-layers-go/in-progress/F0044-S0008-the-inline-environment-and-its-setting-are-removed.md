@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T17:59:19.221079Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-10-25T17:58:58.095611Z'
   stage: tests
   run: 5ba88e1544d54d1d8ab35dfebdca02c3
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:59:19.221079Z'
+  stage: doing
 ---
 
 # The inline environment and its setting are removed
@@ -237,3 +246,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
 
     `lint`: lint: green (0.2 s)
     `test`: FAILED tests/entry/test_wiring_one_preflight.py::test_the_preflight_checks_the_one_environment_s_items[opencode-unmapped] - TypeError: opencode_item() missing 2 required positional arguments: 'find...
+12. factory: started doing as self.
