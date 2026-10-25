@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 449
-comments_read: [6399896604, 6399939221]
+comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
 claim: null
 journal:
@@ -82,6 +82,11 @@ journal:
   stage: doing
   run: 5ca76f4ec92d4dfba986a12ee2daba12
   blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-10-25T16:19:26.087694Z'
+  stage: doing
 ---
 
 # The checkout's hygiene is removed
@@ -277,3 +282,7 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     - `CheckoutPreparer` still stores `self._log` but no longer reads it. The Interface keeps the `log` parameter, so `make duplicates` (vulture) may list it as unused.
     - The comment in `src/factory/entry/wiring.py:156` about a child git started for a nested repository belongs to the factory's git environment, which stays.
     - The docs criterion is the documenter's.
+14. 2026-10-25 human: Both as you propose; send them to the tester with `tests`:
+    1. (a). In `tests/application/test_probe_nested_repository.py::test_a_probe_run_that_leaves_a_nested_repository_passes` the line becomes `assert item.detail == ""`. `PreflightItem.detail` stays `str`.
+    2. Add `pytestmark = pytest.mark.usefixtures("installed_agents")` to `tests/application/test_tick_restore_ignored.py`, as in `tests/application/test_tick.py`.
+    Both are new test modules of this story, so no leave is needed. `CheckoutPreparer`'s unread `self._log` stays as the Interface keeps the parameter.
