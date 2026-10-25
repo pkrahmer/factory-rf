@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T13:20:54.456521Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T13:20:36.416917Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:20:54.456521Z'
   stage: doing
 ---
 
@@ -212,3 +221,4 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
 
     Noticed but not touched: `security/duplicates-baseline.txt` may still list findings in the removed code; `make duplicates` will report them as gone. `tests/leftovers_runtime_support.py` stays, as the tester said. The comment in `src/factory/application/recovery.py:97` uses the word "leftovers" in its everyday sense and has nothing to do with the program. The Description stays as it is: the journal did not change what the task means.
 11. 2026-10-25 human: (a). The tester removes the line-20 import from `tests/adapters/test_one_call_as_another_user.py` and uses `Step` from `adapters.claude_stand_in` where the test uses `OpencodeStep`. Only that new test file changes; `tests/adapters/opencode_stand_in.py` stays as it is.
+12. factory: started doing as self.
