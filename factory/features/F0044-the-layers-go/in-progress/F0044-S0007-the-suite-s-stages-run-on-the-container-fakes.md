@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008, 6400918653]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T17:42:31.121572Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -228,6 +224,12 @@ journal:
   kind: started
   at: '2026-10-25T17:42:31.121572Z'
   stage: docs
+- number: 40
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T17:42:59.293813Z'
+  stage: docs
+  run: f1acb78911e84fde824c382a0b6975f9
 ---
 
 # The suite's stages run on the container fakes
@@ -675,3 +677,19 @@ Expect: three lines: `1`; `1`; `1`
     - tests/test_suite_fixtures.py:64: the literal `"stage environment: reset"` duplicates `RESET_PREFIX` of `tests/application/test_stage_on_container_fakes.py` (carried from entry 27).
     - tests/test_suite_fixtures.py:40: the walk's loop repeats most of `drive` in `tests/proof_support.py` (carried from entry 27).
 39. factory: started docs as self.
+40. documenter: Round 2. The documentation for criterion 8 was already written in the earlier docs run and is in the diff. I read it against the code diff and the Interface and changed nothing in this run. The reviewer's round 2 (entry 38) found no findings.
+
+    Files changed in the branch's docs, kept as they are:
+    - `docs/project-guide/README.md`, *Shared test helpers*: `conftest.py` describes `boundaries` as a `container` instance on `FakeSnapshots` and `FakeContainerRuns` with an empty base, and the remote's `Makefile` with the silent `sync`. `container_support.py` names `fake_dataset`, `container_dataset` and `inline_boundaries`. `git_support.py` says `REMOTE_FILES` holds the `Makefile`, and that a test pushing its own `Makefile` must give it `sync`.
+    - `docs/project-guide/README.md`, *Kill points*: the stall condition says writes outside the write paths are left out of the result commit, not undone.
+    - `docs/project-guide/stage-environment.md`, *The fakes*: the suite's stages run on them, and the request's working directory is the dataset's checkout through `agent_working_directory` in `factory.application.take`. *Wiring and tests*: the `boundaries` fixture holds the fakes and `container_dataset` takes them from it.
+
+    Cross-read and found current: the same two project-guide files outside the changed passages, `write-guard.md`, `costs.md` and `stages.md` on the undo. They already say the undo belongs to the inline environment and the take to the container environment. I read `README.md` and `docs/operator-guide.md` too. Neither needs a change, as the criterion says. `docs/decisions.md` is none, as the criterion says.
+
+    No example was written, and no file outside the documents changed, so I did not run `make check`. The factory runs it after this stage.
+
+    Stale text I saw and did not touch: none that this story makes stale. The reviewer's two test notes (the literal `"stage environment: reset"` in `tests/test_suite_fixtures.py:64`, and the walk loop that repeats `drive`) are in tests and are not mine.
+
+    `check`: check: green (not run again: passed on tree 4426094bb51c at 2026-10-25T17:18:35Z)
+    `secrets`: secrets: green (1.7 s)
+    `documents`: documents ok
