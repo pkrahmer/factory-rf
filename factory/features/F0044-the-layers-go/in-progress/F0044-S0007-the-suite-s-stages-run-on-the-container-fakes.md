@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T17:23:27.345649Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-10-25T17:23:06.999669Z'
   stage: docs
   run: 87b93692d8a8456a9f1b05f5b757c5be
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:23:27.345649Z'
+  stage: smoke-test
 ---
 
 # The suite's stages run on the container fakes
@@ -509,3 +518,4 @@ Expect: two lines: `1`; `1`
     `check`: check: green (not run again: passed on tree 4426094bb51c at 2026-10-25T17:18:35Z)
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
+30. factory: started smoke-test as self.
