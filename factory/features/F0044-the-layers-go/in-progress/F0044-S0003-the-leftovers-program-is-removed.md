@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-25T13:06:33.920839Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T13:06:33.914663Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:06:33.920839Z'
+  stage: intake
+---
+
 # The leftovers program is removed
 
 ## Description
@@ -55,3 +82,6 @@ uv run python -c 'from factory.adapters import process, agent_launch; from facto
 Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers gone`; `[]`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as self.
