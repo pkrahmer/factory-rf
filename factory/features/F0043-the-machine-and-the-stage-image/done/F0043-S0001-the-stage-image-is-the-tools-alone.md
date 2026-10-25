@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-25T00:02:55.827662Z'
   stage: smoke-test
   run: aa88bebdb98042dfac4d76d8daec5aac
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-25T00:05:19.972899Z'
+  stage: approval
 ---
 
 # The stage image is the tools alone
@@ -427,3 +432,4 @@ Expect: `1`
     The smoke test does not cover criteria 8, 10 and 11 (old image files unchanged, `make check`, docs). Those belong to the review, the factory's checks and the docs stage, and nothing I saw here contradicts them.
 
     Findings: none. Open: nothing.
+22. factory: done (pull request merged); cost: 10 runs, 13.9 min, 78 turns, 307947 tokens in (1894799 more from cache), 48664 out, $3.50
