@@ -6,7 +6,7 @@ attempts: 0
 crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008, 6400918653]
-handed_over: null
+handed_over: approval
 claim: null
 journal:
 - number: 1
