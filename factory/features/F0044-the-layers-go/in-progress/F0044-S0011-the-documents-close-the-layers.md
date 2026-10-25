@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 454
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T20:31:42.814691Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-25T20:31:42.814691Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T20:32:27.662144Z'
+  stage: smoke-test
+  run: 290284052afe4d4d9ee43dffb1e35b02
 ---
 
 # The documents close the layers
@@ -231,3 +233,41 @@ Expect: `documents ok`
     `secrets`: secrets: green (2.7 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: No findings. I ran the five smoke-test blocks from the repository root as written, in order. Each one met its `Expect:` line. I changed nothing.
+
+    1. Removed-layer terms outside the `Replaced in v1.2` and `Replaced from v1` sections of `docs/operator-guide.md` and `docs/project-guide/*.md`. Expect: `0`. Met.
+    ```
+    0
+    ```
+    2. Closing lines of the fourteen decision-log entries, then the records-contract entry. Expect: two lines, `0` and `1`. Met.
+    ```
+    0
+    1
+    ```
+    3. Missing `tests/<...>.py` modules named in the guides, then removed-layer terms in `README.md`. Expect: two lines, `0` and `0`. Met.
+    ```
+    0
+    0
+    ```
+    4. The heading "One snapshot instead of many layers", then how often *What went* appears. Expect: two lines, `1` and `1`. Met.
+    ```
+    1
+    1
+    ```
+    5. `make documents 2>&1 | tail -n 1`. Expect: `documents ok`. Met.
+    ```
+    documents ok
+    ```
+
+    Reading the acceptance criteria again, I checked these by hand. None is contradicted:
+    - Criterion 1: nothing changed under `src/`, `tests/`, `vm/`, `template/` or `claude/`. `git diff --name-status main...HEAD` and `git status --short` over those paths both print nothing.
+    - Criterion 3, the `Replaced in v1.2` sections:
+      - `docs/operator-guide.md` has the chapter at line 1682, right before `## Replaced from v1` at line 1695. The list at the guide's top names it (line 42).
+      - The chapter has one bullet for each of the eight layers, and each bullet names its story id (S0001/S0002, S0005, S0003, S0004, S0006, S0008, S0009, S0010).
+      - `agents.md`, `processes-and-checks.md` and `write-guard.md` each have a `## Replaced in v1.2` section.
+      - None of these sections holds a subheading.
+    - Criterion 3, `processes-and-checks.md`: no heading named *Running as another user* is left. The *Mutation testing* section says a kill loses `make`'s process group only, so a mutmut that `timeout` put into a group of its own is not ended (since F0044-S0010).
+    - Criterion 3, `agents.md`: the `## Rules` bullet states R14 as the take ("takes only the changed paths the role may write"). It has no `Permission denied`, no `$TMPDIR` as the one temporary place and no refused `/tmp`.
+    - Criterion 3, `README.md`: the newcomer's paragraph (line 24) says the factory runs as a service on a Linux VM with ZFS and rootless Podman, with every stage in throwaway containers on one dataset. It names `vm/setup.sh` and points to *The machine* in `docs/operator-guide.md`.
+
+    Not checked by me: the content of each operator-guide row and passage that criterion 3 lists (Configuration, the records' paths, the preflight's row, opencode, the shipped agents). The documenter's entry 11 reports them and the reviewer judged the stage. Criterion 2 (`make check`) rests on the factory's passed run recorded in entry 11; I did not run it again because this stage runs only the smoke test.
