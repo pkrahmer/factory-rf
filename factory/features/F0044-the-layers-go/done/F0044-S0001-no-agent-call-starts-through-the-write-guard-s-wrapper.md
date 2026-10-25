@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -219,6 +219,11 @@ journal:
   at: '2026-10-25T12:24:17.751419Z'
   stage: smoke-test
   run: d34546ad2c9e40af93b3c911faff2235
+- number: 39
+  speaker: factory
+  kind: done
+  at: '2026-10-25T12:25:37.765557Z'
+  stage: approval
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -815,3 +820,4 @@ Expect: `7`
     Against the acceptance criteria: nothing in this output contradicts any criterion. The two commands cover parts of criteria 1, 2 and 8. Command 2 only shows that the old sentence is gone; it does not show that decision 4's line is present exactly once, so that half of criterion 8 is left to its test. Criteria 3–7 (the call's words and environment, how a call's end is read, container calls, the preflight's extras, the source scan) are outside what these commands exercise. I did not run `make check` (criterion 9); the factory runs it as the stage's check.
 
     Findings: none.
+39. factory: done (pull request merged); cost: 17 runs, 38.0 min, 228 turns, 789948 tokens in (9613938 more from cache), 103266 out, $9.33
