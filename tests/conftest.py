@@ -12,7 +12,7 @@ from acceptance_walk import AcceptanceWalk
 from adapters.container_runtime_support import make_workspace
 from compose_support import COMPOSE
 from confine_support import Layout, build_layout
-from container_support import Dataset, container_dataset
+from container_support import Dataset, container_dataset, fake_dataset
 from definition_support import pipeline_definition
 from disk_support import FakeDiskSpace
 from entrypoint_support import Layout as ImageLayout
@@ -227,11 +227,15 @@ def boundaries(
 ) -> Boundaries:
     """Return the interfaces on the test's checkout, fakes and clock, the state under `tmp_path`.
 
-    Every feature is on: the settings name `factory-1` and the test's checkout, state and agent
-    home; the fake disk has ample room; the disk, stop and known-result records lie under
-    `<tmp_path>/state/records/`; the waiter is a manual one on the `clock` fixture.
+    Every feature is on: the stages run in the container environment on `FakeSnapshots` and
+    `FakeContainerRuns` over `<tmp_path>/workspace`, whose base is empty; the project commands
+    stay `MakeProjectCommands` on the host checkout; the settings name `factory-1` and the test's
+    checkout, state and agent home; the fake disk has ample room; the disk, stop and
+    known-result records lie under `<tmp_path>/state/records/`; the waiter is a manual one on
+    the `clock` fixture.
     """
     state = tmp_path / "state"
+    snapshots, containers = fake_dataset(tmp_path)
     return Boundaries(
         git=checkout,
         hosting=hosting,
@@ -259,6 +263,8 @@ def boundaries(
         stop_records=JsonLinesRecordLog(state / "records" / "stops.jsonl", StopRecord),
         waiter=ManualWaiter(clock),
         result_records=JsonLinesRecordLog(state / "records" / "known-results.jsonl", ResultRecord),
+        snapshots=snapshots,
+        containers=containers,
     )
 
 

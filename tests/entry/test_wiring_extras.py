@@ -93,7 +93,7 @@ def test_a_tick_stops_on_a_failed_extra_and_otherwise_probes_in_the_stages_envir
 ) -> None:
     roles = boundaries.pipeline_reader.parse(PIPELINE_YAML).roles
     install_agents(agent_home, {*roles, "coder"})
-    human.push_file("main", "Makefile", "lint:\n\ttrue\n")
+    human.push_file("main", "Makefile", "lint:\n\ttrue\nsync:\n\t@:\n")
     human.push_file("main", BACKLOG_PATH, STORY)
     human.start(BACKLOG_PATH)
     token_file = tmp_path / "hosting-token"

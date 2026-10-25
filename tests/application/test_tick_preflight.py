@@ -25,7 +25,7 @@ from stage_run_support import INSTANCE
 from wiring_support import every_tool
 
 IMAGE = "build-7"
-MAKEFILE = "lint:\n\ttest ! -f BROKEN\n"
+MAKEFILE = "lint:\n\ttest ! -f BROKEN\nsync:\n\t@:\n"
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 BRANCH = branch_name("F0001-S0001")
 

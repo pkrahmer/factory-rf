@@ -29,6 +29,7 @@ MAKEFILE = (
     "lint:\n\t@echo 'lint done'\n\t@exit 0\n"
     "check:\n\t@echo 'check done'\n\t@exit 0\n"
     "test:\n\t@echo 'test done'\n\t@exit 0\n"
+    "sync:\n\t@:\n"
 )
 STORY = """\
 # First story
@@ -70,6 +71,9 @@ def _launch(
     boundaries: Boundaries, human: HumanClone, agent_home: Path, agent_runtime: FakeAgentRuntime
 ) -> LaunchedStage:
     """Start the story in `tests` and run its stage once, on a completed agent run."""
+    # The sync copies the agent home, so it is the fixture's whatever the settings name.
+    settings = boundaries.settings.model_copy(update={"agent_home": agent_home})
+    boundaries = replace(boundaries, settings=settings)
     install_agents(agent_home, ["tester"])
     human.push_file("main", "Makefile", MAKEFILE)
     human.push_file("main", BACKLOG_PATH, STORY)

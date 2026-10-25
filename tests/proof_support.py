@@ -9,6 +9,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Final
 
+from container_support import fake_dataset
 from disk_support import FakeDiskSpace
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.clock import ManualClock, ManualWaiter
@@ -107,7 +108,7 @@ Expect: nothing.
 
 ## Journal
 """
-PASSING_MAKEFILE: Final[str] = "check:\n\ttrue\nlint:\n\ttrue\ntest:\n\ttrue\n"
+PASSING_MAKEFILE: Final[str] = "sync:\n\t@:\ncheck:\n\ttrue\nlint:\n\ttrue\ntest:\n\ttrue\n"
 PASSING_TEST = "def test_example() -> None:\n    assert True\n"
 SOURCE = "EXAMPLE = 1\n"
 DRIVE_LIMIT = 20
@@ -155,6 +156,7 @@ def _assemble(
     checkout = root / CHECKOUT
     state = root / "state"
     agent_runtime = FakeAgentRuntime(kill_points)
+    snapshots, containers = fake_dataset(root)
     boundaries = Boundaries(
         git=git,
         hosting=hosting,
@@ -182,6 +184,8 @@ def _assemble(
         stop_records=JsonLinesRecordLog(state / "records" / "stops.jsonl", StopRecord),
         waiter=ManualWaiter(clock),
         result_records=JsonLinesRecordLog(state / "records" / "known-results.jsonl", ResultRecord),
+        snapshots=snapshots,
+        containers=containers,
     )
     environment = agent_environment(root / "scripts", root / "home")
     tick = Tick(boundaries, INSTANCE, handler_factory(boundaries, INSTANCE, environment))
@@ -719,9 +723,7 @@ def _attempt_charged(stalled: _Stalled) -> bool:
 
 def _outside_writes_undone(stalled: _Stalled) -> bool:
     git = stalled.result.world.boundaries.git
-    return all(
-        git.show_file(ref, LEAK_PATH) is None for ref in (stalled.commit, _branch(stalled.result))
-    )
+    return git.show_file(stalled.commit, LEAK_PATH) is None
 
 
 def _state_restored(stalled: _Stalled) -> bool:

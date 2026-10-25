@@ -129,7 +129,7 @@ def _makefile(
     printed = {**GREEN_LINES, **(lines or {})}
     exits = statuses or {}
     targets = [_target(name, log, printed[name], exits.get(name, 0)) for name in COMMANDS]
-    return f".PHONY: {' '.join(COMMANDS)}\n\n" + "\n".join(targets)
+    return f".PHONY: {' '.join(COMMANDS)}\n\n" + "\n".join(targets) + "\nsync:\n\t@:\n"
 
 
 def _ran(log: Path) -> list[str]:

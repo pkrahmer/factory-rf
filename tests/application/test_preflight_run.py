@@ -34,7 +34,7 @@ from human_clone import HumanClone
 
 IMAGE = "build-7"
 OTHER_IMAGE = "build-8"
-MAKEFILE = "lint:\n\ttest ! -f BROKEN\n"
+MAKEFILE = "lint:\n\ttest ! -f BROKEN\nsync:\n\t@:\n"
 TOOLS = {
     "git": "/usr/bin/git",
     "uv": "/usr/local/bin/uv",

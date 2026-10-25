@@ -85,7 +85,7 @@ def test_build_tick_runs_one_stage_in_the_production_environment_under_its_insta
     tmp_path: Path,
 ) -> None:
     install_agents(agent_home, boundaries.pipeline_reader.parse(PIPELINE_YAML).roles)
-    human.push_file("main", "Makefile", "lint:\n\ttrue\n")
+    human.push_file("main", "Makefile", "lint:\n\ttrue\nsync:\n\t@:\n")
     human.push_file("main", BACKLOG_PATH, STORY)
     human.start(BACKLOG_PATH)
     token_file = tmp_path / "hosting-token"

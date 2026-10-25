@@ -11,6 +11,7 @@ from pathlib import Path
 from factory.application.boundaries import Boundaries
 from factory.application.stage_environment import stage_environment_of
 from factory.application.stops import StopService
+from factory.application.take import agent_working_directory
 from factory.domain.agent_runs import (
     QUESTION,
     AgentDefinition,
@@ -327,13 +328,12 @@ def _login_detail(settings: InstanceSettings, login: Login | None) -> str:
 def _probe_request(
     boundaries: Boundaries, agent: AgentDefinition, environment: Mapping[str, str]
 ) -> AgentRunRequest:
-    checkout = boundaries.checkout
     return AgentRunRequest(
         agent=agent,
         prompt=PROBE_PROMPT,
         allowed_decisions=[QUESTION],
         time_limit=PROBE_RUN_TIME_LIMIT,
-        working_directory=checkout,
+        working_directory=agent_working_directory(boundaries),
         environment=dict(environment),
     )
 

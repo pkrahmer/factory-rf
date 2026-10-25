@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from container_support import container_dataset, container_environment
+from container_support import container_dataset, container_environment, inline_boundaries
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
@@ -45,6 +45,7 @@ OTHER_RESULT = AgentRunResult(
 def test_prepare_does_nothing_and_reads_nothing(
     boundaries: Boundaries, agent_runtime: FakeAgentRuntime
 ) -> None:
+    boundaries = inline_boundaries(boundaries)
     status = boundaries.git.status()
     tree = boundaries.git.work_tree_id()
 
@@ -61,6 +62,7 @@ def test_prepare_does_nothing_and_reads_nothing(
 def test_run_agent_is_the_sealed_run_through_the_runtime_or_the_given_run(
     boundaries: Boundaries, agent_runtime: FakeAgentRuntime, *, given: bool
 ) -> None:
+    boundaries = inline_boundaries(boundaries)
     request = run_request(boundaries.checkout)
     if given:
         recorder = RecordingRun()
@@ -129,6 +131,7 @@ def test_run_agent_returns_the_runs_result(
 def test_the_inline_run_leaves_a_nested_repository_ignored_files_and_the_git_folders_mode(
     boundaries: Boundaries, agent_runtime: FakeAgentRuntime
 ) -> None:
+    boundaries = inline_boundaries(boundaries)
     checkout = boundaries.checkout
     write_files(checkout, {".gitignore": ".venv/\n"})
     folder = checkout / ".git"
@@ -180,6 +183,7 @@ def test_take_is_the_undo_turned_into_a_take_report(
     change: Callable[[Boundaries, StageStart], StageStart],
     restored: bool | None,
 ) -> None:
+    boundaries = inline_boundaries(boundaries)
     start = start_stage(boundaries, human, write_paths=["src/*", "{work_item}"])
     used = change(boundaries, start)
     write_files(boundaries.checkout, {NEW_DOC: AGENT_TEXT, GUIDE: AGENT_TEXT, KEPT: AGENT_TEXT})
@@ -199,4 +203,5 @@ def test_take_is_the_undo_turned_into_a_take_report(
 
 
 def test_the_environment_of_the_boundaries_is_the_inline_one(boundaries: Boundaries) -> None:
+    boundaries = inline_boundaries(boundaries)
     assert isinstance(stage_environment_of(boundaries), InlineEnvironment)

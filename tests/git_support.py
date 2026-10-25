@@ -71,6 +71,7 @@ STORY_FORM = """\
 ## Journal
 """
 
+SYNC_TARGET = "sync:\n\t@:\n"
 AGENT_FILE = "---\nmodel: sonnet\ntools: [Read, Write]\nbudget_usd: 1\n---\nDo the work.\n"
 # An agent file whose last key is one the agent runtime does not apply.
 COLOURED_AGENT_FILE = AGENT_FILE.replace("budget_usd: 1\n", "budget_usd: 1\ncolour: red\n")
@@ -82,6 +83,7 @@ REMOTE_FILES = {
     "factory/story-form.md": STORY_FORM,
     "factory/features/F0001-example/feature.md": "# Example feature\n",
     "factory/features/F0001-example/backlog/F0001-S0001-first.md": "# First story\n",
+    "Makefile": SYNC_TARGET,
 }
 
 

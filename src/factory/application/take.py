@@ -27,6 +27,13 @@ class TakeReport(BaseModel):
     restored_work_item: bool
 
 
+def agent_working_directory(boundaries: Boundaries) -> Path:
+    """Where an agent's run works: the dataset's checkout when there is one, else the checkout."""
+    if boundaries.snapshots is None:
+        return boundaries.checkout
+    return boundaries.snapshots.mount_point / MOUNTED_CHECKOUT
+
+
 def copy_changed(source: Path, target: Path, changed: Sequence[ChangedPath]) -> None:
     """Mirror each of `changed` from the tree at `source` into the tree at `target`."""
     for change in changed:
