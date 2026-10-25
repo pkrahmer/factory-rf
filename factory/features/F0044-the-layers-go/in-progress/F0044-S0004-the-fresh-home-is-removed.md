@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 447
 comments_read: [6398446445]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T14:02:30.360283Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-25T14:02:30.360283Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T14:03:07.689529Z'
+  stage: smoke-test
+  run: e18f9bc4598b4d388c46f19f4b499cbe
 ---
 
 # The fresh home is removed
@@ -317,3 +319,25 @@ Expect: six lines: `gone`, `gone`, `gone`, `gone`, `gone`, `False False True`
     `secrets`: secrets: green (3.5 s)
     `documents`: documents ok
 15. factory: started smoke-test as self.
+16. smoke-tester: Ran both smoke-test commands from the repository root exactly as written, in order. I changed nothing.
+
+    Command 1 (the import loop over the five removed modules):
+    ```
+    gone
+    gone
+    gone
+    gone
+    gone
+    ```
+    Met its Expect: each of the five modules prints `gone`.
+
+    Command 2 (the fields of `Boundaries` and `InstanceSettings`):
+    ```
+    Bytecode compiled 4164 files in 110ms
+    False False True
+    ```
+    Met its Expect: the sixth line is `False False True`. The extra line `Bytecode compiled 4164 files in 110ms` is uv's own message about the environment, on stderr. The loop in command 1 sends stderr to `/dev/null` and this command does not, so it shows up only here. It is not output of the code under test, and I don't count it as a finding.
+
+    Checked against the acceptance criteria: nothing in the smoke test contradicts any of them. Command 1 confirms criterion 1 (the modules are gone). Command 2 confirms the field parts of criterion 2: `Boundaries` has no `agent_home`, and `InstanceSettings` has no `opencode_folders` but still has `agent_home`. That `agent_home` setting is the one criterion 5 keeps. A grep of `src/` also finds no `OPENCODE_FOLDERS`, `fresh_home`, `LOGIN_STATE_FILE` or `agent_home_of`; that is consistent with criteria 2 and 3, though the smoke test did not ask for it. The smoke test does not cover criteria 4, 6, 7 and 8; the stage's tests and checks do.
+
+    Findings: none.
