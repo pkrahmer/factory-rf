@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T12:18:35.017339Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -186,6 +190,11 @@ journal:
   at: '2026-10-25T12:18:14.374612Z'
   stage: doing
   run: 44e56ed6e8ad4f4888fab2a8498fca23
+- number: 33
+  speaker: factory
+  kind: started
+  at: '2026-10-25T12:18:35.017339Z'
+  stage: review
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -664,3 +673,4 @@ Expect: `7`
 
     `check`: check: green
     `duplicates`: duplicates: 14 new, 35 known, 3 gone
+33. factory: started review as self.
