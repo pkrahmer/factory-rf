@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-25T20:45:53.187351Z'
   stage: acceptance
   run: 0eb26583b2ac42cdb660877b2f7fd45a
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-25T20:47:14.366837Z'
+  stage: done
 stories: [F0044-S0001, F0044-S0002, F0044-S0003, F0044-S0004, F0044-S0005, F0044-S0006, F0044-S0007, F0044-S0008, F0044-S0009, F0044-S0010, F0044-S0011]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The layers go
@@ -257,3 +262,4 @@ None was changed without a named leave. S0008's reviewer found three preflight m
    6 Decisions: 20 for the human are listed, among them the standing order's decisions 36 to 41. Still to do: removing `self` after this acceptance, refreshing the duplicates baseline, and giving the leave for S0012's tests. Every earlier test was changed under a named leave.
    7 Slow checks: none beyond `make check`. The slowest tests are the about 10 s `ROOMY_LIMIT` tests. `/work` used is unchanged at 0.5 GB. Free space fell 0.6 GB in the shared pool, outside `/work`, `/state` and `/tmp`; the feature does not explain it.
    8 Cost: 144 runs, 275.1 min, $68.13. S0008 stands out at $13.00, 23 runs and 57.6 min: the widest removal, three requests for test leaves and a send-back at the approval for two `noqa` markers. 20 questions were answered, all of cause `question`, with 1.6 h waited; S0008 needed the human most (5 answers plus the send-back).
+3. factory: done (pull request merged); cost: 1 runs, 10.3 min, 58 turns, 140046 tokens in (4432286 more from cache), 37858 out, $2.76
