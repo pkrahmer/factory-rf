@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 437
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-25T08:24:05.105201Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-25T08:24:05.105201Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T08:30:53.349642Z'
+  stage: tests
+  run: d9f2d1afeb27481589e71ab2fce8e787
 ---
 
 # The chapter "The machine" names all three secrets in every place
@@ -87,3 +89,12 @@ Expect: `documents ok`
    Architecture: this is a documentation change only, and the docs stage owns `docs/operator-guide.md`. No layer is touched.
    Scope: the story stays inside the F0043 chapter "The machine". It follows decision 10 and the chapter-writing split of decision 2, and it touches nothing listed in Out of scope. `image/` and `vm/` are explicitly left unchanged.
 4. factory: started tests as vm.
+5. tester: No tests written. This story changes only the documents: the Interface says "None", and the criteria say that no test reads the documents.
+   criterion 1 (nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes): no test. I changed nothing in the working tree, under `tests/` or anywhere else. `git status` was clean before the runs.
+   criterion 2 (`make check` stays green): no test of its own. The factory's checks cover it. `make test` ran once and ended with `test: green (196.1 s)` (coverage 99.20 %). `make lint` ended with `lint: green`.
+   criterion 3 (docs, `docs/operator-guide.md` chapter `## The machine`): no test, as the criterion says. The smoke test and `make documents` check it after the docs stage.
+   Files created: none. Every module imported, because no new test imports anything.
+   Open: nothing. The coder has no red test to turn green. Per criterion 1, the coder ends with an entry saying that nothing under those paths changed.
+
+   `lint`: lint: green (0.2 s)
+   `test`: test: green (194.0 s)
