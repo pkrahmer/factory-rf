@@ -8,9 +8,10 @@ from pathlib import Path
 
 import pytest
 
+from adapters.claude_stand_in import REPLY as CLAUDE_REPLY
 from adapters.claude_stand_in import Step, write_stand_in
 from adapters.opencode_stand_in import MODELS, REPLY, REPLY_EVENTS, write_opencode
-from confine_support import Layout, run_request, write_script
+from confine_support import Layout, run_request, write_login_file, write_script
 from factory.adapters import claude_runtime, opencode_runtime
 from factory.adapters.agent_launch import (
     API_LOGIN_VARIABLE,
@@ -30,19 +31,6 @@ from run_process_recorder import Recorder
 
 LIMIT = timedelta(seconds=30)
 STARTERS_WORDS = {"sudo", "/usr/bin/sudo", "env", "-i"}
-CLAUDE_REPLY = json.dumps(
-    {
-        "type": "result",
-        "subtype": "success",
-        "is_error": False,
-        "num_turns": 1,
-        "total_cost_usd": 0.1,
-        "duration_ms": 100,
-        "usage": {"input_tokens": 1, "output_tokens": 1},
-        "permission_denials": [],
-        "structured_output": {"decision": "doing", "entry": "Done."},
-    }
-)
 MODES = "modes.json"
 # Writes the mode of every file in the state folder that the runtime made for this call.
 MODE_RECORDING = """\
@@ -57,13 +45,6 @@ sys.stdout.write({reply!r})
 """
 
 
-def _login_file(layout: Layout) -> Path:
-    path = layout.checkout.parent / "login"
-    path.write_text("stand-in-login\n", encoding="utf-8")
-    path.chmod(0o600)
-    return path
-
-
 def _claude(layout: Layout, login: Path | None) -> ClaudeCodeRuntime:
     executable = write_stand_in(layout.stand_in, [Step(stdout=CLAUDE_REPLY)])
     return ClaudeCodeRuntime(str(executable), layout.state, login_file=login)
@@ -74,9 +55,9 @@ def _opencode(layout: Layout, login: Path | None) -> OpencodeRuntime:
     return OpencodeRuntime(str(executable), layout.state, models=MODELS, api_login_file=login)
 
 
-def _recorded(monkeypatch: pytest.MonkeyPatch) -> Recorder:
-    recorder = Recorder()
-    monkeypatch.setattr(claude_runtime, "run_process", recorder)
+@pytest.fixture
+def both_recorded(recorder: Recorder, monkeypatch: pytest.MonkeyPatch) -> Recorder:
+    """Return the `recorder` that also keeps the opencode runtime's requests."""
     monkeypatch.setattr(opencode_runtime, "run_process", recorder)
 
     def streaming(request: ProcessRequest, on_line: Callable[[Stream, str], bool]) -> ProcessResult:
@@ -97,7 +78,7 @@ def _recorded(monkeypatch: pytest.MonkeyPatch) -> Recorder:
 @pytest.mark.parametrize("with_login", [True, False], ids=["login-file", "no-login-file"])
 def test_a_call_without_a_container_starts_the_runtime_itself_with_the_request_s_environment(
     layout: Layout,
-    monkeypatch: pytest.MonkeyPatch,
+    both_recorded: Recorder,
     *,
     runtime_of: Callable[[Layout, Path | None], ClaudeCodeRuntime | OpencodeRuntime],
     executable_name: str,
@@ -105,8 +86,7 @@ def test_a_call_without_a_container_starts_the_runtime_itself_with_the_request_s
     with_login: bool,
 ) -> None:
     layout.state.mkdir(parents=True, exist_ok=True)
-    recorder = _recorded(monkeypatch)
-    runtime = runtime_of(layout, _login_file(layout) if with_login else None)
+    runtime = runtime_of(layout, write_login_file(layout) if with_login else None)
     given = {
         "HOME": str(layout.home),
         "LANG": "C.UTF-8",
@@ -117,7 +97,7 @@ def test_a_call_without_a_container_starts_the_runtime_itself_with_the_request_s
 
     runtime.run(request)
 
-    calls = [call for call in recorder.requests if "--version" not in call.argv]
+    calls = [call for call in both_recorded.requests if "--version" not in call.argv]
     assert calls
     call = calls[0]
     if with_login:

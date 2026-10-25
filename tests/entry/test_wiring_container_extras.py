@@ -7,32 +7,11 @@ import pytest
 from factory.application.boundaries import Boundaries
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import machine_extras
-from podman_support import IMAGE, Podman, PodmanPlan, write_podman
-from wiring_support import machine_item
-from zfs_support import DATASET, Answer, Zfs, write_zfs
+from podman_support import IMAGE, Podman, PodmanPlan
+from wiring_support import CONTAINER_ITEMS, PODMAN_VERSION, machine_item
+from zfs_support import DATASET, Zfs
 
-PODMAN_VERSION = "podman version 4.9.3"
-CONTAINER_ITEMS = ["token-file", "podman", "zfs", "dataset", "stage-image"]
 INLINE_ITEMS = ["token-file", "agent-environment"]
-
-
-@pytest.fixture
-def podman(tmp_path: Path) -> Podman:
-    """The stand-in `podman`, printing its version and exiting 0 for every call."""
-    folder = tmp_path / "podman-bin"
-    folder.mkdir()
-    return write_podman(folder, PodmanPlan(stdout=f"{PODMAN_VERSION}\n"))
-
-
-@pytest.fixture
-def zfs(tmp_path: Path) -> Zfs:
-    """The stand-in `zfs`, answering `--version` and naming the dataset for `list`."""
-    folder = tmp_path / "zfs-bin"
-    folder.mkdir()
-    return write_zfs(
-        folder,
-        {"--version": Answer(stdout="zfs-2.2.2\n"), "list": Answer(stdout=f"{DATASET}\n")},
-    )
 
 
 @pytest.fixture
@@ -42,7 +21,11 @@ def environment(tmp_path: Path) -> dict[str, str]:
 
 
 def _settings(
-    tmp_path: Path, agent_home: Path, podman: Podman, zfs: Zfs, fields: dict[str, object]
+    tmp_path: Path,
+    agent_home: Path,
+    versioned_podman: Podman,
+    listing_zfs: Zfs,
+    fields: dict[str, object],
 ) -> InstanceSettings:
     workspace = tmp_path / "workspace"
     workspace.mkdir(exist_ok=True)
@@ -55,8 +38,8 @@ def _settings(
             "workspace": workspace,
             "dataset": DATASET,
             "stage_image": IMAGE,
-            "podman_executable": str(podman.path),
-            "zfs_executable": str(zfs.path),
+            "podman_executable": str(versioned_podman.path),
+            "zfs_executable": str(listing_zfs.path),
             **fields,
         }
     )
@@ -88,13 +71,13 @@ def test_the_extras_are_chosen_by_the_stage_environment_in_the_operator_guides_o
     tmp_path: Path,
     *,
     agent_home: Path,
-    podman: Podman,
-    zfs: Zfs,
+    versioned_podman: Podman,
+    listing_zfs: Zfs,
     environment: dict[str, str],
     fields: dict[str, object],
     names: list[str],
 ) -> None:
-    settings = _settings(tmp_path, agent_home, podman, zfs, fields)
+    settings = _settings(tmp_path, agent_home, versioned_podman, listing_zfs, fields)
 
     extras = machine_extras(boundaries, settings, environment)
 
@@ -106,14 +89,16 @@ def test_the_container_items_run_the_podman_and_zfs_the_settings_name(
     tmp_path: Path,
     *,
     agent_home: Path,
-    podman: Podman,
-    zfs: Zfs,
+    versioned_podman: Podman,
+    listing_zfs: Zfs,
     environment: dict[str, str],
 ) -> None:
-    settings = _settings(tmp_path, agent_home, podman, zfs, {"stage_environment": "container"})
+    settings = _settings(
+        tmp_path, agent_home, versioned_podman, listing_zfs, {"stage_environment": "container"}
+    )
 
     podman_item = machine_item(boundaries, settings, environment, "podman")
-    podman.plan(PodmanPlan(exit_status=1))
+    versioned_podman.plan(PodmanPlan(exit_status=1))
     image_item = machine_item(boundaries, settings, environment, "stage-image")
     dataset_item = machine_item(boundaries, settings, environment, "dataset")
 

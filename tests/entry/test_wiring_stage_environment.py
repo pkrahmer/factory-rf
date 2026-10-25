@@ -76,17 +76,6 @@ def container_settings(tmp_path: Path, zfs: Path, podman: Path) -> InstanceSetti
     )
 
 
-class _Which:
-    """A `which` that finds every tool under `/usr/bin` and records every name asked for."""
-
-    def __init__(self) -> None:
-        self.asked: list[str] = []
-
-    def __call__(self, name: str) -> str | None:
-        self.asked.append(name)
-        return f"/usr/bin/{name}"
-
-
 def test_an_inline_instance_has_no_snapshots_and_no_containers(tmp_path: Path) -> None:
     root = tmp_path.resolve()
     settings = InstanceSettings(

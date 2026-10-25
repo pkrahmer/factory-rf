@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T15:03:40.258556Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-25T15:03:40.258556Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-10-25T15:08:44.057657Z'
+  stage: tests
+  run: c228156fa0344f3fa52d0c552e55909c
 ---
 
 # The second user is removed
@@ -415,3 +417,23 @@ Expect: three lines: `[] False`; `False False`; `3 False`
 
     Description: unchanged. The review's findings don't change what the task means.
 22. factory: started tests as self.
+23. tester: Round 1. I made the six test changes that the reviewer named in entry 19 and the coder passed on in entry 21, and no others. Each change falls under the standing leave in `CLAUDE.md` *Tests* or under decision 21. Every test keeps its name and checks the same thing.
+
+    1. `tests/adapters/test_calls_as_the_factory_user.py`: I deleted the copy `CLAUDE_REPLY`. The module now has `from adapters.claude_stand_in import REPLY as CLAUDE_REPLY`, because the module already imports opencode's `REPLY`.
+    2. I moved `_login_file` to `tests/confine_support.py` as `write_login_file(layout)`, beside `Layout`, and `test_calls_as_the_factory_user.py` now uses it. The copy in `tests/adapters/test_runtimes_without_wrapper.py` had no caller left in that module, so I deleted it rather than switching it over. Since only one caller is left, the helper keeps the file name `login` and takes no name parameter.
+    3. I moved the fixtures `podman` and `zfs` from `tests/entry/test_wiring_without_agent_user.py` and `tests/entry/test_wiring_container_extras.py` to `tests/conftest.py`. They are now `versioned_podman` and `listing_zfs`, so they don't clash with the existing `podman` fixture. Both modules take the new names, and the helper `_settings` in `test_wiring_container_extras.py` names its parameters the same way. `PODMAN_VERSION` and the container item list `CONTAINER_ITEMS` moved to `tests/wiring_support.py`. `test_wiring_container_extras.py` imports both. `test_wiring_without_agent_user.py` builds `CONTAINER_PROBED_ITEMS = [*CONTAINER_ITEMS, "agent-run-probe"]` from them, so the list is pinned in one place.
+    4. `tests/entry/test_wiring_stage_environment.py`: I deleted the dead class `_Which` (decision 21).
+    5. `tests/confine_support.py`: I removed the dead field `Layout.sudo_bin` and its value in `build_layout` (decision 21). Nothing under `tests/` reads it any more.
+    6. `tests/adapters/test_calls_as_the_factory_user.py`: `_recorded` is gone. A module fixture `both_recorded(recorder, monkeypatch)` takes the `recorder` fixture from `tests/conftest.py` and adds only the opencode patches (`run_process` and `run_streaming`). The test takes `both_recorded` in place of `monkeypatch`.
+
+    Earlier test files I changed:
+    - Under the standing leave: `tests/conftest.py`, `tests/wiring_support.py`, `tests/entry/test_wiring_container_extras.py`, `tests/adapters/test_runtimes_without_wrapper.py`.
+    - Under decision 21: `tests/confine_support.py`, `tests/entry/test_wiring_stage_environment.py`.
+    - I also changed `tests/adapters/test_calls_as_the_factory_user.py` and `tests/entry/test_wiring_without_agent_user.py`, which are this story's own tests.
+
+    The mapping from criteria to tests is the same as in entry 11. I created no files, and every test module imported.
+
+    `make test` ended with `test: green (98.4 s)`, total coverage 99.53 %. `make lint` is green.
+
+    `lint`: lint: green (1.1 s)
+    `test`: test: green (104.8 s)

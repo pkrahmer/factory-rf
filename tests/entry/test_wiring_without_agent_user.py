@@ -21,35 +21,18 @@ from factory.entry.wiring import (
     machine_extras,
 )
 from git_support import install_agents
-from podman_support import IMAGE, Podman, PodmanPlan, write_podman
+from podman_support import IMAGE, Podman
 from probe_support import ENVIRONMENT
-from wiring_support import CREDENTIAL
-from zfs_support import DATASET, Answer, Zfs, write_zfs
+from wiring_support import CONTAINER_ITEMS, CREDENTIAL
+from zfs_support import DATASET, Zfs
 
-CONTAINER_ITEMS = ["token-file", "podman", "zfs", "dataset", "stage-image", "agent-run-probe"]
-
-
-@pytest.fixture
-def podman(tmp_path: Path) -> Podman:
-    """The stand-in `podman`, printing its version and exiting 0 for every call."""
-    folder = tmp_path / "podman-bin"
-    folder.mkdir()
-    return write_podman(folder, PodmanPlan(stdout="podman version 4.9.3\n"))
+CONTAINER_PROBED_ITEMS = [*CONTAINER_ITEMS, "agent-run-probe"]
 
 
 @pytest.fixture
-def zfs(tmp_path: Path) -> Zfs:
-    """The stand-in `zfs`, answering `--version` and naming the dataset for `list`."""
-    folder = tmp_path / "zfs-bin"
-    folder.mkdir()
-    return write_zfs(
-        folder,
-        {"--version": Answer(stdout="zfs-2.2.2\n"), "list": Answer(stdout=f"{DATASET}\n")},
-    )
-
-
-@pytest.fixture
-def settings_of(tmp_path: Path, agent_home: Path, podman: Podman, zfs: Zfs) -> InstanceSettings:
+def settings_of(
+    tmp_path: Path, agent_home: Path, versioned_podman: Podman, listing_zfs: Zfs
+) -> InstanceSettings:
     """Settings of an instance whose paths and tools lie in `tmp_path`."""
     root = tmp_path.resolve()
     workspace = root / "workspace"
@@ -63,8 +46,8 @@ def settings_of(tmp_path: Path, agent_home: Path, podman: Podman, zfs: Zfs) -> I
         workspace=workspace,
         dataset=DATASET,
         stage_image=IMAGE,
-        podman_executable=str(podman.path),
-        zfs_executable=str(zfs.path),
+        podman_executable=str(versioned_podman.path),
+        zfs_executable=str(listing_zfs.path),
         pinned_agent_version="fake",
     )
 
@@ -92,7 +75,7 @@ def test_git_environment_holds_the_credential_helper_and_no_hooks_alone() -> Non
             ["token-file", "agent-environment", "opencode", "agent-run-probe"],
             id="inline-opencode",
         ),
-        pytest.param({"stage_environment": "container"}, CONTAINER_ITEMS, id="container"),
+        pytest.param({"stage_environment": "container"}, CONTAINER_PROBED_ITEMS, id="container"),
     ],
 )
 def test_the_extras_name_no_agent_user_and_no_sudo(

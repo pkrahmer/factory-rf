@@ -82,13 +82,6 @@ def test_no_constructor_takes_the_wrapper_or_its_folders(
     assert not hasattr(ClaudeCodeRuntime, "confine_executable")
 
 
-def _login_file(layout: Layout) -> Path:
-    path = layout.checkout.parent / "claude-login"
-    path.write_text("stand-in-login\n", encoding="utf-8")
-    path.chmod(0o600)
-    return path
-
-
 def _recording(folder: Path, state: Path, reply: str) -> Path:
     script = RECORDING.format(state=str(state), seen=SEEN, reply=reply)
     return write_script(folder / "agent", script)

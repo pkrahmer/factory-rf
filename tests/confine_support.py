@@ -22,7 +22,6 @@ class Layout:
     state: Path
     temporary_root: Path
     stand_in: Path
-    sudo_bin: Path
     shell_bin: Path
 
 
@@ -37,7 +36,6 @@ def build_layout(tmp_path: Path) -> Layout:
         state=tmp_path / "state",
         temporary_root=tmp_path / "tmp",
         stand_in=checkout / "stand-in",
-        sudo_bin=tmp_path / "sudo-bin",
         shell_bin=tmp_path / "shell-bin",
     )
 
@@ -47,6 +45,14 @@ def write_script(path: Path, script: str) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(f"#!{sys.executable} -B\n{script}", encoding="utf-8")
     path.chmod(0o755)
+    return path
+
+
+def write_login_file(layout: Layout) -> Path:
+    """Write a stand-in login file beside the checkout, readable by its owner alone."""
+    path = layout.checkout.parent / "login"
+    path.write_text("stand-in-login\n", encoding="utf-8")
+    path.chmod(0o600)
     return path
 
 
