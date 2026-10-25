@@ -1,16 +1,14 @@
 """The make class runs its commands as another user through `sudo -n -u ... timeout ... env -i`."""
 
 import time
-from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
-from factory.adapters.agent_launch import LEFTOVERS_FAULT
 from factory.adapters.make_commands import CommandUser, MakeProjectCommands
 from factory.domain.errors import ProjectCommandError
-from leftovers_runtime_support import LEFTOVERS_LINE, OTHER_USER, SUDO_LINE, own_user, write_program
+from leftovers_runtime_support import SUDO_LINE
 from sudo_support import write_sudo
 
 LIMIT = timedelta(seconds=30)
@@ -38,13 +36,11 @@ def _user(
     *,
     environment: dict[str, str] | None = None,
     os_user: str = "agent",
-    leftovers: list[str] | None = None,
 ) -> CommandUser:
     return CommandUser(
         os_user=os_user,
         sudo_executable=sudo,
         environment={"PATH": PATH} if environment is None else environment,
-        leftovers=leftovers,
     )
 
 
@@ -227,120 +223,3 @@ def test_the_user_property_returns_what_the_constructor_was_given(tmp_path: Path
 
     assert MakeProjectCommands(tmp_path).user is None
     assert MakeProjectCommands(tmp_path, user=user).user is user
-
-
-@dataclass(frozen=True)
-class LeftoversRow:
-    """One case of the leftovers program after a command run as another user."""
-
-    command: str = "check"
-    time_limit: timedelta = LIMIT
-    sudo_exit_status: int | None = None
-    sudo_stderr: str = ""
-    program_exit_status: int = 0
-    program_stderr: str = ""
-    with_leftovers: bool = True
-    own: bool = False
-    removes_sudo: bool = False
-    second_call: bool = True
-    status: str | None = "passed"
-    detail: str | None = None
-    whole_detail: bool = True
-
-
-LEFTOVERS_ROWS = [
-    pytest.param(LeftoversRow(), id="passed"),
-    pytest.param(
-        LeftoversRow(command="slow", time_limit=SHORT_LIMIT, status="time_limit"), id="time-limit"
-    ),
-    pytest.param(
-        LeftoversRow(
-            program_exit_status=1,
-            program_stderr=f"{LEFTOVERS_LINE}\n",
-            status=None,
-            detail=f"{LEFTOVERS_FAULT} {LEFTOVERS_LINE}",
-        ),
-        id="program-fault",
-    ),
-    pytest.param(
-        LeftoversRow(
-            removes_sudo=True,
-            second_call=False,
-            status=None,
-            detail=f"{LEFTOVERS_FAULT} [Errno 2] No such file or directory",
-            whole_detail=False,
-        ),
-        id="leftovers-cannot-start",
-    ),
-    pytest.param(
-        LeftoversRow(sudo_exit_status=1, sudo_stderr="boom\n", status="failed"), id="failed"
-    ),
-    pytest.param(
-        LeftoversRow(
-            sudo_exit_status=1,
-            sudo_stderr=f"{SUDO_LINE}\n",
-            status=None,
-            detail=f"refused the command: {SUDO_LINE}",
-        ),
-        id="refused",
-    ),
-    pytest.param(
-        LeftoversRow(
-            sudo_exit_status=1,
-            sudo_stderr=f"{SUDO_LINE}\n",
-            program_exit_status=1,
-            program_stderr=f"{LEFTOVERS_LINE}\n",
-            status=None,
-            detail=f"refused the command: {SUDO_LINE}",
-        ),
-        id="refusal-wins-over-the-fault",
-    ),
-    pytest.param(LeftoversRow(with_leftovers=False, second_call=False), id="no-leftovers"),
-    pytest.param(LeftoversRow(own=True, second_call=False), id="own-user"),
-]
-
-
-@pytest.mark.parametrize("row", LEFTOVERS_ROWS)
-def test_a_command_run_as_another_user_is_followed_by_the_leftovers_program(
-    tmp_path: Path, project: Path, row: LeftoversRow
-) -> None:
-    program = write_program(
-        tmp_path / "program-bin", exit_status=row.program_exit_status, stderr=row.program_stderr
-    )
-    sudo = write_sudo(
-        tmp_path / "sudo-bin",
-        exit_status=row.sudo_exit_status,
-        stderr=row.sudo_stderr,
-        program=program,
-    )
-    if row.removes_sudo:
-        _write_makefile(project, removes=sudo.path)
-    os_user = own_user() if row.own else OTHER_USER
-    user = _user(
-        str(sudo.path),
-        os_user=os_user,
-        leftovers=[str(program)] if row.with_leftovers else None,
-    )
-    commands = MakeProjectCommands(project, user=user)
-
-    if row.detail is not None:
-        with pytest.raises(ProjectCommandError) as caught:
-            commands.run(row.command, time_limit=row.time_limit)
-        detail = caught.value.detail
-        if not row.whole_detail:
-            assert detail.startswith(row.detail)
-        elif row.detail.startswith(LEFTOVERS_FAULT):
-            assert detail == row.detail
-        else:
-            assert detail == f"{sudo.path} {row.detail}"
-    else:
-        result = commands.run(row.command, time_limit=row.time_limit)
-        assert result.status == row.status
-
-    calls = sudo.calls()
-    if not row.second_call:
-        assert len(calls) == 1
-        return
-    assert len(calls) == 2
-    assert calls[1].arguments == ["-n", "-u", OTHER_USER, "--", str(program), "--user", OTHER_USER]
-    assert calls[1].working_directory == Path("/")

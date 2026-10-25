@@ -1,10 +1,6 @@
-"""The identity and the process entries the tests of the leftovers program build."""
+"""The process table entries the tests of the process table build."""
 
-from factory.domain.leftovers import Identity
 from factory.domain.sessions import ProcessEntry
-
-AGENT = Identity(uid=1001, user="agent", pid=11)
-ROOT = Identity(uid=0, user="root", pid=11)
 
 
 def process_entry(pid: int, uid: int = 1001, *, ended: bool = False) -> ProcessEntry:

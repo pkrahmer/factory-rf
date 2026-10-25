@@ -112,7 +112,6 @@ def test_a_container_instance_gets_the_dataset_s_adapters_and_asks_for_no_tool(
         CREDENTIAL,
         hosting=FakeHostingService(),
         which=which,
-        end_leftovers=True,
     )
 
     assert which.asked == []
@@ -154,7 +153,6 @@ def test_a_container_instance_s_runtime_runs_in_its_containers_unconfined(
         CREDENTIAL,
         hosting=FakeHostingService(),
         which=which,
-        end_leftovers=True,
     )
 
     assert which.asked == []
@@ -162,7 +160,6 @@ def test_a_container_instance_s_runtime_runs_in_its_containers_unconfined(
     assert isinstance(agent_runtime, kind)
     assert isinstance(agent_runtime, ClaudeCodeRuntime | OpencodeRuntime)
     assert agent_runtime.containers is boundaries.containers
-    assert agent_runtime.leftovers is None
 
 
 def test_a_container_instance_s_runtime_mounts_its_login_file(

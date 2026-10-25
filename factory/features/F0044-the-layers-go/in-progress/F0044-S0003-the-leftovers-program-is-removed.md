@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 446
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T13:07:16.845155Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,13 @@ journal:
   kind: started
   at: '2026-10-25T13:07:16.845155Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: question
+  at: '2026-10-25T13:11:49.015611Z'
+  stage: tests
+  run: 7d955ccbb648451a877ae899aa1b0286
+  blocked: question
 ---
 
 # The leftovers program is removed
@@ -103,3 +106,32 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
    Architecture: the removals touch domain, adapters and entry in the direction of the layers. `process_table` and the session kill stay (decision 7). No new interface or dependency.
    Scope: inside F0044 S0003 in `feature.md`. Nothing from "Out of scope" is touched. The docs and `CLAUDE.md` changes 4 and 6 fall outside the story, as decision 32 says.
 4. factory: started tests as self.
+5. tester: Question: one earlier test contradicts criterion 2, and the Interface's list of test changes leaves it out. `tests/adapters/test_runtimes_without_wrapper.py::test_the_starters_are_sudo_the_login_files_and_the_leftovers_program` (F0044-S0001) asserts `list(Starters.model_fields) == ["sudo_executable", "login_files", "leftovers"]`. Once `Starters` loses `leftovers`, that test fails, and the coder may not edit tests. The options I see:
+   (a) Delete the test. Criterion 2's row `starters-fields` already checks the new field list. This is the one I would choose.
+   (b) Keep the test and change its expectation to `["sudo_executable", "login_files"]`. Its name would then no longer match what it checks.
+   (c) Change the expectation and rename the test to `test_the_starters_are_sudo_and_the_login_files`.
+   Please say which one, and I will make that change.
+
+   Everything else for this stage is written:
+   criterion 1: tests/test_leftovers_program_removed.py::test_the_leftovers_modules_are_gone
+   criterion 2: tests/test_leftovers_program_removed.py::test_the_names_that_started_the_leftovers_program_are_gone
+   criterion 3: tests/adapters/test_one_call_as_another_user.py::test_a_call_as_another_user_is_one_sudo_call_per_agent_call
+   criterion 4: tests/adapters/test_kill_at_the_limit_stays.py::test_a_call_is_still_killed_at_its_time_limit
+   criterion 5: tests/test_leftovers_program_removed.py::test_no_module_names_the_leftovers_program_or_its_fault
+
+   Files created: tests/test_leftovers_program_removed.py, tests/adapters/test_one_call_as_another_user.py, tests/adapters/test_kill_at_the_limit_stays.py.
+
+   Earlier test changes, all ones the Interface names (decision 19 of feature.md):
+   - Deleted: tests/entry/test_leftovers.py, tests/domain/test_leftovers.py, tests/adapters/test_agent_launch_leftovers.py, tests/adapters/test_claude_runtime_leftovers.py, tests/adapters/test_opencode_runtime_leftovers.py, tests/entry/test_wiring_leftovers.py.
+   - tests/adapters/test_process_table.py: `test_own_identity_is_the_running_process` is gone.
+   - tests/leftovers_support.py: `AGENT`, `ROOT` and the `Identity` import are gone; `process_entry` stays.
+   - tests/adapters/test_make_commands_user.py: the leftovers test and `LeftoversRow` are gone, and `_user` no longer takes `leftovers`.
+   - tests/adapters/test_claude_runtime_container.py and tests/adapters/test_opencode_runtime_container.py: the runtime is built without `leftovers`, and `write_record_program` is gone from tests/adapters/container_runtime_support.py.
+   - tests/test_process_search.py, tests/test_wrapper_search.py, tests/entry/test_wiring_constants.py, tests/entry/test_wiring.py: the leftovers entries are gone.
+   - tests/entry/test_wiring_stage_environment.py: `end_leftovers=True` and the `leftovers is None` assertion are gone.
+   - tests/entry/test_wiring_project_command_user.py: the `no-leftovers` row, the `end_leftovers`/`leftovers` columns and the `leftovers_command` import are gone.
+   - tests/leftovers_runtime_support.py stays: test_make_commands_user.py still imports `SUDO_LINE` from it, so S0005 deletes it.
+
+   `make test` result: no module failed to import; every failure is a wrong result. These fail, as they should: every test of criteria 1, 2 and 5, test_process_search's markers test, test_wiring's importers test, test_wrapper_search's process-module test, and the `agent-user` and `no-sudo-found` rows of test_wiring_project_command_user.
+   Criteria 3 and 4 already pass: with no leftovers program set, the runtimes and the make class make one `sudo` call today. They guard the behaviour while the code is removed.
+   `make lint` is green. I did not run the type check, as the stage says.

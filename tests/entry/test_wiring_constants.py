@@ -29,7 +29,6 @@ KEPT = (
     "git_options",
     "handler_factory",
     "health_store",
-    "leftovers_command",
     "machine_extras",
     "machine_log",
     "production_environment",
