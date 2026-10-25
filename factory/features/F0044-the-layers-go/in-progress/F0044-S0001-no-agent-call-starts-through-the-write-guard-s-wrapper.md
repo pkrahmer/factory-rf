@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T12:11:53.860771Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-10-25T12:11:32.899934Z'
   stage: doing
   run: 5d17dee1173a40259f35cab559b0191d
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-10-25T12:11:53.860771Z'
+  stage: tests
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -611,3 +620,4 @@ Expect: `7`
     - I did not run `make check` this round because I changed nothing. Entry 24 recorded `check: green` on this code.
 
     Noticed but not touched: as the reviewer notes, `tests/confine_support.py::Layout` still has the fields `temporary_root` and `confine_bin`, which no test reads. The tester may remove them under the same leave, or S0002 can. The journal changed nothing in the meaning of the task.
+29. factory: started tests as self.
