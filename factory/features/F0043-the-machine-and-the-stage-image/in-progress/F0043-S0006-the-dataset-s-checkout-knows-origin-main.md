@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-25T08:04:38.863815Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-25T08:04:38.863815Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T08:05:14.339353Z'
+  stage: review
+  run: 8a52809efcd94400923e318ae60e9217
 ---
 
 # The dataset's checkout knows origin/main
@@ -234,3 +236,27 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 16. factory: started review as vm.
+17. reviewer: no findings
+
+    I reviewed `git diff main...HEAD -- . ':!factory'` against the work item. It touches five files: `src/factory/application/stage_environment.py`, the new `tests/application/test_container_sync_origin.py`, and the helper moves in `tests/application/test_container_environment.py`, `tests/conftest.py` and `tests/container_support.py`.
+
+    - Source: `_SYNC_SCRIPT` (`src/factory/application/stage_environment.py:38`) still has one fetch line, now with both refspecs. The backslash-newline sits inside a non-raw triple-quoted string, so Python drops it. I printed the script's value to confirm: the fetch is one line holding both `'+refs/heads/*:refs/heads/*'` and `'+refs/heads/*:refs/remotes/origin/*'`. The comment above says why the second refspec is there. Nothing else in the module changed, and the script names no container path. That matches the Interface.
+    - Criteria 1 to 4: I read each test against its criterion.
+      - 1: one parametrized test with the rows origin-main, origin-branch and local-main. The branch has a commit of its own, so the main and branch commits differ.
+      - 2: refs are checked in both `refs/heads/` and `refs/remotes/origin/`, after the first prepare and after the second.
+      - 3: `merge-base HEAD origin/main` equals the host's `main` commit.
+      - 4: one `git fetch` line holding both refspecs, and neither `/work` nor `/upstream` in the script.
+      The Interface states no limit and no failing side.
+    - Checks: the journal records `make check` green after the coder (entry 15, coverage 99.20 %).
+    - Architecture and security: the change stays inside `factory.application`'s existing sync script. No new tool, dependency, string-built shell from input, or silencing marker.
+    - Round-0 findings from entry 9: both resolved by the tester's move in entry 13. `container_environment` and `GONE` are now in `tests/container_support.py`, and the `dataset` fixture is in `tests/conftest.py`. No other `dataset` fixture or `_environment` copy is left under `tests/`.
+    - Smoke test: the grep matches the refspec on one line.
+    - Work item: the Description, the Interface and the docs criterion still describe what was built.
+
+    Earlier tests:
+    - `tests/application/test_container_environment.py`: the standing leave to move a shared test helper. The diff only removes `GONE`, the `dataset` fixture and `_environment`, and changes the calls to the shared `container_environment`. Every test keeps its name and what it checks.
+    - `tests/conftest.py`: the standing leave to move a shared test helper (the `dataset` fixture moved here). No earlier fixture changed.
+    - `tests/container_support.py`: the standing leave to move a shared test helper (`GONE` and `container_environment` added). No earlier helper changed.
+
+    Notes:
+    - `tests/application/test_container_sync_origin.py:396` `main_commit`: overlaps the `main_commit` fixture of `tests/application/test_container_environment.py:43`. The earlier one also gives the host the branch, so it is not a straight copy, but a shared fixture with the branch as an option would serve both.
