@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 432
-comments_read: [6391472234, 6391767380]
+comments_read: [6391472234, 6391767380, 6391935032]
 handed_over: null
 claim: null
 journal:
@@ -209,6 +209,11 @@ journal:
   stage: review
   run: fddccfb61a0e42d496264ff959d20698
   blocked: question
+- number: 37
+  speaker: human
+  kind: comment
+  at: '2026-10-25T01:27:00.500401Z'
+  stage: review
 ---
 
 # The setup script prepares the machine and installs the service
@@ -668,3 +673,6 @@ Expect: `1`
     If you answer (b) to 1 and (a) to 2, the coder makes both changes and ends with `tests` for the new rows.
 
     Earlier tests: none. Every test file in the diff is new (status `A`).
+37. 2026-10-25 human: 1: (b). The `service` and `tools` steps install the unit and the credential helper from `$checkout` only in the run that made the clone (its content is then the remote's at `--ref`, before the service ever ran); a later run that finds the installed file different prints `setup: <step>: <path> differs from the checkout; not installed` and leaves it. The tester adds the row for it. The guide (S0004) will say that a changed unit or helper after the first run is installed by the operator by hand.
+    2: (a). The `folders` step refuses with `exit 1` and a `setup: folders: ` line on standard error when `$base/state` or `$base/repo` is a link (`[ -L ]`), before any `install -d`; the tester adds the row.
+    Nothing else changes. The coder makes both changes and ends with `tests` for the new rows, as you say.
