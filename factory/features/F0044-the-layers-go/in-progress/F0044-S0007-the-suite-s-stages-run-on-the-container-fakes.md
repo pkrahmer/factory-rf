@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T17:00:25.513950Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-25T17:00:03.808635Z'
   stage: doing
   run: 7f3ac9a6c8a24b6c98d4c72e6112efa8
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:00:25.513950Z'
+  stage: tests
 ---
 
 # The suite's stages run on the container fakes
@@ -195,3 +204,4 @@ Expect: two lines: `1`; `1`
     The answer also rewords criterion 4: "closing paragraph" now means "the paragraph that names what was left out, before the checks' lines". The work item is outside the coder's write paths, so I left `## Description` as it is.
 
     Still open: step 4's refactor of my diff happens when the work item comes back to doing, together with the `make check` run that needs the two changed tests green.
+11. factory: started tests as self.
