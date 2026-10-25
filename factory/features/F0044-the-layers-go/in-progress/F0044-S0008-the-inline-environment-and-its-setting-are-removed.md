@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T18:48:39.568127Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -174,6 +170,12 @@ journal:
   kind: started
   at: '2026-10-25T18:48:39.568127Z'
   stage: doing
+- number: 30
+  speaker: coder
+  kind: result
+  at: '2026-10-25T18:49:09.087881Z'
+  stage: doing
+  run: a0d02fdd9323415ba8d59f15eed80b5d
 ---
 
 # The inline environment and its setting are removed
@@ -645,3 +647,16 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     - tests/test_vm_setup_text.py: the human's entry 26.
     - tests/wiring_support.py: the Interface, decision 24.
 29. factory: started doing as self.
+30. coder: Round 1. Entry 28 has one finding, and it needs only a test change. I changed no code.
+
+    The finding is about `tests/entry/test_wiring_one_environment.py::test_build_boundaries_needs_the_dataset_the_workspace_and_the_image`. Please add a row to the same parametrization that leaves out all three settings: `{"dataset": None, "workspace": None, "stage_image": None}`, with `hosting` the fake. That row should expect `SettingsInvalid` naming `FACTORY_DATASET` with `missing`. It pins that the dataset is refused before the workspace and the image, which no row tests today.
+
+    I checked the code against that row: `src/factory/entry/wiring.py::_container_adapters` (lines 298–304) already checks the dataset first, then the workspace, then the stage image. The new row should pass without any code change.
+
+    Built: nothing new this round. The story's code is as in entry 13 (no change in entry 23).
+
+    Main choice: end with `tests`, as the stage directs when a finding needs only its test. The alternative I rejected was to end with `review`. The gap is in the test, not in the code, and I may not edit tests.
+
+    Noticed but not touched: `read_hosting_token` at `src/factory/entry/wiring.py:187` writes the literal `"missing"` rather than `_MISSING`. That is outside this finding.
+
+    I did not run `make check` this round, because nothing changed since entry 23 recorded it green.
