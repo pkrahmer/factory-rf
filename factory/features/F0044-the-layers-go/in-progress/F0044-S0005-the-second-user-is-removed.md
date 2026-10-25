@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T15:18:07.623227Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-10-25T15:17:46.830482Z'
   stage: docs
   run: 370436d5436b4120b5978a63357afa41
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-25T15:18:07.623227Z'
+  stage: smoke-test
 ---
 
 # The second user is removed
@@ -595,3 +604,4 @@ Expect: three lines: `[] False`; `False False`; `3 False`
     `check`: check: green (not run again: passed on tree e0f497ac495f at 2026-10-25T15:10:44Z)
     `secrets`: secrets: green (4.2 s)
     `documents`: documents ok
+30. factory: started smoke-test as self.
