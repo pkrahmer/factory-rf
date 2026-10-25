@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 445
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T12:35:20.317768Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-25T12:34:58.503968Z'
   stage: tests
   run: d8a3a6bff5794a9d82be2781dd205308
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T12:35:20.317768Z'
+  stage: doing
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -146,3 +155,4 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
 
    `lint`: lint: green (0.6 s)
    `test`: FAILED tests/test_hook_removed.py::test_the_hook_s_code_is_gone_and_the_kernel_s_guard_is_kept[confine-command] - AssertionError: assert 'factory-confine' == None
+6. factory: started doing as self.
