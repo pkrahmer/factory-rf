@@ -171,7 +171,7 @@ The branch rule for pushing: `push` and `delete_remote_branch` call `factory.dom
 
 The branch is also named `refs/heads/<branch>` on git's command line, as the source only, with no `:<dst>`. Without it git matches any ref of that name, so `delete_remote_branch("v1")` would delete a tag `v1` and `push("v1")` would push a local tag; with it a tag is never pushed or deleted as a branch. The local operations (`checkout`, `delete_branch`, `merge`, …) keep `check_git_argument`, because git reads no refspec there. Why not an explicit `refs/heads/<b>:refs/heads/<b>` refspec: see `docs/decisions.md`.
 
-Who uses them: a stall or a crash reverts or resets; the tick resets the checkout to the remote; the take's restore of a broken work item is this wrapper's `revert_paths` (`write-guard.md`); a merge or a discard moves the story file.
+Who uses them: a stall or a crash reverts or resets; the tick resets the checkout to the remote; the take's restore of a broken work item is this wrapper's `revert_paths` (`write-paths.md`); a merge or a discard moves the story file.
 
 ### Which part uses which operation
 

@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T21:05:40.777799Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-25T21:05:40.777799Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T21:06:21.865171Z'
+  stage: docs
+  run: 6a3c6802722a4a3d96bd74837530b775
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -337,3 +339,27 @@ Expect: `0`
     - tests/test_hook_removed.py: decision 42 (`GuardSettings` → `WritePathSettings`; the guard-settings row now checks that `WritePathSettings` is present; the `GuardSettingsInvalid` row is unchanged)
     - tests/search_support.py: the standing leave for shared test helpers. `modules_matching` gains an optional `root` that defaults to `TESTS`, so the new test uses the shared helper instead of a copy. Its three earlier callers (`test_shared_test_helpers.py`, `test_docker_path_removed.py`, `test_opencode_shared_steps.py`) are unchanged and check the same thing. A judgement call for the human to see at approval: this extends the shared helper rather than only moving it there, and it is the narrowest change that avoids the copy round 0 counted as a finding.
 18. factory: started docs as self.
+19. documenter: Docs, round 1. Only documents changed, so I did not run `make check`; the factory's check after this stage decides.
+
+    Files changed:
+    - `docs/project-guide/write-guard.md` → `docs/project-guide/write-paths.md` (git mv): the criterion 6 rename. Inside it `GuardSettings` is now `WritePathSettings`, `refusal(path, guard)` is `refusal(path, settings)`, and `guard.protected_paths` is `settings.protected_paths`, as the code has them. The history lines about the kernel's write guard stay, because that is what F0044 removed.
+    - `docs/project-guide/README.md`: the index entry names `write-paths.md`. In *Shared test helpers*, `confine_support.py` is now `run_layout_support.py` and `sealed_run_support.py` is now `agent_run_support.py`.
+    - `docs/project-guide/stage-environment.md`, `docs/project-guide/git-and-hosting.md`: their links to `write-guard.md` now point to `write-paths.md`.
+    - `docs/project-guide/agents.md`: the *AgentRunRequest* bullet no longer lists `guard: optional GuardSettings`. `AgentRunRequest` has no such field (`src/factory/domain/agent_runs.py:84`); it has `resume_session`, which the bullet now names.
+    - `docs/project-guide/stages.md`: `TaskContext` has no `GuardSettings` field and `compose` sets no `guard` (`src/factory/application/task.py:33`). I removed both claims, and I wrote "the `WritePathSettings`" in launch step 7 and dropped "guard" from step 8.
+
+    I departed from the letter of criterion 6 in the last two files: it says every `GuardSettings` becomes `WritePathSettings`, but in `agents.md` and `stages.md` the text was wrong beyond the name, so I removed it. If the human wants the field described, the code would have to gain it first.
+
+    `docs/decisions.md` is unchanged, as the criterion says. `README.md` and `docs/operator-guide.md` hold none of the old names, and I cross-read them against the diff. A search of `README.md`, `docs/project-guide/` and the operator guide finds no `GuardSettings`, `write-guard`, `confine_support` or `sealed_run_support`.
+
+    Stale text I noticed and did not touch, because it is not about the names this story renames:
+    - `docs/operator-guide.md:701` says `agent-run-probe` runs "with … a guard that gives no write path". The guard went with F0044, so this probably needs rewording.
+    - `docs/operator-playbook.md:116` has the row "An agent's write refused under the guard". The playbook is the human's file.
+    - `docs/operator-playbook.md:32` and `:94` call F0019 "the write guard by the kernel", which is history.
+    - `docs/project-guide/README.md:60` says "a later guard calls `modules_assigning`", which is loose wording about test guards and not a stale name.
+
+    No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 92c6af88fac5 at 2026-10-25T21:03:03Z)
+    `secrets`: secrets: green (1.7 s)
+    `documents`: documents ok
