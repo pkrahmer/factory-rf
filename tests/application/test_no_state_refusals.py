@@ -13,12 +13,12 @@ from factory.application.claims import ClaimService
 from factory.application.recovery import RecoveryHandler
 from factory.application.stalls import StallContext, StallService
 from factory.application.task import TaskComposer, TaskContext
-from factory.domain.agent_runs import AgentDefinition, GuardSettings
+from factory.domain.agent_runs import AgentDefinition
 from factory.domain.errors import CannotHandle, WorkItemFormatError
 from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import CHECKOUT, remote_commit
+from git_support import remote_commit
 from human_clone import HumanClone
 from stage_run_support import INSTANCE
 
@@ -114,7 +114,7 @@ def test_asking_the_crash_cap_question_of_a_document_without_a_state_is_refused_
 
 
 def test_composing_a_task_for_a_document_without_a_state_is_refused_with_its_path(
-    boundaries: Boundaries, tmp_path: Path
+    boundaries: Boundaries,
 ) -> None:
     composer = TaskComposer(boundaries, pipeline_definition(boundaries), {"PATH": "/usr/bin"})
     context = TaskContext(
@@ -125,9 +125,6 @@ def test_composing_a_task_for_a_document_without_a_state_is_refused_with_its_pat
         branch=BRANCH,
         pull_request=7,
         findings=[],
-        guard=GuardSettings(
-            root=tmp_path / CHECKOUT, write_paths=["tests/*"], protected_paths=["factory/*"]
-        ),
     )
     agent = AgentDefinition(
         name="tester", model="sonnet", tools=["Read"], budget_usd=1, instructions="Do the work."

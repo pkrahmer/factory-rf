@@ -46,7 +46,7 @@ def _confine_command() -> object:
         ),
         pytest.param(lambda: "judge" in wiring.__all__, False, id="exported-judge"),
         pytest.param(lambda: "read_guard_settings" in wiring.__all__, False, id="exported-read"),
-        pytest.param(_confine_command, "factory-confine", id="confine-command"),
+        pytest.param(_confine_command, None, id="confine-command"),
         pytest.param(
             lambda: _has("factory.domain.agent_runs", "GuardSettings"), True, id="guard-settings"
         ),
@@ -77,7 +77,6 @@ def _fields() -> None:
         "root",
         "write_paths",
         "protected_paths",
-        "tool_paths",
     ]
 
 
@@ -93,7 +92,7 @@ def _refuses_a_temporary_folder() -> None:
 @pytest.mark.parametrize(
     "check",
     [
-        pytest.param(_fields, id="four-fields"),
+        pytest.param(_fields, id="three-fields"),
         pytest.param(_builds, id="without-temporary-folder"),
         pytest.param(_refuses_a_temporary_folder, id="with-temporary-folder"),
     ],

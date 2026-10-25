@@ -78,7 +78,6 @@ def test_minimal_request_has_empty_defaults_not_shared() -> None:
     second = _request()
 
     assert first.environment == {}
-    assert first.guard is None
     assert first.os_user is None
     assert first.environment is not second.environment
 

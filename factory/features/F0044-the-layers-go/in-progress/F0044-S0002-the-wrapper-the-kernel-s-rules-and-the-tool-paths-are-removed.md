@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 445
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T12:28:19.647509Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-25T12:28:19.647509Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T12:34:58.503968Z'
+  stage: tests
+  run: d8a3a6bff5794a9d82be2781dd205308
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -112,3 +114,35 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
    Architecture: the removals follow the layering in CLAUDE.md. Only `adapters/process.py` keeps a process call (one `Popen`). `WritePathService.at` stays in `application`, and the models stay in `domain`. Nothing is added.
    Scope: the story matches feature.md's S0002 line. The refusal rule, the take and the other layers' stories are untouched. Changes to `factory/pipeline.yml` and the demo's definition are the human's change 1, and the docs criterion lists the documents it changes. No finding from the format check.
 4. factory: started tests as self.
+5. tester: I wrote tests for criteria 1–7 and made the test changes the Interface lists, under the leave in decision 18. The branch's tests are now red on purpose.
+
+   Criterion → test:
+   - criterion 1: tests/test_kernel_guard_removed.py::test_the_wrapper_and_the_kernel_s_modules_are_gone (3 rows)
+   - criterion 2: tests/test_kernel_guard_removed.py::test_the_names_of_the_kernel_s_guard_and_the_tool_paths_are_gone (one row per removed name or field)
+   - criterion 3: tests/adapters/test_pipeline_yaml_tool_paths.py::test_a_definition_with_tool_paths_is_refused (rows `without-tool-paths` accepted and `with-tool-paths` refused with a fault naming `tool_paths`, through `pipeline_outcome` from git_support)
+   - criterion 4: tests/application/test_write_paths_guard.py::test_a_tester_s_stage_gives_the_root_the_write_paths_and_the_protected_paths (checks equality and that `model_dump` holds exactly root, write_paths, protected_paths). tests/application/test_take.py is unchanged.
+   - criterion 5: tests/domain/test_contract_version_2.py::test_the_records_contract_is_at_version_2_without_tool_paths (rows: version, one per schema file for `"x-records-contract": "2.0"` and equality with `contract_schema`, no-tool-paths)
+   - criterion 6: tests/adapters/test_pipeline_yaml_tool_paths.py::test_the_shipped_definitions_hold_no_tool_paths_and_load (rows: template/factory/pipeline.yml and factory/pipeline.yml)
+   - criterion 7: tests/test_process_search.py::test_no_module_uses_another_route_to_a_process (`users == {}`) and ::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper (the `exec_line` and `confinement.py` entries are gone)
+   - criteria 8 and 9: no test (they are `make check` and docs).
+
+   Files created: tests/test_kernel_guard_removed.py, tests/adapters/test_pipeline_yaml_tool_paths.py, tests/application/test_write_paths_guard.py, tests/domain/test_contract_version_2.py.
+
+   Deleted: the 13 test files the Interface lists.
+
+   Earlier test files changed as the Interface lists, each test keeping its name:
+   - tests/test_process_search.py, tests/test_wrapper_search.py, tests/entry/test_wiring.py
+   - tests/domain/test_pipeline_not_read.py: the row `after-tool-paths` is gone.
+   - tests/test_hook_removed.py: the `confine-command` row now expects `None`; the fields are three and the row id is now `three-fields`.
+   - tests/domain/test_contract.py, tests/domain/test_contract_provider_limit.py: version 2.0.
+   - tests/confine_support.py: now holds only Layout (without `confine_bin`, which nothing used), build_layout, read_records, write_script, LIMIT and run_request (no guard, no `write_paths`/`tool_paths` parameters).
+   - No guard in the request or the context any more: tests/application/test_stage_launch.py, test_task.py, test_task_acceptance.py, test_task_os_user.py, test_no_state_refusals.py, test_agent_run_probe.py; tests/domain/test_agent_runs.py; tests/adapters/test_claude_runtime.py, test_claude_runtime_resume.py, test_claude_runtime_file_modes.py (one row, id `run`); tests/entry/test_wiring_boundaries.py.
+
+   Follow-on edits for lint in those same files: the helpers `_context`, `_context_values` and `_prompt_lines` and the tests that called them lost their now-unused `tmp_path` parameters, and the unused imports of `CHECKOUT`, `Path` and `WritePathService` went.
+
+   Test run: I ran `make test` once. It failed for the right reasons: the modules and names still exist, `TaskContext` still requires `guard`, and `GuardSettings` still has `tool_paths`. That run also showed a bug of my own: tests/domain/test_contract_version_2.py failed at collection on `pytest.ParameterSet`. I fixed it and confirmed with `pytest --collect-only` on that file only (7 tests), not with a second test run. No module failed to import in the test run; the removal tests use `find_spec`/`hasattr`. `make lint` is green. I skipped the type check, as the stage says.
+
+   Open for the coder: three tests outside the Interface's list still add a guard through `model_copy(update={"guard": ...})`: tests/adapters/test_claude_runtime_login.py (`_guarded_request`), test_claude_runtime_api_login.py and test_claude_runtime_no_hook.py. `model_copy` does not validate, so they should stay green. If one turns red, it is a question for the human, not a fix for the coder.
+
+   `lint`: lint: green (0.6 s)
+   `test`: FAILED tests/test_hook_removed.py::test_the_hook_s_code_is_gone_and_the_kernel_s_guard_is_kept[confine-command] - AssertionError: assert 'factory-confine' == None

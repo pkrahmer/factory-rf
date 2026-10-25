@@ -15,7 +15,6 @@ from factory.domain.agent_runs import (
     AgentDefinition,
     AgentRunRequest,
     AgentRunResult,
-    GuardSettings,
     PermissionDenial,
     TokenCounts,
 )
@@ -59,20 +58,11 @@ def _without(*keys: str) -> str:
     return json.dumps(reply)
 
 
-def _guard(tmp_path: Path) -> GuardSettings:
-    return GuardSettings(
-        root=tmp_path / "work",
-        write_paths=["src/", "tests/"],
-        protected_paths=["factory/"],
-    )
-
-
 def _request(
     tmp_path: Path,
     *,
     effort: str | None = "high",
     tools: tuple[str, ...] = ("Read", "Edit"),
-    guard: bool = True,
     environment: dict[str, str] | None = None,
     time_limit: timedelta = LIMIT,
 ) -> AgentRunRequest:
@@ -93,7 +83,6 @@ def _request(
         time_limit=time_limit,
         working_directory=work,
         environment={} if environment is None else environment,
-        guard=_guard(tmp_path) if guard else None,
     )
 
 
@@ -171,7 +160,7 @@ def test_call_passes_every_flag_in_order(tmp_path: Path) -> None:
 
 
 def test_call_without_effort_guard_or_tools_leaves_those_flags_out(tmp_path: Path) -> None:
-    request = _request(tmp_path, effort=None, tools=(), guard=False)
+    request = _request(tmp_path, effort=None, tools=())
     _runtime(tmp_path, [Step(stdout=_reply())]).run(request)
 
     arguments = _only_call(tmp_path).arguments

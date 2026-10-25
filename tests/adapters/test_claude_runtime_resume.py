@@ -19,7 +19,6 @@ from factory.application.agent_runtime import AgentRuntime
 from factory.domain.agent_runs import (
     AgentDefinition,
     AgentRunRequest,
-    GuardSettings,
     PermissionDenial,
     TokenCounts,
 )
@@ -97,9 +96,6 @@ def _request(tmp_path: Path, *, time_limit: timedelta = LIMIT) -> AgentRunReques
         time_limit=time_limit,
         working_directory=work,
         environment={},
-        guard=GuardSettings(
-            root=work, write_paths=["src/", "tests/"], protected_paths=["factory/"]
-        ),
     )
 
 

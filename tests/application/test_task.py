@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.application.boundaries import Boundaries
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
-from factory.domain.agent_runs import AgentDefinition, GuardSettings
+from factory.domain.agent_runs import AgentDefinition
 from factory.domain.errors import AgentDefinitionMissing, WorkItemFormatError
 from factory.domain.journal import JournalKind, JournalRecord
 from factory.domain.paths import STORY_FORM_FILE
@@ -86,14 +86,7 @@ CODER_RESULT_5: list[Entry] = [
 ]
 
 
-def _guard(tmp_path: Path) -> GuardSettings:
-    return GuardSettings(
-        root=tmp_path / CHECKOUT, write_paths=["tests/*"], protected_paths=["factory/*"]
-    )
-
-
 def _context(
-    tmp_path: Path,
     stage: str,
     *,
     document: WorkItemDocument | None = None,
@@ -107,7 +100,6 @@ def _context(
         branch="work-item/F0001-S0002",
         pull_request=7,
         findings=FINDINGS if findings is None else findings,
-        guard=_guard(tmp_path),
     )
 
 
@@ -121,10 +113,8 @@ def _composer(boundaries: Boundaries, definition: PipelineDefinition | None = No
     return TaskComposer(boundaries, definition or _definition(), ENVIRONMENT)
 
 
-def _prompt_lines(
-    boundaries: Boundaries, tmp_path: Path, stage: str, entries: list[Entry]
-) -> list[str]:
-    context = _context(tmp_path, stage, document=_document(entries))
+def _prompt_lines(boundaries: Boundaries, stage: str, entries: list[Entry]) -> list[str]:
+    context = _context(stage, document=_document(entries))
     return _composer(boundaries).compose(context, _agent()).prompt.split("\n")
 
 
@@ -145,21 +135,19 @@ def _push_form(human: HumanClone, boundaries: Boundaries, text: str) -> None:
 
 
 def test_the_first_stage_gets_the_findings_and_a_later_stage_does_not(
-    boundaries: Boundaries, tmp_path: Path
+    boundaries: Boundaries,
 ) -> None:
     composer = _composer(boundaries)
 
-    first = composer.compose(_context(tmp_path, "intake"), _agent("intake")).prompt.split("\n")
-    later = composer.compose(_context(tmp_path, "doing"), _agent("coder")).prompt.split("\n")
+    first = composer.compose(_context("intake"), _agent("intake")).prompt.split("\n")
+    later = composer.compose(_context("doing"), _agent("coder")).prompt.split("\n")
 
     assert FORMAT_LINE in first
     assert not [line for line in later if line.startswith("Format check")]
 
 
-def test_the_tester_gets_the_mode_line_after_a_coder_result(
-    boundaries: Boundaries, tmp_path: Path
-) -> None:
-    lines = _prompt_lines(boundaries, tmp_path, "tests", CODER_RESULT_5)
+def test_the_tester_gets_the_mode_line_after_a_coder_result(boundaries: Boundaries) -> None:
+    lines = _prompt_lines(boundaries, "tests", CODER_RESULT_5)
 
     assert _mode_lines(lines) == [MODE_LINE_5]
 
@@ -181,31 +169,29 @@ def test_the_tester_gets_the_mode_line_after_a_coder_result(
     ids=["tester-speaks-last", "no-result-record", "coder-stage"],
 )
 def test_the_mode_line_comes_only_from_a_coder_result_at_a_tester_stage(
-    boundaries: Boundaries, tmp_path: Path, stage: str, entries: list[Entry]
+    boundaries: Boundaries, stage: str, entries: list[Entry]
 ) -> None:
-    lines = _prompt_lines(boundaries, tmp_path, stage, entries)
+    lines = _prompt_lines(boundaries, stage, entries)
 
     assert _mode_lines(lines) == []
 
 
-def test_a_later_stall_and_comment_do_not_hide_the_test_change(
-    boundaries: Boundaries, tmp_path: Path
-) -> None:
+def test_a_later_stall_and_comment_do_not_hide_the_test_change(boundaries: Boundaries) -> None:
     entries: list[Entry] = [
         *CODER_RESULT_5,
         ("factory", "stall", "the tester stalled."),
         ("human", "comment", "please hurry."),
     ]
 
-    lines = _prompt_lines(boundaries, tmp_path, "tests", entries)
+    lines = _prompt_lines(boundaries, "tests", entries)
 
     assert _mode_lines(lines) == [MODE_LINE_5]
 
 
 def test_the_request_shares_the_allowed_decisions_and_the_facts_of_the_context(
-    boundaries: Boundaries, tmp_path: Path
+    boundaries: Boundaries,
 ) -> None:
-    context = _context(tmp_path, "doing", document=_document(CREATED, round_=2))
+    context = _context("doing", document=_document(CREATED, round_=2))
 
     request = _composer(boundaries).compose(context, _agent("coder"))
 
@@ -232,36 +218,33 @@ def test_the_request_shares_the_allowed_decisions_and_the_facts_of_the_context(
     ids=["role-sets-25", "role-sets-none"],
 )
 def test_the_time_limit_is_the_roles_minutes(
-    boundaries: Boundaries, tmp_path: Path, stage: str, minutes: int
+    boundaries: Boundaries, stage: str, minutes: int
 ) -> None:
     text = PIPELINE_YAML.replace(
         'tester: {write_paths: ["tests/*"]}', 'tester: {write_paths: ["tests/*"], time_limit: 25}'
     )
     composer = _composer(boundaries, _definition(text))
 
-    request = composer.compose(_context(tmp_path, stage), _agent())
+    request = composer.compose(_context(stage), _agent())
 
     assert request.time_limit == timedelta(minutes=minutes)
 
 
 def test_the_request_carries_the_agent_checkout_and_guard_without_os_user(
-    boundaries: Boundaries, tmp_path: Path
+    boundaries: Boundaries,
 ) -> None:
     agent = _agent()
-    context = _context(tmp_path, "tests")
+    context = _context("tests")
 
     request = _composer(boundaries).compose(context, agent)
 
     assert request.agent == agent
     assert request.working_directory == boundaries.checkout
-    assert request.guard == context.guard
     assert request.os_user is None
 
 
-def test_the_request_holds_the_given_environment_unchanged(
-    boundaries: Boundaries, tmp_path: Path
-) -> None:
-    request = _composer(boundaries).compose(_context(tmp_path, "tests"), _agent())
+def test_the_request_holds_the_given_environment_unchanged(boundaries: Boundaries) -> None:
+    request = _composer(boundaries).compose(_context("tests"), _agent())
 
     assert request.environment == {"PATH": "/opt/guard", "HOME": "/home/factory"}
 
@@ -339,7 +322,7 @@ def test_a_form_absent_at_main_is_a_format_error(boundaries: Boundaries, tmp_pat
     assert caught.value.path == "factory/story-form.md"
 
 
-def _context_values(tmp_path: Path) -> dict[str, Any]:
+def _context_values() -> dict[str, Any]:
     return {
         "work_item": "F0001-S0002",
         "path": PATH,
@@ -348,15 +331,14 @@ def _context_values(tmp_path: Path) -> dict[str, Any]:
         "branch": "work-item/F0001-S0002",
         "pull_request": 7,
         "findings": [],
-        "guard": _guard(tmp_path),
     }
 
 
 @pytest.mark.parametrize(("pull_request", "accepted"), [(1, True), (0, False)])
 def test_task_context_holds_the_pull_request_limit_on_both_sides(
-    tmp_path: Path, pull_request: int, accepted: bool
+    pull_request: int, accepted: bool
 ) -> None:
-    values = {**_context_values(tmp_path), "pull_request": pull_request}
+    values = {**_context_values(), "pull_request": pull_request}
 
     if accepted:
         assert TaskContext.model_validate(values).pull_request == pull_request

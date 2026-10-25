@@ -15,7 +15,6 @@ from factory.application.boundaries import Boundaries
 from factory.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.application.stage import LaunchedStage, StageLauncher
 from factory.application.task import StoryFormChecker
-from factory.application.write_paths import WritePathService
 from factory.domain.agent_runs import AgentRunResult, EndReason
 from factory.domain.errors import AgentDefinitionMissing, AgentRuntimeError, PushFailed
 from factory.domain.identifiers import branch_name
@@ -427,7 +426,6 @@ def test_the_runtime_receives_the_request_with_the_guard_and_the_draft_number(
     [request] = agent_runtime.requests()
     [draft] = hosting.pull_requests()
     assert request == launched.request
-    assert request.guard == WritePathService(boundaries).at(launched.started.stage_start, PATH)
     assert f"Pull request: {draft.number}" in request.prompt.split("\n")
 
 
