@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T11:57:46.885889Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-10-25T11:57:46.885889Z'
   stage: review
+- number: 18
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T12:00:05.663710Z'
+  stage: review
+  run: 1ea1bee3563441318838edd76a7c4cca
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -409,3 +411,41 @@ Expect: `7`
     `check`: check: green
     `duplicates`: duplicates: 14 new, 35 known, 3 gone
 17. factory: started review as self.
+18. reviewer: 1. `tests/adapters/test_runtimes_without_wrapper.py::test_only_sudo_and_the_login_shell_refuse_a_call`, row `sudo-refused`: criterion 4 says the error must name the `sudo` executable. The row only expects the words `[SUDO_LINE, "refused the agent run", "sudo"]`, and `"sudo"` is already part of `SUDO_LINE` (`sudo: a password is required`). So the row would still pass if the executable's path were dropped from the message. Fix: have the row expect the stand-in's own path, e.g. `_sudo_refused` returns the detail and the row checks `f"{layout.sudo_bin / 'sudo'} refused the agent run: {SUDO_LINE}"`.
+
+    I checked every criterion and every Interface rule for group 1, and this is the only gap. Groups 2 to 5 are not reported this round, because the checklist stops at the first failing group.
+
+    Earlier tests (item 6):
+    - `tests/adapters/container_runtime_support.py`: none needed (it only adds `run_folders`).
+    - `tests/adapters/test_agent_launch.py`: decision 17, as the Interface lists it.
+    - `tests/adapters/test_agent_launch_call_end.py`: decision 17 (the rows `wrapper-refused` and `printed-and-killed-is-read-for-refusals` read a `factory-confine:` line as a refusal).
+    - `tests/adapters/test_agent_launch_container.py`: decision 17.
+    - `tests/adapters/test_agent_launch_leftovers.py`: decision 17.
+    - `tests/adapters/test_claude_runtime_confinement.py` (deleted): decision 17.
+    - `tests/adapters/test_claude_runtime_confinement_root.py` (deleted): decision 17.
+    - `tests/adapters/test_claude_runtime_container.py`: decision 17.
+    - `tests/adapters/test_claude_runtime_leftovers.py`: decision 17.
+    - `tests/adapters/test_claude_runtime_no_hook.py`: decision 17.
+    - `tests/adapters/test_opencode_confinement.py` (deleted): decision 17.
+    - `tests/adapters/test_opencode_runtime_container.py`: decision 17.
+    - `tests/adapters/test_opencode_runtime_folders.py` (deleted): decision 17.
+    - `tests/adapters/test_opencode_runtime_launch.py`: decision 17.
+    - `tests/adapters/test_opencode_runtime_leftovers.py`: decision 17.
+    - `tests/application/test_agent_run_probe.py`: decision 17.
+    - `tests/application/test_confinement_item.py` (deleted): decision 17.
+    - `tests/confine_support.py`: decision 17 (`write_confine`, `CONFINE_SCRIPT`, `Played` and `ConfineCall` are the stand-in wrapper's parts).
+    - `tests/entry/test_wiring_api_login.py`: decision 17.
+    - `tests/entry/test_wiring_boundaries.py`: decision 17.
+    - `tests/entry/test_wiring_confinement.py` (deleted): decision 17.
+    - `tests/entry/test_wiring_container_extras.py`: decision 17 for the `inline` rows; the new row `inline-opencode` only adds a test.
+    - `tests/entry/test_wiring_extras.py`: decision 17.
+    - `tests/entry/test_wiring_extras_path.py` (deleted): decision 17.
+    - `tests/entry/test_wiring_login.py`: decision 17.
+    - `tests/entry/test_wiring_opencode.py`: decision 17.
+    - `tests/entry/test_wiring_provider_limit.py`: decision 17.
+    - `tests/entry/test_wiring_stage_environment.py`: decision 17.
+    - `tests/leftovers_runtime_support.py`: decision 17.
+    - `tests/shipped_agents.py`: the standing leave to move a shared test constant (`WRITE_PATHS_RULE`, moved from `tests/test_claude_agent_refusal.py`).
+    - `tests/test_claude_agent_refusal.py`: decision 17, and it now uses the moved constant.
+    - `tests/test_hook_removed.py`: decision 17.
+    - `tests/test_time_limits.py`: decision 17.
