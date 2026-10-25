@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: round_cap
-round: 3
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 432
-comments_read: [6391472234]
+comments_read: [6391472234, 6391767380]
 handed_over: null
 claim: null
 journal:
@@ -148,6 +148,11 @@ journal:
   stage: review
   run: 72e071c88bfa482f9a8dbe779705597f
   blocked: round_cap
+- number: 26
+  speaker: human
+  kind: comment
+  at: '2026-10-25T01:09:15.350899Z'
+  stage: review
 ---
 
 # The setup script prepares the machine and installs the service
@@ -492,3 +497,4 @@ Expect: `1`
     Notes:
     - `tests/test_vm_setup_text.py:413-415`: this is still round 1's note. `test_the_options_land_in_their_named_variables` repeats the `image=factory-stage:$instance` assertion in each of its eight rows.
 25. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+26. 2026-10-25 human: Continue: the reviewer's finding 1 (round 2, the `image-id` step) is a real hole, and the rounds before were each a different, real point, so this is no loop. The coder fixes it this way and nothing else changes: every file the script writes under `$base` after the `folders` step has made `$base` belong to `factory` is written as `factory` (`runuser -u factory -- ...`), not by root, so a link `factory` plants there can only reach what `factory` may write anyway; and every `chown` the script runs on a path under `$base` uses `-h`. The tester adds the rows: the `image-id` write runs through `runuser -u factory`, and no `chown` on a path under `$base` lacks `-h`. The reviewer's note on `test_the_options_land_in_their_named_variables` may be fixed by the tester in the same round. After this, a further round cap on this story stops it for the human in the morning.
