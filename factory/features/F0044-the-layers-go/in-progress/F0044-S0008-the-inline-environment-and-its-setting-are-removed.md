@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T18:52:36.082402Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -196,6 +192,12 @@ journal:
   kind: started
   at: '2026-10-25T18:52:36.082402Z'
   stage: doing
+- number: 34
+  speaker: coder
+  kind: result
+  at: '2026-10-25T18:55:39.706591Z'
+  stage: doing
+  run: 0dd9e334a196405bafe67384c11207d7
 ---
 
 # The inline environment and its setting are removed
@@ -694,3 +696,26 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     `lint`: lint: green (0.2 s)
     `test`: test: green (64.6 s)
 33. factory: started doing as self.
+34. coder: Round 1, after the tester's row in entry 32. Entry 28 had one finding. The tester closed it by adding the row `dataset-before-workspace-and-image` to `tests/entry/test_wiring_one_environment.py::test_build_boundaries_needs_the_dataset_the_workspace_and_the_image`. I changed no code in this run. The working tree holds no changes of mine. `make check` is green on the committed state, ending with "test: green (65.1 s)" and "check: green" at 99.56 % coverage.
+
+    What I built: the story's code from entry 13 is unchanged (paths listed in entry 23):
+    - src/factory/domain/settings.py
+    - src/factory/application/boundaries.py
+    - src/factory/application/stage_environment.py
+    - src/factory/application/take.py
+    - src/factory/application/preflight.py
+    - src/factory/entry/wiring.py
+    - vm/setup.sh
+
+    Main choice: hand the work item back to review as it stands. `_container_adapters` in `src/factory/entry/wiring.py` already checks the dataset first, then the workspace, then the image, so the new row passes without a code change. The alternative I rejected was reordering or restructuring those checks. The finding asked for nothing of the kind.
+
+    Refactor pass: nothing to change. This run has no diff of its own.
+
+    Journal: entries 28 to 32 changed only a test. The meaning of the Description did not change, so I did not rewrite it.
+
+    Noticed, not touched:
+    - `read_hosting_token` in `src/factory/entry/wiring.py` writes the literal `"missing"` instead of using `_MISSING` (entry 30).
+    - `src/factory/application/undo.py` is now called by nothing. S0009 removes it (decision 13).
+
+    `check`: check: green
+    `duplicates`: duplicates: 12 new, 35 known, 3 gone
