@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T17:20:16.016038Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-10-25T17:20:16.016038Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T17:21:59.740354Z'
+  stage: review
+  run: 6d9893adf3214096b7a4de44d7e00f3f
 ---
 
 # The suite's stages run on the container fakes
@@ -166,7 +168,7 @@ The suite runs a stage, a tick or a world of ticks on the `boundaries` fixture o
 
 ## Interface
 
-`factory.application.task.StageTask` and `factory.application.preflight._probe_request` (`application`): the request's `working_directory` is `boundaries.snapshots.mount_point / "checkout"` when `boundaries.snapshots` is set, and `boundaries.checkout` otherwise.
+`factory.application.task.TaskComposer` and `factory.application.preflight._probe_request` (`application`): the request's `working_directory` is `boundaries.snapshots.mount_point / "checkout"` when `boundaries.snapshots` is set, and `boundaries.checkout` otherwise.
 
 - A real runtime in a container ignores it (the container's working directory is `/work/checkout`); the host-side process of a container call starts there, which exists after `prepare`.
 
@@ -188,8 +190,8 @@ Tests (the leave is decision 23 of `feature.md`, with the list its pre-check add
 
 1. The fixture (one test): `boundaries.snapshots` is a `FakeSnapshots` whose `mount_point` is `<tmp_path>/workspace`, `boundaries.containers` a `FakeContainerRuns`, `stage_environment_of(boundaries)` a `ContainerEnvironment`, and `reset()` on the fresh fixture raises nothing (the base exists).
 2. The remote (one test): the `main` of the `remote` fixture holds a `Makefile`, and `make -s sync` in a clone of it exits 0 and prints nothing.
-3. The working directory (rows of one parametrized test over `StageTask` and the probe's request): with the fixture's snapshots it is `<tmp_path>/workspace/checkout`; with `snapshots` `None` it is the host checkout.
-4. A whole stage on the fixture (one test through `StageRunner`, a tester's stage whose scripted run writes `tests/test_new.py` and `src/forbidden.py` and decides `doing`, the checks' `Makefile` pushed with `sync`, `lint` and `check` targets that pass): the result commit on the branch holds `tests/test_new.py` and not `src/forbidden.py`; the entry's closing paragraph names `src/forbidden.py`; the factory log holds one line whose text after its timestamp begins `stage environment: reset`; the host checkout's work tree after the stage equals the result commit.
+3. The working directory (rows of one parametrized test over `TaskComposer` and the probe's request): with the fixture's snapshots it is `<tmp_path>/workspace/checkout`; with `snapshots` `None` it is the host checkout.
+4. A whole stage on the fixture (one test through `StageRunner`, a tester's stage whose scripted run writes `tests/test_new.py` and `src/forbidden.py` and decides `doing`, the checks' `Makefile` pushed with `sync`, `lint` and `check` targets that pass): the result commit on the branch holds `tests/test_new.py` and not `src/forbidden.py`; the entry's paragraph that names what was left out, before the checks' lines, names `src/forbidden.py`; the factory log holds one line whose text after its timestamp begins `stage environment: reset`; the host checkout's work tree after the stage equals the result commit.
 5. A died run (one test through `StageRunner`, a scripted run that writes `src/forbidden.py` and ends `died`): the stall commit holds no `src/forbidden.py` and the stall entry is the factory's.
 6. The world (one test over `tests/proof_support.py`): a story walked from intake to approval in the world reaches approval with every stage's timing line in the factory log, and no stage's result commit holds a path its role may not write.
 7. `make check` stays green.
@@ -421,3 +423,48 @@ Expect: two lines: `1`; `1`
     `check`: check: green
     `duplicates`: duplicates: 7 new, 34 known, 4 gone
 26. factory: started review as self.
+27. reviewer: Round 1. I reviewed `git diff main...HEAD -- . ':!factory'` (3 files under `src/`, 26 under `tests/`) against the work item.
+
+    What I checked:
+    - The three findings of entry 19 are fixed. `tests/test_suite_fixtures.py` has no `noqa` markers. The docstring of `_launch` in `tests/application/test_cost_image.py` is its first statement again. Both `WRITTEN` constants are gone, and the import of `stage_makefile` that only they used is gone too.
+    - Group 1: criteria 1 to 6 each have a test that checks what the criterion says. The Interface's one rule (the working directory) is covered by four rows of one parametrized test. Entry 25 records `check: green`. The Interface states no limits.
+    - Group 2: `agent_working_directory` sits in `factory.application.take` beside `MOUNTED_CHECKOUT`, and `task.py` and `preflight.py` use it. No layer is crossed and no tool is called. No other copy of the rule exists in `src/factory`: `make_commands.py` and the take use `mount_point / MOUNTED_CHECKOUT` with their own snapshots, not the boundaries.
+    - Group 3: no secrets, no silencing markers, no string-built shell commands.
+    - Group 4: I ran `make duplicates` and got `7 new, 34 known, 4 gone`. None of the new findings is in a file this diff changes (they are in `claude_runtime`/`opencode_runtime`, `podman_runs`/`zfs_snapshots` and the fakes' dead-code entries).
+    - Group 5: the `## Description` matches what was built. The docs criterion names what the documenter must write.
+
+    no findings
+
+    description corrected: Interface `factory.application.task.StageTask` -> `factory.application.task.TaskComposer`. No `StageTask` exists; `TaskComposer` in `task.py` composes the request, and the tester and coder noted this in entries 5, 7, 17, 21 and 25.
+    description corrected: criterion 3 "over `StageTask` and the probe's request" -> "over `TaskComposer` and the probe's request".
+    description corrected: criterion 4 "the entry's closing paragraph names `src/forbidden.py`" -> "the entry's paragraph that names what was left out, before the checks' lines, names `src/forbidden.py`" (the human's answer, entry 8).
+
+    Earlier tests (status M):
+    - tests/application/test_agent_run_probe.py: the human's leave, named in the Interface (decision 23, answer 29 (a)).
+    - tests/application/test_agent_run_probe_project_agent.py: the human's leave, named in the Interface.
+    - tests/application/test_cost_image.py: the human's leave (`MAKEFILE` is named in the Interface); the `agent_home` lines in `_launch` fall under answer 29 (a), as the tester's entry 5 names them.
+    - tests/application/test_costs.py: the human's leave, `_makefile` named in the Interface.
+    - tests/application/test_preflight_run.py: the human's leave, `MAKEFILE` named in the Interface.
+    - tests/application/test_stage_environment.py: the human's leave, the Interface's five tests.
+    - tests/application/test_stage_environment_calls.py: the human's leave, both tests named in the Interface.
+    - tests/application/test_stage_finish.py: the human's leave, `_makefile` named in the Interface.
+    - tests/application/test_stage_launch.py: the human's leave, named in the Interface.
+    - tests/application/test_stage_provider_limit.py: the human's leave, named in the Interface.
+    - tests/application/test_stage_run.py: the human's leave, named in the Interface.
+    - tests/application/test_stall_edges.py: the human's leave (the deletion and `inline_boundaries` are named in the Interface); the dead constant and import are removed with the deleted test.
+    - tests/application/test_stall_environment.py: the human's leave (the deletion and `inline_boundaries` are named in the Interface); the dead constant is removed with the deleted test.
+    - tests/application/test_stall_labels.py: the human's leave, `_makefile` named in the Interface.
+    - tests/application/test_stalls.py: the human's leave, both tests named in the Interface.
+    - tests/application/test_task.py: the human's leave, named in the Interface.
+    - tests/application/test_tick_preflight.py: the human's leave, `MAKEFILE` named in the Interface.
+    - tests/conftest.py: the human's leave, the `boundaries` fixture named in the Interface.
+    - tests/container_support.py: the human's leave (`container_dataset` takes the fixture's fakes), and the standing leave for the shared helpers `fake_dataset` and `inline_boundaries`.
+    - tests/entry/test_wiring_extras.py: the human's leave, named in the Interface.
+    - tests/entry/test_wiring_run.py: the human's leave, named in the Interface.
+    - tests/git_support.py: the human's leave, `REMOTE_FILES` named in the Interface.
+    - tests/proof_support.py: the human's leave (the world, `PASSING_MAKEFILE` and `_outside_writes_undone` are named in the Interface).
+    - tests/stage_run_support.py: the human's leave, `stage_makefile` named in the Interface.
+
+    Notes:
+    - tests/test_suite_fixtures.py:64: the test writes the literal `"stage environment: reset"`, while `tests/application/test_stage_on_container_fakes.py` keeps the same text as the constant `RESET_PREFIX`. One shared constant would serve both.
+    - tests/test_suite_fixtures.py:40: the walk's loop repeats most of `drive` in `tests/proof_support.py`. It differs only in recording the walked stages and in the extra `forbidden.txt` write.
