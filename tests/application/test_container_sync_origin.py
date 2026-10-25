@@ -6,27 +6,21 @@ import pytest
 
 from container_support import (
     FIVE_MINUTES,
+    GONE,
     Dataset,
-    container_dataset,
+    container_environment,
     dataset_git,
     push_main,
     sync_makefile,
 )
 from factory.application.boundaries import Boundaries
-from factory.application.stage_environment import _SYNC_SCRIPT, ContainerEnvironment
+from factory.application.stage_environment import _SYNC_SCRIPT
 from factory.domain.git import CommitId
 from git_support import install_agents, run_git, write_files
 from human_clone import HumanClone
 from undo_support import BRANCH
 
 AGENT = "tester"
-GONE = "gone"
-
-
-@pytest.fixture
-def dataset(boundaries: Boundaries, tmp_path: Path) -> Dataset:
-    """An empty dataset with an empty base, its fakes set in the boundaries."""
-    return container_dataset(boundaries, tmp_path)
 
 
 @pytest.fixture
@@ -44,10 +38,6 @@ def branch_commit(boundaries: Boundaries, main_commit: CommitId) -> CommitId:
     git.checkout(BRANCH, start_point=main_commit)
     write_files(boundaries.checkout, {"src/branch.txt": "the branch's\n"})
     return git.commit("the branch's own commit")
-
-
-def _environment(dataset: Dataset) -> ContainerEnvironment:
-    return ContainerEnvironment(dataset.boundaries, dataset.snapshots, dataset.containers)
 
 
 def _host_commit(boundaries: Boundaries, ref: str) -> str:
@@ -73,7 +63,7 @@ def test_the_dataset_checkout_holds_the_host_branches_as_origin_refs(
 ) -> None:
     assert main_commit != branch_commit
 
-    _environment(dataset).prepare(branch_commit, BRANCH, sync_time_limit=FIVE_MINUTES)
+    container_environment(dataset).prepare(branch_commit, BRANCH, sync_time_limit=FIVE_MINUTES)
 
     expected = _host_commit(boundaries, host_branch)
     assert dataset_git(dataset, "rev-parse", "--verify", dataset_ref).strip() == expected
@@ -83,7 +73,7 @@ def test_a_branch_deleted_on_the_host_is_gone_from_local_and_origin_refs(
     dataset: Dataset, boundaries: Boundaries, main_commit: CommitId
 ) -> None:
     run_git(boundaries.checkout, "branch", GONE)
-    environment = _environment(dataset)
+    environment = container_environment(dataset)
     environment.prepare(main_commit, "main", sync_time_limit=FIVE_MINUTES)
     refs = (f"refs/heads/{GONE}", f"refs/remotes/origin/{GONE}")
     listed = dataset_git(dataset, "for-each-ref", "--format=%(refname)", *refs).split()
@@ -98,7 +88,7 @@ def test_a_branch_deleted_on_the_host_is_gone_from_local_and_origin_refs(
 def test_the_merge_base_of_head_and_origin_main_is_the_host_main_commit(
     dataset: Dataset, main_commit: CommitId, branch_commit: CommitId
 ) -> None:
-    _environment(dataset).prepare(branch_commit, BRANCH, sync_time_limit=FIVE_MINUTES)
+    container_environment(dataset).prepare(branch_commit, BRANCH, sync_time_limit=FIVE_MINUTES)
 
     assert dataset_git(dataset, "merge-base", "HEAD", "origin/main").strip() == main_commit
 

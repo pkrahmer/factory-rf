@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-25T07:49:34.838753Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-25T07:49:34.838753Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-25T07:56:53.274141Z'
+  stage: tests
+  run: d4db6caf2a1e40dea565c6c924cf3b45
 ---
 
 # The dataset's checkout knows origin/main
@@ -174,3 +176,23 @@ Expect: `1`
 
     Noticed, not touched: nothing.
 12. factory: started tests as vm.
+13. tester: I moved the two shared test helpers that review entry 9 found copied and coder entry 11 handed to me. CLAUDE.md's standing leave under *Tests* lets the tester move a shared test helper without asking. I changed no test's name or what it checks, and I touched no source code.
+
+    - `_environment(dataset)` is now a public helper, `container_environment(dataset)`, in `tests/container_support.py`. Both test modules now call it from there.
+    - The constant `GONE = "gone"` is now in `tests/container_support.py`. Both modules import it from there.
+    - The `dataset` fixture is now in `tests/conftest.py`, which imports `Dataset` and `container_dataset` from `container_support` for it. I removed both module-level copies.
+
+    Earlier test files I changed under the standing leave: `tests/application/test_container_environment.py` (its `GONE`, `dataset` fixture and `_environment` removed, its calls now go through `container_environment`), `tests/conftest.py` and `tests/container_support.py`. I also changed `tests/application/test_container_sync_origin.py`, which this story wrote.
+
+    Criterion → test, unchanged:
+    - criterion 1: tests/application/test_container_sync_origin.py::test_the_dataset_checkout_holds_the_host_branches_as_origin_refs
+    - criterion 2: tests/application/test_container_sync_origin.py::test_a_branch_deleted_on_the_host_is_gone_from_local_and_origin_refs
+    - criterion 3: tests/application/test_container_sync_origin.py::test_the_merge_base_of_head_and_origin_main_is_the_host_main_commit
+    - criterion 4: tests/application/test_container_sync_origin.py::test_the_sync_script_fetches_both_refspecs_on_one_line_and_names_no_container_path
+
+    Files created: none this round. The test runner imported every module.
+
+    `make test`: green (194.4 s). `make lint`: green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (194.3 s)
