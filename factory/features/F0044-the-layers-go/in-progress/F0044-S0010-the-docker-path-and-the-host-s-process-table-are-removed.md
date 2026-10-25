@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 453
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T19:57:41.520956Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T19:57:21.087779Z'
   stage: intake
   run: 94a37b3b8e254dd3bf75ad298c490e50
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:57:41.520956Z'
+  stage: tests
 ---
 
 # The Docker path and the host's process table are removed
@@ -82,3 +91,4 @@ Expect: three lines: `0`; `helper-moved`; `gone`
    Smoke test: one runnable command line, and its `Expect:` line gives three checkable lines (`0`, `helper-moved`, `gone`). It runs no pytest, so the `-q` rule does not apply.
    Architecture: the removal fits the layers. The process kill stays in the one process wrapper in `adapters`, `domain.sessions` goes, and nothing new is added. `vm/` is within the coder's write paths.
    Scope: it matches S0010 in `feature.md` and decisions 7, 12 and 40, and nothing is in "Out of scope". `image/secrets/` and `.gitignore` are untouched, and `pipeline.yml`, `pyproject.toml` and the demo README are left to the human's changes 10 and 11.
+4. factory: started tests as self.
