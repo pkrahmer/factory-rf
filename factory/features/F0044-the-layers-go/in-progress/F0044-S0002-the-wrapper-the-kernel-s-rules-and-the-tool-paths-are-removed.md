@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 445
 comments_read: [6397809713]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T12:50:45.847437Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-25T12:50:45.847437Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-25T12:54:01.911258Z'
+  stage: doing
+  run: abf62dff188d4c6e9242ab705039353b
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -367,3 +369,22 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
     `lint`: lint: green (0.6 s)
     `test`: test: green (66.4 s)
 17. factory: started doing as self.
+18. coder: Round 1, after the tester's change in entry 16. I changed no code in this run. The code for this round was finished earlier: finding 1, the removal of `ConfinementError` from `src/factory/domain/errors.py`, is already committed. The tester has now fixed findings 2 and 3 with the human's leave from entry 12: the shared `has_name` in `tests/module_names.py`, and the `guard` updates dropped from the three `claude_runtime` test modules.
+
+    What I did:
+    - I ran `make check` on the committed state with the tester's changes in. It is green: `test: green (67.8 s)`, then `check: green`, with coverage at 99.47 %.
+    - I searched `src/factory` and `template/` for leftovers of the removed code, outside the generated schemas. The search terms were `tool_path`, `ConfinementError`, `confine` and `execvpe`, and none of them appears.
+    - The working tree holds no change of mine. The only modified file is the factory's own `.costs.jsonl` sidecar.
+
+    Main choice: I hand the item to review without touching anything. All three of the reviewer's findings are now dealt with: finding 1 in code earlier this round, and findings 2 and 3 in tests by the tester. The alternative was a further refactor pass, but there was nothing to refactor: the round's code diff is the one-class removal, and it needs no change.
+
+    The journal did not change what the task means, so `## Description` is unchanged.
+
+    Noticed but not touched:
+    - `docs/project-guide/README.md` and `docs/project-guide/write-guard.md` still describe `ConfinementError`. Those pages are the documenter's.
+    - The `factory-confine` console script is still in `pyproject.toml`. The human removes it in change 3, after the merge.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 9 new, 35 known, 3 gone
