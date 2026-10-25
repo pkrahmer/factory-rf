@@ -134,7 +134,6 @@ def test_a_container_instance_gets_the_dataset_s_adapters_and_asks_for_no_tool(
     project_commands = boundaries.project_commands
     assert isinstance(project_commands, RecordingProjectCommands)
     assert isinstance(project_commands.inner, ContainerMakeCommands)
-    assert boundaries.agent_home is None
 
 
 @pytest.mark.parametrize(

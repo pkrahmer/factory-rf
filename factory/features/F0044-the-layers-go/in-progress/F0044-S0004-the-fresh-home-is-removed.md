@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 447
 comments_read: [6398446445]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T13:50:03.695310Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-25T13:50:03.695310Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-25T13:54:12.049964Z'
+  stage: tests
+  run: e8eee716f7974213b5e3832ecb9ebd74
 ---
 
 # The fresh home is removed
@@ -129,3 +131,56 @@ Expect: six lines: `gone`, `gone`, `gone`, `gone`, `gone`, `False False True`
    - Architecture: removals only; the layers are respected and `beneath_or_at` moves down to the domain.
    - Scope: inside feature S0004. The tests changed or deleted are the ones decision 20 and decision 33 of `feature.md` give leave for, and the new test file needs no leave.
 7. factory: started tests as self.
+8. tester: I wrote the tests for criteria 1 to 6 and made the earlier-test changes the Interface lists, under the leave of decision 20. `make lint` is green. I skipped the type check, as the stage says. The single `make test` run is red on purpose: the removed names are still present, and `beneath_or_at` does not exist yet in `factory.domain.containers`.
+
+   Each criterion and its test:
+   - criterion 1: tests/test_home_reset_removed.py::test_the_modules_of_the_home_reset_are_gone (five rows, one per module)
+   - criterion 2: tests/test_home_reset_removed.py::test_the_names_of_the_home_reset_are_gone. It has 11 rows:
+     - the `Boundaries` field
+     - `InstanceSettings` has no `opencode_folders` and still has `agent_home`
+     - `OPENCODE_FOLDERS_VARIABLE`
+     - `LOGIN_STATE_FILE` in each runtime module
+     - the four names in wiring
+     - the parameters of `SealedProjectCommands.__init__`, which are `self`, `inner`, `git` and `log`
+   - criterion 3: tests/domain/test_settings_opencode_folders_ignored.py::test_the_opencode_folders_variable_changes_no_setting (rows `.local/x` and `/etc`)
+   - criterion 4: tests/application/test_sealed_runs_no_home.py::test_a_sealed_run_leaves_the_home_alone_and_keeps_the_seal. It has two rows:
+     - agent-run: `run_sealed` with `FakeAgentRuntime` and `HOME=<tmp>/home`
+     - project-command: `SealedProjectCommands` around a recording `ProjectCommands`, which ran `lint` once
+
+     Each row checks that `home/kept.txt` is still there, then calls `boundaries.git.check_seal()`.
+   - criterion 5: tests/domain/test_settings_agent_files_stay.py::test_the_agent_files_folder_still_comes_from_its_variable. The sync-container mount is covered by the existing tests/application/test_container_environment.py, unchanged.
+   - criterion 6: tests/domain/test_containers_beneath_or_at.py::test_beneath_or_at_gives_the_answers_it_gave_in_agent_home. It has seven rows: equal, beneath, `ab` against `a`, unrelated, and the empty `above` with `""`, `"a"` and `"/a"`.
+   - criterion 7 (`make check`) and criterion 8 (docs) have no test.
+
+   Criteria 4, 3 and the settings rows of criterion 2 check that something is absent. Today's code already passes them, so they cannot fail before the change.
+
+   Files created:
+   - tests/test_home_reset_removed.py
+   - tests/application/test_sealed_runs_no_home.py
+   - tests/domain/test_settings_opencode_folders_ignored.py
+   - tests/domain/test_settings_agent_files_stay.py
+   - tests/domain/test_containers_beneath_or_at.py
+
+   Earlier test files deleted, as the Interface lists:
+   - tests/adapters/test_home_files.py
+   - tests/adapters/test_sudo_agent_home.py
+   - tests/application/test_agent_home_resets.py
+   - tests/domain/test_agent_home.py
+   - tests/domain/test_settings_opencode_folders.py
+   - tests/entry/test_fresh_home.py
+   - tests/entry/test_wiring_agent_home.py
+   - tests/home_files_support.py
+
+   Earlier test files changed, each test keeping its name:
+   - tests/test_wrapper_search.py: the set loses `factory.adapters.agent_home`
+   - tests/entry/test_wiring.py: the set loses `factory.entry.fresh_home`
+   - tests/entry/test_wiring_stage_environment.py: the assertion `boundaries.agent_home is None` is gone
+
+   What the test run could not import: `beneath_or_at` from `factory.domain.containers`, so the module tests/domain/test_containers_beneath_or_at.py fails to collect. Everything else is a plain failure on what is there now:
+   - the names-gone rows and modules-gone rows fail because the old modules and names still exist
+   - the two wrapper and wiring set tests fail because the old modules still import what they did
+
+   No question is open.
+
+   `lint`: lint: green (0.7 s)
+   `test`: FAILED tests/test_home_reset_removed.py::test_the_names_of_the_home_reset_are_gone[sealed-project-commands-parameters] - assert False
