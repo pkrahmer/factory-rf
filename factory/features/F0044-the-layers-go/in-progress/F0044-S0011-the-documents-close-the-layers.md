@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 454
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T20:20:53.145517Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-25T20:20:53.145517Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T20:23:09.303308Z'
+  stage: tests
+  run: f5901fc611ca4dd9b7c68e7f54878f04
 ---
 
 # The documents close the layers
@@ -116,3 +118,12 @@ Expect: `documents ok`
    Architecture: documents and the decision log only, with no layer or interface touched. It keeps the documenter's write paths (`README.md`, `docs/*`). `docs/operator-playbook.md`, `docs/runs/` and `CLAUDE.md` are left alone, as decision 15 says.
    Scope: matches S0011 in feature.md (the decision log's closing lines and *What went*, the operator guide, the project guide, README). It adds no mechanism and touches nothing in "Out of scope". The format check passed, and no earlier test is changed.
 4. factory: started tests as self.
+5. tester: I wrote no tests and changed nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/`. This story only fixes documents. Its Interface is "None", and no test reads the documents: `not_read` leaves out `README.md` and `docs/*.md`.
+   - criterion 1 (nothing under src/, tests/, vm/, template/ or claude/ changes): no test. This entry is the tester's statement that it holds; the working tree has no change of mine.
+   - criterion 2 (`make check` stays green): no test of its own. The factory's checks cover it. `make test` passed in this stage (`test: green`, coverage 99.55 %) because no new test was added, so there is no red test on purpose. `make lint` passed.
+   - criterion 3 (docs): no test, as the criterion itself says ("no test does"). The smoke test and `make documents` check it after the documenter.
+   Files created: none. Modules the test run could not import: none.
+   For the coder: there is no specification in tests. Hand the story on to the documenter without code changes.
+
+   `lint`: lint: green (0.1 s)
+   `test`: test: green (60.6 s)
