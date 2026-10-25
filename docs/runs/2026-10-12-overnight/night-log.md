@@ -1184,3 +1184,6 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 | 16:59 | F0044-S0007 coder question on #450 (two new tests wrong): both (a) as the coder proposed. |
 | 17:03 | F0044-S0007 tester question on #450 (the walk test records approval as a walked stage): (a). |
 | 17:37 | Pre-check of F0044-S0008 (the inline environment and its setting are removed), round 1: accepted at intake, edits 1-6 required, 7-8 optional; edits 1-5, 7, 8 applied to the story, edit 6 to feature.md change 8; form check ok. The human chose A: self keeps its image, never rebuilt after S0008's merge. Recorded as decision 37. |
+| 17:37 | F0044-S0007 coder question on #450 (smoke grep expects FakeSnapshots( in conftest.py, the fixture uses fake_dataset): (b), the reviewer rewords the Interface line and smoke command 2. |
+| 17:46 | F0044-S0007 (the suite's stages run on the container fakes) at approval, PR #450: six checks met (write paths; all 24 earlier tests named in the leave of 29a/36; check green, entry 40 and the stage checks; reviewer no findings, entry 38, with the smoke text corrected by my answer of entry 34; both Expect lines met; no markers). 19 runs, $7.30. Merged. |
+| 17:46 | Rebuilt self (no claim) on main with F0044-S0007: the last rebuild before S0008 (decision 37). Kept a copy of image/compose.yml in the scratchpad for change 10. |
