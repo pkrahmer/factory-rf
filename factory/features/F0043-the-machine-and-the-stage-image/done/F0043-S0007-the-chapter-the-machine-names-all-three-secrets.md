@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-25T08:37:06.144957Z'
   stage: smoke-test
   run: 7a01bb7e8720486eaf097f82416a32bf
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-25T08:41:29.878635Z'
+  stage: approval
 ---
 
 # The chapter "The machine" names all three secrets in every place
@@ -212,3 +217,4 @@ Expect: `documents ok`
     Seen, not a finding: *The stage image* still points to *Update the pins*, but now only "for the shared ones". The criterion does not forbid that reference.
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 8.3 min, 27 turns, 99494 tokens in (377486 more from cache), 7166 out, $0.81
