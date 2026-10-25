@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 434
 comments_read: [6394738591, 6394846270]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-25T07:25:25.532213Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-25T07:25:25.532213Z'
   stage: smoke-test
+- number: 19
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T07:26:18.106938Z'
+  stage: smoke-test
+  run: 83cc8d6045ff48e8ad03412bdbaafe78
 ---
 
 # The operator guide's chapter "The machine"
@@ -281,3 +283,52 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
 18. factory: started smoke-test as vm.
+19. smoke-tester: I ran the three smoke-test commands exactly as written, from the repository root. All three met their `Expect:` lines and I found nothing to report. I fixed nothing.
+
+    Command 1:
+    ```bash
+    awk '/^## The machine$/{on=1; next} /^## /{on=0} on && /^### /' docs/operator-guide.md
+    ```
+    ```
+    ### What it is
+    ### The stage image
+    ### The script
+    ### The service
+    ### On GCP, step by step
+    ### On any Ubuntu 24.04 VM
+    ### What the container can and cannot see
+    ### The costs
+    ### The metadata server
+    ### Where the logs are
+    ### The rebuild after a merge
+    ```
+    Met: eleven lines, in the expected order.
+
+    Command 2 (the eight-word count, the decision-log heading, `vm/setup.sh` in `README.md`):
+    ```
+    8
+    1
+    1
+    ```
+    Met: `8`, `1`, `1`.
+
+    Command 3:
+    ```bash
+    make documents 2>&1 | tail -n 1
+    ```
+    ```
+    documents ok
+    ```
+    Met.
+
+    Reading the acceptance criteria against the branch, nothing contradicts them:
+    - Criterion 1: `git diff --name-only origin/main...HEAD` lists only `README.md`, `docs/decisions.md`, `docs/operator-guide.md` and the work item with its `.costs.jsonl`. Nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changed.
+    - Placement: `## The machine` (line 393) comes right before `## The machine's image` (line 719). The list at the top of the guide names "The machine" right before "The machine's image".
+    - *On GCP, step by step*: 12 numbered items. The 13 required names appear in the required order of first occurrence. `gcloud billing budgets create` is in step 1, alongside the budget amount.
+    - Each of the 19 words the chapter must name appears at least once.
+    - *The costs* has the table with rows for the VM, the disk and NAT, using the plan's numbers. It also gives the $120 alert with thresholds at 50 %, 90 % and 100 %, and says a stopped VM costs its disks. *The metadata server* names `169.254.169.254`, `--no-service-account --no-scopes` (instance metadata, no token) and `Metadata-Flavor: Google`.
+    - *The rebuild after a merge*: `pull --ff-only`, `uv sync --frozen --no-dev`, `podman build`, `image-id`, `vm/setup.sh` and `systemctl restart factory@vm` appear in that order. The criterion's literal `git pull` does not appear. The section uses the form the criterion itself prescribes, `git -C /srv/factory/vm/factory pull --ff-only`, so I count it as met.
+    - The section says `vm/setup.sh` leaves a changed installed `factory@.service` or `git-credential-factory` in place, and the operator removes the installed file and runs the script again. That differs from the criterion's wording "carries over". It matches `vm/setup.sh` (lines 321 and 366) and the human's answer to the documenter's question in the journal (entry 14 and the human's answer after it). I don't count it as a contradiction.
+    - `docs/decisions.md`: only additions (12 lines). The new section is dated 2026-10-24 and names every required term (`2026-10-24`, `planning/v1.2-plan.md`, `F0043`, `systemd`, `factory@`, `zfs allow`, `sudoers`, `/etc/factory/claude`, `FACTORY_IMAGE_ID_FILE`, `F0044`).
+
+    Open: nothing.
