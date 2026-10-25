@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 437
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-25T08:24:05.105201Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T08:23:44.766570Z'
   stage: intake
   run: 193bff25c1d843d09e7042ef58b353cc
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T08:24:05.105201Z'
+  stage: tests
 ---
 
 # The chapter "The machine" names all three secrets in every place
@@ -77,3 +86,4 @@ Expect: `documents ok`
    Smoke test: the awk/grep commands match the guide's headings (`## The machine`, `#### The two passes`, `### The stage image`), and each `Expect:` line is checkable. The pytest-`-q` rule does not apply, because no command runs pytest. The `make documents` command ends with `documents ok`, which `check_documents.py` prints.
    Architecture: this is a documentation change only, and the docs stage owns `docs/operator-guide.md`. No layer is touched.
    Scope: the story stays inside the F0043 chapter "The machine". It follows decision 10 and the chapter-writing split of decision 2, and it touches nothing listed in Out of scope. `image/` and `vm/` are explicitly left unchanged.
+4. factory: started tests as vm.
