@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T18:34:04.135175Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T18:33:46.154073Z'
+  stage: tests
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-25T18:34:04.135175Z'
   stage: tests
 ---
 
@@ -409,3 +418,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
 19. 2026-10-25 human: (b) for all of them. Running the container's words on the host would rebuild in the tests what the container does, with host paths standing in for the container's; that is fragile and not what runs on the VM. The wiring tests check what the wiring builds: the `podman run` words, with the login file mounted read-only and named to the login script, the instance's settings (models, denied key, limit) in the words or the mounted configuration as the runtime passes them, and no secret in the argv. Each test keeps its name. What the runtime does inside the container stays covered by the container runtimes' own tests (`tests/adapters/test_claude_runtime_container.py`, `tests/adapters/test_opencode_runtime_container.py`).
 
     Also, as the Interface says (the pre-check's edit 4): `tests/entry/test_wiring_boundaries.py::test_the_built_project_commands_run_in_the_checkout` is deleted, because criterion 4 covers the container project commands. Then finish the list in this run, with `test_wiring_boundaries::test_the_built_agent_runtime_keeps_its_run_files_under_runs` and `test_wiring_command_records`.
+20. factory: started tests as self.
