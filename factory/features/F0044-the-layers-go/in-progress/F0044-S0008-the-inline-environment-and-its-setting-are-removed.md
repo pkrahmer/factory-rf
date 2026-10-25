@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T19:02:30.822094Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -229,6 +225,12 @@ journal:
   kind: started
   at: '2026-10-25T19:02:30.822094Z'
   stage: smoke-test
+- number: 40
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T19:02:50.598336Z'
+  stage: smoke-test
+  run: ac8c64d403654bb285dc5182bff40981
 ---
 
 # The inline environment and its setting are removed
@@ -842,3 +844,18 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     `secrets`: secrets: green (3.8 s)
     `documents`: documents ok
 39. factory: started smoke-test as self.
+40. smoke-tester: Ran the one command under `## Smoke test` exactly as written, from the repository root. I changed nothing.
+
+    Command 1 (`uv run python -` with the heredoc that checks the removed names, `REQUIRED_TOOLS` and the required `Boundaries` fields). It exited with 0:
+
+    ```
+    Bytecode compiled 4164 files in 94ms
+    False False ('git', 'uv')
+    ['snapshots', 'containers']
+    ```
+
+    Met its `Expect:` line. The two lines are `False False ('git', 'uv')` and `['snapshots', 'containers']`, as the line asks. The first line, `Bytecode compiled …`, comes from `uv` as it prepares the environment. It is not the script's output and I don't count it as a finding.
+
+    Against the acceptance criteria: the output agrees with the parts of criterion 1 it covers. `InlineEnvironment` and `STAGE_ENVIRONMENT_VARIABLE` are gone, `REQUIRED_TOOLS == ("git", "uv")`, and `snapshots` and `containers` have no default. It contradicts no other criterion. The smoke test does not cover criteria 2 to 10; the tests and the factory's own checks cover those.
+
+    Findings: none.
