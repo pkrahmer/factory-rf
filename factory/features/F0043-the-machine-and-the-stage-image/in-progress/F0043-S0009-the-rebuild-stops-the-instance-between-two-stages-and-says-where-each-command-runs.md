@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 440
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-25T09:24:10.207706Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-25T09:23:49.819169Z'
   stage: review
   run: 9861bcef779e49ecbcd91ed95615d349
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:24:10.207706Z'
+  stage: docs
 ---
 
 # The rebuild after a merge stops the instance between two stages and says where each command runs
@@ -164,3 +173,4 @@ Expect: `documents ok`
    - Hygiene: the Description matches what has been built so far (nothing yet, the documenter writes next). The docs criterion says what the reader must know after this story. The `TimeoutStopSec` question is left open for the human, as the Description says.
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as vm.
