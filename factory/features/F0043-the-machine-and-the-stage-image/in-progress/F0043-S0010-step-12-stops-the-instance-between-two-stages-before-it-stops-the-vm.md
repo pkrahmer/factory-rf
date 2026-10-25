@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 442
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-25T09:50:14.708210Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-25T09:50:14.708210Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T09:50:32.021075Z'
+  stage: review
+  run: 436a4318347e459cbba7edb2ebfeb17b
 ---
 
 # Step 12 stops the instance between two stages before it stops the VM
@@ -139,3 +141,12 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   I reviewed `git diff main...HEAD -- . ':!factory'` and the work item. The diff outside `factory/` is empty. The only changed paths are the work item's own `.md` and its new `.costs.jsonl` sidecar.
+   - Acceptance criteria: criterion 1 holds, because nothing changes under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/`. The tester (entry 5) and the coder (entry 7) each say so. Criterion 2 holds: `make check` ended `check: green`, run by the coder on this tree (entry 7). Criterion 3 is the docs criterion. The documenter writes it next, and the smoke test and `make documents` check it. No test is called for, because the Interface is "None" and no test reads the documents.
+   - Interface: it states no rule or limit, so no failing side is missing a test.
+   - Architecture, security, quality: no code changed, so there is nothing to judge. The `duplicates: 11 new` record in entry 7 cannot come from this story, because nothing under `src/factory` changed.
+   - Work item hygiene: the coder's entry gives the main decision (leave `docs/operator-guide.md` to the docs stage) and the alternative it rejected (writing step 12 itself). The Description still matches the story: a rewrite of step 12 only, still to be written. The docs criterion still says what the documenter must write: wait for no claim by `vm` with `factory-watch`, then `sudo systemctl stop factory@vm` on the VM. It also gives the reason (systemd's stop timeout of 90 seconds, then a crash at the next start), the order of the commands, where each command runs, no `systemctl restart`, and the cost, start and enabled sentences that stay.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file that `main` already holds.
