@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 457
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T21:13:05.490976Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-25T21:13:05.490976Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-25T21:14:30.381119Z'
+  stage: doing
+  run: 9bd4166690aa45e9ada1937d642a6208
 ---
 
 # The restore stop's repair names the one user
@@ -102,3 +104,16 @@ Expect: `documents ok`
    `lint`: lint: green (0.2 s)
    `test`: test: green (61.6 s)
 6. factory: started doing as self.
+7. coder: I built nothing, and nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/` changed. The Interface is "None": this story only changes documents, and the documenter makes that change.
+   - `make test`: no tests were failing. The tester wrote none because no test reads the documents.
+   - `make check`: green. It ended with `test: green (61.7 s)` and `check: green`, coverage 99.55 %.
+   - `git status --short`: the only change is the factory's own `.costs.jsonl` sidecar of this work item. My diff is empty, so there was nothing to refactor.
+
+   Main choice: leave the code and the documents alone. The alternative I rejected was to correct the operator guide paragraph on `checkout_restore_failed` myself. `docs/` belongs to the documenter, and CLAUDE.md says the coder does not write it.
+
+   The journal did not change the meaning of the task, so the Description stands.
+
+   Noticed but not touched: whether a crash is still recorded for this stop has to be read from `factory.application.tick` and `factory.application.recovery`. That check is part of the docs criterion and belongs to the documenter.
+
+   `check`: check: green (not run again: passed on tree 92c6af88fac5 at 2026-10-25T21:03:03Z)
+   `duplicates`: duplicates: 8 new, 35 known, 3 gone
