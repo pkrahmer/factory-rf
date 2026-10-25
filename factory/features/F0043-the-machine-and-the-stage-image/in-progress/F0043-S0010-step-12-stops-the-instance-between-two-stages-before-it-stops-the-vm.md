@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 442
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-25T09:42:14.581626Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T09:41:54.209635Z'
   stage: intake
   run: 5b8e57a1742c42df8ea14eae8fa4a4cc
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:42:14.581626Z'
+  stage: tests
 ---
 
 # Step 12 stops the instance between two stages before it stops the VM
@@ -86,3 +95,4 @@ Expect: `documents ok`
    Smoke test: all five commands are runnable. The awk range runs from `12. ` to the `### On any Ubuntu 24.04 VM` heading, and both headings exist. Each `Expect:` line can be checked against the output. No command runs pytest, so the `-q` rule does not apply. `make documents` is a project target.
    Architecture: this changes only `docs/operator-guide.md`, which the documenter stage may write. Nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes.
    Scope: the story stays inside F0043's chapter "The machine". It leaves `vm/factory.service` and the `TimeoutStopSec` question to the human (F0043-A0002/A0003), and it is not in the feature's Out of scope.
+4. factory: started tests as vm.
