@@ -84,10 +84,9 @@ def test_an_instance_name_must_be_a_name(name: str, accepted: bool) -> None:
         assert _variable_of(environ) == "FACTORY_INSTANCE"
 
 
-def test_the_checkout_and_state_directory_are_not_read_from_the_environment() -> None:
+def test_a_variable_the_settings_do_not_name_is_not_read() -> None:
     environ = {
         **BASE,
-        "FACTORY_CHECKOUT": "/elsewhere/checkout",
         "FACTORY_STATE_DIRECTORY": "/elsewhere/state",
         "SOMETHING_ELSE": "x",
     }

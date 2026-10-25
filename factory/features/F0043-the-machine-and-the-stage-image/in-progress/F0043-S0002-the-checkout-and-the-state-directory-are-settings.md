@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T00:08:42.892906Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-25T00:08:42.892906Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-25T00:13:19.003744Z'
+  stage: tests
+  run: 3f5462b06e9d4387ae984a450ba6d331
 ---
 
 # The checkout and the state directory are settings
@@ -164,3 +166,29 @@ Expect: `1`
    - Architecture: the changes sit in `domain` (pure settings rules) and `entry` (placing the stop). No new dependency or layer. `factory-health` and the entrypoint are unchanged.
    - Scope: this is decision 1 of `feature.md`, and nothing in its Out of scope is touched. The one earlier test it changes has the human's leave in decision 15.
 7. factory: started tests as self.
+8. tester: I wrote the tests for criteria 1–7 from the Interface and the criteria. Criteria 8 (`make check`) and 9 (docs) have no test of their own.
+
+   - criterion 1: tests/domain/test_settings_paths.py::test_the_checkout_and_the_state_directory_are_read_with_their_defaults
+   - criterion 2: tests/domain/test_settings_paths.py::test_a_relative_checkout_or_state_directory_is_refused_in_its_order, plus tests/domain/test_settings_paths.py::test_a_fault_of_the_instance_is_reported_before_one_of_the_checkout. The `FACTORY_INSTANCE=Bad` row is a separate function because its fault is not `is not an absolute path`; only the variable is checked.
+   - criterion 3: tests/domain/test_settings_paths.py::test_settings_built_directly_refuse_a_relative_checkout_or_state_directory
+   - criterion 4: tests/entry/test_run_state_variable.py::test_the_stop_of_invalid_settings_goes_to_the_directory_the_environment_names
+   - criterion 5: tests/entry/test_run_state_variable.py::test_the_stop_of_invalid_settings_falls_back_to_the_given_directory (it changes into `tmp_path` as the current directory for every row)
+   - criterion 6: tests/entry/test_run_state_variable.py::test_the_runner_gets_the_paths_and_its_settings_fault_follows_the_state_variable (rows: recorded, runner-fault, runner-fault-without-state, state-padded)
+   - criterion 7: two functions, one for the rows read from the environment and one for the rows built directly:
+     - tests/domain/test_settings_paths.py::test_a_container_instance_keeps_its_checkout_and_state_outside_the_workspace
+     - tests/domain/test_settings_paths.py::test_settings_built_directly_keep_a_container_checkout_and_state_outside_the_workspace
+
+   Files created:
+   - tests/domain/test_settings_paths.py
+   - tests/entry/test_run_state_variable.py
+
+   Earlier test files changed:
+   - tests/domain/test_settings.py: by the leave of decision 15 named in the Interface, `test_the_checkout_and_state_directory_are_not_read_from_the_environment` is renamed `test_a_variable_the_settings_do_not_name_is_not_read`. Its `FACTORY_CHECKOUT` entry is removed; the `FACTORY_STATE_DIRECTORY` and `SOMETHING_ELSE` entries and both assertions stay.
+   - tests/entry/test_run.py and tests/conftest.py: under the standing leave to move a shared test helper, the `image_file` and `environment` fixtures moved from tests/entry/test_run.py to tests/conftest.py, unchanged, because the criteria use that `environment` fixture. tests/entry/test_run.py also drops its copy of `HOSTED_URL` and imports it from `wiring_support`, which holds the same value. Every test in test_run.py keeps its name and checks the same thing. tests/entry/test_wiring_container_extras.py has its own `environment` fixture, which takes precedence there.
+
+   Red run (`make test`, once): the tests fail on wrong results, not on import errors. Examples: `state-relative` gives `assert 0 == 2`, `recorded` sees `/state` instead of `<tmp>/state`, and `runner-fault` and `state-padded` hit `FileNotFoundError` because the stop is not under `<tmp>/state`. `CHECKOUT_VARIABLE` and `STATE_VARIABLE` are not imported by the tests, so the test runner could import every module and there were no collection errors. The tail I read showed only the last entry-test failures; I did not rerun to count the domain failures.
+
+   `make lint` is green. I skipped the type check as this stage says.
+
+   `lint`: lint: green (0.5 s)
+   `test`: FAILED tests/entry/test_run_state_variable.py::test_the_runner_gets_the_paths_and_its_settings_fault_follows_the_state_variable[state-padded] - FileNotFoundError: [Errno 2] No such file or director...

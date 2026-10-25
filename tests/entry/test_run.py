@@ -37,7 +37,7 @@ from factory.entry.wiring import handler_factory, health_store, read_environment
 from git_support import PIPELINE_YAML, install_agents, run_git
 from human_clone import HumanClone
 from stage_run_support import INSTANCE
-from wiring_support import ENVIRONMENT
+from wiring_support import ENVIRONMENT, HOSTED_URL
 
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 STORY = """\
@@ -68,7 +68,6 @@ Expect: nothing.
 """
 STATE = "a" * 40
 STAMP = r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ "
-HOSTED_URL = "https://github.com/example/project.git"
 READ_FAULT = "cannot read /run/secrets/hosting-token"
 COMPLETED = AgentRunResult(
     end_reason="completed", decision="tests", entry="checked.", duration=timedelta(minutes=1)
@@ -142,24 +141,6 @@ def settings(tmp_path: Path, remote: Path, agent_home: Path, token_file: Path) -
         claude_executable=str(tmp_path / "no-claude"),
         token_file=token_file,
     )
-
-
-@pytest.fixture
-def image_file(tmp_path: Path) -> Path:
-    """Return an image identity file in `tmp_path` that holds `build-7`."""
-    path = tmp_path / "image-id"
-    path.write_text("build-7\n", encoding="utf-8")
-    return path
-
-
-@pytest.fixture
-def environment(image_file: Path) -> dict[str, str]:
-    """Return a valid environment whose image identity file lies in `tmp_path`."""
-    return {
-        "FACTORY_REPOSITORY_URL": HOSTED_URL,
-        "FACTORY_INSTANCE": INSTANCE,
-        "FACTORY_IMAGE_ID_FILE": str(image_file),
-    }
 
 
 def _snapshot() -> WorkItemSnapshot:
