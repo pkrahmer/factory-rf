@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T00:58:50.042610Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-25T00:58:29.319076Z'
   stage: review
   run: 413ced19b3fb4d9d92d9908cd059ccea
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:58:50.042610Z'
+  stage: docs
 ---
 
 # The setup script prepares the machine and installs the service
@@ -334,3 +343,4 @@ Expect: `1`
 
     Notes:
     - `tests/test_vm_setup_text.py:413-415`: `test_the_options_land_in_their_named_variables` repeats the `image=factory-stage:$instance` assertion in all eight rows; it would fit better as a row or a test of its own. Each row also checks only that `$<variable>` is read somewhere, not that its option assigns it.
+17. factory: started docs as self.
