@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-25T21:09:48.852151Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T21:09:48.845045Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T21:09:48.852151Z'
+  stage: intake
+---
+
 # The restore stop's repair names the one user
 
 <!-- proposed by feature acceptance of 2026-10-25; refine before starting -->
@@ -34,3 +61,6 @@ uv run python -m factory.entry.check_documents
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as self.
