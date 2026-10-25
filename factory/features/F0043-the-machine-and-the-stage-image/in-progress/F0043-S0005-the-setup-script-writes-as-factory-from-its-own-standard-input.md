@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 433
 comments_read: [6394400610]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T06:35:33.562367Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-25T06:35:12.911081Z'
   stage: tests
   run: d35ccc0bdbb543b09cfe49333769dd4b
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:35:33.562367Z'
+  stage: doing
 ---
 
 # The setup script writes as factory from its own standard input
@@ -140,3 +149,4 @@ Expect: two lines, `0` and `syntax-ok`
 
    `lint`: lint: green (0.6 s)
    `test`: ERROR tests/test_vm_setup_writes.py::test_the_helper_writes_its_standard_input_with_the_mode[again] - AssertionError: []
+9. factory: started doing as self.
