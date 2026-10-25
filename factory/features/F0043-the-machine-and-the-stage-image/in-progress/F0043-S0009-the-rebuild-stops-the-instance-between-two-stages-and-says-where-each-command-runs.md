@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 440
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-25T09:19:20.760407Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-25T09:19:20.760407Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-25T09:23:01.134721Z'
+  stage: doing
+  run: 6cdf127887944da1abe8ceece68d0c16
 ---
 
 # The rebuild after a merge stops the instance between two stages and says where each command runs
@@ -124,3 +126,14 @@ Expect: `documents ok`
    `lint`: lint: green (0.2 s)
    `test`: test: green (194.6 s)
 6. factory: started doing as vm.
+7. coder: No code written. This story only changes the documents, and its Interface says nothing changes under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/`.
+   - Criterion 1: nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes. I changed nothing anywhere, and `git status --short` is empty.
+   - Criterion 2: `make check` is green (`check: green`, coverage 99.20 %).
+   - Criterion 3 (docs): left to the documenter. The documenter rewrites `### The rebuild after a merge` in `docs/operator-guide.md`, and the smoke test and `make documents` check it.
+   Main choice: I left the guide untouched instead of rewriting the section here. The docs criterion belongs to the documenter, and `CLAUDE.md` says the coder does not write `docs/`.
+   Refactor: there is no diff, so there was nothing to refactor.
+   The journal did not change the meaning of the task, so the Description stays as it is.
+   Noticed but not touched: whether `vm/factory.service` should set a `TimeoutStopSec` beyond the lease, so that a stop lets a stage finish. That stays open for the human, as the Description says.
+
+   `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
+   `duplicates`: duplicates: 11 new, 36 known, 2 gone
