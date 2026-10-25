@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 437
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-25T08:36:42.074574Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-25T08:36:18.461367Z'
   stage: docs
   run: 35dbae3daeef4864a02227c977c0ed05
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T08:36:42.074574Z'
+  stage: smoke-test
 ---
 
 # The chapter "The machine" names all three secrets in every place
@@ -166,3 +175,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
