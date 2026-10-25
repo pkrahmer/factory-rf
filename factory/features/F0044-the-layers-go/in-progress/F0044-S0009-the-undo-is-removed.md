@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T19:30:13.394569Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-25T19:29:53.000356Z'
   stage: doing
   run: 86166a8002814005a61b47e820e255f2
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:30:13.394569Z'
+  stage: review
 ---
 
 # The undo is removed
@@ -169,3 +178,4 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
 
    `check`: check: green
    `duplicates`: duplicates: 9 new, 34 known, 4 gone
+8. factory: started review as self.
