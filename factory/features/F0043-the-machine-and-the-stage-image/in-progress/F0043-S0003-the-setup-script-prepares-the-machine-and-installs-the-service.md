@@ -1,17 +1,13 @@
 ---
-stage: smoke-test
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T01:00:38.170705Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-25T01:00:38.170705Z'
   stage: smoke-test
+- number: 20
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T01:01:37.032642Z'
+  stage: smoke-test
+  run: c160f8f18a6b415c9dc55b95ef417f84
 ---
 
 # The setup script prepares the machine and installs the service
@@ -378,3 +380,51 @@ Expect: `1`
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
 19. factory: started smoke-test as self.
+20. smoke-tester: Smoke test, round 1. I ran the four blocks of `## Smoke test` from the repository root, in order, as the agent's user (uid 1001, not root, so the root check ends the script before its first step). Three met their `Expect:` line and one did not. I fixed nothing.
+
+    One process note: on the first try I wrapped block 2 in `bash -c '…'`, and the tool's safety check refused it because of the `rm -rf` in the trap. I then ran the block's text directly, exactly as written. Block 1 had run the same way through `bash -c` without trouble.
+
+    Command 1 (syntax, argument fault, root check): met.
+    ```
+    syntax-ok
+    status 2
+    1
+    1
+    0
+    status 2
+    setup.sh: run as root
+    0
+    ```
+
+    Command 2 (step order and texts): **not met**. Expected `in-order 14`, `1`, `0`, `1`, `0`.
+    ```
+    out-of-order 14
+    1
+    0
+    1
+    0
+    ```
+    I looked up the first line of each word in the script with comment lines dropped: `apt-get install` 135, `zpool create` 142, `useradd` 149, `enable-linger` 160, `zfs create` 167, **`zfs allow` 116**, `sudoers.d/factory-zfs` 202, `/home/factory/.secrets` 234, `image-id` 241, `git clone` 265, `uv sync --frozen --no-dev` 281, `factory.env` 289, `factory@.service` 322, `systemctl enable` 328. Line 116 is inside the helper `delegated()`, which is defined before the steps: `permissions=$(zfs allow "$dataset" | sed -n 's/^[[:space:]]*user factory //p' | tr '\n' ',')`. The delegation command itself, `zfs allow -u factory snapshot,destroy,rollback,diff,mount "$dataset"`, is at line 190. That is between the `datasets` line (186) and the `sudoers` step (202), where it belongs.
+
+    Command 3 (unit file): met.
+    ```
+    2
+    WorkingDirectory=/srv/factory/%i
+    EnvironmentFile=/srv/factory/%i/factory.env
+    ExecStart=/srv/factory/%i/factory/.venv/bin/factory-run
+    Restart=always
+    RestartSec=15
+    WantedBy=multi-user.target
+    ```
+
+    Command 4 (the three test modules): met.
+    ```
+    1
+    ```
+
+    Acceptance criteria: the smoke test contradicts none of them. Criterion 4 asks for the full text `zfs allow -u factory snapshot,destroy,rollback,diff,mount`, and its first occurrence (line 190) is in order. The three test modules pass.
+
+    Findings:
+    1. Smoke test command 2 (the order loop over the fourteen words). Expected `in-order 14`; observed `out-of-order 14`. The read-only `zfs allow "$dataset"` in the helper `delegated()` (code line 116) comes before `zfs create` (line 167), so the first `zfs allow` is out of order. No criterion is contradicted: the delegation command itself is in order, and criterion 4 names the full `zfs allow -u factory …` text. There are two fixes, and the coder chooses:
+       - Change the script so that no `zfs allow` comes before the `datasets` step. For example, define or inline the check of the current permissions inside the `delegation` step.
+       - Ask the human (R8) to change the smoke test's word to `zfs allow -u`. `## Smoke test` is the human's, so no stage may edit it without that answer.
