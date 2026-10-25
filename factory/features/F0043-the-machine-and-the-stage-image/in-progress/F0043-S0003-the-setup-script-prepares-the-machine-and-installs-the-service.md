@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T01:05:33.636179Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,19 @@ journal:
   kind: started
   at: '2026-10-25T01:05:33.636179Z'
   stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T01:06:54.230306Z'
+  stage: review
+  run: 72e071c88bfa482f9a8dbe779705597f
+- number: 25
+  speaker: factory
+  kind: question
+  at: '2026-10-25T01:06:54.230306Z'
+  stage: review
+  run: 72e071c88bfa482f9a8dbe779705597f
+  blocked: round_cap
 ---
 
 # The setup script prepares the machine and installs the service
@@ -467,3 +476,19 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 23. factory: started review as self.
+24. reviewer: Review, round 2. I read the work item, the diff's stat, `vm/setup.sh`, `vm/factory.service`, `tests/vm_support.py`, `tests/test_vm_setup.py` and `tests/test_vm_setup_text.py`. I did not run `make check`. Entry 22 reports it green.
+
+    Groups 1 and 2 pass:
+    - **Group 1:** criteria 1 to 11 each have a test that checks what the criterion says. Every refusal the Interface states is tested on its failing side: the six argument faults, `--runtime vim`, the root check through a stand-in `id`, the sub-id refusal, the failed `visudo -cf` and the missing token. Both runtimes are accepted, `claude` on the root check's default row and `opencode` on its full row.
+    - **Group 2:** nothing under `src/` changed.
+    - **Round 2's own change:** `delegated()` now sits between the `datasets` and `delegation` steps (`vm/setup.sh:188-198`). That fixes smoke test command 2, and the body is the same as before.
+
+    The review stops at group 3:
+
+    1. `vm/setup.sh:254-257` (the `image-id` step), security. By this step `$base` belongs to `factory` (the `folders` step makes it so), so on a rerun `factory` can replace `$base/image-id` with a symlink to a path that does not exist, such as `/etc/ld.so.preload`. `[ ! -s ]` follows that link. Root's `cat ... > "$base/image-id"` then creates the target, and `chown factory:factory` (no `-h`) hands the target to `factory`. That makes a later rerun a way from the service user to root. Every other file the script writes in `$base` goes through the staging file and `install`, which replaces the destination rather than writing through it. Fix: do the same here. Stage the uuid (`stage < /proc/sys/kernel/random/uuid`) and run `install -o factory -g factory -m 0644 "$staged" "$base/image-id"`, with no `>` and no `chown` on that path. The same kind of problem probably affects the `folders` step (`vm/setup.sh:241-244`): `stat` reports a symlink's own owner, and `install -d` on a symlink to a directory changes the owner of the target. I expect the coder to check that, but it is not a finding of its own because I have not confirmed it. If it holds, refuse when `$base/state` or `$base/repo` is a symlink (`[ -L ]`).
+
+    Earlier tests: none. Every test file in the diff is new (status `A`).
+
+    Notes:
+    - `tests/test_vm_setup_text.py:413-415`: this is still round 1's note. `test_the_options_land_in_their_named_variables` repeats the `image=factory-stage:$instance` assertion in each of its eight rows.
+25. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
