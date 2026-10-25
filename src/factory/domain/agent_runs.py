@@ -92,7 +92,6 @@ class AgentRunRequest(BaseModel):
     time_limit: timedelta
     working_directory: AbsolutePath
     environment: dict[str, str] = {}
-    os_user: str | None = None
     resume_session: str | None = None
 
     @field_validator("allowed_decisions")

@@ -1,6 +1,5 @@
 """What every agent runtime shares: its calls' words, refusals and login, and a run's end."""
 
-import math
 import time
 from collections.abc import Mapping, Sequence
 from datetime import timedelta
@@ -23,20 +22,11 @@ FINISH_MESSAGE = "Finish now: give your decision (question if the work is not do
 MINIMUM_RESUME_BUDGET = Decimal("0.50")
 CENT = Decimal("0.01")
 VERSION_TIME_LIMIT = timedelta(seconds=30)
-SUDO_EXECUTABLE = "/usr/bin/sudo"
-SUDO_PREFIX = "sudo:"
-TIMEOUT_EXECUTABLE = "timeout"
-# The factory may not signal root's `sudo`, so the agent's own `timeout` kills at the limit;
-# the factory's kill waits this much longer and fires only when the inner one did not.
-SUDO_GRACE = timedelta(seconds=30)
-# `timeout --signal=KILL` exits 128 + 9; `subprocess` reports a death by SIGKILL as -9.
+# A kill inside a container exits 128 + 9; `subprocess` reports a death by SIGKILL as -9.
 KILL_STATUSES = frozenset({137, -9})
 # podman's `--timeout` ends the container with 255, not 137 (podman 4.9.3, measured 2026-10-24).
 PODMAN_TIMEOUT_STATUS = 255
 CONTAINER_KILL_STATUSES = KILL_STATUSES | {PODMAN_TIMEOUT_STATUS}
-# The agent reads a run's files through its group and must not rewrite what it is told.
-RUN_FILE_MODE = 0o640
-CONTAINER_OS_USER = "a run in a container has no operating-system user"
 
 SHELL_EXECUTABLE = "/bin/sh"
 # Claude Code's name for a token made by `claude setup-token`.
@@ -48,7 +38,7 @@ API_LOGIN_PREFIX = "factory-api-login:"
 LOGIN_USED_PREFIX = "factory-login-used:"
 API_LOGIN_OPTION = "--api-login"
 _SCRIPT_NAME = "factory-login"
-# Run by the call's own shell, as the user the call runs as, so the factory never holds the
+# Run by the call's own shell, so the factory never holds the
 # key or the token and neither stands in any process's arguments. A key in the API file wins,
 # and the token file is not read then. A shell variable cannot hold a zero byte, so the ASCII
 # check counts the bytes left once the allowed ones are deleted.
@@ -197,34 +187,9 @@ def resume_budget(budget: Decimal) -> Decimal:
     return max(quarter, MINIMUM_RESUME_BUDGET)
 
 
-def sudo_prefix(sudo_executable: str, os_user: str) -> list[str]:
-    """The words that start what follows them as `os_user`, failing rather than asking."""
-    return [sudo_executable, "-n", "-u", os_user, "--"]
-
-
-def _limit_argument(time_limit: timedelta) -> str:
-    return f"{math.ceil(time_limit.total_seconds())}s"
-
-
-def launch(
-    argv: Sequence[str],
-    environment: Mapping[str, str],
-    *,
-    os_user: str | None,
-    sudo_executable: str,
-    time_limit: timedelta,
-) -> Launch:
-    """The call of `argv` with `environment`, as `os_user` under its own kill when one is set."""
-    if os_user is None:
-        return Launch(argv=list(argv), env=dict(environment), time_limit=time_limit)
-    # `env -i` drops whatever `sudo` keeps, so the agent sees the given environment alone.
-    assignments = [f"{name}={value}" for name, value in environment.items()]
-    timeout = [TIMEOUT_EXECUTABLE, "--signal=KILL", _limit_argument(time_limit)]
-    return Launch(
-        argv=[*sudo_prefix(sudo_executable, os_user), *timeout, "env", "-i", *assignments, *argv],
-        env={},
-        time_limit=time_limit + SUDO_GRACE,
-    )
+def launch(argv: Sequence[str], environment: Mapping[str, str], *, time_limit: timedelta) -> Launch:
+    """The call of `argv` with `environment` alone, ended by the factory's own kill at the limit."""
+    return Launch(argv=list(argv), env=dict(environment), time_limit=time_limit)
 
 
 def container_launch(
@@ -259,24 +224,16 @@ def version_launch(
 
 def killed_at_limit(
     *,
-    os_user: str | None,
     exit_status: int | None,
     duration: timedelta,
     time_limit: timedelta,
     in_container: bool = False,
 ) -> bool:
-    """Whether a call run as `os_user`, or `in_container`, was ended by its own kill at the limit.
+    """Whether a call `in_container` was ended by the container's own kill at the limit.
 
-    A container's kill at `--timeout` is read as the agent's own `timeout` under `sudo` is,
-    with podman's own status beside the kill's.
+    A call on the host is ended by the factory's own kill, which the process module reports.
     """
-    if in_container:
-        kill_statuses = CONTAINER_KILL_STATUSES
-    elif os_user is not None:
-        kill_statuses = KILL_STATUSES
-    else:
-        return False
-    if exit_status not in kill_statuses:
+    if not in_container or exit_status not in CONTAINER_KILL_STATUSES:
         return False
     return duration >= time_limit
 
@@ -290,11 +247,10 @@ def first_word(output: str) -> str | None:
 
 
 class Starters(BaseModel):
-    """What a runtime starts its calls through: `sudo` and the login files."""
+    """What a runtime starts its calls through: the login files."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    sudo_executable: str
     login_files: LoginFiles
 
 
@@ -311,32 +267,17 @@ def run_launch(
     argv: Sequence[str],
     runtime_environment: Mapping[str, str],
     *,
-    sudo_executable: str,
     time_limit: timedelta,
 ) -> Launch:
     """The call of a runtime's `argv` for `request`, its environment with `runtime_environment`."""
-    return launch(
-        argv,
-        run_environment(request, runtime_environment),
-        os_user=request.os_user,
-        sudo_executable=sudo_executable,
-        time_limit=time_limit,
-    )
+    return launch(argv, run_environment(request, runtime_environment), time_limit=time_limit)
 
 
-def call_refusal(
-    stderr: str, *, printed: bool, timed_out: bool, os_user: str | None, starters: Starters
-) -> str | None:
-    """Why `sudo` or the login shell refused a call, or `None`.
+def call_refusal(stderr: str, *, printed: bool, starters: Starters) -> str | None:
+    """Why the login shell refused a call, or `None`.
 
-    `printed` says the call printed a reply the runtime reads; one that also ended before its
-    time limit was refused by none of them.
+    `printed` says the call printed a reply the runtime reads; such a call was not refused.
     """
-    if (not printed or timed_out) and os_user is not None:
-        sudo_line = line_starting(stderr, SUDO_PREFIX)
-        if sudo_line is not None:
-            # A refused `sudo` is a misconfiguration of the machine, not a stalled agent.
-            return f"{starters.sudo_executable} refused the agent run: {sudo_line}"
     if printed:
         return None
     return login_refusal(stderr, starters.login_files)
@@ -358,22 +299,18 @@ def read_call_end(
     end: CallEnd,
     *,
     time_limit: timedelta,
-    os_user: str | None,
     starters: Starters,
     in_container: bool = False,
 ) -> bool:
     """Whether a call ended at its time limit; a call that was refused is `AgentRuntimeError`."""
-    # The inner kill ends the call as the factory's own would: read as its time limit.
+    # The container's kill ends the call as the factory's own would: read as its time limit.
     timed_out = end.timed_out or killed_at_limit(
-        os_user=os_user,
         exit_status=end.exit_status,
         duration=end.duration,
         time_limit=time_limit,
         in_container=in_container,
     )
-    refusal = call_refusal(
-        end.stderr, printed=end.printed, timed_out=timed_out, os_user=os_user, starters=starters
-    )
+    refusal = call_refusal(end.stderr, printed=end.printed, starters=starters)
     if refusal is not None:
         raise AgentRuntimeError(refusal)
     return timed_out

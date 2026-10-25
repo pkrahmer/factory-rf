@@ -105,7 +105,6 @@ class TaskComposer:
             time_limit=timedelta(minutes=self._role(context.stage).time_limit),
             working_directory=self._boundaries.checkout,
             environment=dict(self._environment),
-            os_user=self._boundaries.settings.agent_user,
         )
 
     def _prompt(self, context: TaskContext, facts: PromptFacts) -> str:

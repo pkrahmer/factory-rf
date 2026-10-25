@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T14:48:23.803148Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-25T14:48:23.803148Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-25T14:52:34.961452Z'
+  stage: doing
+  run: be6fd8eba8ef41eea608bfb89c065347
 ---
 
 # The second user is removed
@@ -253,3 +255,27 @@ Expect: three lines: `[] False`; `False False`; `3 False`
     `lint`: lint: green (0.8 s)
     `test`: ERROR tests/adapters/test_agent_launch_call_end.py - pydantic_core._pydantic_core.ValidationError: 1 validation error for Starters
 12. factory: started doing as self.
+13. coder: The second user is removed from `src`. `make test` has three failures left: two tests still hold the second user's wording and one still expects the old file mode, so two test files need changing (below). Lint, `mypy --strict` over `src` and `tests`, layers, sast, secrets and licenses are green.
+
+    Test changes for the tester:
+    1. `tests/application/test_agent_run_probe_api_login.py`: the constant `DIED` becomes `"the probe run ended died; run claude -p by hand as the factory user to see why"`. Its settings no longer carry an agent user, and criterion 7 asks for `by hand as the factory user`. This is the same change the tester already made to `DIED` in `test_agent_run_probe_opencode.py`. It fixes `test_the_probe_detail_names_the_login_its_run_was_handed[died-api-key]` and `[died-subscription]`.
+    2. `tests/adapters/test_opencode_runtime.py::test_the_call_sees_its_configuration_file_and_only_the_request_s_environment`: the line `assert read_config_modes(tmp_path / "bin") == [0o640]` goes. The Interface removes the `chmod` to `0640`, and criterion 9 (entries 4 and 9: `0o666 & ~umask`) already pins the mode. The test now fails with `assert [420] == [416]`, which is `0o644` under the suite's umask.
+
+    What I built:
+    - `src/factory/adapters/agent_launch.py`: `SUDO_EXECUTABLE`, `SUDO_PREFIX`, `TIMEOUT_EXECUTABLE`, `SUDO_GRACE`, `RUN_FILE_MODE`, `CONTAINER_OS_USER`, `sudo_prefix` and `_limit_argument` are gone. `launch`, `run_launch`, `killed_at_limit`, `call_refusal` and `read_call_end` have the Interface's signatures, and `Starters` holds `login_files` alone. `killed_at_limit` is true only `in_container`, with a status in `CONTAINER_KILL_STATUSES` and the limit reached.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: no `sudo_executable` (neither the parameter nor Claude's property), no refusal of an `os_user` in a container, and no `chmod` of the run files. `SUDO_EXECUTABLE` is out of `__all__`.
+    - `src/factory/adapters/make_commands.py`: `CommandUser`, `user`, `_run_as`, `_refusal` and `_refusal_line` are gone. `run` launches `make` directly as the factory's own user.
+    - `src/factory/domain/agent_runs.py`: `AgentRunRequest` has no `os_user`.
+    - `src/factory/domain/settings.py`: `AGENT_USER_VARIABLE`, `agent_user`, `_agent_user` and the container fault for an agent user are gone. `stage_environment_fault` and `_container_fault` lose their `agent_user` parameter.
+    - `src/factory/application/task.py`: the request carries no `os_user`.
+    - `src/factory/application/preflight.py`: `agent_user_item`, `_AGENT_USER_ITEM` and `_NO_AGENT_USER` are gone. The hints say "the factory user". `_probe_request` and `_opencode_login_hint` lost the `settings` parameter they no longer read.
+    - `src/factory/entry/wiring.py`: `build_boundaries(settings, token, *, hosting=None)`. `_inline_environment(settings)` gives `MakeProjectCommands(settings.checkout)`. `_project_commands`, `project_command_environment`, the agent-user branch of `agent_run_environment` and `_inline_items` are gone. `machine_extras(boundaries, settings, environment)`, and `git_environment` holds three pairs.
+
+    Main choice: in `machine_extras`, the inline branch now appends `agent-environment` directly, because nothing else was left in `_inline_items`. The alternative was to keep `_inline_items` as a one-item wrapper; I rejected it as an indirection with no reason left. Refactor: I read the diff and found nothing more to change beyond the two unused `settings` parameters already listed above.
+
+    Noticed, not touched:
+    - `src/factory/adapters/process.py:90`: a comment still says the agent's own `timeout` ends root's `sudo`. That code path is outside this story's Interface.
+    - `SealedProjectCommands` (`src/factory/application/sealed_runs.py`) now has no caller, as the description says, until S0006.
+    - The Dockerfile and VM-setup tests that mention `FACTORY_AGENT_USER` (tester entry 11).
+
+    The Description is unchanged: the journal did not change the task's meaning beyond criterion 9, which intake already wrote in.

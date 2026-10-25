@@ -6,15 +6,7 @@ from collections.abc import Mapping
 from datetime import timedelta
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict
-
-from factory.adapters.agent_launch import (
-    SHELL_EXECUTABLE,
-    SUDO_PREFIX,
-    Launch,
-    killed_at_limit,
-    launch,
-)
+from factory.adapters.agent_launch import SHELL_EXECUTABLE, Launch
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.application.containers import ContainerRuns
 from factory.application.git import Git
@@ -56,24 +48,6 @@ def _tail(lines: list[str]) -> str:
     return "\n".join(lines[-OUTPUT_TAIL_LINES:])
 
 
-def _refusal_line(lines: list[str]) -> str | None:
-    # Only `sudo` printed: the command itself never ran.
-    printed = [line for line in lines if line.strip()]
-    if not printed or not all(line.startswith(SUDO_PREFIX) for line in printed):
-        return None
-    return printed[-1]
-
-
-class CommandUser(BaseModel):
-    """The operating-system user a project command runs as, how to become it, its environment."""
-
-    model_config = ConfigDict(frozen=True, extra="forbid")
-
-    os_user: str
-    sudo_executable: str
-    environment: dict[str, str]
-
-
 class MakeProjectCommands(ProjectCommands):
     """Runs `make <command>` in the project's directory, where its Makefile is."""
 
@@ -83,63 +57,21 @@ class MakeProjectCommands(ProjectCommands):
         kill_points: KillPoints | None = None,
         *,
         executable: str = "make",
-        user: CommandUser | None = None,
     ) -> None:
-        """Run make from `directory`, as `user` when one is set.
+        """Run make from `directory`, as the factory's own user.
 
         `kill_points` is accepted for uniform wiring only.
         """
         self._directory = directory
         self._kill_points = kill_points
         self._executable = executable
-        self._user = user
-
-    @property
-    def user(self) -> CommandUser | None:
-        """The user the commands run as, or `None` for the factory's own."""
-        return self._user
 
     def run(self, command: str, *, time_limit: timedelta) -> CheckResult:
-        """Run `make --no-print-directory <command>` and judge its result.
-
-        Without a user the run is judged by its exit status alone. With a user it runs
-        through `sudo` as that user: a kill at the limit is a `time_limit` result, and a
-        refusal by `sudo` raises `ProjectCommandError`.
-        """
+        """Run `make --no-print-directory <command>` and judge its result by its exit status."""
         _check_call(command, time_limit)
         argv = [self._executable, "--no-print-directory", command]
-        if self._user is None:
-            return self._run_as_own_user(command, argv, time_limit)
-        return self._run_as(self._user, command, argv, time_limit)
-
-    def _run_as_own_user(self, command: str, argv: list[str], time_limit: timedelta) -> CheckResult:
         started = Launch(argv=argv, env=_without_outer_make(os.environ), time_limit=time_limit)
         result = self._start(command, started, self._directory)
-        return _check_result(command, result)
-
-    def _run_as(
-        self, user: CommandUser, command: str, argv: list[str], time_limit: timedelta
-    ) -> CheckResult:
-        started = launch(
-            argv,
-            _without_outer_make(user.environment),
-            os_user=user.os_user,
-            sudo_executable=user.sudo_executable,
-            time_limit=time_limit,
-        )
-        result = self._start(command, started, self._directory)
-        killed = killed_at_limit(
-            os_user=user.os_user,
-            exit_status=result.exit_status,
-            duration=result.duration,
-            time_limit=time_limit,
-        )
-        # A `sudo:` warning before a kill at the limit is no refusal.
-        refusal = None if killed else _refusal(user, result)
-        if refusal is not None:
-            raise ProjectCommandError(command, refusal)
-        if killed:
-            return _check_result(command, result.model_copy(update={"exit_status": None}))
         return _check_result(command, result)
 
     @staticmethod
@@ -204,15 +136,6 @@ def _check_call(command: str, time_limit: timedelta) -> None:
         raise ValueError(f"time_limit must be positive, not {time_limit}")
     if not _COMMAND_NAME.fullmatch(command):
         raise ProjectCommandError(command, f"invalid command name {command!r}")
-
-
-def _refusal(user: CommandUser, result: ProcessResult) -> str | None:
-    if result.exit_status in (0, None):
-        return None
-    line = _refusal_line(result.stdout.splitlines())
-    if line is None:
-        return None
-    return f"{user.sudo_executable} refused the command: {line}"
 
 
 def _check_result(command: str, result: ProcessResult) -> CheckResult:

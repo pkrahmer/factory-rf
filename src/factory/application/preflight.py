@@ -63,11 +63,6 @@ _HOSTING_ITEM = "hosting-service"
 _AGENTS_ITEM = "agents"
 _VERSION_ITEM = "agent-runtime-version"
 _HOSTING_FILE_ITEM = "token-file"
-_AGENT_USER_ITEM = "agent-user"
-_NO_AGENT_USER = (
-    "FACTORY_AGENT_USER is not set: every agent would run as the factory's user, "
-    "who can read the token file"
-)
 _AGENT_ENVIRONMENT_ITEM = "agent-environment"
 _OPENCODE_ITEM = "opencode"
 _PROBE_ITEM = "agent-run-probe"
@@ -179,14 +174,6 @@ def stage_image_item(image: str, exists: Callable[[], bool]) -> PreflightItem:
     return PreflightItem(name=_STAGE_IMAGE_ITEM, passed=True)
 
 
-def agent_user_item(settings: InstanceSettings, exists: Callable[[Path], bool]) -> PreflightItem:
-    """Check that no agent would run as the factory's user while a token file is there to read."""
-    token_file = settings.token_file
-    if settings.agent_user is None and token_file is not None and exists(token_file):
-        return PreflightItem(name=_AGENT_USER_ITEM, passed=False, detail=_NO_AGENT_USER)
-    return PreflightItem(name=_AGENT_USER_ITEM, passed=True)
-
-
 def agent_environment_item(
     environment: Mapping[str, str],
     is_directory: Callable[[Path], bool],
@@ -271,7 +258,7 @@ def agent_run_probe_item(
     try:
         installed = boundaries.agent_definitions.read(PROBE_AGENT)
         agent = installed.model_copy(update={"budget_usd": PROBE_BUDGET_USD})
-        request = _probe_request(boundaries, settings, agent, environment)
+        request = _probe_request(boundaries, agent, environment)
         stage_environment = stage_environment_of(boundaries)
         stage_environment.prepare(main, MAIN_BRANCH, sync_time_limit=PROBE_TIME_LIMIT)
         sealed = stage_environment.run_agent(request)
@@ -287,8 +274,7 @@ def agent_run_probe_item(
     if result.end_reason != "completed":
         detail = (
             f"the probe run ended {result.end_reason}; "
-            f"run {_runtime_command(settings)} by hand as "
-            f"{settings.agent_user or 'the factory user'} to see why"
+            f"run {_runtime_command(settings)} by hand as the factory user to see why"
         )
         detail += _login_hint(settings, result.login)
         return PreflightItem(name=_PROBE_ITEM, passed=False, detail=detail)
@@ -310,7 +296,7 @@ def _login_hint(settings: InstanceSettings, login: Login | None) -> str:
             "check that it is valid and that its account has credit"
         )
     if settings.agent_runtime == "opencode":
-        return _opencode_login_hint(settings, login)
+        return _opencode_login_hint(login)
     if settings.claude_login_file is None:
         return ""
     return (
@@ -319,13 +305,13 @@ def _login_hint(settings: InstanceSettings, login: Login | None) -> str:
     )
 
 
-def _opencode_login_hint(settings: InstanceSettings, login: Login | None) -> str:
+def _opencode_login_hint(login: Login | None) -> str:
     # opencode reads no subscription token, so the token hint would send the operator astray.
     if login != "none":
         return ""
     return (
-        f"; the agent runs get no API key: log in once as "
-        f"{settings.agent_user or 'the factory user'} with the opencode build's own login, "
+        "; the agent runs get no API key: log in once as "
+        "the factory user with the opencode build's own login, "
         f"or put a key in the file {API_LOGIN_FILE_VARIABLE} names"
     )
 
@@ -346,10 +332,7 @@ def _login_detail(settings: InstanceSettings, login: Login | None) -> str:
 
 
 def _probe_request(
-    boundaries: Boundaries,
-    settings: InstanceSettings,
-    agent: AgentDefinition,
-    environment: Mapping[str, str],
+    boundaries: Boundaries, agent: AgentDefinition, environment: Mapping[str, str]
 ) -> AgentRunRequest:
     checkout = boundaries.checkout
     return AgentRunRequest(
@@ -359,7 +342,6 @@ def _probe_request(
         time_limit=PROBE_RUN_TIME_LIMIT,
         working_directory=checkout,
         environment=dict(environment),
-        os_user=settings.agent_user,
     )
 
 
