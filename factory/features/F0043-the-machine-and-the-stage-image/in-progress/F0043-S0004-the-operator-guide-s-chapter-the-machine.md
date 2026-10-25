@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 434
 comments_read: [6394738591, 6394846270]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-25T07:25:25.532213Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-10-25T07:25:05.360372Z'
   stage: docs
   run: b6e0bf1c86b243a7a1e701defa175dd7
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:25:25.532213Z'
+  stage: smoke-test
 ---
 
 # The operator guide's chapter "The machine"
@@ -271,3 +280,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 97d9666fa5e7 at 2026-10-25T07:15:18Z)
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
+18. factory: started smoke-test as vm.
