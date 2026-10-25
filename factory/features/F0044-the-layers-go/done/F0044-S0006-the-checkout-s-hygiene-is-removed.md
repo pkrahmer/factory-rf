@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -197,6 +197,11 @@ journal:
   at: '2026-10-25T16:41:50.799636Z'
   stage: smoke-test
   run: a1ed1fb749984ab2aa752235d11e27a7
+- number: 35
+  speaker: factory
+  kind: done
+  at: '2026-10-25T16:43:11.075042Z'
+  stage: approval
 ---
 
 # The checkout's hygiene is removed
@@ -683,3 +688,4 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     Findings: none.
 
     Open: nothing.
+35. factory: done (pull request merged); cost: 15 runs, 23.4 min, 170 turns, 601676 tokens in (6444450 more from cache), 74565 out, $6.61
