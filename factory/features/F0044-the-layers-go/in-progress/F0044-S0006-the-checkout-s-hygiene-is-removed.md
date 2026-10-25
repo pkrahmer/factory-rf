@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-25T16:01:43.284686Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T16:01:43.278139Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:01:43.284686Z'
+  stage: intake
+---
+
 # The checkout's hygiene is removed
 
 ## Description
@@ -74,3 +101,6 @@ EOF
 Expect: three lines: `gone`; `21 []`; `False False 3.0`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as self.
