@@ -18,7 +18,6 @@ dead-code src/factory/adapters/work_item_markdown.py: unused variable 'kwargs'
 dead-code src/factory/adapters/work_item_markdown.py: unused method 'export'
 dead-code src/factory/application/dispatcher.py: unused function 'unhandled_kinds'
 dead-code src/factory/application/stage.py: unused variable 'next_stage'
-dead-code src/factory/application/undo.py: unused variable 'restored_work_item'
 dead-code src/factory/domain/agent_runs.py: unused property 'ok'
 dead-code src/factory/domain/cost_records.py: unused variable 'attempt'
 dead-code src/factory/domain/cost_records.py: unused property 'ok'
@@ -35,3 +34,4 @@ similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime:
 similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: started = due_leftovers_launch(self._starters, request.os_user, own_identity().user)
 dead-code src/factory/adapters/clock.py: unused class 'ManualWaiter'
 dead-code src/factory/adapters/process.py: unused variable 'output_abandoned'
+dead-code src/factory/application/take.py: unused variable 'restored_work_item'
