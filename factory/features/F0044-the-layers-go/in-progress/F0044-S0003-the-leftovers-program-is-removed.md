@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T13:30:58.417483Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-10-25T13:30:36.947179Z'
   stage: doing
   run: 4dab8f09754d47c38aa9b6a5ba1c5893
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:30:58.417483Z'
+  stage: tests
 ---
 
 # The leftovers program is removed
@@ -354,3 +363,4 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     One thing to watch: the module already imports `REPLY` from `adapters.opencode_stand_in`, so one of the two imports needs an alias (for example `REPLY as CLAUDE_REPLY`).
 
     The code is unchanged since 934c3efa. Entry 17 recorded `check: green`; I did not run `make check` again in this run because no code changed. Still open from entry 17: `tests/leftovers_runtime_support.py` stays for S0005, and `make duplicates` reported 4 findings as gone. The journal did not change what the task means, so the Description stays as it is.
+22. factory: started tests as self.
