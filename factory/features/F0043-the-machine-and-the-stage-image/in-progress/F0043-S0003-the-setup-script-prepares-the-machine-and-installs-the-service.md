@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T01:39:30.240072Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -267,6 +263,19 @@ journal:
   kind: started
   at: '2026-10-25T01:39:30.240072Z'
   stage: review
+- number: 47
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T01:40:56.408079Z'
+  stage: review
+  run: d43654a0aa7e4fa88170befe4ea19588
+- number: 48
+  speaker: factory
+  kind: question
+  at: '2026-10-25T01:40:56.408079Z'
+  stage: review
+  run: d43654a0aa7e4fa88170befe4ea19588
+  blocked: round_cap
 ---
 
 # The setup script prepares the machine and installs the service
@@ -820,3 +829,23 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 46. factory: started review as self.
+47. reviewer: Review, round 2, after the human's entry 37. I read the work item, the diff's stat and name-status, all of `vm/setup.sh`, `tests/vm_support.py` and the tests for criteria 12 to 14 in `tests/test_vm_setup_text.py` (lines 430-594). I did not run `make check`; the coder's entry 45 reports it green (`check: green`, coverage 99.20 %).
+
+    Group 1 passes. Criteria 1 to 12 keep the tests that entries 36 and 39 checked.
+    - Criterion 13: `test_the_checkout_files_are_installed_only_in_the_run_that_cloned` checks two things for each of `tools` and `service`. The `install` must sit directly under an `if` that tests a variable assigned in the clone's branch (`cloned=yes`, `vm/setup.sh:291`). And the step must have a `setup: <step>: ... differs from the checkout; not installed` line (`vm/setup.sh:315`, `:360`).
+    - Criterion 14: `test_the_folders_step_refuses_a_link_at_state_or_repo` checks, before the first `install -d`, the `-L` tests of `$base/state` and `$base/repo`, the line to `>&2` and the `exit 1` (`vm/setup.sh:245-248`).
+
+    Group 2 passes: nothing under `src/` changed.
+
+    The review stops at group 3. Root still writes through one more path that `factory` controls:
+
+    1. `vm/setup.sh:255-256` (`folders`, `/home/factory/.secrets`). This is the same hole the human closed for `state` and `repo` in entry 37. `useradd` makes `factory` the owner of `/home/factory`, so on a rerun `factory` can replace `.secrets` with a link to a directory, such as `/etc`. `owned_with_mode` then fails: `[ -d ]` follows the link, and `stat` without `-L` reports the link's own mode, `777`. So root runs `install -d -o factory -g factory -m 0700` on the link. That command opens the existing directory through the link and changes its owner and mode, which gives `factory` the target. Fix: make the folder as `factory` itself, `as_factory install -d -m 0700 /home/factory/.secrets`. It is factory's own home, so a planted link reaches only what `factory` may write anyway (entry 26's rule), and the owner `factory:factory` and mode `0700` the Interface asks for still hold. The other fix would be a `-L` refusal like the one at `vm/setup.sh:245`, but that is a new refusal, which needs the human's word.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`); the only earlier files the diff changes are `docs/operator-guide.md` and `docs/project-guide/README.md`, which are not tests.
+
+    Open, not a finding: the Interface's `tools` and `service` steps still say "unless identical", which entry 37 replaced. Criterion 13 and the Description carry the change. A reviewer may correct only the Description, so the Interface is left for the human (entries 39 and 45 note this too).
+
+    Notes:
+    - `tests/vm_support.py:5`: imports the private `_uncommented` from `dockerfile_support`.
+    - `tests/test_vm_setup_text.py:491` (`chown-keeps-links`): the row passes without checking any line, because the script holds no `chown`.
+48. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
