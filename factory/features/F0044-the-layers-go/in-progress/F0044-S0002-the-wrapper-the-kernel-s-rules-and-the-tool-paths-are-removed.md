@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 445
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T12:43:18.755593Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-25T12:42:58.310162Z'
   stage: review
   run: 1cfe7bc129534c7bb7d4d50554e2c2f3
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T12:43:18.755593Z'
+  stage: doing
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -258,3 +267,4 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
      - `tests/application/test_task.py`
      - `tests/application/test_task_acceptance.py`
      - `tests/application/test_task_os_user.py`
+10. factory: started doing as self.
