@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 433
 comments_read: [6394400610]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T06:35:33.562367Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-25T06:35:33.562367Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-25T06:38:42.495463Z'
+  stage: doing
+  run: 522abd557b2c408488e9ab86f6392bc2
 ---
 
 # The setup script writes as factory from its own standard input
@@ -150,3 +152,20 @@ Expect: two lines, `0` and `syntax-ok`
    `lint`: lint: green (0.6 s)
    `test`: ERROR tests/test_vm_setup_writes.py::test_the_helper_writes_its_standard_input_with_the_mode[again] - AssertionError: []
 9. factory: started doing as self.
+10. coder: Built: in `vm/setup.sh`, a helper `write_as_factory <mode> <target>`, defined once right after `as_factory`. It runs `as_factory sh -c 'cat > "$2" && chmod "$1" "$2"' sh "$1" "$2"`, so the text comes from the helper's own standard input. The three writes now call it:
+    - `image-id`: `write_as_factory 0644 "$base/image-id" < /proc/sys/kernel/random/uuid`
+    - askpass: `cat "$staged" | write_as_factory 0755 "$askpass"`
+    - `factory.env`: `cat "$staged" | write_as_factory 0644 "$env_file"`
+
+    Nothing else in the script changed. The `[ ! -s ... ]` and `unchanged` guards stay, so a write still happens only when the text differs. The modes stay the same. No test was touched.
+
+    Main choice: I followed the Interface's `sh -c` command as written. It passes mode and target as positional arguments, not built into the command string, so no path is ever quoted into shell code. The alternative I rejected was `as_factory tee "$target" >/dev/null` followed by a separate `as_factory chmod`. That takes two `runuser` calls per write, and `tee` would make the old `_writes` test count the lines through its `WRITE_FORMS` rather than the helper.
+
+    I wrote the helper's comment without the literal `/dev/stdin`, because the smoke test's `grep -c '/dev/stdin'` counts comment lines too. It now prints `0`, and `sh -n` prints `syntax-ok`. `make check` is green (`check: green`).
+
+    Refactor: I read the diff and nothing needed changing.
+
+    Noticed, not touched: the comment above `as_factory` still says "The text comes through a pipe, since factory may not open root's staging file". That is still true, so I left it. The tester's change to `tests/test_vm_setup_text.py` under the human's answer (a), entry 6, is in entry 8; the coder made no test change.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone

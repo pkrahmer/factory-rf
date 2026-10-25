@@ -111,6 +111,12 @@ as_factory() {
   runuser -u factory -- env HOME=/home/factory "$@"
 }
 
+# cat reads the inherited standard input itself: a process runuser started may not open
+# root's standard input again by name.
+write_as_factory() {
+  as_factory sh -c 'cat > "$2" && chmod "$1" "$2"' sh "$1" "$2"
+}
+
 # Each step gathers what it changed and prints it as its one line, or what it found done.
 changed() {
   changes="$changes; $1"
@@ -260,7 +266,7 @@ echo "setup: folders: $(said "found $base, its state, its repo and /home/factory
 
 changes=
 if [ ! -s "$base/image-id" ]; then
-  as_factory install -m 0644 /dev/stdin "$base/image-id" < /proc/sys/kernel/random/uuid
+  write_as_factory 0644 "$base/image-id" < /proc/sys/kernel/random/uuid
   changed "wrote $base/image-id"
 fi
 echo "setup: image-id: $(said "found $base/image-id")"
@@ -279,7 +285,7 @@ case "$1" in
 esac
 EOF
 if ! unchanged "$askpass"; then
-  cat "$staged" | as_factory install -m 0755 /dev/stdin "$askpass"
+  cat "$staged" | write_as_factory 0755 "$askpass"
   changed "wrote $askpass"
 fi
 # Root's git refuses a repository another user owns, so the clone writes its own askPass.
@@ -346,7 +352,7 @@ PATH=/srv/factory/$instance/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sb
 XDG_RUNTIME_DIR=/run/user/$(id -u factory)
 EOF
 if ! unchanged "$env_file"; then
-  cat "$staged" | as_factory install -m 0644 /dev/stdin "$env_file"
+  cat "$staged" | write_as_factory 0644 "$env_file"
   changed "wrote $env_file"
 fi
 echo "setup: environment: $(said "found $env_file unchanged")"
