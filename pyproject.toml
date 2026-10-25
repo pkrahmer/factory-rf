@@ -14,7 +14,6 @@ dependencies = [
 [project.scripts]
 # The commands v1.1 installs. Each module's entry function is `main() -> int` (factory.entry).
 factory-check-story = "factory.entry.check_story:main"
-factory-confine = "factory.entry.confine:main"
 factory-bill = "factory.entry.bill:main"
 factory-watch = "factory.entry.watch:main"
 factory-run = "factory.entry.run:main"
