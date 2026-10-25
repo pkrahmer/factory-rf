@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 447
 comments_read: [6398446445]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T13:59:18.652992Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-25T13:59:18.652992Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T14:00:37.818140Z'
+  stage: review
+  run: 2da4563cb0664ba5a747048afa7d545a
 ---
 
 # The fresh home is removed
@@ -234,3 +236,34 @@ Expect: six lines: `gone`, `gone`, `gone`, `gone`, `gone`, `False False True`
     `check`: check: green
     `duplicates`: duplicates: 7 new, 34 known, 4 gone
 11. factory: started review as self.
+12. reviewer: no findings
+
+    I reviewed `git diff main...HEAD -- . ':!factory'` against the work item.
+    - **Criteria 1 to 6:** each has the parametrized test that the tester's entry (journal 8) names, and each test checks what its criterion says:
+      - criterion 1: `tests/test_home_reset_removed.py::test_the_modules_of_the_home_reset_are_gone`
+      - criterion 2: `tests/test_home_reset_removed.py::test_the_names_of_the_home_reset_are_gone`, 11 rows, including the exact `__init__` parameters
+      - criterion 3: `tests/domain/test_settings_opencode_folders_ignored.py`, with the `.local/x` row and the `/etc` row that used to be refused
+      - criterion 4: `tests/application/test_sealed_runs_no_home.py`, where both rows check that the file is kept and that `check_seal`, and the command row also checks that the inner command ran exactly once
+      - criterion 5: `tests/domain/test_settings_agent_files_stay.py`, plus the existing `tests/application/test_container_environment.py`, unchanged
+      - criterion 6: `tests/domain/test_containers_beneath_or_at.py`, 7 rows
+    - **Check:** the factory's `make check` after the coder was green (journal 10).
+    - **Architecture:** the change only removes code, plus one move down within `domain`. `beneath_or_at` moved unchanged to `src/factory/domain/containers.py:37`. `fake_containers` imports it from there. Nothing in `src/` still mentions a removed name.
+    - **Security:** no marker or baseline entry was added.
+    - **Quality:** the docstrings of `run_sealed` and `SealedProjectCommands.run` no longer mention the reset. No dead imports are left: `sys` is still used in `wiring.py`.
+    - **`make duplicates` (7 new):** I ran it and read the new findings.
+      - The claude_runtime/opencode_runtime pairs are the known pairs at new line numbers, now that `LOGIN_STATE_FILE` is gone.
+      - The fake_containers/podman_runs and podman_runs/zfs_snapshots pairs, and the vulture findings for `FakeContainerRuns`, `calls` and `FakeSnapshots`, come from code this diff does not touch.
+    - **Work item:** the Description, Interface and criteria match what was built, and the journal names the main decision and the option rejected (keeping `home` as a no-op parameter).
+
+    Earlier tests:
+    - tests/adapters/test_home_files.py: deleted, under the human's leave (story Interface, decision 20 of `feature.md`)
+    - tests/adapters/test_sudo_agent_home.py: deleted, under the human's leave (decision 20)
+    - tests/application/test_agent_home_resets.py: deleted, under the human's leave (decision 20)
+    - tests/domain/test_agent_home.py: deleted, under the human's leave (decision 20)
+    - tests/domain/test_settings_opencode_folders.py: deleted, under the human's leave (decision 20)
+    - tests/entry/test_fresh_home.py: deleted, under the human's leave (decision 20)
+    - tests/entry/test_wiring_agent_home.py: deleted, under the human's leave (decision 20)
+    - tests/home_files_support.py: deleted, under the human's leave (decision 20)
+    - tests/test_wrapper_search.py: the set loses `factory.adapters.agent_home` and the test keeps its name, under the human's leave (decision 20)
+    - tests/entry/test_wiring.py: the set loses `factory.entry.fresh_home` and the test keeps its name, under the human's leave (decisions 20 and 33(a))
+    - tests/entry/test_wiring_stage_environment.py: the assertion `boundaries.agent_home is None` is gone and the test keeps its name, under the human's leave (decision 20)
