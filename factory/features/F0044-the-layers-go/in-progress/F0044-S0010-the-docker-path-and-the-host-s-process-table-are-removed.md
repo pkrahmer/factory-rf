@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 453
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T20:09:56.151653Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-25T20:09:56.151653Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T20:13:00.196789Z'
+  stage: docs
+  run: 3b4d2d0c5c044bd6b84aae1e5b004216
 ---
 
 # The Docker path and the host's process table are removed
@@ -224,3 +226,33 @@ Expect: three lines: `0`; `helper-moved`; `gone`
    - tests/test_vm_setup_writes.py: human's leave, decision 26
    - tests/vm_support.py: human's leave, decision 26
 10. factory: started docs as self.
+11. documenter: Docs round 0: no findings. The diff and the Interface agree on everything the docs state. I ran no `make check`, because I changed documents only; `make documents` printed `documents ok`.
+
+    Files I changed:
+    - `docs/operator-guide.md`:
+      - Deleted the chapters `## The machine's image` and `## Container runtimes`, and the sections *The init* and *The entrypoint*.
+      - *The image on the cost records* now sits under `## The machine` and names the file `FACTORY_IMAGE_ID_FILE` names.
+      - `## The container: compose, entrypoint and health check` is now `## The preflight and the health check`. *The hosting-service token* is rewritten for `/home/factory/.secrets` and `vm/git-credential-factory`, keeping the allow list and the four `token-file` faults, with no Compose, `image/secrets/` or `docker exec`. *The health check* keeps what `factory-health` reads and prints, with no Docker interval and no `restart:`. The preflight sections are unchanged, so their references still find them.
+      - *The stage image* now says a pin is changed in `vm/Dockerfile` alone and checked with `uv run pytest tests/test_stage_image.py`. I added *Update the pins* as a subsection there, without `image/compose.yml`, `sudo` or `tests/test_image.py`.
+      - The intro has one line pointing to the tag `v1.1`, and the list at the top follows the chapters.
+      - Step 11 (`tools`) and *The rebuild after a merge* name `vm/git-credential-factory`.
+      - *The agent runtime* and *Running on opencode*: the login token and the API key are the files in `/home/factory/.secrets/`.
+      - Removed the paragraphs about the opencode config folder made by the image, and the probe sentence about an image built before it.
+      - Smaller fixes to `docker system df`, "the entrypoint", "the image ships the agents" and the `FACTORY_IMAGE_ID_FILE` row. The `FACTORY_CHECKOUT` and `FACTORY_STATE` paragraph, the *Install* paragraph and the references to the removed headings are corrected.
+    - `docs/project-guide/processes-and-checks.md`, *Starting a process*: the kill is now `os.killpg` on the child's process group, with no process table and no wait for the group. The section is renamed *Killing a process group*. A grandchild that takes a group or session of its own is not killed. The `factory.domain.sessions` paragraph is removed.
+    - `docs/project-guide/README.md`: removed the `factory.domain.sessions` mention and the lines for `compose_support.py`, `entrypoint_support.py` and `leftovers_support.py`. Removed the fixtures `compose_service` and `image_layout` from the `conftest.py` line. Rewrote the `dockerfile_support.py` line for what it now holds.
+    - `docs/project-guide/agents.md`: removed the sentence saying the image makes `.config/opencode`. This was beyond the criterion, but it was stale because of this story.
+    - `docs/decisions.md`: added the closing line to the 13 entries the criterion lists, 12 with "Replaced by the machine of v1.2 (`vm/`), F0044-S0010." and the session entry with "The process group is killed; no agent code runs on the host since v1.2, F0044-S0010."
+    - `README.md`: the run pointer now goes to `vm/setup.sh` and *The machine*; no `docker compose` or `image/` is left.
+
+    Cross-read and found current: `docs/project-guide/stage-environment.md`, `stages.md`, `watching.md`, `costs.md`, `work-items.md` and the rest of `docs/project-guide/README.md`. The remaining operator-guide chapters are also current.
+
+    Stale text I did not touch:
+    - `docs/operator-playbook.md` is the human's and still names `docker compose -f image/compose.yml`, `image/secrets/`, Docker Desktop and the entrypoint umask, in the run steps, the secrets bullet, the "Where it went wrong" tables and the plan list.
+    - The last bullet of the decision *"The machine of v1.2 …"* near the end of `docs/decisions.md` still says "Open: F0044 removes the Docker path". It is now partly done. Whoever closes the feature should decide on it, since the criterion did not list it.
+    - Left to the human's changes 10 and 11, as the reviewer noted: `pyproject.toml:142` (mutmut `also_copy` lists `image/`), `.gitignore:15-16` and `demo/todo-service/README.md`.
+    - The operator guide's wording about `FACTORY_IMAGE_ID_FILE` keeps the code default `/opt/factory/image-id`, which `src/factory/domain/settings.py` still has; the VM overrides it. If that default should go, it is a code change for the coder.
+
+    `check`: check: green (not run again: passed on tree 3b7c47a1e17a at 2026-10-25T20:06:21Z)
+    `secrets`: secrets: green (2.4 s)
+    `documents`: documents ok

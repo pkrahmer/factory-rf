@@ -1,6 +1,6 @@
 # Operator guide
 
-The guide for the person who runs the factory this repository implements: how to install and configure an instance, which stops it can reach and what to do about each. The machine of v1.2, a VM that runs the instance's stages in containers on a ZFS dataset, is described in "The machine"; v1.1's image is described in "The machine's image".
+The guide for the person who runs the factory this repository implements: how to install and configure an instance, which stops it can reach and what to do about each. The machine of v1.2, a VM that runs the instance's stages in containers on a ZFS dataset, is described in "The machine". An operator of v1.1's long-lived container finds its guide at the tag `v1.1`; this guide describes the VM alone.
 
 - "Install"
 - "Configuration"
@@ -9,9 +9,7 @@ The guide for the person who runs the factory this repository implements: how to
 - "The project's make targets"
 - "The agent runtime"
 - "The machine"
-- "The machine's image"
-- "The container: compose, entrypoint and health check"
-- "Container runtimes"
+- "The preflight and the health check"
 - "The factory log and the health status file"
 - "The stops"
 - "What a stage run shows"
@@ -47,7 +45,7 @@ The guide for the person who runs the factory this repository implements: how to
 
 Install v1.1 only on a repository v1 has not worked in, or whose v1 work items are archived or discarded: v1.1 starts fresh, and nothing detects a v1 work item.
 
-Install the factory with `uv sync`, then check the installation with `make check`; it ends with the line `check: green`. The machine's image (see "The machine's image") is the usual way to run an instance: it carries the factory, the agent runtime and the pinned tools. Then set the instance's environment as described under "Configuration".
+Install the factory with `uv sync`, then check the installation with `make check`; it ends with the line `check: green`. `vm/setup.sh` is the way to run an instance (see "The machine"): it makes the VM, installs the factory and the service, and the stage image carries the agent runtime and the pinned tools. Then set the instance's environment as described under "Configuration".
 
 ## Configuration
 
@@ -61,13 +59,13 @@ One factory instance runs one project and is told what it needs through environm
 | `FACTORY_STATE` | no | The state directory (`health.json`, the factory log, the runs), an absolute path. Default `/state`; unset or blank gives the default. A relative path is refused with `FACTORY_STATE` as the variable and `is not an absolute path`. `factory-health --state-directory <it>` reads the same place. |
 | `GIT_USER_NAME` | no | Name of the factory's commits. Default `factory`. |
 | `GIT_USER_EMAIL` | no | Email of the factory's commits. Default `factory@noreply.invalid`. |
-| `FACTORY_IMAGE_ID_FILE` | no | The file that holds the identity of the image the instance runs on. Default `/opt/factory/image-id`. |
+| `FACTORY_IMAGE_ID_FILE` | no | The file that holds the identity of the image the instance runs on. Default `/opt/factory/image-id`; `vm/setup.sh` sets `/srv/factory/<instance>/image-id`. |
 | `FACTORY_CLAUDE_HOME` | no | The directory where the agents are installed (`<it>/agents/<role>.md`). Default `$HOME/.claude`, or `/home/agent/.claude` when `HOME` is unset or blank. |
 | `FACTORY_CLAUDE` | no | Claude Code's executable, used when the runtime is `claude`. Default `claude`. |
 | `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it under Claude Code | The version of Claude Code the image pins (`2.1.296`). The image sets it; a missing or blank value is read as not pinned. |
 | `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default; the image sets it to `/home/factory/.secrets/hosting-token`. |
-| `FACTORY_CLAUDE_LOGIN_FILE` | no | The file that holds the agent's login token, made with `claude setup-token`, as plain ASCII text. A blank value counts as unset. No default; the image sets it to `/home/agent/.claude-token`. See "The agent runtime" and "The agent's login token". |
-| `FACTORY_API_LOGIN_FILE` | no | The file that holds the agent's Anthropic API key, as plain ASCII text. A blank value counts as unset. No default; the image sets it to `/home/agent/.anthropic-api-key`. A key in it wins over the token. See "The agent's API key". |
+| `FACTORY_CLAUDE_LOGIN_FILE` | no | The file that holds the agent's login token, made with `claude setup-token`, as plain ASCII text. A blank value counts as unset. No default; the environment file sets it to `/home/factory/.secrets/claude-token`. See "The agent runtime" and "The agent's login token". |
+| `FACTORY_API_LOGIN_FILE` | no | The file that holds the agent's Anthropic API key, as plain ASCII text. A blank value counts as unset. No default; the environment file sets it to `/home/factory/.secrets/anthropic-api-key`. A key in it wins over the token. See "The agent's API key". |
 | `FACTORY_MIN_FREE_GB` | no | The least free space, in whole gigabytes of 10^9 bytes, at least 1. Default 5; unset or blank gives the default. Anything else (`0`, `-1`, `2.5`, `five`) is refused with `FACTORY_MIN_FREE_GB` as the variable. It guards the disk: when the work directory (the checkout's parent) or the state directory has less free space, the tick stops with `disk_low` (see "The stops of the tick"). |
 | `FACTORY_PROVIDER_LIMIT_STATUS` | no | The HTTP status a provider answers with when its spend limit is reached. Default 428; unset or blank gives the default. A value of ASCII digits from 100 to 599 sets it; anything else is refused with `FACTORY_PROVIDER_LIMIT_STATUS` as the variable. See "A provider's spend limit". |
 | `FACTORY_PROVIDER_LIMIT_MESSAGE` | no | A regular expression (Python `re.search`, as written, case-sensitive unless it says otherwise) for the text the gateway returns with the limit. Unset or blank means none. A value that is not a regular expression is refused with `FACTORY_PROVIDER_LIMIT_MESSAGE` as the variable. See "A provider's spend limit". |
@@ -91,13 +89,13 @@ The VM the instance runs on, with the dataset and the stage image, is prepared b
 
 A required variable that is missing, empty or only spaces is refused. The two commit-identity variables are decided one by one: a half that is unset or only spaces falls back to its own default, so the commits are `factory <factory@noreply.invalid>` unless you set them. No preflight item checks the identity.
 
-The image identity is read from the file, stripped, so that a rebuild of the image with the same build argument cannot keep an old preflight stamp valid. The image build generates the file (see "The machine's image"). A file that does not exist, cannot be read or holds only spaces is refused with `FACTORY_IMAGE_ID_FILE` as the variable. The variable `FACTORY_IMAGE` is only a label of the build and is never read as the identity.
+The image identity is read from the file, stripped, so that a rebuild of the image with the same build argument cannot keep an old preflight stamp valid. `vm/setup.sh` makes the file and you renew it after every build of the stage image (see "The stage image"). A file that does not exist, cannot be read or holds only spaces is refused with `FACTORY_IMAGE_ID_FILE` as the variable. The variable `FACTORY_IMAGE` is only a label of the build and is never read as the identity.
 
 A blank value of the three optional variables above counts as unset. The token is read once, when the boundaries are built, from the file `FACTORY_TOKEN_FILE` names, stripped of surrounding whitespace. An unset variable, a file that does not exist or cannot be read, and a file that holds only spaces are each refused with `FACTORY_TOKEN_FILE` as the variable; the message names the path and never the token. The token reaches the hosting service (PyGithub) from the factory process, and git only through its credential helper, `/usr/local/bin/git-credential-factory`, which reads the same file (see "The hosting-service token").
 
 The repository's `owner/name`, which the hosting service needs, is taken from `FACTORY_REPOSITORY_URL`: `https://host/owner/name(.git)`, `ssh://git@host/owner/name(.git)` or `git@host:owner/name(.git)`. Any other URL is refused with `FACTORY_REPOSITORY_URL` as the variable. `factory-run` builds the boundaries from them when it starts.
 
-The checkout and the state directory are settings: `FACTORY_CHECKOUT` and `FACTORY_STATE`. The image leaves both unset, so a compose instance keeps `/work/checkout` and `/state`; the VM of v1.2 sets both under `/srv/factory/<instance>` (see "The machine"). `FACTORY_STATE_DIRECTORY` and any other variable the table does not name are ignored.
+The checkout and the state directory are settings: `FACTORY_CHECKOUT` and `FACTORY_STATE`. Unset, they keep `/work/checkout` and `/state`; the VM sets both under `/srv/factory/<instance>` (see "The machine"). `FACTORY_STATE_DIRECTORY` and any other variable the table does not name are ignored.
 
 ### A repository URL with a password is refused
 
@@ -115,7 +113,7 @@ After an iteration the instance pauses 15 seconds when the tick found activity. 
 
 ### The checkout is cloned when it is missing
 
-The checkout lies at `/work/checkout`. When that directory has no `.git`, the instance clones the repository into it. A checkout that has a `.git` is kept as it is: the factory does not check it, does not seal it, does not clone it again and removes no repository nested in the work tree. What an agent can reach is bounded by the container it runs in (see "Users and directories"), not by checks on the checkout.
+The checkout lies at `/work/checkout`. When that directory has no `.git`, the instance clones the repository into it. A checkout that has a `.git` is kept as it is: the factory does not check it, does not seal it, does not clone it again and removes no repository nested in the work tree. What an agent can reach is bounded by the container it runs in (see "What the container can and cannot see"), not by checks on the checkout.
 
 A folder with files and no `.git` is still refused: git will not clone into a non-empty directory and the iteration fails. Delete the checkout directory and let the next iteration clone it again. The checkout is disposable (see "The stops of the tick"), so nothing is lost.
 
@@ -172,33 +170,26 @@ The take keeps the write paths. It copies out of the dataset only the changed pa
 
 **The agent's login token.** The login is a token, made once for all instances and the Podman machine:
 
-1. Run `claude setup-token`, on the host where Claude Code is installed, or in a running container: `docker exec -it <container> claude setup-token`.
-2. Save the token it prints, with nothing else in the file, as `image/secrets/claude-token` (git ignores the folder). On Windows write it as plain text without a byte-order mark, for example `Set-Content -NoNewline -Encoding ascii image/secrets/claude-token <token>`: PowerShell 5's `>` writes UTF-16, which is not read as the token.
-3. Set the file's permissions for your host so that the factory's user can read it. Linux: `chmod 0440 image/secrets/claude-token`, with the file owned by that user or its group. Windows and macOS: keep the folder in your own user account, where other accounts cannot read it.
+1. Run `claude setup-token`, on the host where Claude Code is installed, or on the VM as `factory`.
+2. Save the token it prints, with nothing else in the file, as `/home/factory/.secrets/claude-token` (see "The machine", step 8 of "On GCP, step by step"). If you write it on Windows, use plain text without a byte-order mark, for example `Set-Content -NoNewline -Encoding ascii claude-token <token>`: PowerShell 5's `>` writes UTF-16, which is not read as the token.
+3. Install it with `install -m 0600 -o factory -g factory`, as the steps of "The machine" show, so that only the factory's user can read it.
 
-Compose mounts the file read-only and the image sets `FACTORY_CLAUDE_LOGIN_FILE` to its path. Every instance and the Podman machine use the same file and need no login of their own. A missing host file makes Compose refuse to start, instead of creating a folder in its place.
+The environment file sets `FACTORY_CLAUDE_LOGIN_FILE` to its path, and the agent's container mounts it read-only. The file must exist, even empty: podman refuses to mount a missing one.
 
-An empty file means no token, and the agent then needs the manual login:
-
-```
-docker exec -it <container> claude
-```
-
-That login is kept in the volume `claude-home`, and survives `docker compose down` and `up`. Since F0044-S0001 the runtime no longer sets `CLAUDE_CONFIG_DIR`, so `claude` keeps its `.claude.json` in the home's root.
+An empty file means no token, and the agent then needs the manual login: run `claude` once as `factory` on the VM. Since F0044-S0001 the runtime no longer sets `CLAUDE_CONFIG_DIR`, so `claude` keeps its `.claude.json` in the home's root.
 
 **The agent's API key.** An instance can run its agents on an Anthropic API key instead of the subscription, for example at a workplace that has a key and no subscription. This repository's own build stays on the subscription.
 
-1. Save the key, with nothing else in the file, as `image/secrets/anthropic-api-key` (git ignores the folder), as plain ASCII text. On Windows use `Set-Content -NoNewline -Encoding ascii`, as for the token: a file saved as UTF-16 stops the run with `agent runtime failed: cannot read the agent's API login file <path>: not ASCII text`. A file that is a folder or unreadable stops it with `...: cannot be read`. No call is made in either case.
+1. Save the key, with nothing else in the file, as `/home/factory/.secrets/anthropic-api-key`, as plain ASCII text. On Windows use `Set-Content -NoNewline -Encoding ascii`, as for the token: a file saved as UTF-16 stops the run with `agent runtime failed: cannot read the agent's API login file <path>: not ASCII text`. A file that is a folder or unreadable stops it with `...: cannot be read`. No call is made in either case.
 2. Set the file's permissions as for the token file.
-3. To give one instance its own key, point that instance's compose calls at another host file with `FACTORY_API_KEY_FILE=/path/to/file docker compose ...`. The default is `image/secrets/anthropic-api-key` beside `compose.yml`.
+3. An instance has its own file: the VM holds one instance, and the file is in its `factory` user's folder.
 
-Compose mounts the file read-only and the image sets `FACTORY_API_LOGIN_FILE` to its path.
+The environment file sets `FACTORY_API_LOGIN_FILE` to its path, and the agent's container mounts it read-only.
 
-- The host file must exist, even empty, or Compose refuses to start (as for `claude-token`). An empty file means no API key.
-- Several instances on one machine may differ: the instance that stays on the subscription keeps an empty file while another has a key in its own file.
+- The file must exist, even empty, or podman refuses to mount it (as for `claude-token`). An empty file means no API key.
 - A key in the file wins over the token, which is not read then. Anything else in the environment named `ANTHROPIC_API_KEY` is dropped; the file is the only source.
 - The file is read at every call, so a new key applies from the next call, without a restart. The key stands in no argument, run file, result, journal entry, cost record or log, and not in the factory's own environment.
-- Switching back to the subscription means emptying the file and recreating the container (`docker compose up -d --force-recreate`), so that the container sees the file as it is now.
+- Switching back to the subscription means emptying the file; the next call reads it as it is.
 
 Which login is in force: the cost record of each run has the field `login`, which is `subscription`, `none` or the value for the API key (a line written before the field existed lacks it), and the preflight writes one factory-log line for the probe, for example `preflight: agent-run-probe: the agent runs log in with the API key from <file>`. The line comes with each run of the machine's items, so once for each image build.
 
@@ -254,26 +245,24 @@ opencode has no budget flag, so the factory keeps the budget of an opencode run 
 
 ### Running on opencode
 
-An instance runs its agents on Claude Code unless the operator sets `FACTORY_AGENT_RUNTIME=opencode` for that instance's compose calls, as `FACTORY_INSTANCE` is set. The image holds both runtimes: `opencode-ai` is installed from npm at the version `OPENCODE_VERSION` of the Dockerfile, and the image sets `FACTORY_OPENCODE_VERSION` to it.
+An instance runs its agents on Claude Code unless the operator sets `FACTORY_AGENT_RUNTIME=opencode` (`--runtime opencode` of `vm/setup.sh`). The stage image holds both runtimes: `opencode-ai` is installed from npm at the version `OPENCODE_VERSION` of `vm/Dockerfile`, and the environment file sets `FACTORY_OPENCODE_VERSION` to it.
 
 **The login.** An opencode run logs in in one of two ways:
 
 - An API key in the file `FACTORY_API_LOGIN_FILE` names (see "The agent's API key"). Every run is then paid through the API. The subscription token is not used.
-- The login an operator's own build of opencode keeps in the agent's home (single sign-on). Make it once, as the factory user: `docker exec -it <container> <executable> <the build's login command>`, as `claude setup-token` is for Claude Code. The container loses it when it is recreated, unless you mount its folder with a compose override file.
+- The login an operator's own build of opencode keeps in the agent's home (single sign-on). Make it once, as the factory user on the VM: `<executable> <the build's login command>`, as `claude setup-token` is for Claude Code.
 
 The preflight asks for neither: the probe of the agent run shows whether a run can log in.
 
-**Your own build.** Choose an opencode build per compose call with `FACTORY_OPENCODE` (its path in the container, which you mount or install), `FACTORY_OPENCODE_VERSION` (what `--version` prints) and `FACTORY_OPENCODE_MODELS`. The defaults are the image's `opencode-ai`, its pinned version and the three Anthropic ids.
+**Your own build.** Choose an opencode build with `FACTORY_OPENCODE` (its path), `FACTORY_OPENCODE_VERSION` (what `--version` prints) and `FACTORY_OPENCODE_MODELS`. The defaults are the stage image's `opencode-ai`, its pinned version and the three Anthropic ids.
 
-**The models.** The agent files name `opus`, `sonnet` and `haiku`. `FACTORY_OPENCODE_MODELS` maps each to a `<provider>/<model>` id of opencode; the image sets `opus=anthropic/claude-opus-5-5,sonnet=anthropic/claude-sonnet-5-5,haiku=anthropic/claude-haiku-5-5`. Check that an id exists with `docker exec -u agent <container> opencode models anthropic`. A model written with a `/` in an agent file is used as it is.
+**The models.** The agent files name `opus`, `sonnet` and `haiku`. `FACTORY_OPENCODE_MODELS` maps each to a `<provider>/<model>` id of opencode; `vm/Dockerfile` sets `opus=anthropic/claude-opus-5-5,sonnet=anthropic/claude-sonnet-5-5,haiku=anthropic/claude-haiku-5-5`. Check that an id exists with `opencode models anthropic`. A model written with a `/` in an agent file is used as it is.
 
-**The version.** The image pins opencode (`OPENCODE_VERSION` in `image/Dockerfile`, default in `image/compose.yml` too); the item `agent-runtime-version` compares `opencode --version` with `FACTORY_OPENCODE_VERSION`. Change both together, as for Claude Code (see "Update the pins").
+**The version.** The stage image pins opencode (`OPENCODE_VERSION` in `vm/Dockerfile`); the item `agent-runtime-version` compares `opencode --version` with `FACTORY_OPENCODE_VERSION`. The pins are changed in `vm/Dockerfile` alone (see "The stage image").
 
 **The item `opencode`.** See "The preflight's items" for its two faults and what to do about each.
 
 **What opencode keeps in the agent's home.** Sessions, logs and caches in `.local/share/opencode`, `.local/state/opencode` and `.cache/opencode`, for the length of one stage (the dataset's rollback clears them). The configuration in `.config/opencode` is what the next run reads, and an agent that could write it could loosen its own permissions.
-
-The image makes `/home/agent/.config/opencode`, owned by `factory` and read-only to the agent. opencode 1.19.3 makes that folder on its first run and dies (`EACCES ... mkdir`, the probe ends `died`) when it cannot; every recreated container has a fresh home, so without the folder each new container would stop. With the folder in place opencode starts and leaves it empty (its write of a default `opencode.jsonc` fails, and opencode ignores that). The folder's owner refuses the agent's write.
 
 **What differs from Claude Code.**
 
@@ -320,7 +309,7 @@ It holds:
 - `uv`, Claude Code and opencode at exact versions, with the runtimes' environment: `DISABLE_AUTOUPDATER`, `UV_LINK_MODE`, `PYTHONDONTWRITEBYTECODE`, the two version records `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION`, and the opencode model ids `FACTORY_OPENCODE_MODELS`;
 - the agent files (`claude/agents` and `claude/settings.json`) at `/etc/factory/claude`, read-only.
 
-It does not hold what served the long-lived container of `image/Dockerfile`: no second user and no group, no `sudo`, no entrypoint, no `/etc/gitconfig`, no `USER`, `WORKDIR`, `ENTRYPOINT` or `CMD`, no copy of the factory's source or its `uv sync`, no image-id file and no login or token path.
+It holds none of what served v1.1's long-lived container: no second user and no group, no `sudo`, no entrypoint, no `/etc/gitconfig`, no `USER`, `WORKDIR`, `ENTRYPOINT` or `CMD`, no copy of the factory's source or its `uv sync`, no image-id file and no login or token path.
 
 The image only carries the agent files. The sync container copies them into the dataset's `/work/home/.claude` before the base moves (F0042).
 
@@ -332,7 +321,22 @@ podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> <the checkout>
 
 `--build-arg FACTORY_IMAGE=<ref>` sets the label `factory.image`; it defaults to `unlabelled`. The label is not the identity of the image. The settings read the identity from the file `FACTORY_IMAGE_ID_FILE` names, and you renew that file after every build. `vm/setup.sh` makes the file with a fresh uuid when it is missing or empty (see *The script*). Nothing in `make check` builds the image.
 
-`vm/Dockerfile` pins seven Debian packages: `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs` and `npm`. `sudo` is pinned in `image/Dockerfile` alone. To update a pin, change the same lines in both Dockerfiles, following *Update the pins* under "The machine's image" for the shared ones. Check a changed pin with `uv run pytest tests/test_stage_image.py tests/test_image.py`. Until F0044 removes `image/`, `tests/test_stage_image.py` holds the two Dockerfiles to the same pins (the base image, the three versions, the seven Debian packages and the opencode model ids), so a pin changed in one file alone fails it.
+`vm/Dockerfile` pins seven Debian packages: `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs` and `npm`. Nothing in it floats: the base image is named with its digest, and `uv`, Claude Code, opencode and the packages have exact versions. A pin is changed in `vm/Dockerfile` alone and checked with `uv run pytest tests/test_stage_image.py`, which reports any reference that floats (a `FROM` without a digest, an `apt-get install` package without `=version`, `latest`, a download piped into a shell) and checks that each pin has its form.
+
+#### Update the pins
+
+Debian's mirrors keep only a package's current version, so a pinned version that a security or point update replaces stops building: read the new versions with `apt-cache policy <package>` in the new base image and update the digest and the pins together. Edit the line in `vm/Dockerfile`, then run the test:
+
+- Base image: `podman pull <image>`, then take the digest from `podman inspect --format '{{index .RepoDigests 0}}'` and put it after `@sha256:` in the `BASE_IMAGE` default.
+- Debian package: in the base image, `apt-cache policy <package>` shows the version; write it as `name=version`.
+- `uv`: the `UV_VERSION` default. Claude Code: the `CLAUDE_CODE_VERSION` default (three numbers). Claude Code is installed from its npm package, `@anthropic-ai/claude-code`, with its auto-update off (`DISABLE_AUTOUPDATER=1`); the version is in the environment as `FACTORY_CLAUDE_VERSION`, so the preflight can read it.
+- opencode: the `OPENCODE_VERSION` default and the `FACTORY_OPENCODE_MODELS` value. Check the model ids with `opencode models anthropic`.
+
+After a change, rebuild the image and renew its id (see "The rebuild after a merge"); `vm/setup.sh` carries the pins into the environment file.
+
+### The image on the cost records
+
+Every cost record names the image the agent run ran on (the identity from the file `FACTORY_IMAGE_ID_FILE` names). A record made when the instance has no image identity has none.
 
 ### The script
 
@@ -371,7 +375,7 @@ Each step prints one line, `setup: <step>: `, followed by what it changed (joine
 8. `folders`: `/srv/factory/<instance>` with `state` and `repo`, owned by `factory` (mode `0755`), and `/home/factory/.secrets` (mode `0700`). If `state`, `repo` or `/home/factory/.secrets` is a link, the script prints `setup: folders: ...` to standard error and exits 1 before it makes anything in the step: remove the link and run it again. The script sets the secrets folder's owner and mode and never touches a file in it: the secrets you placed stay as they are on every run.
 9. `image-id`: `/srv/factory/<instance>/image-id`, a fresh uuid (mode `0644`) when the file is missing or empty. A rebuilt image needs a new id; renew the file yourself (see *The stage image*).
 10. `checkout`: the factory at `--ref`, cloned as `factory` into `/srv/factory/<instance>/factory`, unless it holds a `.git`.
-11. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `image/` (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
+11. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `vm/git-credential-factory` (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
 12. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`).
 13. `service`: the unit `vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
 
@@ -399,7 +403,7 @@ The rule names `diff -FH` because the factory runs `zfs diff` with those flags a
 
 ### The service
 
-The unit `vm/factory.service` is a systemd template, installed as `factory@.service`; the text after the `@` is the instance. For the default instance it is `factory@vm`. The unit runs as `factory`, with `/srv/factory/%i` as its working directory, reads `/srv/factory/%i/factory.env` and starts `/srv/factory/%i/factory/.venv/bin/factory-run`. `Restart=always` with `RestartSec=15` restarts it fifteen seconds after any exit, in place of Compose's restart policy.
+The unit `vm/factory.service` is a systemd template, installed as `factory@.service`; the text after the `@` is the instance. For the default instance it is `factory@vm`. The unit runs as `factory`, with `/srv/factory/%i` as its working directory, reads `/srv/factory/%i/factory.env` and starts `/srv/factory/%i/factory/.venv/bin/factory-run`. `Restart=always` with `RestartSec=15` restarts it fifteen seconds after any exit.
 
 ```bash
 sudo systemctl start factory@vm      # also stop, restart, status
@@ -635,141 +639,41 @@ sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
 sudo systemctl start factory@vm
 ```
 
-`vm/setup.sh` is idempotent, so run it after every merge: it carries a changed pin of `vm/Dockerfile` into the environment file, updates `uv` and the factory's virtual environment, and reports the rest found. It does not replace an installed `/etc/systemd/system/factory@.service` or `/usr/local/bin/git-credential-factory` that differs from the checkout: it prints that the file differs and leaves it. When a merge changed `vm/factory.service` or `image/git-credential-factory`, remove the installed file and run the script again (see *The two passes*).
+`vm/setup.sh` is idempotent, so run it after every merge: it carries a changed pin of `vm/Dockerfile` into the environment file, updates `uv` and the factory's virtual environment, and reports the rest found. It does not replace an installed `/etc/systemd/system/factory@.service` or `/usr/local/bin/git-credential-factory` that differs from the checkout: it prints that the file differs and leaves it. When a merge changed `vm/factory.service` or `vm/git-credential-factory`, remove the installed file and run the script again (see *The two passes*).
 
-## The machine's image
-
-`vm/Dockerfile` is the stage image of v1.2 (see "The stage image"); `image/Dockerfile` is the machine of v1.1 until F0044. Everything below describes `image/Dockerfile`.
-
-`image/Dockerfile` builds the machine the factory runs on. Nothing in it floats: the base image is named with its digest, Claude Code, opencode, `uv` and the eight Debian tools have exact versions, and the factory's own dependencies are installed by `uv sync --frozen --no-dev` from `uv.lock` alone (the build backend, `hatchling`, is pinned in `pyproject.toml`). `tests/test_image.py` checks this statically; it reports any reference that floats, such as a `FROM` without a digest, an `apt-get install` package without `=version`, `latest`, or a download piped into a shell.
-
-### What the container cannot see
-
-Under Docker Desktop's WSL 2 backend and under Podman's machine on Windows the container has no disk limit, so `df` inside it shows the machine's virtual disk (about 1 TB), not the host drive. A check of free space inside the container therefore fires only on a Linux host or when the container has a real limit. Under either runtime the host drive is watched from outside, and Docker's disk image belongs on a drive with room.
-
-When the disk image has grown and the host drive is full, the space comes back in two steps. Run `fstrim -v /mnt/docker-desktop-disk` in the `docker-desktop` distribution. Then stop Docker and run `compact vdisk` in `diskpart`.
-
-### Build it
-
-Run it from the repository root, with Docker:
-
-```bash
-docker build -f image/Dockerfile -t factory:local .
-```
-
-The build argument `FACTORY_IMAGE` is optional and is only a label (`docker build --build-arg FACTORY_IMAGE=2026-10 ...`); it defaults to `unlabelled`. The identity of the image is not the label. The build generates a fresh id and writes it to `/opt/factory/image-id`, which the settings read. Every rebuild that changes an earlier layer gets a new id, so it invalidates the preflight stamp, even when you pass the same label.
-
-A build of the image with the pins of `image/Dockerfile` is not observed yet: check it once on a running instance. The Dockerfile also copies `claude/` and `template/`.
-
-### Update the pins
-
-The digest of `BASE_IMAGE` and the eight Debian package versions (`git`, `make`, `curl`, `ca-certificates`, `procps`, `sudo`, `nodejs`, `npm`) were read from the official `python:3.12-slim-bookworm` image on 2026-10-17 (Debian 12.15). Debian's mirrors keep only a package's current version, so a pinned version that a security or point update replaces stops building: then read the new versions with `apt-cache policy <package>` in the new base image and update the digest and the pins together.
-
-To update any pin, edit its line and run `uv run pytest tests/test_image.py`:
-
-- Base image: `docker pull python:3.12-slim-bookworm`, then take the digest from `docker inspect --format '{{index .RepoDigests 0}}'` and put it after `@sha256:` in the `BASE_IMAGE` default.
-- Debian package: in the base image, `apt-cache policy <package>` shows the version; write it as `name=version`.
-- `uv`: the `UV_VERSION` default. Claude Code: the `CLAUDE_CODE_VERSION` default (three numbers).
-- opencode: the `OPENCODE_VERSION` default and the `FACTORY_OPENCODE_MODELS` value in `image/Dockerfile`, and the defaults of `FACTORY_OPENCODE_VERSION` and `FACTORY_OPENCODE_MODELS` in `image/compose.yml`; they change with it. Check the model ids with `opencode models anthropic`. `tests/test_opencode_image.py` pins the version and the model ids as well, so it changes with them; run it with `tests/test_image.py`.
-
-### Claude Code
-
-Claude Code is installed from its npm package, `@anthropic-ai/claude-code`, at the pinned version `2.1.296`, with its auto-update off (`DISABLE_AUTOUPDATER=1`). The version is also in the container's environment as `FACTORY_CLAUDE_VERSION`, so the preflight can read it. The pin changes only when you edit the Dockerfile.
-
-### Users and directories
-
-The container runs as `factory` (uid 1000); the agent runs as `agent` (uid 1001). Both have the group `factory-work`.
-
-| Path | Mode and owner | What it means |
-|---|---|---|
-| `/state` | `0755`, `factory:factory` | The agent can read the health file, the log and the stamp, and cannot write them. |
-| `/state/runs` | `2750`, `factory:factory-work` | The files of an agent's run: the agent can read them and cannot write them. |
-| `/home/factory/.secrets` | `0700`, `factory:factory` | The folder where Compose mounts the token file. Only `factory` can enter it, so the agent cannot read the file whatever the file's own mode. |
-| `/work` | `2775`, `factory:factory-work` | Both users can write. |
-| `/work/checkout/.git` | `2750`, `factory:factory-work`; its files `0640` | Git's repository of the checkout. The factory alone writes it. The agent's git reads it (`git status`, `git diff`, `git log`) and cannot create, change, rename or remove anything in it. The work tree around it stays group-writable. |
-| `/etc/gitconfig` | `0644`, `root:root` | Git's system configuration, installed from `image/gitconfig`. The agent's git reads it; the factory's git wrapper does not (it sets `GIT_CONFIG_NOSYSTEM=1`). It names `/work/checkout` as a safe directory, so that the agent can run `git status`, `git diff` and `git log` in the checkout `factory` owns. The agent cannot change the file. |
-| `/home/agent/.claude-token` | the host file's owner and mode (`1001:1002`, `0440` on Linux), mounted read-only | The agent's login token. The agent can read it; it lies outside `/home/factory/.secrets` and outside the volume `claude-home`. |
-| `/home/agent/.anthropic-api-key` | the host file's owner and mode (`1001:1002`, `0440` on Linux), mounted read-only | The agent's API key, or an empty file for none. Like the token file it lies outside `/home/factory/.secrets` and outside the volume `claude-home`. |
-| `/home/agent/.claude` | `3775`, `factory:factory-work` | The agent adds its own files (its `claude` login among them) and cannot change or remove the agents and the settings. |
-
-### The image on the cost records
-
-Every cost record names the image the agent run ran on (the identity from `/opt/factory/image-id`). A record made when the instance has no image identity has none.
-
-## The container: compose, entrypoint and health check
-
-`image/compose.yml` runs the image as the service `factory`, built from the repository root with `image/Dockerfile`. Start it from the repository root:
-
-```bash
-FACTORY_REPOSITORY_URL=https://github.com/you/project.git FACTORY_INSTANCE=main docker compose -f image/compose.yml up -d
-```
-
-| Variable | Meaning |
-|---|---|
-| `FACTORY_REPOSITORY_URL` | Required. The project's repository. Compose refuses to start when it is unset. |
-| `FACTORY_INSTANCE` | Required. This instance's name. Compose refuses to start when it is unset. |
-| `FACTORY_IMAGE` | Optional. Only a label for the build (default `unlabelled`); it is not the image's identity. |
-
-The compose project is named `factory-<instance>`, after `FACTORY_INSTANCE`. The volumes `work` (`/work`), `state` (`/state`) and `claude-home` (`/home/agent/.claude`) outlive the container, and are named `factory-<instance>_work`, `factory-<instance>_state` and `factory-<instance>_claude-home`. Beside them Compose bind-mounts two host files read-only: the agent's login token at `/home/agent/.claude-token` (from `image/secrets/claude-token`; see "The agent's login token") and the hosting token (next section). Two instances on one machine, and v1 beside v1.1, therefore get their own container and volumes and never replace or mount each other's. Renaming an instance changes the project name, so the renamed instance starts with new, empty volumes (a new checkout, a new state directory, and a new `claude` login only when the token file is empty); the old volumes stay until you remove them.
+## The preflight and the health check
 
 ### The hosting-service token
 
-The token lives in one file on the host, `secrets/hosting-token`, beside `image/compose.yml` (`image/secrets/hosting-token`; git ignores the directory). Compose mounts it read-only at `/home/factory/.secrets/hosting-token`, and the image sets `FACTORY_TOKEN_FILE` to that path. The folder `/home/factory/.secrets` is made in the image, `factory:factory`, mode `0700`: only the factory's user can enter it, so the agent (uid 1001) cannot read the file whatever the file's own mode.
+The token lives in one file on the VM, `/home/factory/.secrets/hosting-token`, which you place by hand (see "The machine"); the environment file sets `FACTORY_TOKEN_FILE` to that path. `vm/setup.sh` makes the folder `/home/factory/.secrets` as `factory:factory`, mode `0700`: only the factory's user can enter it, whatever the file's own mode. A stage container never mounts the token (only the host fetches and pushes), so the agent has no path to it.
 
-The folder does the work because the file cannot. A compose secret cannot do it, because Compose ignores its `uid`, `gid` and `mode` outside Swarm mode: the file is a plain bind mount with the host file's owner and mode, which on Windows shows as `-rwxrwxrwx`, owner 0, under Docker Desktop and under Podman alike. A missing host file makes Compose refuse to start; it does not create a folder in its place (`create_host_path: false`).
-
-The host file's permissions still matter: anyone on the host who can read it has the token. Set them by host:
-
-- Linux with Docker: `chown 1000 image/secrets/hosting-token` and `chmod 0400 image/secrets/hosting-token`.
-- Linux with rootless Podman: `chmod 0400 image/secrets/hosting-token` first, then `podman unshare chown 1000 image/secrets/hosting-token`. The host user maps to root in the container, so it no longer owns the file after the `chown`.
-- Windows and macOS: keep the repository in a folder of your own user account that other accounts cannot read.
-
-Only two things read the file: the factory process, once, to hand the token to PyGithub, and git's credential helper, `/usr/local/bin/git-credential-factory`. The helper answers git's `get` with the user name `x-access-token` and the file's content as the password. If `FACTORY_TOKEN_FILE` is unset or the file cannot be read, it prints nothing and exits 1, so a process that cannot read the file gets no credential. For `store`, `erase` and any other operation it prints nothing and exits 0. The factory's git reaches the helper only through the environment the factory gives it; the image sets no `credential.helper`, stores no `.git-credentials` and has no token, secret or password in an `ENV`, an `ARG` or the compose `environment`, so the agent's git has no credential.
+Only two things read the file: the factory process, once, to hand the token to PyGithub, and git's credential helper, `/usr/local/bin/git-credential-factory`. The helper answers git's `get` with the user name `x-access-token` and the file's content as the password. If `FACTORY_TOKEN_FILE` is unset or the file cannot be read, it prints nothing and exits 1, so a process that cannot read the file gets no credential. For `store`, `erase` and any other operation it prints nothing and exits 0. The factory's git reaches the helper only through the environment the factory gives it, so the agent's git has no credential. `vm/setup.sh` installs the helper from `vm/git-credential-factory` (step `tools`, see "The machine").
 
 An agent run's environment is an allow list of six names: `PATH`, `HOME`, `LANG`, `LC_ALL`, `TERM` and `TZ`. The factory builds `PATH` and `HOME` itself and takes the other four from its own environment when it has them. Everything else the factory process holds (`FACTORY_TOKEN_FILE`, `GH_TOKEN`, `GITHUB_TOKEN`, `GIT_ASKPASS`, `SSH_AUTH_SOCK`, any variable of yours) is dropped at the source and never reaches an agent. The factory's own pushes and posts are not affected.
 
 The preflight item `token-file` (see "The preflight's items") checks that the token file exists and that its folder belongs to the factory's user and has no permission bit for group or others. The file's own owner and mode do not count, because a bind mount shows the host's. Its detail is `<path>: <fault>`, with the fault:
 
-- `no token file is set`: `FACTORY_TOKEN_FILE` is unset. Set it (the image does) and start the instance again.
-- `the token file does not exist`: the folder or the file is missing. Put the token in the host file `secrets/hosting-token` that Compose mounts, or correct the path `FACTORY_TOKEN_FILE` names.
-- `the folder <folder> belongs to uid <n>, not to <m>`: the folder is not the factory's user's. Use the image's `/home/factory/.secrets`, or `chown` your folder to that user.
-- `the folder <folder> has mode <mode>; make it 0700`: `chmod 0700` the folder, or use the image's.
+- `no token file is set`: `FACTORY_TOKEN_FILE` is unset. Set it (the environment file does, see "The service") and start the instance again.
+- `the token file does not exist`: the folder or the file is missing. Place the token in `/home/factory/.secrets/hosting-token` (see "The machine"), or correct the path `FACTORY_TOKEN_FILE` names.
+- `the folder <folder> belongs to uid <n>, not to <m>`: the folder is not the factory's user's. Use `/home/factory/.secrets`, or `chown` your folder to that user.
+- `the folder <folder> has mode <mode>; make it 0700`: `chmod 0700` the folder, or use `/home/factory/.secrets`.
 
 The folder is checked first, so a folder the factory's user does not own is reported even when it cannot enter it.
 
-**Checks on a running instance.** Tests cover the files and the helper, but not a real agent run, which needs a container runtime (Docker or Podman) and the image's second operating-system user. Check by hand once after a build, inside the container:
-
-- `docker exec -u agent <container> cat /home/factory/.secrets/hosting-token` and `docker exec -u agent <container> ls /home/factory/.secrets` are refused with `Permission denied`, and `ls -lnd /home/factory/.secrets` shows `drwx------` and uid 1000.
-- As an agent (a run that tries it, or `su` to another user), `printenv` must show no token, `git -C . push origin main` must fail, and a call to the hosting service's API must fail.
-
 **The project commands.** Every project command (`make check`, `lint`, `test`, `secrets`, `duplicates`, `documents`, and the preflight's `lint` on `main`) runs in a check container on the dataset.
 
-### The init
 
-The service sets `init: true`, so the container's first process (PID 1) is the container runtime's own init: Docker's `docker-init` (tini, mounted at `/sbin/docker-init`) or Podman's `catatonit` (mounted at `/run/podman-init`). The init starts the entrypoint, forwards the stop signal to the factory and reaps every process whose parent has ended. Without it the factory's Python would be PID 1 and reap only its own children. Then every agent run killed at its `time_limit` under `sudo` leaves `claude` and what it started as zombies, `[claude] <defunct>` of `agent` with parent 1, until the container restarts. The same holds for the processes of a project command killed at its time limit. A container started without Compose needs `--init` (`docker run --init`, `podman run --init`). Under Podman this is first observed at the shakedown. If under Podman the container does not start because the runtime finds no init binary, or PID 1 is the factory's Python and not `catatonit`, the Compose provider or the Podman machine does not honour `init: true`: note it, and expect the zombies to pile up until the container restarts.
+### The health check
 
-### The entrypoint
-
-`image/entrypoint.sh` is the container's entrypoint. Every line it writes starts with a UTC time stamp. In order, it:
-
-1. checks that the image holds `claude/agents` and `claude/settings.json` under `/opt/factory`; if one is missing it writes `missing <path>` to standard error and exits with status 1;
-2. replaces `agents` in the Claude home with a copy of the image's (an agent file no longer in the image is gone) and copies `settings.json` next to it: `installed agents and settings into <home>`;
-3. creates `/state/runs` if needed and sets its mode to `2750`: `prepared /state/runs`;
-4. writes `starting instance <name>` and starts the factory (`python -m factory.entry.run`) from `/opt/factory` with `exec`, so the factory runs as the init's child, not as PID 1, and no shell stands between them.
-
-It sets no git configuration; the factory's git gets its identity and credential helper from the factory itself. For tests, `FACTORY_OPT`, `FACTORY_CLAUDE_HOME` and `FACTORY_STATE` move the three directories; leave them unset in a container (the factory reads `FACTORY_STATE` too, as the state directory; the image leaves it unset).
-
-### The health check and the restart policy
-
-Docker runs `python -m factory.entry.health` every 30 seconds (10 seconds to answer, three failures to be unhealthy, 60 seconds of grace at the start). It reads `health.json` in the state directory, `/state` unless `--state-directory <path>` names another (on the VM, the directory `FACTORY_STATE` names). With no stop it prints `healthy` and exits 0; when the file is missing it prints `no health status: <path> is missing` and exits 1 (`factory-run` writes an empty status when it starts, so a missing file means the instance has not started or the check reads another state directory; Docker counts the failure only after the 60 seconds of grace); with stops it prints one line per stop and exits 1:
+`factory-health` reads `health.json` in the state directory, `/state` unless `--state-directory <path>` names another (on the VM, the directory `FACTORY_STATE` names; "The service" shows the command). With no stop it prints `healthy` and exits 0; when the file is missing it prints `no health status: <path> is missing` and exits 1 (`factory-run` writes an empty status when it starts, so a missing file means the instance has not started or the check reads another state directory); with stops it prints one line per stop and exits 1:
 
 ```
 preflight_failed (machine): tool:uv: uv is not on the PATH; add it to the image (since 2026-10-12T08:00:00Z)
 ```
 
-So `docker compose -f image/compose.yml ps` shows the container as unhealthy while any repository or machine stop stands, and `docker compose -f image/compose.yml exec factory python -m factory.entry.health` names the stops. The container becomes healthy again by itself when the factory clears the stop. A stop of a work item is not in the health status. The stops this container can show in its health status are in "The stops", with what to do about each.
+The status reads healthy again by itself when the factory clears the stop. A stop of a work item is not in the health status. The stops the health status can show are in "The stops", with what to do about each.
 
-`restart: unless-stopped` brings the container back after a crash or a reboot. A container whose process is dead is left to that policy: the factory builds no watchdog. Under Podman the health check reports `starting`, then the text of a stop in force, with exit 1. Not yet checked on a running instance: `docker compose ps` over a container with a stop in force. Under Podman a machine or host restart does not bring the container back: see "Podman: the restart" under "Container runtimes".
+Nothing runs the check by itself, and the factory builds no watchdog: systemd restarts a process that has died (`Restart=always`, see "The service").
 
 ### The preflight's items
 
@@ -796,8 +700,6 @@ The preflight asks for no `make`, no `claude` and no `opencode` on the factory's
 `agent-run-probe` runs the agent runtime once, with the factory's own arguments: the project's agent `coder` (`factory/agents/coder.md` on `origin/main`) or the installed one, a budget of 0.10 dollar, a fixed one-line prompt, the decision `question` only, a time limit of 2 minutes, with the agent run's environment and a guard that gives no write path. The dataset is prepared for `main` first, as a stage's is (the sync container runs on `origin/main` and the base moves), so the run starts on a clean copy; two faults are added: `no origin/main to prepare the stage environment from` (the clone has no `main`: nothing is run), and the message of the snapshot or container command that failed, such as `snapshot command reset failed: no base at <path>` (the dataset has no `@base`: make it with `zfs snapshot <dataset>@base`) or `container command sync failed: <last output line>` (`make sync` failed in the sync container). It costs a few cents. Like the other machine items it runs once for each image build and is skipped while the image is unchanged.
 
 It fails with `the probe run ended <reason>; run claude -p by hand as the factory user to see why` (under opencode `run <executable> run by hand as the factory user to see why`, with no token hint) when the run does not end `completed`. When `FACTORY_CLAUDE_LOGIN_FILE` is set, the detail ends with `; the agent's login token is read from <file>: make it with claude setup-token if it is missing, empty or expired`. When the probe ran with the API key, the detail ends instead with `; the agent's API key is read from <file>: check that it is valid and that its account has credit`. A login file that cannot be read or is not ASCII text fails the item with the runtime's message, `cannot read the agent's login file <file>: ...`, or `cannot read the agent's API login file <file>: ...` for the API key. The usual causes are a flag the pinned `claude` rejects (every real run would end `died` with no text that says why), a login missing for the factory user (a missing or expired token when the detail names the login file; otherwise log in as that user and keep the login in its `HOME`), and a run that ran out of its budget or time. A state directory that cannot be written fail it with the runtime's own message, and a missing agent `coder` fails it with the reader's message naming the agent. All of these stop the machine before any work item is claimed.
-
-Under opencode, an image built before the folder `/home/agent/.config/opencode` was added (see "Running on opencode") ends this probe `died` in each new container, and the instance stops: rebuild the image.
 
 Under opencode a failed probe whose login was `none` ends with `; the agent runs get no API key: log in once as the factory user with the opencode build's own login, or put a key in the file FACTORY_API_LOGIN_FILE names`.
 
@@ -831,38 +733,6 @@ Before each tick the instance checks that `origin/main` exists and holds `factor
 - `the repository has no main branch yet`: the repository has no commit on `main`.
 - `origin/main has no factory/pipeline.yml yet`: push `factory/pipeline.yml` to `main`.
 
-## Container runtimes
-
-### The runtimes
-
-The image and the compose file run under Docker Desktop and under rootless Podman with the docker-compose v2 binary as its Compose provider (seen with Podman 5.8.3 on Windows). Rancher Desktop with its moby engine is expected to work like Docker but is untested, because the probe did not run it. A Mac is not probed.
-
-For a team, the setup is one shared Linux host (Docker Engine, or rootless Podman with the restart service below) that runs every instance, each its own compose project, rather than a runtime on every laptop.
-
-### Podman: the commands
-
-Every `docker` command of this guide works with `podman` in its place: `podman build`, `podman exec`, `podman compose -f image/compose.yml up -d`. Inside the container the users, groups, modes and the token's folder are the image's. On the machine the named volumes belong to sub-ids that are invisible inside.
-
-On Windows a shell may not see the Podman machine's saved connection, and a command then fails with `connection "podman-machine-default" not found`. Run `podman system connection list` where the connection is seen: it shows its URI and identity file. Give them on each command with `podman --url <URI> --identity <identity file> ...`, for example `podman --url <URI> --identity <identity file> ps`. Whether `podman compose` hands them on to its Compose provider is not observed, so run `compose` from a shell that sees the connection.
-
-### Podman: the Compose provider
-
-`podman compose` hands the compose file to an external provider. Use the docker-compose v2 binary (standalone, Apache 2.0), named with `PODMAN_COMPOSE_PROVIDER` or with `compose_providers` in `containers.conf`. `podman-compose` 1.5.0 cannot build this compose file on Windows: it fails with `no Containerfile or Dockerfile specified or found in context directory`, from `context: ..` with `dockerfile: image/Dockerfile`.
-
-### Podman: the restart
-
-`restart: unless-stopped` stays in the compose file. It brings the container back after a crash and after `podman restart`, but not after the Podman machine or the host restarts. Docker Desktop restarts it by itself once it runs (its "start when you sign in" setting).
-
-On Windows, under Podman, nothing restarts the factory after a machine or host restart. `systemctl --user enable podman-restart.service` in the WSL machine fails with `Failed to enable unit: Access denied`, and an `unless-stopped` container stayed `Exited` after `podman machine stop` and `podman machine start`. The operator runs `podman machine start` and then `podman compose -f image/compose.yml up -d`, by hand or as a scheduled task at logon.
-
-Until then the container stays `Exited (0)`: no tick runs, nothing is claimed or pushed, and the health check does not run, so nothing shows unhealthy. A lease the instance held expires. Once started, the factory goes on as after any restart (see "A restart during a stage").
-
-On a Linux host, `podman-restart.service` (it starts the containers matching `should-start-on-boot=true`) with `loginctl enable-linger` is the documented way. This was not tested here. The observation left to the first start on such a host: with the service enabled and linger on, a restart of the host brings the container back `Up` in `podman ps -a`. It is not observed yet.
-
-### Podman: the disk
-
-The disk record and the stop `disk_low` see the Podman machine's virtual disk, not the host drive, as under Docker Desktop. "What the container cannot see" names both runtimes.
-
 ## The factory log and the health status file
 
 Both live in the factory's state directory. `factory-run` starts the factory; this describes what it writes; the next section says when a stop is written and when it goes away.
@@ -883,7 +753,7 @@ Missing parent directories are created. If the file cannot be written, the line 
 
 ### The health status file
 
-`health.json` in the state directory holds the stops in force for the repository or the machine, as one JSON object: `{"stops": [{"scope": ..., "reason": ..., "detail": ..., "at": ...}]}`. The container's health check reads it (see "The container: compose, entrypoint and health check"); an empty `stops` list is healthy.
+`health.json` in the state directory holds the stops in force for the repository or the machine, as one JSON object: `{"stops": [{"scope": ..., "reason": ..., "detail": ..., "at": ...}]}`. `factory-health` reads it (see "The preflight and the health check"); an empty `stops` list is healthy.
 
 - One stop per reason. `scope` is `machine` for `preflight_failed` and `disk_low`, and `repository` for every other reason; `detail` names the fault and is never blank; `at` is in UTC.
 - The reasons are `fetch_failed`, `checkout_restore_failed`, `pipeline_definition_invalid`, `agent_definition_invalid`, `repository_unavailable`, `main_branch_failing`, `preflight_failed` and `disk_low`.
@@ -935,7 +805,7 @@ The key has four parts:
 - `command`: the make target.
 - `tree`: the tree the command reads, as `Git.work_tree_id` names it for the command's `not_read` (see "The pipeline definition").
 - `definition`: the SHA-256, in hex, of the whole pipeline definition.
-- `image`: the machine's image (see "The image on the cost records"), `null` without one.
+- `image`: the stage image (see "The image on the cost records"), `null` without one.
 
 A known result is invalidated by a change in any part: a changed file the command reads, a merge of `main` that brings one, any change of the pipeline definition (a time limit, a stage, any value), or a new image. A change only in left-out files keeps the key.
 
@@ -981,7 +851,7 @@ It is written at each start of the instance, before the first tick, and at each 
 
 The size of a folder counts only what the factory user can read. The agent's own folders under `/tmp`, made by pytest or Claude Code with mode `0700`, are left out, while the free space of the file system still shows them.
 
-The record cannot see the host. Read the host's own numbers by hand at the same moments and at the end of a run: the free space of the drive, and the size of Docker's disk image (`docker system df`).
+The record cannot see the host. Read the host's own numbers by hand at the same moments and at the end of a run: the free space of the drive, and the size of the pool (`zpool list`).
 
 ## The stops
 
@@ -993,7 +863,7 @@ Every stop the factory raises has one destination. A stop of the repository or t
 | `checkout-restore-failed` | health status and factory log | The checkout cannot be put on `origin/main` (the dirty main branch). Fix the cause or delete the checkout and clone again; see "The stops of the tick". |
 | `pipeline-definition-invalid` | health status and factory log | `factory/pipeline.yml` on `origin/main` fails its validation, an agent that is not installed included. See "The stop `pipeline_definition_invalid`". |
 | `agent-definition-invalid` | health status and factory log | An agent file holds a key the runner does not apply. See "The stop `agent_definition_invalid`". |
-| `repository-unavailable` | health status and factory log | The entrypoint or the tick waits for a repository that is empty or has no pipeline definition. Push `main` with `factory/pipeline.yml`; see "The wait for a repository that is not ready". |
+| `repository-unavailable` | health status and factory log | The tick waits for a repository that is empty or has no pipeline definition. Push `main` with `factory/pipeline.yml`; see "The wait for a repository that is not ready". |
 | `main-branch-failing` | health status and factory log | `lint` fails on the main branch. Push a fix to `main`; see "The stamp and the probe of the main branch". |
 | `preflight-failed` | health status and factory log | A preflight item fails, or the settings are invalid. Fix what the detail names; see "The preflight's items" and "When the process refuses to start". When the state directory cannot be written, `factory-run` still ends with status 2 but writes no stop: the settings fault reaches standard error as two lines without a stamp. Check the `state` volume. |
 | `disk-low` | health status and factory log | The work or the state directory has less free space than `FACTORY_MIN_FREE_GB` asks for, or its free space cannot be read. Make room on the file system the detail names, and nothing more: the next tick clears the stop. |
@@ -1343,7 +1213,7 @@ Only Claude Code's runs are given the `Skill` tool. An opencode run leaves it ou
 
 ### The shipped agents and settings
 
-The image ships seven agents (`intake`, `tester`, `coder`, `reviewer`, `documenter`, `smoke-tester`, `acceptance-reviewer`) and `settings.json`. Each agent's `tools` ends with `Skill`, and the settings allow it in `permissions.allow`, right after `Grep`. The entrypoint installs them into `FACTORY_CLAUDE_HOME` at every start, so an edit made there by hand is gone at the next start; change the files in the image instead. The settings let an agent run `factory-check-story` and no other `factory-` command: it cannot run `factory-run`, `factory-watch` or `factory-bill`. They also deny `git add` and `git commit`, because an agent leaves its changes in the working tree and the factory makes the result commit (an agent user has no git identity of its own), and `git push`, `gh` and the commands that move or rewrite branches, because the factory alone pushes. A new project starts from `template/` in the image (a pipeline definition, a `CLAUDE.md` and a `Makefile` whose `SOURCE` and `LAYERS` placeholders you fill in); the story and feature forms are yours to add, and every stage stops until `factory/story-form.md` exists.
+The checkout ships seven agents (`intake`, `tester`, `coder`, `reviewer`, `documenter`, `smoke-tester`, `acceptance-reviewer`) and `settings.json`. Each agent's `tools` ends with `Skill`, and the settings allow it in `permissions.allow`, right after `Grep`. `FACTORY_CLAUDE_HOME` names the checkout's `claude/` folder on the VM, so change the files in the repository. The settings let an agent run `factory-check-story` and no other `factory-` command: it cannot run `factory-run`, `factory-watch` or `factory-bill`. They also deny `git add` and `git commit`, because an agent leaves its changes in the working tree and the factory makes the result commit (an agent user has no git identity of its own), and `git push`, `gh` and the commands that move or rewrite branches, because the factory alone pushes. A new project starts from `template/` in the factory's checkout (a pipeline definition, a `CLAUDE.md` and a `Makefile` whose `SOURCE` and `LAYERS` placeholders you fill in); the story and feature forms are yours to add, and every stage stops until `factory/story-form.md` exists.
 
 ## The records contract
 

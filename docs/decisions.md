@@ -10,6 +10,8 @@ The code is one package, `src/factory/`, with the layers `factory.domain`, `fact
 
 `image/` (Dockerfile, compose file, entrypoint), `template/` (v1.1's own project template) and `claude/` (the agent and skill files v1.1 ships). The coder's write paths in the pipeline definition (`factory/pipeline.yml`; v1's `factory/stages.yml` until the handover of 2026-10-18) name them; the folders are created by the stories that need them. `Makefile`, `pyproject.toml`, `uv.lock`, the import-linter configuration, `CLAUDE.md` and `factory/` stay outside every write path.
 
+Replaced by the machine of v1.2 (`vm/`), F0044-S0010.
+
 ## No `mutants` target, no mutmut
 
 Superseded by *Mutation testing is limited to one feature's modules*.
@@ -281,6 +283,8 @@ Date: 2026-10-16 (F0010-S0004; F0006 decision 11, kept thing 16). `run_instance`
 
 Date: 2026-10-16 (F0010-S0006; R29; the human, 2026-10-14). The Dockerfile pins the base image by digest, Claude Code and `uv` by exact version, the eight Debian tools by `name=version`, and installs the factory from `uv.lock` with `--frozen`, so two builds of one commit run the same tools and a changed result has a cause in git. `tests/test_image.py` rejects a floating reference. The image's identity is a uuid the build writes to `/opt/factory/image-id`; the build argument `FACTORY_IMAGE` is only a label. A build argument can be passed again unchanged and a rebuild would keep a stale preflight stamp valid (ST4.3); a generated id changes with every build that changes an earlier layer. Rejected: the argument as identity, and a hash of the build context (it ignores the base image and the packages). Every cost record carries the identity (`CostRecorder.begin` takes it from the instance's settings), so a cost can be traced to the image. The digest and the Debian versions are placeholders until the first build with a network.
 
+Replaced by the machine of v1.2 (`vm/`), F0044-S0010.
+
 ## `/state` is read-only for the agent; `/state/runs` is readable by it
 
 Date: 2026-10-16 (F0010-S0006; the human, 2026-10-14). `/state` is `0755` owned by `factory`: the agent can read the health file, the log and the stamp, and cannot rewrite them, so an agent cannot hide a stop or forge the preflight stamp. The files the agent must read for its run go to `/state/runs` (`2750`, group `factory-work`), which the agent can read and not write. Rejected: making `/state` group-writable (the agent could alter the factory's own status) and giving the agent no access (it could not read its run's input).
@@ -288,6 +292,8 @@ Date: 2026-10-16 (F0010-S0006; the human, 2026-10-14). `/state` is `0755` owned 
 ## The entrypoint sets no git configuration and starts in `/opt/factory`
 
 Date: 2026-10-16 (F0010-S0007; questionnaire 1, Q17, Q18, Q23; F0001 decision 7). The entrypoint runs no `git config`: the factory's git gets the commit identity and the credential helper through `GitOptions` only, so no global file in the container holds them and a token never lands on disk through git. The entrypoint changes into `/opt/factory` before it starts the factory, so that `claude --version` (the preflight's probe) runs in a fixed directory and not in whatever `/work` holds; the Dockerfile's `WORKDIR /work` is only the default for a shell in the container. The waiter fetches only when `origin/main` is not ready, because the tick already fetches and a ready checkout must cost no second fetch.
+
+Replaced by the machine of v1.2 (`vm/`), F0044-S0010.
 
 ## The stamp is keyed to the image build, the probe runs `lint` on `main` only, and a red `main` is remembered
 
@@ -409,6 +415,8 @@ Date: 2026-10-17 (F0012-S0021; the human's item 1.5; F0012 decisions 26 and 47).
 
 Date: 2026-10-17 (F0012-S0022; the human's item 1.6). `image/compose.yml` has `name: factory-${FACTORY_INSTANCE:?...}`, with the same `:?` message as the service's `FACTORY_INSTANCE`. It was `name: factory`, which is also v1's project name, service name and volume names: `docker compose up` for v1.1 would have replaced v1's container and mounted v1's volumes `factory_work` and `factory_claude-home` (v1's checkout and its `claude` login), and a second v1.1 instance would have taken the first one's. Now each instance has its own container and volumes (`factory-<instance>_work` and so on). The cost: renaming an instance means new, empty volumes. Rejected: a default instance name (`:-`), which lets two unnamed instances, or v1.1 and v1, share a project again.
 
+Replaced by the machine of v1.2 (`vm/`), F0044-S0010.
+
 ## The demo check knows no demo by name
 
 Date: 2026-10-17 (F0012-S0023). `factory.entry.check_demos` checks every folder under `demo/` by the same rules (its three parts, its pipeline definition, its story form, its stories as backlog stories at the path they will have in the project, its line in the index) and holds no list of demos. A new demo needs a folder and an index line and no change to the code, and a demo cannot escape the check by being left out of a list. The check runs in `make check` through `tests/test_demos.py`; without a `demo/` folder it passes. Its stories go through the story check's `backlog_story_findings`, so a demo story and `factory-check-story` give the same findings; the pipeline definition reader is built in the wiring, the one entry module that imports adapters. Rejected: a table of demos in the code, and the check calling the domain's story rules itself (a second copy of the story check).
@@ -422,6 +430,8 @@ Replaced by the throwaway container, v1.2 F0044-S0005.
 ## The agent home belongs to the factory; the agent adds files and cannot change the installed ones
 
 Date: 2026-10-17 (F0012-S0025; the human's answer to F0010 decision 21, item 1.10). `/home/agent/.claude` is `factory:factory-work` with mode `3775`, and the entrypoint, which runs as `factory`, installs `agents/` as `0755`, each file in it as `0644` and `settings.json` as `0644`. This supersedes F0010 decision 21 for the agent files and the settings: one run can no longer rewrite what the factory and `claude` read on every later run. The agent, in the group, still creates its own files there (its login), and the sticky bit keeps it from renaming or deleting the factory's. The home is the mount point of the volume `claude-home`, so the folder itself cannot be renamed by the agent. The entrypoint uses `find -type f` for the files: a glob fails on an empty folder and skips dotfiles. Open: a volume made by an earlier image keeps its old owner and mode until it is replaced; the files of its own that the agent may add to `~/.claude` and `/home/agent/.claude.json` stay writable and `claude` reads them (a user `CLAUDE.md`, skills) (closed on 2026-10-20 by *Every agent run and every project command starts from a fresh agent home*); a subfolder inside `agents/` would keep its copied mode (the image has none); the sticky bit's effect is not tested, because it needs a container (the morning observation checks the settings file).
+
+Replaced by the machine of v1.2 (`vm/`), F0044-S0010.
 
 ## A missing health file is not healthy; `factory-run` writes an empty one at its start
 
@@ -442,6 +452,8 @@ Date: 2026-10-17 (F0012-S0029; F0012 decisions 50 and 53). `template/Makefile` c
 ## The token is a bind mount into a folder only the factory can enter
 
 Date: 2026-10-17 (F0013-S0001; the human's answer to the probe's fault 1, `planning/overnight/podman-probe-2026-10-17.md`). The image makes `/home/factory/.secrets` as `factory:factory`, mode `0700`, and `image/compose.yml` bind-mounts the host file `./secrets/hosting-token` into it, read-only and with `create_host_path: false`; `FACTORY_TOKEN_FILE` is `/home/factory/.secrets/hosting-token`. The compose secret is gone. The probe printed the token with `sudo -u agent cat /run/secrets/hosting-token`, under Docker Desktop and Podman alike: Compose ignores a file secret's `uid`, `gid` and `mode` outside Swarm, so the file kept the host's owner and mode (on Windows `-rwxrwxrwx`, owner 0). The agent cannot enter the folder, whatever the file's mode. This supersedes the claim of F0010-S0013 that the factory's user alone reads the mounted secret, and the default path `/run/secrets/hosting-token`. The agent can write git's hooks in the shared checkout's `.git`, and the factory's git ran them as the factory's user, so the folder closed the direct read and not this indirect route; closed by "The factory's git runs no hooks" and "The factory alone writes the checkout's `.git`". Rejected: a compose secret with an absolute target (the same ignored keys), a `chown` or `chmod` in the entrypoint of a file whose owner and mode are the host's (a bind mount of a host file, read-only, and not the factory's to change), and Swarm mode (a cluster for one container).
+
+Replaced by the machine of v1.2 (`vm/`), F0044-S0010.
 
 ## The preflight checks the token's folder, not the file
 
@@ -496,6 +508,8 @@ Date: 2026-10-17 (F0014-S0002; the human's answer to the first start's fault 1, 
 - Rejected: `safe.directory=*`, which trusts every repository; a `.gitconfig` in the agent's home, which the agent can rewrite; a `GIT_CONFIG_*` name in the agent run's environment, which would widen its allow list.
 - Observed only at the shakedown run: the tests cannot be a second user.
 
+Replaced by the machine of v1.2 (`vm/`), F0044-S0010.
+
 ## The agent's login is a token from a file
 
 Date: 2026-10-17 (F0014-S0003; F0014 decisions 9 and 30; the human's answers to the first start's fault 3, `planning/overnight/first-start-checklist.md`). Every new instance needed an interactive `claude` login as `agent`: a new `claude-home` volume, and the Podman machine with its own volumes, each needed one. The human's answer: every credential is injected from outside, and no instance needs an interactive login.
@@ -506,6 +520,8 @@ Date: 2026-10-17 (F0014-S0003; F0014 decisions 9 and 30; the human's answers to 
 - The image mounts the file (F0014-S0004): `image/secrets/claude-token` on the host, bind-mounted read-only at `/home/agent/.claude-token`, with `create_host_path: false`, and `ENV FACTORY_CLAUDE_LOGIN_FILE=/home/agent/.claude-token`. The place is the agent's home because it is the agent's own login, which it may read; it is outside the volume `claude-home`, so no mount nests in another, and outside `/home/factory/.secrets`, which the agent must not enter. A missing host file makes Compose refuse to start; an empty file is the operator's way to keep the manual login.
 - Rejected: the factory reading the file and passing the token as an `env -i` assignment on the `sudo` command line (visible in `ps`, and the factory would hold the token).
 - Left out: an API key (`ANTHROPIC_API_KEY`). This story builds only the token from `claude setup-token`; the reason is in F0014 decision 15 and F0014's `FEATURE.md` ("Out of scope"). The factory runs agents under the operator's own subscription login (R12), while an API key bills by use. Claude Code prefers an API key it finds over the subscription, so a stray key file would change who pays without a word. Nothing in v1.1 needs one, and a team setup that wants one gets its own story.
+
+Replaced by the machine of v1.2 (`vm/`), F0044-S0010.
 
 ## Journal records say when, in which stage and from which run; cost records on which instance
 
@@ -537,6 +553,8 @@ Date: 2026-10-18 (F0015-S0002; F0015 decisions 6 and 7; the tiny story F0099-S00
 - Decision: `init: true` on the service in `image/compose.yml`. Docker runs `docker-init` (tini) and Podman, through its Compose provider, `catatonit`, as PID 1. It starts the entrypoint, forwards the stop signal and reaps every orphan. The entrypoint's last line stays `exec python -m factory.entry.run`, so the factory is the init's direct child and receives the forwarded signal.
 - Rejected: the factory as the reaper (a PID 1 that reaps every child, with `waitpid(-1)` or as a child subreaper, would also reap the children that `run_process` waits for through `subprocess`, and those would then find no exit status: a race with every project command and agent run, in the module that starts every process; it would also own PID 1's other duties, such as reaping processes it never started, and signal forwarding, which the runtime's init already does); tini installed in the image (another pinned package or download, to do what the runtime ships); `timeout --foreground` (it changes which processes `timeout` signals, so the tree under `claude` may no longer be killed with it).
 - No test in `make test` shows the reaping: the init exists only in a running container, and `make test` starts none. Tests pin the compose key and the entrypoint's `exec`; the reaping is a morning observation of the shakedown (operator guide, "A `time_limit` under `sudo`").
+
+Replaced by the machine of v1.2 (`vm/`), F0044-S0010.
 
 ## A standing leave to move a shared test helper
 
@@ -696,6 +714,8 @@ Date: 2026-10-19 (F0020-S0001; F0020 decisions 1 to 3). Every agent run logged i
 - Decision: the login shell moves to `factory.adapters.agent_launch`, so that the opencode runtime reuses it.
 - Reasons: the file is the mechanism the token already uses, so the factory holds no secret; a file for each instance lets one machine mix both logins.
 
+Replaced by the machine of v1.2 (`vm/`), F0044-S0010.
+
 ## What the agent runtimes share lies in one module
 
 Date: 2026-10-19 (F0020-S0002; F0020 decision 4). The opencode runtime starts its runs exactly as the Claude Code runtime does, and every helper for that was private to `factory.adapters.claude_runtime`, so a second runtime would have copied it.
@@ -813,6 +833,8 @@ Date: 2026-10-19 (F0022-S0002; F0022 decisions 7 to 13). No shipped agent could 
 - Proven: the proof run of 2026-10-19, on the todo demo's own instance (`skills-demo`), gave a project coder's entry that began `project coder:`, and the intake's, tester's and coder's entries ended with the project skill's line `skill: journal-marker`. Once the project's coder was removed from that repository's `main`, the factory's reader gave the shipped coder again. In a container of the same image (`self`), the agent could not make a folder in the home's `skills/`.
 - Open: a user `CLAUDE.md` and `.claude.json` in the home stay writable and are read by `claude` (closed on 2026-10-20 by *Every agent run and every project command starts from a fresh agent home*); whether opencode loads skills of its own is not checked; a stage may write a nested `.claude/skills/` inside its write paths (decision 12; for example `src/.claude/skills/`; closed by "No stage writes a .claude folder at any depth"), and whether Claude Code loads it is not known; the proof run did not check it. This entry supersedes "skills" in the open point of the entry dated 2026-10-17 (F0012-S0025).
 
+Replaced by the machine of v1.2 (`vm/`), F0044-S0010.
+
 ## A known result is not checked again
 
 Date: 2026-10-19 (F0023-S0002). After an agent the factory ran every check and report of the stage, though it had run the same command on the same input minutes before; the docs stage's `check` on the coder's unchanged code is the plain case.
@@ -885,6 +907,8 @@ Date: 2026-10-20 (F0029-S0001). opencode 1.19.3 makes `~/.config/opencode` on it
 - Reasons: the folder must exist, but a run must not write it: opencode reads `opencode.jsonc` there on every run, beside `OPENCODE_CONFIG`, so a writable folder would let one run change what the next run is told.
 - Rejected: `.config/opencode` in `RUNTIME_FOLDERS` (one run could change what the next run is told); the entrypoint making it (it runs as `factory`, could make it only through `sudo -u agent` as an agent-owned folder, and at every start); `XDG_CONFIG_HOME` in the run's temporary folder (it moves every tool's configuration and an operator's single sign-on login).
 
+Replaced by the machine of v1.2 (`vm/`), F0044-S0010.
+
 ## The tests set their own umask, and uv syncs under the caller's
 
 Date: 2026-10-20 (F0033-S0001; F0033 decisions 1 and 2). On 2026-10-19 an agent's run, as `agent`, left `factory-0.1.0.dist-info` in `.venv` as `drwxr-sr-x` with `-rw-r--r--` files. `make test` ran `umask 022` before `uv run pytest`, and `uv run` syncs `.venv` first, so the reinstall ran under `022` as well. The factory's next `make lint`, as `factory`, could not remove the folder, and the instance stopped with `main_branch_failing`. The reverse failed too: the factory's own `make test` left `.venv` with factory-owned `644` files that an agent's `uv run` could not replace.
@@ -945,6 +969,8 @@ Date: 2026-10-20 (F0030-S0001). This corrects F0024 decision 4 ("the factory wai
 - Decision: at a time limit, at a callback's stop and at a callback's error, `factory.adapters.process._kill_session` kills the child's process group and then, in rounds, every process of the child's session that the factory may signal, and returns only when none is left. The pure rules (reading one `/proc/<pid>/stat` line, choosing what is left) are `factory.domain.sessions`. A process that called `setsid` is outside the rule. A test that mutmut runs can start such a process, because `factory.adapters.process` starts every command with `start_new_session`, and that process ends by itself (seen on 2026-10-20 in the real check with mutmut, which answers F0030's decision 14). Another user's process (root's `sudo`, the agent's under `sudo`) is left to the agent's own `timeout` and not waited for.
 - Reasons: `timeout` moves mutmut into a group of its own, and the factory waited only for its child and its pipe; mutmut writes into `tee`'s pipe, not the factory's. A session survives a new group and a dead parent, which a walk of parent ids does not.
 - Rejected: `timeout --foreground` in the recipe alone (it mends one recipe, and every other project command keeps the fault); a cgroup per command (not available to the factory's user under rootless Podman); the factory as subreaper (`PR_SET_CHILD_SUBREAPER`: it would reap every orphan of every run); a time limit of the rounds' own (no process outlives SIGKILL except in the kernel, and that would hold the call already).
+
+The process group is killed; no agent code runs on the host since v1.2, F0044-S0010.
 
 ## The Claude Code hook is removed; the kernel and the undo are the write guard
 
