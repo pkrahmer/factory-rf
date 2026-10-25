@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T17:06:40.281564Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-10-25T17:06:19.608558Z'
   stage: tests
   run: 601be3e5782c417ab40f16a2ca00aca0
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:06:40.281564Z'
+  stage: doing
 ---
 
 # The suite's stages run on the container fakes
@@ -259,3 +268,4 @@ Expect: two lines: `1`; `1`
 
     `lint`: lint: green (0.3 s)
     `test`: test: green (72.9 s)
+16. factory: started doing as self.
