@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 449
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T16:01:43.284686Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-25T16:01:43.284686Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-25T16:02:01.481106Z'
+  stage: intake
+  run: 651421fbcf5d441390ae072b8393d807
+  blocked: question
 ---
 
 # The checkout's hygiene is removed
@@ -104,3 +107,11 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: 1. The Interface says `factory.application.preflight.agent_run_probe_item` loses the fault `the probe run left a git repository in the work tree, ...`, and no criterion tests it. Criterion 5 runs through `StageRunner`, not the probe. Should a criterion be added that the probe, run with a scripted agent that writes `sub/.git/HEAD`, reports no fault? I would add it: one row, the probe item passes.
+   2. The Interface gives `CheckoutPreparer.prepare()` the exact docstring "Clone when the checkout holds no `.git`; keep any checkout that does." Only the Description's test list covers it, as a changed row of `tests/application/test_tick_docstrings.py`, and no acceptance criterion pins it. Should criterion 2 or a new criterion state that the docstring equals that text? I would add it to criterion 2 as a further row.
+   3. The Interface says `factory.domain.post_texts` loses the stall sentence for `nested_repository`. Criterion 1 tests the reason in `StallReason`, but nothing tests that the sentence is gone from the post texts. Should a criterion say that no post text built for a stall mentions a nested repository, or is the deleted row in `test_each_stall_cause_is_its_sentence_alone_or_with_the_detail` meant to be the whole test? I would add a row to criterion 1 for it.
+   The format check passed. Everything else is in order:
+   - The smoke test commands are runnable and its `Expect:` line is checkable. It runs no pytest, so the `-q` rule does not apply.
+   - The architecture matches the layers.
+   - The scope is inside feature S0006.
+   - Every other Interface clause has a criterion on both sides.
