@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-25T10:02:07.473927Z'
   stage: acceptance
   run: 75f76f40dd9f43ba95bc018119a01a4a
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-25T10:04:29.352699Z'
+  stage: done
 stories: [F0043-S0001, F0043-S0002, F0043-S0003, F0043-S0004, F0043-S0005, F0043-S0006, F0043-S0007, F0043-S0008, F0043-S0009, F0043-S0010]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The machine and the stage image
@@ -208,3 +213,4 @@ None. S0010 closed the third acceptance's one finding. What remains is either th
    6 Decisions: feature decisions 1–18 as in A0001. S0008's option (a), and option (a) for S0009 and S0010, were settled by starting the stories, not by answers. S0010 took no default. Still open: should a stop let a stage finish? The options are (a) stop by hand, which leaves the gap between watch and stop and the shutdowns the operator does not start; (b) TimeoutStopSec beyond the lease; (c) release the claim on SIGTERM. Also open: make secrets on main, Node 18, the GCP walk, and the untimed first step. No earlier test was changed without a leave; S0010 changed none.
    7 Slow checks: nothing beyond make check, which is green (197.0 s, 99.20 %, 7849 tests). The slowest tests are 11.5 s time-limit tests outside the feature; the feature's 221 tests peak at 0.1 s. Disk use is unchanged at 1.1 GB. Free space fell 0.1 GB (52.8 to 52.7), which the runs and caches explain.
    8 Cost: $33.24 in 103 runs and 159.1 min. S0003 is 51 % of the cost and drew 5 of the 9 human answers (7 questions, 2 round caps, 4.6 h waited); its second round cap is most of the wait. S0010 cost $0.83 in one round with no question; 3.7 of its 5.2 min are the coder's make check on a documents-only story.
+3. factory: done (pull request merged); cost: 1 runs, 6.9 min, 24 turns, 78901 tokens in (1250464 more from cache), 19577 out, $1.27
