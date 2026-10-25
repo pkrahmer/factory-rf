@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-25T16:45:06.317881Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T16:45:06.311238Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:45:06.317881Z'
+  stage: intake
+---
+
 # The suite's stages run on the container fakes
 
 ## Description
@@ -48,3 +75,6 @@ grep -c '"Makefile"' tests/git_support.py; grep -c 'FakeSnapshots(' tests/confte
 Expect: two lines: `1`; `1`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as self.
