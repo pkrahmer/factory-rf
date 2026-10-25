@@ -24,6 +24,8 @@ The pipeline definition is the template's (`template/factory/pipeline.yml`) with
 
 ## How to run it with v1.1
 
+These steps run v1.1's container, which is kept at the tag `v1.1`; since F0044 an instance runs on the machine of `docs/operator-guide.md`, *The machine*.
+
 1. Put the token in place:
 
    ```bash

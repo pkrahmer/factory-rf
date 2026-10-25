@@ -139,4 +139,4 @@ pytest_add_cli_args = [
     "--deselect", "tests/test_opencode_runtime_search.py::test_neither_the_opencode_runtime_nor_the_launch_module_reads_os_environ",
 ]
 # The tests read these from the repository root; mutmut runs them in its own copy.
-also_copy = ["claude/", "demo/", "docs/", "factory/", "image/", "security/", "template/", "README.md", "Makefile", "pyproject.toml", "uv.lock", ".secrets.baseline"]
+also_copy = ["claude/", "demo/", "docs/", "factory/", "security/", "template/", "vm/", "README.md", "Makefile", "pyproject.toml", "uv.lock", ".secrets.baseline"]
