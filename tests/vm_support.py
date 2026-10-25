@@ -1,5 +1,6 @@
 """The machine's setup script and service unit: their paths, the steps and the script's texts."""
 
+import re
 from pathlib import Path
 
 from dockerfile_support import _uncommented
@@ -23,6 +24,7 @@ STEPS = (
     "environment",
     "service",
 )
+FUNCTION = re.compile(r"(?ms)^(\w+)\(\)\s*\{(.*?)^\}")
 REQUIRED = ["--device", "/dev/null", "--repository-url", "https://example.invalid/r.git"]
 
 
@@ -53,3 +55,18 @@ def run_setup(cwd: Path, words: list[str], path: str = SYSTEM_PATH) -> ProcessRe
 def entries(root: Path) -> set[Path]:
     """Every path under `root`."""
     return set(root.rglob("*"))
+
+
+def write_helpers(code: str) -> list[str]:
+    """The names of the script's functions whose body writes with `cat >` through `as_factory`."""
+    return [
+        name
+        for name, body in FUNCTION.findall(code)
+        if "cat >" in body and re.search(r"(?<![\w-])as_factory(?![\w-])", body)
+    ]
+
+
+def function_text(code: str, name: str) -> str:
+    """The text of the script's function `name`, from its first line to its closing brace."""
+    found = next(match for match in FUNCTION.finditer(code) if match.group(1) == name)
+    return found.group(0)

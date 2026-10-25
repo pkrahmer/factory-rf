@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 433
 comments_read: [6394400610]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T06:31:33.339256Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-25T06:31:33.339256Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-25T06:35:12.911081Z'
+  stage: tests
+  run: d35ccc0bdbb543b09cfe49333769dd4b
 ---
 
 # The setup script writes as factory from its own standard input
@@ -117,3 +119,24 @@ Expect: two lines, `0` and `syntax-ok`
    No files created.
 6. 2026-10-25 human: (a). The leave: in `tests/test_vm_setup_text.py`, `_writes` also counts a line that calls the script's write helper (the function whose body writes with `cat >` through `as_factory`); `test_the_files_under_the_instance_folder_are_written_as_factory` keeps its name, its four rows and its check that every write line runs as `factory`. Read criterion 4 as "passes, with `_writes` also counting a call of the write helper", and name the change in your entry. Moving `FUNCTION` to `tests/vm_support.py` is under the standing leave, as you say. Your plan for criteria 1 to 3 is right.
 7. factory: started tests as self.
+8. tester: I wrote the tests for criteria 1 to 4 under the human's answer (a) in entry 6. Criteria 5 and 6 are not tests: `make check` and the docs belong to the later stages.
+
+   - criterion 1: tests/test_vm_setup_writes.py::test_no_write_reads_dev_stdin_by_name
+   - criterion 2: tests/test_vm_setup_writes.py::test_each_file_is_written_through_the_helper_with_its_mode, with rows image-id (0644, `$base/image-id`), askpass (0755, `$askpass`) and factory-env (0644, `$env_file`). Each row checks that the step's text has a line calling the helper with that mode and target, and that a line of the helper's body starts with `as_factory` and holds `cat >`.
+   - criterion 3: tests/test_vm_setup_writes.py::test_the_helper_writes_its_standard_input_with_the_mode, with rows first (`one`) and again (`one` then `two`). The test takes the helper's function text from the script and puts a pass-through `as_factory() { "$@"; }` in front of it, so it runs as the test's own user with no `runuser`. It pipes the text in with `printf '%s\n'` and runs it with `sh` on `tmp_path/target` with mode 0640. It checks the content (the last text plus a newline) and the mode 0640.
+   - criterion 4: tests/test_vm_setup_text.py::test_the_files_under_the_instance_folder_are_written_as_factory. It keeps its name, its four rows and its check that every write line runs as factory.
+
+   The helper is found as the script's one function whose body holds `cat >` and calls `as_factory` (`write_helpers` in tests/vm_support.py). The `helper` fixture requires exactly one such function. The `stage` function also holds `cat >` but does not call `as_factory`, so it is not counted.
+
+   Earlier test files I changed:
+   - tests/test_vm_setup_text.py, under the human's leave in entry 6. `_writes` now also counts a line that calls the write helper. `_as_factory` also counts a call of the write helper as running as factory. That second change is needed because the helper's body calls `as_factory`, not `runuser` directly, so the old check would not have seen a helper call as a write as factory. Every row still requires at least one write line, and every write line must run as factory. The shared helper-call regex is now `_calls`. `FUNCTION` now comes from vm_support.
+   - tests/vm_support.py, under the standing leave. `FUNCTION` moved there from tests/test_vm_setup_text.py. I added `write_helpers(code)` and `function_text(code, name)`, which both test modules use.
+
+   I checked criterion 4 without running pytest: I rewrote the script's text in memory as the Interface describes and ran the old test's `_written_as_factory` on it. It returned True for all three files, and that text held no `/dev/stdin`. On today's script `write_helpers` finds nothing, so the old test behaves exactly as before.
+
+   Files created: tests/test_vm_setup_writes.py.
+
+   `make test` fails for the right reason. No module failed to import, because the code under test is the shell script. The criterion 2 and 3 tests error in the `helper` fixture, since the script has no write helper yet. The criterion 1 test fails because the script still holds `/dev/stdin`. `make lint` is green. I ran no type check, as this stage says.
+
+   `lint`: lint: green (0.6 s)
+   `test`: ERROR tests/test_vm_setup_writes.py::test_the_helper_writes_its_standard_input_with_the_mode[again] - AssertionError: []
