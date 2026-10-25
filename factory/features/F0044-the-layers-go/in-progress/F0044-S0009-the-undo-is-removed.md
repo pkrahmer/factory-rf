@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T19:40:24.845400Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-25T19:40:04.533917Z'
   stage: review
   run: 6ae8c66602fb4887b0bec47b4d55da52
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:40:24.845400Z'
+  stage: docs
 ---
 
 # The undo is removed
@@ -353,3 +362,4 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
 
     Notes:
     - tests/application/test_take_rule.py:47: `before` is computed for every row but read only by the `left` rows. Splitting the three `outcome` arms into their own small helpers would make the test easier to read.
+18. factory: started docs as self.
