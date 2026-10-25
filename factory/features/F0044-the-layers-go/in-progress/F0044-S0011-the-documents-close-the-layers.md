@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 454
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T20:20:13.106456Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-25T20:20:13.106456Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T20:20:32.815053Z'
+  stage: intake
+  run: c10ea9981ed54c3d9d2f8523a1b23771
 ---
 
 # The documents close the layers
@@ -98,3 +100,9 @@ Expect: `documents ok`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: "None" is right for a documents-only sweep; it names what may not change (src/, tests/, vm/, template/, claude/) and what the documenter changes (README.md, docs/operator-guide.md, docs/project-guide/, docs/decisions.md). Criterion 1 pins that nothing outside changes, and criterion 3 names the files and sections.
+   Criteria: each can be judged by one check. The removed-layer terms, the fourteen decision entries, the single `What went` paragraph, the missing test-module paths and `documents ok` are each backed by a smoke command. The rest is named exactly (section names, which table rows change, which bullets move) for the reviewer. Each rule has its failing side: the grep must find 0 outside `Replaced` sections, and each of the fourteen entries must end with a line naming F0044-S00, which the loop counts as 0 failures. `nested_repository` and `tool_paths` are allowed where they remain true. No Interface behaviour is left without a criterion.
+   Smoke test: every command uses awk, grep, a while loop or make, so all are runnable. Each `Expect:` is checkable: `0`; `0` and `1`; `0` and `0`; `1` and `1`; `documents ok`. No command runs pytest, so the `-q` rule does not apply. The `[Dd]ocker\b` pattern does not match `Dockerfile`, as the criterion allows.
+   Architecture: documents and the decision log only, with no layer or interface touched. It keeps the documenter's write paths (`README.md`, `docs/*`). `docs/operator-playbook.md`, `docs/runs/` and `CLAUDE.md` are left alone, as decision 15 says.
+   Scope: matches S0011 in feature.md (the decision log's closing lines and *What went*, the operator guide, the project guide, README). It adds no mechanism and touches nothing in "Out of scope". The format check passed, and no earlier test is changed.
