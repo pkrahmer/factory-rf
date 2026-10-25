@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T20:58:33.443307Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-25T20:58:13.181126Z'
   stage: doing
   run: 492a7f6c74664c048b8291003dd09f0f
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:58:33.443307Z'
+  stage: tests
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -223,3 +232,4 @@ Expect: `0`
     The standing leave in `CLAUDE.md` covers moving a shared helper. Adding a parameter to `search_support` may go beyond that leave, and the reviewer said so. If the tester judges that it does, it is a question to the human.
 
     The journal did not change the meaning of the task, so `## Description` is as it was. I noticed nothing else and touched nothing else.
+12. factory: started tests as self.
