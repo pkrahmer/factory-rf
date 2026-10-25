@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T17:50:15.483400Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-25T17:49:55.229130Z'
   stage: intake
   run: 17f36ac62fe444399f4a3eb8ee039054
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:50:15.483400Z'
+  stage: tests
 ---
 
 # The inline environment and its setting are removed
@@ -145,3 +154,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
    - Smoke test: one runnable `uv run python -` script. It has no pytest command, so the `-q` rule does not apply. Its two `Expect:` lines are checkable against the output.
    - Architecture: the changes keep the layer order (domain settings, application boundaries/preflight/task, entry wiring). The container environment stays the only implementation behind the interface, and the runtimes' call without a container stays (decision 2).
    - Scope: within the feature's S0008 scope and its decisions 2, 3, 10, 13, 16, 24 and 37. The undo's module stays for S0009, and no "Out of scope" item is touched. The test changes are covered by the human's leave in decision 24, on the corrected list of decision 37.
+7. factory: started tests as self.
