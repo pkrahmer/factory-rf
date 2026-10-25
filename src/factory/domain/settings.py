@@ -1,4 +1,4 @@
-"""The settings of one factory instance: its one project, its name and its fixed paths."""
+"""The settings of one factory instance: its one project, its name and its paths."""
 
 import re
 from collections.abc import Callable, Mapping
@@ -12,6 +12,7 @@ from pydantic import (
     PositiveInt,
     TypeAdapter,
     ValidationError,
+    field_validator,
     model_validator,
 )
 
@@ -29,12 +30,20 @@ from factory.domain.provider_limits import (
 )
 
 # The default identity is still read from here; its one definition is in the git module.
-__all__ = ["DEFAULT_GIT_IDENTITY", "InstanceSettings", "read_setting_file", "read_settings"]
+__all__ = [
+    "DEFAULT_GIT_IDENTITY",
+    "InstanceSettings",
+    "named_state_directory",
+    "read_setting_file",
+    "read_settings",
+]
 
 CHECKOUT_PATH = Path("/work/checkout")
 STATE_DIRECTORY = Path("/state")
 REPOSITORY_URL_VARIABLE = "FACTORY_REPOSITORY_URL"
 INSTANCE_VARIABLE = "FACTORY_INSTANCE"
+CHECKOUT_VARIABLE = "FACTORY_CHECKOUT"
+STATE_VARIABLE = "FACTORY_STATE"
 GIT_USER_NAME_VARIABLE = "GIT_USER_NAME"
 GIT_USER_EMAIL_VARIABLE = "GIT_USER_EMAIL"
 IMAGE_ID_FILE = Path("/opt/factory/image-id")
@@ -72,6 +81,7 @@ _OPENCODE_EXECUTABLE_DEFAULT = "opencode"
 _PODMAN_EXECUTABLE_DEFAULT = "podman"
 _ZFS_EXECUTABLE_DEFAULT = "zfs"
 _MISSING_FOR_CONTAINER = "missing for the container environment"
+_NOT_ABSOLUTE = "is not an absolute path"
 
 AgentRuntimeName = Literal["claude", "opencode"]
 _AGENT_RUNTIMES: tuple[AgentRuntimeName, ...] = ("claude", "opencode")
@@ -114,6 +124,13 @@ class InstanceSettings(BaseModel):
     podman_executable: str = _PODMAN_EXECUTABLE_DEFAULT
     zfs_executable: str = _ZFS_EXECUTABLE_DEFAULT
 
+    @field_validator("checkout", "state_directory")
+    @classmethod
+    def _absolute(cls, path: Path) -> Path:
+        if not path.is_absolute():
+            raise ValueError(_NOT_ABSOLUTE)
+        return path
+
     @model_validator(mode="after")
     def _runnable_stage_environment(self) -> Self:
         fault = stage_environment_fault(
@@ -122,6 +139,8 @@ class InstanceSettings(BaseModel):
             workspace=self.workspace,
             stage_image=self.stage_image,
             agent_user=self.agent_user,
+        ) or workspace_overlap_fault(
+            self.stage_environment, self.workspace, self.checkout, self.state_directory
         )
         if fault is not None:
             variable, text = fault
@@ -147,6 +166,27 @@ def stage_environment_fault(
     return _container_fault(dataset, workspace, stage_image, agent_user)
 
 
+def workspace_overlap_fault(
+    stage_environment: StageEnvironmentName,
+    workspace: Path | None,
+    checkout: Path,
+    state_directory: Path,
+) -> tuple[str, str] | None:
+    """The variable and the fault of a checkout or state directory inside the workspace.
+
+    `None` for an `inline` instance, which has no workspace of its own, and for a `container`
+    instance whose checkout and state directory both lie outside it.
+    """
+    if stage_environment == "inline" or workspace is None:
+        return None
+    # Every rollback of the dataset would reset the factory's own work tree, and the agent's
+    # container would reach the health file and the runs.
+    for variable, path in ((CHECKOUT_VARIABLE, checkout), (STATE_VARIABLE, state_directory)):
+        if path.is_relative_to(workspace):
+            return variable, f"{path} lies inside FACTORY_WORKSPACE"
+    return None
+
+
 def _container_fault(
     dataset: str | None, workspace: Path | None, stage_image: str | None, agent_user: str | None
 ) -> tuple[str, str] | None:
@@ -155,7 +195,7 @@ def _container_fault(
     if workspace is None:
         return WORKSPACE_VARIABLE, _MISSING_FOR_CONTAINER
     if not workspace.is_absolute():
-        return WORKSPACE_VARIABLE, "is not an absolute path"
+        return WORKSPACE_VARIABLE, _NOT_ABSOLUTE
     if stage_image is None:
         return STAGE_IMAGE_VARIABLE, _MISSING_FOR_CONTAINER
     if agent_user is not None:
@@ -169,6 +209,8 @@ def read_settings(
     """Read the settings from the environment and, given a reader, the image identity file."""
     repository_url = _repository_url(environ)
     instance = _instance(environ)
+    checkout = _absolute_path(environ, CHECKOUT_VARIABLE, CHECKOUT_PATH)
+    state_directory = _absolute_path(environ, STATE_VARIABLE, STATE_DIRECTORY)
     image = None if read_file is None else _image(environ, read_file)
     agent_user = _agent_user(environ)
     stage_environment = _stage_environment(environ)
@@ -182,7 +224,7 @@ def read_settings(
         workspace=workspace,
         stage_image=stage_image,
         agent_user=agent_user,
-    )
+    ) or workspace_overlap_fault(stage_environment, workspace, checkout, state_directory)
     if fault is not None:
         raise SettingsInvalid(*fault)
     return InstanceSettings(
@@ -190,6 +232,8 @@ def read_settings(
         instance=instance,
         git_identity=_git_identity(environ),
         image=image,
+        checkout=checkout,
+        state_directory=state_directory,
         agent_home=_agent_home(environ),
         claude_executable=_optional(environ, CLAUDE_EXECUTABLE_VARIABLE)
         or _CLAUDE_EXECUTABLE_DEFAULT,
@@ -397,6 +441,21 @@ def _optional(environ: Mapping[str, str], variable: str) -> str:
 def _optional_path(environ: Mapping[str, str], variable: str) -> Path | None:
     value = _optional(environ, variable)
     return Path(value) if value else None
+
+
+def _absolute_path(environ: Mapping[str, str], variable: str, default: Path) -> Path:
+    path = _optional_path(environ, variable)
+    if path is None:
+        return default
+    if not path.is_absolute():
+        raise SettingsInvalid(variable, _NOT_ABSOLUTE)
+    return path
+
+
+def named_state_directory(environ: Mapping[str, str]) -> Path | None:
+    """The state directory `environ` names, or `None` when it names none or a relative one."""
+    path = _optional_path(environ, STATE_VARIABLE)
+    return path if path is not None and path.is_absolute() else None
 
 
 def _agent_home(environ: Mapping[str, str]) -> Path:

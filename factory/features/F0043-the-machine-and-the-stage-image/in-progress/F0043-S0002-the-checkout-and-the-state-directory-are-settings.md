@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T00:13:39.457974Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-25T00:13:39.457974Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-25T00:17:35.673762Z'
+  stage: doing
+  run: 13f82b7124804b1888f38bcc53bef24a
 ---
 
 # The checkout and the state directory are settings
@@ -202,3 +204,29 @@ Expect: `1`
    `lint`: lint: green (0.5 s)
    `test`: FAILED tests/entry/test_run_state_variable.py::test_the_runner_gets_the_paths_and_its_settings_fault_follows_the_state_variable[state-padded] - FileNotFoundError: [Errno 2] No such file or director...
 9. factory: started doing as self.
+10. coder: I built the code that makes the checkout and the state directory settings. `make check` is green, and the tester's new tests in `tests/domain/test_settings_paths.py` and `tests/entry/test_run_state_variable.py` pass without changes.
+
+    - `src/factory/domain/settings.py`:
+      - New constants `CHECKOUT_VARIABLE` (`FACTORY_CHECKOUT`) and `STATE_VARIABLE` (`FACTORY_STATE`).
+      - `_absolute_path` reads each variable stripped. A blank or unset value gives the default; a relative value is `SettingsInvalid(<variable>, "is not an absolute path")`. `read_settings` calls it after `_instance` and before `_image`, checkout first.
+      - A `field_validator` on `checkout` and `state_directory` refuses relative paths when `InstanceSettings` is built directly.
+      - The new public `workspace_overlap_fault(stage_environment, workspace, checkout, state_directory)` gives `<path> lies inside FACTORY_WORKSPACE`. It compares by path parts (`Path.is_relative_to`) and checks the checkout first. Both `read_settings` and the model validator call it as `stage_environment_fault(...) or workspace_overlap_fault(...)`, so the container faults stay first.
+      - The new public `named_state_directory(environ)` returns the absolute directory `FACTORY_STATE` names, else `None`.
+      - The fault text "is not an absolute path" is now one constant, `_NOT_ABSOLUTE`, which the existing workspace fault also uses.
+    - `src/factory/entry/run.py`: `main` reads the environment once into `variables`. Any `SettingsInvalid`, from reading the settings or from the runner, is reported under `named_state_directory(variables) or state_directory`. A relative `FACTORY_STATE` is itself the fault from `read_settings`, and its stop goes to the fallback. The signature is unchanged.
+
+    Main choice: the inside-workspace rule is its own function next to `stage_environment_fault`. I first added `checkout` and `state_directory` as keyword arguments to `stage_environment_fault`, but ruff's PLR0913 refused seven arguments, and a separate rule also keeps the existing function's contract as it was.
+
+    Rejected:
+    - Reading `FACTORY_STATE` with its own stripping code in `run.py`: that would copy `_optional_path` from the domain module.
+    - Placing the stop from the settings that were read: they don't exist when reading fails.
+
+    Refactor: I read the diff and found nothing to change.
+
+    Noticed, not touched:
+    - The docs that criterion 9 names (the operator guide, the project guide, the decision log) are the documenter's.
+    - `factory.entry.health` is unchanged, as the Interface says.
+    - `InstanceSettings` is not part of the records contract, so no schema needs regenerating.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone

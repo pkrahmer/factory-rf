@@ -15,7 +15,7 @@ from factory.application.scheduler import CheckoutPreparer, RepositoryWaiter, Sc
 from factory.application.stops import StopService
 from factory.application.tick import Tick, TickOutcome
 from factory.domain.errors import SettingsInvalid
-from factory.domain.settings import STATE_DIRECTORY, InstanceSettings
+from factory.domain.settings import STATE_DIRECTORY, InstanceSettings, named_state_directory
 from factory.domain.stops import HealthStatus, RepositoryStop
 from factory.entry.wiring import (
     build_boundaries,
@@ -129,14 +129,21 @@ def main(
     state_directory: Path = STATE_DIRECTORY,
     clock: Clock | None = None,
 ) -> int:
-    """Read the settings, `environ` or the process's, and run the instance; 2 when invalid."""
+    """Read the settings, `environ` or the process's, and run the instance; 2 when invalid.
+
+    The stop of invalid settings goes to the state directory the environment names, else to
+    `state_directory`.
+    """
     run = run_until_stopped if runner is None else runner
+    variables = os.environ if environ is None else environ
     try:
-        settings = read_environment_settings(os.environ if environ is None else environ)
+        settings = read_environment_settings(variables)
         run(settings)
     except SettingsInvalid as error:
         _report_the_invalid_settings(
-            error, state_directory, system_clock() if clock is None else clock
+            error,
+            named_state_directory(variables) or state_directory,
+            system_clock() if clock is None else clock,
         )
         return _SETTINGS_INVALID
     return _OK
