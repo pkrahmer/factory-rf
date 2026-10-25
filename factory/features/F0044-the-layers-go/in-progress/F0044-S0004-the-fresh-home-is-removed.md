@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 447
 comments_read: [6398446445]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T13:54:32.716948Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-25T13:54:12.049964Z'
   stage: tests
   run: e8eee716f7974213b5e3832ecb9ebd74
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:54:32.716948Z'
+  stage: doing
 ---
 
 # The fresh home is removed
@@ -184,3 +193,4 @@ Expect: six lines: `gone`, `gone`, `gone`, `gone`, `gone`, `False False True`
 
    `lint`: lint: green (0.7 s)
    `test`: FAILED tests/test_home_reset_removed.py::test_the_names_of_the_home_reset_are_gone[sealed-project-commands-parameters] - assert False
+9. factory: started doing as self.
