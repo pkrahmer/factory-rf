@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 2
 attempts: 0
 crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T17:25:42.650939Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -189,6 +185,13 @@ journal:
   kind: started
   at: '2026-10-25T17:25:42.650939Z'
   stage: doing
+- number: 33
+  speaker: coder
+  kind: question
+  at: '2026-10-25T17:26:22.266905Z'
+  stage: doing
+  run: 6c7c083e47ba4907aed7ce7ee4c87487
+  blocked: question
 ---
 
 # The suite's stages run on the container fakes
@@ -562,3 +565,13 @@ Expect: two lines: `1`; `1`
 
        Choosing between them is not this stage's call.
 32. factory: started doing as self.
+33. coder: Round 2. The smoke tester's one finding (entry 31) is about a test file and the work item's smoke test, not about code. I changed no code in this run. The code stays as committed: `agent_working_directory` in `src/factory/application/take.py`, which `src/factory/application/task.py` and `src/factory/application/preflight.py` call.
+
+    The finding: smoke command 2, `grep -c 'FakeSnapshots(' tests/conftest.py`, prints `0` where `1` is expected. The behaviour holds. The `boundaries` fixture (`tests/conftest.py:238`) calls `fake_dataset(tmp_path)` of `tests/container_support.py`, and `fake_dataset` builds `FakeSnapshots(<tmp_path>/workspace, <tmp_path>/workspace-base)` with the empty base. The world in `tests/proof_support.py:159` calls the same helper, and `tests/test_kill_points.py` relies on it keeping a base that an earlier start left. Criterion 1's test passes, and so does the whole of `make check` (entry 25).
+
+    Question: which side should change?
+    (a) The tester changes `tests/conftest.py` so the fixture calls `FakeSnapshots(...)` and `FakeContainerRuns(...)` itself, as the Interface's conftest line words it. This puts a second copy of `fake_dataset`'s body in `conftest.py` (directory creation and both constructors). Either the world keeps the helper, so there are two copies of one setup, which the reviewer counts as a finding. Or `fake_dataset` is changed to take the fixture's line, which is more test churn for the sake of a grep.
+    (b) The smoke test's second command is reworded to check what the fixture actually does. For example: `grep -c '"Makefile"' tests/git_support.py; grep -c 'fake_dataset(tmp_path)' tests/conftest.py; grep -c 'FakeSnapshots(' tests/container_support.py`, expecting `1`; `1`; `1`. The Interface's conftest line would read "gives the fakes of `fake_dataset` (`FakeSnapshots(<tmp_path>/workspace, <tmp_path>/workspace-base)` and `FakeContainerRuns(<tmp_path>/workspace)`)". The work item is outside my write paths, so this is your edit, or the reviewer's.
+    I would choose (b). It keeps one place that builds the suite's dataset, and the smoke test was written before the helper existed. If you choose (a), I will end with `tests` and name the change for the tester.
+
+    Noticed, not touched: the reviewer's notes in entry 27, a shared constant for `"stage environment: reset"` and the walk loop in `tests/test_suite_fixtures.py` that repeats `drive`. Both are in tests.
