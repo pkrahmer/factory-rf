@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T00:58:50.042610Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-25T00:58:50.042610Z'
   stage: docs
+- number: 18
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T01:00:17.496809Z'
+  stage: docs
+  run: d910efe72a544229a725163be24d7d86
 ---
 
 # The setup script prepares the machine and installs the service
@@ -344,3 +346,25 @@ Expect: `1`
     Notes:
     - `tests/test_vm_setup_text.py:413-415`: `test_the_options_land_in_their_named_variables` repeats the `image=factory-stage:$instance` assertion in all eight rows; it would fit better as a row or a test of its own. Each row also checks only that `$<variable>` is read somewhere, not that its option assigns it.
 17. factory: started docs as self.
+18. documenter: Docs round 1. I wrote the two sections the docs criterion asks for and found no findings: the code matches the Interface and the criteria. I changed only documents, so I did not run `make check`; the factory's checks decide. I did not run `vm/setup.sh` (no VM here), and the examples in the new sections are commands for the VM, so none of them was run.
+
+    Files changed:
+    - `docs/operator-guide.md`, `## The machine`: two new sections after `### The stage image`.
+      - `### The script` holds the options with their defaults, the thirteen steps as a numbered list, and the one line each step prints. Under it are `#### The two passes`, `#### The environment file` and `#### The sudoers fallback`.
+        - Two passes: the waiting line, then the second run.
+        - Environment file: rewritten from the arguments and the Dockerfile's pins on every run, so a change goes into the arguments.
+        - `sudoers` fallback: the rule, the wrapper, and why `diff -FH`. The unit and `diff -FH` come from the story and the script, since I may not read `feature.md`, so decision 7's own wording was not read. Please check that "the factory runs `zfs diff` with those flags and sudoers matches the whole argument list" is its reason.
+        - The text also covers the token read only through the askpass script, and the refusals (usage, `run as root`, missing sub-id range, `visudo` refusal).
+      - `### The service` covers the template unit and `factory@vm`, `systemctl` and `journalctl`, `factory-health` as `factory`, the environment file's variables as a table, `Restart=always` with `RestartSec=15` in place of Compose's policy, and that no health check runs by itself.
+      - Also in this file, one sentence in `### The stage image`: "How `vm/setup.sh` makes the file is not described here yet" now says the script writes a fresh uuid when the image-id file is missing or empty.
+    - `docs/project-guide/README.md`, *Shared test helpers*: one line for `tests/vm_support.py`, placed before `watch_support.py`.
+
+    Cross-read and found current: `docs/operator-guide.md` *Configuration* (the variables the table points to; the defaults there are Compose's, and the new table states the VM's values), the hosting-service token section, and `vm/Dockerfile`'s pins as the stage image section describes them. `docs/decisions.md`: none, as the criterion says (S0004 writes the entry).
+
+    Stale text I noticed and did not touch:
+    - *Configuration* rows for `FACTORY_CLAUDE_LOGIN_FILE`, `FACTORY_API_LOGIN_FILE`, `FACTORY_TOKEN_FILE` and `FACTORY_IMAGE_ID_FILE` say "the image sets it to ..." with Compose paths. They are true of the long-lived container and are not wrong yet, but on the VM the environment file sets them. They are for the story that removes `image/` (F0044).
+    - Reviewer note, not mine to fix: `tests/test_vm_setup_text.py:413-415` repeats the `image=factory-stage:$instance` assertion in every row.
+
+    `check`: check: green (not run again: passed on tree 833d2a57ba51 at 2026-10-25T00:55:18Z)
+    `secrets`: secrets: green (2.4 s)
+    `documents`: documents ok
