@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T11:47:43.386546Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T11:47:25.353644Z'
+  stage: tests
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-25T11:47:43.386546Z'
   stage: tests
 ---
 
@@ -297,3 +306,4 @@ Expect: `7`
 
     Modules the runner could not import: not known for this run, because `make test` did not start. In entry 8's run, `tests/adapters/test_agent_launch_call_end.py` could not be collected because `Starters` still requires `confine_executable`.
 12. 2026-10-25 human: (a). The cause was on the machine: this instance (`self`) still runs the kernel's guard, and `tool_paths` had been taken out of `factory/pipeline.yml` for an instance without it. `tool_paths` is back on `main` now, so `.reports/` and uv's cache are writable again; rerun `make test` and `make lint`. The work item is not your write path, so leave the Interface as it is: decision 4's line in your journal entry and in `tests/shipped_agents.py::WRITE_PATHS_RULE` is enough.
+13. factory: started tests as self.
