@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 2
 attempts: 0
 crashes: 0
 pull_request: 450
-comments_read: [6400499867, 6400543008]
+comments_read: [6400499867, 6400543008, 6400918653]
 handed_over: null
 claim: null
 journal:
@@ -192,6 +192,11 @@ journal:
   stage: doing
   run: 6c7c083e47ba4907aed7ce7ee4c87487
   blocked: question
+- number: 34
+  speaker: human
+  kind: comment
+  at: '2026-10-25T17:38:56.365356Z'
+  stage: doing
 ---
 
 # The suite's stages run on the container fakes
@@ -575,3 +580,7 @@ Expect: two lines: `1`; `1`
     I would choose (b). It keeps one place that builds the suite's dataset, and the smoke test was written before the helper existed. If you choose (a), I will end with `tests` and name the change for the tester.
 
     Noticed, not touched: the reviewer's notes in entry 27, a shared constant for `"stage environment: reset"` and the walk loop in `tests/test_suite_fixtures.py` that repeats `drive`. Both are in tests.
+34. 2026-10-25 human: (b). Keep the one place that builds the suite's dataset (`fake_dataset` in `tests/container_support.py`). The work item changes, not the tests:
+    - The Interface's conftest line reads: "gives the fakes of `fake_dataset` (`FakeSnapshots(<tmp_path>/workspace, <tmp_path>/workspace-base)` and `FakeContainerRuns(<tmp_path>/workspace)`)".
+    - Smoke command 2 becomes `grep -c '"Makefile"' tests/git_support.py; grep -c 'fake_dataset(tmp_path)' tests/conftest.py; grep -c 'FakeSnapshots(' tests/container_support.py`, with `Expect: three lines: 1; 1; 1`.
+    The human does not push to the work-item branch, so the reviewer makes these two text edits to the work item (the reviewer may correct the work item's text, F0034). End with `review`.
