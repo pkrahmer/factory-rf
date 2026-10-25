@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T14:34:03.234252Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-25T14:34:03.234252Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-25T14:34:21.473827Z'
+  stage: intake
+  run: 73d12484935f496e953f9f6a3316a62e
 ---
 
 # The second user is removed
@@ -100,8 +102,9 @@ Tests (the leave is decision 21 of `feature.md`):
 6. `git_environment()` is exactly `{"GIT_CONFIG_COUNT": "3", "GIT_CONFIG_KEY_0": "credential.helper", "GIT_CONFIG_VALUE_0": CREDENTIAL_HELPER, "GIT_CONFIG_KEY_1": "core.hooksPath", "GIT_CONFIG_VALUE_1": os.devnull, "GIT_CONFIG_KEY_2": "core.fsmonitor", "GIT_CONFIG_VALUE_2": "false"}`.
 7. The preflight's extras (rows of one parametrized test over `machine_extras`): `inline` under Claude Code gives `token-file`, `agent-environment`, `agent-run-probe`; under opencode `token-file`, `agent-environment`, `opencode`, `agent-run-probe`; `container` gives F0042-S0011's list unchanged; a probe that ends `died` fails with a detail that holds `by hand as the factory user`, and under opencode with the login `none` also `log in once as the factory user`.
 8. The project commands of a built instance (rows of one parametrized test over `build_boundaries` with `hosting` the fake): `inline` gives a `RecordingProjectCommands` whose `inner` is a `MakeProjectCommands`; `container` one whose `inner` is a `ContainerMakeCommands`.
-9. `make check` stays green.
-10. docs: `docs/operator-guide.md`: the section *The agent runs as a second user* goes, replaced by one paragraph in *The agent runtime* that a `container` instance runs every call in a throwaway container as the host's `factory` (`--userns=keep-id`) and an `inline` one as the factory's own user; its paragraphs **The agent's login token.** and **The agent's API key.** stay, moved into *The agent runtime* without their sentences on the agent user, `sudo` and `/home/agent`, while **The one `sudo` rule.**, **The preflight item `agent-user`.**, the table of checks on a running instance and **A `time_limit` under `sudo`.** go; *Configuration*: the row `FACTORY_AGENT_USER` goes; *The preflight's items*: the rows `agent-user` and `tool:sudo` go and the counts follow; every sentence that names `sudo -n -u`, `env -i`, the agent's own `timeout` or the mode `0640` of a run's files goes. `docs/project-guide/agents.md`, *The agent runtime* (the request has no `os_user`), *The `claude -p` runtime* and *The opencode runtime* (no `sudo_executable`, no call as another user, no end reason under an `os_user`), *Calls in a container* (no refusal of an `os_user`) and *The shared launch module*: no `sudo` chain, and `launch`, `killed_at_limit`, `call_refusal`, `read_call_end` and `Starters` as the Interface gives them; `docs/project-guide/stage-environment.md`: the table row `agent_runtime` and the items left out for `container` name no `sudo` and no `agent-user`; `docs/project-guide/stages.md`, the paragraph on `compose`: no `os_user`; `docs/operator-guide.md`: every sentence that names `FACTORY_AGENT_USER` or `<agent user>` goes or names the factory user (the fault order and the `container` paragraph of *Configuration*, *The agent runtime*, *The agent run's `PATH` and `HOME`*, the list of items left out for `container`, *The probe of the agent run*), and *The hosting-service token*'s paragraph **The project commands run as `agent`.** becomes one sentence that an `inline` project command runs as the factory's user and a `container` one in a check container; `docs/project-guide/processes-and-checks.md`, *Running as another user*: removed, with one line on what replaced it; `docs/project-guide/watching.md`, *Boundaries*: `git_environment`'s three pairs (`GIT_CONFIG_COUNT=3`, no `core.sharedRepository`) and `build_boundaries(settings, token, *, hosting=None)` without `which`; `docs/project-guide/README.md`, *The files*: the lines follow, and *Shared test helpers*: the lines of `sudo_support.py` and `leftovers_runtime_support.py` go. `docs/decisions.md`: the entries "The agent is started through `sudo -n -u agent -- env -i`, and a run's files are `0640`", "The factory's user may become `agent` for one command only, and a missing agent user is a stop", "The agent's own `timeout` kills a run under `sudo` at its time limit", "The project commands run as the agent user, with the git folder sealed" and "Git gets its credential helper and shared group through `GitOptions.environment`" each gain one closing line: "Replaced by the throwaway container, v1.2 F0044-S0005" (the last: "The shared group went with the second user, v1.2 F0044-S0005; the credential helper and the hooks stay"). `README.md`: none.
+9. A Claude Code call and an opencode call without a container write their run files with the mode the process's umask gives and no `chmod` (rows of one parametrized test: a umask of `0o077` and one of `0o022`, for each runtime).
+10. `make check` stays green.
+11. docs: `docs/operator-guide.md`: the section *The agent runs as a second user* goes, replaced by one paragraph in *The agent runtime* that a `container` instance runs every call in a throwaway container as the host's `factory` (`--userns=keep-id`) and an `inline` one as the factory's own user; its paragraphs **The agent's login token.** and **The agent's API key.** stay, moved into *The agent runtime* without their sentences on the agent user, `sudo` and `/home/agent`, while **The one `sudo` rule.**, **The preflight item `agent-user`.**, the table of checks on a running instance and **A `time_limit` under `sudo`.** go; *Configuration*: the row `FACTORY_AGENT_USER` goes; *The preflight's items*: the rows `agent-user` and `tool:sudo` go and the counts follow; every sentence that names `sudo -n -u`, `env -i`, the agent's own `timeout` or the mode `0640` of a run's files goes. `docs/project-guide/agents.md`, *The agent runtime* (the request has no `os_user`), *The `claude -p` runtime* and *The opencode runtime* (no `sudo_executable`, no call as another user, no end reason under an `os_user`), *Calls in a container* (no refusal of an `os_user`) and *The shared launch module*: no `sudo` chain, and `launch`, `killed_at_limit`, `call_refusal`, `read_call_end` and `Starters` as the Interface gives them; `docs/project-guide/stage-environment.md`: the table row `agent_runtime` and the items left out for `container` name no `sudo` and no `agent-user`; `docs/project-guide/stages.md`, the paragraph on `compose`: no `os_user`; `docs/operator-guide.md`: every sentence that names `FACTORY_AGENT_USER` or `<agent user>` goes or names the factory user (the fault order and the `container` paragraph of *Configuration*, *The agent runtime*, *The agent run's `PATH` and `HOME`*, the list of items left out for `container`, *The probe of the agent run*), and *The hosting-service token*'s paragraph **The project commands run as `agent`.** becomes one sentence that an `inline` project command runs as the factory's user and a `container` one in a check container; `docs/project-guide/processes-and-checks.md`, *Running as another user*: removed, with one line on what replaced it; `docs/project-guide/watching.md`, *Boundaries*: `git_environment`'s three pairs (`GIT_CONFIG_COUNT=3`, no `core.sharedRepository`) and `build_boundaries(settings, token, *, hosting=None)` without `which`; `docs/project-guide/README.md`, *The files*: the lines follow, and *Shared test helpers*: the lines of `sudo_support.py` and `leftovers_runtime_support.py` go. `docs/decisions.md`: the entries "The agent is started through `sudo -n -u agent -- env -i`, and a run's files are `0640`", "The factory's user may become `agent` for one command only, and a missing agent user is a stop", "The agent's own `timeout` kills a run under `sudo` at its time limit", "The project commands run as the agent user, with the git folder sealed" and "Git gets its credential helper and shared group through `GitOptions.environment`" each gain one closing line: "Replaced by the throwaway container, v1.2 F0044-S0005" (the last: "The shared group went with the second user, v1.2 F0044-S0005; the credential helper and the hooks stay"). `README.md`: none.
 
 ## Smoke test
 
@@ -141,3 +144,9 @@ Expect: three lines: `[] False`; `False False`; `3 False`
 4. 2026-10-25 human: 1. (a). Add the criterion, before the closing ones: a Claude Code call and an opencode call without a container write their run files with the mode the process's umask gives and no `chmod` (rows of one parametrized test: a umask of `0o077` and one of `0o022`, for each runtime). A new test needs no leave.
    2. Confirmed. `run_launch` and `read_call_end` keep their behaviour, and `call_refusal`'s refused-login-file side rests on the unchanged `test_a_login_file_that_cannot_be_used_stops_the_run_naming_the_file`. No further criterion is needed.
 5. factory: started intake as self.
+6. intake: accepted
+   Interface: names concrete modules, classes and signatures (`launch`, `run_launch`, `killed_at_limit`, `call_refusal`, `read_call_end`, `build_boundaries`, `machine_extras`, `MakeProjectCommands.__init__`); the removals and the test changes are listed by name.
+   Criteria: each is testable by one parametrized test. Rules have their failing side: criterion 4 (host row, non-kill status, 29.9 s), criterion 5 (formerly refused values now accepted), criterion 2 (`sudo:` line is no refusal), and the refused login file by the unchanged test named in the answer to question 2. The run-file mode clause now has criterion 9, carried in from journal entry 4 (human, 1.(a)): I wrote it before the two closing criteria, so `make check` is now 10 and `docs:` 11. Question 2 was confirmed in entry 4: no further criterion for `run_launch`, `read_call_end` or `call_refusal`'s refused-login side.
+   Smoke test: runnable with `uv run python`, no pytest flags involved; the `Expect:` line gives three exact lines that can be compared with the output.
+   Architecture: the changes sit in their layers (adapters, domain, application, entry) and remove code without adding a new mechanism or interface.
+   Scope: within F0044's S0005 line; the test changes rest on decision 21 and decision 34(a) of `feature.md`, and nothing in the story touches the feature's "Out of scope".
