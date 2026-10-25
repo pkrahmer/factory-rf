@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 446
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T13:07:16.845155Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T13:06:56.716175Z'
   stage: intake
   run: 7c7b7ef848924647ad7575fbfc3f35fc
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:07:16.845155Z'
+  stage: tests
 ---
 
 # The leftovers program is removed
@@ -93,3 +102,4 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
    Smoke test: both commands are runnable `uv run python -c` lines with no pytest, so there is no `-q` issue. The `Expect:` line gives three exact output lines that can be compared.
    Architecture: the removals touch domain, adapters and entry in the direction of the layers. `process_table` and the session kill stay (decision 7). No new interface or dependency.
    Scope: inside F0044 S0003 in `feature.md`. Nothing from "Out of scope" is touched. The docs and `CLAUDE.md` changes 4 and 6 fall outside the story, as decision 32 says.
+4. factory: started tests as self.
