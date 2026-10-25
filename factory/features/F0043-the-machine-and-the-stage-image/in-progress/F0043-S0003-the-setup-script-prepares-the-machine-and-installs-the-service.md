@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790, 6394217771]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T06:19:16.878212Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -397,6 +401,11 @@ journal:
   at: '2026-10-25T06:18:55.715590Z'
   stage: review
   run: 89fb77c886cb4343b3c83d7e46cbf8d7
+- number: 71
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:19:16.878212Z'
+  stage: docs
 ---
 
 # The setup script prepares the machine and installs the service
@@ -1163,3 +1172,4 @@ Expect: `1`
     - `tests/test_vm_setup_text.py:491` (`chown-keeps-links`): the row passes without checking any line, because the script holds no `chown`.
     - `tests/test_vm_setup_text.py:539,544`: each of the two side checks takes an argument it does not use (`_path`, `_script`) only so both fit one signature.
     - `tests/test_vm_setup_text.py:605`: the name `test_the_folders_step_refuses_a_link_at_state_or_repo` now also covers `/home/factory/.secrets`.
+71. factory: started docs as self.
