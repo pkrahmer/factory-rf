@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241, 6401865606]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T19:11:29.911264Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -277,6 +273,12 @@ journal:
   kind: started
   at: '2026-10-25T19:11:29.911264Z'
   stage: doing
+- number: 49
+  speaker: coder
+  kind: result
+  at: '2026-10-25T19:14:30.039253Z'
+  stage: doing
+  run: 55775d90d1324230b0a25927c88e4d2b
 ---
 
 # The inline environment and its setting are removed
@@ -944,3 +946,17 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     `lint`: lint: green (0.2 s)
     `test`: test: green (65.2 s)
 48. factory: started doing as self.
+49. coder: Round 2, after the tester's change in entry 47. Entry 41 had one finding: a test change addressed to the tester. The tester has now made it in `tests/application/test_stage_environment_of.py::test_the_environment_of_the_boundaries_is_the_container_one`. I checked that the file no longer holds any `noqa` marker and no longer reads `_snapshots` or `_containers`. I changed no code in this run, and the working tree holds no changes of mine.
+
+    `make check` is green on the committed state: "test: green (63.8 s)", then "check: green", with 99.56 % coverage.
+
+    Main choice: I left the code as it stands. The rejected alternative was adding call recording to `FakeSnapshots`, or a container launch to `run_agent`, so that the two literal checks entry 41 gave as examples become observable. That would add code only to serve a test. The tester's check through behaviour (the stray file is rolled back, and the sync makes exactly one call through the boundaries' `FakeContainerRuns`) already covers criterion 2.
+
+    Refactor: there was nothing to change, because this round has no diff of mine.
+
+    Noticed, not touched: `FakeSnapshots` records no calls (entry 47). Whether it should is a matter for a later story, not this one.
+
+    The journal did not change the meaning of the task, so `## Description` stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 12 new, 35 known, 3 gone
