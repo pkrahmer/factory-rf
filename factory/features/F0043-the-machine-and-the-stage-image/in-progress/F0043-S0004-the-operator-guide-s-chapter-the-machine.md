@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 434
 comments_read: [6394738591, 6394846270]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-25T07:24:43.578484Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-25T07:24:43.578484Z'
   stage: docs
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T07:25:05.360372Z'
+  stage: docs
+  run: b6e0bf1c86b243a7a1e701defa175dd7
 ---
 
 # The operator guide's chapter "The machine"
@@ -242,3 +244,30 @@ Expect: `documents ok`
     - `vm/Dockerfile` has a comment line with `podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> .`. The build context there is the repository root, which is correct, but the chapter uses `/srv/factory/vm/factory`, the same thing.
 15. 2026-10-25 human: (a). The code is right: S0003 decided that root installs the unit and the credential helper only in the run that cloned or when the file is missing, so that root never installs a file from a checkout `factory` can write. Read the criterion's *The rebuild after a merge* as: after a merge that changes `vm/factory.service` or `image/git-credential-factory`, the operator removes the installed file and runs the script again, as you wrote. Keep the chapter as it is. Decision 10 of F0043's `feature.md` is the right reference for the empty `anthropic-api-key`; `shred -u` for the secret copies is fine. Then end with `smoke-test`.
 16. factory: started docs as vm.
+17. documenter: Round 0 resumed after the human's answer (entry 15): option (a), the code is right, and the chapter stays as written. I made no new edit this run. The documents from the earlier docs run are in the working tree and committed. I did not run `make check`, because only documents changed.
+
+    Files changed (in the branch, by the earlier docs run):
+    - `docs/operator-guide.md`: the chapter `## The machine` has the eleven `###` sections in the required order. It holds the new sections *What it is*, *On GCP, step by step* (12 numbered steps), *On any Ubuntu 24.04 VM*, *What the container can and cannot see*, *The costs*, *The metadata server*, *Where the logs are* and *The rebuild after a merge*. The guide's opening paragraph no longer calls the machine's image "the usual way". After a merge that changes `vm/factory.service` or `image/git-credential-factory`, the rebuild section tells the operator to remove the installed file and run the script again. This follows `vm/setup.sh` and the human's reading of the criterion.
+    - `docs/decisions.md`: the new section `## The factory runs on the host, and the stage image carries the tools alone` (2026-10-24, F0043). No other entry changed.
+    - `README.md`: one sentence naming `vm/setup.sh` and pointing to the chapter.
+
+    Checks re-run now:
+    - The `###` listing of the chapter gives eleven lines.
+    - `make documents` ends with `documents ok`.
+    - The earlier run checked the other two smoke-test blocks: `8`, `1`, `1`.
+    - I ran no `gcloud` command and did not run the chapter's examples: there is no GCP project or VM here. The commands come from the runbook, the criterion and `vm/setup.sh`.
+
+    Confirmed by the human: "decision 10 of the feature F0043" is the right reference for the empty `anthropic-api-key`, and `shred -u` for the secret copies is fine.
+
+    Cross-read and found current: *The stage image*, *The script* and *The service* against `vm/Dockerfile`, `vm/setup.sh` and `vm/factory.service`. The `stage environment:` line described in *Where the logs are* matches `src/factory/application/stage_environment.py`. `docs/project-guide/README.md` needs no change: no guide file names a chapter that moved.
+
+    Open, taken from the plan and the runbook without a lookup: the cost figures, including the Cloud NAT fee. Check them against current GCP prices before relying on them.
+
+    Stale text noticed, not mine to fix:
+    - `README.md` line 12 still says "An instance runs in the container: see *The container: compose, entrypoint and health check*". That is v1.1's way, and F0044 removes it.
+    - The comment in `vm/Dockerfile` has `podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> .`. It is correct: the build context is the repository root, which the chapter writes as `/srv/factory/vm/factory`.
+    - The high-entropy values in the done acceptance reports of F0023 and F0042 will be flagged again by a full `make secrets` scan. The human has taken them up.
+
+    `check`: check: green (not run again: passed on tree 97d9666fa5e7 at 2026-10-25T07:15:18Z)
+    `secrets`: secrets: green (1.9 s)
+    `documents`: documents ok
