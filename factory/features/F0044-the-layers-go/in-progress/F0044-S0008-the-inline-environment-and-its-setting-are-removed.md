@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241, 6401865606]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T19:16:13.312673Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -299,6 +295,12 @@ journal:
   kind: started
   at: '2026-10-25T19:16:13.312673Z'
   stage: docs
+- number: 53
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T19:16:42.519817Z'
+  stage: docs
+  run: b318e8f897214f829cee4a0914a64d3f
 ---
 
 # The inline environment and its setting are removed
@@ -1027,3 +1029,25 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     - tests/test_vm_setup_text.py: the human's entry 26.
     - tests/wiring_support.py: the Interface, decision 24.
 52. factory: started docs as self.
+53. documenter: Docs, round 2. The documentation for this story was already on the branch from the earlier docs run. I read the story, the diff `git diff main...HEAD -- . ':!factory' ':!docs' ':!README.md'` and the docs already changed, and I changed no file this round. The code agrees with the Interface where I checked it.
+
+    Files already changed on the branch, each checked against criterion 10 and found current:
+    - `docs/operator-guide.md`: `FACTORY_STAGE_ENVIRONMENT` is gone from the configuration table and the service's environment-file table. `FACTORY_DATASET`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` say "yes" (required). *The stage environment* says there is one and that nothing reads the old setting. The preflight table has no `agent-environment`, `tool:make` or runtime tool, and `HOME=/work/home`.
+    - `docs/project-guide/stage-environment.md`: one environment, `build_boundaries`' three `missing` faults, and one list of preflight items with no `CONTAINER_TOOLS`.
+    - `docs/project-guide/watching.md`: `snapshots` and `containers` are required, and the tick uses `opencode_item(settings, agent_models)`.
+    - `docs/project-guide/processes-and-checks.md`: `"make"` appears in `factory.adapters.make_commands` alone, and no `inline` instance is left.
+    - `docs/project-guide/README.md`, `agents.md`, `costs.md`, `git-and-hosting.md`, `stages.md` and `write-guard.md`: I found no stale text. `write-guard.md` says nothing calls `UndoService` any more.
+    - `README.md`: the paragraph on stage environments is current.
+    - `docs/decisions.md`: the entry "One snapshot instead of many layers" has the line that the inline environment and its setting went with F0044-S0008.
+
+    Cross-read and found current: a grep of `README.md`, `docs/*.md` and `docs/project-guide/` for `FACTORY_STAGE_ENVIRONMENT`, `InlineEnvironment`, `CONTAINER_TOOLS`, `agent_environment_item`, `agent-environment` and `inline` finds only the intended mentions that the setting is read by nothing, history in `docs/decisions.md`, and unrelated uses of the word "inline". `make documents` prints `documents ok`.
+
+    I ran no `make check`, because I changed no file. The factory's checks run after this stage.
+
+    Stale text I did not touch: none seen. `docs/runs/` mentions inline but belongs to the human.
+
+    No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree c16166e18d9d at 2026-10-25T19:13:15Z)
+    `secrets`: secrets: green (3.8 s)
+    `documents`: documents ok
