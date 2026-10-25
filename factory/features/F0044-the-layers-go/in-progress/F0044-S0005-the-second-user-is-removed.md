@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T15:03:40.258556Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-10-25T15:03:19.473409Z'
   stage: doing
   run: 7c92051f457c42798237a84d137bbd21
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-25T15:03:40.258556Z'
+  stage: tests
 ---
 
 # The second user is removed
@@ -405,3 +414,4 @@ Expect: three lines: `[] False`; `False False`; `3 False`
     Noticed, not touched (as in entries 13 and 17): the comment at `src/factory/adapters/process.py:90` still says the agent's own `timeout` ends root's `sudo`, and `process.py` is outside this story's Interface. `SealedProjectCommands` has no caller until S0006. The Dockerfile and VM-setup tests still mention `FACTORY_AGENT_USER`.
 
     Description: unchanged. The review's findings don't change what the task means.
+22. factory: started tests as self.
