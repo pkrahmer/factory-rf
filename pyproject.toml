@@ -60,7 +60,6 @@ ignore = ["PLR2004", "N818", "D105", "D107"]
 "tests/**" = ["S101", "S603", "S607", "PLR0913", "D"]  # asserts and fixtures are the point of tests
 "src/factory/adapters/claude_runtime.py" = ["PLR0913"]  # F0014-S0003 pins the runtime's six-argument constructor; no noqa in the source
 "src/factory/adapters/opencode_runtime.py" = ["PLR0913"]  # F0020-S0004 pins the second runtime's constructor beside the first's; no noqa in the source
-"src/factory/entry/wiring.py" = ["PLR0913"]  # F0027-S0002 gives build_boundaries a sixth argument, end_leftovers; no noqa in the source
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
