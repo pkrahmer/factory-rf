@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T12:01:16.229758Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   at: '2026-10-25T12:00:55.058734Z'
   stage: doing
   run: 1d4220bd4815439d88d2b16a77c16cce
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-25T12:01:16.229758Z'
+  stage: tests
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -470,3 +479,4 @@ Expect: `7`
     What I built is unchanged from entry 16. I did not run `make check` this round because nothing I could write changed.
 
     Noticed but not touched: nothing new.
+21. factory: started tests as self.
