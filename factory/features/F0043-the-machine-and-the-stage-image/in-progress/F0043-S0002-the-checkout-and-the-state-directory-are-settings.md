@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-25T00:08:04.754977Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T00:07:46.778408Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:08:04.754977Z'
   stage: intake
 ---
 
@@ -133,3 +142,4 @@ Expect: `1`
    2. Criterion 6 gains the row: the runner raises `SettingsInvalid` with `FACTORY_STATE` unset, and the stop and its log line land under the fallback `state_directory` (`<tmp>/fallback`).
    3. Criterion 6 gains the row: `FACTORY_STATE` is `  <tmp>/state  ` (padded) with an invalid environment, and the stop lands under `<tmp>/state`.
    Each is a row of the parametrized test its criterion already has; nothing else changes.
+5. factory: started intake as self.
