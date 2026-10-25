@@ -176,7 +176,7 @@ No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` 
 ### The three operations
 
 - `prepare(commit, branch, *, sync_time_limit)`: makes the place hold `branch` at `commit`, its tools synced. `SnapshotError` or `ContainerError` when that cannot be done; the sync's container gets `sync_time_limit`.
-- `run_agent(request, *, run=None)`: runs the request's agent in this environment and returns a `SealedRun` (`factory.application.sealed_runs`: the `result` and the `nested_repositories` removed after it). With `run` the environment calls it once instead of the boundaries' runtime; whatever it does inside, such as the resumes of `PatientRuns` after a provider limit, happens in the same prepared place.
+- `run_agent(request, *, run=None)`: runs the request's agent in this environment and returns its `AgentRunResult`. With `run` the environment calls it once instead of the boundaries' runtime; whatever it does inside, such as the resumes of `PatientRuns` after a provider limit, happens in the same prepared place.
 - `take(stage_start, work_item_path)`: brings the agent's result into the work tree as far as the role may write, and returns a `TakeReport` (`left`, `restored_work_item`; see *The take*). `WorkItemFormatError` naming `work_item_path` when the work item is absent or unreadable at the stage-start commit; the work tree is then left untouched.
 
 ### The inline environment
@@ -184,10 +184,10 @@ No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` 
 `InlineEnvironment(boundaries)` is v1.1's way, the agent in the factory's own checkout:
 
 - `prepare` does nothing and reads nothing: the claim has left the checkout on the branch at the stage-start commit. Its arguments are accepted and ignored.
-- `run_agent` is `run_sealed(boundaries, request, run=run)`: the checkout's git folder is sealed around the run, the nested repositories and the ignored paths are removed (see `watching.md`, *Boundaries*).
+- `run_agent` calls `(run or boundaries.agent_runtime.run)(request)` and returns the result. It seals nothing and removes nothing: the checkout's git folder, a nested repository and the ignored paths are left as the run left them.
 - `take` is `UndoService(boundaries).undo(stage_start, work_item_path)` (see *The undo*, `write-guard.md`) turned into a report: `left` is the undo's `reverted` and `deleted` paths, joined, sorted, each once; `restored_work_item` is the undo's.
 
-`InlineEnvironment` is the only module that calls `run_sealed` and `UndoService` for a stage. `StallService` reaches the undo only through this environment: its stall takes like `AfterAgent` does.
+`InlineEnvironment` is the only module that calls `UndoService` for a stage. `StallService` reaches the undo only through this environment: its stall takes like `AfterAgent` does.
 
 `stage_environment_of(boundaries)` gives the environment the boundaries describe. It gives a `ContainerEnvironment` when `boundaries.snapshots` and `boundaries.containers` are both set, and an `InlineEnvironment` when one or both is `None` (see *The container environment*).
 
@@ -195,7 +195,7 @@ No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` 
 
 - `StageLauncher.launch`, after the claim is pushed and the pull request ensured and before the cost record begins: `prepare(stage_start.commit, branch, sync_time_limit=...)`, then `run_agent(request, run=PatientRuns(boundaries).run)`. An error from `prepare` ends the launch like one from the agent runtime, after the claim and before any run or cost record.
 - `AfterAgent.process`: `take(started.stage_start, started.path)` at the point where the undo was, once the result and the decision are accepted. `AgentAftermath.take` carries the report, and the entry's closing paragraph names `take.left` (see `stages.md`, *After the agent run*).
-- `agent_run_probe_item` (the preflight): `stage_environment_of(boundaries).run_agent(request)`. `factory.application.preflight` does not import `run_sealed`, so the probe cannot bypass the environment; a test pins that.
+- `agent_run_probe_item` (the preflight): `stage_environment_of(boundaries).run_agent(request)`. The probe reports no fault for a nested repository the run leaves.
 - `StallService.stall`, with a stage start, after the checkout is put back on the work item's branch: `take(context.stage_start, context.path)`, whatever the reason (`check_red` included), and its report is `StallResult.take`. A stall after `AfterAgent`'s take is a second take within one stage. `StageFinisher` takes only through its stall service: the checks go through `boundaries.project_commands`.
 
 ### The sync time limit
@@ -206,7 +206,7 @@ No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` 
 
 `StageLauncher`, `AfterAgent`, `StageFinisher` and `StallService` take an optional keyword `stage_environment`; `None` means `stage_environment_of(boundaries)`. `StageRunner` builds one environment and gives it to all four, so that the object that saw a stage's `prepare` sees its `take`.
 
-Tests: `tests/application/test_stage_environment.py` (the interface and the inline environment against `run_sealed` and the undo), `tests/application/test_stage_environment_calls.py` (a stand-in environment that records its calls, given to `StageLauncher` and `AfterAgent`), and the interface's row in `tests/application/test_interfaces.py`.
+Tests: `tests/application/test_stage_environment.py` (the interface and the inline environment and the undo), `tests/application/test_stage_environment_calls.py` (a stand-in environment that records its calls, given to `StageLauncher` and `AfterAgent`), and the interface's row in `tests/application/test_interfaces.py`.
 
 ## The container environment
 
@@ -243,7 +243,7 @@ The first `prepare` on a dataset creates the repository; the next ones reuse it,
 
 ### `run_agent`
 
-`run_agent(request, *, run=None)` calls `(run or boundaries.agent_runtime.run)(request)` and returns `SealedRun(result=<it>, nested_repositories=[])`. There is no seal of the git folder, no home reset, no search for nested repositories and no removal of ignored paths: the dataset is rolled back by the next `prepare`, so nothing the agent leaves survives.
+`run_agent(request, *, run=None)` calls `(run or boundaries.agent_runtime.run)(request)` and returns the result, as the inline environment does. Nothing is sealed, searched or removed: the dataset is rolled back by the next `prepare`, so nothing the agent leaves survives.
 
 ### `take`
 

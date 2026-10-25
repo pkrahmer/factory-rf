@@ -8,7 +8,7 @@ from factory.application.boundaries import Boundaries
 from factory.application.git import Git
 from factory.application.machine import FactoryLog
 from factory.application.stops import StopService
-from factory.domain.errors import GitError, RepositoryUnsealed
+from factory.domain.errors import GitError
 from factory.domain.paths import MAIN_BRANCH, PIPELINE_DEFINITION_FILE, REMOTE
 from factory.domain.settings import InstanceSettings
 from factory.domain.stops import RepositoryStop, RepositoryStopReason
@@ -73,7 +73,7 @@ class Scheduler:
 
 
 class CheckoutPreparer:
-    """Clones the instance's checkout when it is missing or untrusted, and seals its git folder."""
+    """Clones the instance's checkout when it is missing."""
 
     def __init__(self, git: Git, settings: InstanceSettings, log: FactoryLog | None = None) -> None:
         """Bind the working copy, the settings that name its repository and the log, if any."""
@@ -82,32 +82,9 @@ class CheckoutPreparer:
         self._log = log
 
     def prepare(self) -> None:
-        """Clone unless the checkout holds a sealed clone, then seal the clone."""
+        """Clone when the checkout holds no `.git`; keep any checkout that does."""
         if not os.path.lexists(self._settings.checkout / ".git"):
             self._git.clone(self._settings.repository_url)
-        else:
-            self._keep_or_clone_again()
-        self._git.seal()
-
-    def _keep_or_clone_again(self) -> None:
-        # An agent may have replaced `.git` since the last check; it cannot close a folder of
-        # the factory's, so a `.git` that is not closed is never repaired, only cloned again.
-        # A nested repository left by an older checkout or a failed removal must not meet a git
-        # command; one that cannot be removed counts as an untrusted checkout.
-        try:
-            self._git.check_seal()
-            removed = self._git.remove_nested_repositories()
-        except RepositoryUnsealed as error:
-            self._write_log(f"cloning the checkout again: {error}")
-            self._git.discard()
-            self._git.clone(self._settings.repository_url)
-            return
-        if removed:
-            self._write_log(f"removed nested repositories: {', '.join(removed)}")
-
-    def _write_log(self, line: str) -> None:
-        if self._log is not None:
-            self._log.line(line)
 
 
 class RepositoryWaiter:

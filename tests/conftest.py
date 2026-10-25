@@ -1,6 +1,5 @@
 """Fixtures shared by the whole test suite."""
 
-import os
 from collections.abc import Iterator
 from dataclasses import replace
 from datetime import UTC, datetime
@@ -60,13 +59,6 @@ from tmp_path_support import reopen
 from wiring_support import HOSTED_URL, PODMAN_VERSION
 from zfs_support import DATASET, Answer, Zfs, write_zfs
 
-TESTS_UMASK = 0o022
-
-
-def pytest_configure() -> None:
-    """Run every test under the umask `0o022`, whatever umask pytest was started under."""
-    os.umask(TESTS_UMASK)
-
 
 @pytest.fixture(autouse=True)
 def without_agent_login(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -84,14 +76,6 @@ def reopened_tmp_path(request: pytest.FixtureRequest) -> Iterator[None]:
     tmp_path: Path = request.getfixturevalue("tmp_path")
     yield
     reopen(tmp_path)
-
-
-@pytest.fixture
-def group_umask() -> Iterator[None]:
-    """Run the test under the entrypoint's umask `0002` and restore the previous one afterwards."""
-    previous = os.umask(0o002)
-    yield
-    os.umask(previous)
 
 
 @pytest.fixture

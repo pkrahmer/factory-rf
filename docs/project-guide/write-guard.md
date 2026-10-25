@@ -56,7 +56,7 @@ The baseline is read first. When the stage-start commit does not hold the work i
 ### Limits
 
 - The undo makes no commit and no push. A commit the agent made stays in the history; only the work tree is put back.
-- Ignored paths are not seen by the undo and it does not judge them. `run_sealed` removes them before the undo (`remove_ignored()`), after every run that returned; a run that raised leaves them to the next restore. Anything outside the checkout is not seen and stays as it is.
+- Ignored paths are not seen by the undo and it does not judge them. The factory removes none: an ignored path a run leaves stays, and the take never brings one in (see *The take*, `stage-environment.md`). Anything outside the checkout is not seen and stays as it is.
 - Git's paths are taken as they are; renames show as a deletion and an addition (see "The git wrapper").
 
 In the container environment the take applies the same two rules the other way round: it copies what they allow from the dataset into the work tree and leaves the rest (see *The take*, `stage-environment.md`).

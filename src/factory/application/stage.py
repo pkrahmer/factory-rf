@@ -62,7 +62,6 @@ class LaunchedStage(BaseModel):
     request: AgentRunRequest
     result: AgentRunResult
     cost: CostRun
-    nested_repositories: list[str] = []
 
 
 class StageLauncher:
@@ -97,7 +96,7 @@ class StageLauncher:
         run that waits out the provider's spend limit and resumes is one run and one record.
         `ValueError` for a conflicted work item or a stage without a role, before anything is
         read or pushed; `PushFailed`, `AgentDefinitionMissing`, `AgentRuntimeError`,
-        `RepositoryUnsealed`, and the environment's `SnapshotError` and `ContainerError`
+        and the environment's `SnapshotError` and `ContainerError`
         propagate. A run that ends early is a result, not an error.
         """
         stage = self._launchable_stage(prepared)
@@ -118,15 +117,9 @@ class StageLauncher:
             started.stage_start.commit, started.branch, sync_time_limit=self._sync_time_limit()
         )
         begun = self._costs.begin(started, _role_of(self._definition, stage))
-        sealed = self._stage_environment.run_agent(request, run=PatientRuns(self._boundaries).run)
-        cost = self._costs.complete(begun, sealed.result)
-        return LaunchedStage(
-            started=started,
-            request=request,
-            result=sealed.result,
-            cost=cost,
-            nested_repositories=sealed.nested_repositories,
-        )
+        result = self._stage_environment.run_agent(request, run=PatientRuns(self._boundaries).run)
+        cost = self._costs.complete(begun, result)
+        return LaunchedStage(started=started, request=request, result=result, cost=cost)
 
     def _sync_time_limit(self) -> timedelta:
         sync = self._definition.project_commands.get("sync", ProjectCommandDefinition())
@@ -242,10 +235,6 @@ class AfterAgent:
         )
 
     def _early_stall(self, launched: LaunchedStage) -> tuple[StallReason, str] | None:
-        # A nested repository goes first: it is gone already, and the stall must name it
-        # whatever else the agent did.
-        if launched.nested_repositories:
-            return "nested_repository", ", ".join(launched.nested_repositories)
         if self._boundaries.git.status().branch != launched.started.branch:
             return "left_branch", ""
         reason = stall_reason_of(launched.result)

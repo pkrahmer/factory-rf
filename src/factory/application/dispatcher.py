@@ -6,7 +6,7 @@ from typing import Literal, get_args
 
 from factory.application.machine import FactoryLog
 from factory.application.stops import StopService
-from factory.domain.errors import HostingServiceError, RepositoryUnsealed, UnhandledEvent
+from factory.domain.errors import HostingServiceError, UnhandledEvent
 from factory.domain.events import Event, EventKind
 from factory.domain.hosting import PostKey
 from factory.domain.post_texts import error_report_text
@@ -32,7 +32,7 @@ class Handler(ABC):
 
     @abstractmethod
     def handle(self, event: Event) -> None:
-        """Act on the event; any `Exception` it raises, `RepositoryUnsealed` aside, is counted."""
+        """Act on the event; any `Exception` it raises is counted."""
 
 
 class Dispatcher:
@@ -76,10 +76,6 @@ class Dispatcher:
             return self._report(event, known)
         try:
             self.handler_for(event.kind).handle(event)
-        # A git folder the agent may have swapped ends the tick: no further git command may run
-        # in the checkout, and the next iteration clones it again, so it is no error of the event.
-        except RepositoryUnsealed:
-            raise
         # Every handler error is counted, never lost; a kill is no Exception and passes through.
         except Exception as error:
             return self._count(event, f"{type(error).__name__}: {error}")

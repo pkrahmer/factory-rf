@@ -20,7 +20,7 @@ TICK_RUN = (
     " ends the tick. Raises `WorkItemFormatError`, `ValueError` from the evaluation, and"
     " `GitError` outside the fetch and the restore: no stop exists for them."
 )
-PREPARE = "Clone unless the checkout holds a sealed clone, then seal the clone."
+PREPARE = "Clone when the checkout holds no `.git`; keep any checkout that does."
 
 
 @pytest.mark.parametrize(

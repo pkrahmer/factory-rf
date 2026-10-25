@@ -1,4 +1,4 @@
-"""The container environment: the sync container prepares the dataset; the agent runs unsealed."""
+"""The container environment: the sync container prepares the dataset; the agent runs there."""
 
 import stat
 import time
@@ -32,7 +32,7 @@ from factory.domain.errors import ContainerError, SnapshotError
 from factory.domain.git import CommitId
 from git_support import AGENT_FILE, install_agents, run_git, write_agent, write_files
 from human_clone import HumanClone
-from sealed_run_support import COMPLETED, run_request
+from sealed_run_support import COMPLETED, RecordingRun, run_request
 from undo_support import BRANCH, start_stage
 
 AGENT = "tester"
@@ -277,19 +277,6 @@ def _git_modes(checkout: Path) -> tuple[int, int]:
     return stat.S_IMODE(folder.stat().st_mode), stat.S_IMODE((folder / "config").stat().st_mode)
 
 
-class RecordingRun:
-    """A run of the test: records each request and returns the completed result."""
-
-    def __init__(self) -> None:
-        """Start with no request."""
-        self.requests: list[AgentRunRequest] = []
-
-    def run(self, request: AgentRunRequest) -> AgentRunResult:
-        """Record `request`."""
-        self.requests.append(request)
-        return COMPLETED
-
-
 @pytest.mark.parametrize("given", [False, True], ids=["runtime", "given-run"])
 def test_run_agent_runs_unsealed_through_the_runtime_or_the_given_run(
     dataset: Dataset, agent_runtime: FakeAgentRuntime, *, given: bool
@@ -300,16 +287,15 @@ def test_run_agent_runs_unsealed_through_the_runtime_or_the_given_run(
 
     if given:
         recorder = RecordingRun()
-        sealed = container_environment(dataset).run_agent(request, run=recorder.run)
+        result = container_environment(dataset).run_agent(request, run=recorder.run)
         assert recorder.requests == [request]
         assert agent_runtime.requests() == []
     else:
         agent_runtime.queue(ScriptedRun(result=COMPLETED))
-        sealed = container_environment(dataset).run_agent(request)
+        result = container_environment(dataset).run_agent(request)
         assert agent_runtime.requests() == [request]
 
-    assert sealed.result == COMPLETED
-    assert sealed.nested_repositories == []
+    assert result == COMPLETED
     assert _git_modes(checkout) == modes
 
 
@@ -330,9 +316,9 @@ def test_run_agent_leaves_nested_repositories_ignored_files_and_the_home(
         write_files(agent_home, {home_file.name: "the agent's\n"})
         return agent_runtime.run(request)
 
-    sealed = container_environment(dataset).run_agent(run_request(checkout), run=run)
+    result = container_environment(dataset).run_agent(run_request(checkout), run=run)
 
-    assert sealed.nested_repositories == []
+    assert result == COMPLETED
     assert (checkout / "notes" / ".git" / "HEAD").is_file()
     assert (checkout / "build" / "out.txt").read_text(encoding="utf-8") == "built\n"
     assert home_file.read_text(encoding="utf-8") == "the agent's\n"

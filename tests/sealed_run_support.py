@@ -1,4 +1,4 @@
-"""The request and the completed result that the tests of sealed agent runs share."""
+"""The request, the completed result and the recording run that the tests of agent runs share."""
 
 from datetime import timedelta
 from decimal import Decimal
@@ -29,6 +29,14 @@ def run_request(checkout: Path) -> AgentRunRequest:
     )
 
 
-def leave(checkout: Path) -> None:
-    """Change nothing in `checkout`: the step of a run that leaves its git folder alone."""
-    del checkout
+class RecordingRun:
+    """A run of the test: records each request and returns the completed result."""
+
+    def __init__(self) -> None:
+        """Start with no request."""
+        self.requests: list[AgentRunRequest] = []
+
+    def run(self, request: AgentRunRequest) -> AgentRunResult:
+        """Record `request`."""
+        self.requests.append(request)
+        return COMPLETED

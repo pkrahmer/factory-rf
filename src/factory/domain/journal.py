@@ -54,7 +54,6 @@ StallReason = Literal[
     "form_invalid",
     "check_red",
     "merge_conflict",
-    "nested_repository",
     "provider_limit",
 ]
 

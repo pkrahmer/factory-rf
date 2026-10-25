@@ -76,7 +76,7 @@ def test_no_class_in_the_interface_modules_derives_from_protocol(
     assert bases == []
 
 
-def test_git_abstract_methods_are_exactly_its_twenty_six_operations() -> None:
+def test_git_abstract_methods_are_exactly_its_twenty_one_operations() -> None:
     assert Git.__abstractmethods__ == GIT_OPERATIONS
 
 
