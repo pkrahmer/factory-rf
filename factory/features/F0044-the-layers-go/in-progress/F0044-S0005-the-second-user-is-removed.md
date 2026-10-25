@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T14:52:55.849316Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-10-25T14:52:55.849316Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-25T14:55:41.804315Z'
+  stage: tests
+  run: f697b57bf79a47b5be3bc48ebd6f1765
 ---
 
 # The second user is removed
@@ -289,3 +291,14 @@ Expect: three lines: `[] False`; `False False`; `3 False`
 
     The Description is unchanged: the journal did not change the task's meaning beyond criterion 9, which intake already wrote in.
 14. factory: started tests as self.
+15. tester: I made the two test changes named in the coder's entry 13, which the prompt marks as approved. They follow from the human's answers in entry 9 (criterion 7's wording, and criterion 9's `0o666 & ~umask`).
+
+    1. `tests/application/test_agent_run_probe_api_login.py`: `DIED` is now `"the probe run ended died; run claude -p by hand as the factory user to see why"`. This matches criterion 7 and the `DIED` that `test_agent_run_probe_opencode.py` already uses.
+    2. `tests/adapters/test_opencode_runtime.py::test_the_call_sees_its_configuration_file_and_only_the_request_s_environment`: I removed the line `assert read_config_modes(tmp_path / "bin") == [0o640]`, because criterion 9 now pins the mode in `tests/adapters/test_calls_as_the_factory_user.py::test_the_run_files_keep_the_mode_the_umask_gives`. `ruff check --fix` then removed the `read_config_modes` import that was no longer used. The helper itself stays in `tests/adapters/opencode_stand_in.py`.
+
+    The mapping from criteria to tests is unchanged from entry 11. This run created no files, and every test module imported.
+
+    Run: `make test` ended `test: green (67.0 s)` with total coverage at 99.53 %. `make lint` is green.
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (70.1 s)

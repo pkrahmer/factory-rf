@@ -12,7 +12,6 @@ from adapters.opencode_stand_in import (
     MODELS,
     REPLY_EVENTS,
     opencode_request,
-    read_config_modes,
     stand_in_runtime,
     stdout,
     step_start,
@@ -199,7 +198,6 @@ def test_the_call_sees_its_configuration_file_and_only_the_request_s_environment
     config = Path(call.environment[CONFIG_VARIABLE])
     assert config.parent == tmp_path / "state"
     assert CONFIG_NAME.fullmatch(config.name)
-    assert read_config_modes(tmp_path / "bin") == [0o640]
     assert without_locale(call.environment) == {
         "HOME": "/home/agent",
         "LANG": "C.UTF-8",

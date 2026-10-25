@@ -19,7 +19,7 @@ API_HINT = (
     "; the agent's API key is read from /home/agent/.anthropic-api-key: "
     "check that it is valid and that its account has credit"
 )
-DIED = "the probe run ended died; run claude -p by hand as agent to see why"
+DIED = "the probe run ended died; run claude -p by hand as the factory user to see why"
 
 
 @pytest.fixture
