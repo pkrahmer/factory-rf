@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -241,6 +241,11 @@ journal:
   at: '2026-10-25T17:45:03.415319Z'
   stage: smoke-test
   run: 904e1691bde34975ad7d173557a72ca6
+- number: 43
+  speaker: factory
+  kind: done
+  at: '2026-10-25T17:46:22.792077Z'
+  stage: approval
 ---
 
 # The suite's stages run on the container fakes
@@ -732,3 +737,4 @@ Expect: three lines: `1`; `1`; `1`
     Findings: none.
 
     Afterwards the working tree held only the factory's `.costs.jsonl` sidecar change. Nothing is left in `/tmp`.
+43. factory: done (pull request merged); cost: 19 runs, 31.7 min, 198 turns, 594325 tokens in (6935071 more from cache), 82314 out, $7.30
