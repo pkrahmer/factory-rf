@@ -242,8 +242,8 @@ fi
 
 changes=
 # install -d as root on a link factory planted there would reach the link's target.
-if [ -L "$base/state" ] || [ -L "$base/repo" ]; then
-  echo "setup: folders: $base/state or $base/repo is a link; remove it and run this script again" >&2
+if [ -L "$base/state" ] || [ -L "$base/repo" ] || [ -L /home/factory/.secrets ]; then
+  echo "setup: folders: $base/state, $base/repo or /home/factory/.secrets is a link; remove it and run this script again" >&2
   exit 1
 fi
 if ! owned_with_mode factory:factory 755 "$base" \

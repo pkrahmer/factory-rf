@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T05:53:07.291436Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -301,6 +297,12 @@ journal:
   kind: started
   at: '2026-10-25T05:53:07.291436Z'
   stage: doing
+- number: 53
+  speaker: coder
+  kind: result
+  at: '2026-10-25T05:55:13.566611Z'
+  stage: doing
+  run: e56246bde12c4be28874268d91503e86
 ---
 
 # The setup script prepares the machine and installs the service
@@ -899,3 +901,14 @@ Expect: `1`
     - `tests/vm_support.py:5`: imports the private `_uncommented` from `dockerfile_support`.
     - `tests/test_vm_setup_text.py:491` (`chown-keeps-links`): the row passes without checking any line, because the script holds no `chown`.
 52. factory: started doing as self.
+53. coder: Round 1, after the human's entry 49 and the reviewer's entry 51. I changed only `vm/setup.sh`, fixing finding 2. In the `folders` step, the link refusal now also tests `[ -L /home/factory/.secrets ]`, next to the tests of `$base/state` and `$base/repo`. It still comes before the first `install -d`. Its line now reads `setup: folders: $base/state, $base/repo or /home/factory/.secrets is a link; remove it and run this script again`, still written with `>&2` and still followed by `exit 1`. The line names `.secrets` but holds none of criterion 5's forbidden forms.
+
+    Main choice: I added a third condition to the existing refusal instead of writing a separate `if` with its own line. This follows the reviewer's first suggested fix and keeps one refusal for the three folders. I rejected the separate block because it would repeat the same refusal shape. `vm/factory.service` and the tests are unchanged. `sh -n vm/setup.sh` passes, and `make check` ends `check: green` (coverage 99.20 %). Refactor: I read the change again and found nothing to change; the existing comment above the refusal still describes all three tests.
+
+    For the tester (finding 1 of entry 51): add a `link-test-secrets` row to `tests/test_vm_setup_text.py::test_the_folders_step_refuses_a_link_at_state_or_repo`, next to the `state` and `repo` rows. It should check that the `folders` step tests `-L` on `/home/factory/.secrets` before its first `install -d`.
+
+    Noticed, not touched (reviewer's notes in entry 51, both in tests):
+    - `tests/vm_support.py:5` imports the private `_uncommented` from `dockerfile_support`.
+    - The `chown-keeps-links` row checks nothing, because the script holds no `chown`.
+
+    The Description and Interface were already corrected by the reviewer in entry 51.
