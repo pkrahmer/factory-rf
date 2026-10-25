@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T14:34:41.874836Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-25T14:34:21.473827Z'
   stage: intake
   run: 73d12484935f496e953f9f6a3316a62e
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:34:41.874836Z'
+  stage: tests
 ---
 
 # The second user is removed
@@ -150,3 +159,4 @@ Expect: three lines: `[] False`; `False False`; `3 False`
    Smoke test: runnable with `uv run python`, no pytest flags involved; the `Expect:` line gives three exact lines that can be compared with the output.
    Architecture: the changes sit in their layers (adapters, domain, application, entry) and remove code without adding a new mechanism or interface.
    Scope: within F0044's S0005 line; the test changes rest on decision 21 and decision 34(a) of `feature.md`, and nothing in the story touches the feature's "Out of scope".
+7. factory: started tests as self.
