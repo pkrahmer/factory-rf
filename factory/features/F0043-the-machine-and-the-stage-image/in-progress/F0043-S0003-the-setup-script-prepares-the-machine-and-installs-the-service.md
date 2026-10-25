@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790, 6394217771]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T06:20:20.641854Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -417,6 +413,12 @@ journal:
   kind: started
   at: '2026-10-25T06:20:20.641854Z'
   stage: smoke-test
+- number: 74
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T06:21:12.742281Z'
+  stage: smoke-test
+  run: 65342a85291c454e9014dcdef0111559
 ---
 
 # The setup script prepares the machine and installs the service
@@ -1207,3 +1209,53 @@ Expect: `1`
     `secrets`: secrets: green (2.6 s)
     `documents`: documents ok
 73. factory: started smoke-test as self.
+74. smoke-tester: Smoke test, round 2. I ran the four blocks under `## Smoke test` from the repository root, in order, as they are written. To keep the quoting intact I put each block in its own `bash` script in `$TMPDIR`, and every block cleans up its own `mktemp -d` folder. All four blocks met their `Expect:` lines. I fixed nothing.
+
+    Block 1 (syntax, argument fault with no words, root refusal):
+    ```
+    syntax-ok
+    status 2
+    1
+    1
+    0
+    status 2
+    setup.sh: run as root
+    0
+    ```
+    Expected eight lines: `syntax-ok`, `status 2`, `1`, `1`, `0`, `status 2`, `setup.sh: run as root`, `0`. **Met.**
+
+    Block 2 (step order in the script's text with comment lines dropped, the `diff -FH` rule, the environment literal, no `FACTORY_AGENT_USER`):
+    ```
+    in-order 14
+    1
+    0
+    1
+    0
+    ```
+    Expected `in-order 14`, `1`, `0`, `1`, `0`. **Met.**
+
+    Block 3 (`vm/factory.service` keys):
+    ```
+    2
+    WorkingDirectory=/srv/factory/%i
+    EnvironmentFile=/srv/factory/%i/factory.env
+    ExecStart=/srv/factory/%i/factory/.venv/bin/factory-run
+    Restart=always
+    RestartSec=15
+    WantedBy=multi-user.target
+    ```
+    Expected those seven lines. **Met.**
+
+    Block 4 (the story's three test modules):
+    ```
+    1
+    ```
+    Expected `1`. **Met.** The pytest summary line it counted was `142 passed in 0.14s`.
+
+    Checks against the acceptance criteria beyond the commands:
+    - The root refusal (criterion 3) printed 0 bytes to standard output.
+    - `sh vm/setup.sh --help` (criterion 2) exits 0, prints 0 bytes to standard error, and prints to standard output a usage line that starts with `usage: setup.sh` and names every option: `--device`, `--repository-url`, `--instance`, `--pool`, `--quota`, `--ref`, `--image`, `--runtime claude|opencode`, `--sudoers` and `--help`.
+
+    Nothing in the smoke test contradicts a criterion. The script's real steps need a VM, which is outside this smoke test as the description says; I did not run them. I did not run `make check` (criterion 15); the factory's checks cover it.
+
+    Findings: none.
