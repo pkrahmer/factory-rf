@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 434
 comments_read: [6394738591]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-25T07:11:38.002296Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-25T07:11:38.002296Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-25T07:18:42.979596Z'
+  stage: doing
+  run: d5a0811606124bcc9787b648950a679a
 ---
 
 # The operator guide's chapter "The machine"
@@ -154,3 +156,15 @@ Expect: `documents ok`
    I would choose (a): the red comes from the missing ref, not from this branch's changes. I would then run (b) as its own story if a full scan on `main` shows the same findings.
 8. 2026-10-25 human: (a). The red comes from the missing `origin/main` in the dataset's checkout, not from this branch. The sync now also fetches the host's branches as `origin/<branch>` (story F0043-S0006; this instance already runs that one-line change), so `make secrets` scans only the changed files again. Run `doing` again as a documents-only round: nothing outside the docs changes, and `make check` should end green. (b), the old acceptance reports' values, is not this story's: it is raised for the human.
 9. factory: started doing as vm.
+10. coder: I built nothing. This is a documents-only story: the documenter writes the chapter and the decision-log entry. Nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changed in this stage, and `git status --short` is empty (criterion 1).
+
+    `make check` is now green and ends with `check: green` (`test: green (193.3 s)`, total coverage 99.20 %) (criterion 2). As the human's answer in entry 8 said, the checkout now has `origin/main` (`git branch -a` lists `remotes/origin/main`), so `make secrets` scans only the changed files again. Last round it went red on the done acceptance reports of F0023 and F0042; this round it no longer does.
+
+    Main choice: I kept to the human's answer and handed the story on with no change. The alternative I rejected was touching the old acceptance reports or `.secrets.baseline`: the human said that is not this story's work (option (b)).
+
+    Refactor step: there is no diff, so there was nothing to refactor. The journal did not change the meaning of the task, so `## Description` stays as it is.
+
+    Noticed, not touched: the high-entropy values in `F0023-A0001-acceptance.md`, `F0023-A0002-acceptance.md` and `F0042-A0002-acceptance.md` are still there. A full scan on `main` will flag them again; the human has taken that up.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
