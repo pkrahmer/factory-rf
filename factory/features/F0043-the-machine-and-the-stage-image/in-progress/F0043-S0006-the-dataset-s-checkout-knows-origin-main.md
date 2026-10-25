@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-25T08:06:23.051381Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-25T08:06:23.051381Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T08:06:38.256743Z'
+  stage: smoke-test
+  run: 8acc8076852b44be856b37296b17a361
 ---
 
 # The dataset's checkout knows origin/main
@@ -302,3 +304,19 @@ Expect: `1`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok
 20. factory: started smoke-test as vm.
+21. smoke-tester: I ran the smoke test from the repository root exactly as written. It met its expectation, and I found nothing wrong.
+
+    Command 1: `grep -c "'+refs/heads/\*:refs/remotes/origin/\*'" src/factory/application/stage_environment.py`
+    ```
+    1
+    ```
+    Expected `1`, got `1`, so it met its `Expect:` line. The command exited with 0.
+
+    I checked the acceptance criteria against the smoke test by reading `_SYNC_SCRIPT` in `src/factory/application/stage_environment.py`. The match is on the script's `git fetch -q --prune --update-head-ok "$3"` line, which holds both refspecs.
+    - That line is split in the source with a backslash-newline inside a non-raw triple-quoted string. Python removes that break, so the script still has the fetch on one line (criterion 4).
+    - The comment above the script says why the second refspec is there: the project's commands read `origin/main`.
+    - The script names no container path such as `/work` or `/upstream`.
+
+    Nothing the smoke test showed contradicts criteria 1 to 6. Criteria 1 to 3 are about how the sync behaves at run time. The smoke test does not exercise that; the tests from entry 13 cover it.
+
+    Findings: none.
