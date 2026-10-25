@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 433
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T06:27:53.690221Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T06:27:33.487862Z'
   stage: intake
   run: fa0d8f8981e5443bb3252a73adf48d7f
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:27:53.690221Z'
+  stage: tests
 ---
 
 # The setup script writes as factory from its own standard input
@@ -69,3 +78,4 @@ Expect: two lines, `0` and `syntax-ok`
    Smoke test: `grep -c '/dev/stdin' vm/setup.sh; sh -n vm/setup.sh && echo syntax-ok` runs as written. The grep prints 0 (its non-zero status is ignored because of the `;`), then `syntax-ok`. The Expect line is checkable. It runs no pytest, so the `-q` rule does not apply.
    Architecture: `vm/*` is in the coder's write paths, which feature.md change 1 added. Tests go under `tests/` with `tests/vm_support.py`, and the docs criterion names the operator guide's setup-script chapter. No layer is touched.
    Scope: it is inside F0043 as decision 17 and the Stories list (S0005, before S0004). It changes nothing from the Out of scope list, and no earlier test changes.
+4. factory: started tests as self.
