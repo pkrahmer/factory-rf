@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T01:35:50.024222Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -256,6 +252,12 @@ journal:
   kind: started
   at: '2026-10-25T01:35:50.024222Z'
   stage: doing
+- number: 45
+  speaker: coder
+  kind: result
+  at: '2026-10-25T01:39:09.604742Z'
+  stage: doing
+  run: bee596cb0a644648930a79df5567297f
 ---
 
 # The setup script prepares the machine and installs the service
@@ -787,3 +789,24 @@ Expect: `1`
     `lint`: lint: green (0.5 s)
     `test`: test: green (68.3 s)
 44. factory: started doing as self.
+45. coder: Round 2, after the tester's entry 43. I made no code changes in this run, because none was needed. The tester's new tests are `test_the_checkout_files_are_installed_only_in_the_run_that_cloned` (criterion 13) and `test_the_folders_step_refuses_a_link_at_state_or_repo` (criterion 14). Both pass against `vm/setup.sh` as entry 41 left it. I ran `make check` on the committed state and it ends `check: green` (`test: green (69.2 s)`, coverage 99.20 %).
+
+    What the story built (unchanged this run): `vm/setup.sh` and `vm/factory.service`. Entry 41 made the changes for the human's entry 37:
+    - `cloned=no` / `cloned=yes` are set around the `git clone` (`vm/setup.sh:288-292`).
+    - The installs of the helper and the unit run only under `[ "$cloned" = yes ]`. Otherwise the step prints a `differs from the checkout; not installed` line to standard error (`vm/setup.sh:310-316` and `355-361`).
+    - The `-L` refusal in `folders` (`vm/setup.sh:245`).
+
+    Main choice (entry 41's, kept): the "differs; not installed" warning is its own line on standard error, and the step's one stdout line stays as it was. The rejected alternative was folding the warning into the stdout line through `changed`/`said`.
+
+    Refactor: I read the round's changes once. The `tools` and `service` install blocks have the same shape. I left them apart rather than adding a shared helper: criterion 13's test needs each step's text to hold its own `install` directly under the `if` on the clone variable, so a helper would break that test. Nothing else needed changing.
+
+    Description: nothing in the journal since entry 39 changed the task's meaning. The reviewer already wrote entry 37 into the Description.
+
+    Noticed, not touched:
+    - The Interface still says "unless identical" for the two installs from the checkout. Entry 37 and criterion 13 replace that rule (entry 39 noted it too).
+    - `tests/vm_support.py:5` imports the private `_uncommented` from `dockerfile_support` (the reviewer's note).
+    - The `chown-keeps-links` row passes without checking any line, because the script holds no `chown`.
+    - No skill applied.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
