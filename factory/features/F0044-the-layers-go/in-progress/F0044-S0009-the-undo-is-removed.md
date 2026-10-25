@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T19:36:19.683476Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-25T19:35:58.732226Z'
   stage: tests
   run: e9d2dceb20dd4bde8ba77949e584b56e
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:36:19.683476Z'
+  stage: doing
 ---
 
 # The undo is removed
@@ -267,3 +276,4 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (75.7 s)
+14. factory: started doing as self.
