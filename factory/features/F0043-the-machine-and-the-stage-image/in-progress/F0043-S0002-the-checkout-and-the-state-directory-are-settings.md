@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T00:23:31.207818Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-25T00:23:10.727810Z'
   stage: tests
   run: 4c0fd5a1c547424a8cc9e09d6ddfa30a
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:23:31.207818Z'
+  stage: doing
 ---
 
 # The checkout and the state directory are settings
@@ -300,3 +309,4 @@ Expect: `1`
 
     `lint`: lint: green (0.6 s)
     `test`: test: green (67.4 s)
+17. factory: started doing as self.
