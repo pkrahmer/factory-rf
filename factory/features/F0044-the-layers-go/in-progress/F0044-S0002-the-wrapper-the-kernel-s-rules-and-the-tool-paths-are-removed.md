@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 445
 comments_read: [6397809713]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T12:58:25.404086Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-25T12:58:25.404086Z'
   stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T12:59:47.013606Z'
+  stage: review
+  run: b17d10b622e24082ac3fb916d570a216
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -192,7 +194,7 @@ Tests (the leave is decision 18 of `feature.md`):
 6. `template/factory/pipeline.yml` holds no `tool_paths` and is accepted by the reader; `factory/pipeline.yml` (after the human's change 1) is accepted too.
 7. The markers and routes (the two tests of `tests/test_process_search.py` as the Interface says): the only suppression markers under `src/factory` are `noqa: S404`, `nosec B404` on the `subprocess` import and `noqa: S603`, `nosec B603` on the `Popen` line of `adapters/process.py`, besides the `noqa: PLR0913` of `entry/leftovers.py` that S0003 removes, and no module uses `os.execvpe`, `os.system` or another route to a process.
 8. `make check` stays green.
-9. docs: `docs/project-guide/write-guard.md`: the sections *The kernel's targets*, *The kernel's write guard* and *The start wrapper* go, each replaced by one line in a section *Replaced in v1.2* at the end of the file that says what replaced it (the dataset's rollback and the take); *The write paths* no longer names tool paths; `docs/project-guide/stages.md`, *The pipeline definition*: `tool_paths` goes from the keys, rule 12 (`tool path <path>: ...`) and its paragraph go from the rules, and an unknown key is refused; `docs/project-guide/agents.md`, the bullet on `template/factory/pipeline.yml`: it names no `tool_paths`; `docs/project-guide/processes-and-checks.md`, *Starting a process*: no `replace_process`; `docs/project-guide/README.md`, *The files*: the line of `write-guard.md` follows its sections, and *Shared test helpers*: the line of `confine_support.py` names only the helpers it keeps; `docs/operator-guide.md`, *The pipeline definition*: `tool_paths` goes and a definition that still holds it is refused with `pipeline_definition_invalid` (what to do: remove the key), *The records contract*: the version `2.0` and why it rose, and *The kernel refuses every other write*: removed, with one sentence in *The agent runtime* that the take keeps the write paths. `docs/decisions.md`: the entries "The write guard by the kernel: Landlock through ctypes", "factory-confine replaces itself with the runtime", "The kernel's targets of the write paths and the tool paths" and "The one module that starts processes may carry four markers" each gain one closing line ("Replaced by the dataset's rollback and the take, v1.2 F0044-S0002"; the last: "The `os.execvpe` call and its markers went with the wrapper, v1.2 F0044-S0002; the two on `subprocess` and `Popen` stay"); and the entry on the records contract gains the line that `2.0` removed `tool_paths`. `README.md`: the row `factory-confine` of the commands goes, and the sentence after the table counts five console commands.
+9. docs: `docs/project-guide/write-guard.md`: the sections *The kernel's targets*, *The kernel's write guard* and *The start wrapper* go, each replaced by one line in a section *Replaced in v1.2* at the end of the file that says what replaced it (the dataset's rollback and the take); *The write paths* no longer names tool paths; `docs/project-guide/stages.md`, *The pipeline definition*: `tool_paths` goes from the keys, rule 12 (`tool path <path>: ...`) and its paragraph go from the rules, and an unknown key is refused; `docs/project-guide/agents.md`, the bullet on `template/factory/pipeline.yml`: it names no `tool_paths`; `docs/project-guide/processes-and-checks.md`, *Starting a process*: no `replace_process`; `docs/project-guide/README.md`, *The files*: the line of `write-guard.md` follows its sections, *Shared test helpers*: the line of `confine_support.py` names only the helpers it keeps, and *Errors*: the paragraph on `ConfinementError` goes; `docs/operator-guide.md`, *The pipeline definition*: `tool_paths` goes and a definition that still holds it is refused with `pipeline_definition_invalid` (what to do: remove the key), *The records contract*: the version `2.0` and why it rose, and *The kernel refuses every other write*: removed, with one sentence in *The agent runtime* that the take keeps the write paths. `docs/decisions.md`: the entries "The write guard by the kernel: Landlock through ctypes", "factory-confine replaces itself with the runtime", "The kernel's targets of the write paths and the tool paths" and "The one module that starts processes may carry four markers" each gain one closing line ("Replaced by the dataset's rollback and the take, v1.2 F0044-S0002"; the last: "The `os.execvpe` call and its markers went with the wrapper, v1.2 F0044-S0002; the two on `subprocess` and `Popen` stay"); and the entry on the records contract gains the line that `2.0` removed `tool_paths`. `README.md`: the row `factory-confine` of the commands goes, and the sentence after the table counts five console commands.
 
 ## Smoke test
 
@@ -500,3 +502,70 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
     `check`: check: green (not run again: passed on tree f2793d357ebc at 2026-10-25T12:52:42Z)
     `duplicates`: duplicates: 9 new, 35 known, 3 gone
 23. factory: started review as self.
+24. reviewer: Review, round 2. I read the work item and the diff of `src/`, `template/` and `tests/` again, without the generated schemas beyond their version lines and the `tool_paths` block. I did not run `make check`. The coder's last run was green (entries 18 and 22).
+
+    no findings
+
+    - Group 1: each of criteria 1 to 7 has a test that checks what the criterion says:
+      - criterion 1: `tests/test_kernel_guard_removed.py`, 3 `find_spec` rows.
+      - criterion 2: the same file, one row per removed name or field.
+      - criterion 3: `tests/adapters/test_pipeline_yaml_tool_paths.py`, with an accepted row and a refused row that names `tool_paths`.
+      - criterion 4: `tests/application/test_write_paths_guard.py`. `test_take.py` is unchanged.
+      - criterion 5: `tests/domain/test_contract_version_2.py`, with rows for the version, each of the five schemas, and no `tool_paths`.
+      - criterion 6: the shipped-definitions test.
+      - criterion 7: the two tests in `tests/test_process_search.py`.
+      - The one rule with a failing side is the unknown key, and it has its refused row.
+    - Group 2: the layers are touched only by removals.
+    - Group 3: the `os.execvpe` line went with its markers `S606`/`B606`. No new marker was added.
+    - Group 4: `ConfinementError` is gone. A search of `src/` and `template/` finds no `tool_path`, `confine`, `execvpe` or `landlock`. The contract's major version rose to 2.0 for the removed field, which is what the version rule says.
+    - Group 5: the round-1 finding is still open in the text, but I settled it myself rather than send it back:
+      - My round-1 finding sent the change to criterion 9 to the coder, who has no write path on the work item. The factory undid the coder's edit (entry 22), so the criterion still did not name `docs/project-guide/README.md:105`.
+      - The human's answer in entry 12 already settles this: "The two docs passages on `ConfinementError` are the documenter's."
+      - So I wrote that answer into the criterion, which is within my write path. Another round to `doing` could not fix it.
+
+    criterion 9 corrected (from the human's answer in entry 12): "*The files*: the line of `write-guard.md` follows its sections, and *Shared test helpers*: the line of `confine_support.py` names only the helpers it keeps;" -> "*The files*: the line of `write-guard.md` follows its sections, *Shared test helpers*: the line of `confine_support.py` names only the helpers it keeps, and *Errors*: the paragraph on `ConfinementError` goes;". The mentions at `write-guard.md:115,149` sit inside sections the criterion already removes.
+
+    Rejected: ending with `doing` for this. The coder cannot write the work item, so the round would pass the cap with nothing changed.
+
+    Earlier tests (item 6):
+    - Deleted, under decision 18 / 31a. All thirteen are listed in the Interface:
+      - `tests/adapters/test_landlock.py`
+      - `tests/adapters/test_landlock_checks.py`
+      - `tests/adapters/test_process_replace.py`
+      - `tests/adapters/test_process_replace_faults.py`
+      - `tests/application/test_write_paths_tool_paths.py`
+      - `tests/domain/test_confinement_abi.py`
+      - `tests/domain/test_confinement_model.py`
+      - `tests/domain/test_confinement_of.py`
+      - `tests/domain/test_tool_paths.py`
+      - `tests/domain/test_write_targets.py`
+      - `tests/entry/test_confine.py`
+      - `tests/entry/test_confine_defaults.py`
+      - `tests/entry/test_confine_steps.py`
+    - Changed as the Interface names them, under decision 18 / 31a:
+      - `tests/test_process_search.py`
+      - `tests/test_wrapper_search.py`
+      - `tests/entry/test_wiring.py`
+      - `tests/domain/test_pipeline_not_read.py`
+      - `tests/domain/test_contract.py`
+      - `tests/domain/test_contract_provider_limit.py`
+      - `tests/confine_support.py`
+      - `tests/application/test_stage_launch.py`
+      - `tests/application/test_no_state_refusals.py`
+      - `tests/application/test_agent_run_probe.py`
+      - `tests/domain/test_agent_runs.py`
+      - `tests/adapters/test_claude_runtime.py`
+      - `tests/adapters/test_claude_runtime_resume.py`
+      - `tests/adapters/test_claude_runtime_file_modes.py`
+      - `tests/entry/test_wiring_boundaries.py`
+    - Changed under decision 18 / 31a, plus follow-on lint edits that dropped `tmp_path`. Each test keeps its name and its checks:
+      - `tests/application/test_task.py`
+      - `tests/application/test_task_acceptance.py`
+      - `tests/application/test_task_os_user.py`
+    - `tests/test_hook_removed.py`: changed under decision 18 / 31a (the `confine-command` row and the three fields). Its `_has` moved to `tests/module_names.py` under the standing leave to move a shared test helper.
+    - Changed under the human's leave in entry 12:
+      - `tests/adapters/test_claude_runtime_login.py`
+      - `tests/adapters/test_claude_runtime_api_login.py`
+      - `tests/adapters/test_claude_runtime_no_hook.py`
+
+    Open, outside this story: the `factory-confine` console script in `pyproject.toml` is the human's change 3, after the merge.
