@@ -124,7 +124,7 @@ The twenty-one operations of the `Git` interface (`tests/application/test_git_in
 
 `ChangedPath.change` is `"added"`, `"modified"` or `"deleted"` (`ChangeKind`); there is no `"renamed"`. Rename detection is off everywhere, so a rename is a deletion of the old path plus an addition of the new one. The four result models (`ChangedPath`, `CommitInfo`, `WorkTreeStatus`, `RemoteBranch`, in `factory.domain.git`) are frozen and forbid unknown keys; `committed_at` must be timezone-aware, and commit ids are 40 lowercase hexadecimal characters.
 
-These three describe what the checkout holds; nothing is decided from them without the remote. Later features read recovery state from them: the undo compares the work tree with the stage-start commit (`changed_paths`), and the tick looks at `status()` before it restores the checkout.
+These three describe what the checkout holds; nothing is decided from them without the remote. Later features read recovery state from them: the tick looks at `status()` before it restores the checkout.
 
 Two edge cases are not exact: a path removed from the index with `git rm --cached` but still on disk shows as `"modified"` in `changed_paths` even when its content is unchanged, and unmerged paths in `status()` are `"modified"`.
 
@@ -171,17 +171,18 @@ The branch rule for pushing: `push` and `delete_remote_branch` call `factory.dom
 
 The branch is also named `refs/heads/<branch>` on git's command line, as the source only, with no `:<dst>`. Without it git matches any ref of that name, so `delete_remote_branch("v1")` would delete a tag `v1` and `push("v1")` would push a local tag; with it a tag is never pushed or deleted as a branch. The local operations (`checkout`, `delete_branch`, `merge`, …) keep `check_git_argument`, because git reads no refspec there. Why not an explicit `refs/heads/<b>:refs/heads/<b>` refspec: see `docs/decisions.md`.
 
-Who uses them: a stall or a crash reverts or resets; the tick resets the checkout to the remote; the undo's revert is this wrapper's, and the rules for what to revert are the undo's (`write-guard.md`); a merge or a discard moves the story file.
+Who uses them: a stall or a crash reverts or resets; the tick resets the checkout to the remote; the take's restore of a broken work item is this wrapper's `revert_paths` (`write-guard.md`); a merge or a discard moves the story file.
 
 ### Which part uses which operation
 
 | Operation | Used by |
 |---|---|
-| `changed_paths`, `revert_paths` | the undo: compares the work tree with the stage-start commit and reverts chosen paths |
+| `changed_paths` | the preflight and the make-based project commands: the paths changed since a commit |
+| `revert_paths` | the take: puts a deleted or unreadable work item back from the stage-start commit |
 | `merge` | the stage's preparation: merges the main branch into the work item's branch |
 | `ignored` | the take: which changed paths of the dataset the host's own ignore rules ignore (see *The take*, `stage-environment.md`) |
 | `status`, `reset_to` | the tick: looks at the checkout and resets it to the remote |
-| `reset_to` | also the undo, the stage's preparation and the crash recovery: a stall or a crash |
+| `reset_to` | also the stage's preparation and the crash recovery: a stall or a crash |
 | `delete_remote_branch`, `delete_branch`, `move` | the merge and the discard |
 | `work_tree_id` | the known results: the key of a known project-command result is the tree the command would read |
 | `fetch`, `remote_branches`, `resolve`, `show_file`, `list_files`, `is_ancestor`, `log`, `clone`, `checkout`, `commit`, `push` | the pipeline's reads and writes, used by the tick, the stages and the claim, and `clone` by the checkout preparer |

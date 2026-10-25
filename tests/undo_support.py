@@ -1,10 +1,9 @@
-"""Shared helpers of the undo tests: a claimed stage start on a work item's branch, and the undo."""
+"""Shared helpers of the take tests: a claimed stage start on a work item's branch."""
 
 import json
 
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
-from factory.application.undo import UndoReport, UndoService
 from factory.domain.identifiers import branch_name
 from factory.domain.work_item import WorkItemDocument
 from git_support import PIPELINE_YAML, write_files
@@ -59,11 +58,6 @@ def start_stage(
     assert git.push(BRANCH) == "pushed"
     definition = boundaries.pipeline_reader.parse(text)
     return ClaimService(boundaries, INSTANCE, definition).claim(BRANCH, PATH, document, stage)
-
-
-def undo_stage(boundaries: Boundaries, start: StageStart) -> UndoReport:
-    """Run the undo on the work item of `start_stage`."""
-    return UndoService(boundaries).undo(start, PATH)
 
 
 def without_work_item(boundaries: Boundaries, start: StageStart) -> StageStart:

@@ -181,12 +181,12 @@ No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` 
 - `run_agent(request, *, run=None)`: runs the request's agent in this environment and returns its `AgentRunResult`. With `run` the environment calls it once instead of the boundaries' runtime; whatever it does inside, such as the resumes of `PatientRuns` after a provider limit, happens in the same prepared place.
 - `take(stage_start, work_item_path)`: brings the agent's result into the work tree as far as the role may write, and returns a `TakeReport` (`left`, `restored_work_item`; see *The take*). `WorkItemFormatError` naming `work_item_path` when the work item is absent or unreadable at the stage-start commit; the work tree is then left untouched.
 
-`stage_environment_of(boundaries)` gives the `ContainerEnvironment` on `boundaries.snapshots` and `boundaries.containers`, both required (see *The container environment*). `StallService` reaches the take only through the environment it is given: its stall takes like `AfterAgent` does. Nothing calls `UndoService` for a stage any more; its module stays until F0044-S0009 removes it (`write-guard.md`).
+`stage_environment_of(boundaries)` gives the `ContainerEnvironment` on `boundaries.snapshots` and `boundaries.containers`, both required (see *The container environment*). `StallService` reaches the take only through the environment it is given: its stall takes like `AfterAgent` does.
 
 ### Who calls what
 
 - `StageLauncher.launch`, after the claim is pushed and the pull request ensured and before the cost record begins: `prepare(stage_start.commit, branch, sync_time_limit=...)`, then `run_agent(request, run=PatientRuns(boundaries).run)`. An error from `prepare` ends the launch like one from the agent runtime, after the claim and before any run or cost record.
-- `AfterAgent.process`: `take(started.stage_start, started.path)` at the point where the undo was, once the result and the decision are accepted. `AgentAftermath.take` carries the report, and the entry's closing paragraph names `take.left` (see `stages.md`, *After the agent run*).
+- `AfterAgent.process`: `take(started.stage_start, started.path)` once the result and the decision are accepted. `AgentAftermath.take` carries the report, and the entry's closing paragraph names `take.left` (see `stages.md`, *After the agent run*).
 - `agent_run_probe_item` (the preflight): `stage_environment_of(boundaries).run_agent(request)`. The probe reports no fault for a nested repository the run leaves.
 - `StallService.stall`, with a stage start, after the checkout is put back on the work item's branch: `take(context.stage_start, context.path)`, whatever the reason (`check_red` included), and its report is `StallResult.take`. A stall after `AfterAgent`'s take is a second take within one stage. `StageFinisher` takes only through its stall service: the checks go through `boundaries.project_commands`.
 
@@ -267,19 +267,19 @@ Step 5 of the cycle belongs to the agent runtimes, not to `ContainerEnvironment`
 
 ## The take
 
-In the container environment the agent works on the dataset and may write anywhere it reaches; nothing of that survives but what the take copies. `TakeService(boundaries, mount_point).take(stage_start, work_item_path, changed_paths)` (`factory.application.take`) is the write-path refusal of the undo (see *The undo*, `write-guard.md`) applied the other way round: what the role may write goes from the dataset at `mount_point` into the work tree `boundaries.checkout`, the rest stays in the dataset. `changed_paths` are those of `Snapshots.changed_paths()`, relative to `mount_point`. `ContainerEnvironment.take` calls it (see *The container environment*).
+In the container environment the agent works on the dataset and may write anywhere it reaches; nothing of that survives but what the take copies. `TakeService(boundaries, mount_point).take(stage_start, work_item_path, changed_paths)` (`factory.application.take`) applies the write paths' refusal rule (see *The take's rule*, `write-guard.md`): what the role may write goes from the dataset at `mount_point` into the work tree `boundaries.checkout`, the rest stays in the dataset. `changed_paths` are those of `Snapshots.changed_paths()`, relative to `mount_point`. `ContainerEnvironment.take` calls it (see *The container environment*).
 
 ### The seven steps
 
-1. The baseline: the work item at `stage_start.commit`, read as the undo reads it. When it is absent or unreadable there, `take` raises `WorkItemFormatError` naming `work_item_path`, before anything changes.
+1. The baseline: the work item at `stage_start.commit`, read at the stage-start commit. When it is absent or unreadable there, `take` raises `WorkItemFormatError` naming `work_item_path`, before anything changes.
 2. The write paths: `WritePathService(boundaries).at(stage_start, work_item_path)`.
 3. The candidates: only paths under `checkout/` count, with that prefix removed. A path with a `.git` segment is dropped, and so is every path that `Git.ignored` names (`.venv/...`, `.reports/...`). The ignore rules asked are those of the factory's own repository on the host, never the dataset's git. A path under `home/` or anywhere else is dropped. A dropped path is neither taken nor listed.
-4. The refused: a candidate is refused when `refusal(path, settings)` is not `None` (outside the write paths, or protected), or when it lies directly in an `in-progress/` folder of a feature and is not the stage's own work item (the undo's second rule). `is_refused` is the undo's own function, shared. A refused path is listed in `left` and not copied; the dataset is never written.
+4. The refused: a candidate is refused when `refusal(path, settings)` is not `None` (outside the write paths, or protected), or when it lies directly in an `in-progress/` folder of a feature and is not the stage's own work item (the in-progress rule). `is_refused` is the function of the rule, in `factory.application.take`. A refused path is listed in `left` and not copied; the dataset is never written.
 5. The taken: every other candidate is copied with `copy_changed(mount_point / "checkout", boundaries.checkout, ...)`.
-6. The work item: its state and journal are put back from the baseline with `restore_state_and_journal`, the agent's edits to its sections kept (the undo's `restore_work_item`, shared, not copied). A work item that was deleted, or whose front matter cannot be read, comes back whole from the stage-start commit. `restored_work_item` is true in all those cases and false when nothing changed. A work item the role may not write is refused like any path: it is in `left`, not copied, not restored, and `restored_work_item` is false.
+6. The work item: its state and journal are put back from the baseline with `restore_state_and_journal`, the agent's edits to its sections kept (`restore_work_item`, in `factory.application.take`). A work item that was deleted, or whose front matter cannot be read, comes back whole from the stage-start commit. `restored_work_item` is true in all those cases and false when nothing changed. A work item the role may not write is refused like any path: it is in `left`, not copied, not restored, and `restored_work_item` is false.
 7. `TakeReport(left, restored_work_item)`, frozen: `left` is sorted and holds each path once.
 
-The service makes no commit, runs no git command on the dataset and never writes under `mount_point`. `read_baseline`, `restore_work_item` and `is_refused` were private to `factory.application.undo` and are now public for this; the undo's behaviour did not change.
+The service makes no commit, runs no git command on the dataset and never writes under `mount_point`.
 
 ### copy_changed
 

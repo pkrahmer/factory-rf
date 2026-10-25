@@ -1,10 +1,10 @@
-# The write paths, the guard and the undo
+# The write paths and the take's rule
 
-This file covers the write paths, the guard and the undo; read the index, `README.md`, first.
+This file covers the write paths and the rule by which the take applies them; read the index, `README.md`, first.
 
 ## The write paths
 
-What an agent may write is decided in one place, for the undo of a stage and for the take of a `container` instance.
+What an agent may write is decided in one place, for the take of a stage.
 
 ### Where they come from
 
@@ -32,36 +32,36 @@ Errors: `ValueError` when `work_item_path` is not `factory/features/<feature dir
 
 Tests: `tests/domain/test_write_paths.py`, `tests/application/test_write_paths.py`; a later version of the definition is made with `human.push_file("main", "factory/pipeline.yml", text)` and `checkout.fetch()`.
 
-## The undo
+## The take's rule
 
-`UndoService(boundaries).undo(stage_start, work_item_path)` (`factory.application.undo`) puts the work tree back after an agent run. Nothing refuses a write while the agent works; the undo reverts what the agent wrote outside the write paths, among them a protected path inside a folder a write path opens. It returns an `UndoReport` (frozen, no unknown fields): `reverted` and `deleted`, sorted ascending without repeats, and `restored_work_item`. Nothing calls it since F0044-S0008 removed `InlineEnvironment`, its one caller; F0044-S0009 removes the module. The take of a stage is *The take* in `stage-environment.md`, which `AfterAgent` and `StallService` call through the stage environment (`stage-environment.md`, *Who calls what*).
+`TakeService(boundaries, mount_point).take(stage_start, work_item_path, changed_paths)` (`factory.application.take`) copies from the dataset into the work tree what the role may write and leaves the rest. Its steps are in `stage-environment.md`, *The take*; this section is the rule they apply. Three functions of the module hold it: `is_refused(path, settings, work_item_path)`, `read_baseline` and `restore_work_item`.
 
-### What it undoes
+### What is left out
 
-Everything is compared with the stage-start commit, not with the work tree as it was when the agent began, so a file the agent changed in the work tree or in a commit of its own ends with the content of the stage-start commit. `Git.changed_paths(stage_start.commit)` gives the candidates: commits since then, the work tree and untracked files; ignored paths are not in it.
+The rule is read at the stage-start commit, and applied to the paths the dataset changed. A candidate is refused, and so left out and named in `TakeReport.left`, in two cases:
 
-A candidate is refused, and so undone, in two cases:
+- `refusal(path, settings)` is not `None`: the path is outside the write paths of the stage or is protected (see "The write paths"). The settings come from `WritePathService.at`, that is from the pipeline definition at the stage-start commit. An agent that rewrites `factory/pipeline.yml` to widen its role widens nothing, and an invalid rewrite does not make the take raise; the work tree keeps its pipeline definition.
+- The path lies directly in an `in-progress` folder of a feature (`factory/features/<feature>/in-progress/<file>`) and is not the stage's own work item. This leaves out every other work item in progress, every cost-record file (`.costs.jsonl`), the stage's own included, and any other file there, whatever the write paths say. Nested files (`in-progress/sub/x`), other lifecycle folders and an `in-progress` folder outside `factory/features/` follow the write paths.
 
-- `refusal(path, settings)` is not `None`: the path is outside the write paths of the stage or is protected (see "The write paths"). The settings come from `WritePathService.at`, that is from the pipeline definition at the stage-start commit. An agent that rewrites `factory/pipeline.yml` to widen its role widens nothing, and an invalid rewrite does not make the undo raise; the pipeline definition itself is put back.
-- The path lies directly in an `in-progress` folder of a feature (`factory/features/<feature>/in-progress/<file>`) and is not the stage's own work item. This undoes every other work item in progress, every cost-record file (`.costs.jsonl`), the stage's own included, and any other file there, whatever the write paths say. Nested files (`in-progress/sub/x`), other lifecycle folders and an `in-progress` folder outside `factory/features/` follow the write paths.
-
-A refused path that did not exist at the stage-start commit (`added`) is deleted and listed in `deleted`; any other is checked out from that commit with `Git.revert_paths` and listed in `reverted`. Paths allowed by the write paths are not touched.
+A left-out path is never written to the work tree, so there is nothing to revert. The entry names the paths (`The factory left out changes outside the write paths: <paths>.`, see `stages.md`, *After the agent run*).
 
 ### The work item
 
-After the refused paths, the stage's own work item is handled separately. Its state and journal are restored from the stage-start commit with `restore_state_and_journal`; the agent's edits to its sections stay. `restored_work_item` is true when that changed the file. If the agent deleted the file or left front matter that cannot be read, the file is checked out whole from the stage-start commit and `restored_work_item` is true; it is not listed in `reverted`. A work item the role may not write at all is refused like any path: it is put back whole, listed in `reverted`, and `restored_work_item` is false.
+The stage's own work item is handled separately. Its state and journal are restored from the stage-start commit with `restore_state_and_journal`; the agent's edits to its sections stay. `TakeReport.restored_work_item` is true when that changed the file. If the agent deleted the file or left front matter that cannot be read, the file is checked out whole from the stage-start commit (`Git.revert_paths`) and `restored_work_item` is true; it is not in `left`. A work item the role may not write at all is refused like any path: it is in `left`, the work tree keeps its copy, and `restored_work_item` is false.
 
-The baseline is read first. When the stage-start commit does not hold the work item, or holds it unreadable, `undo` raises `WorkItemFormatError` naming the path before it changes anything.
+The baseline is read first. When the stage-start commit does not hold the work item, or holds it unreadable, `take` raises `WorkItemFormatError` naming the path before it changes anything.
+
+### The sidecar
+
+The work item's `.costs.jsonl` is refused by the in-progress rule, so the take never brings the agent's copy; the factory rewrites it from memory after the take (`costs.md`).
 
 ### Limits
 
-- The undo makes no commit and no push. A commit the agent made stays in the history; only the work tree is put back.
-- Ignored paths are not seen by the undo and it does not judge them. The factory removes none: an ignored path a run leaves stays, and the take never brings one in (see *The take*, `stage-environment.md`). Anything outside the checkout is not seen and stays as it is.
+- The take makes no commit and no push. A commit the agent made on the dataset does not reach the work tree; only the changed paths are copied.
+- Ignored paths are not judged: the take drops them, and the factory removes none (see *The take*, `stage-environment.md`). Anything outside the checkout is not seen.
 - Git's paths are taken as they are; renames show as a deletion and an addition (see "The git wrapper").
 
-In the container environment the take applies the same two rules the other way round: it copies what they allow from the dataset into the work tree and leaves the rest (see *The take*, `stage-environment.md`).
-
-Tests: `tests/application/test_undo.py`; a fake agent writes into `boundaries.checkout` between `ClaimService` and `undo`.
+Tests: `tests/application/test_take_rule.py` (the rule through `TakeService.take` on `FakeSnapshots`), `tests/application/test_take.py` and `tests/application/test_take_edges.py`.
 
 ## Replaced in v1.2
 

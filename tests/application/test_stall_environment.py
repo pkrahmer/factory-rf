@@ -28,6 +28,7 @@ from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemState
 from git_support import install_agents, remote_commit
 from human_clone import HumanClone
+from source_search import imported_modules
 from stage_run_support import (
     BRANCH,
     INSTANCE,
@@ -128,14 +129,10 @@ def test_a_stall_with_a_stage_start_takes_once_through_its_environment_whatever_
 def test_the_stall_module_imports_no_name_of_the_undo() -> None:
     path = Path(factory.application.stalls.__file__)
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-    modules = [node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)] + [
-        alias.name
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Import)
-        for alias in node.names
-    ]
+    imported = imported_modules(tree)
 
-    assert "factory.application.undo" not in modules
+    assert "factory.application.undo" not in imported
+    assert not any(name.endswith(".UndoService") for name in imported)
 
 
 @pytest.mark.parametrize("row", ["checkout-back-on-the-branch", "sidecar-after-the-take"])

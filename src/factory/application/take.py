@@ -10,12 +10,18 @@ from pydantic import BaseModel, ConfigDict
 
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
-from factory.application.undo import is_refused, read_baseline, restore_work_item
 from factory.application.write_paths import WritePathService
+from factory.domain.agent_runs import GuardSettings
+from factory.domain.errors import WorkItemFormatError
 from factory.domain.git import ChangedPath, check_repository_path
+from factory.domain.journal import restore_state_and_journal
+from factory.domain.paths import FEATURES_DIRECTORY
+from factory.domain.work_item import WorkItemDocument
+from factory.domain.write_paths import refusal
 
 MOUNTED_CHECKOUT = "checkout"
 _GIT_FOLDER = ".git"
+_IN_PROGRESS = "in-progress"
 
 
 class TakeReport(BaseModel):
@@ -96,6 +102,55 @@ class TakeService:
         ]
         ignored = set(self._boundaries.git.ignored([change.path for change in outside_git]))
         return [change for change in outside_git if change.path not in ignored]
+
+
+def read_baseline(boundaries: Boundaries, commit: str, work_item_path: str) -> WorkItemDocument:
+    """The work item at `commit`; `WorkItemFormatError` naming it when absent or unreadable."""
+    # Read before any path changes, so a fault here leaves the agent's work tree as it is.
+    text = boundaries.git.show_file(commit, work_item_path)
+    if text is None:
+        raise WorkItemFormatError(f"missing at {commit}", work_item_path)
+    try:
+        return boundaries.work_item_reader.parse(text)
+    except WorkItemFormatError as error:
+        raise WorkItemFormatError(error.fault, work_item_path) from error
+
+
+def restore_work_item(
+    boundaries: Boundaries, commit: str, work_item_path: str, baseline: WorkItemDocument
+) -> bool:
+    """Put the checkout's work item's state and journal back from `baseline`; whether it changed.
+
+    A deleted or unreadable work item comes back whole from `commit`.
+    """
+    target = boundaries.checkout / work_item_path
+    try:
+        current = boundaries.work_item_reader.read(target)
+    except WorkItemFormatError:
+        # A deleted or broken work item has no sections worth keeping: it comes back whole.
+        boundaries.git.revert_paths(commit, [work_item_path])
+        return True
+    restored = restore_state_and_journal(current, baseline)
+    if restored == current:
+        return False
+    boundaries.work_item_writer.write(target, restored)
+    return True
+
+
+def is_refused(path: str, settings: GuardSettings, work_item_path: str) -> bool:
+    """Whether the role may not leave `path` changed: a refusal, or another in-progress file."""
+    if refusal(path, settings) is not None:
+        return True
+    return path != work_item_path and _is_in_an_in_progress_folder(path)
+
+
+def _is_in_an_in_progress_folder(path: str) -> bool:
+    # On the string, not `folder_of`: that knows only work items, not cost records or notes.
+    prefix = FEATURES_DIRECTORY + "/"
+    if not path.startswith(prefix):
+        return False
+    segments = path.removeprefix(prefix).split("/")
+    return len(segments) == 3 and segments[1] == _IN_PROGRESS
 
 
 def _remove_entry(entry: Path) -> None:
