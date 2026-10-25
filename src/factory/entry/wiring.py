@@ -17,7 +17,7 @@ from factory.adapters.disk_space import ShutilDiskSpace
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
-from factory.adapters.make_commands import ContainerMakeCommands, MakeProjectCommands
+from factory.adapters.make_commands import ContainerMakeCommands
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.podman_runs import PodmanRuns
@@ -53,7 +53,6 @@ from factory.application.machine import Clock, FactoryLog, HealthStatusStore
 from factory.application.preflight import (
     MachineChecks,
     Preflight,
-    agent_environment_item,
     agent_run_probe_item,
     dataset_item,
     installed_models,
@@ -63,7 +62,7 @@ from factory.application.preflight import (
     tool_version_item,
 )
 from factory.application.project_agents import ProjectAgentDefinitions
-from factory.application.project_commands import ProjectCommands, RecordingProjectCommands
+from factory.application.project_commands import RecordingProjectCommands
 from factory.application.recovery import RecoveryHandler
 from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
@@ -80,9 +79,11 @@ from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.preflight import PreflightItem
 from factory.domain.settings import (
     CREDENTIAL_FILE_VARIABLE,
+    DATASET_VARIABLE,
     REPOSITORY_URL_VARIABLE,
     RUNS_DIRECTORY_NAME,
-    STAGE_ENVIRONMENT_VARIABLE,
+    STAGE_IMAGE_VARIABLE,
+    WORKSPACE_VARIABLE,
     InstanceSettings,
     read_setting_file,
     read_settings,
@@ -128,6 +129,7 @@ _COMMAND_RECORDS_PATH = Path("records", "project-commands.jsonl")
 _DISK_RECORDS_PATH = Path("records", "disk.jsonl")
 _STOP_RECORDS_PATH = Path("records", "stops.jsonl")
 _RESULT_RECORDS_PATH = Path("records", "known-results.jsonl")
+_MISSING = "missing"
 
 _SEGMENT = r"[A-Za-z0-9._-]+"
 # The host and its separator for https, scp-like ssh and ssh URLs; then owner and name.
@@ -236,23 +238,25 @@ def build_boundaries(
     *,
     hosting: HostingService | None = None,
 ) -> Boundaries:
-    """Return the boundaries of the instance of `settings`; `hosting` replaces PyGithub."""
+    """Return the boundaries of the instance of `settings`; `hosting` replaces PyGithub.
+
+    `SettingsInvalid` naming the first of the dataset, the workspace and the stage image that
+    is missing, before anything is built.
+    """
+    adapters = _container_adapters(settings)
+    snapshots, containers = adapters.snapshots, adapters.containers
     if hosting is None:
         hosting = pygithub_service(repository_name(settings.repository_url), token)
     state = settings.state_directory
     clock = SystemClock()
     git = GitCli(settings.checkout, git_options(settings))
     log = machine_log(state, clock)
-    if settings.stage_environment == "container":
-        environment = _container_environment(settings, git)
-    else:
-        environment = _inline_environment(settings)
     return Boundaries(
         git=git,
         hosting=hosting,
-        agent_runtime=environment.agent_runtime,
+        agent_runtime=_agent_runtime(settings, containers),
         project_commands=RecordingProjectCommands(
-            environment.project_commands,
+            ContainerMakeCommands(snapshots, containers, git, checkout=settings.checkout),
             git,
             JsonLinesRecordLog(state / _COMMAND_RECORDS_PATH, CommandRecord),
             clock,
@@ -276,36 +280,6 @@ def build_boundaries(
         stop_records=JsonLinesRecordLog(state / _STOP_RECORDS_PATH, StopRecord),
         waiter=SleepingWaiter(),
         result_records=JsonLinesRecordLog(state / _RESULT_RECORDS_PATH, ResultRecord),
-        snapshots=environment.snapshots,
-        containers=environment.containers,
-    )
-
-
-@dataclass(frozen=True)
-class _StageEnvironmentBoundaries:
-    """The boundaries that differ between an inline and a container instance."""
-
-    agent_runtime: AgentRuntime
-    project_commands: ProjectCommands
-    snapshots: ZfsSnapshots | None = None
-    containers: PodmanRuns | None = None
-
-
-def _inline_environment(settings: InstanceSettings) -> _StageEnvironmentBoundaries:
-    return _StageEnvironmentBoundaries(
-        agent_runtime=_agent_runtime(settings),
-        project_commands=MakeProjectCommands(settings.checkout),
-    )
-
-
-def _container_environment(settings: InstanceSettings, git: GitCli) -> _StageEnvironmentBoundaries:
-    adapters = _container_adapters(settings)
-    snapshots, containers = adapters.snapshots, adapters.containers
-    return _StageEnvironmentBoundaries(
-        agent_runtime=_agent_runtime(settings, containers=containers),
-        project_commands=ContainerMakeCommands(
-            snapshots, containers, git, checkout=settings.checkout
-        ),
         snapshots=snapshots,
         containers=containers,
     )
@@ -313,7 +287,7 @@ def _container_environment(settings: InstanceSettings, git: GitCli) -> _StageEnv
 
 @dataclass(frozen=True)
 class _ContainerAdapters:
-    """The dataset and the stage image a container instance names, and their adapters."""
+    """The dataset and the stage image an instance names, and their adapters."""
 
     dataset: str
     image: str
@@ -322,9 +296,12 @@ class _ContainerAdapters:
 
 
 def _container_adapters(settings: InstanceSettings) -> _ContainerAdapters:
-    # The settings' validator has refused a container instance without these three.
-    if settings.dataset is None or settings.workspace is None or settings.stage_image is None:
-        raise SettingsInvalid(STAGE_ENVIRONMENT_VARIABLE, "container lacks its dataset or image")
+    if settings.dataset is None:
+        raise SettingsInvalid(DATASET_VARIABLE, _MISSING)
+    if settings.workspace is None:
+        raise SettingsInvalid(WORKSPACE_VARIABLE, _MISSING)
+    if settings.stage_image is None:
+        raise SettingsInvalid(STAGE_IMAGE_VARIABLE, _MISSING)
     return _ContainerAdapters(
         dataset=settings.dataset,
         image=settings.stage_image,
@@ -335,9 +312,7 @@ def _container_adapters(settings: InstanceSettings) -> _ContainerAdapters:
     )
 
 
-def _agent_runtime(
-    settings: InstanceSettings, *, containers: PodmanRuns | None = None
-) -> AgentRuntime:
+def _agent_runtime(settings: InstanceSettings, containers: PodmanRuns) -> AgentRuntime:
     runs = settings.state_directory / RUNS_DIRECTORY_NAME
     if settings.agent_runtime == "opencode":
         return OpencodeRuntime(
@@ -376,15 +351,9 @@ def production_environment() -> dict[str, str]:
     return scrub_environment({**os.environ, **own})
 
 
-def agent_run_environment(settings: InstanceSettings, base: Mapping[str, str]) -> dict[str, str]:
-    """Return a copy of `base` with the agent run's `HOME`.
-
-    In a container that is the dataset's home; inline, the base's.
-    """
-    environment = dict(base)
-    if settings.stage_environment == "container":
-        environment.update(WORK_HOME_ENVIRONMENT)
-    return environment
+def agent_run_environment(_settings: InstanceSettings, base: Mapping[str, str]) -> dict[str, str]:
+    """Return a copy of `base` with the agent run's `HOME`: the dataset's, whatever the settings."""
+    return {**base, **WORK_HOME_ENVIRONMENT}
 
 
 def build_handlers(
@@ -463,14 +432,9 @@ def machine_extras(
     extras: list[Callable[[], PreflightItem]] = [
         lambda: token_file_item(settings.token_file, uid=os.getuid(), stat=os.stat),
     ]
-    if settings.stage_environment == "container":
-        extras.extend(_container_items(settings))
-    else:
-        extras.append(lambda: agent_environment_item(environment, Path.is_dir))
+    extras.extend(_container_items(settings))
     if settings.agent_runtime == "opencode":
-        extras.append(
-            lambda: opencode_item(settings, environment, _which_on, installed_models(boundaries))
-        )
+        extras.append(lambda: opencode_item(settings, installed_models(boundaries)))
     extras.append(lambda: agent_run_probe_item(boundaries, settings, environment))
     return extras
 
@@ -485,10 +449,6 @@ def _container_items(settings: InstanceSettings) -> list[Callable[[], PreflightI
         lambda: dataset_item(adapters.dataset, snapshots.dataset_exists),
         lambda: stage_image_item(adapters.image, containers.image_exists),
     ]
-
-
-def _which_on(name: str, path: str) -> str | None:
-    return shutil.which(name, path=path)
 
 
 def build_tick(

@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T17:59:19.221079Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-25T17:59:19.221079Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-25T18:04:41.283195Z'
+  stage: doing
+  run: 86da23330be74429a155738618d3c84b
 ---
 
 # The inline environment and its setting are removed
@@ -247,3 +249,28 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     `lint`: lint: green (0.2 s)
     `test`: FAILED tests/entry/test_wiring_one_preflight.py::test_the_preflight_checks_the_one_environment_s_items[opencode-unmapped] - TypeError: opencode_item() missing 2 required positional arguments: 'find...
 12. factory: started doing as self.
+13. coder: I implemented the story against the tester's new tests. All 39 rows of criteria 1–8 pass, in tests/test_one_stage_environment.py, tests/domain/test_settings_one_environment.py, tests/entry/test_wiring_one_environment.py, tests/entry/test_wiring_one_preflight.py, tests/application/test_request_working_directory.py and tests/application/test_stage_environment_of.py. `make lint` and `make layers` are green, and `mypy --strict` is clean over `src`. `make check` is red, and that is expected: the existing tests still use what this story removes. I end with `tests`, as the human decided in journal entry 9. The approved test change is the Interface's whole test list (decisions 24 and 37 of `feature.md`), adapted by the tester in one run against this code, including the callers of `container_support.inline_boundaries` such as `tests/application/test_stage_on_container_fakes.py`.
+
+    What I built:
+    - src/factory/domain/settings.py: removed `STAGE_ENVIRONMENT_VARIABLE`, `StageEnvironmentName`, `InstanceSettings.stage_environment`, `stage_environment_fault`, `_container_fault` and `_stage_environment`. `workspace_overlap_fault(workspace, checkout, state_directory)` returns `None` without a workspace. Otherwise it gives the relative-workspace fault first, then the checkout's, then the state directory's. `read_settings` and the model validator (now `_workspace_apart`) both call it.
+    - src/factory/application/boundaries.py: `snapshots` and `containers` are required.
+    - src/factory/application/stage_environment.py: removed `InlineEnvironment` and the import of `UndoService`. `stage_environment_of` always gives `ContainerEnvironment`.
+    - src/factory/application/take.py: `agent_working_directory` is always `snapshots.mount_point / "checkout"`.
+    - src/factory/application/preflight.py: `REQUIRED_TOOLS = ("git", "uv")`. Removed `CONTAINER_TOOLS`, `agent_environment_item`, `_home_fault`, `_path_fault`, `_AGENT_ENVIRONMENT_ITEM`, `MachineChecks._tools` and `MachineChecks._runtime_executable`. The signature is now `opencode_item(settings, agent_models)`.
+    - src/factory/entry/wiring.py: `build_boundaries` calls `_container_adapters` first. It now raises `SettingsInvalid(<FACTORY_DATASET|FACTORY_WORKSPACE|FACTORY_STAGE_IMAGE>, "missing")` before PyGithub or anything else is built. Removed `_StageEnvironmentBoundaries`, `_inline_environment`, `_container_environment` and `_which_on`. `agent_run_environment` always sets `HOME` to `WORK_HOME`; its settings parameter is kept for the Interface's signature, renamed `_settings`. `machine_extras` now builds one list.
+    - vm/setup.sh: removed the line `FACTORY_STAGE_ENVIRONMENT=container`.
+
+    Main choice and the alternative I rejected: I put the three `missing` faults in the existing `_container_adapters`, which `machine_extras` also uses, and call it at the top of `build_boundaries`. I rejected a separate check before the build, because it would repeat the three None tests that `_container_adapters` needs anyway to narrow the types.
+
+    Refactor pass: I read the diff. Only deletions and the merge of the container branch into `build_boundaries`; nothing more to change.
+
+    What the tester must adapt (from `make test`):
+    - On the Interface's list: test_opencode_item, test_opencode_item_container, test_machine_checks_container, test_wiring_container_extras, test_wiring_extras, test_settings_stage_environment, test_wiring_stage_environment, test_settings_paths, test_wiring_boundaries, test_wiring_run, test_wiring_api_login/login/opencode/command_records/known_results/project_agents/record_logs/stop_records/waiter/provider_limit/preflight, test_run, test_run_health_file, test_run_waiter, test_stage_environment_calls, test_stage_on_container_fakes, test_make_search.
+    - Not named on the list but failing for the same reasons, so inside the same leave in my reading:
+      - tests/container_support.py: `container_instance_settings` passes `stage_environment`, and `inline_boundaries` passes `snapshots=None`. This breaks test_agent_run_probe_environment and test_preflight_run_environment.
+      - Tests that build boundaries without snapshots, which fail in `agent_working_directory`: test_stage_run, test_stalls, test_stall_edges.
+      - Tests that expect `make` and the runtime's executable among the tools: test_preflight, test_preflight_run, test_preflight_stale_main_stop, test_preflight_stops_commit.
+      - tests/entry/test_wiring_agent_environment.py and tests/entry/test_wiring_without_agent_user.py, which expect the inline extras and `MakeProjectCommands`.
+      - tests/test_vm_setup_text.py, whose ENVIRONMENT table still has the row `FACTORY_STAGE_ENVIRONMENT`.
+
+    Noticed, not touched: the Interface names `tests/entry/test_watch_main.py` and others that I did not see fail on this run. The tester should still check each entry on the list. The undo module stays in place, unused, for S0009.

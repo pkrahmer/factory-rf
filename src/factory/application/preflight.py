@@ -47,9 +47,8 @@ from factory.domain.settings import (
 )
 from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopScope
 
-REQUIRED_TOOLS = ("git", "uv", "make")
-# A container instance runs make and the runtime only inside its containers.
-CONTAINER_TOOLS = ("git", "uv")
+# Make and the agent's runtime run only inside the containers, from the stage image.
+REQUIRED_TOOLS = ("git", "uv")
 
 PROBE_COMMAND = "lint"
 # A constant, the default of every project command: the preflight needs no pipeline definition.
@@ -64,7 +63,6 @@ _HOSTING_ITEM = "hosting-service"
 _AGENTS_ITEM = "agents"
 _VERSION_ITEM = "agent-runtime-version"
 _HOSTING_FILE_ITEM = "token-file"
-_AGENT_ENVIRONMENT_ITEM = "agent-environment"
 _OPENCODE_ITEM = "opencode"
 _PROBE_ITEM = "agent-run-probe"
 _DATASET_ITEM = "dataset"
@@ -175,58 +173,17 @@ def stage_image_item(image: str, exists: Callable[[], bool]) -> PreflightItem:
     return PreflightItem(name=_STAGE_IMAGE_ITEM, passed=True)
 
 
-def agent_environment_item(
-    environment: Mapping[str, str],
-    is_directory: Callable[[Path], bool],
-) -> PreflightItem:
-    """Check that an agent run finds its login in `HOME`."""
-    fault = _home_fault(environment, is_directory)
-    if fault is not None:
-        return PreflightItem(name=_AGENT_ENVIRONMENT_ITEM, passed=False, detail=fault)
-    return PreflightItem(name=_AGENT_ENVIRONMENT_ITEM, passed=True)
+def opencode_item(settings: InstanceSettings, agent_models: Sequence[str]) -> PreflightItem:
+    """Check that every model alias the agents use has a model.
 
-
-def _path_fault(
-    environment: Mapping[str, str], find: Callable[[str, str], str | None], command: str
-) -> str | None:
-    path = environment.get("PATH")
-    if path is None:
-        return "the agent run has no PATH"
-    if find(command, path) is None:
-        return f"{command} is not on the agent run's PATH {path}"
-    return None
-
-
-def _home_fault(environment: Mapping[str, str], is_directory: Callable[[Path], bool]) -> str | None:
-    home = environment.get("HOME")
-    if home is None:
-        return "the agent run has no HOME"
-    if not is_directory(Path(home)):
-        return f"the agent run's HOME {home} is no directory"
-    return None
-
-
-def opencode_item(
-    settings: InstanceSettings,
-    environment: Mapping[str, str],
-    find: Callable[[str, str], str | None],
-    agent_models: Sequence[str],
-) -> PreflightItem:
-    """Check that an agent run finds opencode and that every alias the agents use has a model.
-
-    A container instance's opencode is the stage image's, so only the aliases are checked.
+    The opencode the agent runs is the stage image's, so only the aliases are checked.
     """
     # No login is checked here: a build may log in with a key file or with a login of its
     # own in the agent's home, and only the probe shows whether a run can log in.
-    faults: list[str] = []
-    if settings.stage_environment != "container":
-        path_fault = _path_fault(environment, find, settings.opencode_executable)
-        if path_fault is not None:
-            faults.append(path_fault)
-    faults.extend(
+    faults = [
         f"no model is set for {alias} in {OPENCODE_MODELS_VARIABLE}"
         for alias in _unmapped_aliases(settings.opencode_models, agent_models)
-    )
+    ]
     if faults:
         return PreflightItem(name=_OPENCODE_ITEM, passed=False, detail="; ".join(faults))
     return PreflightItem(name=_OPENCODE_ITEM, passed=True)
@@ -356,8 +313,7 @@ class MachineChecks:
 
     def run(self) -> PreflightReport:
         """Run every item, whatever the earlier ones found, and report them all in order."""
-        tools = self._tools()
-        items = [tool_item(tool, self._which) for tool in tools]
+        items = [tool_item(tool, self._which) for tool in REQUIRED_TOOLS]
         items.append(self._hosting_service())
         items.append(self._agents())
         items.append(self._agent_runtime_version())
@@ -386,17 +342,6 @@ class MachineChecks:
             detail = f"no agents are installed in {agent_home}; install them there"
             return PreflightItem(name=_AGENTS_ITEM, passed=False, detail=detail)
         return PreflightItem(name=_AGENTS_ITEM, passed=True)
-
-    def _tools(self) -> tuple[str, ...]:
-        # A container instance's runtime is the stage image's; its version item finds it there.
-        if self._settings.stage_environment == "container":
-            return CONTAINER_TOOLS
-        return (*REQUIRED_TOOLS, self._runtime_executable())
-
-    def _runtime_executable(self) -> str:
-        if self._settings.agent_runtime == "opencode":
-            return self._settings.opencode_executable
-        return self._settings.claude_executable
 
     def _runtime_pin(self) -> tuple[str | None, str]:
         settings = self._settings

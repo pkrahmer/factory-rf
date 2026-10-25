@@ -28,9 +28,7 @@ class TakeReport(BaseModel):
 
 
 def agent_working_directory(boundaries: Boundaries) -> Path:
-    """Where an agent's run works: the dataset's checkout when there is one, else the checkout."""
-    if boundaries.snapshots is None:
-        return boundaries.checkout
+    """Where an agent's run works: the dataset's checkout."""
     return boundaries.snapshots.mount_point / MOUNTED_CHECKOUT
 
 
