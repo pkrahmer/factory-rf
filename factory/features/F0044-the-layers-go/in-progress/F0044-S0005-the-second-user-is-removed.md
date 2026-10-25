@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 448
 comments_read: [6398933817]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T14:34:41.874836Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-10-25T14:34:41.874836Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-25T14:39:22.036652Z'
+  stage: tests
+  run: f08c6190b2f941778b3ee35c5d627cf4
+  blocked: question
 ---
 
 # The second user is removed
@@ -160,3 +163,23 @@ Expect: three lines: `[] False`; `False False`; `3 False`
    Architecture: the changes sit in their layers (adapters, domain, application, entry) and remove code without adding a new mechanism or interface.
    Scope: within F0044's S0005 line; the test changes rest on decision 21 and decision 34(a) of `feature.md`, and nothing in the story touches the feature's "Out of scope".
 7. factory: started tests as self.
+8. tester: Where I stopped: the tests for criteria 1 to 9 are written and `make lint` is green. I have not yet made the changes to existing tests that the Interface lists under "Tests" (decision 21). Those are: moving `REPLY`, `_request` and `_without_locale` to `tests/adapters/claude_stand_in.py` and pointing its ten importers there; deleting the 14 whole modules; and the row and helper edits in about 40 other modules. They don't fit in this run's budget. Leaving half of them done would break imports across the suite, so I left them all untouched.
+
+   Criterion → test:
+   - criterion 1: tests/test_second_user_removed.py::test_the_second_user_s_names_are_gone
+   - criterion 2: tests/adapters/test_calls_as_the_factory_user.py::test_a_call_without_a_container_starts_the_runtime_itself_with_the_request_s_environment
+   - criterion 3: tests/adapters/test_calls_as_the_factory_user.py::test_launch_hands_over_the_call_its_environment_and_its_limit
+   - criterion 4: tests/adapters/test_calls_as_the_factory_user.py::test_only_a_container_call_is_read_as_killed_at_its_limit
+   - criterion 5: tests/domain/test_settings_agent_user_unread.py::test_the_agent_user_setting_changes_no_setting
+   - criterion 6: tests/entry/test_wiring_without_agent_user.py::test_git_environment_holds_the_credential_helper_and_no_hooks_alone
+   - criterion 7: tests/entry/test_wiring_without_agent_user.py::test_the_extras_name_no_agent_user_and_no_sudo (the item lists) and ::test_a_died_probe_names_the_factory_user (the died-probe details)
+   - criterion 8: tests/entry/test_wiring_without_agent_user.py::test_the_project_commands_run_without_a_user
+   - criterion 9: tests/adapters/test_calls_as_the_factory_user.py::test_the_run_files_keep_the_mode_the_umask_gives
+
+   Files created: tests/test_second_user_removed.py, tests/adapters/test_calls_as_the_factory_user.py, tests/domain/test_settings_agent_user_unread.py, tests/entry/test_wiring_without_agent_user.py. The test runner could import every module; nothing is missing yet. The new tests fail at their assertions or signatures because the old names and parameters still exist (for example `[project-command-environment]`, `[ClaudeCodeRuntime-sudo-executable]`, `[build-boundaries-parameters]`, `[make-commands-user]`: `assert not True`). The single `make test` run printed only its last lines, so I didn't see how every new test fails.
+
+   Questions:
+   1. How do the changes to existing tests get done? (a) This tests stage runs again and makes all of them in one go, starting with the move of the helpers to `claude_stand_in.py`, then the deletions, then the row edits, ending with `doing`. (b) I end with `doing` now and the coder asks for each test change as it hits it, though that would stall many times. I would choose (a).
+   2. Two readings I made, please confirm or correct:
+      - Criterion 7's died-probe details are tested through `agent_run_probe_item`, the last item `machine_extras` returns, rather than by running every item of `machine_extras`.
+      - Criterion 9's "the mode the process's umask gives" means `0o666 & ~umask` for a regular file: `0o600` under `0o077` and `0o644` under `0o022`.
