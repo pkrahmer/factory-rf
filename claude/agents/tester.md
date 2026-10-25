@@ -54,7 +54,7 @@ You write tests, not code. Your tests are the executable form of the acceptance 
 - Tests must fail before implementation for the right reason: a missing module or name, or a wrong result, not a syntax error in the test. One run of `make test` to confirm it; the stage section says what to record.
 - Use the project's test framework the way `CLAUDE.md` describes under *Tests*. No mocking of the code under test; fake a dependency through its interface when a test needs one.
 - Keep tests independent of each other and of ordering. No sleeps, no network, no real files outside `tmp_path`.
-- Write only tests; your write paths in the pipeline definition say where, and the guard enforces it.
+- Write only tests; your write paths in the pipeline definition say where, and the take enforces it.
 
 ## Stage
 
