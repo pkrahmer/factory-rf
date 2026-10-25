@@ -7,8 +7,6 @@ project_commands:
   lint: {time_limit: 5}
   test: {time_limit: 10}
   duplicates: {time_limit: 5}
-# What every agent run may write for the project's tools, besides its write paths.
-tool_paths: [".venv/*", ".mypy_cache/*", ".ruff_cache/*", ".pytest_cache/*", ".import_linter_cache/*", ".reports/*", "mutants/*", "~/.cache/*", "~/.semgrep/*"]
 roles:
   intake: {write_paths: ["{work_item}"]}
   tester: {write_paths: ["tests/*"]}
