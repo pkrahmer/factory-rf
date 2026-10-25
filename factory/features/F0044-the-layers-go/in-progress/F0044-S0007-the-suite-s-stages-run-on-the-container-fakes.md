@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T17:03:34.962810Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-10-25T17:03:34.962810Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-25T17:06:19.608558Z'
+  stage: tests
+  run: 601be3e5782c417ab40f16a2ca00aca0
 ---
 
 # The suite's stages run on the container fakes
@@ -243,3 +245,17 @@ Expect: two lines: `1`; `1`
     Files changed: tests/test_suite_fixtures.py, tests/application/test_stage_on_container_fakes.py.
 13. 2026-10-25 human: (a). The loop does not record `approval` in `walked` (`if stage not in walked and stage != "approval":`); the expected list stays `intake … smoke-test`, and the test still waits for `handed_over == "approval"`. Approval is where the walk ends, not a stage an agent runs.
 14. factory: started tests as self.
+15. tester: I made the one test change the human approved in entry 13, answer (a).
+
+    Change: in `tests/test_suite_fixtures.py::test_a_story_walks_to_approval_in_the_world_on_the_container_fakes`, the loop's guard is now `if stage not in walked and stage != "approval":`. This means `approval` is never recorded as a walked stage. The expected list is still `intake … smoke-test`, and the loop still ends only when `handed_over == "approval"`. Nothing else changed in the test. The two changes from entry 12 (the `PASSING_MAKEFILE` push, and the `split("\n\n")[-2]` paragraph in `tests/application/test_stage_on_container_fakes.py`) were already committed and stay as they are.
+
+    Files changed: tests/test_suite_fixtures.py.
+
+    `make test` (one run): test: green (69.4 s), coverage 99.55 %. `make lint`: green.
+
+    Modules the test runner could not import: none.
+
+    Still open: the coder's step-4 refactor and the full `make check` run (entry 10).
+
+    `lint`: lint: green (0.3 s)
+    `test`: test: green (72.9 s)

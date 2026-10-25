@@ -67,7 +67,7 @@ def test_a_story_walks_to_approval_in_the_world_on_the_container_fakes(world: Wo
             stage = state.stage
         else:
             stage = "intake"
-        if stage not in walked:
+        if stage not in walked and stage != "approval":
             walked.append(stage)
         writes = {**WRITES.get(stage, {}), FORBIDDEN: "no role may write this\n"}
         world.agent_runtime.queue(completed(definition.stages[stage].next[0], writes=writes))
