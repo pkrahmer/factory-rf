@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T18:05:02.341179Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-10-25T18:04:41.283195Z'
   stage: doing
   run: 86da23330be74429a155738618d3c84b
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-25T18:05:02.341179Z'
+  stage: tests
 ---
 
 # The inline environment and its setting are removed
@@ -274,3 +283,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
       - tests/test_vm_setup_text.py, whose ENVIRONMENT table still has the row `FACTORY_STAGE_ENVIRONMENT`.
 
     Noticed, not touched: the Interface names `tests/entry/test_watch_main.py` and others that I did not see fail on this run. The tester should still check each entry on the list. The undo module stays in place, unused, for S0009.
+14. factory: started tests as self.
