@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T00:26:58.550140Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-25T00:26:58.550140Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T00:27:54.289819Z'
+  stage: review
+  run: ff27f4c5b73c4944a1ee7aa3df6ff138
 ---
 
 # The checkout and the state directory are settings
@@ -335,3 +337,31 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 19. factory: started review as self.
+20. reviewer: Round 1 review. I read the work item and `git diff main...HEAD -- . ':!factory'`: `src/factory/domain/settings.py`, `src/factory/entry/run.py`, the two new test modules, and the changes to `tests/conftest.py`, `tests/domain/test_settings.py` and `tests/entry/test_run.py`. This time I went through all of groups 1 to 5.
+
+    - Group 1, acceptance criteria:
+      - Each of criteria 1 to 7 has one parametrized test with every row the criterion names. The instance-before-checkout row of criterion 2 is now a row of `test_a_relative_checkout_or_state_directory_is_refused_in_its_order`, which closes finding 1 of entry 12.
+      - Every rule of the Interface has its refused side tested:
+        - a relative path, read from the environment and in the model built directly;
+        - the order of the faults: after the instance, the checkout before the state, both before the image and `FACTORY_MIN_FREE_GB`;
+        - the inside-workspace fault for the checkout and for the state directory, through `read_settings` and through the model validator;
+        - S0010's workspace fault first;
+        - a sibling path (`workrepo`) against one inside the workspace;
+        - inline against container;
+        - the stop going to the `FACTORY_STATE` directory against the fallback when the variable is unset, blank, relative or padded, and for a fault the runner raises.
+      - The coder's `make check` was green (entries 10 and 18).
+    - Group 2, architecture: the path rules are pure domain code (`_absolute_path`, `workspace_overlap_fault`, `named_state_directory`). `run.py` in `entry` only picks the directory. No new dependency or layer.
+    - Group 3, security: no secrets, no commands, no silencing markers.
+    - Group 4, quality:
+      - `_absolute_path` and `named_state_directory` reuse `_optional_path`, so stripping lives in one place.
+      - The "is not an absolute path" text is now one constant, which the existing workspace fault also uses.
+      - The public functions have docstrings, and the comment in `workspace_overlap_fault` says why.
+      - The 11 new `make duplicates` findings are in files outside this diff (entry 12).
+    - Group 5, work item hygiene: the journal names the main choice (a separate `workspace_overlap_fault` rather than more arguments to `stage_environment_fault`) and what was rejected. The Description and the docs criterion match what was built.
+
+    no findings
+
+    Earlier tests:
+    - `tests/domain/test_settings.py`: the human's leave, decision 15 of `feature.md`, which the story's Interface names. The `FACTORY_CHECKOUT` entry is removed and the test is renamed `test_a_variable_the_settings_do_not_name_is_not_read`. The other two entries and both assertions are kept.
+    - `tests/entry/test_run.py`: the standing leave to move a shared test helper. The `image_file` and `environment` fixtures moved to `tests/conftest.py` unchanged, and the local copy of `HOSTED_URL` now comes from `wiring_support`, which holds the same value. Every test keeps its name and what it checks.
+    - `tests/conftest.py`: the standing leave to move a shared test helper. It only receives the two fixtures moved from `tests/entry/test_run.py`.
