@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T21:06:42.624671Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-25T21:06:42.624671Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T21:07:07.222389Z'
+  stage: smoke-test
+  run: 0341a9e4d53940f1becea69dba7818cc
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -373,3 +375,36 @@ Expect: `0`
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: I ran the three smoke test commands from the repository root, as written and in order. All three met their `Expect:` lines. I fixed nothing.
+
+    Command 1: the module attributes and the parameters of `refusal`
+    ```
+    True False ['path', 'settings']
+    ```
+    (uv also printed `Bytecode compiled 4164 files in 90ms` before this line.) Met: `True False ['path', 'settings']`.
+
+    Command 2: which files are gone and which are present
+    ```
+    gone tests/confine_support.py
+    gone tests/sealed_run_support.py
+    gone docs/project-guide/write-guard.md
+    present tests/run_layout_support.py
+    present tests/agent_run_support.py
+    present docs/project-guide/write-paths.md
+    ```
+    Met: the six lines match the expectation exactly.
+
+    Command 3: `GuardSettings` under `src/factory`
+    ```
+    0
+    ```
+    Met: `0`.
+
+    Checking the acceptance criteria against the code:
+    - Criterion 4: `run_layout_support.Layout` has exactly the fields `checkout`, `home`, `state`, `stand_in` and `shell_bin`.
+    - No file under `docs/project-guide/` still contains `write-guard`, `GuardSettings`, `confine_support` or `sealed_run_support`.
+    - Under `tests/`, the only remaining mentions of `confine_support`, `sealed_run_support` and `temporary_root` are in tests that check those names are gone (`tests/test_removed_layer_names.py`, `tests/adapters/test_runtimes_without_wrapper.py`).
+
+    The smoke test contradicts no criterion. I did not run `make check` (criterion 5) here; the factory's checks cover it.
+
+    Findings: none.
