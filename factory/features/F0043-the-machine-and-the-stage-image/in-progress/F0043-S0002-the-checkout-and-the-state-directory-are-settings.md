@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T00:20:17.501316Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-25T00:20:17.501316Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-25T00:23:10.727810Z'
+  stage: tests
+  run: 4c0fd5a1c547424a8cc9e09d6ddfa30a
 ---
 
 # The checkout and the state directory are settings
@@ -287,3 +289,14 @@ Expect: `1`
 
     Noticed, not touched: nothing new beyond entry 10.
 15. factory: started tests as self.
+16. tester: Round 1, an approved test change: the coder named it in entry 14, from the reviewer's finding 1 in entry 12. I made only that change, in `tests/domain/test_settings_paths.py`:
+    - The case with `FACTORY_INSTANCE=Bad` and `FACTORY_CHECKOUT=relative` is now the row `instance-before-checkout` of `test_a_relative_checkout_or_state_directory_is_refused_in_its_order`. It expects `("FACTORY_INSTANCE", "is not a name")`, which is the instance's own fault text from `_name` in `src/factory/domain/settings.py`.
+    - That test's expected column is now the full `(variable, fault)` pair (`fault: tuple[str, str]`) instead of the variable alone. The text shared by the other rows is the new module constant `NOT_ABSOLUTE`.
+    - I deleted the separate function `test_a_fault_of_the_instance_is_reported_before_one_of_the_checkout`.
+
+    Criterion 2 now maps to one test: tests/domain/test_settings_paths.py::test_a_relative_checkout_or_state_directory_is_refused_in_its_order. The mapping for the other criteria is the same as in entry 8.
+
+    No files created. No other test files changed. I ran `make test` once and it is green: coverage 99.20 %, `test: green (66.8 s)`. Every module imported. `make lint` is green.
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (67.4 s)

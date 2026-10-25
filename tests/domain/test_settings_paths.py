@@ -21,6 +21,7 @@ DIRECT_CONTAINER: dict[str, object] = {
     "stage_image": "factory-stage:1",
 }
 REQUIRED: dict[str, object] = {"repository_url": "/srv/project.git", "instance": "factory-1"}
+NOT_ABSOLUTE = "is not an absolute path"
 
 
 def _fault(
@@ -66,47 +67,54 @@ def test_the_checkout_and_the_state_directory_are_read_with_their_defaults(
 
 
 @pytest.mark.parametrize(
-    ("extra", "read_file", "variable"),
+    ("extra", "read_file", "fault"),
     [
-        pytest.param({"FACTORY_CHECKOUT": "srv/repo"}, None, "FACTORY_CHECKOUT", id="checkout"),
-        pytest.param({"FACTORY_STATE": "state"}, None, "FACTORY_STATE", id="state"),
-        pytest.param({"FACTORY_STATE": "./state"}, None, "FACTORY_STATE", id="state-dot"),
+        pytest.param(
+            {"FACTORY_CHECKOUT": "srv/repo"},
+            None,
+            ("FACTORY_CHECKOUT", NOT_ABSOLUTE),
+            id="checkout",
+        ),
+        pytest.param({"FACTORY_STATE": "state"}, None, ("FACTORY_STATE", NOT_ABSOLUTE), id="state"),
+        pytest.param(
+            {"FACTORY_STATE": "./state"}, None, ("FACTORY_STATE", NOT_ABSOLUTE), id="state-dot"
+        ),
+        pytest.param(
+            {"FACTORY_INSTANCE": "Bad", "FACTORY_CHECKOUT": "relative"},
+            None,
+            ("FACTORY_INSTANCE", "is not a name"),
+            id="instance-before-checkout",
+        ),
         pytest.param(
             {"FACTORY_CHECKOUT": "relative", "FACTORY_MIN_FREE_GB": "0"},
             None,
-            "FACTORY_CHECKOUT",
+            ("FACTORY_CHECKOUT", NOT_ABSOLUTE),
             id="before-min-free",
         ),
         pytest.param(
             {"FACTORY_CHECKOUT": "relative"},
             raising(OSError("unreadable")),
-            "FACTORY_CHECKOUT",
+            ("FACTORY_CHECKOUT", NOT_ABSOLUTE),
             id="checkout-before-image",
         ),
         pytest.param(
             {"FACTORY_STATE": "relative"},
             raising(OSError("unreadable")),
-            "FACTORY_STATE",
+            ("FACTORY_STATE", NOT_ABSOLUTE),
             id="state-before-image",
         ),
         pytest.param(
             {"FACTORY_CHECKOUT": "relative", "FACTORY_STATE": "relative"},
             None,
-            "FACTORY_CHECKOUT",
+            ("FACTORY_CHECKOUT", NOT_ABSOLUTE),
             id="checkout-before-state",
         ),
     ],
 )
 def test_a_relative_checkout_or_state_directory_is_refused_in_its_order(
-    extra: dict[str, str], read_file: Callable[[Path], str] | None, variable: str
+    extra: dict[str, str], read_file: Callable[[Path], str] | None, fault: tuple[str, str]
 ) -> None:
-    assert _fault({**BASE, **extra}, read_file) == (variable, "is not an absolute path")
-
-
-def test_a_fault_of_the_instance_is_reported_before_one_of_the_checkout() -> None:
-    environ = {**BASE, "FACTORY_INSTANCE": "Bad", "FACTORY_CHECKOUT": "relative"}
-
-    assert _fault(environ)[0] == "FACTORY_INSTANCE"
+    assert _fault({**BASE, **extra}, read_file) == fault
 
 
 @pytest.mark.parametrize(
