@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T14:52:55.849316Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-10-25T14:52:34.961452Z'
   stage: doing
   run: be6fd8eba8ef41eea608bfb89c065347
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:52:55.849316Z'
+  stage: tests
 ---
 
 # The second user is removed
@@ -279,3 +288,4 @@ Expect: three lines: `[] False`; `False False`; `3 False`
     - The Dockerfile and VM-setup tests that mention `FACTORY_AGENT_USER` (tester entry 11).
 
     The Description is unchanged: the journal did not change the task's meaning beyond criterion 9, which intake already wrote in.
+14. factory: started tests as self.
