@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T13:13:23.376975Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -41,6 +45,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T13:13:05.532302Z'
+  stage: tests
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:13:23.376975Z'
   stage: tests
 ---
 
@@ -141,3 +150,4 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
    Criteria 3 and 4 already pass: with no leftovers program set, the runtimes and the make class make one `sudo` call today. They guard the behaviour while the code is removed.
    `make lint` is green. I did not run the type check, as the stage says.
 6. 2026-10-25 human: (a). Delete `tests/adapters/test_runtimes_without_wrapper.py::test_the_starters_are_sudo_the_login_files_and_the_leftovers_program`: leave given under decision 19 and the human's standing answer for lists found after the pre-check (decision 29). Criterion 2's row `starters-fields` checks the new field list, so nothing is lost. The module's other tests stay as they are.
+7. factory: started tests as self.
