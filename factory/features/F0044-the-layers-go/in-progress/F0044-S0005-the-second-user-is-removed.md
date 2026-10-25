@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T15:18:07.623227Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-10-25T15:18:07.623227Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T15:18:36.750402Z'
+  stage: smoke-test
+  run: 49f5c13ad7184041a4c977e877c92251
 ---
 
 # The second user is removed
@@ -605,3 +607,30 @@ Expect: three lines: `[] False`; `False False`; `3 False`
     `secrets`: secrets: green (4.2 s)
     `documents`: documents ok
 30. factory: started smoke-test as self.
+31. smoke-tester: Ran the one command under `## Smoke test` as written, from the repository root. I fixed nothing.
+
+    Command 1 (`uv run python - <<'EOF' … EOF`). It exited 0. uv first created `.venv` and printed its usual setup lines; those are cut below, followed by the script's output:
+
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    …
+    [] False
+    False False
+    3 False
+    ```
+
+    Met its `Expect:` line: yes. The script printed the three lines it expects: `[] False`, then `False False`, then `3 False`.
+
+    Judged against the acceptance criteria:
+    - The output is consistent with criterion 1 for the names the command checks. Of `SUDO_EXECUTABLE`, `SUDO_GRACE` and `sudo_prefix`, none is an attribute of `factory.adapters.agent_launch`. `CommandUser` is gone from `make_commands`. `AgentRunRequest` has no `os_user`, and `InstanceSettings` has no `agent_user`.
+    - It is consistent with criterion 6 as far as the command looks: `GIT_CONFIG_COUNT` is `3` and there is no `core.sharedRepository`.
+    - To check that nothing contradicts the other criteria, I also ran two read-only calls outside the smoke test:
+      - `git_environment()` returns exactly the seven pairs of criterion 6 (credential helper, `core.hooksPath` = `/dev/null`, `core.fsmonitor` = `false`).
+      - `launch(["x"], {"A": "1"}, time_limit=30 s)` gives `argv=['x'] env={'A': '1'} time_limit=30 s` (criterion 3).
+      - `Starters.model_fields` is `['login_files']` (criterion 1).
+    - No criterion is contradicted. The smoke test does not reach the other criteria (2, 4, 5, 7, 8, 9); they rest on the tests and on the factory's `make check`, which I did not run in this stage.
+
+    Findings: none.
+
+    Open: nothing. The working tree shows only the work item's `.costs.jsonl` sidecar as modified. That file is the factory's; I did not write it.
