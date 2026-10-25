@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T20:56:46.553967Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-25T20:56:25.783407Z'
   stage: doing
   run: aa079c481a3a4c36ac5ee3c2ffefa8c5
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:56:46.553967Z'
+  stage: review
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -158,3 +167,4 @@ Expect: `0`
 
    `check`: check: green
    `duplicates`: duplicates: 8 new, 35 known, 3 gone
+8. factory: started review as self.
