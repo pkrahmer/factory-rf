@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T13:21:40.382261Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-10-25T13:21:19.799970Z'
   stage: doing
   run: 4f9bb68ad7a3442c822c5d4d5c0960b6
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:21:40.382261Z'
+  stage: tests
 ---
 
 # The leftovers program is removed
@@ -229,3 +238,4 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     I changed no code in this run. The removal from entry 10 (the deleted `src/factory/entry/leftovers.py` and `src/factory/domain/leftovers.py`, and the edits to `src/factory/adapters/process.py`, `agent_launch.py`, `claude_runtime.py`, `opencode_runtime.py`, `make_commands.py` and `src/factory/entry/wiring.py`) is committed in 934c3efa. I ran `make types` again. Its one error is the one this change fixes: `tests/adapters/test_one_call_as_another_user.py:20: error: Module "adapters.opencode_stand_in" does not explicitly export attribute "Step"  [attr-defined]`. Every other target was green in entry 10.
 
     Open: the points in entry 10 that I noticed but did not touch still stand. These are the gone findings in `security/duplicates-baseline.txt`, and `tests/leftovers_runtime_support.py`, which stays for S0005. The journal did not change the meaning of the task, so the Description stays.
+14. factory: started tests as self.
