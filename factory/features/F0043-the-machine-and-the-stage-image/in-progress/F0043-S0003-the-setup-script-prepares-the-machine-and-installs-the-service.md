@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T01:11:35.949832Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-10-25T01:11:15.191197Z'
   stage: review
   run: 15305352b2574cd7b41865ce97ae5af8
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-10-25T01:11:35.949832Z'
+  stage: doing
 ---
 
 # The setup script prepares the machine and installs the service
@@ -526,3 +535,4 @@ Expect: `1`
     Open, for the human (entry 26 says nothing else changes, so I did not make it a finding): in the `folders` step, `vm/setup.sh:241-244` runs `install -d -o factory -g factory` as root on `$base/state` and `$base/repo`. `owned_with_mode` runs `stat` without `-L`, so it reads a link `factory` plants there as not owned. GNU `install -d` on an existing link to a directory probably changes the owner of the target. I have not confirmed this. If it holds, a `[ -L ]` refusal there would close it.
 
     Earlier tests: none. Every test file in the diff is new (status `A`).
+29. factory: started doing as self.
