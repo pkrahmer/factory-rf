@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 434
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-25T06:48:50.696492Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-25T06:48:50.696492Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T06:52:15.693944Z'
+  stage: tests
+  run: dcb88821a34b44729da009829a096ce7
 ---
 
 # The operator guide's chapter "The machine"
@@ -95,3 +97,12 @@ Expect: `documents ok`
    Architecture: no layer is touched. The files are the human-facing docs that `CLAUDE.md` assigns to the documenter. Nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes.
    Scope: it matches the feature's Scope bullet for the operator guide's chapter and the decision-log entry, and it is the last story in the feature's build order. It touches nothing in "Out of scope": no GCP calls, no change to `image/`, and no code for the stage environment.
 4. factory: started tests as vm.
+5. tester: No tests written: this is a documents-only story. Its Interface says nothing changes in any test, and it says no test reads the documents.
+   criterion 1: no test. Nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` was changed by this stage; `git status --short` is empty.
+   criterion 2: no new test; `make check` covers it (the coder runs it at `doing`, the factory at `docs`).
+   criterion 3 (docs): no test, as the criterion says. The smoke test and `make documents` check it.
+   Files created: none. Modules the test run could not import: none, because no new tests exist. I did not run `make test`: there are no new red tests to confirm, and the factory runs it after this stage. `make lint`: green.
+   Open: nothing.
+
+   `lint`: lint: green (0.2 s)
+   `test`: test: green (186.4 s)
