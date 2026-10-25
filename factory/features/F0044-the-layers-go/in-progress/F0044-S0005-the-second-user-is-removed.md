@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 448
-comments_read: []
+comments_read: [6398933817]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: ff982a42912a470eb105926db63ad70c
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-25T14:33:45.355343Z'
+  stage: intake
 ---
 
 # The second user is removed
@@ -124,3 +129,5 @@ Expect: three lines: `[] False`; `False False`; `3 False`
    - Smoke test: runnable, and its pytest-free `Expect:` line is checkable.
    - Architecture: the changes sit in the right layers.
    - Scope: within F0044 and its S0005 line. The human's leave is decision 21 and decision 34(a).
+4. 2026-10-25 human: 1. (a). Add the criterion, before the closing ones: a Claude Code call and an opencode call without a container write their run files with the mode the process's umask gives and no `chmod` (rows of one parametrized test: a umask of `0o077` and one of `0o022`, for each runtime). A new test needs no leave.
+   2. Confirmed. `run_launch` and `read_call_end` keep their behaviour, and `call_refusal`'s refused-login-file side rests on the unchanged `test_a_login_file_that_cannot_be_used_stops_the_run_naming_the_file`. No further criterion is needed.
