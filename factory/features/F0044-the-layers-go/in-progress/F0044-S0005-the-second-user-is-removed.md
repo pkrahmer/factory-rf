@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 448
-comments_read: [6398933817]
+comments_read: [6398933817, 6399000993]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: f08c6190b2f941778b3ee35c5d627cf4
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-10-25T14:40:38.664480Z'
+  stage: tests
 ---
 
 # The second user is removed
@@ -183,3 +188,7 @@ Expect: three lines: `[] False`; `False False`; `3 False`
    2. Two readings I made, please confirm or correct:
       - Criterion 7's died-probe details are tested through `agent_run_probe_item`, the last item `machine_extras` returns, rather than by running every item of `machine_extras`.
       - Criterion 9's "the mode the process's umask gives" means `0o666 & ~umask` for a regular file: `0o600` under `0o077` and `0o644` under `0o022`.
+9. 2026-10-25 human: 1. (a). Run the tests stage again and make all the changes to existing tests the Interface lists, in one go: first the move of `REPLY`, `_request` and `_without_locale` to `tests/adapters/claude_stand_in.py` with its importers, then the deletions, then the row and helper edits. End with `doing`.
+   2. Both readings are right:
+      - Criterion 7's died-probe details through `agent_run_probe_item`, the last item `machine_extras` returns.
+      - Criterion 9: `0o666 & ~umask` for a regular file, so `0o600` under `0o077` and `0o644` under `0o022`.
