@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T19:39:19.897589Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-25T19:39:19.897589Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T19:40:04.533917Z'
+  stage: review
+  run: 6ae8c66602fb4887b0bec47b4d55da52
 ---
 
 # The undo is removed
@@ -316,3 +318,38 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
     `check`: check: green
     `duplicates`: duplicates: 9 new, 34 known, 4 gone
 16. factory: started review as self.
+17. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item. I read the code and the tests themselves, not the journal's account of them.
+
+    no findings
+
+    What I checked:
+    - **Group 1, acceptance criteria.** Every criterion has a test that checks what it is named after.
+      - Criterion 1: `tests/test_undo_removed.py`, six rows. `imported_modules` returns `module.name` entries, so the `no-undo-name-imported` row does reach imported names.
+      - Criterion 2: `tests/domain/test_agent_entry.py::test_the_left_out_paths_close_the_entry_in_a_paragraph_of_their_own`. Its rows are the sorted paths, an empty `left_out` and a blank text.
+      - Criterion 3: `tests/application/test_left_out_stage.py`. It checks the closing paragraph before the checks' paragraph, that no `.costs.jsonl` is named, and the commit's contents, including the sidecar's one completed record.
+      - Criterion 4: `tests/application/test_take_rule.py`. It has both sides under `["*"]` and `["tests/*"]`, plus the work item's restore with the section edit kept.
+      - The coder's `make check` after the tester's round-1 changes was green (entry 15).
+    - **Group 1, round-1 test changes.** Both fixes from round 0 are in.
+      - `test_take_rule.py` imports `MOUNTED` from `take_support`.
+      - `test_stall_environment.py` builds its check on `source_search.imported_modules`. It checks the same two facts as before: the module `factory.application.undo` is not imported, and no name ending in `.UndoService` is.
+    - **Groups 2 and 3, architecture and security.**
+      - The `src` change moves `read_baseline`, `restore_work_item`, `is_refused`, `_is_in_an_in_progress_folder` and `_IN_PROGRESS` word for word into `factory.application.take`, which stays inside the application layer.
+      - `agent_entry` takes `left_out`, and `AfterAgent` passes it.
+      - No marker was added. No `undo`, `undone` or `undid` is left anywhere under `src/factory` (I grepped for them).
+    - **Group 4, quality.** The `WritePathService` docstring now names the take alone. There is no dead code under `src`.
+    - **Group 5, work item hygiene.** The Description matches what was built. The docs criterion still describes what the reader needs.
+
+    Open, for the human, not a finding: the accepted entry at `security/duplicates-baseline.txt:21` still names `undo.py`. Because of that, `make duplicates` now reports `take.py: unused variable 'restored_work_item'` as new (entries 7, 9, 11, 13 and 15). The field already existed. Every stage's write paths exclude that file, so the human has to update the entry.
+
+    Earlier tests (item 6):
+    - tests/application/test_after_agent.py: decision 25 of `feature.md`, named in the Interface (the constant only).
+    - tests/application/test_costs.py: decision 25 (the constant only).
+    - tests/application/test_stage_environment_calls.py: decisions 25 and 38 (the constant only).
+    - tests/application/test_stall_environment.py: decision 25. The test keeps its name and checks the same facts, now through `imported_modules`.
+    - tests/application/test_undo.py (deleted): decision 25.
+    - tests/application/test_undo_nested_claude.py (deleted): decision 25.
+    - tests/domain/test_agent_entry.py: decision 25. All six tests keep their names. The blank-text test's parameter ids change with the keyword (`nothing-left-out`/`left-out`), which is part of the rename the leave covers.
+    - tests/undo_support.py: decision 25 (`undo_stage` and its imports removed, the docstring follows).
+
+    Notes:
+    - tests/application/test_take_rule.py:47: `before` is computed for every row but read only by the `left` rows. Splitting the three `outcome` arms into their own small helpers would make the test easier to read.
