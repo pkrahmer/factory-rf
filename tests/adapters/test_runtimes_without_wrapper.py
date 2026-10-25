@@ -252,9 +252,17 @@ def _login_refused(_: Layout) -> tuple[str | None, str | None]:
             id="call-refusal-wrapper-line",
         ),
         pytest.param(
-            _sudo_refused, [SUDO_LINE, "refused the agent run", "sudo"], None, id="sudo-refused"
+            _sudo_refused,
+            lambda layout: [f"{layout.sudo_bin / 'sudo'} refused the agent run: {SUDO_LINE}"],
+            None,
+            id="sudo-refused",
         ),
-        pytest.param(_login_refused, ["/home/agent/.claude-token"], None, id="login-file-refused"),
+        pytest.param(
+            _login_refused,
+            lambda _: ["/home/agent/.claude-token"],
+            None,
+            id="login-file-refused",
+        ),
         pytest.param(
             lambda layout: _claude_end(layout, f"{SUDO_LINE}\n"),
             None,
@@ -266,7 +274,7 @@ def _login_refused(_: Layout) -> tuple[str | None, str | None]:
 def test_only_sudo_and_the_login_shell_refuse_a_call(
     layout: Layout,
     end_of: Callable[[Layout], tuple[str | None, str | None]],
-    refusal_words: list[str] | None,
+    refusal_words: Callable[[Layout], list[str]] | None,
     end_reason: str | None,
 ) -> None:
     refusal, ended = end_of(layout)
@@ -275,5 +283,5 @@ def test_only_sudo_and_the_login_shell_refuse_a_call(
         assert refusal is None
     else:
         assert refusal is not None
-        assert all(word in refusal for word in refusal_words)
+        assert all(word in refusal for word in refusal_words(layout))
     assert ended == end_reason

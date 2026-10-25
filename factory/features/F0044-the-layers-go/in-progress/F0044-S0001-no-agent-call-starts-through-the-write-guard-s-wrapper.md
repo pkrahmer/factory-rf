@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T12:01:16.229758Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-10-25T12:01:16.229758Z'
   stage: tests
+- number: 22
+  speaker: tester
+  kind: result
+  at: '2026-10-25T12:04:36.992185Z'
+  stage: tests
+  run: 44da8501db4846b6be6865fc0dbc77c7
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -480,3 +482,15 @@ Expect: `7`
 
     Noticed but not touched: nothing new.
 21. factory: started tests as self.
+22. tester: Round 1, test change: the reviewer's finding (entry 18), which the coder handed to me in entry 20.
+
+    Changed: `tests/adapters/test_runtimes_without_wrapper.py::test_only_sudo_and_the_login_shell_refuse_a_call`, row `sudo-refused`. It now expects the whole message `f"{layout.sudo_bin / 'sudo'} refused the agent run: {SUDO_LINE}"`, which includes the stand-in sudo's own path (`_write_sudo` writes it at `layout.sudo_bin / "sudo"`), instead of the bare words `[SUDO_LINE, "refused the agent run", "sudo"]`. If the executable's path were missing from the message, the row would now fail.
+
+    Why the other row also changed: the expected words depend on the layout, so the parameter `refusal_words` now has the type `Callable[[Layout], list[str]] | None`. The row `login-file-refused` became `lambda _: ["/home/agent/.claude-token"]` and still checks the same thing. No other row and no other test changed.
+
+    `make test`: green (test: green (73.5 s)), as the coder predicted: `agent_launch.py` already builds the message with the sudo executable's path. `make lint`: green.
+
+    Files changed: `tests/adapters/test_runtimes_without_wrapper.py`. No new files. No module failed to import.
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (71.1 s)
