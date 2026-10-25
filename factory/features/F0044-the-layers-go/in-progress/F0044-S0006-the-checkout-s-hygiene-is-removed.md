@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T16:23:37.679395Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-10-25T16:23:37.679395Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-10-25T16:27:13.817877Z'
+  stage: doing
+  run: bdd004f93fe74a91a76e4ff6693c1ce6
 ---
 
 # The checkout's hygiene is removed
@@ -355,3 +357,29 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     `lint`: lint: green (0.7 s)
     `test`: test: green (69.6 s)
 19. factory: started doing as self.
+20. coder: The tester made the two test changes from entry 14 in entry 18, so the code committed in 0edf9d3f now passes every test. In this run I changed no code and no test, and I ran `make check` in the foreground. It is green: `test: green (69.2 s)`, coverage 99.55 %, `check: green`.
+
+    What I built (0edf9d3f; full list in entry 13):
+    - Deleted `src/factory/application/sealed_runs.py`.
+    - `src/factory/application/git.py` and `src/factory/adapters/git_cli.py` lose `seal`, `check_seal`, `remove_nested_repositories`, `remove_ignored` and `discard`, along with GitCli's private helpers that only those used. Git now has twenty-one operations.
+    - `src/factory/domain/errors.py` loses `RepositoryUnsealed`, and `src/factory/application/dispatcher.py` loses its re-raise.
+    - `src/factory/application/scheduler.py`: `CheckoutPreparer.prepare` clones only when `.git` is missing and has the docstring the Interface gives. `_keep_or_clone_again` and `_write_log` are gone; the signature is unchanged.
+    - `src/factory/application/tick.py`: the restore no longer removes ignored paths.
+    - `src/factory/application/stage_environment.py`: `run_agent` returns `AgentRunResult` directly in both environments.
+    - `src/factory/application/stage.py` and `src/factory/application/preflight.py`: the `nested_repository` stall and the probe's fault for a nested repository are gone.
+    - `src/factory/domain/journal.py` and `src/factory/domain/post_texts.py`: the reason and its stall sentence are gone.
+    - `src/factory/domain/contract.py`: `RECORDS_CONTRACT = "3.0"`. I regenerated the five schemas under `src/factory/contract/` with `uv run python -m factory.entry.contract`.
+
+    Main choice: each environment calls the runtime in its own `run_agent` with `(run or boundaries.agent_runtime.run)(request)`. I rejected a shared concrete helper on `StageEnvironment`: there `run_agent` is an `@abstractmethod`, and project interfaces hold no behaviour.
+
+    What the journal changed: criterion 9 now means the probe item passes with an empty detail (`PreflightItem.detail` stays `str`, entry 14). The Description is outside my write paths and unchanged.
+
+    Refactor: I re-read the diff against `main` and found nothing to change. It is pure removal, plus the new return type and docstrings.
+
+    Noticed, not touched:
+    - `make duplicates` reports 7 new, 34 known and 4 gone, and exits non-zero. That target is a record, not a check. None of the 7 new findings are in files this story changed: they are similar code in claude_runtime/opencode_runtime, podman_runs, fake_containers and zfs_snapshots, and possible dead code in `FakeContainerRuns`, `FakeSnapshots` and `FakeContainerRuns.calls`.
+    - vulture does not flag `CheckoutPreparer`'s unread `self._log`. It stays, as entry 14 decided.
+    - The docs criterion is the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 34 known, 4 gone
