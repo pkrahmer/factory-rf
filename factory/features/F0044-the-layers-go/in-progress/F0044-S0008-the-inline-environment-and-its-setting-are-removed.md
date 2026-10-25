@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T18:39:41.099596Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -135,6 +131,12 @@ journal:
   kind: started
   at: '2026-10-25T18:39:41.099596Z'
   stage: doing
+- number: 23
+  speaker: coder
+  kind: result
+  at: '2026-10-25T18:42:32.573084Z'
+  stage: doing
+  run: 9065c527efab41dc9c39263cdf2de307
 ---
 
 # The inline environment and its setting are removed
@@ -473,3 +475,37 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     `lint`: lint: green (0.2 s)
     `test`: test: green (63.6 s)
 22. factory: started doing as self.
+23. coder: The tester finished adapting the test list against the code from entry 13 (entry 21). I did not change any code in this run. `make check` is green, ending with "test: green (63.6 s)" and "check: green" at 99.56 % coverage. All of criteria 1–8 pass.
+
+    What I built (it is in the working tree since entry 13):
+    - src/factory/domain/settings.py:
+      - Removed `STAGE_ENVIRONMENT_VARIABLE`, `StageEnvironmentName`, `InstanceSettings.stage_environment`, `stage_environment_fault`, `_container_fault` and `_stage_environment`.
+      - `workspace_overlap_fault(workspace, checkout, state_directory)` returns `None` when there is no workspace. Otherwise it checks a relative workspace first, then the checkout, then the state directory.
+      - `read_settings` raises its fault as `SettingsInvalid`. The model validator `_workspace_apart` raises it as a `ValidationError`.
+    - src/factory/application/boundaries.py: `snapshots` and `containers` are required.
+    - src/factory/application/stage_environment.py: `InlineEnvironment` and the `UndoService` import are gone. `stage_environment_of` always returns `ContainerEnvironment`.
+    - src/factory/application/take.py: `agent_working_directory` is always `snapshots.mount_point / "checkout"`.
+    - src/factory/application/preflight.py:
+      - `REQUIRED_TOOLS = ("git", "uv")`.
+      - Removed `CONTAINER_TOOLS`, `agent_environment_item`, `_home_fault`, `_path_fault`, `_AGENT_ENVIRONMENT_ITEM`, `MachineChecks._tools` and `_runtime_executable`.
+      - The signature is now `opencode_item(settings, agent_models)`.
+    - src/factory/entry/wiring.py:
+      - `build_boundaries` calls `_container_adapters` first. That raises `SettingsInvalid(FACTORY_DATASET | FACTORY_WORKSPACE | FACTORY_STAGE_IMAGE, "missing")` before PyGithub or anything else is built.
+      - Removed `_StageEnvironmentBoundaries`, `_inline_environment`, `_container_environment` and `_which_on`.
+      - `agent_run_environment` always sets `HOME` to `/work/home`.
+      - `machine_extras` builds one list.
+    - vm/setup.sh: the line `FACTORY_STAGE_ENVIRONMENT=container` is gone.
+
+    Main choice and the alternative I rejected: the three `missing` faults live in the existing `_container_adapters`, which `machine_extras` also uses, and `build_boundaries` calls it before anything else. I rejected a separate check before the build: it would repeat the three `None` tests that `_container_adapters` needs anyway to narrow the types.
+
+    Refactor pass: I read the whole diff against main (7 files, +51/−247). It is deletions plus the merge of the container branch into `build_boundaries`. Nothing needed changing.
+
+    Journal: entries 15–21 changed only the tests, as the human approved. The Description's meaning did not change, so I did not rewrite it.
+
+    Noticed, not touched:
+    - `agent_run_environment` keeps its `settings` parameter only to match the Interface's signature. It is now unused and named `_settings`.
+    - `Stage`, `Stall` and the other stage classes still take an optional `stage_environment` that defaults to `stage_environment_of(boundaries)`. With one environment that default is all there is, but the tests use the parameter to inject fakes, so it stays.
+    - `src/factory/application/undo.py` is now called by nothing; S0009 removes it (decision 13).
+
+    `check`: check: green
+    `duplicates`: duplicates: 12 new, 35 known, 3 gone
