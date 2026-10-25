@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-10-25T06:41:27.290687Z'
   stage: smoke-test
   run: 4b8f421420b24c3391292a9dec7a853b
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-25T06:43:50.240788Z'
+  stage: approval
 ---
 
 # The setup script writes as factory from its own standard input
@@ -263,3 +268,4 @@ Expect: two lines, `0` and `syntax-ok`
     - Criteria 3 to 6: the smoke test does not check these, and nothing it showed contradicts them. Entry 10 records `make check` as green, and entry 14 records the docs sentence.
 
     Findings: none.
+17. factory: done (pull request merged); cost: 7 runs, 7.1 min, 46 turns, 175858 tokens in (922302 more from cache), 22101 out, $1.76
