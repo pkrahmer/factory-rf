@@ -17,8 +17,6 @@ from factory.adapters.claude_runtime import (
 )
 from factory.domain.agent_runs import (
     ALLOWED_ENVIRONMENT_NAMES,
-    AgentRunRequest,
-    GuardSettings,
     scrub_environment,
 )
 from factory.domain.errors import AgentRuntimeError
@@ -77,12 +75,6 @@ def _runtime(
             str(executable), tmp_path / "state", sudo_executable=str(sudo), login_file=login_file
         )
     return runtime, executable
-
-
-def _guarded_request(tmp_path: Path, os_user: str | None) -> AgentRunRequest:
-    request = _request(tmp_path, os_user)
-    guard = GuardSettings(root=request.working_directory, write_paths=[], protected_paths=[])
-    return request.model_copy(update={"guard": guard})
 
 
 @pytest.mark.parametrize(
@@ -226,7 +218,7 @@ def test_the_login_stands_in_no_argument_no_run_file_and_no_result(
     sudo = _write_sudo(tmp_path / "sudo-bin")
     runtime, executable = _runtime(tmp_path, login, [Step(stdout=REPLY)], sudo)
 
-    result = runtime.run(_guarded_request(tmp_path, os_user))
+    result = runtime.run(_request(tmp_path, os_user))
 
     [claude_call] = read_calls(tmp_path / "bin")
     assert claude_call.environment[LOGIN_VARIABLE] == LOGIN

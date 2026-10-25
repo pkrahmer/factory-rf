@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, GuardSettings
+from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 
 MODES = "modes.json"
 
@@ -54,7 +54,7 @@ def _stand_in(directory: Path) -> Path:
     return path
 
 
-def _request(tmp_path: Path, *, guard: bool) -> AgentRunRequest:
+def _request(tmp_path: Path) -> AgentRunRequest:
     work = tmp_path / "work"
     work.mkdir(exist_ok=True)
     return AgentRunRequest(
@@ -70,25 +70,18 @@ def _request(tmp_path: Path, *, guard: bool) -> AgentRunRequest:
         time_limit=timedelta(seconds=30),
         working_directory=work,
         environment={"LANG": "C.UTF-8"},
-        guard=GuardSettings(root=work, write_paths=["src/"], protected_paths=["factory/"])
-        if guard
-        else None,
     )
 
 
 @pytest.mark.usefixtures("open_umask")
-@pytest.mark.parametrize(
-    ("guard", "prefixes"),
-    [(True, ["instructions-"]), (False, ["instructions-"])],
-    ids=["with-guard", "without-guard"],
-)
+@pytest.mark.parametrize("prefixes", [["instructions-"]], ids=["run"])
 def test_the_files_of_a_run_are_0640_when_the_agent_starts(
-    tmp_path: Path, *, guard: bool, prefixes: list[str]
+    tmp_path: Path, prefixes: list[str]
 ) -> None:
     executable = _stand_in(tmp_path / "bin")
     runtime = ClaudeCodeRuntime(str(executable), tmp_path / "state")
 
-    runtime.run(_request(tmp_path, guard=guard))
+    runtime.run(_request(tmp_path))
 
     modes: dict[str, int] = json.loads((tmp_path / "bin" / MODES).read_text(encoding="utf-8"))
     assert sorted(name.split("-")[0] + "-" for name in modes) == prefixes

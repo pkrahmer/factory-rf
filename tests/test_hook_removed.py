@@ -11,10 +11,7 @@ from pydantic import BaseModel, ValidationError
 
 from factory.domain.agent_runs import GuardSettings
 from factory.entry import wiring
-
-
-def _has(module: str, name: str) -> bool:
-    return hasattr(importlib.import_module(module), name)
+from module_names import has_name
 
 
 def _confine_command() -> object:
@@ -33,29 +30,33 @@ def _confine_command() -> object:
             lambda: importlib.util.find_spec("factory.entry.guard"), None, id="entry-module"
         ),
         pytest.param(
-            lambda: _has("factory.domain.agent_runs", "GUARD_COMMAND"), False, id="guard-command"
+            lambda: has_name("factory.domain.agent_runs", "GUARD_COMMAND"),
+            False,
+            id="guard-command",
         ),
         pytest.param(
-            lambda: _has("factory.domain.errors", "GuardSettingsInvalid"),
+            lambda: has_name("factory.domain.errors", "GuardSettingsInvalid"),
             False,
             id="settings-error",
         ),
-        pytest.param(lambda: _has("factory.entry.wiring", "judge"), False, id="wiring-judge"),
+        pytest.param(lambda: has_name("factory.entry.wiring", "judge"), False, id="wiring-judge"),
         pytest.param(
-            lambda: _has("factory.entry.wiring", "read_guard_settings"), False, id="wiring-read"
+            lambda: has_name("factory.entry.wiring", "read_guard_settings"), False, id="wiring-read"
         ),
         pytest.param(lambda: "judge" in wiring.__all__, False, id="exported-judge"),
         pytest.param(lambda: "read_guard_settings" in wiring.__all__, False, id="exported-read"),
-        pytest.param(_confine_command, "factory-confine", id="confine-command"),
+        pytest.param(_confine_command, None, id="confine-command"),
         pytest.param(
-            lambda: _has("factory.domain.agent_runs", "GuardSettings"), True, id="guard-settings"
+            lambda: has_name("factory.domain.agent_runs", "GuardSettings"),
+            True,
+            id="guard-settings",
         ),
-        pytest.param(lambda: _has("factory.domain.write_paths", "refusal"), True, id="refusal"),
+        pytest.param(lambda: has_name("factory.domain.write_paths", "refusal"), True, id="refusal"),
         pytest.param(
-            lambda: _has("factory.domain.write_paths", "PROTECTED_PATHS"), True, id="protected"
+            lambda: has_name("factory.domain.write_paths", "PROTECTED_PATHS"), True, id="protected"
         ),
         pytest.param(
-            lambda: _has("factory.application.preflight", "confinement_item"),
+            lambda: has_name("factory.application.preflight", "confinement_item"),
             False,
             id="confinement-item",
         ),
@@ -77,7 +78,6 @@ def _fields() -> None:
         "root",
         "write_paths",
         "protected_paths",
-        "tool_paths",
     ]
 
 
@@ -93,7 +93,7 @@ def _refuses_a_temporary_folder() -> None:
 @pytest.mark.parametrize(
     "check",
     [
-        pytest.param(_fields, id="four-fields"),
+        pytest.param(_fields, id="three-fields"),
         pytest.param(_builds, id="without-temporary-folder"),
         pytest.param(_refuses_a_temporary_folder, id="with-temporary-folder"),
     ],

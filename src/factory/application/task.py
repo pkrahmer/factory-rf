@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, PositiveInt
 from factory.application.acceptance import AcceptanceService
 from factory.application.boundaries import Boundaries
 from factory.domain.acceptance import AcceptanceState, acceptance_prompt
-from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, GuardSettings
+from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.errors import WorkItemFormatError
 from factory.domain.identifiers import Name, WorkItemId, feature_of, is_acceptance
 from factory.domain.journal import last_record
@@ -30,7 +30,7 @@ FORM_REF = f"{REMOTE}/{MAIN_BRANCH}"
 
 
 class TaskContext(BaseModel):
-    """The work item a stage runs on: its place, document, branch, form findings and guard."""
+    """The work item a stage runs on: its place, document, branch, and form findings."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -41,7 +41,6 @@ class TaskContext(BaseModel):
     branch: str
     pull_request: PositiveInt
     findings: list[FormFinding]
-    guard: GuardSettings
 
 
 class StoryFormChecker:
@@ -106,7 +105,6 @@ class TaskComposer:
             time_limit=timedelta(minutes=self._role(context.stage).time_limit),
             working_directory=self._boundaries.checkout,
             environment=dict(self._environment),
-            guard=context.guard,
             os_user=self._boundaries.settings.agent_user,
         )
 

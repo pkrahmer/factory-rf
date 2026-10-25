@@ -63,11 +63,6 @@ REFUSED = ["/etc/*", "~/notes/*", "../docs/*", "docs/../src/*", "{work_item}", "
             f"{_fault('check', '/b/*')}; {_fault('check', '/a/*')}",
             id="two-patterns",
         ),
-        pytest.param(
-            _with_check('["/a/*"]') + 'tool_paths: ["x"]\n',
-            f"tool path x: must be <folder>/* or ~/<folder>/*; {_fault('check', '/a/*')}",
-            id="after-tool-paths",
-        ),
     ],
 )
 def test_a_not_read_pattern_outside_the_checkout_is_refused(text: str, fault: str | None) -> None:

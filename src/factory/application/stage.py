@@ -19,7 +19,6 @@ from factory.application.stage_environment import StageEnvironment, stage_enviro
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.application.take import TakeReport
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
-from factory.application.write_paths import WritePathService
 from factory.domain.acceptance import acceptance_description
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.checks import CheckResult, command_line
@@ -113,7 +112,6 @@ class StageLauncher:
             branch=started.branch,
             pull_request=started.pull_request.number,
             findings=started.findings,
-            guard=WritePathService(self._boundaries).at(started.stage_start, started.path),
         )
         request = self._composer.compose(context, agent)
         self._stage_environment.prepare(

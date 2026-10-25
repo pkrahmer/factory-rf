@@ -119,17 +119,6 @@ class AgentRuntimeError(BoundaryError):
         self.detail = detail
 
 
-class ConfinementError(FactoryError):
-    """A write restriction that cannot be made; the message names the path or the call."""
-
-    detail: str
-
-    def __init__(self, detail: str) -> None:
-        """Say which path or call failed and why; it is the whole message."""
-        super().__init__(detail)
-        self.detail = detail
-
-
 class WorkItemFormatError(FactoryError):
     """A work item file cannot be read: its fault and, where known, its path."""
 

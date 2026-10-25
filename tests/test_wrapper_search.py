@@ -19,6 +19,5 @@ def test_only_the_three_wrappers_import_the_process_module() -> None:
         "factory.adapters.opencode_runtime",
         "factory.adapters.podman_runs",
         "factory.adapters.zfs_snapshots",
-        "factory.entry.confine",
         "factory.entry.leftovers",
     }

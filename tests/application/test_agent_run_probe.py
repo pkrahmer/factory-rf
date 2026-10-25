@@ -25,7 +25,6 @@ from factory.domain.agent_runs import (
     AgentRunRequest,
     AgentRunResult,
     EndReason,
-    GuardSettings,
 )
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.settings import InstanceSettings
@@ -102,9 +101,6 @@ def test_the_probe_runs_the_coder_on_a_small_budget_with_the_question_alone(
     assert request.working_directory == boundaries.checkout
     assert request.environment == ENVIRONMENT
     assert request.os_user == "agent"
-    assert request.guard == GuardSettings(
-        root=boundaries.checkout, write_paths=[], protected_paths=[]
-    )
     installed = boundaries.agent_definitions.read("coder")
     assert request.agent.name == "coder"
     assert (request.agent.model, request.agent.tools) == (installed.model, installed.tools)
@@ -189,9 +185,6 @@ def test_the_probe_calls_claude_with_the_flags_of_a_stage(
         time_limit=timedelta(minutes=30),
         working_directory=boundaries.checkout,
         environment=environment,
-        guard=GuardSettings(
-            root=boundaries.checkout, write_paths=["src/*"], protected_paths=["factory/*"]
-        ),
     )
     runtime.run(stage)
 

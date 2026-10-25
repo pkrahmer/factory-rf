@@ -17,10 +17,10 @@ def test_the_committed_schemas_list_provider_limit_at_version_1_2() -> None:
     cost_properties = _committed("cost-record.schema.json")["properties"]
     assert isinstance(cost_properties, dict)
 
-    assert RECORDS_CONTRACT == "1.3"
+    assert RECORDS_CONTRACT == "2.0"
     assert "provider_limit" in _values(cost_properties["end_reason"])
     assert "provider_limit" in _reason_values("work-item-state.schema.json")
     assert "provider_limit" in _reason_values("acceptance-state.schema.json")
     assert [_committed(schema_file_name(entry))["x-records-contract"] for entry in CONTRACT] == [
-        "1.3"
+        "2.0"
     ] * 5

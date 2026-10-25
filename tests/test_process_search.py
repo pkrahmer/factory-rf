@@ -56,7 +56,7 @@ def test_no_module_uses_another_route_to_a_process() -> None:
     }
 
     assert routes_to_a_process(snippet) == {"os.system"}
-    assert users == {"factory.adapters.process": {"os.execvpe"}}
+    assert users == {}
 
 
 def test_the_only_suppression_markers_are_the_four_in_the_process_wrapper() -> None:
@@ -78,17 +78,6 @@ def test_the_only_suppression_markers_are_the_four_in_the_process_wrapper() -> N
         for number, line in enumerate(process_lines, start=1)
         if "subprocess.Popen(" in line.split("#")[0]
     )
-    exec_line = next(
-        number
-        for number, line in enumerate(process_lines, start=1)
-        if "os.execvpe(" in line.split("#")[0]
-    )
-    confinement_lines = (SRC / "domain" / "confinement.py").read_text(encoding="utf-8").splitlines()
-    shm_line = next(
-        number
-        for number, line in enumerate(confinement_lines, start=1)
-        if '"/dev/shm"' in line.split("#")[0]
-    )
 
     leftovers_lines = (SRC / "entry" / "leftovers.py").read_text(encoding="utf-8").splitlines()
     main_line = next(
@@ -101,8 +90,6 @@ def test_the_only_suppression_markers_are_the_four_in_the_process_wrapper() -> N
         "adapters/process.py": {
             import_line: {"noqa: S404", "nosec B404"},
             popen_line: {"noqa: S603", "nosec B603"},
-            exec_line: {"noqa: S606", "nosec B606"},
         },
-        "domain/confinement.py": {shm_line: {"noqa: S108", "nosec B108"}},
         "entry/leftovers.py": {main_line: {"noqa: PLR0913"}},
     }

@@ -21,9 +21,6 @@ from factory.domain.identifiers import Name, is_name
 
 QUESTION = "question"
 
-# The console script that confines a run's writes and then becomes the agent runtime.
-CONFINE_COMMAND = "factory-confine"
-
 # Claude Code ignores an agent file in print mode, so the runner applies these keys itself;
 # any other key would read as if it did something and do nothing.
 APPLIED_AGENT_KEYS: frozenset[str] = frozenset({"model", "tools", "effort", "budget_usd"})
@@ -75,14 +72,13 @@ class AgentDefinition(BaseModel):
 
 
 class GuardSettings(BaseModel):
-    """Where an agent may write: the root, write paths, protected paths and tool paths."""
+    """Where an agent may write: the root, write paths and protected paths."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     root: AbsolutePath
     write_paths: list[str]
     protected_paths: list[str]
-    tool_paths: list[str] = []
 
 
 class AgentRunRequest(BaseModel):
@@ -96,7 +92,6 @@ class AgentRunRequest(BaseModel):
     time_limit: timedelta
     working_directory: AbsolutePath
     environment: dict[str, str] = {}
-    guard: GuardSettings | None = None
     os_user: str | None = None
     resume_session: str | None = None
 

@@ -11,7 +11,7 @@ from adapters.test_claude_runtime_login import BUDGET_STOP, REPLY
 from adapters.test_claude_runtime_os_user import _request, _sudo_calls, _write_sudo
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.domain.agent_runs import GuardSettings, Login
+from factory.domain.agent_runs import Login
 from factory.domain.errors import AgentRuntimeError
 from run_process_recorder import Recorder
 
@@ -126,10 +126,8 @@ def test_the_key_stands_in_no_argument_no_run_file_and_no_result(
 ) -> None:
     api, subscription = _files(tmp_path)
     runtime = _runtime(tmp_path, [Step(stdout=REPLY)], login_file=subscription, api_login_file=api)
-    request = _request(tmp_path, os_user)
-    guard = GuardSettings(root=request.working_directory, write_paths=[], protected_paths=[])
 
-    result = runtime.run(request.model_copy(update={"guard": guard}))
+    result = runtime.run(_request(tmp_path, os_user))
 
     [claude_call] = read_calls(tmp_path / "bin")
     assert claude_call.environment[API_LOGIN_VARIABLE] == API_LOGIN

@@ -15,7 +15,6 @@ from factory.domain.agent_runs import (
     QUESTION,
     AgentDefinition,
     AgentRunRequest,
-    GuardSettings,
     Login,
 )
 from factory.domain.checks import CheckResult
@@ -360,8 +359,6 @@ def _probe_request(
         time_limit=PROBE_RUN_TIME_LIMIT,
         working_directory=checkout,
         environment=dict(environment),
-        # A guard like a stage's, but with no write path.
-        guard=GuardSettings(root=checkout, write_paths=[], protected_paths=[]),
         os_user=settings.agent_user,
     )
 

@@ -8,13 +8,13 @@ from factory.application.acceptance import AcceptanceService
 from factory.application.boundaries import Boundaries
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
 from factory.domain.acceptance import AcceptanceState, acceptance_prompt
-from factory.domain.agent_runs import AgentDefinition, GuardSettings
+from factory.domain.agent_runs import AgentDefinition
 from factory.domain.errors import WorkItemFormatError
 from factory.domain.paths import STORY_FORM_FILE
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.prompts import PromptFacts, allowed_decisions, compose_prompt
 from factory.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import CHECKOUT, run_git
+from git_support import run_git
 from human_clone import HumanClone
 
 TODO = "factory/features/F0002-todo"
@@ -41,7 +41,7 @@ def _document(acceptance: bool, stage: str = "acceptance") -> WorkItemDocument:
     return WorkItemDocument(state=state, body=REPORT_BODY)
 
 
-def _context(tmp_path: Path, stage: str, *, acceptance: bool) -> TaskContext:
+def _context(stage: str, *, acceptance: bool) -> TaskContext:
     work_item = ACCEPTANCE if acceptance else STORY_ID
     return TaskContext(
         work_item=work_item,
@@ -51,9 +51,6 @@ def _context(tmp_path: Path, stage: str, *, acceptance: bool) -> TaskContext:
         branch=f"work-item/{work_item}",
         pull_request=7,
         findings=[],
-        guard=GuardSettings(
-            root=tmp_path / CHECKOUT, write_paths=[REPORT], protected_paths=["factory/*"]
-        ),
     )
 
 
@@ -121,7 +118,7 @@ def test_a_missing_story_form_is_an_error_only_for_a_story(
 def test_an_acceptance_at_the_acceptance_stage_gets_the_feature_facts_appended(
     boundaries: Boundaries, definition: PipelineDefinition, tmp_path: Path
 ) -> None:
-    context = _context(tmp_path, "acceptance", acceptance=True)
+    context = _context("acceptance", acceptance=True)
 
     prompt = _compose(boundaries, definition, context)
 
@@ -145,12 +142,11 @@ def test_an_acceptance_at_the_acceptance_stage_gets_the_feature_facts_appended(
 def test_no_facts_are_appended_off_the_acceptance_stage_or_for_a_story(
     boundaries: Boundaries,
     definition: PipelineDefinition,
-    tmp_path: Path,
     *,
     stage: str,
     acceptance: bool,
 ) -> None:
-    context = _context(tmp_path, stage, acceptance=acceptance)
+    context = _context(stage, acceptance=acceptance)
 
     prompt = _compose(boundaries, definition, context)
 
@@ -160,10 +156,10 @@ def test_no_facts_are_appended_off_the_acceptance_stage_or_for_a_story(
 @pytest.mark.usefixtures("todo")
 @pytest.mark.parametrize("acceptance", [True, False], ids=["acceptance", "story"])
 def test_without_an_acceptance_stage_the_prompt_is_unchanged(
-    boundaries: Boundaries, definition: PipelineDefinition, tmp_path: Path, acceptance: bool
+    boundaries: Boundaries, definition: PipelineDefinition, acceptance: bool
 ) -> None:
     without = definition.model_copy(update={"acceptance_stage": None})
-    context = _context(tmp_path, "acceptance", acceptance=acceptance)
+    context = _context("acceptance", acceptance=acceptance)
 
     prompt = _compose(boundaries, without, context)
 

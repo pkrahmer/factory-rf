@@ -28,6 +28,8 @@ PyGithub is LGPL-3.0, and `pip-licenses` reports it as `GNU Library or Lesser Ge
 
 Date: 2026-10-13. Every command-line tool is reached through one wrapper class (R5), and the wrappers share one function that starts a process, in `src/factory/adapters/process.py`. ruff's S404 and S603 and bandit's B404 and B603 flag any `subprocess` use, and `CLAUDE.md` puts `nosec` markers under "Not without asking". So exactly that module may carry those four markers, on its import and its one `Popen` call. Alternatives rejected: a per-file ignore in `pyproject.toml` (bandit has none, and it would hide the exception from the reader of the code); lowering bandit's severity (loosens the whole package). There are no other markers anywhere under `src/factory`: a second one would be a second place that quietly weakens the checks. `tests/test_process_search.py` fails on any marker (`noqa`, `nosec`, `nosemgrep`, `pragma: allowlist secret`) other than these four on those two lines, and on any other route to a process, so the exception cannot grow unnoticed.
 
+- The `os.execvpe` call and its markers went with the wrapper, v1.2 F0044-S0002; the two on `subprocess` and `Popen` stay.
+
 ## `InjectedKill` is a `BaseException`
 
 Date: 2026-10-12. An armed kill point stands in for the factory dying at that moment (WE6.3). A real death runs no handler, so the injected one must not be caught by any either. If `InjectedKill` were an `Exception`, an `except Exception` in a wrapper or a stage would swallow it and the test would show recovery from an error, not from a crash. As a `BaseException` it passes every `except Exception`; only a test's `pytest.raises(InjectedKill)` or a bare `except BaseException` sees it. It is also not a `FactoryError`, which is an `Exception`. Alternatives rejected: an `Exception` subclass (swallowed by the handlers the test is meant to bypass); `os._exit` or a signal (kills the test process and cannot be asserted on).
@@ -576,6 +578,7 @@ Date: 2026-10-18 (F0019-S0001). The hook `factory-guard` sees two tools (`Edit` 
 - Decision: the rules handle the twelve write rights of ABI 3 (refer and truncate included) and nothing else, so reading, executing and the network stay open. A folder rule allows all twelve beneath it; a file rule only writes and truncates the file in place. The minimum is ABI 3 because refer and truncate arrive with it; below it a rename across folders or a truncate could not be refused.
 - Decision: fail closed. Every path is checked with `os.lstat` before the first system call (missing, symbolic link, wrong kind), so a refused rule leaves the process unrestricted and the caller sees a `ConfinementError` and not a half-made restriction.
 - Rejected: a binding from PyPI (a dependency for four system calls, and a package to trust); changing modes or ownership over the tree (it needs the tree to be ours, races with the agent and is undone by any `chmod` the agent can run); a helper that runs as root (a privileged part to build and defend, where Landlock needs none).
+- Replaced by the dataset's rollback and the take, v1.2 F0044-S0002.
 
 ## factory-confine replaces itself with the runtime
 
@@ -585,6 +588,7 @@ Date: 2026-10-18 (F0019-S0002). The kernel's restriction must be applied by the 
 - Decision: every fault before the replacement is one line starting `factory-confine:` and exit status 1; the command never starts (fail closed).
 - Decision: the exception in `CLAUDE.md` widens by `os.execvpe` in `process.py`, with `noqa: S606` and `nosec B606` on that one line: six markers there in all. `factory.entry.confine` imports the landlock and process adapters directly (feature decision 19).
 - Rejected: a child process under the wrapper (the group kill would need the wrapper to survive and pass on its signals, and the wrapper's own process would stay unrestricted beside it).
+- Replaced by the dataset's rollback and the take, v1.2 F0044-S0002.
 
 ## The kernel's targets of the write paths and the tool paths
 
@@ -594,6 +598,7 @@ Date: 2026-10-18 (F0019-S0003). The kernel allows writes beneath folders and on 
 - Decision: the project's tool state is the optional key `tool_paths` of the pipeline definition, in two forms only, `<folder>/*` in the checkout and `~/<folder>/*` in the agent's home. It is read at the stage-start commit with the write paths and passed on unchanged. It reaches the kernel's targets only: the hook and the undo judge the write paths, so a tool path never lets a change into the work item.
 - Decision: the functions are pure and in the domain (`write_targets`, `confinement_of`); the files that exist and the runtime's own paths are arguments, so the tests need no kernel. A path with a `.` or `..` segment gives no target, because pathlib would collapse it into the root or the folder above.
 - Rejected: widening a missing root file to the root; a tool path with a wildcard in the middle or at the root (the kernel cannot name it); reading the tool paths from the work tree (an agent could widen its own run).
+- Replaced by the dataset's rollback and the take, v1.2 F0044-S0002.
 
 ## Every agent run is confined by the kernel
 
@@ -661,6 +666,7 @@ Date: 2026-10-19 (F0021-S0006). Readers outside the factory, first a page that r
 - Decision: five JSON Schema files, generated with `model_json_schema` from the models that validate the records, are committed in `src/factory/contract/`. Each carries `x-records-contract`, the records contract's version (`1.0` at first, `1.1` since F0020-S0001). A command regenerates them and a test compares them with the committed files, so a model change without a schema change fails `make check`. The major version rises for a change that can break a reader (a field removed or renamed, a type narrowed, a meaning changed), the minor for an added optional field or value.
 - Reasons: a reader needs a description it can fetch without running the factory; a generated file that a test compares cannot drift from its model. Package data ships in the wheel and sits on `main`.
 - Rejected: schemas written by hand (they drift from the models); a folder at the repository's root (it needs a write path of its own); the pipeline definition's `contract` as the records' version (it versions the definition's format and would tie two unrelated changes together).
+- The records contract's version is `2.0` since F0044-S0002: it removed `tool_paths` from the pipeline definition's schema, a change that can break a reader.
 
 ## An agent run logs in with an API key when its file holds one
 

@@ -316,7 +316,6 @@ def test_the_built_agent_runtime_keeps_its_run_files_under_runs(
         time_limit=timedelta(seconds=30),
         working_directory=work,
         environment={},
-        guard=None,
     )
     boundaries = build_boundaries(
         settings.model_copy(update={"claude_executable": str(executable)}),
