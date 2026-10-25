@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T19:02:30.822094Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -220,6 +224,11 @@ journal:
   at: '2026-10-25T19:02:09.922477Z'
   stage: docs
   run: 903a1be77acf4d6c81d0cd8bd7369fee
+- number: 39
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:02:30.822094Z'
+  stage: smoke-test
 ---
 
 # The inline environment and its setting are removed
@@ -832,3 +841,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     `check`: check: green (not run again: passed on tree c190bf5ef66c at 2026-10-25T18:54:28Z)
     `secrets`: secrets: green (3.8 s)
     `documents`: documents ok
+39. factory: started smoke-test as self.
