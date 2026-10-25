@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-25T21:07:07.222389Z'
   stage: smoke-test
   run: 0341a9e4d53940f1becea69dba7818cc
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-25T21:09:29.751249Z'
+  stage: approval
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -408,3 +413,4 @@ Expect: `0`
     The smoke test contradicts no criterion. I did not run `make check` (criterion 5) here; the factory's checks cover it.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 10.2 min, 66 turns, 242952 tokens in (1385098 more from cache), 26722 out, $2.45
