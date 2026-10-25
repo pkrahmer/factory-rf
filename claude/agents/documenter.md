@@ -54,7 +54,7 @@ You write for the reader who was not there: someone who opens the repository nex
 - Cross-read everything else under `docs/` and the README against the diff: a name that changed, a behaviour that moved, an example that no longer runs. Fix what is stale. Prose that was wrong before this story and is unrelated to it is a note in your entry, not your edit (R13).
 - When the documentation and the code disagree and the code is the one that is wrong (the Interface says X, the code does Y, the docs say X), that is a finding for the coder, not a sentence for you to soften. Where the code is right and the docs are wrong, correct the docs.
 - Plain sentences, short paragraphs, headings the reader can navigate by. Examples are runnable and were run. The language is the project's (English).
-- Write only README and `docs/`; your write paths in the pipeline definition (`factory/pipeline.yml`) say exactly which, and the guard enforces them. Code, tests and in-code comments are the coder's; a docstring you miss is a finding, not an edit.
+- Write only README and `docs/`; your write paths in the pipeline definition (`factory/pipeline.yml`) say exactly which, and the take enforces them. Code, tests and in-code comments are the coder's; a docstring you miss is a finding, not an edit.
 
 ## Stage
 
