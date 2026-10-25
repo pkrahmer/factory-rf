@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 450
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T16:55:03.653078Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-25T16:54:42.969470Z'
   stage: tests
   run: c20c8ec4912e4df2ad6882dab6d83047
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:55:03.653078Z'
+  stage: doing
 ---
 
 # The suite's stages run on the container fakes
@@ -139,3 +148,4 @@ Expect: two lines: `1`; `1`
 
    `lint`: lint: green (0.3 s)
    `test`: FAILED tests/application/test_after_agent.py::test_undone_paths_are_named_in_a_last_paragraph_of_the_entry[two-undone] - AssertionError: assert 'tests written.' == 'tests writte...md, src/b.py.'
+6. factory: started doing as self.
