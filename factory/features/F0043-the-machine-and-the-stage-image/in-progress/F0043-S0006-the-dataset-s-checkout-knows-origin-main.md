@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-25T07:39:41.385849Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-25T07:39:21.246335Z'
   stage: tests
   run: bbed04612da24a04803e179da953d5c3
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:39:41.385849Z'
+  stage: doing
 ---
 
 # The dataset's checkout knows origin/main
@@ -93,3 +102,4 @@ Expect: `1`
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/application/test_container_sync_origin.py::test_the_sync_script_fetches_both_refspecs_on_one_line_and_names_no_container_path - assert "'+refs/heads/*:refs/remotes/origin/*'" in 'git f...
+6. factory: started doing as vm.
