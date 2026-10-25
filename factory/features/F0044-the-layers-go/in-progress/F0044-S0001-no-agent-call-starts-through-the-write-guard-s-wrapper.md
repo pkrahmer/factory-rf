@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-25T10:43:37.543152Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T10:43:19.809593Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-25T10:43:37.543152Z'
   stage: intake
 ---
 
@@ -141,3 +150,4 @@ Expect: `7`
    2: yes, add the `factory-run-` check to the opencode row of criterion 3.
    3: (a), widen criterion 7 to the bare `factory-confine` for `factory.entry.wiring` only.
    Add all three yourself, then continue.
+5. factory: started intake as vm.
