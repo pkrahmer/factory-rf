@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T17:13:25.897029Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-10-25T17:13:05.541717Z'
   stage: doing
   run: d100284f41fb40d08fedfaf6e0600d74
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:13:25.897029Z'
+  stage: tests
 ---
 
 # The suite's stages run on the container fakes
@@ -355,3 +364,4 @@ Expect: two lines: `1`; `1`
     What the journal changed: nothing new since entry 17. Criterion 4's "closing paragraph" reading (entry 8) and the walk ending at approval (entry 13) still stand. The work item is outside my write paths, so `## Description` keeps the old wording.
 
     Noticed, not touched: the Interface names `factory.application.task.StageTask`, which does not exist. `TaskComposer` is the class that composes the request.
+22. factory: started tests as self.
