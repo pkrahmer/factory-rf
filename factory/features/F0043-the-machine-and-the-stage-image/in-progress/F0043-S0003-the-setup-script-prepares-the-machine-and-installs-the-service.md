@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T01:23:24.523053Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -206,6 +202,13 @@ journal:
   kind: started
   at: '2026-10-25T01:23:24.523053Z'
   stage: review
+- number: 36
+  speaker: reviewer
+  kind: question
+  at: '2026-10-25T01:25:42.663746Z'
+  stage: review
+  run: fddccfb61a0e42d496264ff959d20698
+  blocked: question
 ---
 
 # The setup script prepares the machine and installs the service
@@ -634,3 +637,34 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 35. factory: started review as self.
+36. reviewer: Review, round 1, after the human's entry 26. I read the work item, the diff's stat, `vm/setup.sh`, `vm/factory.service`, `tests/vm_support.py`, the three test modules and the added lines of the docs. I did not run `make check`. Entry 34 reports it green.
+
+    **Group 1 passes.** Criteria 1 to 12 each have a test that checks what the criterion says.
+    - The new criterion 12 test (`tests/test_vm_setup_text.py:483-497`) finds the write lines of `image-id` (line 258), askpass (277) and `factory.env` (336), and each one goes through `as_factory`. The script now holds no `chown`, so the `chown-keeps-links` row has no line to check.
+    - Criterion 11's test now checks each `--<option>)` parse assigns its variable (`:410-430`).
+    - The refusals are tested on their failing side, as entry 24 lists.
+
+    **Group 2 passes.** Nothing under `src/` changed.
+
+    **Group 3 stops on a point the coder cannot fix within the Interface, so I am asking.**
+
+    1. `vm/setup.sh:301-302` (`tools`) and `vm/setup.sh:342-346` (`service`): root copies files from `$checkout` into system paths. `$checkout` is `$base/factory`, which the clone made as `factory`, so `factory` owns every file in it.
+       - On every rerun, root installs `$checkout/vm/factory.service` as `/etc/systemd/system/factory@.service` and runs `systemctl daemon-reload`.
+       - It also installs `$checkout/image/git-credential-factory` as `/usr/local/bin/git-credential-factory`, mode 0755.
+       - So `factory` can write `User=root` and any `ExecStart=` into its checkout's unit, and the operator's next run of the script makes that unit root's. Entry 26 treats `factory` as untrusted by root ("a link `factory` plants there reaches only what `factory` may write anyway"), and this is a more direct path from `factory` to root.
+       - The Interface names both sources ("`vm/factory.service` of the checkout", "the checkout's `image/git-credential-factory`"), so closing it needs your word.
+
+       Options:
+       - (a) Install the unit and the helper from the copy of the repository the operator runs `setup.sh` from (`${0%/*}/factory.service`, `${0%/*}/../image/git-credential-factory`). This changes the Interface's sources, and the guide (S0004) must say that the operator runs the script from a copy root owns.
+       - (b) Keep the checkout as the source, but install from it only in the run that made the clone. Then the content is the remote's at `--ref`, before the service ever ran. A later run that finds the installed file different prints `setup: <step>: <path> differs from the checkout; not installed` and leaves it. The script never pulls, so after the first run only a local edit can make them differ. The tester adds a row: the `service` and `tools` steps install from `$checkout` only under the clone's guard.
+       - (c) Accept it: the checkout is the factory's own code, which `factory` runs anyway. Nothing changes in this story, and S0004's guide says that a rerun installs the checkout's unit and helper as root.
+
+       I would choose (b): it keeps the Interface's source and the one-pass/two-pass flow, and it closes the path.
+
+    2. Same class, and for you because entry 26 said nothing else changes: `vm/setup.sh:244-247` (`folders`). Entries 30 and 34 say the `stat` without `-L` in `owned_with_mode` stops `install -d` from running on a link `factory` plants as `$base/state` or `$base/repo`. That holds for the mount point, whose guard compares only `%U:%G` (line 185). It does not hold here, because `owned_with_mode` also compares the mode, and `stat` reports a symlink's mode as `777`. So the guard fails, and root runs `install -d -o factory -g factory -m 0755` on the link. Whether GNU `install` then changes the owner or mode of the link's target is not confirmed: I may not run experiments.
+       - Options: (a) refuse with `exit 1` and a `setup: folders: ` line on stderr when `$base/state` or `$base/repo` is a link (`[ -L ]`), plus a tester row; (b) leave it as is.
+       - I would choose (a). It is one guard, and the tester pins it with one row.
+
+    If you answer (b) to 1 and (a) to 2, the coder makes both changes and ends with `tests` for the new rows.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`).
