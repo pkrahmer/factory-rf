@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T13:28:36.935152Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-25T13:28:36.935152Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T13:29:48.618013Z'
+  stage: review
+  run: 91b5c74d7f754137ac17ba62219936a6
 ---
 
 # The leftovers program is removed
@@ -306,3 +308,32 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     `check`: check: green
     `duplicates`: duplicates: 7 new, 34 known, 4 gone
 18. factory: started review as self.
+19. reviewer: Findings:
+    1. tests/adapters/test_one_call_as_another_user.py:30 and :45: `_claude_reply` and `_claude_request` are second copies of existing test helpers. `_claude_reply()` and `_claude_reply("error_max_budget_usd", 3.0)` copy `REPLY` and `BUDGET_STOP` of tests/adapters/test_claude_runtime_login.py:29 and :42. `_claude_request` copies `_request(tmp_path, os_user)` of tests/adapters/test_claude_runtime_os_user.py:93. Fix: the tester imports `REPLY` and `BUDGET_STOP` from `adapters.test_claude_runtime_login` and `_request` from `adapters.test_claude_runtime_os_user`, as tests/adapters/test_claude_runtime_container.py:18 and tests/entry/test_wiring_api_login.py:9-10 already do, and deletes the two copies. Row ids and expected `sudo` call counts stay as they are. If the resumed row needs a budget other than `_request`'s 1 USD, use `model_copy` on the imported request rather than a new copy. The coder hands this to the tester with `tests`.
+
+    What I checked, and found right:
+    - Criteria 1 to 5 each have a parametrized test that checks what its criterion says. Criterion 4 tests both sides of the limit (30 s and 29.9 s, with and without `in_container`) and the session kill within `ROOMY_BOUND_SECONDS`. Entry 17 records `check: green`.
+    - The removal under src/ matches the Interface. Gone: `own_identity` and `signal_every_other` with the `pwd` and `Identity` imports; the six leftovers names of agent_launch and `Starters.leftovers`; both runtimes' keyword, property and `_end_leftovers`; `CommandUser.leftovers`, `_end_leftovers` and `_start`'s `merge_stderr` keyword (now always `True`); and in the wiring, `LEFTOVERS_MODULE`, `leftovers_command` and `end_leftovers`.
+    - `line_starting` still has other callers, so the removal left no dead code. No new suppression marker. Layers unchanged.
+    - The Description and the docs criterion still match what was built.
+
+    Earlier tests (non-`A` status):
+    - tests/adapters/container_runtime_support.py: Interface leave (decision 19 of feature.md).
+    - tests/adapters/test_agent_launch_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/adapters/test_claude_runtime_container.py: Interface leave (decision 19).
+    - tests/adapters/test_claude_runtime_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/adapters/test_make_commands_user.py: Interface leave (decision 19).
+    - tests/adapters/test_opencode_runtime_container.py: Interface leave (decision 19).
+    - tests/adapters/test_opencode_runtime_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/adapters/test_process_table.py: Interface leave (decision 19). The module docstring now matches its remaining tests.
+    - tests/adapters/test_runtimes_without_wrapper.py: the human's answer, journal entry 6.
+    - tests/domain/test_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/entry/test_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/entry/test_wiring.py: Interface leave (decision 19).
+    - tests/entry/test_wiring_constants.py: Interface leave (decision 19).
+    - tests/entry/test_wiring_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/entry/test_wiring_project_command_user.py: Interface leave (decision 19).
+    - tests/entry/test_wiring_stage_environment.py: Interface leave (decision 19).
+    - tests/leftovers_support.py: Interface leave (decision 19). The module docstring now matches `process_entry`.
+    - tests/test_process_search.py: Interface leave (decision 19).
+    - tests/test_wrapper_search.py: Interface leave (decision 19).
