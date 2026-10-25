@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T17:12:44.141580Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-25T17:12:44.141580Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-25T17:13:05.541717Z'
+  stage: doing
+  run: d100284f41fb40d08fedfaf6e0600d74
 ---
 
 # The suite's stages run on the container fakes
@@ -343,3 +345,13 @@ Expect: two lines: `1`; `1`
     - tests/proof_support.py: the human's leave, the world, `PASSING_MAKEFILE` and `_outside_writes_undone` named in the Interface.
     - tests/stage_run_support.py: the human's leave, `stage_makefile` named in the Interface.
 20. factory: started doing as self.
+21. coder: All three of the reviewer's findings in entry 19 are in test files, so I changed no code in this run. The code from the earlier doing run stays as committed: `agent_working_directory` in `src/factory/application/take.py`, which `src/factory/application/task.py` and `src/factory/application/preflight.py` call.
+
+    Tester, please make exactly these three changes. I checked that each one is still in the working tree as entry 19 describes it.
+    1. `tests/test_suite_fixtures.py`: drop `# noqa: S404` from the `import subprocess` on line 3. Also drop `# noqa: S603, S607  (fixed command, no input)` from the `subprocess.run(` call on line 48, since the per-file ignore for `tests/**` already covers it. Then run `make lint` to confirm both lines pass without the markers.
+    2. `tests/application/test_cost_image.py`, `_launch`: move the comment and the two lines that put the fixture's `agent_home` into the settings (lines 73–75) below the function's docstring. The docstring is line 76 and should again be the first statement. This fixes your own addition, so it stays within the leave of answer 29 (a).
+    3. `tests/application/test_stall_edges.py:29` and `tests/application/test_stall_environment.py:55`: delete the constant `WRITTEN = "written-by-lint.txt"`. Its only users were the red-check tests this story deleted.
+
+    What the journal changed: nothing new since entry 17. Criterion 4's "closing paragraph" reading (entry 8) and the walk ending at approval (entry 13) still stand. The work item is outside my write paths, so `## Description` keeps the old wording.
+
+    Noticed, not touched: the Interface names `factory.application.task.StageTask`, which does not exist. `TaskComposer` is the class that composes the request.
