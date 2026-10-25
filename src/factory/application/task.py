@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, PositiveInt
 
 from factory.application.acceptance import AcceptanceService
 from factory.application.boundaries import Boundaries
+from factory.application.take import agent_working_directory
 from factory.domain.acceptance import AcceptanceState, acceptance_prompt
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.errors import WorkItemFormatError
@@ -103,7 +104,7 @@ class TaskComposer:
             prompt=self._prompt(context, facts),
             allowed_decisions=decisions,
             time_limit=timedelta(minutes=self._role(context.stage).time_limit),
-            working_directory=self._boundaries.checkout,
+            working_directory=agent_working_directory(self._boundaries),
             environment=dict(self._environment),
         )
 

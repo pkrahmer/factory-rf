@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 450
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T16:55:03.653078Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,13 @@ journal:
   kind: started
   at: '2026-10-25T16:55:03.653078Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-25T16:58:09.605102Z'
+  stage: doing
+  run: 268b795735e64c40895917e16ad7d267
+  blocked: question
 ---
 
 # The suite's stages run on the container fakes
@@ -149,3 +152,16 @@ Expect: two lines: `1`; `1`
    `lint`: lint: green (0.3 s)
    `test`: FAILED tests/application/test_after_agent.py::test_undone_paths_are_named_in_a_last_paragraph_of_the_entry[two-undone] - AssertionError: assert 'tests written.' == 'tests writte...md, src/b.py.'
 6. factory: started doing as self.
+7. coder: Stopped with the code done and two of the tester's new tests red. I believe both tests are wrong, not the code, and the coder may not change tests.
+
+   Built: `src/factory/application/take.py` has a new `agent_working_directory(boundaries)`. It returns `snapshots.mount_point / MOUNTED_CHECKOUT` when `boundaries.snapshots` is set and `boundaries.checkout` otherwise. `TaskComposer.compose` (`src/factory/application/task.py`) and `_probe_request` (`src/factory/application/preflight.py`) both call it. I put it beside `MOUNTED_CHECKOUT`, which the take and `MakeProjectCommands` already use for the dataset's checkout. The alternative I rejected was to compute it in each of the two places, which would make two copies. `make lint`, `make types` and `make layers` are green. In `make test`, every test passes except these two:
+
+   1. `tests/test_suite_fixtures.py::test_a_story_walks_to_approval_in_the_world_on_the_container_fakes` fails with `AssertionError: F0001-S0001 did not reach approval in 20 ticks`. I traced it tick by tick. Intake passes, then the tests stage stalls twice with `check_red` and blocks on `attempts_cap`. The cause: the remote's `Makefile` from `REMOTE_FILES` holds only `sync`, so the tests stage's `make lint` has no target. The world's other walks pass because `drive` in `tests/proof_support.py` pushes `PASSING_MAKEFILE` first, and this test never does. No code change makes `make lint` pass without a `lint` target.
+      Options: (a) the test pushes `PASSING_MAKEFILE` to `main` (`world.human.push_file`) before `start_story`, as `drive` does; (b) the test walks with `drive`. I would choose (a): it keeps the test's own loop and its `forbidden.txt` check.
+
+   2. `tests/application/test_stage_on_container_fakes.py::test_a_whole_stage_on_the_fixture_takes_the_allowed_writes_and_leaves_out_the_rest` fails at `tests/application/test_stage_on_container_fakes.py:113`: `E AssertionError: assert 'src/forbidden.py' in '`lint`: lint done\n`test`: test done'`. The take works: the commit holds `tests/test_new.py` and not `src/forbidden.py`. But the finisher has always appended the checks' command lines as the entry's last paragraph (`_with_command_lines` in `src/factory/application/stage.py`), after the paragraph that names the paths left out. On inline as on the fakes, the paragraph that names `src/forbidden.py` is the next-to-last one.
+      Options: (a) the test looks for `src/forbidden.py` in the paragraph before the checks' lines, or in any paragraph of the entry; (b) the code moves the left-out paragraph after the checks' lines, which would change the entry layout of every stage, beyond this story. I would choose (a). Criterion 4's "closing paragraph" would then read "the paragraph that names what was left out, before the checks' lines".
+
+   Once the answer is in, I would end with `tests` and name these two changes.
+
+   Noticed, not touched: the tester's entry says the Interface's `factory.application.task.StageTask` does not exist; `TaskComposer` is the class that composes the request, and I changed that one. Step 4's refactor has not happened yet; the diff is only these three files.
