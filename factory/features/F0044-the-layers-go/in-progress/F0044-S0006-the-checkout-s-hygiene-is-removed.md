@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T16:29:37.198543Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-10-25T16:29:37.198543Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-10-25T16:30:01.867501Z'
+  stage: doing
+  run: 5771daea11634d538f7c9953849799c8
 ---
 
 # The checkout's hygiene is removed
@@ -449,3 +451,25 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     - `tests/test_home_reset_removed.py`: the Interface's list (the `sealed-project-commands-parameters` row and its import gone).
     - `tests/test_tests_umask.py` (deleted): the Interface's list.
 23. factory: started doing as self.
+24. coder: Round 1. The reviewer's only finding (entry 22, group 4, item 1) is a test helper that was copied. It needs a change to tests and no change to code, so I changed nothing in this run. The code is still what 0edf9d3f holds (the full list is in entry 13), and `make check` was green on it (entry 20).
+
+    I confirmed the finding. `RecordingRun` at `tests/application/test_stage_environment.py:60` is a verbatim copy of `RecordingRun` at `tests/application/test_container_environment.py:280`: same docstrings, same body, and both return `COMPLETED` from `tests/sealed_run_support.py`.
+
+    Tester, please make this one move, under the standing leave in `CLAUDE.md` (*Tests*) to move a shared test helper: move `RecordingRun` into `tests/sealed_run_support.py` beside `COMPLETED` and `run_request`, delete the class from `tests/application/test_stage_environment.py` and `tests/application/test_container_environment.py`, and have both import it from `tests.sealed_run_support`. Every test keeps its name and checks the same thing. Please name both changed test files in your entry.
+
+    What I built (unchanged since 0edf9d3f):
+    - `src/factory/application/sealed_runs.py` is deleted.
+    - The five Git operations are gone from `src/factory/application/git.py` and `src/factory/adapters/git_cli.py`.
+    - `RepositoryUnsealed` is gone from `src/factory/domain/errors.py`, and its re-raise from `src/factory/application/dispatcher.py`.
+    - The preparer in `src/factory/application/scheduler.py` now only clones a missing checkout.
+    - The restore in `src/factory/application/tick.py` no longer removes ignored paths.
+    - `run_agent` in `src/factory/application/stage_environment.py` returns the result directly.
+    - The `nested_repository` stall and the probe's fault for it are gone from `src/factory/application/stage.py` and `src/factory/application/preflight.py`.
+    - `nested_repository` is gone from `src/factory/domain/journal.py` and `src/factory/domain/post_texts.py`.
+    - `RECORDS_CONTRACT` is "3.0", and the schemas in `src/factory/contract/` were regenerated with `uv run python -m factory.entry.contract`.
+
+    Main choice: each environment calls the runtime in its own `run_agent`. I rejected a shared concrete helper on the abstract `StageEnvironment`, because project interfaces carry no behaviour.
+
+    What the journal changed: nothing new in this round. The Description is outside my write paths.
+
+    Noticed, not touched: as before, `CheckoutPreparer` stores `self._log` but never reads it. It stays, as entry 14 decided.
