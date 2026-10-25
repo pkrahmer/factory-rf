@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T12:15:02.379818Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-10-25T12:15:02.379818Z'
   stage: doing
+- number: 32
+  speaker: coder
+  kind: result
+  at: '2026-10-25T12:18:14.374612Z'
+  stage: doing
+  run: 44e56ed6e8ad4f4888fab2a8498fca23
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -646,3 +648,19 @@ Expect: `7`
     `lint`: lint: green (0.7 s)
     `test`: test: green (70.5 s)
 31. factory: started doing as self.
+32. coder: Round 2, after the tester's change (entry 30). The reviewer's only finding (entry 26) was about the test helper `tests/confine_support.py`. The tester made that change: the constants `CONFINE` and `LINE`, the orphan comment and the docstring's mention of the stand-in confine executable are gone. That left nothing for the code, so this round I changed no code and no test. I ran `make check` on the branch as it stands and it passed: `check: green`, coverage 99.19 %.
+
+    What I built is unchanged from entry 16:
+    - The code: `src/factory/adapters/agent_launch.py`, `src/factory/adapters/claude_runtime.py`, `src/factory/adapters/opencode_runtime.py`, `src/factory/application/preflight.py` and `src/factory/entry/wiring.py`.
+    - The seven `claude/agents/*.md`, whose R14 line is now decision 4's text.
+
+    Main choice: I removed the wrapper path outright. I rejected keeping `confine_executable` as a keyword that is always `None`.
+
+    Refactor: nothing to change this round, because the code diff is the same one I refactored in entry 16.
+
+    Noticed, not touched: `tests/confine_support.py::Layout` still has the fields `temporary_root` and `confine_bin`, which no test reads now. The reviewer left them to S0002.
+
+    The journal did not change what the task means, so `## Description` stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 14 new, 35 known, 3 gone
