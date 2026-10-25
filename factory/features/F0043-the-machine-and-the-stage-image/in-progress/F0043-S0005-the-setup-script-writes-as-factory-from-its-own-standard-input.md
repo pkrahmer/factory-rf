@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 433
 comments_read: [6394400610]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T06:40:20.465992Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-25T06:39:58.954452Z'
   stage: review
   run: 4cbcbe5680cb438dba3f692ed3e9d809
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:40:20.465992Z'
+  stage: docs
 ---
 
 # The setup script writes as factory from its own standard input
@@ -204,3 +213,4 @@ Expect: two lines, `0` and `syntax-ok`
       - The shared regex was pulled out into `_calls`.
       - `FUNCTION` is now imported from `vm_support`, under the standing leave to move a shared test helper.
     - `tests/vm_support.py`: under the standing leave to move a shared test helper. `FUNCTION` was moved here from `tests/test_vm_setup_text.py`. The other change only adds two helpers that both modules use.
+13. factory: started docs as self.
