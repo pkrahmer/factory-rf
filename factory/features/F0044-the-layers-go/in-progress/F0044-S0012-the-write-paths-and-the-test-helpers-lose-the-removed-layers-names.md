@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T21:01:32.309430Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-25T21:01:32.309430Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-25T21:04:10.918835Z'
+  stage: doing
+  run: 7e0150668ece43cb979a192adfea0d08
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -263,3 +265,17 @@ Expect: `0`
     `lint`: lint: green (0.2 s)
     `test`: test: green (60.7 s)
 14. factory: started doing as self.
+15. coder: Round 1, after the tester's change. In entry 13 the tester made the test change from the reviewer's finding 1 (entry 9): `tests/search_support.py` `modules_matching` now takes a `root` argument, and `tests/test_removed_layer_names.py` uses it and `source_search.SRC` in place of its own copies. That finding asked for no code change, so I changed no code. The `src/factory` rename from entry 7 stays as it was: `src/factory/domain/agent_runs.py`, `src/factory/domain/write_paths.py`, `src/factory/application/take.py`, `src/factory/application/write_paths.py`.
+
+    Main choice: I left the code as it was and did not touch the tester's change. The alternative was to look at the test side again, and I rejected it because changing tests is not the coder's job.
+
+    Refactor: no new diff of mine to read, so nothing to change.
+
+    `make check`: the first run stopped at `make sast` with `Error 139` (a segfault, `Makefile:51: sast`). A second `make sast` on its own was green (1.9 s), and the full `make check` after it was green: lint, types, layers, sast, secrets, licenses, test (61.2 s), `check: green`. The segfault looks like a crash in the tool, not something from this work item. I note it in case it comes back.
+
+    The journal did not change the meaning of the task, so `## Description` is as it was.
+
+    Noticed, not touched: as before, `docs/project-guide/write-guard.md` and the `GuardSettings` mentions in the project guide. Criterion 6 gives those to the documenter.
+
+    `check`: check: green
+    `duplicates`: duplicates: 8 new, 35 known, 3 gone
