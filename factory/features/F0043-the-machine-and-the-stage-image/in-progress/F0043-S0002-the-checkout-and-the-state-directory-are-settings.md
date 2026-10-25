@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T00:29:39.384488Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-25T00:29:18.723347Z'
   stage: docs
   run: 78876474161146a7bb86d0ba65a341bf
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:29:39.384488Z'
+  stage: smoke-test
 ---
 
 # The checkout and the state directory are settings
@@ -402,3 +411,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 2842623e6196 at 2026-10-25T00:25:21Z)
     `secrets`: secrets: green (3.5 s)
     `documents`: documents ok
+23. factory: started smoke-test as self.
