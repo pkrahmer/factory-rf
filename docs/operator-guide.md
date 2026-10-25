@@ -706,10 +706,12 @@ cat /proc/sys/kernel/random/uuid > /srv/factory/vm/image-id
 exit
 ```
 
-The new uuid in `image-id` is what tells the settings the image is new; the label is not its identity. Then, from your own account, with the arguments of the first run:
+The new uuid in `image-id` is what tells the settings the image is new; the label is not its identity. Then run the setup script from a copy of your own, as root: copy `vm/setup.sh` from your checkout of the ref the instance runs, as in step 6 of *On GCP, step by step*, and run it from your own account with the arguments of the first run. Root runs nothing from `/srv/factory/vm/factory`, because `factory` can write that checkout.
 
 ```bash
-sudo sh /srv/factory/vm/factory/vm/setup.sh --device /dev/disk/by-id/google-factory-data \
+gcloud compute scp --zone=europe-west3-a --tunnel-through-iap vm/setup.sh factory-vm:
+gcloud compute ssh factory-vm --zone=europe-west3-a --tunnel-through-iap
+sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
   --repository-url https://github.com/pkrahmer/factory-rf.git --ref <the same ref>
 sudo systemctl restart factory@vm
 ```

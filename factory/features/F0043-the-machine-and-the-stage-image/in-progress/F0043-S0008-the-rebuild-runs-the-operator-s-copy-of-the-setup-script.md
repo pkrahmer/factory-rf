@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 438
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-25T08:51:13.623463Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-25T08:51:13.623463Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T08:51:43.236765Z'
+  stage: docs
+  run: e3cb3fb76bac49f391298a7356888043
 ---
 
 # The rebuild after a merge runs the operator's own copy of the setup script
@@ -151,3 +153,18 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
 10. factory: started docs as vm.
+11. documenter: Files changed:
+    - `docs/operator-guide.md`, *The rebuild after a merge*: the root step now copies `vm/setup.sh` from the operator's own checkout of the ref (`gcloud compute scp --tunnel-through-iap`, as in step 6 of *On GCP, step by step*) and runs `sudo sh setup.sh ...` with the arguments of the first run. One sentence says why: root runs nothing from `/srv/factory/vm/factory`, because `factory` can write that checkout. The steps as `factory`, the restart and the paragraph on a differing unit or helper are unchanged.
+    - `docs/decisions.md`, entry `## The factory runs on the host, and the stage image carries the tools alone`: one sentence added to the image bullet. Root runs no file of the factory's checkout, and the operator runs the setup script from their own copy. No other entry changed.
+
+    I ran the smoke commands. The awk/grep for a root-run checkout path printed `0`. The one for `sudo sh setup.sh` printed `1`. `make documents` ended with `documents ok`. I did not run `make check`, because I changed only documents.
+
+    Cross-read and found current: `README.md`, the rest of `docs/operator-guide.md` (no other command runs a checkout file as root; a grep for `sudo sh /srv` and `/factory/vm/setup.sh` in `docs/` and the README finds nothing), `docs/project-guide/`. The code diff against `main` is empty, so no behaviour moved.
+
+    Stale text I noticed but did not touch: none.
+
+    Findings: none.
+
+    `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
+    `secrets`: secrets: green (1.8 s)
+    `documents`: documents ok
