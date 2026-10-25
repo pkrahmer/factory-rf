@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 442
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-25T09:46:08.605623Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-25T09:45:48.302626Z'
   stage: tests
   run: 6fb4f020c78a4651968f96c8360f2f1d
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:46:08.605623Z'
+  stage: doing
 ---
 
 # Step 12 stops the instance between two stages before it stops the VM
@@ -106,3 +115,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.2 s)
    `test`: test: green (194.7 s)
+6. factory: started doing as vm.
