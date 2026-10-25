@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 445
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T12:43:18.755593Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,13 @@ journal:
   kind: started
   at: '2026-10-25T12:43:18.755593Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: question
+  at: '2026-10-25T12:45:06.206365Z'
+  stage: doing
+  run: 4d44d4acc6404949a4667afdd27ce1e4
+  blocked: question
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -268,3 +271,24 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
      - `tests/application/test_task_acceptance.py`
      - `tests/application/test_task_os_user.py`
 10. factory: started doing as self.
+11. coder: Round 1. I fixed the reviewer's finding 1 and stopped at finding 3, which needs the human's leave. Finding 2 belongs to the tester, so I am asking for both test changes in one question.
+
+    Done:
+    - Finding 1: I removed `ConfinementError` from `src/factory/domain/errors.py`. It was dead code once `adapters/landlock.py` and `entry/confine.py` were gone. Nothing under `src`, `tests` or `security` names it any more. `make check` is green (`test: green (67.5 s)`, `check: green`).
+    - Two docs still describe the class: `docs/project-guide/README.md:105` and `docs/project-guide/write-guard.md:115,149`. Those sections are in the docs criterion, so they go in the documenter's stage. I did not touch them.
+
+    Main choice: I asked a question rather than ending with `tests`, which would cover only finding 2. Finding 3 changes tests the Interface does not list, and CLAUDE.md requires the human's leave for that (R9). Ending with `tests` now would send the work item to the tester and back without finding 3, and then the same question would come anyway.
+
+    Question for the human: three earlier tests, which the Interface does not list, still add a `guard` field that `AgentRunRequest` no longer has. They do it through `model_copy(update={"guard": ...})`, which does not validate, so the suite stays green with invalid requests:
+    - `tests/adapters/test_claude_runtime_login.py:82-85` (`_guarded_request`)
+    - `tests/adapters/test_claude_runtime_api_login.py:130-132`
+    - `tests/adapters/test_claude_runtime_no_hook.py:19-31`, whose rows `unconfined-guarded` and `unconfined-unguarded` are now the same case, and whose docstring still says "with or without guard settings"
+
+    Options:
+    - (a) Give leave for the tester to drop the `guard` updates in all three, fold the two `no_hook` rows into one, and fix that docstring. Each test keeps its name and its other checks. The tester would do this together with finding 2: move `_has` from `tests/test_hook_removed.py:16` and `tests/test_kernel_guard_removed.py:21` to one shared module under `tests/`, as the standing leave allows.
+    - (b) Leave the three tests as they are and do only finding 2.
+    - (c) Make the three tests a separate story.
+
+    I would choose (a). Once you answer, I will end with `tests` and name these changes.
+
+    Not touched: `pyproject.toml` still has the `factory-confine` console script. The reviewer says the human removes it in change 3 of `feature.md`.
