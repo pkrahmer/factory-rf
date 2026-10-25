@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T12:00:27.977645Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-10-25T12:00:27.977645Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-10-25T12:00:55.058734Z'
+  stage: doing
+  run: 1d4220bd4815439d88d2b16a77c16cce
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -459,3 +461,12 @@ Expect: `7`
     - `tests/test_hook_removed.py`: decision 17.
     - `tests/test_time_limits.py`: decision 17.
 19. factory: started doing as self.
+20. coder: Round 1: the reviewer's one finding (entry 18) is a test change only, so I changed no code and hand it to the tester.
+
+    The test and the change: in `tests/adapters/test_runtimes_without_wrapper.py::test_only_sudo_and_the_login_shell_refuse_a_call`, the row `sudo-refused` should expect the stand-in `sudo`'s own path in the error. For example, `_sudo_refused` returns the detail and the row checks `f"{layout.sudo_bin / 'sudo'} refused the agent run: {SUDO_LINE}"` (or whatever path `_write_sudo` returns), not the bare word `"sudo"`.
+
+    The code already passes that check, so the stricter row should go green with no code change. `src/factory/adapters/agent_launch.py:381` builds the message as `f"{starters.sudo_executable} refused the agent run: {sudo_line}"`, and `_sudo_refused` passes `sudo_executable=str(sudo)`, the stand-in's path.
+
+    What I built is unchanged from entry 16. I did not run `make check` this round because nothing I could write changed.
+
+    Noticed but not touched: nothing new.
