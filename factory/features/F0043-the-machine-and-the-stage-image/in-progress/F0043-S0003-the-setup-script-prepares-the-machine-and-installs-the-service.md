@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T01:16:07.138466Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-10-25T01:16:07.138466Z'
   stage: tests
+- number: 32
+  speaker: tester
+  kind: result
+  at: '2026-10-25T01:19:34.050152Z'
+  stage: tests
+  run: fcb6b8b1d40a44dca08ea5af499e43e4
 ---
 
 # The setup script prepares the machine and installs the service
@@ -570,3 +572,17 @@ Expect: `1`
     - The `folders` step's `install -d` on `$base/state` and `$base/repo` is the open point of entry 28. The `stat` without `-L` in `owned_with_mode` gives the same protection there as at the mount point, as long as the link's owner is `factory`.
     - No skill applied.
 31. factory: started tests as self.
+32. tester: Tests round 1, the change the human allowed in entry 26 (named in the coder's entry 30). I changed only `tests/test_vm_setup_text.py`, a test file this story wrote. I created no new files and no new support module.
+
+    - criterion 12: tests/test_vm_setup_text.py::test_the_files_under_the_instance_folder_are_written_as_factory. This is new, one parametrized test with four rows:
+      - `image-id`, `askpass` and `factory-env`: in the step's text (`image-id`, `checkout` or `environment`), at least one line writes the file, and every such line runs `runuser -u factory` itself or calls a shell function whose body does (`as_factory`). A line counts as writing the file when it names `$base/<file>` or a variable set to it (`askpass=$base/askpass`, `env_file=$base/factory.env`) and holds `install `, `cp `, `mv `, `tee ` or a `>`/`>>` onto that path.
+      - `chown-keeps-links`: no line holds a `chown` on `$base` or on a variable set from `$base/...` unless `-h` or `--no-dereference` is among its options. The script now has no `chown` at all, so this row passes without finding a line to check.
+    - criterion 11, finding 5 of entry 28: tests/test_vm_setup_text.py::test_the_options_land_in_their_named_variables keeps its name. Its rows are now (option, variable) pairs, eight in all, `--repository-url` → `repository_url` among them. Each row checks that the line parsing `--<option>)` assigns `<variable>=`. The `image=factory-stage:$instance` check moved into a test of its own, tests/test_vm_setup_text.py::test_the_image_defaults_to_one_named_after_the_instance.
+    - The tests for criteria 1 to 11 are otherwise unchanged.
+
+    I ran `make test` once and its last line was `test: green (68.8 s)`. The code was already there (entry 30), so the new rows pass; nothing failed first. Every module the tests need imported. `make lint` is green.
+
+    Open: the reviewer's point in entry 28 about `install -d` on links in the `folders` step is still the human's to decide. I did not test it, because no criterion covers it.
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (67.6 s)

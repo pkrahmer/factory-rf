@@ -408,8 +408,90 @@ def test_each_default_is_assigned_once_before_the_option_parsing(
 
 
 @pytest.mark.parametrize(
-    "variable", ["instance", "pool", "quota", "ref", "runtime", "image", "device", "repository_url"]
+    ("option", "variable"),
+    [
+        ("instance", "instance"),
+        ("pool", "pool"),
+        ("quota", "quota"),
+        ("ref", "ref"),
+        ("runtime", "runtime"),
+        ("image", "image"),
+        ("device", "device"),
+        ("repository-url", "repository_url"),
+    ],
 )
-def test_the_options_land_in_their_named_variables(code: str, variable: str) -> None:
-    assert re.search(rf"\$\{{?{variable}(?!\w)", code)
+def test_the_options_land_in_their_named_variables(code: str, option: str, variable: str) -> None:
+    parse = re.compile(rf"(?<![\w-])--{re.escape(option)}\)[^\n]*(?<![\w$]){variable}=")
+
+    assert parse.search(code)
+
+
+def test_the_image_defaults_to_one_named_after_the_instance(code: str) -> None:
     assert "image=factory-stage:$instance" in code
+
+
+FUNCTION = re.compile(r"(?ms)^(\w+)\(\)\s*\{(.*?)^\}")
+WRITE_FORMS = ("install ", "cp ", "mv ", "tee ")
+
+
+def _under_base(code: str) -> list[str]:
+    variables = re.findall(r"(?m)^\s*(\w+)=\"?\$\{?base\}?/", code)
+    return [rf"\$\{{?{name}(?!\w)" for name in ("base", *variables)]
+
+
+def _writes(line: str, path: str) -> bool:
+    if not re.search(path, line):
+        return False
+    redirect = re.search(rf">>?[\s\"']*(?:{path})", line)
+    return redirect is not None or any(form in line for form in WRITE_FORMS)
+
+
+def _as_factory(code: str, line: str) -> bool:
+    helpers = [name for name, body in FUNCTION.findall(code) if "runuser -u factory" in body]
+    return "runuser -u factory" in line or any(
+        re.search(rf"(?<![\w-]){helper}(?![\w-])", line) for helper in helpers
+    )
+
+
+def _written_as_factory(script: Script, step: str, name: str) -> bool:
+    file = rf"\$\{{?base\}}?/{re.escape(name)}"
+    variables = re.findall(rf"(?m)^\s*(\w+)=\"?{file}\"?\s*$", script.code)
+    paths = [rf"{file}(?![\w.-])", *(rf"\$\{{?{found}(?!\w)" for found in variables)]
+    writes = [
+        line
+        for line in script.steps[step].splitlines()
+        if any(_writes(line, path) for path in paths)
+    ]
+    return writes != [] and all(_as_factory(script.code, line) for line in writes)
+
+
+def _chown_without_h(script: Script) -> list[str]:
+    found = []
+    for line in script.code.splitlines():
+        chown = re.search(r"(?<![\w-])chown((?:\s+-[\w-]+)*)", line)
+        if chown is None or not any(re.search(path, line) for path in _under_base(script.code)):
+            continue
+        options = chown.group(1).split()
+        if not any(
+            option == "--no-dereference" or (not option.startswith("--") and "h" in option)
+            for option in options
+        ):
+            found.append(line)
+    return found
+
+
+@pytest.mark.parametrize(
+    "check",
+    [
+        pytest.param(lambda s: _written_as_factory(s, "image-id", "image-id"), id="image-id"),
+        pytest.param(lambda s: _written_as_factory(s, "checkout", "askpass"), id="askpass"),
+        pytest.param(
+            lambda s: _written_as_factory(s, "environment", "factory.env"), id="factory-env"
+        ),
+        pytest.param(lambda s: _chown_without_h(s) == [], id="chown-keeps-links"),
+    ],
+)
+def test_the_files_under_the_instance_folder_are_written_as_factory(
+    script: Script, check: Check
+) -> None:
+    assert check(script)
