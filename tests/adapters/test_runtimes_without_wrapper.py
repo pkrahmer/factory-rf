@@ -67,10 +67,6 @@ def test_the_wrapper_s_names_are_gone(module: object, name: str) -> None:
     assert not hasattr(module, name)
 
 
-def test_the_starters_are_sudo_the_login_files_and_the_leftovers_program() -> None:
-    assert list(Starters.model_fields) == ["sudo_executable", "login_files", "leftovers"]
-
-
 @pytest.mark.parametrize(
     ("callable_", "parameter"),
     [

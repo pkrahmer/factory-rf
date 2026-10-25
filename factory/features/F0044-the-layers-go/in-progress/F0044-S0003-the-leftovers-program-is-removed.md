@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T13:13:23.376975Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-25T13:13:23.376975Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-25T13:16:33.027942Z'
+  stage: tests
+  run: a3dc60b0c0bc42bfbc65757b69b2da2a
 ---
 
 # The leftovers program is removed
@@ -151,3 +153,20 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
    `make lint` is green. I did not run the type check, as the stage says.
 6. 2026-10-25 human: (a). Delete `tests/adapters/test_runtimes_without_wrapper.py::test_the_starters_are_sudo_the_login_files_and_the_leftovers_program`: leave given under decision 19 and the human's standing answer for lists found after the pre-check (decision 29). Criterion 2's row `starters-fields` checks the new field list, so nothing is lost. The module's other tests stay as they are.
 7. factory: started tests as self.
+8. tester: Made the change from the human's answer (a): I deleted `tests/adapters/test_runtimes_without_wrapper.py::test_the_starters_are_sudo_the_login_files_and_the_leftovers_program`. The leave for this is decision 19 and the standing answer in decision 29. The module's other tests are unchanged. Its `Starters` import stays because other tests in the module still use it. Criterion 2's row `starters-fields` now checks the new field list.
+
+   Mapping. The test files were written in the earlier tests run and are already committed:
+   criterion 1: tests/test_leftovers_program_removed.py::test_the_leftovers_modules_are_gone
+   criterion 2: tests/test_leftovers_program_removed.py::test_the_names_that_started_the_leftovers_program_are_gone
+   criterion 3: tests/adapters/test_one_call_as_another_user.py::test_a_call_as_another_user_is_one_sudo_call_per_agent_call
+   criterion 4: tests/adapters/test_kill_at_the_limit_stays.py::test_a_call_is_still_killed_at_its_time_limit
+   criterion 5: tests/test_leftovers_program_removed.py::test_no_module_names_the_leftovers_program_or_its_fault
+
+   Files created, earlier in this stage: tests/test_leftovers_program_removed.py, tests/adapters/test_one_call_as_another_user.py, tests/adapters/test_kill_at_the_limit_stays.py.
+
+   Earlier test files changed: the ones listed in entry 5, all named by the Interface under decision 19, plus tests/adapters/test_runtimes_without_wrapper.py in this run. tests/leftovers_runtime_support.py stays because test_make_commands_user.py still imports `SUDO_LINE` from it, so S0005 deletes it.
+
+   `make test`: no module failed to import. The failures are wrong results, as intended: criteria 1, 2 and 5 fail because the modules and names still exist, and so do the search and wiring tests with edited lists that entry 5 names. Criteria 3 and 4 already pass, as entry 5 said. They guard behaviour that must survive the removal. `make lint` is green. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.7 s)
+   `test`: FAILED tests/test_leftovers_program_removed.py::test_the_names_that_started_the_leftovers_program_are_gone[leftovers_launch] - assert False
