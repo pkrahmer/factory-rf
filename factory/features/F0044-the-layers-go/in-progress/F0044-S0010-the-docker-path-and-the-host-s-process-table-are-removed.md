@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 453
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T19:57:41.520956Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-25T19:57:41.520956Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T20:03:55.540186Z'
+  stage: tests
+  run: fe5c504d0ff446c4a0ee38e98232d859
 ---
 
 # The Docker path and the host's process table are removed
@@ -92,3 +94,29 @@ Expect: three lines: `0`; `helper-moved`; `gone`
    Architecture: the removal fits the layers. The process kill stays in the one process wrapper in `adapters`, `domain.sessions` goes, and nothing new is added. `vm/` is within the coder's write paths.
    Scope: it matches S0010 in `feature.md` and decisions 7, 12 and 40, and nothing is in "Out of scope". `image/secrets/` and `.gitignore` are untouched, and `pipeline.yml`, `pyproject.toml` and the demo README are left to the human's changes 10 and 11.
 4. factory: started tests as self.
+5. tester: Wrote the tests for the criteria and made the test changes the Interface lists (the leave is decision 26 of `feature.md`).
+
+   Criterion → test:
+   - criterion 1: tests/test_docker_path_removed.py::test_the_docker_files_are_gone_and_the_helper_is_moved (7 rows: the six `image/` files absent; `vm/git-credential-factory` is a file and executable. The criterion leaves the text comparison with `main` to the reviewer, so the test does not compare it.)
+   - criterion 2: tests/test_git_credential_helper.py (existing tests, unchanged except `HELPER = ROOT / "vm" / "git-credential-factory"`): test_get_prints_the_user_name_and_the_token_from_the_file, test_get_without_a_readable_token_file_prints_nothing_and_fails, test_any_other_operation_prints_nothing_and_succeeds, test_git_credential_fill_gets_the_token_through_the_factorys_git_environment
+   - criterion 3: tests/test_docker_path_removed.py::test_the_setup_script_installs_the_moved_helper
+   - criterion 4: tests/test_docker_path_removed.py::test_the_process_table_names_are_removed (rows sessions-module, read_process_table, proc)
+   - criterion 5: tests/adapters/test_process_session.py::test_time_limit_ends_every_process_of_the_group (6 rows: the grandchild in the child's group is ended, checked with `is_gone(pid)`; one in its own group or own session is not, checked with `is_gone(pid, within=0) is False`); ::test_stop_and_error_of_the_callback_end_every_process_of_the_group (the child placed with `"{}"`, checked with `is_gone(pid)`); ::test_a_call_without_a_group_to_kill_ends_as_its_child_does (rows group-already-gone, with `os.killpg` patched to kill and then raise `ProcessLookupError`, giving `timed_out` and no exit status; run_process-ends-by-itself and run_streaming-ends-by-itself, giving not `timed_out` and exit status 3). The criterion says "one parametrized test", but the Interface names the two renamed tests and their rows. I kept those as the Interface says and put the remaining rows into one new test.
+   - criterion 6: tests/test_docker_path_removed.py::test_no_test_reads_a_file_under_image (uses `search_support.modules_matching` and leaves out its own module; criteria 1 and 3 live in the same module, so it can name `image/`)
+   - criteria 7 and 8: no tests (`make check`, docs).
+
+   Files created: tests/test_docker_path_removed.py, tests/test_pins.py (the five tests moved from test_image.py, names and assertions unchanged).
+   Files changed, as the Interface says:
+   - tests/dockerfile_support.py: now holds the readers, constants and `_*_findings` helpers moved from test_image.py, plus `_env`; `DOCKERFILE` and `dockerfile_instructions` are gone.
+   - tests/test_stage_image.py: imports from dockerfile_support; `machine_instructions` is gone; the two tests are renamed to test_each_pin_of_the_stage_image_has_its_form and test_each_debian_package_is_pinned; the docstring is updated.
+   - tests/vm_support.py: now holds `ROOT` and `SYSTEM_PATH`.
+   - tests/test_vm_setup.py and tests/test_vm_setup_writes.py: import `SYSTEM_PATH` from vm_support.
+   - tests/conftest.py: `compose_service`, `image_layout`, their imports and the unused `YAML` import are gone.
+   - tests/test_shared_test_helpers.py: the `image-layout` row and the layout fixture test are deleted.
+   - tests/adapters/test_process_session.py: the make-target test, the unreachable-kill test and the `MakeProjectCommands` import are deleted.
+   Deleted: the 19 test modules and the 3 helper modules the Interface lists.
+
+   Test run: `make test` fails as intended, and no module failed to import. The failures are the files still present or missing (criterion 1, criterion 3 and the credential helper tests: FileNotFoundError on `vm/git-credential-factory`), `factory.domain.sessions` / `read_process_table` / `/proc` still present, and the `own-group` rows, because today's table-reading kill still ends the grandchild in a group of its own. I ran `make test` twice by mistake (the second run only to read its last lines); both gave the same result. `make lint` is green. I skipped the type check, as this stage says.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/adapters/test_process_session.py::test_time_limit_ends_every_process_of_the_group[run_streaming-own-group] - AssertionError: assert True is False

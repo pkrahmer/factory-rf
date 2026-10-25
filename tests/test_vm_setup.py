@@ -4,9 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from entrypoint_support import SYSTEM_PATH
 from factory.adapters.process import ProcessRequest, run_process
-from vm_support import REQUIRED, SETUP, entries, run_setup
+from vm_support import REQUIRED, SETUP, SYSTEM_PATH, entries, run_setup
 
 OPTIONS = (
     "--device",

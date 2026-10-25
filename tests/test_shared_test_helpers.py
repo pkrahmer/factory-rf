@@ -30,15 +30,7 @@ THIS = Path(__file__).name
             "git_support.py",
             id="project-coder",
         ),
-        pytest.param(re.escape("Layout" + "(tmp_path)"), "conftest.py", id="image-layout"),
     ],
 )
 def test_each_shared_helper_is_written_in_one_module(pattern: str, module: str) -> None:
     assert modules_matching(pattern, THIS) == [module]
-
-
-def test_the_image_layout_fixture_returns_the_entrypoints_layout() -> None:
-    conftest = (TESTS / "conftest.py").read_text(encoding="utf-8")
-
-    assert "from entrypoint_support import Layout as ImageLayout\n" in conftest
-    assert "    return ImageLayout" + "(tmp_path)\n" in conftest

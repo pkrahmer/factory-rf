@@ -6,9 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from entrypoint_support import SYSTEM_PATH
 from factory.adapters.process import ProcessRequest, run_process
-from vm_support import function_text, setup_code, step_texts, write_helpers
+from vm_support import SYSTEM_PATH, function_text, setup_code, step_texts, write_helpers
 
 AS_ITSELF = 'as_factory() {\n  "$@"\n}\n'
 
