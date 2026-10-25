@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T14:40:56.469016Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T14:40:38.664480Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:40:56.469016Z'
   stage: tests
 ---
 
@@ -192,3 +201,4 @@ Expect: three lines: `[] False`; `False False`; `3 False`
    2. Both readings are right:
       - Criterion 7's died-probe details through `agent_run_probe_item`, the last item `machine_extras` returns.
       - Criterion 9: `0o666 & ~umask` for a regular file, so `0o600` under `0o077` and `0o644` under `0o022`.
+10. factory: started tests as self.
