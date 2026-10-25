@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T16:19:43.850713Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T16:19:26.087694Z'
+  stage: doing
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:19:43.850713Z'
   stage: doing
 ---
 
@@ -286,3 +295,4 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     1. (a). In `tests/application/test_probe_nested_repository.py::test_a_probe_run_that_leaves_a_nested_repository_passes` the line becomes `assert item.detail == ""`. `PreflightItem.detail` stays `str`.
     2. Add `pytestmark = pytest.mark.usefixtures("installed_agents")` to `tests/application/test_tick_restore_ignored.py`, as in `tests/application/test_tick.py`.
     Both are new test modules of this story, so no leave is needed. `CheckoutPreparer`'s unread `self._log` stays as the Interface keeps the parameter.
+15. factory: started doing as self.
