@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T00:13:39.457974Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-25T00:13:19.003744Z'
   stage: tests
   run: 3f5462b06e9d4387ae984a450ba6d331
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:13:39.457974Z'
+  stage: doing
 ---
 
 # The checkout and the state directory are settings
@@ -192,3 +201,4 @@ Expect: `1`
 
    `lint`: lint: green (0.5 s)
    `test`: FAILED tests/entry/test_run_state_variable.py::test_the_runner_gets_the_paths_and_its_settings_fault_follows_the_state_variable[state-padded] - FileNotFoundError: [Errno 2] No such file or director...
+9. factory: started doing as self.
