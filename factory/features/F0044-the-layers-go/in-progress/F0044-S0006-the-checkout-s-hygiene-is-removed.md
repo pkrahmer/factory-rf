@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T16:19:43.850713Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-10-25T16:19:43.850713Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-10-25T16:20:15.651004Z'
+  stage: doing
+  run: 962f5ca3c1a44ba6b393c66baf89ea2d
 ---
 
 # The checkout's hygiene is removed
@@ -296,3 +298,27 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     2. Add `pytestmark = pytest.mark.usefixtures("installed_agents")` to `tests/application/test_tick_restore_ignored.py`, as in `tests/application/test_tick.py`.
     Both are new test modules of this story, so no leave is needed. `CheckoutPreparer`'s unread `self._log` stays as the Interface keeps the parameter.
 15. factory: started doing as self.
+16. coder: The human's answer in entry 14 asks for two test changes and no code change. I changed nothing in this run. The code from my previous run is committed in 0edf9d3f.
+
+    Tester, please make exactly these two changes:
+    1. In `tests/application/test_probe_nested_repository.py::test_a_probe_run_that_leaves_a_nested_repository_passes`, change `assert item.detail is None` to `assert item.detail == ""`. `PreflightItem.detail` stays `str`.
+    2. Add `pytestmark = pytest.mark.usefixtures("installed_agents")` to `tests/application/test_tick_restore_ignored.py`, as `tests/application/test_tick.py` has it. Without it, the tick stops at the load with "agent home unavailable" before it reaches the restore.
+
+    What I built (0edf9d3f, listed in entry 13):
+    - `src/factory/application/sealed_runs.py` is deleted.
+    - The five Git operations are removed from `src/factory/application/git.py` and `src/factory/adapters/git_cli.py`.
+    - `RepositoryUnsealed` is removed from `src/factory/domain/errors.py`, and the dispatcher's re-raise is removed from `src/factory/application/dispatcher.py`.
+    - `CheckoutPreparer.prepare` in `src/factory/application/scheduler.py` now only clones a missing checkout.
+    - The restore in `src/factory/application/tick.py` no longer removes ignored paths.
+    - `run_agent` in `src/factory/application/stage_environment.py` returns the run's result.
+    - The `nested_repository` stall and the probe's nested-repository fault are removed from `src/factory/application/stage.py` and `src/factory/application/preflight.py`.
+    - `StallReason` and its post text are removed from `src/factory/domain/journal.py` and `src/factory/domain/post_texts.py`.
+    - `RECORDS_CONTRACT` is "3.0", and the schemas were regenerated with `uv run python -m factory.entry.contract`.
+
+    Main choice: each environment calls the runtime in its own `run_agent`. I rejected a shared helper on the abstract base, because there `run_agent` is an abstract method and the interface carries no behaviour.
+
+    What the journal changed: criterion 9 now means "the probe item passes with an empty detail". The Description is unchanged, and it is outside my write paths.
+
+    Status: when 0edf9d3f was made, `make test` failed only in these two tests. I did not run `make check` in this run, because nothing changed.
+
+    Noticed, not touched: `CheckoutPreparer` still stores `self._log` but never reads it. It stays, because the Interface keeps the parameter and the human agreed in entry 14. `make duplicates` (vulture) may list it.
