@@ -1167,3 +1167,5 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 | 13:48 | F0044-S0004 intake question on #447 (no test pins `beneath_or_at` after the move): answered (a), one parametrized criterion with the rows of today's expression. |
 | 14:04 | F0044-S0004 (the fresh home is removed) at approval, PR #447: six checks met (write paths; earlier tests all in the leave of decisions 20/33a; check green, entry 10 and the stage checks; reviewer no findings, entry 12; both Expect lines met; no markers). 7 runs, $2.46. Merged. |
 | 14:04 | Change 5 (CLAUDE.md Tests bullet on the fresh-home program goes) and decision 33b (R12 fresh_home clause replaced). |
+| 14:05 | Rebuilt self (no claim). F0044-S0005 waits for its pre-check, still running. |
+| 14:29 | Pre-check of F0044-S0005 (the second user is removed), round 1: accepted at intake, edits 1-4 required, 5-7 optional; all applied once; form check ok; secrets hook clean. The human answered the quiz: (a) leave for the corrected list, (b) the R12 sudo clause replaced right after S0005, (c) the extra docs passages into S0005. Recorded as decision 34. Started F0044-S0005. |
