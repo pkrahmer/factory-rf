@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T01:00:38.170705Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-25T01:00:17.496809Z'
   stage: docs
   run: d910efe72a544229a725163be24d7d86
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-25T01:00:38.170705Z'
+  stage: smoke-test
 ---
 
 # The setup script prepares the machine and installs the service
@@ -368,3 +377,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 833d2a57ba51 at 2026-10-25T00:55:18Z)
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
+19. factory: started smoke-test as self.
