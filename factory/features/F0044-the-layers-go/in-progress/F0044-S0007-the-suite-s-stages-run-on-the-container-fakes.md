@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T17:22:20.262979Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-10-25T17:22:20.262979Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T17:23:06.999669Z'
+  stage: docs
+  run: 87b93692d8a8456a9f1b05f5b757c5be
 ---
 
 # The suite's stages run on the container fakes
@@ -478,3 +480,32 @@ Expect: two lines: `1`; `1`
     - tests/test_suite_fixtures.py:64: the test writes the literal `"stage environment: reset"`, while `tests/application/test_stage_on_container_fakes.py` keeps the same text as the constant `RESET_PREFIX`. One shared constant would serve both.
     - tests/test_suite_fixtures.py:40: the walk's loop repeats most of `drive` in `tests/proof_support.py`. It differs only in recording the walked stages and in the extra `forbidden.txt` write.
 28. factory: started docs as self.
+29. documenter: Round 1, docs. I read the story, the diff (3 files under `src/`, 26 under `tests/`) and the project guide. No findings: the code matches the Interface, with one exception (the second item under "Stale text I noticed"). I changed only documents, so I did not run `make check`; the factory's check after this stage decides. I ran no examples, because I wrote none.
+
+    Files changed:
+    - `docs/project-guide/README.md`, *Shared test helpers*, `conftest.py` line:
+      - `remote` now says `main` holds a `Makefile` whose `sync` is `@:`.
+      - `boundaries` now describes a `container` instance on `FakeSnapshots` and `FakeContainerRuns` over `<tmp_path>/workspace` with an empty base. It says the project commands stay `MakeProjectCommands` on the host checkout.
+    - `docs/project-guide/README.md`, `container_support.py` line:
+      - It now lists `fake_dataset`, `inline_boundaries` and the new meaning of `container_dataset` (it takes the fixture's fakes).
+    - `docs/project-guide/README.md`, `git_support.py` line:
+      - It now says `REMOTE_FILES` holds a `Makefile` with `sync`, and that a test pushing its own `Makefile` gives it the same target.
+    - `docs/project-guide/README.md`, *Kill points*:
+      - The stall condition "writes outside the write paths undone" now says they are left out of the result commit: the take does not copy them, and nothing is undone.
+    - `docs/project-guide/stage-environment.md`, *The fakes*:
+      - A new paragraph says the suite's stages run on the fakes. It explains that the request's working directory is the dataset's checkout when snapshots are set (`agent_working_directory`, used by `TaskComposer` and the probe). It also says a real runtime in a container ignores the field.
+    - `docs/project-guide/stage-environment.md`, *Wiring and tests*:
+      - It now says the `boundaries` fixture holds the fakes and `container_dataset` takes them from it.
+
+    Cross-read and found current:
+    - `docs/decisions.md`, `docs/operator-guide.md` and the top-level `README.md`. The criterion says none for these, and nothing in the diff touches them.
+    - `docs/project-guide/write-guard.md`. It describes the inline undo, which still exists until S0008.
+
+    Stale text I noticed and did not touch:
+    - `docs/project-guide/stages.md:245` and `:291`, and `docs/project-guide/costs.md:17`, describe the undo and the take as inline-first. They are still true for the inline environment, which S0008 removes, so S0008's docs should rewrite them.
+    - The Interface in the story names `factory.application.task.StageTask`, which does not exist. The reviewer already corrected it to `TaskComposer`.
+    - The reviewer's two notes on the tests (a shared constant for `"stage environment: reset"`, and the walk loop in `tests/test_suite_fixtures.py` repeating `drive`) are not documentation, so I left them.
+
+    `check`: check: green (not run again: passed on tree 4426094bb51c at 2026-10-25T17:18:35Z)
+    `secrets`: secrets: green (1.3 s)
+    `documents`: documents ok
