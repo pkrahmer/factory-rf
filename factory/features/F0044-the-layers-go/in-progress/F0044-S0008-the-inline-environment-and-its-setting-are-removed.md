@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241, 6401865606]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T19:14:51.188864Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -279,6 +283,11 @@ journal:
   at: '2026-10-25T19:14:30.039253Z'
   stage: doing
   run: 55775d90d1324230b0a25927c88e4d2b
+- number: 50
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:14:51.188864Z'
+  stage: review
 ---
 
 # The inline environment and its setting are removed
@@ -960,3 +969,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
 
     `check`: check: green
     `duplicates`: duplicates: 12 new, 35 known, 3 gone
+50. factory: started review as self.
