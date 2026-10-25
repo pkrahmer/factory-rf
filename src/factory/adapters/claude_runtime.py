@@ -3,7 +3,6 @@
 import json
 import time
 import uuid
-from collections.abc import Sequence
 from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -35,9 +34,7 @@ from factory.adapters.agent_launch import (
     Starters,
     container_launch,
     denied_path,
-    due_leftovers_launch,
     finished_run,
-    leftovers_fault,
     login_argv,
     login_paths,
     login_used,
@@ -50,7 +47,7 @@ from factory.adapters.agent_launch import (
     version_launch,
     version_printed,
 )
-from factory.adapters.process import ProcessRequest, ProcessResult, own_identity, run_process
+from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.application.agent_runtime import AgentRuntime
 from factory.application.containers import ContainerRuns
 from factory.domain.agent_runs import (
@@ -328,7 +325,6 @@ class ClaudeCodeRuntime(AgentRuntime):
         login_file: Path | None = None,
         api_login_file: Path | None = None,
         provider_limit: ProviderLimit | None = None,
-        leftovers: Sequence[str] | None = None,
         containers: ContainerRuns | None = None,
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
@@ -337,15 +333,12 @@ class ClaudeCodeRuntime(AgentRuntime):
         A run's calls get the key held in `api_login_file`, or else the token held in
         `login_file`, read by the call's own shell.
         A call refused by `provider_limit`, the default limit when `None`, ends `provider_limit`.
-        Every call as another user is followed by `leftovers`, the program that ends that
-        user's processes, when it is set.
         With `containers`, every call runs in a container.
         """
         self._containers = containers
         self._executable = executable
         self._starters = Starters(
             sudo_executable=sudo_executable,
-            leftovers=None if leftovers is None else list(leftovers),
             login_files=LoginFiles(subscription=login_file, api=api_login_file),
         )
         self._state_directory = state_directory
@@ -357,11 +350,6 @@ class ClaudeCodeRuntime(AgentRuntime):
     def sudo_executable(self) -> str:
         """The executable that starts a request as its operating-system user."""
         return self._starters.sudo_executable
-
-    @property
-    def leftovers(self) -> list[str] | None:
-        """The words that start the program ending the agent's leftover processes, or `None`."""
-        return self._starters.leftovers
 
     @property
     def containers(self) -> ContainerRuns | None:
@@ -454,7 +442,6 @@ class ClaudeCodeRuntime(AgentRuntime):
         time_limit: timedelta,
     ) -> ProcessResult:
         process = self._start(self._process_request(request, files, arguments, time_limit))
-        leftovers_error = self._end_leftovers(request)
         end = CallEnd(
             stderr=process.stderr,
             printed=_parse_reply(process.stdout) is not None,
@@ -469,21 +456,7 @@ class ClaudeCodeRuntime(AgentRuntime):
             starters=self._starters,
             in_container=self._containers is not None,
         )
-        process = process.model_copy(update={"timed_out": timed_out})
-        if leftovers_error is not None:
-            raise AgentRuntimeError(leftovers_error)
-        return process
-
-    def _end_leftovers(self, request: AgentRunRequest) -> str | None:
-        # The program's fault, or `None` when it ended them or was not due.
-        started = due_leftovers_launch(self._starters, request.os_user, own_identity().user)
-        if started is None:
-            return None
-        # From the root, so the program holds no folder of the run open.
-        process = self._start(_request_of(started, Path("/")))
-        return leftovers_fault(
-            exit_status=process.exit_status, timed_out=process.timed_out, stderr=process.stderr
-        )
+        return process.model_copy(update={"timed_out": timed_out})
 
     def _claude_argv(self, arguments: list[str]) -> list[str]:
         return [*login_argv(self._starters.login_files), self._executable, *arguments]

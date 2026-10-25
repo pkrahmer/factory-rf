@@ -2,7 +2,6 @@
 
 import contextlib
 import os
-import pwd
 import selectors
 import signal
 import subprocess  # noqa: S404  # nosec B404
@@ -14,7 +13,6 @@ from typing import IO, Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from factory.domain.leftovers import Identity
 from factory.domain.sessions import ProcessEntry, left_to_kill, parse_stat
 
 Stream = Literal["stdout", "stderr"]
@@ -81,18 +79,6 @@ def read_process_table(proc: Path = _PROCESS_TABLE) -> list[ProcessEntry]:
             continue
         entries.append(parse_stat(int(folder.name), _decode(stat), uid=uid))
     return sorted(entries, key=lambda entry: entry.pid)
-
-
-def own_identity() -> Identity:
-    """The user id, the user's name and the process id this process runs with."""
-    uid = os.getuid()
-    return Identity(uid=uid, user=pwd.getpwuid(uid).pw_name, pid=os.getpid())
-
-
-def signal_every_other(signal_number: int) -> None:
-    """Send `signal_number` to every process this user may signal, this process spared."""
-    with contextlib.suppress(ProcessLookupError):
-        os.kill(-1, signal_number)
 
 
 def _kill_one(pid: int, refused: set[int]) -> None:

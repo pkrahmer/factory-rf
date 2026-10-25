@@ -35,9 +35,7 @@ from factory.adapters.agent_launch import (
     Starters,
     container_launch,
     denied_path,
-    due_leftovers_launch,
     finished_run,
-    leftovers_fault,
     login_argv,
     login_paths,
     login_used,
@@ -54,7 +52,6 @@ from factory.adapters.process import (
     ProcessRequest,
     ProcessResult,
     Stream,
-    own_identity,
     run_process,
     run_streaming,
 )
@@ -526,7 +523,6 @@ class OpencodeRuntime(AgentRuntime):
         sudo_executable: str = SUDO_EXECUTABLE,
         api_login_file: Path | None = None,
         provider_limit: ProviderLimit | None = None,
-        leftovers: Sequence[str] | None = None,
         containers: ContainerRuns | None = None,
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
@@ -536,8 +532,6 @@ class OpencodeRuntime(AgentRuntime):
         A request with an operating-system user is started through `sudo_executable`.
         A run's call gets the key held in `api_login_file`, read by the call's own shell.
         A call that shows `provider_limit`, the default limit when `None`, ends `provider_limit`.
-        Every call as another user is followed by `leftovers`, the program that ends that
-        user's processes, when it is set.
         With `containers`, every call runs in a container.
         """
         self._containers = containers
@@ -549,15 +543,9 @@ class OpencodeRuntime(AgentRuntime):
         self._version_time_limit = version_time_limit
         self._starters = Starters(
             sudo_executable=sudo_executable,
-            leftovers=None if leftovers is None else list(leftovers),
             login_files=LoginFiles(api=api_login_file),
         )
         self._provider_limit = ProviderLimit() if provider_limit is None else provider_limit
-
-    @property
-    def leftovers(self) -> list[str] | None:
-        """The words that start the program ending the agent's leftover processes, or `None`."""
-        return self._starters.leftovers
 
     @property
     def containers(self) -> ContainerRuns | None:
@@ -640,7 +628,6 @@ class OpencodeRuntime(AgentRuntime):
         watch = _Watch(budget, self._provider_limit)
         process_request = self._process_request(request, files, model)
         process = self._start(process_request, watch.on_line)
-        leftovers_error = self._end_leftovers(request)
         end = CallEnd(
             stderr=process.stderr,
             printed=bool(_events(process.stdout)),
@@ -656,20 +643,7 @@ class OpencodeRuntime(AgentRuntime):
             in_container=self._containers is not None,
         )
         process = process.model_copy(update={"timed_out": timed_out})
-        if leftovers_error is not None:
-            raise AgentRuntimeError(leftovers_error)
         return _result(request, process, watch)
-
-    def _end_leftovers(self, request: AgentRunRequest) -> str | None:
-        # The program's fault, or `None` when it ended them or was not due.
-        started = due_leftovers_launch(self._starters, request.os_user, own_identity().user)
-        if started is None:
-            return None
-        # From the root, so the program holds no folder of the run open.
-        process = self._start(_request_of(started, Path("/")))
-        return leftovers_fault(
-            exit_status=process.exit_status, timed_out=process.timed_out, stderr=process.stderr
-        )
 
     def _opencode_argv(self, request: AgentRunRequest, model: str) -> list[str]:
         agent = f"{AGENT_PREFIX}{request.agent.name}"

@@ -1,3 +1,187 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 446
+comments_read: [6398081877, 6398161155]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T13:06:33.914663Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:06:33.920839Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T13:06:56.716175Z'
+  stage: intake
+  run: 7c7b7ef848924647ad7575fbfc3f35fc
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:07:16.845155Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: question
+  at: '2026-10-25T13:11:49.015611Z'
+  stage: tests
+  run: 7d955ccbb648451a877ae899aa1b0286
+  blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-10-25T13:13:05.532302Z'
+  stage: tests
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:13:23.376975Z'
+  stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-25T13:16:33.027942Z'
+  stage: tests
+  run: a3dc60b0c0bc42bfbc65757b69b2da2a
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:16:54.219413Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-10-25T13:19:52.886198Z'
+  stage: doing
+  run: fa356d01d7c34f9eb40f0adee9d6c81b
+  blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-10-25T13:20:36.416917Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:20:54.456521Z'
+  stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-25T13:21:19.799970Z'
+  stage: doing
+  run: 4f9bb68ad7a3442c822c5d4d5c0960b6
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:21:40.382261Z'
+  stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-25T13:24:36.205858Z'
+  stage: tests
+  run: d87c1e9d08114cee86f18554def5d430
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:24:56.768922Z'
+  stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-25T13:28:15.080637Z'
+  stage: doing
+  run: 034b94342aab40df995e95eef2c78553
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:28:36.935152Z'
+  stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T13:29:48.618013Z'
+  stage: review
+  run: 91b5c74d7f754137ac17ba62219936a6
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:30:09.158072Z'
+  stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-25T13:30:36.947179Z'
+  stage: doing
+  run: 4dab8f09754d47c38aa9b6a5ba1c5893
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:30:58.417483Z'
+  stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-10-25T13:34:20.110265Z'
+  stage: tests
+  run: eb04aa7e7b6e45dd8e529a74bbb25d7c
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:34:40.845198Z'
+  stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-25T13:37:50.461654Z'
+  stage: doing
+  run: 819b742fad09483d88efd1be11fec9e4
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:38:11.518921Z'
+  stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T13:39:41.067464Z'
+  stage: review
+  run: c80d01e8419945938362ac387f8262ee
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:40:02.254844Z'
+  stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T13:42:10.104530Z'
+  stage: docs
+  run: 27b4d053cffc4694afef264b00d33510
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:42:30.707971Z'
+  stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T13:43:01.987053Z'
+  stage: smoke-test
+  run: f221c013f2fd49e385527fde795abf21
+---
+
 # The leftovers program is removed
 
 ## Description
@@ -55,3 +239,297 @@ uv run python -c 'from factory.adapters import process, agent_launch; from facto
 Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers gone`; `[]`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules, removed names and the new `Starters` signature. Test changes are listed by test with the leave (decision 19, extended by 32a). Nothing is vague.
+   Criteria: 1 to 5 each fit one parametrized or single test. 1 covers the two modules and 2 covers every removed name, field and parameter. 3 covers the single-call behaviour for both runtimes and the make class, resumed run included. 4 covers both sides of `killed_at_limit` (30 s and 29.9 s, with and without `in_container`) and the timed-out kill. 5 covers the source strings. The Interface states no rule with a failing side that needs its own criterion, because the story removes code. 6 and 7 are the closing criteria.
+   Smoke test: both commands are runnable `uv run python -c` lines with no pytest, so there is no `-q` issue. The `Expect:` line gives three exact output lines that can be compared.
+   Architecture: the removals touch domain, adapters and entry in the direction of the layers. `process_table` and the session kill stay (decision 7). No new interface or dependency.
+   Scope: inside F0044 S0003 in `feature.md`. Nothing from "Out of scope" is touched. The docs and `CLAUDE.md` changes 4 and 6 fall outside the story, as decision 32 says.
+4. factory: started tests as self.
+5. tester: Question: one earlier test contradicts criterion 2, and the Interface's list of test changes leaves it out. `tests/adapters/test_runtimes_without_wrapper.py::test_the_starters_are_sudo_the_login_files_and_the_leftovers_program` (F0044-S0001) asserts `list(Starters.model_fields) == ["sudo_executable", "login_files", "leftovers"]`. Once `Starters` loses `leftovers`, that test fails, and the coder may not edit tests. The options I see:
+   (a) Delete the test. Criterion 2's row `starters-fields` already checks the new field list. This is the one I would choose.
+   (b) Keep the test and change its expectation to `["sudo_executable", "login_files"]`. Its name would then no longer match what it checks.
+   (c) Change the expectation and rename the test to `test_the_starters_are_sudo_and_the_login_files`.
+   Please say which one, and I will make that change.
+
+   Everything else for this stage is written:
+   criterion 1: tests/test_leftovers_program_removed.py::test_the_leftovers_modules_are_gone
+   criterion 2: tests/test_leftovers_program_removed.py::test_the_names_that_started_the_leftovers_program_are_gone
+   criterion 3: tests/adapters/test_one_call_as_another_user.py::test_a_call_as_another_user_is_one_sudo_call_per_agent_call
+   criterion 4: tests/adapters/test_kill_at_the_limit_stays.py::test_a_call_is_still_killed_at_its_time_limit
+   criterion 5: tests/test_leftovers_program_removed.py::test_no_module_names_the_leftovers_program_or_its_fault
+
+   Files created: tests/test_leftovers_program_removed.py, tests/adapters/test_one_call_as_another_user.py, tests/adapters/test_kill_at_the_limit_stays.py.
+
+   Earlier test changes, all ones the Interface names (decision 19 of feature.md):
+   - Deleted: tests/entry/test_leftovers.py, tests/domain/test_leftovers.py, tests/adapters/test_agent_launch_leftovers.py, tests/adapters/test_claude_runtime_leftovers.py, tests/adapters/test_opencode_runtime_leftovers.py, tests/entry/test_wiring_leftovers.py.
+   - tests/adapters/test_process_table.py: `test_own_identity_is_the_running_process` is gone.
+   - tests/leftovers_support.py: `AGENT`, `ROOT` and the `Identity` import are gone; `process_entry` stays.
+   - tests/adapters/test_make_commands_user.py: the leftovers test and `LeftoversRow` are gone, and `_user` no longer takes `leftovers`.
+   - tests/adapters/test_claude_runtime_container.py and tests/adapters/test_opencode_runtime_container.py: the runtime is built without `leftovers`, and `write_record_program` is gone from tests/adapters/container_runtime_support.py.
+   - tests/test_process_search.py, tests/test_wrapper_search.py, tests/entry/test_wiring_constants.py, tests/entry/test_wiring.py: the leftovers entries are gone.
+   - tests/entry/test_wiring_stage_environment.py: `end_leftovers=True` and the `leftovers is None` assertion are gone.
+   - tests/entry/test_wiring_project_command_user.py: the `no-leftovers` row, the `end_leftovers`/`leftovers` columns and the `leftovers_command` import are gone.
+   - tests/leftovers_runtime_support.py stays: test_make_commands_user.py still imports `SUDO_LINE` from it, so S0005 deletes it.
+
+   `make test` result: no module failed to import; every failure is a wrong result. These fail, as they should: every test of criteria 1, 2 and 5, test_process_search's markers test, test_wiring's importers test, test_wrapper_search's process-module test, and the `agent-user` and `no-sudo-found` rows of test_wiring_project_command_user.
+   Criteria 3 and 4 already pass: with no leftovers program set, the runtimes and the make class make one `sudo` call today. They guard the behaviour while the code is removed.
+   `make lint` is green. I did not run the type check, as the stage says.
+6. 2026-10-25 human: (a). Delete `tests/adapters/test_runtimes_without_wrapper.py::test_the_starters_are_sudo_the_login_files_and_the_leftovers_program`: leave given under decision 19 and the human's standing answer for lists found after the pre-check (decision 29). Criterion 2's row `starters-fields` checks the new field list, so nothing is lost. The module's other tests stay as they are.
+7. factory: started tests as self.
+8. tester: Made the change from the human's answer (a): I deleted `tests/adapters/test_runtimes_without_wrapper.py::test_the_starters_are_sudo_the_login_files_and_the_leftovers_program`. The leave for this is decision 19 and the standing answer in decision 29. The module's other tests are unchanged. Its `Starters` import stays because other tests in the module still use it. Criterion 2's row `starters-fields` now checks the new field list.
+
+   Mapping. The test files were written in the earlier tests run and are already committed:
+   criterion 1: tests/test_leftovers_program_removed.py::test_the_leftovers_modules_are_gone
+   criterion 2: tests/test_leftovers_program_removed.py::test_the_names_that_started_the_leftovers_program_are_gone
+   criterion 3: tests/adapters/test_one_call_as_another_user.py::test_a_call_as_another_user_is_one_sudo_call_per_agent_call
+   criterion 4: tests/adapters/test_kill_at_the_limit_stays.py::test_a_call_is_still_killed_at_its_time_limit
+   criterion 5: tests/test_leftovers_program_removed.py::test_no_module_names_the_leftovers_program_or_its_fault
+
+   Files created, earlier in this stage: tests/test_leftovers_program_removed.py, tests/adapters/test_one_call_as_another_user.py, tests/adapters/test_kill_at_the_limit_stays.py.
+
+   Earlier test files changed: the ones listed in entry 5, all named by the Interface under decision 19, plus tests/adapters/test_runtimes_without_wrapper.py in this run. tests/leftovers_runtime_support.py stays because test_make_commands_user.py still imports `SUDO_LINE` from it, so S0005 deletes it.
+
+   `make test`: no module failed to import. The failures are wrong results, as intended: criteria 1, 2 and 5 fail because the modules and names still exist, and so do the search and wiring tests with edited lists that entry 5 names. Criteria 3 and 4 already pass, as entry 5 said. They guard behaviour that must survive the removal. `make lint` is green. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.7 s)
+   `test`: FAILED tests/test_leftovers_program_removed.py::test_the_names_that_started_the_leftovers_program_are_gone[leftovers_launch] - assert False
+9. factory: started doing as self.
+10. coder: Question: the tester's new test file `tests/adapters/test_one_call_as_another_user.py` fails `make types`, so `make check` cannot go green without a change to that test. The coder may not change tests. Line 20 is `from adapters.opencode_stand_in import Step as OpencodeStep`, and mypy --strict reports:
+    `tests/adapters/test_one_call_as_another_user.py:20: error: Module "adapters.opencode_stand_in" does not explicitly export attribute "Step"  [attr-defined]`
+    `opencode_stand_in` imports `Step` from `adapters.claude_stand_in` itself (its line 10) and does not export it again. So `OpencodeStep` is the same class as the `Step` that the test already imports from `adapters.claude_stand_in` on line 11.
+    The options I see:
+    (a) The tester removes the line-20 import and uses `Step` (from `adapters.claude_stand_in`) where the test uses `OpencodeStep`. Only the new test file changes. This is the one I would choose.
+    (b) The tester makes `tests/adapters/opencode_stand_in.py` export `Step` again (`from adapters.claude_stand_in import STEPS, Step as Step`, or an `__all__`). That changes a helper another story wrote, which goes beyond the leave in the Interface.
+    Once the answer comes back I end with `tests` and name the change.
+
+    Where I stopped: the removal is complete in the working tree, and every other target passes. `lint`, `layers`, `sast`, `secrets` and `licenses` are green. `test` is green as well (70.3 s, 99.50 % coverage), with every test of criteria 1 to 5 passing.
+
+    What I built:
+    - Deleted `src/factory/entry/leftovers.py` and `src/factory/domain/leftovers.py`. `git rm` was refused (no write access to `.git/index.lock`), so I removed them with plain `rm` and the deletions are in the working tree.
+    - `src/factory/adapters/process.py`: `own_identity`, `signal_every_other`, and the imports of `pwd` and `Identity` are gone.
+    - `src/factory/adapters/agent_launch.py`: `LEFTOVERS_TIME_LIMIT`, `LEFTOVERS_FAULT`, `leftovers_due`, `leftovers_launch`, `due_leftovers_launch`, `leftovers_fault` and the `LEFTOVERS_PREFIX` import are gone. `Starters` now has only `sudo_executable` and `login_files`.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: the `leftovers` keyword and property, `_end_leftovers`, the leftovers fault after a call, and the imports that only these used are gone. In the Claude runtime, `_call` now returns the `model_copy` directly, because ruff's RET504 flagged the leftover assignment.
+    - `src/factory/adapters/make_commands.py`: `CommandUser.leftovers` and `_end_leftovers` are gone. `_start` lost its `merge_stderr` keyword and now always passes `merge_stderr=True`.
+    - `src/factory/entry/wiring.py`: `LEFTOVERS_MODULE` and `leftovers_command` are gone, from `__all__` too. `build_boundaries` and `_inline_environment` lost `end_leftovers`, and `_project_commands` and `_agent_runtime` lost `leftovers`.
+
+    Main choice: this is a pure removal and nothing replaces the program. In `MakeProjectCommands._start` I wrote `merge_stderr=True` explicitly rather than taking the field's default, because `ProcessRequest` defaults to `False`. The alternative I rejected was keeping the keyword with only one caller, which would leave a parameter no one varies.
+
+    Refactor: I read the diff once and found nothing else to change.
+
+    Noticed but not touched: `security/duplicates-baseline.txt` may still list findings in the removed code; `make duplicates` will report them as gone. `tests/leftovers_runtime_support.py` stays, as the tester said. The comment in `src/factory/application/recovery.py:97` uses the word "leftovers" in its everyday sense and has nothing to do with the program. The Description stays as it is: the journal did not change what the task means.
+11. 2026-10-25 human: (a). The tester removes the line-20 import from `tests/adapters/test_one_call_as_another_user.py` and uses `Step` from `adapters.claude_stand_in` where the test uses `OpencodeStep`. Only that new test file changes; `tests/adapters/opencode_stand_in.py` stays as it is.
+12. factory: started doing as self.
+13. coder: The test change from the human's answer (a) in entry 11: in `tests/adapters/test_one_call_as_another_user.py`, remove the line-20 import `from adapters.opencode_stand_in import Step as OpencodeStep` and use `Step` from `adapters.claude_stand_in` (already imported on line 11) wherever the test uses `OpencodeStep`. Only that file changes; `tests/adapters/opencode_stand_in.py` stays as it is.
+
+    I changed no code in this run. The removal from entry 10 (the deleted `src/factory/entry/leftovers.py` and `src/factory/domain/leftovers.py`, and the edits to `src/factory/adapters/process.py`, `agent_launch.py`, `claude_runtime.py`, `opencode_runtime.py`, `make_commands.py` and `src/factory/entry/wiring.py`) is committed in 934c3efa. I ran `make types` again. Its one error is the one this change fixes: `tests/adapters/test_one_call_as_another_user.py:20: error: Module "adapters.opencode_stand_in" does not explicitly export attribute "Step"  [attr-defined]`. Every other target was green in entry 10.
+
+    Open: the points in entry 10 that I noticed but did not touch still stand. These are the gone findings in `security/duplicates-baseline.txt`, and `tests/leftovers_runtime_support.py`, which stays for S0005. The journal did not change the meaning of the task, so the Description stays.
+14. factory: started tests as self.
+15. tester: I made the test change from the human's answer (a) in entry 11, which the coder named in entry 13. In `tests/adapters/test_one_call_as_another_user.py` I removed the import `from adapters.opencode_stand_in import Step as OpencodeStep`. The one place that used `OpencodeStep`, the type of the opencode steps list, now uses `Step` from `adapters.claude_stand_in`, which line 11 already imports and which is the same class. No other file changed, and `tests/adapters/opencode_stand_in.py` stays as it is.
+
+    The mapping is unchanged from entry 8:
+    criterion 1: tests/test_leftovers_program_removed.py::test_the_leftovers_modules_are_gone
+    criterion 2: tests/test_leftovers_program_removed.py::test_the_names_that_started_the_leftovers_program_are_gone
+    criterion 3: tests/adapters/test_one_call_as_another_user.py::test_a_call_as_another_user_is_one_sudo_call_per_agent_call
+    criterion 4: tests/adapters/test_kill_at_the_limit_stays.py::test_a_call_is_still_killed_at_its_time_limit
+    criterion 5: tests/test_leftovers_program_removed.py::test_no_module_names_the_leftovers_program_or_its_fault
+
+    Files created: none in this run. The earlier runs of this stage created tests/test_leftovers_program_removed.py, tests/adapters/test_one_call_as_another_user.py and tests/adapters/test_kill_at_the_limit_stays.py.
+
+    Modules the test runner could not import: none.
+
+    `make test` is green (73.3 s, coverage 99.50 %), now that the coder's removal is committed. `make lint` is green. I also ran `make types` to confirm that the error from entry 10 is gone; it is green.
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (69.6 s)
+16. factory: started doing as self.
+17. coder: I changed no code in this run. The removal from entry 10 is in 934c3efa. With the tester's import fix from entry 15 in place, I ran `make check` in the foreground and it ended `check: green`: `test: green (70.1 s)`, coverage 99.50 %. The tests of criteria 1 to 5 pass.
+
+    What I built, all in 934c3efa:
+    - Deleted `src/factory/entry/leftovers.py` and `src/factory/domain/leftovers.py`.
+    - `src/factory/adapters/process.py`: `own_identity`, `signal_every_other` and the imports of `pwd` and `Identity` are gone.
+    - `src/factory/adapters/agent_launch.py`: the leftovers constants, functions and the `LEFTOVERS_PREFIX` import are gone. `Starters` now has only `sudo_executable` and `login_files`.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: the `leftovers` keyword, the property, `_end_leftovers`, the leftovers fault after a call and their imports are gone.
+    - `src/factory/adapters/make_commands.py`: `CommandUser.leftovers` and `_end_leftovers` are gone. `_start` lost `merge_stderr` and now always passes `True`.
+    - `src/factory/entry/wiring.py`: `LEFTOVERS_MODULE` and `leftovers_command` are gone, from `__all__` too, and `build_boundaries` lost `end_leftovers`.
+
+    Main choice: a pure removal with nothing in its place. In `_start` I set `merge_stderr=True` explicitly, because `ProcessRequest` defaults to `False`. I rejected keeping a keyword that only one caller still used.
+
+    Refactor: I read the diff again against `main`. Nothing needed changing. The `_request_of` helpers in both runtimes still have two callers each.
+
+    Noticed but not touched:
+    - `make duplicates` is a record, not a check. It reports `7 new, 34 known, 4 gone`.
+      - The 4 gone are the removed leftovers code.
+      - Two of the new are claude/opencode similar-code findings that were already there, now at shifted line ranges (`return finished_run(...)` and `exit_status=process.exit_status`).
+      - The other five are in `fake_containers`, `podman_runs`, `zfs_snapshots` and `fake_snapshots`, which this story does not touch.
+      - `security/duplicates-baseline.txt` is unchanged.
+    - `tests/leftovers_runtime_support.py` stays for S0005.
+    - The word "leftover" in `src/factory/application/recovery.py:97` and `handlers/recording.py:70` has its everyday meaning.
+    - The journal did not change what the task means, so the Description stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 34 known, 4 gone
+18. factory: started review as self.
+19. reviewer: Findings:
+    1. tests/adapters/test_one_call_as_another_user.py:30 and :45: `_claude_reply` and `_claude_request` are second copies of existing test helpers. `_claude_reply()` and `_claude_reply("error_max_budget_usd", 3.0)` copy `REPLY` and `BUDGET_STOP` of tests/adapters/test_claude_runtime_login.py:29 and :42. `_claude_request` copies `_request(tmp_path, os_user)` of tests/adapters/test_claude_runtime_os_user.py:93. Fix: the tester imports `REPLY` and `BUDGET_STOP` from `adapters.test_claude_runtime_login` and `_request` from `adapters.test_claude_runtime_os_user`, as tests/adapters/test_claude_runtime_container.py:18 and tests/entry/test_wiring_api_login.py:9-10 already do, and deletes the two copies. Row ids and expected `sudo` call counts stay as they are. If the resumed row needs a budget other than `_request`'s 1 USD, use `model_copy` on the imported request rather than a new copy. The coder hands this to the tester with `tests`.
+
+    What I checked, and found right:
+    - Criteria 1 to 5 each have a parametrized test that checks what its criterion says. Criterion 4 tests both sides of the limit (30 s and 29.9 s, with and without `in_container`) and the session kill within `ROOMY_BOUND_SECONDS`. Entry 17 records `check: green`.
+    - The removal under src/ matches the Interface. Gone: `own_identity` and `signal_every_other` with the `pwd` and `Identity` imports; the six leftovers names of agent_launch and `Starters.leftovers`; both runtimes' keyword, property and `_end_leftovers`; `CommandUser.leftovers`, `_end_leftovers` and `_start`'s `merge_stderr` keyword (now always `True`); and in the wiring, `LEFTOVERS_MODULE`, `leftovers_command` and `end_leftovers`.
+    - `line_starting` still has other callers, so the removal left no dead code. No new suppression marker. Layers unchanged.
+    - The Description and the docs criterion still match what was built.
+
+    Earlier tests (non-`A` status):
+    - tests/adapters/container_runtime_support.py: Interface leave (decision 19 of feature.md).
+    - tests/adapters/test_agent_launch_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/adapters/test_claude_runtime_container.py: Interface leave (decision 19).
+    - tests/adapters/test_claude_runtime_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/adapters/test_make_commands_user.py: Interface leave (decision 19).
+    - tests/adapters/test_opencode_runtime_container.py: Interface leave (decision 19).
+    - tests/adapters/test_opencode_runtime_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/adapters/test_process_table.py: Interface leave (decision 19). The module docstring now matches its remaining tests.
+    - tests/adapters/test_runtimes_without_wrapper.py: the human's answer, journal entry 6.
+    - tests/domain/test_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/entry/test_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/entry/test_wiring.py: Interface leave (decision 19).
+    - tests/entry/test_wiring_constants.py: Interface leave (decision 19).
+    - tests/entry/test_wiring_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/entry/test_wiring_project_command_user.py: Interface leave (decision 19).
+    - tests/entry/test_wiring_stage_environment.py: Interface leave (decision 19).
+    - tests/leftovers_support.py: Interface leave (decision 19). The module docstring now matches `process_entry`.
+    - tests/test_process_search.py: Interface leave (decision 19).
+    - tests/test_wrapper_search.py: Interface leave (decision 19).
+20. factory: started doing as self.
+21. coder: The reviewer's finding 1 (entry 19) is a test change only, so I changed no code. In `tests/adapters/test_one_call_as_another_user.py`, the tester deletes the copies `_claude_reply` and `_claude_request`. In their place it imports `REPLY` and `BUDGET_STOP` from `adapters.test_claude_runtime_login` and `_request` from `adapters.test_claude_runtime_os_user`, the way `tests/adapters/test_claude_runtime_container.py:18` already does. `_claude_reply()` becomes `REPLY` and `_claude_reply("error_max_budget_usd", 3.0)` becomes `BUDGET_STOP`. `_claude_request(tmp_path)` becomes `_request(tmp_path, USER)`; if the resumed row needs a budget other than `_request`'s 1 USD, the tester applies `model_copy` to the imported request. Row ids and expected `sudo` call counts stay the same.
+
+    One thing to watch: the module already imports `REPLY` from `adapters.opencode_stand_in`, so one of the two imports needs an alias (for example `REPLY as CLAUDE_REPLY`).
+
+    The code is unchanged since 934c3efa. Entry 17 recorded `check: green`; I did not run `make check` again in this run because no code changed. Still open from entry 17: `tests/leftovers_runtime_support.py` stays for S0005, and `make duplicates` reported 4 findings as gone. The journal did not change what the task means, so the Description stays as it is.
+22. factory: started tests as self.
+23. tester: I made the test change from the reviewer's finding 1 (entry 19), which the coder named in entry 21. The change is in `tests/adapters/test_one_call_as_another_user.py` only:
+    - I deleted the copies `_claude_reply` and `_claude_request`, and the imports only they used (`json`, `Decimal`, `AgentDefinition`, `AgentRunRequest`).
+    - I now import `BUDGET_STOP` and `REPLY as CLAUDE_REPLY` from `adapters.test_claude_runtime_login`, and `_request` from `adapters.test_claude_runtime_os_user`. The alias is needed because `REPLY` from `adapters.opencode_stand_in` stays.
+    - `_claude_reply()` is now `CLAUDE_REPLY`, `_claude_reply("error_max_budget_usd", 3.0)` is now `BUDGET_STOP`, and `_claude_request(tmp_path)` is now `_request(tmp_path, USER)`.
+    - The resumed row works with `_request`'s 1 USD budget, so I did not need `model_copy`.
+
+    The test `test_a_call_as_another_user_is_one_sudo_call_per_agent_call` keeps its name, its row ids and its expected `sudo` call counts.
+
+    The criterion-to-test mapping is the same as in entry 15. I changed no other file and created no new ones. The test runner imported every module. I ran `make test` once and it ended `test: green (70.6 s)`. `make lint` is green.
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (71.0 s)
+24. factory: started doing as self.
+25. coder: This was rework round 1. The reviewer's one finding in entry 19 asked for a test change only, and the tester made it in entry 23. That left nothing to do in the code, so I changed no code. I ran `make check` in the foreground on the committed state and it ended `check: green`: `test: green (70.7 s)`, coverage 99.50 %. The tests of criteria 1 to 5 pass.
+
+    What I built is unchanged since commit 934c3efa:
+    - Deleted `src/factory/entry/leftovers.py` and `src/factory/domain/leftovers.py`.
+    - `src/factory/adapters/process.py`: removed `own_identity` and `signal_every_other`, and the imports of `pwd` and `Identity`.
+    - `src/factory/adapters/agent_launch.py`: removed the six leftovers names and the `LEFTOVERS_PREFIX` import. `Starters` now has only `sudo_executable` and `login_files`.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: removed the `leftovers` keyword, the property, `_end_leftovers`, the leftovers fault after a call and their imports.
+    - `src/factory/adapters/make_commands.py`: removed `CommandUser.leftovers` and `_end_leftovers`. `_start` no longer takes `merge_stderr` and always passes `True`.
+    - `src/factory/entry/wiring.py`: removed `LEFTOVERS_MODULE` and `leftovers_command`, from `__all__` too, and the `end_leftovers` keyword of `build_boundaries`.
+
+    Main choice: a pure removal, with nothing put in the program's place. In `_start` I set `merge_stderr=True` explicitly, because `ProcessRequest` defaults to `False`. I rejected keeping a keyword that only one caller still varied.
+
+    Refactor: no code changed in this round, so there was nothing new to refactor.
+
+    Noticed but not touched:
+    - `tests/leftovers_runtime_support.py` stays; S0005 deletes it.
+    - `make duplicates` (a record, not a check) reported 4 findings as gone in entry 17. `security/duplicates-baseline.txt` is unchanged.
+
+    The journal did not change what the task means, so the Description stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 34 known, 4 gone
+26. factory: started review as self.
+27. reviewer: no findings
+
+    Round 1 review. I read the whole diff `main...HEAD -- . ':!factory'` again, and the work item with it.
+    - Finding 1 of entry 19 is fixed. `tests/adapters/test_one_call_as_another_user.py` now imports `BUDGET_STOP`, `REPLY as CLAUDE_REPLY` (from `adapters.test_claude_runtime_login`) and `_request` (from `adapters.test_claude_runtime_os_user`). The two copies are gone. The row ids and the expected `sudo` counts did not change.
+    - Criteria 1 to 5: each has one parametrized test (one single test for 5), and each test checks what its criterion says. Criterion 4 tests both sides of its limit: 30 s against 29.9 s, and with against without `in_container`. Its session kill is bounded by `ROOMY_BOUND_SECONDS`. Entry 25 records `check: green`.
+    - Code under `src/`: it matches the Interface. A grep of `src/` for "leftover" finds only the everyday word in `application/recovery.py:97` and `handlers/recording.py:70`. `line_starting` and both `_request_of` still have callers, so the removal left no dead code. No new suppression marker. Layers unchanged.
+    - `make duplicates` (entry 17, 7 new): the two claude/opencode "new" findings are the `CallEnd` block that was already there. It is now keyed by another first line because the baseline's lines 34 and 35, keyed by the removed leftovers lines, went with the code. This story adds no duplicate code. The other five are in modules this diff does not touch.
+    - The Description and the docs criterion still match what was built. `tests/leftovers_runtime_support.py` stays because `test_make_commands_user.py` still imports `SUDO_LINE` from it, as the Interface allows. S0005 deletes it.
+
+    Earlier tests (status other than `A`):
+    - tests/adapters/container_runtime_support.py: Interface leave (decision 19 of feature.md).
+    - tests/adapters/test_agent_launch_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/adapters/test_claude_runtime_container.py: Interface leave (decision 19). The test keeps its name.
+    - tests/adapters/test_claude_runtime_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/adapters/test_make_commands_user.py: Interface leave (decision 19).
+    - tests/adapters/test_opencode_runtime_container.py: Interface leave (decision 19). The test keeps its name.
+    - tests/adapters/test_opencode_runtime_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/adapters/test_process_table.py: Interface leave (decision 19).
+    - tests/adapters/test_runtimes_without_wrapper.py: the human's answer, journal entry 6.
+    - tests/domain/test_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/entry/test_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/entry/test_wiring.py: Interface leave (decision 19).
+    - tests/entry/test_wiring_constants.py: Interface leave (decision 19).
+    - tests/entry/test_wiring_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/entry/test_wiring_project_command_user.py: Interface leave (decision 19).
+    - tests/entry/test_wiring_stage_environment.py: Interface leave (decision 19).
+    - tests/leftovers_support.py: Interface leave (decision 19).
+    - tests/test_process_search.py: Interface leave (decision 19).
+    - tests/test_wrapper_search.py: Interface leave (decision 19).
+28. factory: started docs as self.
+29. documenter: Documented the removal of the leftovers program. The code matches the Interface and the docs criterion, so I have no findings. Only documents changed, so I did not run `make check`; the factory runs it after this stage. `make documents` printed `documents ok`.
+
+    Files changed:
+    - `docs/project-guide/agents.md`: removed `leftovers` from both runtime signatures. In *The shared launch module*, dropped the make class's `leftovers_launch` and `leftovers_fault`, and the `Starters.leftovers` bullet became one line saying `Starters` holds `sudo_executable` and `login_files`. In *Calls in a container*, the "no leftovers program" bullet now says the container ends with its call and podman's `--timeout` ends it whole. The section *Ending the agent's leftover processes* is now one paragraph: the container ends with the call, the program went with F0044-S0003, and the kill at the time limit stays. The `factory.entry.leftovers` mention in the fresh-home tests line is gone.
+    - `docs/project-guide/write-guard.md`: removed the section *The end of a run's processes*. Added one line to *Replaced in v1.2*.
+    - `docs/project-guide/processes-and-checks.md`:
+      - *Running as another user*: dropped `CommandUser.leftovers` and the "leftovers" bullet, and added a "Nothing follows" bullet. The tests line now points to `tests/adapters/test_one_call_as_another_user.py`.
+      - Wiring paragraph: no leftovers program in the `CommandUser`.
+      - Exit-status paragraph and the known limits of *Starting a process*: no leftovers program ends a holder; in a container it ends with the container.
+      - The process-table paragraph: `own_identity` and `signal_every_other` are gone; the session kill still uses the reader.
+      - The process-search paragraph: dropped the `PLR0913` marker of the removed entry module.
+    - `docs/project-guide/watching.md`, *Boundaries*: removed the `leftovers_command` paragraph. `build_boundaries` no longer has `end_leftovers`.
+    - `docs/project-guide/stage-environment.md`: the environment table, the sentence after it and the *Calls in a container* pointer no longer mention a leftovers program or `end_leftovers`.
+    - `docs/project-guide/README.md`: the line for `write-guard.md` no longer names the program or the removed modules. The line for `leftovers_support.py` names only `process_entry`.
+    - `docs/operator-guide.md`:
+      - Removed the paragraph *The end of the agent's processes*.
+      - Removed the verification row and the paragraph *The agent's processes after a run*, which promised that the program ended them.
+      - Dropped the leftovers sentences from *A `time_limit` under `sudo`*, from the check row and from *The project commands run as `agent`*.
+      - The operator's warning that a shell opened as `agent` is ended by the next call went with it, since that is no longer true.
+    - `docs/decisions.md`: each of the two entries named in the criterion got the closing line "Replaced by the end of the call's container, v1.2 F0044-S0003."
+
+    Cross-read and found current: `README.md`, `docs/project-guide/{costs,git-and-hosting,stages,work-items}.md`. I read the rest of `docs/operator-guide.md` and the remaining files for the removed names. No other mention remained.
+
+    Left alone:
+    - The line for `leftovers_runtime_support.py` in `docs/project-guide/README.md` stays. The module stays, because `tests/adapters/test_make_commands_user.py` imports `SUDO_LINE` from it, and the criterion removes the line only if the module goes. The line still lists the stand-in leftovers program; that is stale only once S0005 deletes the module.
+    - `docs/decisions.md` still says, in the F0040-S0002 entry (the `CommandUser` with "the leftovers program") and in the F0040-S0005 entry's "Left" line ("the leftovers program after the call ends it"), that the program exists. These entries are history, and the criterion names only the two entries I changed. The human may want closing lines on them too.
+    - `docs/decisions.md` line 690 (F0039-S0007) also names the leftovers program's start, as history.
+
+    `check`: check: green (not run again: passed on tree 3549819fbb54 at 2026-10-25T13:36:27Z)
+    `secrets`: secrets: green (3.6 s)
+    `documents`: documents ok
+30. factory: started smoke-test as self.
+31. smoke-tester: Smoke test run from the repository root. I ran both commands of `## Smoke test` in order, exactly as written, and fixed nothing.
+
+    Command 1 (`for module in factory.entry.leftovers factory.domain.leftovers; do uv run python -c "import $module" 2>/dev/null && echo "$module present" || echo "$module gone"; done`):
+
+    ```
+    factory.entry.leftovers gone
+    factory.domain.leftovers gone
+    ```
+
+    Command 2 (`uv run python -c 'from factory.adapters import process, agent_launch; from factory.entry import wiring; print([...])'`):
+
+    ```
+    Bytecode compiled 4164 files in 92ms
+    []
+    ```
+
+    Expect: the three lines `factory.entry.leftovers gone`, `factory.domain.leftovers gone` and `[]`. **Met.** The extra line `Bytecode compiled 4164 files in 92ms` is uv's own message on stderr, printed while it set up the environment. It is not output of the program under test, so I do not count it as a finding.
+
+    Check against `## Acceptance criteria`: the smoke test contradicts none of them.
+    - It confirms criterion 1: both modules are gone.
+    - It confirms part of criterion 2: `own_identity`, `signal_every_other`, `leftovers_launch` and `leftovers_command` are not attributes.
+    - Beyond the commands, I checked by hand that `src/factory/entry/leftovers.py` and `src/factory/domain/leftovers.py` no longer exist. A search of `src/factory` finds neither `factory.entry.leftovers` nor `cannot end the agent's processes` (criterion 5).
+    - The smoke test does not exercise criteria 3, 4 and 6 (`make check`). The tests and the factory's checks cover those.
+
+    Findings: none.

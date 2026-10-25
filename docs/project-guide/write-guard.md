@@ -63,34 +63,6 @@ In the container environment the take applies the same two rules the other way r
 
 Tests: `tests/application/test_undo.py`; a fake agent writes into `boundaries.checkout` between `ClaimService` and `undo`.
 
-## The end of a run's processes
-
-A process that an agent run starts in a new session (`setsid`) outlives the run: neither the end of the call nor the time limit's kill of the run's process group reaches it, and it goes on writing under the run's rules while later stages run, are undone and are checked. `python -I -m factory.entry.leftovers --user <name>` ends such processes. It runs as the agent's user, through the one `sudo` rule: both agent runtimes start `sudo -n -u <user> -- <python> -I -m factory.entry.leftovers --user <user>` after every call of a run that has an operating-system user other than the factory's own, from the folder `/`, with an empty environment and a 30-second limit. It comes after the call and before the removal of the run's temporary folder, inside `AgentRuntime.run`, so before the seal's check, the undo and the checks. When it fails or does not end in time, the run raises `AgentRuntimeError` (`cannot end the agent's processes: <line>`) unless the call's own refusal stands. See `agents.md`, *Ending the agent's leftover processes*, and the operator guide, *The agent runs as a second user*.
-
-`main(argv=None, *, stderr=None, identity=None, kill=None, processes=None, sleep=None) -> int` is in `factory.entry.leftovers` (`None` is `sys.argv[1:]`, `sys.stderr`, and `own_identity`, `signal_every_other` and `read_process_table` of `factory.adapters.process`, and `time.sleep`; the four calls are injected by tests). It writes nothing to standard output. Every fault is one line on standard error, `factory-leftovers: <fault>`, and status 1; no later step runs. The pure rules are in `factory.domain.leftovers`.
-
-### The three steps
-
-1. The arguments are exactly `--user` and one non-empty name. Anything else is `factory-leftovers: usage: python -m factory.entry.leftovers --user <name>`, before the identity is read.
-2. `leftovers_refusal(identity(), name)`, before the first signal. Two refusals: `refuses to run as root`, and `runs as <user>, not <name>` (case-sensitive). Root is refused whatever the name: `kill(-1)` as root would end every process of the container, the factory included. The second guards the same mistake from the other side: a stand-in `sudo` that does not switch users leaves the program running as the factory's user, and it then refuses instead of ending the factory's own processes.
-3. The rounds, 1 to 50 (`LEFTOVER_ROUNDS`): `kill(SIGKILL)`, then read the process table and take `leftover_pids`. None left ends the program with status 0 and no output. Otherwise, unless it was the last round, it pauses 0.1 s (`LEFTOVER_PAUSE_SECONDS`), so 50 rounds have 49 pauses. Each round signals again, since a process may have been started between the signal and the read. After round 50 with processes left: `factory-leftovers: <n> processes left after 50 rounds: <ids, joined by ", ">`, the ids of the last round.
-
-The faults of step 3: an `OSError` from the signal is `cannot signal the processes: <error>`; an `OSError`, or a `ValueError` for a status line that cannot be parsed, from the process table is `cannot list the processes: <error>`.
-
-### What counts as left
-
-`kill(-1)` sends the signal to every process the user may signal and spares the calling process, so the program does not end itself. `leftover_pids(entries, identity)` returns the ids, ascending and each once, of the entries whose `uid` is the identity's, whose `pid` is not the program's own and whose `ended` is false: zombies and dead entries are not counted, since SIGKILL cannot do more to them. `Identity` (uid, user name, own pid) comes from `own_identity()`.
-
-The table is read by `read_process_table(proc)` in `factory.adapters.process`, the reader that *Killing a session* in `processes-and-checks.md` describes, with the model `ProcessEntry` of `factory.domain.sessions`: `ended` comes from `/proc/<pid>/stat`, `uid` from the owner of the folder `/proc/<pid>`. It is the folder's owner and not a file's because a process that makes itself not dumpable (`prctl(PR_SET_DUMPABLE, 0)`) gets root-owned files under `/proc/<pid>` while its folder keeps its user; a file's owner would hide exactly the process that most needs ending. An entry that vanishes while it is read is left out. The program has no second reading of `/proc`.
-
-The program never waits with `kill -0 -1`: on Linux, a target the caller may not signal still counts as found, so the call would report processes of other users as left and never settle.
-
-### Tests
-
-`tests/domain/test_leftovers.py` (`leftover_pids`, `leftovers_refusal`, the limits of `Identity` and of `ProcessEntry.uid`), `tests/adapters/test_process_table.py` (`read_process_table` on fake tables of folders under `tmp_path`, and `own_identity`) and `tests/entry/test_leftovers.py` (`main` in-process with every call injected; one test runs the real module in a child process with `-I -B`, naming a user it does not run as, so it refuses before its first signal). `-B` matters: under the tests' umask `022` the bytecode the child would write into `src/factory` makes folders the removal of ignored paths cannot remove. `tests/leftovers_support.py` holds the shared `AGENT` and `ROOT` identities and `process_entry`.
-
-No test calls `signal_every_other`, and no test or smoke test runs the program as the user it names: it would end every process of that user, which in an agent's run is the run itself, and under `make check` the factory.
-
 ## Replaced in v1.2
 
 The kernel's write guard went with F0044-S0002; the write paths are kept by other means.
@@ -98,3 +70,4 @@ The kernel's write guard went with F0044-S0002; the write paths are kept by othe
 - *The kernel's targets* (`write_targets`, `confinement_of`, the tool paths): replaced by the dataset's rollback and the take, which copies only the changed paths the role may write.
 - *The kernel's write guard* (`factory.adapters.landlock`): replaced by the dataset's rollback and the take.
 - *The start wrapper* (`factory-confine`, `factory.entry.confine`, `replace_process`): replaced by the dataset's rollback and the take; an agent call starts without a wrapper.
+- *The end of a run's processes* (`factory.entry.leftovers`, `factory.domain.leftovers`, `own_identity`, `signal_every_other`): replaced by the end of the call's container, which podman's time limit ends whole (F0044-S0003); the kill of a call at its time limit stays.

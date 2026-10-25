@@ -1,12 +1,11 @@
-"""The process table read from folders of a fake `/proc`, and the identity of the own process."""
+"""The process table read from folders of a fake `/proc`."""
 
 import os
-import pwd
 from pathlib import Path
 
 import pytest
 
-from factory.adapters.process import own_identity, read_process_table
+from factory.adapters.process import read_process_table
 from factory.domain.sessions import ProcessEntry
 from leftovers_support import process_entry
 
@@ -48,11 +47,3 @@ def test_process_table_is_read_from_the_folders(
 def test_missing_process_table_raises(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError):
         read_process_table(tmp_path / "missing")
-
-
-def test_own_identity_is_the_running_process() -> None:
-    identity = own_identity()
-
-    assert identity.uid == os.getuid()
-    assert identity.user == pwd.getpwuid(os.getuid()).pw_name
-    assert identity.pid == os.getpid()

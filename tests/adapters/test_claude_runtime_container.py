@@ -13,7 +13,6 @@ from adapters.container_runtime_support import (
     files_in,
     read_only,
     run_folders,
-    write_record_program,
 )
 from adapters.test_agent_launch_login import API_LOGIN
 from adapters.test_claude_runtime_login import BUDGET_STOP, LOGIN, REPLY
@@ -290,19 +289,16 @@ def test_without_containers_the_call_runs_in_the_request_s_working_directory(
 def test_a_call_in_a_container_starts_no_leftovers_program_and_no_temporary_folder(
     tmp_path: Path, fake: FakeContainerRuns, recorder: Recorder
 ) -> None:
-    program, record = write_record_program(tmp_path / "leftovers-bin")
     before = run_folders()
     executable = write_stand_in(tmp_path / "bin", [Step(stdout=REPLY)])
     runtime = ClaudeCodeRuntime(
         str(executable),
         tmp_path / "state",
         containers=fake,
-        leftovers=[str(program)],
     )
 
     result = runtime.run(_request(tmp_path))
 
     assert result.end_reason == "completed"
-    assert not record.exists()
     assert len(recorder.requests) == 1
     assert run_folders() <= before

@@ -16,7 +16,6 @@ from adapters.container_runtime_support import (
     make_state,
     read_only,
     run_folders,
-    write_record_program,
 )
 from adapters.opencode_stand_in import (
     MODELS,
@@ -267,7 +266,6 @@ def test_a_call_in_a_container_starts_no_leftovers_program_and_no_temporary_fold
 ) -> None:
     recorder = Recorder()
     monkeypatch.setattr(opencode_runtime, "run_process", recorder)
-    program, record = write_record_program(tmp_path / "leftovers-bin")
     before = run_folders()
     executable = write_opencode(tmp_path / "bin", [REPLY])
     runtime = OpencodeRuntime(
@@ -275,12 +273,10 @@ def test_a_call_in_a_container_starts_no_leftovers_program_and_no_temporary_fold
         make_state(tmp_path),
         models=MODELS,
         containers=fake,
-        leftovers=[str(program)],
     )
 
     result = runtime.run(container_request(tmp_path))
 
     assert result.end_reason == "completed"
-    assert not record.exists()
     assert recorder.requests == []
     assert run_folders() <= before

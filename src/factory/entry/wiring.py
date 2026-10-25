@@ -119,7 +119,6 @@ __all__ = [
     "git_options",
     "handler_factory",
     "health_store",
-    "leftovers_command",
     "machine_extras",
     "machine_log",
     "production_environment",
@@ -134,7 +133,6 @@ _SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
 
 CREDENTIAL_HELPER = "/usr/local/bin/git-credential-factory"
 
-LEFTOVERS_MODULE = "factory.entry.leftovers"
 FRESH_HOME_MODULE = "factory.entry.fresh_home"
 # uv's package cache, which every run and command of the agent's user writes and reads.
 UV_CACHE_FOLDER = ".cache/uv"
@@ -260,14 +258,11 @@ def build_boundaries(
     *,
     hosting: HostingService | None = None,
     which: Callable[[str], str | None] = shutil.which,
-    end_leftovers: bool = True,
 ) -> Boundaries:
     """Return the boundaries of the instance of `settings`; `hosting` replaces PyGithub.
 
     An inline instance's agent runtime starts the `sudo` that `which` finds, the one the
-    preflight checks. With `end_leftovers`, every call as the agent's user is followed by the
-    program that ends its processes. A container instance reads neither: its container is the
-    boundary.
+    preflight checks. A container instance does not read it: its container is the boundary.
     """
     if hosting is None:
         hosting = pygithub_service(repository_name(settings.repository_url), token)
@@ -278,13 +273,7 @@ def build_boundaries(
     if settings.stage_environment == "container":
         environment = _container_environment(settings, git)
     else:
-        environment = _inline_environment(
-            settings,
-            git,
-            log,
-            which=which,
-            end_leftovers=end_leftovers,
-        )
+        environment = _inline_environment(settings, git, log, which=which)
     return Boundaries(
         git=git,
         hosting=hosting,
@@ -337,19 +326,13 @@ def _inline_environment(
     log: FactoryLog,
     *,
     which: Callable[[str], str | None],
-    end_leftovers: bool,
 ) -> _StageEnvironmentBoundaries:
     sudo_executable = which("sudo") or SUDO_EXECUTABLE
-    leftovers = leftovers_command() if end_leftovers else None
     agent_home = agent_home_of(settings, sudo_executable)
     return _StageEnvironmentBoundaries(
-        agent_runtime=_agent_runtime(
-            settings,
-            sudo_executable=sudo_executable,
-            leftovers=leftovers,
-        ),
+        agent_runtime=_agent_runtime(settings, sudo_executable=sudo_executable),
         project_commands=_project_commands(
-            settings, git, log, sudo_executable, leftovers, agent_home=agent_home
+            settings, git, log, sudo_executable, agent_home=agent_home
         ),
         agent_home=agent_home,
     )
@@ -392,11 +375,6 @@ def _container_adapters(settings: InstanceSettings) -> _ContainerAdapters:
     )
 
 
-def leftovers_command() -> list[str]:
-    """The words that start the leftovers program with this interpreter, isolated."""
-    return [sys.executable, "-I", "-m", LEFTOVERS_MODULE]
-
-
 def fresh_home_command() -> list[str]:
     """The words that start the fresh-home program with this interpreter, isolated."""
     # `-I` ignores PYTHONDONTWRITEBYTECODE; `-B` keeps the agent's user from writing
@@ -431,7 +409,6 @@ def _project_commands(
     git: GitCli,
     log: FactoryLog,
     sudo_executable: str,
-    leftovers: list[str] | None,
     *,
     agent_home: SudoAgentHome | None,
 ) -> ProjectCommands:
@@ -443,7 +420,6 @@ def _project_commands(
         os_user=settings.agent_user,
         sudo_executable=sudo_executable,
         environment=project_command_environment(settings, production_environment()),
-        leftovers=leftovers,
     )
     return SealedProjectCommands(
         MakeProjectCommands(settings.checkout, user=user), git, log, agent_home
@@ -454,7 +430,6 @@ def _agent_runtime(
     settings: InstanceSettings,
     *,
     sudo_executable: str = SUDO_EXECUTABLE,
-    leftovers: list[str] | None = None,
     containers: PodmanRuns | None = None,
 ) -> AgentRuntime:
     runs = settings.state_directory / RUNS_DIRECTORY_NAME
@@ -467,7 +442,6 @@ def _agent_runtime(
             sudo_executable=sudo_executable,
             api_login_file=settings.api_login_file,
             provider_limit=settings.provider_limit,
-            leftovers=leftovers,
             containers=containers,
         )
     return ClaudeCodeRuntime(
@@ -477,7 +451,6 @@ def _agent_runtime(
         login_file=settings.claude_login_file,
         api_login_file=settings.api_login_file,
         provider_limit=settings.provider_limit,
-        leftovers=leftovers,
         containers=containers,
     )
 

@@ -1,6 +1,5 @@
 """What the runtime tests in a container share: the played dataset, its environment, a record."""
 
-import sys
 import tempfile
 from datetime import timedelta
 from pathlib import Path
@@ -29,21 +28,6 @@ def container_environment(stand_in_bin: Path) -> dict[str, str]:
 def read_only(path: Path) -> Mount:
     """The mount of `path` read-only at its own path."""
     return Mount(source=path, target=str(path), read_only=True)
-
-
-def write_record_program(folder: Path) -> tuple[Path, Path]:
-    """A program that writes a record file when started; its path and the record's path."""
-    folder.mkdir(parents=True)
-    record = folder / "started"
-    program = folder / "leftovers"
-    program.write_text(
-        f"#!{sys.executable} -B\n"
-        "from pathlib import Path\n"
-        f"Path({str(record)!r}).write_text('started', encoding='utf-8')\n",
-        encoding="utf-8",
-    )
-    program.chmod(0o755)
-    return program, record
 
 
 def files_in(folder: Path) -> list[Path]:

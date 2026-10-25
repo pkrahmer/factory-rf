@@ -271,7 +271,7 @@ The suite runs it on `FakeSnapshots(workspace, base)` and `FakeContainerRuns(wor
 
 ## The agent's container
 
-Step 5 of the cycle belongs to the agent runtimes, not to `ContainerEnvironment`: a runtime built with a `ContainerRuns` starts each call through `ContainerRuns.launch` (`container_launch` in `factory.adapters.agent_launch`) in a container of the stage image, with `/work` mounted, the login and instructions files mounted read-only at their own paths, the request's allow-list environment as `--env` entries and `/work/checkout` as the working directory, and it reads the kill at `--timeout` as `time_limit`. What it gets and what it lacks (`sudo`, leftovers) is in `agents.md`, *Calls in a container*. `build_boundaries` gives the runtime of `FACTORY_AGENT_RUNTIME` its `PodmanRuns` for a `container` instance (*The settings and the wiring*).
+Step 5 of the cycle belongs to the agent runtimes, not to `ContainerEnvironment`: a runtime built with a `ContainerRuns` starts each call through `ContainerRuns.launch` (`container_launch` in `factory.adapters.agent_launch`) in a container of the stage image, with `/work` mounted, the login and instructions files mounted read-only at their own paths, the request's allow-list environment as `--env` entries and `/work/checkout` as the working directory, and it reads the kill at `--timeout` as `time_limit`. What it gets and what it lacks (`sudo`) is in `agents.md`, *Calls in a container*. `build_boundaries` gives the runtime of `FACTORY_AGENT_RUNTIME` its `PodmanRuns` for a `container` instance (*The settings and the wiring*).
 
 ## The take
 
@@ -331,11 +331,11 @@ One function, `stage_environment_fault` (`factory.domain.settings`), holds that 
 | | `inline` | `container` |
 |---|---|---|
 | `snapshots`, `containers` | `None` | `ZfsSnapshots(dataset, workspace, executable=zfs_executable)` and `PodmanRuns(podman_executable, stage_image, workspace)` |
-| `agent_runtime` | as today: `sudo` when there is an agent user, the leftovers program | the runtime of `FACTORY_AGENT_RUNTIME` given `containers`, with no leftovers program |
+| `agent_runtime` | as today: `sudo` when there is an agent user | the runtime of `FACTORY_AGENT_RUNTIME` given `containers` |
 | `project_commands` | `RecordingProjectCommands` around `SealedProjectCommands` | `RecordingProjectCommands` around `ContainerMakeCommands(snapshots, containers, git, checkout=settings.checkout)`, no `SealedProjectCommands` |
 | `agent_home` | the fresh-home reset, when there is an agent user | `None` |
 
-The arguments `which` and `end_leftovers` are read for `inline` only; a `container` build asks `which` for nothing. It runs no tool: `zfs` and `podman` start only when a stage uses them. `RecordingProjectCommands.inner` is the implementation it records, which the wiring's tests read.
+The argument `which` is read for `inline` only; a `container` build asks `which` for nothing. It runs no tool: `zfs` and `podman` start only when a stage uses them. `RecordingProjectCommands.inner` is the implementation it records, which the wiring's tests read.
 
 `agent_run_environment(settings, base)` copies `base` and sets `HOME`: for `container` to `/work/home` (`WORK_HOME_ENVIRONMENT`), on the dataset; for `inline` to the agent user's home when there is one, else the base's. The preflight's items for a container instance are in *The preflight* below. Tests: `tests/domain/test_settings_stage_environment.py`, `tests/entry/test_wiring_stage_environment.py` and `tests/entry/test_wiring_stage_environment_home.py`.
 

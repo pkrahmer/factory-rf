@@ -15,7 +15,6 @@ from factory.application.sealed_runs import SealedProjectCommands
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import (
     build_boundaries,
-    leftovers_command,
     production_environment,
     project_command_environment,
 )
@@ -57,22 +56,19 @@ def test_the_project_command_environment_is_the_agent_runs_without_bytecode_and_
 
 
 @pytest.mark.parametrize(
-    ("agent_user", "end_leftovers", "which", "sudo", "leftovers"),
+    ("agent_user", "which", "sudo"),
     [
-        pytest.param("agent", True, every_tool, "/usr/bin/sudo", True, id="agent-user"),
-        pytest.param("agent", False, every_tool, "/usr/bin/sudo", False, id="no-leftovers"),
-        pytest.param("agent", True, _no_tool, SUDO_EXECUTABLE, True, id="no-sudo-found"),
-        pytest.param(None, True, every_tool, None, True, id="no-agent-user"),
+        pytest.param("agent", every_tool, "/usr/bin/sudo", id="agent-user"),
+        pytest.param("agent", _no_tool, SUDO_EXECUTABLE, id="no-sudo-found"),
+        pytest.param(None, every_tool, None, id="no-agent-user"),
     ],
 )
 def test_the_built_project_commands_run_as_the_agent_user_inside_a_seal(
     local_settings: InstanceSettings,
     *,
     agent_user: str | None,
-    end_leftovers: bool,
     which: Callable[[str], str | None],
     sudo: str | None,
-    leftovers: bool,
 ) -> None:
     settings = local_settings.model_copy(update={"agent_user": agent_user})
 
@@ -81,7 +77,6 @@ def test_the_built_project_commands_run_as_the_agent_user_inside_a_seal(
         CREDENTIAL,
         hosting=FakeHostingService(),
         which=which,
-        end_leftovers=end_leftovers,
     )
 
     recording = boundaries.project_commands
@@ -101,5 +96,4 @@ def test_the_built_project_commands_run_as_the_agent_user_inside_a_seal(
         os_user="agent",
         sudo_executable=sudo,
         environment=project_command_environment(settings, production_environment()),
-        leftovers=leftovers_command() if leftovers else None,
     )
