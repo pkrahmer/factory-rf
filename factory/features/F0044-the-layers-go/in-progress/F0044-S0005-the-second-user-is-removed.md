@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T15:14:21.461492Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-10-25T15:14:21.461492Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T15:17:46.830482Z'
+  stage: docs
+  run: 370436d5436b4120b5978a63357afa41
 ---
 
 # The second user is removed
@@ -553,3 +555,43 @@ Expect: three lines: `[] False`; `False False`; `3 False`
 
     Open, outside the diff and so not under review: the comment at src/factory/adapters/process.py:90 still says the agent's own `timeout` ends root's `sudo`.
 28. factory: started docs as self.
+29. documenter: Docs, round 1. I read the story, the Interface and the journal (entry 27 is the review with no findings). I wrote the documentation criterion 11 asks for and cross-read the rest. Only documents changed, so I did not run `make check` (the factory runs it after me). `make documents` prints `documents ok`. I ran no examples, because I wrote none. The new operator-guide text names the `podman run` line as it already stood.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - The section *The agent runs as a second user* is gone, with **The one `sudo` rule.**, **The preflight item `agent-user`.**, the table *Checks on a running instance* and **A `time_limit` under `sudo`.**
+      - *The agent runtime* gets one paragraph. A `container` instance runs every call in a throwaway container as the host's `factory` (`--userns=keep-id`), and an `inline` one as the factory's own user.
+      - **The agent's login token.** and **The agent's API key.** stay in *The agent runtime*, without their sentences on the agent user, `sudo`, `chown 1001:1002` and `/home/agent`.
+      - I kept the dataset-home and take paragraphs, and moved *The agent in a container* below the login paragraphs. Its sentence about refusing an operating-system user is gone.
+      - *Configuration*: the row `FACTORY_AGENT_USER` goes, as do its place in the fault order and its fault in the `container` paragraph.
+      - *The preflight's items*: the rows `agent-user` and `tool:sudo` go and the counts follow (an `inline` instance has eleven items at most, twelve at most overall). The `<agent user>` wording in *The probe of the agent run* and its `sudo`-refusal sentences are replaced by `the factory user` or removed.
+      - `agent-environment` and the `HOME` paragraph name the factory user's home.
+      - The paragraph **The project commands run as `agent`.** is one sentence: an `inline` command runs as the factory's user and a `container` one in a check container.
+    - `docs/project-guide/agents.md`:
+      - The request has no `os_user`, and the `sudo_executable` parameters, the container refusal of an `os_user` and the `0640` run files are gone.
+      - The *shared launch module* lists `launch`, `run_launch`, `killed_at_limit`, `Starters(login_files)`, `call_refusal` and `read_call_end` as the Interface gives them.
+      - The *call as another user* paragraph is replaced by one on a call on the host. It also covers the end of an opencode call in a container.
+    - `docs/project-guide/processes-and-checks.md`: *Running as another user* is replaced by one line on what replaced it. The wiring paragraph under *Sealed project commands* now says no caller builds `SealedProjectCommands` until S0006 removes `sealed_runs.py`. References to the deleted tests and `sudo` kill text are fixed.
+    - `docs/project-guide/stage-environment.md`: the table rows `agent_runtime` and `project_commands`, the items left out for `container` (no `agent-user`, no `tool:sudo`), the settings fault list, the `which` sentence and the `HOME` sentence.
+    - `docs/project-guide/stages.md`: `compose` carries no `os_user`.
+    - `docs/project-guide/watching.md`:
+      - `build_boundaries(settings, token, *, hosting=None)` and `machine_extras(boundaries, settings, environment)` lose `which`.
+      - The `inline` project commands are `MakeProjectCommands`.
+      - `git_environment` holds seven entries, `GIT_CONFIG_COUNT=3`, with no `core.sharedRepository`.
+      - The `inline` list of preflight items dropped `agent-user` and `tool:sudo`. I also dropped `confinement`, which the code no longer has.
+    - `docs/project-guide/README.md`: the lines of `sudo_support.py` and `leftovers_runtime_support.py` and the `probe_settings` fixture go. I added the `versioned_podman` and `listing_zfs` fixtures the tester moved into `tests/conftest.py`.
+    - `docs/decisions.md`: the five closing lines the criterion names, worded as it gives them.
+
+    Cross-read and found current: `README.md` (criterion: none), `docs/project-guide/git-and-hosting.md` (git's isolation text names no shared mode) and the rest of `docs/decisions.md`.
+
+    Stale text I saw and did not touch:
+    1. `docs/operator-guide.md`, the image sections (*Users and directories*, the volumes and mount paragraph, the `/home/agent` rows, *Checks on a running instance* of the hosting-service token, the pins of `sudo` in `image/Dockerfile`): they describe the long-lived image of `image/Dockerfile`, which this story does not change. They still say `agent`, uid 1001, the group `factory-work` and `.git` files `0640`. The story's docs criterion does not name them, so a later story that changes the image should rewrite them.
+    2. `FACTORY_CLAUDE_HOME` (default `/home/agent/.claude`) and the image's `FACTORY_CLAUDE_LOGIN_FILE` and `FACTORY_API_LOGIN_FILE` rows still name `/home/agent/...`. That is the image's setting and is true until the image changes.
+    3. `src/factory/adapters/process.py:90`: the comment still says the agent's own `timeout` ends root's `sudo` (the reviewer noted this too). It is a comment in code, so it is the coder's.
+    4. The review's notes: `CONTAINER` is copied in `tests/domain/test_settings_agent_user_unread.py`, and two test names still mention an agent user. Both are test matters, not mine.
+
+    No findings for the coder: the code matches the Interface everywhere I compared it with the docs (`build_boundaries`, `machine_extras`, the runtime constructors, `git_environment`).
+
+    `check`: check: green (not run again: passed on tree e0f497ac495f at 2026-10-25T15:10:44Z)
+    `secrets`: secrets: green (4.2 s)
+    `documents`: documents ok
