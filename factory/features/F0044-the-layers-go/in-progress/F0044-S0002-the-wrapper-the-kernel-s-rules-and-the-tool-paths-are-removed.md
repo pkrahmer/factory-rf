@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 445
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T12:27:43.093855Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-25T12:27:43.093855Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T12:27:59.382204Z'
+  stage: intake
+  run: d73a35f803884a909a94dbd615be2b97
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -94,3 +96,9 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: concrete modules and signatures are named. The removals are by path and name, and the new `GuardSettings` is spelled out. `RECORDS_CONTRACT` is "2.0". The retained `WritePathService.at` is given with its return value. The test changes are listed per test with the leave (decision 18, widened by decision 31a).
+   Criteria: each can be tested by one function or one parametrized test. The behaviours the Interface states have a criterion. Removed modules are criterion 1 and removed names criterion 2. The unknown-key refusal is criterion 3, which has both the accepted `PIPELINE_YAML` and the refused `tool_paths` line. The `at` return value and the take are criterion 4, the contract version and schemas criterion 5, the template and `factory/pipeline.yml` criterion 6, and the markers and routes criterion 7. The one rule with a failing side, the unknown key, has a criterion for that side.
+   Smoke test: both commands are runnable. They run no pytest, so the `-q` check does not apply. `grep -c ... || true` prints `0` and exits cleanly. Each Expect line gives exact output that can be compared.
+   Architecture: the removals follow the layering in CLAUDE.md. Only `adapters/process.py` keeps a process call (one `Popen`). `WritePathService.at` stays in `application`, and the models stay in `domain`. Nothing is added.
+   Scope: the story matches feature.md's S0002 line. The refusal rule, the take and the other layers' stories are untouched. Changes to `factory/pipeline.yml` and the demo's definition are the human's change 1, and the docs criterion lists the documents it changes. No finding from the format check.
