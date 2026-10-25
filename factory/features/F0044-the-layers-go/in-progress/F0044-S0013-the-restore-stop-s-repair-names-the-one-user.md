@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 457
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T21:09:48.852151Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-25T21:09:48.852151Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T21:10:06.469080Z'
+  stage: intake
+  run: 48eca49b303c4235b3161d4dd60c316a
 ---
 
 # The restore stop's repair names the one user
@@ -64,3 +66,9 @@ Expect: `documents ok`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: "None" is right for a documents-only story. Nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/` changes, and the one paragraph and the `watching.md` step it names exist (`docs/operator-guide.md:1070`, `docs/project-guide/watching.md:79-80`).
+   Criteria: criterion 1 (nothing outside the docs changes) and criterion 2 (`make check` green) are checkable. The docs criterion is checkable by the smoke test: no `chmod`, `g+w` or `agent run left`, and `sudo -iu factory` present. The crash-cap clause is conditional on the code. The documenter reads `factory.application.tick` and `factory.application.recovery` to decide it. The Interface states no behaviour or rule of code, so there is no failing side to test.
+   Smoke test: all three commands are runnable. The paragraph is a single line starting with `` `checkout_restore_failed` comes``, so the `awk` pattern selects it. The first command's `|| true` keeps the exit code 0 when grep counts 0. The third runs `factory.entry.check_documents`. Each `Expect:` is a concrete output (`0`, `1`, `documents ok`). No pytest command is used, so there is no `-q` issue.
+   Architecture: the change is to documents only, which the documenter owns. `README.md` and `docs/decisions.md` stay untouched, as the criterion says.
+   Scope: it stays within F0044 as acceptance story A0001 proposed it (decision 42). It does not touch the restore, the stop or the crash cap, which are in the feature's "stay as they are" list.
