@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T00:02:24.032476Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-25T00:02:24.032476Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T00:02:55.827662Z'
+  stage: smoke-test
+  run: aa88bebdb98042dfac4d76d8daec5aac
 ---
 
 # The stage image is the tools alone
@@ -387,3 +389,41 @@ Expect: `1`
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: I ran the three commands under `## Smoke test` from the repository root, as written and in order. All three met their `Expect:` lines. I changed nothing.
+
+    Command 1 (counts of `FROM`, the long-lived container's instructions and words, and the build line):
+    ```
+    1
+    0
+    0
+    1
+    ```
+    Met: four lines, `1`, `0`, `0`, `1`.
+
+    Command 2 (the pins against `image/Dockerfile`, the `COPY` and the label):
+    ```
+    same-pins
+    4
+    COPY claude /etc/factory/claude
+    1
+    ```
+    Met: four lines, `same-pins`, `4`, `COPY claude /etc/factory/claude`, `1`.
+
+    Command 3 (pytest over `tests/test_stage_image*.py`, `tests/test_image.py`, `tests/test_image_users.py` and `tests/test_opencode_image.py`, counting the summary line):
+    ```
+    1
+    ```
+    Met: `1`. When I ran it again without the `grep -c`, the last line was `131 passed in 0.19s`.
+
+    Checked against the acceptance criteria: I also read `vm/Dockerfile` in full and nothing in it contradicts a criterion.
+    - The first line is the comment with `podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> .`.
+    - There is one `ARG BASE_IMAGE=` with a `@sha256:` digest, followed by `FROM ${BASE_IMAGE}`.
+    - The three version `ARG`s are three numbers each, and `FACTORY_IMAGE=unlabelled` is used only by `LABEL factory.image="${FACTORY_IMAGE}"`.
+    - There is one `apt-get install` of exactly the seven packages, pinned as `name=version`, with `--no-install-recommends` and `rm -rf /var/lib/apt/lists/*` in the same `RUN`.
+    - There is one `pip install --no-cache-dir uv==${UV_VERSION}`, then the Claude Code `npm install` before the opencode one, both with `--global --no-audit --no-fund`.
+    - The one `COPY` has a comment directly above it and the `chmod`/`find` `RUN` directly after it. There is no `chown` anywhere.
+    - There are six `ENV` lines, one name each and no continuation, with the values the criteria name.
+
+    The smoke test does not cover criteria 8, 10 and 11 (old image files unchanged, `make check`, docs). Those belong to the review, the factory's checks and the docs stage, and nothing I saw here contradicts them.
+
+    Findings: none. Open: nothing.
