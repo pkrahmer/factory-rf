@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T16:07:43.249124Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T16:07:25.188012Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:07:43.249124Z'
   stage: tests
 ---
 
@@ -175,3 +184,4 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
 
    Everything else checked out. Criteria 1-7 and 9 are testable as written against the Interface. The edits to existing tests that the Interface lists are clear. One example: in `tests/application/test_tick.py::test_the_restore_discards_changes_and_names_them_in_one_line`, the assertion that `ignored.log` is gone becomes an assertion that it stays with its text. After your answer I will write all the tests and make the listed edits in one run.
 9. 2026-10-25 human: (a). Criterion 8 means the run-wide umask the tests set. Its test names one exemption: the fixture `umask_of` of `tests/adapters/test_calls_as_the_factory_user.py` (F0044-S0005), which sets a umask for one test and puts the previous one back. That file stays as it is.
+10. factory: started tests as self.
