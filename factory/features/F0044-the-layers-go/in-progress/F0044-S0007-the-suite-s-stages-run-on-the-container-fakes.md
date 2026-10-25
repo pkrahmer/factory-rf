@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T17:16:52.219264Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-10-25T17:16:52.219264Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-25T17:19:54.729791Z'
+  stage: doing
+  run: 2c7da41e2f754b4785b7d97b914883ec
 ---
 
 # The suite's stages run on the container fakes
@@ -395,3 +397,17 @@ Expect: two lines: `1`; `1`
     `lint`: lint: green (0.2 s)
     `test`: test: green (74.1 s)
 24. factory: started doing as self.
+25. coder: Round 1. The reviewer's three findings (entry 19) were all in test files, and the tester fixed them in entry 23. The fixes: the `noqa` markers are gone from `tests/test_suite_fixtures.py`, the `_launch` docstring in `tests/application/test_cost_image.py` is the first statement again, and the dead `WRITTEN` constants are deleted from `tests/application/test_stall_edges.py` and `tests/application/test_stall_environment.py`. I changed no code in this run. With those changes in place, `make check` is green: test: green (71.1 s), coverage 99.55 %, check: green.
+
+    Built (in an earlier doing run, already committed): `agent_working_directory(boundaries)` in `src/factory/application/take.py`. It returns `boundaries.snapshots.mount_point / MOUNTED_CHECKOUT` when the boundaries hold snapshots, and `boundaries.checkout` otherwise. `TaskComposer.compose` (`src/factory/application/task.py`) and `_probe_request` (`src/factory/application/preflight.py`) use it for the request's `working_directory`.
+
+    Main choice: one helper beside `MOUNTED_CHECKOUT`, which the take and `MakeProjectCommands` already use. I rejected writing the condition separately in the task and in the probe, because that would leave two copies of one rule.
+
+    Refactor: entry 17 already covered it, and the source diff has not changed since. Nothing to change.
+
+    What the journal changed: criterion 4's "closing paragraph" now means "the paragraph that names what was left out, before the checks' lines" (entry 8). In the world test, approval is where the walk ends, not a walked stage (entry 13). The work item is outside my write paths, so `## Description` keeps the old wording.
+
+    Noticed, not touched: the Interface names `factory.application.task.StageTask`, which does not exist. `TaskComposer` is the class that composes the request.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 34 known, 4 gone
