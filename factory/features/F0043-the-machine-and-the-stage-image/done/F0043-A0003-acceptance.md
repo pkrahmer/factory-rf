@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-25T09:36:21.079108Z'
   stage: acceptance
   run: 9e2fff5f75324ed1bab253b648306f2c
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-25T09:40:44.834495Z'
+  stage: done
 stories: [F0043-S0001, F0043-S0002, F0043-S0003, F0043-S0004, F0043-S0005, F0043-S0006, F0043-S0007, F0043-S0008, F0043-S0009]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The machine and the stage image
@@ -196,3 +201,4 @@ Human interventions: 9 questions answered (7 questions and 2 round caps), and th
    6 Decisions: feature decisions 1–18 as in A0001. Both S0008's option (a) and S0009's option (a) were settled by starting the story, not by an answer. Still open: stop by hand between stages (a, which leaves a short window between factory-watch and the stop), TimeoutStopSec beyond the lease (b), or the claim released on SIGTERM (c). Only (b) and (c) cover a reboot. Also still open: make secrets on main, Node 18, the GCP walk, the untimed first step. No earlier test was changed without a leave; S0009 changed none.
    7 Slow checks: nothing beyond make check, which is green (196.3 s, 99.20 %, 7849 tests). The slowest tests are 11.5 s time-limit tests outside the feature; the feature's slowest is 0.1 s. Disk use is unchanged (1.1 GB), and free space fell 0.1 GB (52.9 to 52.8), which the runs and caches explain.
    8 Cost: $32.41 in 97 runs and 153.8 min. S0003 is 53 % of the cost and drew 5 of the 9 human answers; its second round cap is most of the 4.6 h waited. S0009 cost $0.94 in one round with no question; 7 of its 8.7 min are make test and make check runs.
+3. factory: done (pull request merged); cost: 1 runs, 7.7 min, 26 turns, 78332 tokens in (1490125 more from cache), 21758 out, $1.36
