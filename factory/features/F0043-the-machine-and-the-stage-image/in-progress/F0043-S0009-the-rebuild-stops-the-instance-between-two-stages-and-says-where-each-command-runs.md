@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 440
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-25T09:23:21.633230Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-25T09:23:01.134721Z'
   stage: doing
   run: 6cdf127887944da1abe8ceece68d0c16
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:23:21.633230Z'
+  stage: review
 ---
 
 # The rebuild after a merge stops the instance between two stages and says where each command runs
@@ -137,3 +146,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
+8. factory: started review as vm.
