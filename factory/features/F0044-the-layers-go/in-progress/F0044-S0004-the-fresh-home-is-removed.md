@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 447
 comments_read: [6398446445]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-25T13:49:20.089009Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T13:49:02.184072Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:49:20.089009Z'
   stage: intake
 ---
 
@@ -100,3 +109,4 @@ Expect: six lines: `gone`, `gone`, `gone`, `gone`, `gone`, `False False True`
    - **Architecture:** removals only, layers respected.
    - **Scope:** inside the feature's S0004 scope.
 4. 2026-10-25 human: (a). Add the criterion before the two closing ones: one parametrized test (for example `tests/domain/test_containers_beneath_or_at.py::test_beneath_or_at_gives_the_answers_it_gave_in_agent_home`) whose rows check that `factory.domain.containers.beneath_or_at` gives the same answers as today's code (`relative == above or relative.startswith(f"{above}/")`): a path equal to `above` is `True`, a path beneath it is `True`, a sibling with the same prefix (`ab` against `a`) is `False`, an unrelated path is `False`, and the empty `above` gives what that expression gives today (`""` is `True`, `"a"` is `False`, `"/a"` is `True`). Also state in the Interface that `factory.adapters.fake_containers` no longer imports `factory.domain.agent_home`, and name the test that carries the rows. A new test needs no leave.
+5. factory: started intake as self.
