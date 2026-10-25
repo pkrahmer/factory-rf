@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-25T20:13:55.963901Z'
   stage: smoke-test
   run: ba45922f5c764ff89864d443dffdc677
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-25T20:16:19.604860Z'
+  stage: approval
 ---
 
 # The Docker path and the host's process table are removed
@@ -285,3 +290,4 @@ Expect: three lines: `0`; `helper-moved`; `gone`
     Checked against the acceptance criteria once more. Nothing in the run contradicts any criterion. Beyond the command, I checked these things myself, read-only: `git ls-files image/` lists nothing, and the `image/` directory is gone from the working tree. `git diff origin/main -M` shows `image/git-credential-factory` → `vm/git-credential-factory` as a rename at 100 % similarity, which fits criterion 1 (moved unchanged). The helper's mode is executable. The smoke test does not exercise criteria 2, 3, 5, 6 and 8 (helper behaviour, setup.sh text, kill at the limit, test-text scan, docs). I did not judge them here; they belong to the tests, the review and the docs stage. I did not run `make check` (criterion 7); the factory runs it as the stage's check.
 
     Findings: none. I fixed nothing and left no changes in the working tree.
+14. factory: done (pull request merged); cost: 6 runs, 12.7 min, 82 turns, 289540 tokens in (3871427 more from cache), 46948 out, $3.06
