@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-25T21:24:02.853496Z'
   stage: acceptance
   run: b354818f5cd54dc890e5d2c1d5e87a4f
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-25T21:25:22.184545Z'
+  stage: done
 stories: [F0044-S0001, F0044-S0002, F0044-S0003, F0044-S0004, F0044-S0005, F0044-S0006, F0044-S0007, F0044-S0008, F0044-S0009, F0044-S0010, F0044-S0011, F0044-S0012, F0044-S0013]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The layers go
@@ -209,3 +214,4 @@ A0001's report (section 6, items 1 to 20) lists decisions 1 to 41 and the answer
    6 Decisions: A0001's list stands. New since then: decision 42 (S0012 and S0013 under the standing order, with no pre-check). S0012's tester extended `search_support.modules_matching` under the standing leave, which the reviewer flagged for the human. S0012's documenter departed from criterion 6's letter in `agents.md` and `stages.md`. Still to do: remove `self` (change 10), refresh the duplicates baseline, and later the `image/secrets/` lines. Every earlier test was changed under a named leave.
    7 Slow checks: none beyond `make check`. The slowest tests are the 10 s `ROOMY_LIMIT` ones. `/work` used is unchanged at 0.5 GB; free space in the shared pool fell 0.5 GB since A0001, outside the three mounts, which the feature does not explain.
    8 Cost: 160 runs, 289.4 min, $71.37. S0012 cost $2.45 over 10 runs (one review round for a copied helper) and S0013 $0.79 over 6 runs. S0008 still stands out at $13.00. 20 questions were answered, all of cause `question`, with 1.6 h waited; none were in S0012 or S0013, and S0008 needed the human most.
+3. factory: done (pull request merged); cost: 1 runs, 5.0 min, 34 turns, 105198 tokens in (2416539 more from cache), 20282 out, $1.73
