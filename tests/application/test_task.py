@@ -231,7 +231,7 @@ def test_the_time_limit_is_the_roles_minutes(
 
 
 def test_the_request_carries_the_agent_checkout_and_guard_without_os_user(
-    boundaries: Boundaries,
+    boundaries: Boundaries, tmp_path: Path
 ) -> None:
     agent = _agent()
     context = _context("tests")
@@ -239,7 +239,7 @@ def test_the_request_carries_the_agent_checkout_and_guard_without_os_user(
     request = _composer(boundaries).compose(context, agent)
 
     assert request.agent == agent
-    assert request.working_directory == boundaries.checkout
+    assert request.working_directory == tmp_path / "workspace" / "checkout"
 
 
 def test_the_request_holds_the_given_environment_unchanged(boundaries: Boundaries) -> None:

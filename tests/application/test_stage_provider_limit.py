@@ -77,7 +77,10 @@ def test_a_stage_whose_limit_outlasts_the_ceiling_stalls_with_its_note(
     agent_runtime.queue(ScriptedRun(result=LIMITED))
     minute = timedelta(minutes=1)
     settings = local_settings.model_copy(
-        update={"provider_limit": ProviderLimit(cooldown=minute, ceiling=minute)}
+        update={
+            "provider_limit": ProviderLimit(cooldown=minute, ceiling=minute),
+            "agent_home": agent_home,
+        }
     )
 
     report = run_stage(replace(boundaries, waiter=ManualWaiter(clock), settings=settings))

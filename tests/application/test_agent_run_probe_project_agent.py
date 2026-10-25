@@ -44,6 +44,7 @@ def test_the_probe_runs_the_project_coder(
     install_agents(agent_home, ["intake", "coder", "reviewer"])
     human.push_file("main", "factory/agents/coder.md", text)
     boundaries.git.fetch()
+    boundaries.git.checkout("main", start_point="origin/main")
     project = dataclasses.replace(
         boundaries,
         agent_definitions=ProjectAgentDefinitions(boundaries.git, boundaries.agent_definitions),

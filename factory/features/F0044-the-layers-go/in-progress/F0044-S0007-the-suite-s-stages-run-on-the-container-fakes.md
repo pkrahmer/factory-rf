@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 450
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T16:45:50.059670Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-25T16:45:50.059670Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T16:54:42.969470Z'
+  stage: tests
+  run: c20c8ec4912e4df2ad6882dab6d83047
 ---
 
 # The suite's stages run on the container fakes
@@ -96,3 +98,44 @@ Expect: two lines: `1`; `1`
    Architecture: the change is in tests, fixtures and the request's working directory, in `application`. It uses the F0042 fakes and adds no interface, no layer break, and no new dependency.
    Scope: it matches S0007 in `feature.md`. The inline environment stays until S0008, and the leaves are those of decision 23, answer 29 (a) and decision 36. Nothing is in "Out of scope".
 4. factory: started tests as self.
+5. tester: Tests for the criteria (they fail until the request's `working_directory` is the dataset's checkout):
+   criterion 1: tests/test_suite_fixtures.py::test_the_boundaries_fixture_runs_its_stages_in_containers_on_the_fakes
+   criterion 2: tests/test_suite_fixtures.py::test_the_remotes_makefile_has_a_silent_sync_that_succeeds
+   criterion 3: tests/application/test_stage_on_container_fakes.py::test_the_request_works_in_the_datasets_checkout_when_the_boundaries_hold_snapshots (four rows: stage or probe, with snapshots or without)
+   criterion 4: tests/application/test_stage_on_container_fakes.py::test_a_whole_stage_on_the_fixture_takes_the_allowed_writes_and_leaves_out_the_rest
+   criterion 5: tests/application/test_stage_on_container_fakes.py::test_a_died_run_on_the_fixture_stalls_without_its_writes_outside_the_write_paths
+   criterion 6: tests/test_suite_fixtures.py::test_a_story_walks_to_approval_in_the_world_on_the_container_fakes. Every stage's run also writes `forbidden.txt` at the root, which no role may write; the test checks that the branch head at approval does not hold it.
+   criteria 7, 8: no test (`make check`, docs).
+
+   Interpretation, for the reviewer: the Interface names `factory.application.task.StageTask`, which does not exist. `TaskComposer` in `task.py` composes the stage's request, so the stage row of criterion 3 calls `TaskComposer.compose`.
+
+   Files created: tests/test_suite_fixtures.py, tests/application/test_stage_on_container_fakes.py.
+
+   Shared setup changed as the Interface says:
+   - tests/git_support.py: `SYNC_TARGET`, and `REMOTE_FILES` gains `Makefile`.
+   - tests/conftest.py: `boundaries` gets `FakeSnapshots` and `FakeContainerRuns` through the new helper `fake_dataset`.
+   - tests/container_support.py: `fake_dataset`; `container_dataset` now takes the fixture's fakes and removes the base for `with_base=False`; new helper `inline_boundaries`.
+   - tests/proof_support.py: the world gets `fake_dataset(root)`. `_outside_writes_undone` reads only the stall commit. `PASSING_MAKEFILE` gains `sync`.
+   - tests/stage_run_support.py: `stage_makefile` gains `sync`.
+   - The other Makefiles the Interface lists gained `sync:\n\t@:`.
+   - Deleted: the red-check undo tests in test_stall_edges.py and test_stall_environment.py.
+   - `inline_boundaries` added to the tests the Interface lists: test_stage_run, test_stalls (×2), test_stall_edges, test_stall_environment, and test_stage_environment_calls (×2). In test_stage_environment.py it is in five tests; `test_run_agent_returns_the_runs_result` stays on the fixture because its container rows use `container_dataset`, and its inline row builds `InlineEnvironment` directly.
+   - test_task and test_stage_launch: the working directory is the dataset's checkout.
+   - test_agent_run_probe and test_agent_run_probe_project_agent: the probe test reads the dataset's checkout, and the two others check out `main` at `origin/main` before the probe.
+   - test_stage_provider_limit: keeps the fixture's `agent_home` in its settings.
+
+   Earlier tests changed under answer 29 (a), names and checks unchanged:
+   - tests/application/test_cost_image.py `_launch`: puts the fixture's `agent_home` into the settings. The sync copies the agent home, and `_settings` named the default `/home/agent`, so the sync failed with "cp: cannot open '/home/agent/.claude/...': Permission denied". This also fixes tests/application/test_cost_instance.py, which uses `_launch`.
+   - tests/test_kill_points.py (via `fake_dataset`): `restart` built the dataset again and failed with "FileExistsError: ... workspace-base". `fake_dataset` now keeps a base an earlier start of the same instance left.
+
+   The one `make test` run came before three fixes: `exist_ok` for the base, the `_launch` settings, and dropping `inline_boundaries` from `test_run_agent_returns_the_runs_result`. In that run the new tests failed with wrong results (the working directory was still the host checkout). The named setup tests (test_task, test_stage_launch, the probe test) and the take tests the Interface lists (test_after_agent, test_costs, test_stage_finish, test_stalls) failed too. Three failures I could not explain without running again:
+   - tests/application/test_after_agent.py::test_a_body_edit_is_kept_only_where_the_role_may_write_the_work_item[tests-False]
+   - three tests in tests/test_fault_paths.py: test_docs_finding_tick_killed_after_move_back_push_counts_round_once_and_next_stage_starts, test_intake_edge_case_question_killed_between_commit_and_push_reruns_intake_and_posts_once, test_intake_question_tick_killed_during_intake_run_reruns_free_and_asks_once
+   I expect them to go green with the working-directory change. The fault-path tests build the world, so the base `FileExistsError` may also be the cause. If any stays red after the coder's change, it is an answer 29 (a) case for the tester, and the coder should not edit it.
+
+   Modules the test runner could not import: none; every module imported.
+
+   `make lint`: green.
+
+   `lint`: lint: green (0.3 s)
+   `test`: FAILED tests/application/test_after_agent.py::test_undone_paths_are_named_in_a_last_paragraph_of_the_entry[two-undone] - AssertionError: assert 'tests written.' == 'tests writte...md, src/b.py.'

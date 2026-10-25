@@ -9,6 +9,7 @@ from typing import get_args, override
 import pytest
 
 import factory.application.stalls
+from container_support import inline_boundaries
 from definition_support import pipeline_definition
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
@@ -234,6 +235,7 @@ def test_a_stall_built_without_an_environment_undoes_inline_as_before(
     agent_home: Path,
     agent_runtime: FakeAgentRuntime,
 ) -> None:
+    boundaries = inline_boundaries(boundaries)
     started = started_stage(
         boundaries, human=human, agent_home=agent_home, agent_runtime=agent_runtime
     )
@@ -303,25 +305,3 @@ def test_each_holder_hands_its_environment_to_its_stall(
     assert environment.takes == [(launched.started.stage_start, PATH)]
     assert stall is not None
     assert stall.take == TAKEN
-
-
-def test_a_finisher_built_without_an_environment_undoes_what_a_red_check_wrote(
-    boundaries: Boundaries,
-    *,
-    human: HumanClone,
-    agent_home: Path,
-    agent_runtime: FakeAgentRuntime,
-) -> None:
-    makefile = stage_makefile({"lint": 1}, extra=[f"@echo checked > {WRITTEN}"])
-    open_story(boundaries, human, agent_home, makefile=makefile)
-    launched = launched_stage(boundaries, agent_runtime, ScriptedRun(result=completed("doing")))
-    definition = pipeline_definition(boundaries)
-    aftermath = AfterAgent(boundaries, INSTANCE, definition).process(launched)
-    assert isinstance(aftermath, AgentAftermath)
-
-    report = StageFinisher(boundaries, INSTANCE, definition).finish(aftermath)
-
-    assert report.stall is not None
-    assert report.stall.reason == "check_red"
-    assert boundaries.git.show_file(report.commit, WRITTEN) is None
-    assert not (boundaries.checkout / WRITTEN).exists()

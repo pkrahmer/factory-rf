@@ -412,6 +412,7 @@ def test_the_runtime_receives_the_request_with_the_guard_and_the_draft_number(
     agent_runtime: FakeAgentRuntime,
     remote: Path,
     hosting: FakeHostingService,
+    tmp_path: Path,
 ) -> None:
     launched, _ = _launch_new(
         boundaries,
@@ -427,6 +428,7 @@ def test_the_runtime_receives_the_request_with_the_guard_and_the_draft_number(
     [draft] = hosting.pull_requests()
     assert request == launched.request
     assert f"Pull request: {draft.number}" in request.prompt.split("\n")
+    assert request.working_directory == tmp_path / "workspace" / "checkout"
 
 
 def test_the_request_carries_exactly_the_given_environment(

@@ -67,7 +67,7 @@ def _makefile(check_lines: list[str], check_status: int) -> str:
         status = check_status if name == "check" else 0
         recipe = [*(f"@echo '{line}'" for line in lines), f"@exit {status}"]
         targets.append(f"{name}:\n" + "".join(f"\t{line}\n" for line in recipe))
-    return f".PHONY: {' '.join(names)}\n\n" + "\n".join(targets)
+    return f".PHONY: {' '.join(names)}\n\n" + "\n".join(targets) + "\nsync:\n\t@:\n"
 
 
 def _open_existing(

@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from container_support import inline_boundaries
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
@@ -184,6 +185,7 @@ def test_after_the_agent_the_environment_takes_and_its_report_closes_the_entry(
     left: list[str],
     paragraph: str | None,
 ) -> None:
+    boundaries = inline_boundaries(boundaries)
     taken = TakeReport(left=left, restored_work_item=False)
     environment = RecordingEnvironment(remote, taken=taken)
     agent_runtime.queue(ScriptedRun(writes={OUTSIDE: AGENT_TEXT}, result=completed()))
@@ -213,6 +215,7 @@ def test_a_stage_built_without_an_environment_runs_the_inline_one(
     agent_runtime: FakeAgentRuntime,
     remote: Path,
 ) -> None:
+    boundaries = inline_boundaries(boundaries)
     open_story(boundaries, human, agent_home)
     agent_runtime.queue(ScriptedRun(writes={OUTSIDE: AGENT_TEXT}, result=completed()))
 

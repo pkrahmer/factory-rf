@@ -1,5 +1,6 @@
 """Shared helpers of the container environment tests: a dataset beside the host and its fakes."""
 
+import shutil
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import timedelta
@@ -38,6 +39,8 @@ from take_support import AGENT_TEXT
 from undo_support import start_stage
 from zfs_support import DATASET, MOUNT_POINT
 
+WORKSPACE = "workspace"
+BASE = "workspace-base"
 SYNC_MARKER = ".synced"
 SYNC_RECIPE = f"@echo synced > {SYNC_MARKER}"
 TIMING_PREFIX = "stage environment:"
@@ -83,20 +86,35 @@ def container_instance_settings(tmp_path: Path, agent_home: Path) -> InstanceSet
     )
 
 
+def fake_dataset(root: Path) -> tuple[FakeSnapshots, FakeContainerRuns]:
+    """The fakes on the dataset at `<root>/workspace`, its base at `<root>/workspace-base`.
+
+    A missing base is made empty; one left by an earlier start of the same instance stays.
+    """
+    workspace = root / WORKSPACE
+    workspace.mkdir(exist_ok=True)
+    base = root / BASE
+    base.mkdir(exist_ok=True)
+    return FakeSnapshots(workspace, base), FakeContainerRuns(workspace)
+
+
 def container_dataset(boundaries: Boundaries, tmp_path: Path, *, with_base: bool = True) -> Dataset:
-    """An empty dataset at `<tmp_path>/workspace`; its empty base beside it when `with_base`."""
-    workspace = tmp_path / "workspace"
-    workspace.mkdir()
-    base = tmp_path / "base"
-    if with_base:
-        base.mkdir()
-    snapshots = FakeSnapshots(workspace, base)
-    containers = FakeContainerRuns(workspace)
+    """The dataset of the `boundaries` fixture at `<tmp_path>/workspace`, with its fakes.
+
+    The fixture's empty base beside it stays when `with_base` and is removed otherwise.
+    """
+    snapshots = boundaries.snapshots
+    containers = boundaries.containers
+    assert isinstance(snapshots, FakeSnapshots)
+    assert isinstance(containers, FakeContainerRuns)
+    base = tmp_path / BASE
+    if not with_base:
+        shutil.rmtree(base)
     return Dataset(
-        boundaries=replace(boundaries, snapshots=snapshots, containers=containers),
+        boundaries=boundaries,
         snapshots=snapshots,
         containers=containers,
-        workspace=workspace,
+        workspace=snapshots.mount_point,
         base=base,
     )
 
@@ -311,3 +329,8 @@ def assert_taken_and_pushed(boundaries: Boundaries, remote: Path, report: StageR
     assert NOTES in journal
     assert len(timing_lines(boundaries)) == 1
     assert boundaries.git.status().changes == []
+
+
+def inline_boundaries(boundaries: Boundaries) -> Boundaries:
+    """The boundaries without the fixture's fakes, so their stages run in the inline environment."""
+    return replace(boundaries, snapshots=None, containers=None)

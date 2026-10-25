@@ -88,7 +88,10 @@ def test_a_completed_probe_passes(
 
 @pytest.mark.usefixtures("coder")
 def test_the_probe_runs_the_coder_on_a_small_budget_with_the_question_alone(
-    boundaries: Boundaries, probe_settings: InstanceSettings, agent_runtime: FakeAgentRuntime
+    boundaries: Boundaries,
+    probe_settings: InstanceSettings,
+    agent_runtime: FakeAgentRuntime,
+    tmp_path: Path,
 ) -> None:
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
 
@@ -98,7 +101,7 @@ def test_the_probe_runs_the_coder_on_a_small_budget_with_the_question_alone(
     assert request.prompt == PROBE_PROMPT
     assert request.allowed_decisions == ["question"]
     assert request.time_limit == timedelta(minutes=2)
-    assert request.working_directory == boundaries.checkout
+    assert request.working_directory == tmp_path / "workspace" / "checkout"
     assert request.environment == ENVIRONMENT
     installed = boundaries.agent_definitions.read("coder")
     assert request.agent.name == "coder"
@@ -193,8 +196,9 @@ def test_the_probe_runs_once_for_each_image_build(
     tmp_path: Path,
 ) -> None:
     install_agents(agent_home, ["intake", "coder", "reviewer"])
-    human.push_file("main", "Makefile", "lint:\n\ttrue\n")
+    human.push_file("main", "Makefile", "lint:\n\ttrue\nsync:\n\t@:\n")
     boundaries.git.fetch()
+    boundaries.git.checkout("main", start_point="origin/main")
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
     environment = {"PATH": "/opt/factory/bin:/usr/bin", "HOME": str(tmp_path)}

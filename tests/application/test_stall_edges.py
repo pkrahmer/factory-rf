@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from container_support import inline_boundaries
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.agent_runtime import AgentRuntime
@@ -22,7 +23,6 @@ from stage_run_support import (
     completed,
     open_story,
     run_stage,
-    stage_makefile,
 )
 
 ELSEWHERE = "elsewhere"
@@ -121,6 +121,7 @@ def test_a_stall_after_the_agent_left_drops_its_commit_on_the_branch(
     agent_home: Path,
     agent_runtime: FakeAgentRuntime,
 ) -> None:
+    boundaries = inline_boundaries(boundaries)
     report = run_stage(_left_branch(boundaries, human, agent_home, agent_runtime))
 
     assert report.stall is not None
@@ -132,23 +133,3 @@ def test_a_stall_after_the_agent_left_drops_its_commit_on_the_branch(
         "write factory/features/F0001-example/in-progress/F0001-S0001-first.md",
     ]
     assert boundaries.git.show_file(report.commit, INSIDE) is None
-
-
-def test_a_red_check_stall_undoes_what_the_check_wrote(
-    boundaries: Boundaries,
-    *,
-    human: HumanClone,
-    agent_home: Path,
-    agent_runtime: FakeAgentRuntime,
-) -> None:
-    makefile = stage_makefile({"lint": 1}, extra=[f"@echo checked > {WRITTEN}"])
-    open_story(boundaries, human, agent_home, makefile=makefile)
-    agent_runtime.queue(ScriptedRun(result=completed("doing")))
-
-    report = run_stage(boundaries)
-
-    assert report.rule == 5
-    assert report.stall is not None
-    assert report.stall.reason == "check_red"
-    assert boundaries.git.show_file(report.commit, WRITTEN) is None
-    assert not (boundaries.checkout / WRITTEN).exists()

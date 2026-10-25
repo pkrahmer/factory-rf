@@ -10,7 +10,7 @@ from factory.domain.git import CommitId
 from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord
 from factory.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import PIPELINE_YAML, install_agents, remote_commit
+from git_support import PIPELINE_YAML, SYNC_TARGET, install_agents, remote_commit
 from human_clone import HumanClone
 
 INSTANCE = "factory-1"
@@ -60,11 +60,11 @@ def _target(name: str, status: int, extra: list[str]) -> str:
 
 
 def stage_makefile(statuses: dict[str, int] | None = None, extra: list[str] | None = None) -> str:
-    """A Makefile whose `lint`, `check` and `test` print a line and exit with their status."""
+    """A Makefile whose `lint`, `check` and `test` print a line and exit, and a silent `sync`."""
     exits = statuses or {}
     names = ["lint", "check", "test"]
     targets = [_target(name, exits.get(name, 0), extra or []) for name in names]
-    return f".PHONY: {' '.join(names)}\n\n" + "\n".join(targets)
+    return f".PHONY: {' '.join(names)}\n\n" + "\n".join(targets) + f"\n{SYNC_TARGET}"
 
 
 def completed(decision: str = "doing") -> AgentRunResult:

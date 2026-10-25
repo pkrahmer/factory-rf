@@ -121,7 +121,7 @@ def _makefile(statuses: dict[str, int] | None = None) -> str:
     exits = statuses or {}
     names = ["lint", "check", "test"]
     targets = [_target(name, exits.get(name, 0)) for name in names]
-    return f".PHONY: {' '.join(names)}\n\n" + "\n".join(targets)
+    return f".PHONY: {' '.join(names)}\n\n" + "\n".join(targets) + "\nsync:\n\t@:\n"
 
 
 def _completed(decision: str = "doing", **measures: object) -> AgentRunResult:
