@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 433
 comments_read: [6394400610]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T06:39:02.953281Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-25T06:39:02.953281Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T06:39:58.954452Z'
+  stage: review
+  run: 4cbcbe5680cb438dba3f692ed3e9d809
 ---
 
 # The setup script writes as factory from its own standard input
@@ -179,3 +181,26 @@ Expect: two lines, `0` and `syntax-ok`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 11. factory: started review as self.
+12. reviewer: no findings
+
+    What I checked:
+    - Criterion 1: `tests/test_vm_setup_writes.py::test_no_write_reads_dev_stdin_by_name` reads the script with its comments removed. It checks that no `/dev/stdin` remains and that no line holds both `install` and `stdin`. `vm/setup.sh` has neither: the helper's comment does not use the literal path.
+    - Criterion 2: `test_each_file_is_written_through_the_helper_with_its_mode` has one row per file: image-id is `0644 $base/image-id`, askpass is `0755 $askpass`, factory-env is `0644 $env_file`. Each row checks that its step calls the helper, and that a line of the helper's body starts with `as_factory` and holds `cat >`. The script matches this at `vm/setup.sh:116-117`, `:269`, `:288` and `:355`.
+    - Criterion 3: `test_the_helper_writes_its_standard_input_with_the_mode` has two rows, first and again. It runs the helper's own text from the script with a pass-through `as_factory`, so it needs no `runuser`. It writes into `tmp_path` and checks that the file holds exactly the last text plus a newline and has mode 0640.
+    - Criterion 4: in `tests/test_vm_setup_text.py`, `test_the_files_under_the_instance_folder_are_written_as_factory` keeps its name, its four rows, and its check that at least one write line exists and every write line runs as factory.
+    - The Interface states no limit and no refusal, so no failing side is missing a test.
+    - `make check` was green after the coder (entry 10).
+    - Architecture: no change under `src/`.
+    - Security: the `sh -c` command takes the mode and the target as positional arguments, so no path is quoted into shell code. No marker that silences a check was added.
+    - The rest of the script: the `[ ! -s ]` and `unchanged` guards are kept, so a file is still written only when its text differs. The modes are the same as before, and nothing else in the script changed.
+    - Quality: the new comment says why. `write_helpers` and `function_text` are new in `tests/vm_support.py`; I found no existing helper they copy. `FUNCTION` was moved there, not copied.
+    - Work item: the coder's entry 10 names the main choice and the alternative it rejected (`tee` plus a separate `chmod`). The Description matches what was built. The docs criterion is still accurate.
+    - Criterion 4 and the Interface still say the earlier test stays "unchanged". The human's answer in entry 6 says to read criterion 4 as "passes, with `_writes` also counting a call of the write helper". I left that wording as it is: the human chose to settle it by how the criterion is read, not by rewriting it.
+
+    Earlier tests:
+    - `tests/test_vm_setup_text.py`: changed under the human's leave in entry 6.
+      - `_writes` now also counts a line that calls the write helper.
+      - `_as_factory` now also counts such a call as running as factory. The helper's body calls `as_factory`, not `runuser`, so without this change the check the leave keeps could not pass. The test keeps its name and its rows.
+      - The shared regex was pulled out into `_calls`.
+      - `FUNCTION` is now imported from `vm_support`, under the standing leave to move a shared test helper.
+    - `tests/vm_support.py`: under the standing leave to move a shared test helper. `FUNCTION` was moved here from `tests/test_vm_setup_text.py`. The other change only adds two helpers that both modules use.
