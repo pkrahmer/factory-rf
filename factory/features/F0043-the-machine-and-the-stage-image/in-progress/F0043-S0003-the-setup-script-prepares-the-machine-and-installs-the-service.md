@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T05:55:34.403074Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -312,6 +308,12 @@ journal:
   kind: started
   at: '2026-10-25T05:55:34.403074Z'
   stage: tests
+- number: 55
+  speaker: tester
+  kind: result
+  at: '2026-10-25T05:58:23.203330Z'
+  stage: tests
+  run: 33419f9e023444d2ad9ffb86eedc9756
 ---
 
 # The setup script prepares the machine and installs the service
@@ -922,3 +924,11 @@ Expect: `1`
 
     The Description and Interface were already corrected by the reviewer in entry 51.
 54. factory: started tests as self.
+55. tester: Approved test change, as named in the coder's entry 53 (finding 1 of entry 51, which follows the human's entry 49). I added one row, `link-test-secrets`, to the parametrized `tests/test_vm_setup_text.py::test_the_folders_step_refuses_a_link_at_state_or_repo`, next to the `link-test-state` and `link-test-repo` rows. The row checks that the `folders` step's text holds `-L` on `/home/factory/.secrets` (optionally quoted, with no further path characters after it) before its first `install -d`.
+
+    Mapping: criterion 14 (extended by entry 49): tests/test_vm_setup_text.py::test_the_folders_step_refuses_a_link_at_state_or_repo[link-test-secrets], along with its existing rows.
+
+    I kept the test's name, even though it now covers `.secrets` too, because the change I was approved for was a row and not a rename. No files were created and no other test was changed. Every module imported. `make test` ends `test: green (67.6 s)`, because the coder's `vm/setup.sh` change already holds the test. `make lint` is green.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (67.8 s)

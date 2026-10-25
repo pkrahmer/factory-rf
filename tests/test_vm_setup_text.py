@@ -579,6 +579,10 @@ def _before_first_install_d(text: str) -> str:
             for folder in ("state", "repo")
         ),
         pytest.param(
+            lambda text: re.search(r"-L\s+\"?/home/factory/\.secrets(?![\w.-])", text),
+            id="link-test-secrets",
+        ),
+        pytest.param(
             lambda text: [line for line in _lines_with(text, "setup: folders: ") if ">&2" in line],
             id="line-to-standard-error",
         ),
