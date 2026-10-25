@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 457
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T21:15:32.480119Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-25T21:15:32.480119Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T21:16:00.478917Z'
+  stage: docs
+  run: 5c55e8ea65ca472abdb5ef13272f7107
 ---
 
 # The restore stop's repair names the one user
@@ -148,3 +150,26 @@ Expect: `documents ok`
 
    Earlier tests: none. `git diff --name-status main...HEAD` lists no test file.
 10. factory: started docs as self.
+11. documenter: Files changed:
+    - `docs/operator-guide.md` (*The stops of the tick*, the paragraph that begins `` `checkout_restore_failed` comes``): rewritten to match the v1.2 machine.
+      - It now says that on the VM only the factory's own git and the take write the checkout, both as `factory`, and that no agent runs there. A path the factory cannot remove is therefore one made by hand, as root or as another user.
+      - The repair is to remove the path git's message names, as `factory` (`sudo -iu factory`) or, when `factory` cannot, as root.
+      - It says the next tick runs the restore again and clears the stop once it succeeds.
+      - `chmod`, `g+w`, the group and "agent run left" are gone.
+
+    Crash cap: I dropped the old sentence and now state that the stop records no crash. `Tick._restore` (`src/factory/application/tick.py`) raises the stop and ends the tick before any stage is dispatched. `factory.application.recovery` records a crash only for a dead claimed run. So no crash is recorded for this case.
+
+    Cross-read and found current:
+    - `docs/project-guide/watching.md`, step **Restore** (step 3 of *The tick*): it makes neither claim and matches `Tick._restore`. I did not change it.
+    - `README.md` and `docs/decisions.md`: untouched, as the criterion says.
+
+    Checks:
+    - The smoke commands gave `0`, `1` and `documents ok`.
+    - I did not run `make check`, because I changed only a document.
+    - `git diff main...HEAD` outside the docs was empty.
+
+    Stale text noticed and not touched: none. The only other `chmod` in the operator guide (line 660, mode 0700 of the secrets folder) is correct.
+
+    `check`: check: green (not run again: passed on tree 92c6af88fac5 at 2026-10-25T21:03:03Z)
+    `secrets`: secrets: green (0.9 s)
+    `documents`: documents ok
