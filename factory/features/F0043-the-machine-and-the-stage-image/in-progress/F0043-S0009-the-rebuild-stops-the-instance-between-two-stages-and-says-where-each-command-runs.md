@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 440
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-25T09:25:06.612501Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-25T09:25:06.612501Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T09:25:36.716612Z'
+  stage: smoke-test
+  run: c9b94a7303344eeb9e02b1c7cb08a49f
 ---
 
 # The rebuild after a merge stops the instance between two stages and says where each command runs
@@ -207,3 +209,43 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: No findings. I ran the five commands under `## Smoke test` from the repository root, in order, exactly as written. Each one met its `Expect:` line.
+
+    1. The section's counts of `sudo systemctl stop factory@vm` and `sudo systemctl start factory@vm`. Expect: two lines, each a number of at least `1`. **Met.**
+    ```
+    1
+    1
+    ```
+
+    2. The count of `systemctl restart factory@vm`, then whether the first stop-or-pull line is the stop. Expect: `0`, `1`. **Met.**
+    ```
+    0
+    1
+    ```
+
+    3. The number of code blocks that hold both a `gcloud` command and a `sudo` command. Expect: `0`. **Met.**
+    ```
+    0
+    ```
+
+    4. The count of `factory-watch` in the section. Expect: a number of at least `1`. **Met.**
+    ```
+    1
+    ```
+
+    5. `make documents 2>&1 | tail -n 1`. Expect: `documents ok`. **Met.**
+    ```
+    documents ok
+    ```
+
+    Checked against the acceptance criteria by reading `### The rebuild after a merge` and the branch diff:
+    - Criterion 1: `git diff --stat main...HEAD` lists only `docs/operator-guide.md` and the work item's `.md` and `.costs.jsonl`. Nothing changed under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/`.
+    - Criterion 2: I did not run `make check` again. The factory's recorded result is `check: green`, and this branch changes no file that `make check` reads apart from the document.
+    - Criterion 3, wait and stop: before the pull, the section says to wait for `factory-watch` (as in step 11) until no work item is held by `vm`, then to run `sudo systemctl stop factory@vm`. It gives the reason in one sentence: the 90-second stop timeout, and the restart counting the stage as a crash.
+    - Criterion 3, order: the stop comes before `pull --ff-only`. The section ends the rebuild with `sudo systemctl start factory@vm` and holds no `restart`.
+    - Criterion 3, where each block runs: each of the four blocks is introduced by where it runs. The stop runs on the VM from your own account. The pull, `uv sync`, `podman build` and `image-id` run on the VM as `factory`. The two `gcloud compute` commands run on your own computer. `sudo sh setup.sh` and `systemctl start` run on the VM from your own account.
+    - Criterion 3, outside GCP: one sentence covers a VM outside GCP (`scp`, as *On any Ubuntu 24.04 VM* does).
+    - Criterion 3, what stays: the copy from your own checkout, the sentence "Root runs nothing from `/srv/factory/vm/factory`, …" and the paragraph on a differing unit or helper are all still there.
+    - Criterion 3, no other section: the two diff hunks of the guide (at lines 695 and 708) both lie inside this section, which starts at line 696. `make documents` ends with `documents ok`.
+
+    Still open for the human, as the Description says: a `TimeoutStopSec` beyond the lease in `vm/factory.service` (F0043-A0002, check 6).
