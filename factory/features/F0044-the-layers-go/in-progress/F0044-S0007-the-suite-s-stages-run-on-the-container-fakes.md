@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T17:22:20.262979Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-10-25T17:21:59.740354Z'
   stage: review
   run: 6d9893adf3214096b7a4de44d7e00f3f
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:22:20.262979Z'
+  stage: docs
 ---
 
 # The suite's stages run on the container fakes
@@ -468,3 +477,4 @@ Expect: two lines: `1`; `1`
     Notes:
     - tests/test_suite_fixtures.py:64: the test writes the literal `"stage environment: reset"`, while `tests/application/test_stage_on_container_fakes.py` keeps the same text as the constant `RESET_PREFIX`. One shared constant would serve both.
     - tests/test_suite_fixtures.py:40: the walk's loop repeats most of `drive` in `tests/proof_support.py`. It differs only in recording the walked stages and in the extra `forbidden.txt` write.
+28. factory: started docs as self.
