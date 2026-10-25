@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T19:21:19.348704Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T19:20:58.643658Z'
   stage: intake
   run: 50c871994ace4cfaa19bc8ca70fdb33d
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:21:19.348704Z'
+  stage: tests
 ---
 
 # The undo is removed
@@ -95,3 +104,4 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
    - Smoke test: two runnable `uv run python -c` commands with no pytest, so the `-q` rule does not apply. The `Expect:` line gives the two exact output lines.
    - Architecture: the three functions move within `application` (undo into take). The `agent_entry` change is in `domain`, and the `AfterAgent` call stays in `application`. No layer rule is crossed.
    - Scope: this is S0009 of F0044, and `feature.md` lists it ("`factory.application.undo`; the entry's closing sentence"). Decisions 11, 25 and 38 cover the rename and the test leave. Nothing is in "Out of scope". The docs criterion stays within the documenter's `docs/*` paths.
+4. factory: started tests as self.
