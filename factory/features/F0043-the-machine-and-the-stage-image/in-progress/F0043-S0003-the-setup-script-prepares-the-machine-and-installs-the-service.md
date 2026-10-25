@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T00:52:24.673769Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-25T00:52:03.955794Z'
   stage: review
   run: df9cd6c06431424fb5cc6200515c840f
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:52:24.673769Z'
+  stage: doing
 ---
 
 # The setup script prepares the machine and installs the service
@@ -262,3 +271,4 @@ Expect: `1`
        - Fix: gather each step's outcome and print one `setup: <step>: ` line at the step's end, which says "found" when nothing was done. For `user`, run the sub-id check before that line so the step's text still ends after its `exit 1` (criterion 9).
 
     Earlier tests: none. Every test file in the diff is new (status `A`).
+13. factory: started doing as self.
