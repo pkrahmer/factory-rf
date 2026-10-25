@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 457
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T21:16:20.991635Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-25T21:16:20.991635Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T21:16:54.374138Z'
+  stage: smoke-test
+  run: ec9a90f21745480db14fa5d005e96111
 ---
 
 # The restore stop's repair names the one user
@@ -183,3 +185,35 @@ Expect: `documents ok`
     `secrets`: secrets: green (0.9 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Smoke test: no findings. I ran the three commands from the repository root, as written and in order.
+
+    1. Check that the paragraph names no `chmod`, `g+w` or "agent run left":
+    ```
+    0
+    ```
+    Met `Expect: 0`.
+
+    2. Check that the paragraph names `sudo -iu factory`:
+    ```
+    1
+    ```
+    Met `Expect: 1`.
+
+    3. `uv run python -m factory.entry.check_documents`:
+    ```
+    Bytecode compiled 4164 files in 435ms
+    documents ok
+    ```
+    Met `Expect: documents ok` (exit 0). The line before it is uv's compile notice.
+
+    Acceptance criteria read again against the result:
+    - Criterion 1 holds. `git diff --name-status main...HEAD` lists only `docs/operator-guide.md` and this work item with its `.costs.jsonl` sidecar. Nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/` changed.
+    - Criterion 2 holds as far as the earlier entries show: `check: green`, a result the factory reused. I did not run `make check` myself; the factory runs it as the gate.
+    - Criterion 3: the paragraph names no group and no `chmod` or `g+w`, and it does not say that an agent run left the path.
+      - It says that only the factory's own git and the take write the checkout, as `factory`.
+      - It gives the repair as removing the path git's message names, as `factory` (`sudo -iu factory`) or as root.
+      - It says that the next tick clears the stop once the restore succeeds.
+    - The crash-cap sentence ("records no crash") matches the code. In `src/factory/application/tick.py:155-160`, `_restore` raises the stop on a failure and clears it when the restore succeeds, before any stage is dispatched. Nothing in `recovery.py` mentions the restore.
+    - `docs/project-guide/watching.md`, step **Restore**, makes neither old claim.
+
+    Nothing contradicts a criterion. Nothing is open.
