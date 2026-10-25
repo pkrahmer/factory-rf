@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008, 6400918653]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T17:43:19.725462Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -239,6 +235,12 @@ journal:
   kind: started
   at: '2026-10-25T17:43:19.725462Z'
   stage: smoke-test
+- number: 42
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T17:45:03.415319Z'
+  stage: smoke-test
+  run: 904e1691bde34975ad7d173557a72ca6
 ---
 
 # The suite's stages run on the container fakes
@@ -703,3 +705,30 @@ Expect: three lines: `1`; `1`; `1`
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok
 41. factory: started smoke-test as self.
+42. smoke-tester: Round 2. I ran the two smoke-test commands exactly as written, from the repository root. I fixed nothing.
+
+    Command 1:
+    ```bash
+    uv run pytest tests/application/test_stage_run.py tests/application/test_after_agent.py tests/application/test_stalls.py tests/test_kill_points.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '
+    ```
+    ```
+    1
+    ```
+    Expect: `1`. Met. I ran the same pytest call a second time without the `grep` to see the line it counts: `128 passed in 37.57s`.
+
+    Command 2:
+    ```bash
+    grep -c '"Makefile"' tests/git_support.py; grep -c 'fake_dataset(tmp_path)' tests/conftest.py; grep -c 'FakeSnapshots(' tests/container_support.py
+    ```
+    ```
+    1
+    1
+    1
+    ```
+    Expect: three lines: `1`; `1`; `1`. Met.
+
+    Against the acceptance criteria: the smoke test contradicts none of them. Command 1 runs the renamed-in-place tests named in the Interface (`test_stage_run.py`, `test_after_agent.py`, `test_stalls.py`, `test_kill_points.py`) on the container fakes, and they all pass. That fits criteria 4 and 5 (writes outside the write paths are left out, the died run's stall). Command 2 shows the remote's `Makefile` (criterion 2) and the fixture built from `fake_dataset`, with `FakeSnapshots` in one place in `container_support.py` (criterion 1, the Interface). The smoke test does not cover criteria 3, 6, 7 and 8. Entry 40 records `check: green` and `documents ok`.
+
+    Findings: none.
+
+    Afterwards the working tree held only the factory's `.costs.jsonl` sidecar change. Nothing is left in `/tmp`.
