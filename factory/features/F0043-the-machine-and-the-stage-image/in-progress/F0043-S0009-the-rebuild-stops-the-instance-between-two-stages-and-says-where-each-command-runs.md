@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 440
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-25T09:11:36.029572Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-25T09:11:36.029572Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T09:11:56.176217Z'
+  stage: intake
+  run: fa6954e0c78047aeaa40af2225adbe35
 ---
 
 # The rebuild after a merge stops the instance between two stages and says where each command runs
@@ -79,3 +81,15 @@ Expect: `documents ok`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: "None" is stated and correct for a documents-only story. It names the only changed file and section: `docs/operator-guide.md`, `### The rebuild after a merge`. I found that heading at line 696 and *On GCP, step by step* at line 544. *On any Ubuntu 24.04 VM* is at line 650, and `factory-watch` is used around line 642. There is no code signature to pin, and none is needed.
+   Criteria: each can be checked by one smoke command or by `make documents`. Criterion 1 (nothing outside the docs changes) and criterion 2 (`make check` stays green) are checkable. The docs criterion gives each rule its own bullet:
+   - wait for `factory-watch`, then stop, with the stop-timeout reason;
+   - the order: stop before `pull --ff-only`, start at the end, no `restart`;
+   - where each block runs, with no block mixing `gcloud` and `sudo`;
+   - the sentence for a VM outside GCP;
+   - what stays.
+   The failing side of the order rule (a `restart` present, or the pull before the stop) is covered by the second smoke test. The failing side of the mixed-block rule is covered by the third.
+   Smoke test: the commands are runnable awk and grep pipelines over the guide, and `make documents`. The pytest `-q` rule does not apply, because no command runs pytest. Each `Expect:` line is checkable against the output: counts of at least 1, `0`/`1`, `0`, and `documents ok`.
+   Architecture: this is documentation only, so the layers are untouched. The documenter's write path covers `docs/*`.
+   Scope: the story stays inside F0043's operator-guide work. It touches no code, `vm/` or `factory/`. It leaves the `TimeoutStopSec` change open for the human, as the feature's Out of scope requires.
