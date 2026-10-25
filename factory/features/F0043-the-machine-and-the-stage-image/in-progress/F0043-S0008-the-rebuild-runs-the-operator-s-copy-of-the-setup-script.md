@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 438
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-25T08:42:30.916983Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T08:42:10.964504Z'
   stage: intake
   run: 3d5a0759a86148649717204fc0952fe2
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T08:42:30.916983Z'
+  stage: tests
 ---
 
 # The rebuild after a merge runs the operator's own copy of the setup script
@@ -75,3 +84,4 @@ Expect: `documents ok`
    Smoke test: All three commands can be run. The awk/grep pair uses the real heading `### The rebuild after a merge`. The first expects `0`, and it matches today's line 712, so it fails before the change and passes after. The second expects a count of at least 1. The third runs `make documents` and expects `documents ok` as the last line. No pytest command is involved, so the `-q` rule does not apply.
    Architecture: Docs only. No layer is touched, and the root-acts-only-on-what-`factory`-cannot-change rule from F0043-S0003 is the one this story applies.
    Scope: Within F0043. Its scope covers the operator guide's chapter and the decision-log entry of the machine. Nothing in its "Out of scope" is touched. The Description leaves "how the operator obtains a trusted copy" to the human before the story starts. The human started the story, and criterion 3 names the method (a copy from their own checkout of the ref, as in step 6), so I take that as settled and ask nothing.
+4. factory: started tests as vm.
