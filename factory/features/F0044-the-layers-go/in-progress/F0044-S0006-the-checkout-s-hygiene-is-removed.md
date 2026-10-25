@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T16:27:34.433500Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-10-25T16:27:34.433500Z'
   stage: review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T16:29:16.531850Z'
+  stage: review
+  run: bda3abe802c544df9f4898a0a6f14edf
 ---
 
 # The checkout's hygiene is removed
@@ -393,3 +395,47 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     `check`: check: green
     `duplicates`: duplicates: 7 new, 34 known, 4 gone
 21. factory: started review as self.
+22. reviewer: Review, round 0. I read the work item, the `--stat`, the whole diff under `src/` (with the five regenerated schemas), every new test module and every changed earlier test.
+
+    Groups 1 to 3 pass:
+    - Every criterion from 1 to 9 has a test that checks what the criterion says. The failing sides the Interface states are covered: the removed names, a group-writable `.git` and a nested repository left alone, `GitError("seal", ...)` counted as an error, and no schema naming `nested_repository`.
+    - The factory's `make check` after the coder was green (entry 20).
+    - The layers hold, and the source code adds no marker that silences a check.
+    - The `src/` diff is pure removal plus the new `run_agent` return type. Each environment returns `(run or boundaries.agent_runtime.run)(request)`, as the Interface says.
+    - No name of the removed hygiene is left in `src/factory`. The comment at `src/factory/entry/wiring.py:156` is about the factory's git environment, which stays.
+    - `CheckoutPreparer` still stores `_log` without reading it. That stays by the human's answer in entry 14.
+
+    Group 4 (quality) fails:
+
+    1. `tests/application/test_stage_environment.py:60` `RecordingRun`: this is a verbatim second copy of `RecordingRun` at `tests/application/test_container_environment.py:280` (same docstrings, same body, returns `COMPLETED`). Fix: under the standing leave to move a shared test helper, the tester moves `RecordingRun` into `tests/sealed_run_support.py` beside `COMPLETED` and `run_request`. Both modules then import it from there, and every test keeps its name and what it checks. The coder hands this on with `tests`.
+
+    Earlier tests (a test file `main` held that the diff changed or deleted). The leave for each is the Interface's test list (decision 22 of `feature.md`) unless the line says otherwise:
+    - `tests/adapters/test_git_cli_ignored.py` (deleted): the Interface's list.
+    - `tests/adapters/test_git_cli_nested.py` (deleted): the Interface's list.
+    - `tests/adapters/test_git_cli_seal.py`: the Interface's list. Only the broken-git-folder test stays, with `headless`, `repository_above` and `_head_or_none`.
+    - `tests/application/test_checkout_preparer_seal.py`: the Interface's list (two tests renamed, two deleted, `group_umask` gone). The criterion-2 test it adds needs no leave.
+    - `tests/application/test_container_environment.py`: the Interface's list (both tests read the result itself), plus the module docstring that followed.
+    - `tests/application/test_dispatcher_unsealed.py` (deleted): the Interface's list.
+    - `tests/application/test_git_interface.py`: the Interface's list (twenty-one operations, renamed test).
+    - `tests/application/test_interfaces.py`: the Interface's list (renamed test, same assertion).
+    - `tests/application/test_nested_repositories.py` (deleted): the Interface's list.
+    - `tests/application/test_sealed_project_commands.py` (deleted): the Interface's list.
+    - `tests/application/test_sealed_runs.py` (deleted): the Interface's list.
+    - `tests/application/test_sealed_runs_ignored.py` (deleted): the Interface's list.
+    - `tests/application/test_sealed_runs_no_home.py` (deleted): the Interface's list.
+    - `tests/application/test_sealed_runs_runner.py`: the Interface's list (`Runner` and its test gone, the probe test stays).
+    - `tests/application/test_stage_environment.py`: the Interface's list (the run test reads the result through a recording function of its own; the nested-repository test is deleted). The criterion-4 tests it adds need no leave.
+    - `tests/application/test_stage_environment_calls.py`: the Interface's list (the stand-in returns the result; the preflight-import test is deleted).
+    - `tests/application/test_stage_run_ignored.py` (deleted): the Interface's list.
+    - `tests/application/test_stall_environment.py`: the Interface's list (the stand-in's return type).
+    - `tests/application/test_tick.py`: the Interface's list (`ignored.log` stays with its text).
+    - `tests/application/test_tick_docstrings.py`: the Interface's list (the `PREPARE` text).
+    - `tests/application/test_tick_ignored.py` (deleted): the Interface's list.
+    - `tests/conftest.py`: the Interface's list (`pytest_configure`'s umask, `TESTS_UMASK` and `group_umask` gone).
+    - `tests/domain/test_contract.py`: the Interface's list (reads `3.0`).
+    - `tests/domain/test_contract_provider_limit.py`: the Interface's list (reads `3.0`).
+    - `tests/domain/test_contract_version_2.py`: the Interface's list (reads `3.0`, same name).
+    - `tests/domain/test_stall_texts.py`: the Interface's list (the `nested_repository` row gone).
+    - `tests/sealed_run_support.py`: the Interface's list (`leave` gone), plus the module docstring that followed.
+    - `tests/test_home_reset_removed.py`: the Interface's list (the `sealed-project-commands-parameters` row and its import gone).
+    - `tests/test_tests_umask.py` (deleted): the Interface's list.
