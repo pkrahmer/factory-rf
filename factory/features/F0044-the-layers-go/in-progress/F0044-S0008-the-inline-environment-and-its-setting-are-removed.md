@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T18:42:53.378798Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -146,6 +142,13 @@ journal:
   kind: started
   at: '2026-10-25T18:42:53.378798Z'
   stage: review
+- number: 25
+  speaker: reviewer
+  kind: question
+  at: '2026-10-25T18:45:00.354718Z'
+  stage: review
+  run: 4e704b4e52c54970aeb236d6ed1c22bc
+  blocked: question
 ---
 
 # The inline environment and its setting are removed
@@ -519,3 +522,60 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     `check`: check: green
     `duplicates`: duplicates: 12 new, 35 known, 3 gone
 24. factory: started review as self.
+25. reviewer: Question. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item. Groups 1 to 5 pass:
+    - Criteria 1 to 8 each have a parametrized test that checks what the criterion says, including the failing sides: the three `missing` faults and their order, the refusal before `get_repo`, the relative workspace, the inner checkout and state directory, and the unmapped alias.
+    - The source matches the Interface.
+    - The layers hold, and there is nothing new on security.
+    - The journal records `make check` green (entries 21 and 23).
+
+    The `make duplicates` findings this story causes are all decided ones: `UndoService` (decision 13, S0009 removes it), `MakeProjectCommands` (decision 3), and `TakeReport.restored_work_item`, which nothing in `src` read on `main` either. The new similar-code findings and the fake findings come from modules this diff does not touch.
+
+    Item 6 finds earlier tests that were changed with no leave. The Interface's list (decisions 24 and 37) does not name them, and neither do the human's answers in entries 9, 16 and 19. Decision 29 (f) says such a test "needs the human's word again". Each change is forced by a name this story removes, so reverting it would turn `make check` red. No stage can fix this; only the human's word can.
+
+    Findings:
+    1. tests/application/test_preflight.py: `SEVEN` becomes `FIVE` (`tool:make` and `tool:claude` dropped), and the test `test_the_claude_tool_item_asks_for_the_configured_executable` is deleted. There is no leave. Fix: the human's leave.
+    2. tests/application/test_preflight_run.py, tests/application/test_preflight_stale_main_stop.py and tests/application/test_preflight_stops_commit.py: the missing tool changes from `make` to `uv`, and `TOOLS` drops make and claude. There is no leave. Fix: the human's leave.
+    3. tests/entry/test_wiring_agent_environment.py is deleted whole. There is no leave. Fix: the human's leave.
+    4. tests/entry/test_wiring_without_agent_user.py: `test_the_extras_name_no_agent_user_and_no_sudo` loses its inline rows, and `test_the_project_commands_run_without_a_user` loses its parametrization. There is no leave. Fix: the human's leave.
+    5. tests/test_vm_setup_text.py: the row `FACTORY_STAGE_ENVIRONMENT` of `ENVIRONMENT` is removed. This is F0043-S0003's test, and decision 26 gives a leave for it only to S0010. Fix: the human's leave.
+    6. tests/domain/test_settings_agent_user_unread.py: `CONTAINER` drops `FACTORY_STAGE_ENVIRONMENT`. There is no leave. Fix: the human's leave.
+    7. tests/conftest.py, fixture `local_settings`: it is wrapped in `with_dataset`. The Interface names only `hosted_environment` from this file. Fix: the human's leave.
+    8. tests/container_support.py: `CONTAINER` drops `stage_environment`. Entry 9 covers only the removal of `inline_boundaries` and its callers. Fix: the human's leave.
+
+    Options:
+    - (a) Give the leave for findings 1 to 8 as they were made, then this review runs again. I would choose (a): each change only removes or replaces what the removed names forced, and every test keeps its name except the two deletions in findings 1 and 3. Those two checked the runtime's tool item and the `agent-environment` item, which criteria 1 and 6 remove.
+    - (b) Refuse some of them, naming which, and say what they should check instead. The work item then goes back to `doing`/`tests`.
+
+    Earlier tests (item 6), one line each:
+    - tests/application/test_agent_environment_item.py (deleted): Interface, decision 24.
+    - tests/application/test_machine_checks_container.py: Interface (inline rows), decision 24.
+    - tests/application/test_machine_checks_runtime.py: Interface (one test deleted), decision 24.
+    - tests/application/test_opencode_item.py: Interface, decision 24.
+    - tests/application/test_opencode_item_container.py: Interface, decision 24.
+    - tests/application/test_preflight.py: none (finding 1).
+    - tests/application/test_preflight_run.py: none (finding 2).
+    - tests/application/test_preflight_stale_main_stop.py: none (finding 2).
+    - tests/application/test_preflight_stops_commit.py: none (finding 2).
+    - tests/application/test_stage_environment.py (deleted): Interface, decision 24.
+    - tests/application/test_stage_environment_calls.py: Interface (one test deleted), plus the human's entry 9 (a caller of `inline_boundaries`).
+    - tests/application/test_stage_environment_of.py: Interface (renamed test), decision 24.
+    - tests/application/test_stage_on_container_fakes.py: the human's entry 9.
+    - tests/application/test_stage_run.py: the human's entries 9 and 16.
+    - tests/application/test_stall_edges.py: the human's entries 9 and 16.
+    - tests/application/test_stall_environment.py: Interface (one test deleted), decision 24.
+    - tests/application/test_stalls.py: the human's entries 9 and 16.
+    - tests/conftest.py: Interface (`hosted_environment`), decision 24; `local_settings`: none (finding 7).
+    - tests/container_support.py: the human's entry 9 (`inline_boundaries`); `CONTAINER`: none (finding 8).
+    - tests/domain/test_settings_agent_user_unread.py: none (finding 6).
+    - tests/domain/test_settings_paths.py: Interface (F0043-S0002's rows), decision 24.
+    - tests/domain/test_settings_stage_environment.py: Interface (rows), decision 24.
+    - tests/entry/test_run.py, tests/entry/test_run_health_file.py, tests/entry/test_run_waiter.py: Interface, decision 24.
+    - tests/entry/test_wiring_agent_environment.py (deleted): none (finding 3).
+    - tests/entry/test_wiring_api_login.py, tests/entry/test_wiring_login.py, tests/entry/test_wiring_provider_limit.py, tests/entry/test_wiring_opencode.py: Interface, decision 24, plus the human's entry 19.
+    - tests/entry/test_wiring_boundaries.py, tests/entry/test_wiring_command_records.py: Interface, decision 24, plus the human's entry 19.
+    - tests/entry/test_wiring_container_extras.py, tests/entry/test_wiring_extras.py, tests/entry/test_wiring_preflight.py, tests/entry/test_wiring_run.py, tests/entry/test_wiring_stage_environment.py: Interface, decision 24.
+    - tests/entry/test_wiring_stage_environment_home.py (deleted): Interface, decision 24.
+    - tests/entry/test_wiring_without_agent_user.py: none (finding 4).
+    - tests/test_make_search.py: Interface, decision 24.
+    - tests/test_vm_setup_text.py: none (finding 5).
+    - tests/wiring_support.py: Interface, decision 24.
