@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 449
 comments_read: [6399896604]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T16:05:22.900305Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-10-25T16:05:22.900305Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-25T16:06:08.686996Z'
+  stage: tests
+  run: e5f30ecb38b34e03b3eac380154b7bbb
+  blocked: question
 ---
 
 # The checkout's hygiene is removed
@@ -154,3 +157,15 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
    - Architecture: the removals follow the layers. The domain loses the error and the stall reason, the application loses `sealed_runs`, the Git operations and the preparer logic, and the adapter loses `GitCli`'s matching methods. No layer gains an import.
    - Scope: inside S0006 of `feature.md`. The tests listed are covered by the leave of decision 22 as corrected by 35(a), and the new criteria need no leave beyond decisions 22 and 35(a), per the human. `left_branch` stays, as decision 14 and the "What stays" list say.
 7. factory: started tests as self.
+8. tester: I can't write criterion 8 as it stands without changing a test I have no leave for. I wrote no tests and changed no files in this run.
+
+   Criterion 8 says that no module under `tests/` calls `os.umask`, checked by one test that reads the files. Removing `pytest_configure`'s umask, `TESTS_UMASK`, `group_umask` and `tests/test_tests_umask.py` (all under the leave of decision 22) is not enough to make that true. `tests/adapters/test_calls_as_the_factory_user.py` is not on the Interface's test list, and it has a fixture `umask_of` (lines 156-161) that calls `os.umask(mask)` and then `os.umask(previous)`. `test_the_run_files_keep_the_mode_the_umask_gives` uses it to check that the runtimes' run files get the mode the umask gives, under `0o077` and `0o022`. The fixture puts the previous umask back afterwards, so every other test still runs under the umask pytest was started with. But it calls `os.umask`, so a test written to the letter of criterion 8 fails, and the coder can't make it pass because the coder never edits tests (R9).
+
+   Options:
+   (a) Narrow criterion 8: no module under `tests/` calls `os.umask`, except the fixture `umask_of` of `tests/adapters/test_calls_as_the_factory_user.py`, which puts the previous umask back. The test names that one exemption, and the earlier test file stays as it is.
+   (b) Give leave to rewrite `umask_of` / `test_the_run_files_keep_the_mode_the_umask_gives` so that it sets the umask in a child process (`sh -c 'umask 077; exec …'`) and keeps its name and what it checks. That is a larger change to a test another story wrote.
+   (c) Give leave to delete that test.
+
+   I would choose (a). The criterion is about the run-wide umask the tests set, and a fixture that puts the umask back doesn't change the umask other tests run under.
+
+   Everything else checked out. Criteria 1-7 and 9 are testable as written against the Interface. The edits to existing tests that the Interface lists are clear. One example: in `tests/application/test_tick.py::test_the_restore_discards_changes_and_names_them_in_one_line`, the assertion that `ignored.log` is gone becomes an assertion that it stays with its text. After your answer I will write all the tests and make the listed edits in one run.
