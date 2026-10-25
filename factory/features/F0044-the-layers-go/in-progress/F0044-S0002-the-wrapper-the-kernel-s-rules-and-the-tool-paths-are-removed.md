@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 445
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T12:28:19.647509Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T12:27:59.382204Z'
   stage: intake
   run: d73a35f803884a909a94dbd615be2b97
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T12:28:19.647509Z'
+  stage: tests
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -102,3 +111,4 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
    Smoke test: both commands are runnable. They run no pytest, so the `-q` check does not apply. `grep -c ... || true` prints `0` and exits cleanly. Each Expect line gives exact output that can be compared.
    Architecture: the removals follow the layering in CLAUDE.md. Only `adapters/process.py` keeps a process call (one `Popen`). `WritePathService.at` stays in `application`, and the models stay in `domain`. Nothing is added.
    Scope: the story matches feature.md's S0002 line. The refusal rule, the take and the other layers' stories are untouched. Changes to `factory/pipeline.yml` and the demo's definition are the human's change 1, and the docs criterion lists the documents it changes. No finding from the format check.
+4. factory: started tests as self.
