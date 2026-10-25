@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-25T07:47:46.047615Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-25T07:47:46.047615Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T07:48:33.060683Z'
+  stage: review
+  run: 845813b550fc4982bc7af8cffbf121f5
 ---
 
 # The dataset's checkout knows origin/main
@@ -131,3 +133,9 @@ Expect: `1`
    `check`: check: green
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
 8. factory: started review as vm.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`: one change in `src/factory/application/stage_environment.py` and one new test module. The src change is correct. The backslash-newline inside the non-raw triple-quoted string is removed by Python, so `_SYNC_SCRIPT` has one fetch line with both refspecs. The comment says why the second refspec is there. Nothing else in the module changed. I read criteria 1 to 4 against their tests in `tests/application/test_container_sync_origin.py` and each test checks what its criterion says. The Interface states no rejected input and no limit. The journal (entry 7) records `make check` green after the coder. The Description, Interface and docs criterion still match what was built. Round 0, so points about the quality of the added test file count as findings:
+
+   1. `tests/application/test_container_sync_origin.py:49` `_environment`: this is a second copy of `_environment` in `tests/application/test_container_environment.py:57`. Fix: under the standing leave, the tester moves it once to `tests/container_support.py` as a public helper (for example `container_environment(dataset)`). Both modules then use it, and every earlier test keeps its name and what it checks.
+   2. `tests/application/test_container_sync_origin.py:26-29` fixture `dataset` (and the constant `GONE` at line 23): this is a second copy of the `dataset` fixture and of `GONE` in `tests/application/test_container_environment.py:38,42-45`. Fix: under the standing leave, the tester moves the fixture to `tests/conftest.py` and `GONE` to `tests/container_support.py`, and changes `test_container_environment.py` to use them from there, every earlier test keeping its name and what it checks.
+
+   Earlier tests: none. The only test file in the diff is `tests/application/test_container_sync_origin.py`, which is new (status `A`). No test file that `main` already holds was changed, renamed or deleted.
