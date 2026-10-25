@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 454
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T20:23:29.796510Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-25T20:23:29.796510Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-25T20:26:02.703986Z'
+  stage: doing
+  run: 1e33581deb8c40339f02953e6e9f776d
 ---
 
 # The documents close the layers
@@ -137,3 +139,14 @@ Expect: `documents ok`
    `lint`: lint: green (0.1 s)
    `test`: test: green (60.6 s)
 6. factory: started doing as self.
+7. coder: I built nothing and changed nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/`. This story only fixes documents, its Interface is "None", and the tester wrote no tests, so the code had nothing to fail against. The working tree has no change of mine; the one modified file is the work item's `.costs.jsonl`, which belongs to the factory.
+   - Criterion 1: holds; this entry is the coder's statement of it.
+   - Criterion 2: `make check` passed in this stage (`test: green (61.2 s)`, coverage 99.55 %, `check: green`).
+   - Criterion 3 (docs): left to the documenter. `README.md`, `docs/operator-guide.md`, `docs/project-guide/` and `docs/decisions.md` are its files and not the coder's (CLAUDE.md, *Docs*).
+   Main choice: hand on with no change. The alternative I rejected was editing the documents here: they are outside the coder's work, and the criterion gives them to the documenter.
+   Refactor: there is no diff, so there was nothing to change.
+   Description: the journal did not change what the task means, so I left it as it is.
+   Noticed but not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 8 new, 35 known, 3 gone
