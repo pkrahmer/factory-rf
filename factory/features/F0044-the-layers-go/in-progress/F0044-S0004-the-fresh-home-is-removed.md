@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 447
 comments_read: [6398446445]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T13:49:20.089009Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-25T13:49:20.089009Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-25T13:49:43.060038Z'
+  stage: intake
+  run: 5e3fbf00369e4be4b56e1f718a9715fb
 ---
 
 # The fresh home is removed
@@ -52,7 +54,7 @@ Since F0040 (agent code never runs with the factory's rights) an instance with a
 
 Removed whole: `src/factory/entry/fresh_home.py`, `src/factory/adapters/agent_home.py`, `src/factory/adapters/home_files.py`, `src/factory/domain/agent_home.py`, `src/factory/application/agent_home.py`.
 
-`factory.domain.containers` (`domain`): `beneath_or_at(relative: str, above: str) -> bool` moves here unchanged from `factory.domain.agent_home`, because `check_container_call` here and `FakeContainerRuns._map` read it; `factory.adapters.fake_containers` imports it from `factory.domain.containers`. `inside_home`, `kept_paths`, `fate`, `removed_when_empty`, `HomeFate` and `FRESH_HOME_PREFIX` go with the module.
+`factory.domain.containers` (`domain`): `beneath_or_at(relative: str, above: str) -> bool` moves here unchanged from `factory.domain.agent_home`, because `check_container_call` here and `FakeContainerRuns._map` read it; `factory.adapters.fake_containers` imports it from `factory.domain.containers` and no longer imports `factory.domain.agent_home`; the rows that test it are in `tests/domain/test_containers_beneath_or_at.py::test_beneath_or_at_gives_the_answers_it_gave_in_agent_home`. `inside_home`, `kept_paths`, `fate`, `removed_when_empty`, `HomeFate` and `FRESH_HOME_PREFIX` go with the module.
 
 `factory.application.boundaries.Boundaries` (`application`): the field `agent_home: AgentHome | None` goes; `snapshots` and `containers` keep their defaults.
 
@@ -78,8 +80,9 @@ Tests (the leave is decision 20 of `feature.md`):
 3. `FACTORY_OPENCODE_FOLDERS` is read by nothing (rows of one parametrized test over `read_settings` and the base environment of `tests/settings_support.py`): with `FACTORY_OPENCODE_FOLDERS=.local/x` and with `FACTORY_OPENCODE_FOLDERS=/etc` (refused until now) the settings are read without a fault and equal those read without the variable.
 4. A run and a command reset no home and keep their seal (rows of one parametrized test on the `boundaries` fixture with `FakeAgentRuntime`): a file `<tmp>/home/kept.txt` written before `run_sealed(boundaries, request)` of a request whose `HOME` is `<tmp>/home` is still there after it, and `boundaries.git.check_seal()` passes after it; the same file is there after `SealedProjectCommands(<a recording ProjectCommands of the test>, boundaries.git, <a recording log>).run("lint", time_limit=1 minute)`, which ran the inner command once.
 5. The agent files stay: `read_settings` with `FACTORY_CLAUDE_HOME=/srv/factory/vm/factory/claude` gives `agent_home` `Path("/srv/factory/vm/factory/claude")`, and the sync container of `ContainerEnvironment.prepare` still mounts that folder read-only at `/etc/factory/claude` (the existing `tests/application/test_container_environment.py` stays green unchanged).
-6. `make check` stays green.
-7. docs: `docs/project-guide/agents.md`, *The fresh home*: replaced by one paragraph that the agent's home is the dataset's `home/`, made fresh by the rollback, and that a resumed run finds its session there; `docs/project-guide/watching.md`, *Boundaries*: no `agent_home` field; `docs/project-guide/processes-and-checks.md`, *Sealed project commands*: no home reset; `docs/project-guide/README.md`, *The files*: the lines follow, and *Shared test helpers*: the line of `home_files_support.py` goes; `docs/project-guide/agents.md`, *The opencode runtime*, the paragraph **opencode's folders**: no fresh home, no `FACTORY_OPENCODE_FOLDERS` and no `agent_home_of`; `docs/project-guide/stage-environment.md`, the table of the two environments: the row `agent_home` goes; `docs/operator-guide.md`, *The agent runs as a second user*: the heading *The home is cleared before every run* and its paragraphs from the program's command block up to and including **First reset after the upgrade.** go, while the paragraphs after them (the refused `sudo`, the take, *The agent's login token*, *The agent's API key*, the checks on a running instance, *A `time_limit` under `sudo`*) stay in *The agent runs as a second user*; one sentence there says the dataset's rollback clears the home; the sentence "The agent's home is cleared before every run (see ...)" goes; the login token's paragraph no longer says the fresh home keeps the login or clears `.claude.json`; the table's rows *The home is fresh* and *The home is reset* go; *Configuration*: the row `FACTORY_OPENCODE_FOLDERS` goes from the table; *Running on opencode*: no fresh home and no `FACTORY_OPENCODE_FOLDERS`. `docs/decisions.md`: the entry "Every agent run and every project command starts from a fresh agent home" gains one closing line: "Replaced by the dataset's rollback, v1.2 F0044-S0004." `README.md`: none.
+6. `factory.domain.containers.beneath_or_at` gives the answers of today's code, `relative == above or relative.startswith(f"{above}/")` (rows of one parametrized test, `tests/domain/test_containers_beneath_or_at.py::test_beneath_or_at_gives_the_answers_it_gave_in_agent_home`): a path equal to `above` is `True`; a path beneath it is `True`; a sibling with the same prefix (`ab` against `a`) is `False`; an unrelated path is `False`; with an empty `above`, `""` is `True`, `"a"` is `False` and `"/a"` is `True`.
+7. `make check` stays green.
+8. docs: `docs/project-guide/agents.md`, *The fresh home*: replaced by one paragraph that the agent's home is the dataset's `home/`, made fresh by the rollback, and that a resumed run finds its session there; `docs/project-guide/watching.md`, *Boundaries*: no `agent_home` field; `docs/project-guide/processes-and-checks.md`, *Sealed project commands*: no home reset; `docs/project-guide/README.md`, *The files*: the lines follow, and *Shared test helpers*: the line of `home_files_support.py` goes; `docs/project-guide/agents.md`, *The opencode runtime*, the paragraph **opencode's folders**: no fresh home, no `FACTORY_OPENCODE_FOLDERS` and no `agent_home_of`; `docs/project-guide/stage-environment.md`, the table of the two environments: the row `agent_home` goes; `docs/operator-guide.md`, *The agent runs as a second user*: the heading *The home is cleared before every run* and its paragraphs from the program's command block up to and including **First reset after the upgrade.** go, while the paragraphs after them (the refused `sudo`, the take, *The agent's login token*, *The agent's API key*, the checks on a running instance, *A `time_limit` under `sudo`*) stay in *The agent runs as a second user*; one sentence there says the dataset's rollback clears the home; the sentence "The agent's home is cleared before every run (see ...)" goes; the login token's paragraph no longer says the fresh home keeps the login or clears `.claude.json`; the table's rows *The home is fresh* and *The home is reset* go; *Configuration*: the row `FACTORY_OPENCODE_FOLDERS` goes from the table; *Running on opencode*: no fresh home and no `FACTORY_OPENCODE_FOLDERS`. `docs/decisions.md`: the entry "Every agent run and every project command starts from a fresh agent home" gains one closing line: "Replaced by the dataset's rollback, v1.2 F0044-S0004." `README.md`: none.
 
 ## Smoke test
 
@@ -110,3 +113,9 @@ Expect: six lines: `gone`, `gone`, `gone`, `gone`, `gone`, `False False True`
    - **Scope:** inside the feature's S0004 scope.
 4. 2026-10-25 human: (a). Add the criterion before the two closing ones: one parametrized test (for example `tests/domain/test_containers_beneath_or_at.py::test_beneath_or_at_gives_the_answers_it_gave_in_agent_home`) whose rows check that `factory.domain.containers.beneath_or_at` gives the same answers as today's code (`relative == above or relative.startswith(f"{above}/")`): a path equal to `above` is `True`, a path beneath it is `True`, a sibling with the same prefix (`ab` against `a`) is `False`, an unrelated path is `False`, and the empty `above` gives what that expression gives today (`""` is `True`, `"a"` is `False`, `"/a"` is `True`). Also state in the Interface that `factory.adapters.fake_containers` no longer imports `factory.domain.agent_home`, and name the test that carries the rows. A new test needs no leave.
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: names concrete modules, signatures and removals. Per the human's answer (journal 4) it now also says `factory.adapters.fake_containers` no longer imports `factory.domain.agent_home`, and names the test that carries the `beneath_or_at` rows. That is the human's edit carried in, not mine.
+   - Criteria: each is testable by one parametrized test. The `FACTORY_OPENCODE_FOLDERS` rule has both sides: `.local/x`, and `/etc`, which was refused before. The home reset has its absence criterion with the seal kept. Per journal 4 I added criterion 6 before the two closing ones: `beneath_or_at` rows for equal, beneath, same-prefix sibling, unrelated, and empty `above` with `""`/`"a"`/`"/a"`. `make check` and `docs:` are now criteria 7 and 8.
+   - Smoke test: the commands are runnable, they run no pytest so the `-q` rule does not apply, and the `Expect:` line is checkable (six exact lines).
+   - Architecture: removals only; the layers are respected and `beneath_or_at` moves down to the domain.
+   - Scope: inside feature S0004. The tests changed or deleted are the ones decision 20 and decision 33 of `feature.md` give leave for, and the new test file needs no leave.
