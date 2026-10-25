@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 448
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T14:31:10.463077Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-25T14:31:10.463077Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-25T14:31:30.781949Z'
+  stage: intake
+  run: ff982a42912a470eb105926db63ad70c
+  blocked: question
 ---
 
 # The second user is removed
@@ -106,3 +109,18 @@ Expect: three lines: `[] False`; `False False`; `3 False`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: Questions (the format check passed, so no findings from it):
+
+   1. The Interface says the runtimes no longer `chmod` the run files to `0640` and that "the files keep the mode the process's umask gives". No criterion tests that. Criterion 1 only checks that `RUN_FILE_MODE` is gone, which a coder could satisfy while keeping a `chmod`, or while setting some other mode. Two coders could read the clause two ways and both pass. Options: (a) add a criterion, for example "a Claude Code and an opencode call without a container writes its run files with the mode the process's umask gives (rows of one parametrized test, a umask of 0o077 and one of 0o022)"; (b) drop the sentence from the Interface and keep only "the `chmod` goes". I would choose (a).
+
+   2. Please confirm that nothing else needs a criterion. These all rest on the existing tests the Interface keeps, not on a new criterion:
+      - `run_launch` and `read_call_end` are listed in the Interface with no stated behaviour change.
+      - `call_refusal` "reads a refused login file only" has its failing side only through the unchanged `test_a_login_file_that_cannot_be_used_stops_the_run_naming_the_file`. Criterion 2 pins only the `sudo` line as no refusal.
+      - I would accept this if you confirm it.
+
+   The other checks, for the record:
+   - Interface: names concrete modules and signatures.
+   - Other criteria: 1 to 9 are each testable by a table of rows. Every rule has its failing side: criterion 4's host row, criterion 5's formerly refused values, and criterion 2's `sudo` line that is no longer a refusal.
+   - Smoke test: runnable, and its pytest-free `Expect:` line is checkable.
+   - Architecture: the changes sit in the right layers.
+   - Scope: within F0044 and its S0005 line. The human's leave is decision 21 and decision 34(a).
