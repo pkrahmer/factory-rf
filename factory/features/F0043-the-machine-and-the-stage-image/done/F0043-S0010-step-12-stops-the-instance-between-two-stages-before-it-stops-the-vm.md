@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-25T09:52:07.887191Z'
   stage: smoke-test
   run: dbe1bbf9de614ceeaa07ac25866056c0
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-25T09:54:29.556664Z'
+  stage: approval
 ---
 
 # Step 12 stops the instance between two stages before it stops the VM
@@ -224,3 +229,4 @@ Expect: `documents ok`
     - Criterion 3: the diff to `docs/operator-guide.md` is one hunk, and it covers step 12 only. The step tells the operator to wait for no work item held by `vm` with `factory-watch` "as in step 11". Then they run `sudo systemctl stop factory@vm` "on the VM from your own account", and after that `gcloud compute instances stop` "on your own computer". One sentence gives the reason (systemd's 90-second stop timeout, then a crash at the next start) and points to *The rebuild after a merge*. The two commands sit in separate code blocks. The start is introduced as "on your own computer". The cost sentence, the start with `gcloud compute instances start` and the "service is enabled and comes up with it" sentence are still there. No other section changed.
 
     Open: nothing for this story. The `TimeoutStopSec` question for `vm/factory.service` is still the human's (F0043-A0002/A0003).
+14. factory: done (pull request merged); cost: 6 runs, 5.2 min, 28 turns, 102423 tokens in (386938 more from cache), 7883 out, $0.83
