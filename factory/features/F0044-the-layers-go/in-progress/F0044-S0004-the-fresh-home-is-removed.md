@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 447
 comments_read: [6398446445]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T13:50:03.695310Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-25T13:49:43.060038Z'
   stage: intake
   run: 5e3fbf00369e4be4b56e1f718a9715fb
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:50:03.695310Z'
+  stage: tests
 ---
 
 # The fresh home is removed
@@ -119,3 +128,4 @@ Expect: six lines: `gone`, `gone`, `gone`, `gone`, `gone`, `False False True`
    - Smoke test: the commands are runnable, they run no pytest so the `-q` rule does not apply, and the `Expect:` line is checkable (six exact lines).
    - Architecture: removals only; the layers are respected and `beneath_or_at` moves down to the domain.
    - Scope: inside feature S0004. The tests changed or deleted are the ones decision 20 and decision 33 of `feature.md` give leave for, and the new test file needs no leave.
+7. factory: started tests as self.
