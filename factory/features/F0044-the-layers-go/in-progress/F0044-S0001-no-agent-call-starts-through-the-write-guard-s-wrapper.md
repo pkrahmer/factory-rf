@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T12:08:31.860811Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-10-25T12:08:31.860811Z'
   stage: review
+- number: 26
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T12:10:39.379234Z'
+  stage: review
+  run: d32ba65ab3364a26b0caf62a17b6a644
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -528,3 +530,60 @@ Expect: `7`
     `check`: check: green
     `duplicates`: duplicates: 14 new, 35 known, 3 gone
 25. factory: started review as self.
+26. reviewer: 1. `tests/confine_support.py:1`, `:18`, `:19`, `:24-25`: this diff removed the stand-in wrapper from the file but left four pieces of it behind. The module docstring still names "the stand-in confine executable". The constants `CONFINE` (lines 18) and `LINE` (19) are no longer read anywhere under `tests/`, because their only readers were `confined_runtime` and `Played`, which the diff deleted. The comment at 24-25 ("A confine executable that records its arguments ...") now describes no code. Fix: the tester removes `CONFINE`, `LINE` and the orphan comment and drops "the stand-in confine executable" from the docstring. This is within the Interface's leave for `tests/confine_support.py` (decision 17: the stand-in wrapper goes when no test reads it). The file is an earlier test file, not one the diff adds, so this is a finding and not a note.
+
+    How I got there:
+    - Group 1 (acceptance criteria) holds. I read every criterion and every Interface rule against the tests:
+      - Criteria 1-2: `tests/adapters/test_runtimes_without_wrapper.py`.
+      - Criterion 3: the login and no-login rows with `sudo`, and the Claude Code and opencode rows without a user. Each checks the state directory during the run, `SWITCHES`, no `CLAUDE_CONFIG_DIR` and no new `factory-run-` folder.
+      - Criterion 4: the six rows, both sides of the `sudo:` rule, and `sudo-refused` now expecting the stand-in's own path.
+      - Criterion 5: `test_a_run_in_a_container_mounts_*` in both container modules.
+      - Criterion 6: `tests/entry/test_wiring_container_extras.py`.
+      - Criterion 7: `tests/test_wrapper_out_of_the_call_path.py`.
+      - Criterion 8: `tests/test_shipped_agents_r14.py`.
+      - The factory's `make check` after the coder was green (entry 24).
+    - Group 2 (architecture) holds: no layer crossing, and no new tool call.
+    - Group 3 (security) holds: no new marker and nothing built from strings.
+    - Group 4 (quality) fails, only on the finding above. Under `src/` the removals are clean, and the docstrings and comments I checked match the code that is left (`call_refusal`, `Starters`, `build_boundaries`, `RUN_FILE_MODE`, the probe's guard comment).
+    - `make duplicates` (14 new): I read the new entries and none of them is a defect of this story.
+      - The dead code in `factory.domain.confinement` and `CONFINE_COMMAND` is left on purpose until S0002, as the Interface says. `tests/test_hook_removed.py` still reads `CONFINE_COMMAND`.
+      - The runtime similar-code entries are the two runtimes' existing parallel blocks. They show up as new only because the deleted code moved where those blocks start.
+      - The `fake_containers`, `podman_runs`, `zfs_snapshots` and `fake_snapshots` entries are in modules this diff does not touch.
+    - Group 5 (work item hygiene): not reached.
+
+    Not a finding: `tests/confine_support.py::Layout` still has the fields `temporary_root` and `confine_bin`, which no test reads now. Removing them reshapes a fixture that many modules share, so S0002 can take them out with the rest of the guard. The tester may also remove them under the same leave.
+
+    Earlier tests (item 6):
+    - `tests/adapters/container_runtime_support.py`: none needed (it only adds `run_folders`).
+    - `tests/adapters/test_agent_launch.py`: decision 17, as the Interface lists it.
+    - `tests/adapters/test_agent_launch_call_end.py`: decision 17.
+    - `tests/adapters/test_agent_launch_container.py`: decision 17.
+    - `tests/adapters/test_agent_launch_leftovers.py`: decision 17.
+    - `tests/adapters/test_claude_runtime_confinement.py` (deleted): decision 17.
+    - `tests/adapters/test_claude_runtime_confinement_root.py` (deleted): decision 17.
+    - `tests/adapters/test_claude_runtime_container.py`: decision 17.
+    - `tests/adapters/test_claude_runtime_leftovers.py`: decision 17.
+    - `tests/adapters/test_claude_runtime_no_hook.py`: decision 17.
+    - `tests/adapters/test_opencode_confinement.py` (deleted): decision 17.
+    - `tests/adapters/test_opencode_runtime_container.py`: decision 17.
+    - `tests/adapters/test_opencode_runtime_folders.py` (deleted): decision 17.
+    - `tests/adapters/test_opencode_runtime_launch.py`: decision 17.
+    - `tests/adapters/test_opencode_runtime_leftovers.py`: decision 17.
+    - `tests/application/test_agent_run_probe.py`: decision 17.
+    - `tests/application/test_confinement_item.py` (deleted): decision 17.
+    - `tests/confine_support.py`: decision 17.
+    - `tests/entry/test_wiring_api_login.py`: decision 17.
+    - `tests/entry/test_wiring_boundaries.py`: decision 17.
+    - `tests/entry/test_wiring_confinement.py` (deleted): decision 17.
+    - `tests/entry/test_wiring_container_extras.py`: decision 17 for the `inline` rows; the new row `inline-opencode` only adds a test.
+    - `tests/entry/test_wiring_extras.py`: decision 17.
+    - `tests/entry/test_wiring_extras_path.py` (deleted): decision 17.
+    - `tests/entry/test_wiring_login.py`: decision 17.
+    - `tests/entry/test_wiring_opencode.py`: decision 17.
+    - `tests/entry/test_wiring_provider_limit.py`: decision 17.
+    - `tests/entry/test_wiring_stage_environment.py`: decision 17.
+    - `tests/leftovers_runtime_support.py`: decision 17.
+    - `tests/shipped_agents.py`: the standing leave to move a shared test constant (`WRITE_PATHS_RULE`, moved from `tests/test_claude_agent_refusal.py`).
+    - `tests/test_claude_agent_refusal.py`: decision 17, and it now uses the moved constant.
+    - `tests/test_hook_removed.py`: decision 17.
+    - `tests/test_time_limits.py`: decision 17.
