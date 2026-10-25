@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T16:04:40.090155Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-25T16:04:40.090155Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-25T16:05:02.326307Z'
+  stage: intake
+  run: 363cf665ed8c4d6399f729f331025633
 ---
 
 # The checkout's hygiene is removed
@@ -89,16 +91,17 @@ Tests (the leave is decision 22 of `feature.md`):
 
 ## Acceptance criteria
 
-1. The removed names (rows of one parametrized test): `importlib.util.find_spec("factory.application.sealed_runs")` is `None`; `Git.__abstractmethods__` holds none of `seal`, `check_seal`, `remove_nested_repositories`, `remove_ignored`, `discard` and has exactly twenty-one names; `GitCli` has none of them; `RepositoryUnsealed` is no attribute of `factory.domain.errors`; `"nested_repository"` is not in `typing.get_args(StallReason)`; `LaunchedStage.model_fields` holds no `nested_repositories`.
-2. The preparer (rows of one parametrized test on a real bare remote): with no checkout, `prepare()` clones it and writes no log line; with a cloned checkout whose `.git` is group-writable, `prepare()` changes nothing (the mode stays, no clone, no log line); with a cloned checkout that holds a nested repository `sub/.git`, `prepare()` leaves it.
+1. The removed names (rows of one parametrized test): `importlib.util.find_spec("factory.application.sealed_runs")` is `None`; `Git.__abstractmethods__` holds none of `seal`, `check_seal`, `remove_nested_repositories`, `remove_ignored`, `discard` and has exactly twenty-one names; `GitCli` has none of them; `RepositoryUnsealed` is no attribute of `factory.domain.errors`; `"nested_repository"` is not in `typing.get_args(StallReason)`; `LaunchedStage.model_fields` holds no `nested_repositories`; no post text built for a stall mentions a nested repository.
+2. The preparer (rows of one parametrized test on a real bare remote): with no checkout, `prepare()` clones it and writes no log line; with a cloned checkout whose `.git` is group-writable, `prepare()` changes nothing (the mode stays, no clone, no log line); with a cloned checkout that holds a nested repository `sub/.git`, `prepare()` leaves it; `CheckoutPreparer.prepare.__doc__` equals "Clone when the checkout holds no `.git`; keep any checkout that does."
 3. The restore keeps the ignored files: a tick's restore on a checkout that holds an ignored file `.venv/x` and an untracked changed file `src/a.py` discards `src/a.py` and logs `discarded uncommitted changes: src/a.py`, leaves `.venv/x`, and ends on `main` at `origin/main`.
 4. `run_agent` returns the result (rows of one parametrized test over both environments with `FakeAgentRuntime`): the value is the queued run's `AgentRunResult`; with `run` given, `run` is called once and its result returned; and on the inline environment a run that writes `sub/.git/HEAD` and an ignored `.venv/x` into a checkout whose `.git` is at `0o2775` leaves both files and the mode as they are.
 5. A stage whose agent leaves a nested repository no longer stalls for it (one test through `StageRunner` on the `boundaries` fixture, an intake stage, whose scripted run writes `sub/.git/HEAD` and decides `tests`): the work item moves to `tests`, and its journal's last entry is the intake's result, not a stall.
 6. The dispatcher counts every error (one test): a handler that raises `GitError("seal", None, "x")` makes `dispatch` return `"error"` and counts one error for the event, as for any other `GitError`.
 7. The contract (rows of one parametrized test): `RECORDS_CONTRACT == "3.0"`; each committed schema holds `"x-records-contract": "3.0"` and equals the generated one; no schema names `nested_repository`.
 8. A test runs under the umask pytest was started with: no module under `tests/` calls `os.umask` (one test reading the files).
-9. `make check` stays green.
-10. docs: `docs/project-guide/git-and-hosting.md`: the rows of `seal`, `check_seal`, `remove_nested_repositories`, `remove_ignored` and `discard` go and the count says twenty-one, *Restoring the checkout* loses its bullet `remove_ignored()` and says three, and *Which part uses which operation* loses its row `remove_ignored`; `docs/project-guide/stage-environment.md`, *The container environment*, `run_agent`, and the row `project_commands` of the table in *The settings and the wiring*: no `SealedRun`, no `SealedProjectCommands`; `docs/project-guide/stages.md`, *The reasons* and *After the agent run*: no `nested_repository` and no rule for it; `docs/project-guide/write-guard.md`, *Limits*: no removal of ignored paths by `run_sealed`; `docs/project-guide/processes-and-checks.md`, *Rules of `run`* and *Mutation testing*: no tests' umask and no `umask 022` for the seal; `docs/project-guide/stage-environment.md`, *The stage environment*: `run_agent` returns the result; `docs/project-guide/stages.md` and `docs/project-guide/watching.md` (the dispatcher, the preparer, the restore): no seal, no re-clone, no removal of ignored paths, no `RepositoryUnsealed`; `docs/project-guide/processes-and-checks.md`, *Sealed project commands*: removed; `docs/project-guide/README.md`, *The files*: the lines follow, and *Shared test helpers*: the line of `conftest.py` loses `group_umask` and the line of `sealed_run_support.py` says the agent runs' completed result and request; `docs/operator-guide.md`: *The checkout is cloned again when it is missing or its `.git` is not the factory's alone* becomes *The checkout is cloned when it is missing* (a kept checkout is not checked), *A stall: the stall note*: the cause "the agent left a git repository in the work tree, which the factory removed (the detail lists the paths)" goes and the count says ten, and every sentence on the seal, the removal of ignored paths or the tests' umask goes; *The records contract*: `3.0` and why. `docs/decisions.md`: the entries "No nested repository in the work tree", "The factory removes the git-ignored paths after every agent run and at the restore", "The tests set their own umask, and uv syncs under the caller's", "The factory alone writes the checkout's `.git`", "A checkout whose clone was killed half-way is not recognised" and "The checkout is disposable and restored to `origin/main` at the start of every tick" each gain one closing line ("Replaced by the dataset's rollback, v1.2 F0044-S0006"; the last: "The seal, the re-clone and the removal of ignored paths went with v1.2 F0044-S0006; the restore stays"). `README.md`: none.
+9. The probe ignores a nested repository (one test): `agent_run_probe_item`, run with a scripted agent that writes `sub/.git/HEAD`, reports no fault; the probe item passes.
+10. `make check` stays green.
+11. docs: `docs/project-guide/git-and-hosting.md`: the rows of `seal`, `check_seal`, `remove_nested_repositories`, `remove_ignored` and `discard` go and the count says twenty-one, *Restoring the checkout* loses its bullet `remove_ignored()` and says three, and *Which part uses which operation* loses its row `remove_ignored`; `docs/project-guide/stage-environment.md`, *The container environment*, `run_agent`, and the row `project_commands` of the table in *The settings and the wiring*: no `SealedRun`, no `SealedProjectCommands`; `docs/project-guide/stages.md`, *The reasons* and *After the agent run*: no `nested_repository` and no rule for it; `docs/project-guide/write-guard.md`, *Limits*: no removal of ignored paths by `run_sealed`; `docs/project-guide/processes-and-checks.md`, *Rules of `run`* and *Mutation testing*: no tests' umask and no `umask 022` for the seal; `docs/project-guide/stage-environment.md`, *The stage environment*: `run_agent` returns the result; `docs/project-guide/stages.md` and `docs/project-guide/watching.md` (the dispatcher, the preparer, the restore): no seal, no re-clone, no removal of ignored paths, no `RepositoryUnsealed`; `docs/project-guide/processes-and-checks.md`, *Sealed project commands*: removed; `docs/project-guide/README.md`, *The files*: the lines follow, and *Shared test helpers*: the line of `conftest.py` loses `group_umask` and the line of `sealed_run_support.py` says the agent runs' completed result and request; `docs/operator-guide.md`: *The checkout is cloned again when it is missing or its `.git` is not the factory's alone* becomes *The checkout is cloned when it is missing* (a kept checkout is not checked), *A stall: the stall note*: the cause "the agent left a git repository in the work tree, which the factory removed (the detail lists the paths)" goes and the count says ten, and every sentence on the seal, the removal of ignored paths or the tests' umask goes; *The records contract*: `3.0` and why. `docs/decisions.md`: the entries "No nested repository in the work tree", "The factory removes the git-ignored paths after every agent run and at the restore", "The tests set their own umask, and uv syncs under the caller's", "The factory alone writes the checkout's `.git`", "A checkout whose clone was killed half-way is not recognised" and "The checkout is disposable and restored to `origin/main` at the start of every tick" each gain one closing line ("Replaced by the dataset's rollback, v1.2 F0044-S0006"; the last: "The seal, the re-clone and the removal of ignored paths went with v1.2 F0044-S0006; the restore stays"). `README.md`: none.
 
 ## Smoke test
 
@@ -135,3 +138,9 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
    3. Add a row to criterion 1: no post text built for a stall mentions a nested repository.
    New tests and rows need no leave beyond decisions 22 and 35(a).
 5. factory: started intake as self.
+6. intake: accepted
+   - Interface: concrete modules and signatures throughout (removed module, the 21-operation Git, the exact `prepare()` docstring, the `run_agent` signature, StallReason, RECORDS_CONTRACT 3.0). The behaviours it states (docstring text, restore keeps ignored files, run_agent returns the result, the probe fault going) now each have a criterion.
+   - Criteria: each is testable by one parametrized test or one test. Failing sides are covered: the removed names are absent, a kept group-writable `.git` and a nested repo are left alone, the dispatcher counts `GitError("seal", ...)` as any error, and the schemas must not name `nested_repository`. I carried in the human's answers from journal entry 4 as exactly three edits. Criterion 1 gains a row: no stall post text mentions a nested repository. Criterion 2 gains a row: `CheckoutPreparer.prepare.__doc__` equals the Interface text. New criterion 9: `agent_run_probe_item`, with a scripted agent that writes `sub/.git/HEAD`, reports no fault. The two closing criteria are now 10 (`make check`) and 11 (docs). I changed nothing else.
+   - Smoke test: the python and import commands are runnable, and the `Expect:` line gives three lines that can be compared. It runs no pytest, so the `-q` rule does not apply.
+   - Architecture: the removals follow the layers. The domain loses the error and the stall reason, the application loses `sealed_runs`, the Git operations and the preparer logic, and the adapter loses `GitCli`'s matching methods. No layer gains an import.
+   - Scope: inside S0006 of `feature.md`. The tests listed are covered by the leave of decision 22 as corrected by 35(a), and the new criteria need no leave beyond decisions 22 and 35(a), per the human. `left_branch` stays, as decision 14 and the "What stays" list say.
