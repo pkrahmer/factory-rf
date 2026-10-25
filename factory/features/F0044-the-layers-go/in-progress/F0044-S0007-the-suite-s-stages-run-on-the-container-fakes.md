@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T17:10:04.257330Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-25T17:10:04.257330Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T17:12:23.613387Z'
+  stage: review
+  run: 44f3f759e2914f7dbd4c98a44b4cad12
 ---
 
 # The suite's stages run on the container fakes
@@ -295,3 +297,39 @@ Expect: two lines: `1`; `1`
     `check`: check: green
     `duplicates`: duplicates: 7 new, 34 known, 4 gone
 18. factory: started review as self.
+19. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (3 files under `src/`, 26 under `tests/`) against the work item. Groups 1 and 2 pass, group 3 fails.
+
+    Group 1: every criterion has a test that checks what the criterion says. The Interface's one rule, the working directory, is tested on both sides as four rows of one parametrized test. Entry 17 records `check: green`. For criterion 4, the clean `status()` together with the kept and missing files pins that the work tree equals the result commit. For criterion 6, `forbidden.txt` is written at every stage, and no take deletes a path its role may not write, so checking the head at approval covers every stage's result commit.
+
+    Group 2: `agent_working_directory` in `factory.application.take` is used by `task.py` and `preflight.py`. It stays inside `application` and adds no interface or tool.
+
+    Findings:
+    1. `tests/test_suite_fixtures.py:3`: `import subprocess  # noqa: S404` adds a marker that silences a check. `CLAUDE.md` allows `# noqa: S404` only on the import in `src/factory/adapters/process.py` ("and nothing else"), and no reason is given beside it. The other tests import `subprocess` without a marker (`tests/test_layers.py:4`, `tests/domain/test_journal.py:4`). Fix: drop the marker. The `# noqa: S603, S607` at line 50 is already covered by the per-file ignore for `tests/**`, so it can go too.
+    2. `tests/application/test_cost_image.py`, `_launch`: the two lines added for `agent_home` sit above the function's docstring. The docstring is now a bare string expression, not a docstring. Fix: move the comment and the two lines below the docstring.
+    3. `tests/application/test_stall_edges.py:29` and `tests/application/test_stall_environment.py:55`: `WRITTEN = "written-by-lint.txt"` is now dead. Only the two red-check tests this story deleted used it. Fix: delete both constants together with the tests.
+
+    Earlier tests (status M):
+    - tests/application/test_agent_run_probe.py: the human's leave, named in the Interface (decision 23, answer 29 (a)).
+    - tests/application/test_agent_run_probe_project_agent.py: the human's leave, named in the Interface.
+    - tests/application/test_cost_image.py: the human's leave, `MAKEFILE` named in the Interface. The `_launch` settings fall under answer 29 (a) (tester's entry 5). Moving the docstring goes beyond that leave (finding 2).
+    - tests/application/test_costs.py: the human's leave, `_makefile` named in the Interface.
+    - tests/application/test_preflight_run.py: the human's leave, `MAKEFILE` named in the Interface.
+    - tests/application/test_stage_environment.py: the human's leave, the Interface's five tests.
+    - tests/application/test_stage_environment_calls.py: the human's leave, both tests named in the Interface.
+    - tests/application/test_stage_finish.py: the human's leave, `_makefile` named in the Interface.
+    - tests/application/test_stage_launch.py: the human's leave, named in the Interface.
+    - tests/application/test_stage_provider_limit.py: the human's leave, named in the Interface.
+    - tests/application/test_stage_run.py: the human's leave, named in the Interface.
+    - tests/application/test_stall_edges.py: the human's leave, the deletion and `inline_boundaries` named in the Interface. The leftover constant is finding 3.
+    - tests/application/test_stall_environment.py: the human's leave, the deletion and `inline_boundaries` named in the Interface. The leftover constant is finding 3.
+    - tests/application/test_stall_labels.py: the human's leave, `_makefile` named in the Interface.
+    - tests/application/test_stalls.py: the human's leave, both tests named in the Interface.
+    - tests/application/test_task.py: the human's leave, named in the Interface.
+    - tests/application/test_tick_preflight.py: the human's leave, `MAKEFILE` named in the Interface.
+    - tests/conftest.py: the human's leave, the `boundaries` fixture named in the Interface.
+    - tests/container_support.py: the human's leave (the Interface lets `container_dataset` take the fixture's fakes) and the standing leave for the shared helpers `fake_dataset` and `inline_boundaries`.
+    - tests/entry/test_wiring_extras.py: the human's leave, named in the Interface.
+    - tests/entry/test_wiring_run.py: the human's leave, named in the Interface.
+    - tests/git_support.py: the human's leave, `REMOTE_FILES` named in the Interface.
+    - tests/proof_support.py: the human's leave, the world, `PASSING_MAKEFILE` and `_outside_writes_undone` named in the Interface.
+    - tests/stage_run_support.py: the human's leave, `stage_makefile` named in the Interface.
