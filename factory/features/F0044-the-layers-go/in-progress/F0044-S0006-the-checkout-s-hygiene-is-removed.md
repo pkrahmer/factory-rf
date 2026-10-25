@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T16:41:23.128752Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -186,6 +190,11 @@ journal:
   at: '2026-10-25T16:41:02.001139Z'
   stage: docs
   run: dad6a0f53e1642c2be02671b1651e60c
+- number: 33
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:41:23.128752Z'
+  stage: smoke-test
 ---
 
 # The checkout's hygiene is removed
@@ -650,3 +659,4 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     `check`: check: green (not run again: passed on tree 121c8da73c66 at 2026-10-25T16:35:16Z)
     `secrets`: secrets: green (3.8 s)
     `documents`: documents ok
+33. factory: started smoke-test as self.
