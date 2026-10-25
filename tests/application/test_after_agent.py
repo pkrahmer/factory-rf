@@ -40,7 +40,7 @@ PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
 ROLES = ["tester", "reviewer"]
 OUTSIDE = "src/b.py"
 ENTRY = "tests written."
-UNDONE_PARAGRAPH = "The factory undid changes outside the write paths: "
+UNDONE_PARAGRAPH = "The factory left out changes outside the write paths: "
 CRITERIA_SECTION = """\
 ## Acceptance criteria
 

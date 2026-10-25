@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T19:21:19.348704Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-25T19:21:19.348704Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T19:26:14.347703Z'
+  stage: tests
+  run: e660995187c1402192687ece6dea1336
 ---
 
 # The undo is removed
@@ -105,3 +107,34 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
    - Architecture: the three functions move within `application` (undo into take). The `agent_entry` change is in `domain`, and the `AfterAgent` call stays in `application`. No layer rule is crossed.
    - Scope: this is S0009 of F0044, and `feature.md` lists it ("`factory.application.undo`; the entry's closing sentence"). Decisions 11, 25 and 38 cover the rename and the test leave. Nothing is in "Out of scope". The docs criterion stays within the documenter's `docs/*` paths.
 4. factory: started tests as self.
+5. tester: I wrote one test per criterion and made the test changes the Interface lists, under the leave of decision 25. `make test` is red now, as it should be before the code exists. `make lint` is green.
+
+   Criterion → test:
+   - criterion 1: tests/test_undo_removed.py::test_the_undo_module_is_gone_and_the_take_holds_the_shared_functions (rows: undo-module, is-refused, read-baseline, restore-work-item, no-undid, no-undo-name-imported)
+   - criterion 2: tests/domain/test_agent_entry.py::test_the_left_out_paths_close_the_entry_in_a_paragraph_of_their_own (rows: two-paths-sorted, nothing-left-out, blank-text)
+   - criterion 3: tests/application/test_left_out_stage.py::test_a_stage_names_the_left_out_paths_and_commits_only_the_taken_ones
+   - criterion 4: tests/application/test_take_rule.py::test_the_take_leaves_out_what_the_rule_refuses_and_restores_the_work_item (rows: claude-folder, nested-claude-folder, other-in-progress-file, claude-lookalike, outside-the-write-paths, inside-the-write-paths, work-item)
+   - criteria 5 and 6: `make check` and the docs; no test.
+
+   Files created: tests/test_undo_removed.py, tests/application/test_left_out_stage.py, tests/application/test_take_rule.py.
+
+   Earlier test files changed, as the Interface names them:
+   - Deleted: tests/application/test_undo.py and tests/application/test_undo_nested_claude.py.
+   - tests/undo_support.py: `undo_stage` and the imports of `UndoReport` and `UndoService` are gone, and its docstring no longer mentions the undo. I kept the module's name, so the take tests that import it are unchanged.
+   - tests/domain/test_agent_entry.py: the six tests keep their names and call `left_out=`. The constant is now `LEFT_OUT_PARAGRAPH` with the new sentence. The blank-text test's parameter is now `left_out`, with the ids nothing-left-out and left-out.
+   - tests/application/test_after_agent.py, test_costs.py and test_stage_environment_calls.py: `UNDONE_PARAGRAPH` now holds the new sentence.
+   - tests/application/test_stall_environment.py::test_the_stall_module_imports_no_name_of_the_undo: also checks that no imported name is `UndoService`.
+
+   One reading you should know about, in criterion 3. In a whole stage the factory adds the checks' lines (`` `lint`: … `` and `` `test`: … ``) after the agent's text, as their own paragraph. So the stored entry does not literally end with the sentence. The test checks that the left-out sentence is the paragraph just before the checks' paragraph. This is where the closing paragraph already sits, which the Description says stays. The result commit's `.costs.jsonl` must hold one completed record, not the agent's text.
+
+   Red for the right reasons (from the one `make test` run, tail only):
+   - test_undo_removed: the undo-module row (the module still exists) and the no-undid row (`domain/decisions.py`).
+   - test_after_agent: two rows read the old sentence.
+   - The tests that call `agent_entry(left_out=…)` were not in the tail I saw, but they should fail as well, since the keyword does not exist yet.
+
+   The criterion 4 rows test a refusal rule that already exists, so they may pass now.
+
+   Not importable: none at collection. `factory.application.undo` still exists, and the test that requires it to be gone fails.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/application/test_after_agent.py::test_the_own_cost_record_file_is_not_named_as_undone[with-an-outside-file] - AssertionError: assert 'tests writte...hs: src/b.py.' == 'tests writte...h...

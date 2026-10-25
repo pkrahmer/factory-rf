@@ -33,7 +33,7 @@ from stage_run_support import (
 from take_support import AGENT_TEXT
 
 OUTSIDE = "src/b.py"
-UNDONE_PARAGRAPH = "The factory undid changes outside the write paths: "
+UNDONE_PARAGRAPH = "The factory left out changes outside the write paths: "
 TEST_COMMAND = "  test: {time_limit: 10}\n"
 WITH_SYNC = PIPELINE_YAML.replace(TEST_COMMAND, TEST_COMMAND + "  sync: {time_limit: 5}\n")
 NOTHING_LEFT = TakeReport(left=[], restored_work_item=False)

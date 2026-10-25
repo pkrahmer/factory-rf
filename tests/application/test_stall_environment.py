@@ -135,7 +135,15 @@ def test_the_stall_module_imports_no_name_of_the_undo() -> None:
         for alias in node.names
     ]
 
+    names = [
+        alias.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom | ast.Import)
+        for alias in node.names
+    ]
+
     assert "factory.application.undo" not in modules
+    assert "UndoService" not in names
 
 
 @pytest.mark.parametrize("row", ["checkout-back-on-the-branch", "sidecar-after-the-take"])

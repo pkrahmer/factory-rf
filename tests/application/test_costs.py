@@ -35,7 +35,7 @@ BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
 SIDECAR = cost_records_path(PATH)
 ENTRY = "tests written."
-UNDONE_PARAGRAPH = "The factory undid changes outside the write paths"
+UNDONE_PARAGRAPH = "The factory left out changes outside the write paths"
 RUN_ID = re.compile(r"^[0-9a-f]{32}$")
 STORY = """\
 # First story
