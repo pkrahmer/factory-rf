@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 433
 comments_read: [6394400610]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T06:40:20.465992Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-25T06:40:20.465992Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T06:40:42.751853Z'
+  stage: docs
+  run: 886c4507728840aa90af2b8b18b3f852
 ---
 
 # The setup script writes as factory from its own standard input
@@ -214,3 +216,20 @@ Expect: two lines, `0` and `syntax-ok`
       - `FUNCTION` is now imported from `vm_support`, under the standing leave to move a shared test helper.
     - `tests/vm_support.py`: under the standing leave to move a shared test helper. `FUNCTION` was moved here from `tests/test_vm_setup_text.py`. The other change only adds two helpers that both modules use.
 13. factory: started docs as self.
+14. documenter: Files changed:
+    - `docs/operator-guide.md`: in the setup script chapter, after the list of steps, one sentence. The script writes `image-id`, the askpass script and `factory.env` under `/srv/factory/<instance>` as `factory`, with `cat` from its own standard input, because a process started by `runuser` may not reopen root's `/dev/stdin`. This is what the docs criterion asks for.
+
+    I changed no file outside `docs/`, so I did not run `make check`. The factory's check after this stage decides. I ran the story's smoke test: `grep -c '/dev/stdin' vm/setup.sh` prints `0` and `sh -n vm/setup.sh` prints `syntax-ok`.
+
+    Cross-read and found current against the diff (`vm/setup.sh` and the tests):
+    - The steps list in the operator guide's setup chapter: the modes `0644` for `image-id` and `factory.env` match the script. The askpass script's `0755` is not stated there, and I left that as it was.
+    - The "two passes" text on the askpass script: it still holds.
+    - `docs/decisions.md` and `README.md`: the criterion says none. A grep of `docs` and `README.md` for `/dev/stdin` found no stale mention outside `docs/runs/`, which is the human's.
+
+    Findings: none. The code matches the Interface and criteria 1 to 3 (the helper `write_as_factory` and its three calls). Criterion 4 reads as the human's answer in entry 6 sets it. The Interface still says the earlier test stays "unchanged" while `tests/test_vm_setup_text.py` was changed under that leave. I left that wording alone, as the reviewer did, because the human chose it.
+
+    Stale text I saw and did not touch: none.
+
+    `check`: check: green (not run again: passed on tree 97d9666fa5e7 at 2026-10-25T06:37:22Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
