@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T01:16:07.138466Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -175,6 +179,11 @@ journal:
   at: '2026-10-25T01:15:45.537271Z'
   stage: doing
   run: ca73d821c7864977bfeab9721aaee2ff
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-10-25T01:16:07.138466Z'
+  stage: tests
 ---
 
 # The setup script prepares the machine and installs the service
@@ -560,3 +569,4 @@ Expect: `1`
     - `unchanged` runs `cmp` as root on `$askpass` and `$env_file`. Through a planted link, that compares against any file, but it only reads and only decides whether to rewrite.
     - The `folders` step's `install -d` on `$base/state` and `$base/repo` is the open point of entry 28. The `stat` without `-L` in `owned_with_mode` gives the same protection there as at the mount point, as long as the link's owner is `factory`.
     - No skill applied.
+31. factory: started tests as self.
