@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 453
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T20:04:16.545242Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-25T20:03:55.540186Z'
   stage: tests
   run: fe5c504d0ff446c4a0ee38e98232d859
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:04:16.545242Z'
+  stage: doing
 ---
 
 # The Docker path and the host's process table are removed
@@ -120,3 +129,4 @@ Expect: three lines: `0`; `helper-moved`; `gone`
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/adapters/test_process_session.py::test_time_limit_ends_every_process_of_the_group[run_streaming-own-group] - AssertionError: assert True is False
+6. factory: started doing as self.
