@@ -15,26 +15,24 @@ LIMIT = timedelta(seconds=30)
 
 @dataclass(frozen=True)
 class Layout:
-    """The folders of one run: checkout, home, state, temporary root and the stand-ins'."""
+    """The folders of one run: checkout, home, state and the stand-ins'."""
 
     checkout: Path
     home: Path
     state: Path
-    temporary_root: Path
     stand_in: Path
     shell_bin: Path
 
 
 def build_layout(tmp_path: Path) -> Layout:
-    """Return a checkout with `src` and `other`, a home and a temporary root under `tmp_path`."""
+    """Return a checkout with `src` and `other`, and a home under `tmp_path`."""
     checkout = tmp_path / "checkout"
-    for folder in (checkout / "src", checkout / "other", tmp_path / "home", tmp_path / "tmp"):
+    for folder in (checkout / "src", checkout / "other", tmp_path / "home"):
         folder.mkdir(parents=True)
     return Layout(
         checkout=checkout,
         home=tmp_path / "home",
         state=tmp_path / "state",
-        temporary_root=tmp_path / "tmp",
         stand_in=checkout / "stand-in",
         shell_bin=tmp_path / "shell-bin",
     )

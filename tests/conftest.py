@@ -9,7 +9,6 @@ import pytest
 
 from acceptance_walk import AcceptanceWalk
 from adapters.container_runtime_support import make_workspace
-from confine_support import Layout, build_layout
 from container_support import Dataset, container_dataset, fake_dataset
 from definition_support import pipeline_definition
 from disk_support import FakeDiskSpace
@@ -50,6 +49,7 @@ from git_support import (
 from human_clone import HumanClone
 from podman_support import IMAGE, Podman, PodmanPlan, write_podman
 from proof_support import World, build_world, start_story
+from run_layout_support import Layout, build_layout
 from run_process_recorder import Recorder
 from stage_run_support import INSTANCE
 from tmp_path_support import reopen

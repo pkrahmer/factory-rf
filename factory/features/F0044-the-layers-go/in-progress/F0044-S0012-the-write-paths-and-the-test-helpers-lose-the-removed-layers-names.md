@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T20:49:45.712822Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-25T20:49:45.712822Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T20:53:25.456841Z'
+  stage: tests
+  run: ee9e4662e05d40298b40f9d8939a0953
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -107,3 +109,24 @@ Expect: `0`
    Architecture: a rename within `factory.domain` and `factory.application`, with no new layer, interface or dependency. The docs and test helpers are within the write paths of the documenter and the tester. `docs/decisions.md` keeps its history.
    Scope: within F0044's goal of removing the removed layers' names. The refusal rule is unchanged, which matches "Out of scope" in `feature.md`. The three test modules named after removed layers keep their names. Decision 42 of `feature.md` adds this story and gives the leave.
 4. factory: started tests as self.
+5. tester: Wrote the tests for criteria 1–4 and carried out the test renames the Interface lists. Decision 42 of `feature.md` gives the leave for them.
+
+   Criterion → test:
+   - criterion 1: tests/test_removed_layer_names.py::test_the_write_paths_carry_their_new_names (rows: new-name, old-name, fields, refusal-parameters, refusal-no-guard)
+   - criterion 2: tests/test_removed_layer_names.py::test_no_file_holds_a_removed_layer_s_name (rows: source-guard-settings, tests-confine, tests-sealed, planted-is-found; the last row writes `src/factory/planted.py` holding `GuardSettings` under tmp_path, and that file must be found. This is the failing side.)
+   - criterion 3: tests/test_removed_layer_names.py::test_the_rule_of_the_write_paths_is_unchanged (rows: writable → None, outside → "docs/a.md is outside the write paths of this stage.", protected → "factory/pipeline.yml is owned by the human; a change there is a question.", which are the texts `refusal` gives today)
+   - criterion 4: tests/test_removed_layer_names.py::test_the_run_layout_has_no_temporary_root
+   - criteria 5 and 6: none (make check; docs for the documenter)
+
+   Files created: tests/test_removed_layer_names.py; tests/run_layout_support.py (was tests/confine_support.py; `temporary_root` and the `tmp` folder are dropped, and the docstrings no longer name a temporary root); tests/agent_run_support.py (was tests/sealed_run_support.py, contents unchanged). Both old files are removed.
+
+   Earlier test files I changed, under the leave of decision 42:
+   - Import line only: tests/conftest.py, tests/podman_support.py, tests/zfs_support.py, tests/test_test_children.py, tests/adapters/test_agent_launch_login.py, test_calls_as_the_factory_user.py, test_opencode_runtime_launch.py, test_runtimes_without_wrapper.py, test_claude_runtime_no_hook.py, tests/application/test_container_environment.py, test_sealed_runs_runner.py, test_probe_nested_repository.py. Ruff's isort moved each renamed import to its sorted place within the same import block.
+   - `GuardSettings` → `WritePathSettings`: tests/application/test_write_paths_guard.py, tests/application/test_write_paths.py, tests/domain/test_agent_runs.py (ruff format rewrapped one line), tests/domain/test_project_agent_paths.py, tests/domain/test_write_paths.py, tests/domain/test_nested_claude_paths.py, tests/test_kernel_guard_removed.py, tests/test_hook_removed.py. In test_hook_removed.py the `GuardSettingsInvalid` row (id settings-error) is kept as it was. The guard-settings row now checks that `WritePathSettings` is present. All test names and ids are unchanged.
+
+   `make test` fails for the right reason: collection ImportErrors in the modules that import `WritePathSettings` from `factory.domain.agent_runs`, which does not exist yet (among them tests/domain/test_write_paths.py, test_project_agent_paths.py, tests/test_hook_removed.py, tests/test_kernel_guard_removed.py, and the new module). The module the runner could not import is `factory.domain.agent_runs.WritePathSettings`; the module itself exists but lacks the name. `make lint` is green.
+
+   Open for the coder: rename `GuardSettings` in src (agent_runs, write_paths, take, write_paths service) and rename `refusal`'s parameter `guard` to `settings`. One note: tests/adapters/test_runtimes_without_wrapper.py keeps its rows that check the runtimes' `__init__` has no `temporary_root` parameter. Those rows are about the runtimes, not the Layout, so I left them.
+
+   `lint`: lint: green (0.2 s)
+   `test`: ERROR tests/test_kernel_guard_removed.py - ImportError while importing test module '/work/checkout/tests/test_kernel_guard_removed.py'.

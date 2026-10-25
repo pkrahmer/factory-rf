@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.domain.agent_runs import GuardSettings
+from factory.domain.agent_runs import WritePathSettings
 from factory.domain.write_paths import PROTECTED_PATHS, matches_any, refusal
 
 
@@ -50,7 +50,7 @@ def test_a_claude_folder_is_protected_at_any_depth_and_only_as_a_whole_segment(
 def test_the_guard_refuses_a_nested_claude_folder_although_a_write_path_matches_it(
     path: str, expected: str | None
 ) -> None:
-    guard = GuardSettings(
+    guard = WritePathSettings(
         root=Path("/work"), write_paths=["src/*"], protected_paths=list(PROTECTED_PATHS)
     )
 

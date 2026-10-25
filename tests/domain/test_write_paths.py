@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.domain.agent_runs import GuardSettings
+from factory.domain.agent_runs import WritePathSettings
 from factory.domain.write_paths import (
     PROTECTED_PATHS,
     expand_write_paths,
@@ -17,8 +17,8 @@ WORK_ITEM = "factory/features/F0004-x/in-progress/F0004-S0001-y.md"
 FEATURE = "factory/features/F0004-x"
 
 
-def _guard(write_paths: list[str]) -> GuardSettings:
-    return GuardSettings(
+def _guard(write_paths: list[str]) -> WritePathSettings:
+    return WritePathSettings(
         root=Path("/work"), write_paths=write_paths, protected_paths=list(PROTECTED_PATHS)
     )
 

@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from factory.domain.agent_runs import GuardSettings
+from factory.domain.agent_runs import WritePathSettings
 from factory.entry import wiring
 from module_names import has_name
 
@@ -47,7 +47,7 @@ def _confine_command() -> object:
         pytest.param(lambda: "read_guard_settings" in wiring.__all__, False, id="exported-read"),
         pytest.param(_confine_command, None, id="confine-command"),
         pytest.param(
-            lambda: has_name("factory.domain.agent_runs", "GuardSettings"),
+            lambda: has_name("factory.domain.agent_runs", "WritePathSettings"),
             True,
             id="guard-settings",
         ),
@@ -69,12 +69,12 @@ def test_the_hook_s_code_is_gone_and_the_kernel_s_guard_is_kept(
 
 
 def _build(extra: dict[str, Any]) -> object:
-    model: type[BaseModel] = GuardSettings
+    model: type[BaseModel] = WritePathSettings
     return model(root=Path("/w"), write_paths=["src/*"], protected_paths=[], **extra)
 
 
 def _fields() -> None:
-    assert list(GuardSettings.model_fields) == [
+    assert list(WritePathSettings.model_fields) == [
         "root",
         "write_paths",
         "protected_paths",

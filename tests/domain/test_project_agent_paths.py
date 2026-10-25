@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.domain.agent_runs import GuardSettings
+from factory.domain.agent_runs import WritePathSettings
 from factory.domain.paths import PROJECT_AGENTS_DIRECTORY, project_agent_file
 from factory.domain.write_paths import PROTECTED_PATHS, matches_any, refusal
 
@@ -29,7 +29,7 @@ def test_the_project_agents_folder_is_protected(path: str, expected: bool) -> No
 
 
 def test_a_write_to_a_project_agent_file_is_refused_as_the_humans() -> None:
-    guard = GuardSettings(
+    guard = WritePathSettings(
         root=Path("/work"), write_paths=["*"], protected_paths=list(PROTECTED_PATHS)
     )
 
