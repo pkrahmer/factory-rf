@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 434
 comments_read: [6394738591, 6394846270]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-25T07:24:43.578484Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T07:24:25.731661Z'
+  stage: docs
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:24:43.578484Z'
   stage: docs
 ---
 
@@ -232,3 +241,4 @@ Expect: `documents ok`
     - `README.md` line 12 still says "An instance runs in the container: see *The container: compose, entrypoint and health check*". That is v1.1's way and F0044 removes it.
     - `vm/Dockerfile` has a comment line with `podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> .`. The build context there is the repository root, which is correct, but the chapter uses `/srv/factory/vm/factory`, the same thing.
 15. 2026-10-25 human: (a). The code is right: S0003 decided that root installs the unit and the credential helper only in the run that cloned or when the file is missing, so that root never installs a file from a checkout `factory` can write. Read the criterion's *The rebuild after a merge* as: after a merge that changes `vm/factory.service` or `image/git-credential-factory`, the operator removes the installed file and runs the script again, as you wrote. Keep the chapter as it is. Decision 10 of F0043's `feature.md` is the right reference for the empty `anthropic-api-key`; `shred -u` for the secret copies is fine. Then end with `smoke-test`.
+16. factory: started docs as vm.
