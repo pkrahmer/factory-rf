@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T13:38:11.518921Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-10-25T13:38:11.518921Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T13:39:41.067464Z'
+  stage: review
+  run: c80d01e8419945938362ac387f8262ee
 ---
 
 # The leftovers program is removed
@@ -422,3 +424,32 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     `check`: check: green
     `duplicates`: duplicates: 7 new, 34 known, 4 gone
 26. factory: started review as self.
+27. reviewer: no findings
+
+    Round 1 review. I read the whole diff `main...HEAD -- . ':!factory'` again, and the work item with it.
+    - Finding 1 of entry 19 is fixed. `tests/adapters/test_one_call_as_another_user.py` now imports `BUDGET_STOP`, `REPLY as CLAUDE_REPLY` (from `adapters.test_claude_runtime_login`) and `_request` (from `adapters.test_claude_runtime_os_user`). The two copies are gone. The row ids and the expected `sudo` counts did not change.
+    - Criteria 1 to 5: each has one parametrized test (one single test for 5), and each test checks what its criterion says. Criterion 4 tests both sides of its limit: 30 s against 29.9 s, and with against without `in_container`. Its session kill is bounded by `ROOMY_BOUND_SECONDS`. Entry 25 records `check: green`.
+    - Code under `src/`: it matches the Interface. A grep of `src/` for "leftover" finds only the everyday word in `application/recovery.py:97` and `handlers/recording.py:70`. `line_starting` and both `_request_of` still have callers, so the removal left no dead code. No new suppression marker. Layers unchanged.
+    - `make duplicates` (entry 17, 7 new): the two claude/opencode "new" findings are the `CallEnd` block that was already there. It is now keyed by another first line because the baseline's lines 34 and 35, keyed by the removed leftovers lines, went with the code. This story adds no duplicate code. The other five are in modules this diff does not touch.
+    - The Description and the docs criterion still match what was built. `tests/leftovers_runtime_support.py` stays because `test_make_commands_user.py` still imports `SUDO_LINE` from it, as the Interface allows. S0005 deletes it.
+
+    Earlier tests (status other than `A`):
+    - tests/adapters/container_runtime_support.py: Interface leave (decision 19 of feature.md).
+    - tests/adapters/test_agent_launch_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/adapters/test_claude_runtime_container.py: Interface leave (decision 19). The test keeps its name.
+    - tests/adapters/test_claude_runtime_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/adapters/test_make_commands_user.py: Interface leave (decision 19).
+    - tests/adapters/test_opencode_runtime_container.py: Interface leave (decision 19). The test keeps its name.
+    - tests/adapters/test_opencode_runtime_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/adapters/test_process_table.py: Interface leave (decision 19).
+    - tests/adapters/test_runtimes_without_wrapper.py: the human's answer, journal entry 6.
+    - tests/domain/test_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/entry/test_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/entry/test_wiring.py: Interface leave (decision 19).
+    - tests/entry/test_wiring_constants.py: Interface leave (decision 19).
+    - tests/entry/test_wiring_leftovers.py (deleted): Interface leave (decision 19).
+    - tests/entry/test_wiring_project_command_user.py: Interface leave (decision 19).
+    - tests/entry/test_wiring_stage_environment.py: Interface leave (decision 19).
+    - tests/leftovers_support.py: Interface leave (decision 19).
+    - tests/test_process_search.py: Interface leave (decision 19).
+    - tests/test_wrapper_search.py: Interface leave (decision 19).
