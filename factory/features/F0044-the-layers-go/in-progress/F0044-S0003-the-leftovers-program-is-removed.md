@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T13:30:09.158072Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-25T13:30:09.158072Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-25T13:30:36.947179Z'
+  stage: doing
+  run: 4dab8f09754d47c38aa9b6a5ba1c5893
 ---
 
 # The leftovers program is removed
@@ -347,3 +349,8 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     - tests/test_process_search.py: Interface leave (decision 19).
     - tests/test_wrapper_search.py: Interface leave (decision 19).
 20. factory: started doing as self.
+21. coder: The reviewer's finding 1 (entry 19) is a test change only, so I changed no code. In `tests/adapters/test_one_call_as_another_user.py`, the tester deletes the copies `_claude_reply` and `_claude_request`. In their place it imports `REPLY` and `BUDGET_STOP` from `adapters.test_claude_runtime_login` and `_request` from `adapters.test_claude_runtime_os_user`, the way `tests/adapters/test_claude_runtime_container.py:18` already does. `_claude_reply()` becomes `REPLY` and `_claude_reply("error_max_budget_usd", 3.0)` becomes `BUDGET_STOP`. `_claude_request(tmp_path)` becomes `_request(tmp_path, USER)`; if the resumed row needs a budget other than `_request`'s 1 USD, the tester applies `model_copy` to the imported request. Row ids and expected `sudo` call counts stay the same.
+
+    One thing to watch: the module already imports `REPLY` from `adapters.opencode_stand_in`, so one of the two imports needs an alias (for example `REPLY as CLAUDE_REPLY`).
+
+    The code is unchanged since 934c3efa. Entry 17 recorded `check: green`; I did not run `make check` again in this run because no code changed. Still open from entry 17: `tests/leftovers_runtime_support.py` stays for S0005, and `make duplicates` reported 4 findings as gone. The journal did not change what the task means, so the Description stays as it is.
