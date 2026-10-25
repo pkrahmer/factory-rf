@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 442
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-25T09:46:08.605623Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-25T09:46:08.605623Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-25T09:49:54.398283Z'
+  stage: doing
+  run: 86b3319a43ae4273a3f6c92bd01c3ea4
 ---
 
 # Step 12 stops the instance between two stages before it stops the VM
@@ -116,3 +118,14 @@ Expect: `documents ok`
    `lint`: lint: green (0.2 s)
    `test`: test: green (194.7 s)
 6. factory: started doing as vm.
+7. coder: Built nothing; no paths changed. This story changes only documents. The Interface says nothing changes under `src/factory/`, in any test, or under `vm/`, `image/`, `template/` or `claude/`, and the tester wrote no tests, so there was no failing test to make pass.
+   criterion 1 (nothing under src/, tests/, vm/, image/, template/ or claude/ changes): this stage changed no file; the working tree is clean.
+   criterion 2 (`make check` stays green): I ran `make check` in the foreground on the unchanged branch and it ended `check: green` (test: green (196.3 s), coverage 99.20 %).
+   criterion 3 (docs, step 12 of `### On GCP, step by step` in `docs/operator-guide.md`): the documenter writes this; the coder does not write `docs/` (CLAUDE.md, *Docs*).
+   Main choice: I left `docs/operator-guide.md` to the docs stage. The alternative was to write the new step 12 here, and I rejected it because the coder does not write the docs and the criterion names the documenter.
+   Refactor: there is no diff to refactor.
+   The journal did not change the meaning of the task, so the Description stays as it is.
+   Noticed but not touched: `vm/factory.service` still sets no `TimeoutStopSec`. Whether it should is the human's open question, and this story leaves it alone.
+
+   `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
+   `duplicates`: duplicates: 11 new, 36 known, 2 gone
