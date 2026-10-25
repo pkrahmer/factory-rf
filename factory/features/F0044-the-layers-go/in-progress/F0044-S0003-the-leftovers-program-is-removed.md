@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T13:34:40.845198Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-10-25T13:34:40.845198Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-25T13:37:50.461654Z'
+  stage: doing
+  run: 819b742fad09483d88efd1be11fec9e4
 ---
 
 # The leftovers program is removed
@@ -388,3 +390,25 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     `lint`: lint: green (0.7 s)
     `test`: test: green (71.0 s)
 24. factory: started doing as self.
+25. coder: This was rework round 1. The reviewer's one finding in entry 19 asked for a test change only, and the tester made it in entry 23. That left nothing to do in the code, so I changed no code. I ran `make check` in the foreground on the committed state and it ended `check: green`: `test: green (70.7 s)`, coverage 99.50 %. The tests of criteria 1 to 5 pass.
+
+    What I built is unchanged since commit 934c3efa:
+    - Deleted `src/factory/entry/leftovers.py` and `src/factory/domain/leftovers.py`.
+    - `src/factory/adapters/process.py`: removed `own_identity` and `signal_every_other`, and the imports of `pwd` and `Identity`.
+    - `src/factory/adapters/agent_launch.py`: removed the six leftovers names and the `LEFTOVERS_PREFIX` import. `Starters` now has only `sudo_executable` and `login_files`.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: removed the `leftovers` keyword, the property, `_end_leftovers`, the leftovers fault after a call and their imports.
+    - `src/factory/adapters/make_commands.py`: removed `CommandUser.leftovers` and `_end_leftovers`. `_start` no longer takes `merge_stderr` and always passes `True`.
+    - `src/factory/entry/wiring.py`: removed `LEFTOVERS_MODULE` and `leftovers_command`, from `__all__` too, and the `end_leftovers` keyword of `build_boundaries`.
+
+    Main choice: a pure removal, with nothing put in the program's place. In `_start` I set `merge_stderr=True` explicitly, because `ProcessRequest` defaults to `False`. I rejected keeping a keyword that only one caller still varied.
+
+    Refactor: no code changed in this round, so there was nothing new to refactor.
+
+    Noticed but not touched:
+    - `tests/leftovers_runtime_support.py` stays; S0005 deletes it.
+    - `make duplicates` (a record, not a check) reported 4 findings as gone in entry 17. `security/duplicates-baseline.txt` is unchanged.
+
+    The journal did not change what the task means, so the Description stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 34 known, 4 gone
