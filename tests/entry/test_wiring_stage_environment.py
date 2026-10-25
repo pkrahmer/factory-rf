@@ -112,7 +112,6 @@ def test_a_container_instance_gets_the_dataset_s_adapters_and_asks_for_no_tool(
         CREDENTIAL,
         hosting=FakeHostingService(),
         which=which,
-        confine_executable="factory-confine",
         end_leftovers=True,
     )
 
@@ -155,7 +154,6 @@ def test_a_container_instance_s_runtime_runs_in_its_containers_unconfined(
         CREDENTIAL,
         hosting=FakeHostingService(),
         which=which,
-        confine_executable="factory-confine",
         end_leftovers=True,
     )
 
@@ -165,8 +163,6 @@ def test_a_container_instance_s_runtime_runs_in_its_containers_unconfined(
     assert isinstance(agent_runtime, ClaudeCodeRuntime | OpencodeRuntime)
     assert agent_runtime.containers is boundaries.containers
     assert agent_runtime.leftovers is None
-    if isinstance(agent_runtime, ClaudeCodeRuntime):
-        assert agent_runtime.confine_executable is None
 
 
 def test_a_container_instance_s_runtime_mounts_its_login_file(
@@ -195,7 +191,6 @@ def test_a_container_instance_s_runtime_mounts_its_login_file(
         container_settings.model_copy(update={"claude_login_file": login}),
         CREDENTIAL,
         hosting=FakeHostingService(),
-        confine_executable="factory-confine",
     )
 
     result = boundaries.agent_runtime.run(request)

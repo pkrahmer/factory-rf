@@ -16,15 +16,10 @@ from factory.domain.errors import AgentRuntimeError
 
 STARTERS = Starters(
     sudo_executable="/usr/bin/sudo",
-    confine_executable="/opt/factory/bin/factory-confine",
     login_files=LoginFiles(),
 )
 LIMIT = timedelta(seconds=30)
 CONFINE_STDERR = "factory-confine: landlock is not available\n"
-CONFINE_REFUSAL = (
-    "/opt/factory/bin/factory-confine refused the agent run: "
-    "factory-confine: landlock is not available"
-)
 
 
 @pytest.mark.parametrize(
@@ -83,20 +78,6 @@ def _refused_end(*, printed: bool, exit_status: int, duration: timedelta, stderr
             ),
             "/usr/bin/sudo refused the agent run: sudo: a password is required",
             id="sudo-refused",
-        ),
-        pytest.param(
-            None,
-            _refused_end(
-                printed=False, exit_status=1, duration=timedelta(seconds=1), stderr=CONFINE_STDERR
-            ),
-            CONFINE_REFUSAL,
-            id="wrapper-refused",
-        ),
-        pytest.param(
-            "agent",
-            _refused_end(printed=True, exit_status=137, duration=LIMIT, stderr=CONFINE_STDERR),
-            CONFINE_REFUSAL,
-            id="printed-and-killed-is-read-for-refusals",
         ),
         pytest.param(
             "agent",

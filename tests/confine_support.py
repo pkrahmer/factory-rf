@@ -10,9 +10,8 @@ from decimal import Decimal
 from pathlib import Path
 from typing import NoReturn
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
-from factory.adapters.claude_runtime import SUDO_EXECUTABLE, ClaudeCodeRuntime
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, GuardSettings
 
 # The installed wrapper, beside the interpreter that runs the tests.
@@ -24,57 +23,6 @@ USAGE = "factory-confine: usage: factory-confine --rules <file> -- <command> [<a
 
 # A confine executable that records its arguments and the rules file's text and mode, then
 # plays its line or runs what follows `--`.
-CONFINE_SCRIPT = r"""
-import json
-import os
-import stat
-import sys
-import time
-from pathlib import Path
-
-here = Path(__file__).resolve().parent
-arguments = sys.argv[1:]
-rules = Path(arguments[arguments.index("--rules") + 1])
-record = {
-    "arguments": arguments,
-    "rules_text": rules.read_text(encoding="utf-8"),
-    "rules_mode": stat.S_IMODE(rules.stat().st_mode),
-}
-with (here / "confine-calls.jsonl").open("a", encoding="utf-8") as out:
-    out.write(json.dumps(record) + "\n")
-played = here / "played.json"
-if played.exists():
-    play = json.loads(played.read_text(encoding="utf-8"))
-    sys.stderr.write(play["stderr"])
-    sys.stderr.flush()
-    sys.stdout.write(play["stdout"])
-    sys.stdout.flush()
-    time.sleep(play["wait_seconds"])
-    sys.exit(play["exit_status"])
-rest = arguments[arguments.index("--") + 1 :]
-os.execvp(rest[0], rest)
-"""
-
-
-class Played(BaseModel):
-    """What the stand-in confine executable plays instead of running the call."""
-
-    model_config = ConfigDict(frozen=True, extra="forbid")
-
-    stderr: str = f"{LINE}\n"
-    stdout: str = ""
-    wait_seconds: float = 0
-    exit_status: int = 1
-
-
-class ConfineCall(BaseModel):
-    """What the stand-in confine executable saw: its arguments and the rules file."""
-
-    model_config = ConfigDict(frozen=True, extra="forbid")
-
-    arguments: list[str]
-    rules_text: str
-    rules_mode: int
 
 
 @dataclass(frozen=True)
@@ -125,14 +73,6 @@ def read_records[M: BaseModel](path: Path, model: type[M]) -> list[M]:
     ]
 
 
-def write_confine(layout: Layout, played: Played | None = None) -> Path:
-    """Write the stand-in confine executable, playing `played` instead of the call if given."""
-    path = write_script(layout.confine_bin / "factory-confine", CONFINE_SCRIPT)
-    if played is not None:
-        (layout.confine_bin / "played.json").write_text(played.model_dump_json(), encoding="utf-8")
-    return path
-
-
 def run_request(
     layout: Layout,
     *,
@@ -163,19 +103,6 @@ def run_request(
             tool_paths=list(tool_paths),
         ),
         os_user=os_user,
-    )
-
-
-def confined_runtime(
-    layout: Layout, executable: Path, confine: str = CONFINE, sudo: Path | None = None
-) -> ClaudeCodeRuntime:
-    """Return a runtime that starts `executable` through `confine` in the layout's folders."""
-    return ClaudeCodeRuntime(
-        str(executable),
-        layout.state,
-        sudo_executable=SUDO_EXECUTABLE if sudo is None else str(sudo),
-        confine_executable=confine,
-        temporary_root=layout.temporary_root,
     )
 
 

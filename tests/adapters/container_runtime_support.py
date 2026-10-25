@@ -1,6 +1,7 @@
 """What the runtime tests in a container share: the played dataset, its environment, a record."""
 
 import sys
+import tempfile
 from datetime import timedelta
 from pathlib import Path
 
@@ -69,3 +70,9 @@ def make_state(tmp_path: Path) -> Path:
     state = tmp_path / "state"
     state.mkdir(exist_ok=True)
     return state
+
+
+def run_folders() -> set[str]:
+    """The names of the folders beginning `factory-run-` under the system's temporary folder."""
+    root = Path(tempfile.gettempdir())
+    return {path.name for path in root.glob("factory-run-*") if path.is_dir()}

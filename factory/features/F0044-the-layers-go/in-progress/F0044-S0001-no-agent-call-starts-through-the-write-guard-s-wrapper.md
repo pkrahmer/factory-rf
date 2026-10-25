@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 444
 comments_read: [6396634457]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-25T10:44:17.892927Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-10-25T10:44:17.892927Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-25T10:56:03.741493Z'
+  stage: tests
+  run: 2128ada11bbb4cfc8817a6f371bfacce
+  blocked: question
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -179,3 +182,56 @@ Expect: `7`
    - Architecture: the changes stay inside the four layers `CLAUDE.md` describes. The three kept modules (`confine`, `landlock`, `confinement`) are left to S0002 as stated.
    - Scope: the story is S0001 of `feature.md`. The R14 text change is the one agent edit the feature allows. The test leave is decisions 17, 29(f) and 30(a), and the docs passages follow 30(c).
 7. factory: started tests as vm.
+8. tester: Stopped before criterion 8 and the change to `tests/test_claude_agent_refusal.py`. Both need the exact R14 line, which is decision 4 of `feature.md`. That text is not quoted in the work item, and this stage may not read `feature.md`.
+
+   Question: can the exact text of decision 4 (the new `R14.` line) go into the work item's Interface? Options:
+   (a) Paste it into the Interface, under the `claude/agents/*.md` bullet. I would choose this.
+   (b) Let the tester read decision 4 from `feature.md` for this one line.
+   With the text I will:
+   - write `tests/test_shipped_agents_r14.py::test_each_agent_holds_decision_four_s_r14_once_and_no_kernel_promise`, parametrized over `SHIPPED_NAMES`;
+   - set `_WRITE_PATHS_RULE` in `tests/test_claude_agent_refusal.py` to that text and `_OLD_ENDING` to the sentence beginning `the kernel refuses every other write`.
+
+   Done so far (left in the working tree):
+
+   Criterion → test:
+   - criterion 1: `tests/adapters/test_runtimes_without_wrapper.py::test_the_wrapper_s_names_are_gone` (one row per removed name) and `::test_the_starters_are_sudo_the_login_files_and_the_leftovers_program`.
+   - criterion 2: `tests/adapters/test_runtimes_without_wrapper.py::test_no_constructor_takes_the_wrapper_or_its_folders`.
+   - criterion 3, the `os_user` rows: `tests/adapters/test_runtimes_without_wrapper.py::test_a_claude_call_as_a_user_starts_the_login_words_then_the_call_after_env_i`, with a login file and without.
+   - criterion 3, the calls without an `os_user` (Claude Code and opencode): `tests/adapters/test_runtimes_without_wrapper.py::test_a_call_without_a_user_has_no_rules_file_and_makes_no_run_folder`. A recording stand-in lists the state directory and records its environment while it runs; after the run there is no new `factory-run-*` folder under `tempfile.gettempdir()`.
+   - criterion 4: `tests/adapters/test_runtimes_without_wrapper.py::test_only_sudo_and_the_login_shell_refuse_a_call`. Rows: a wrapper line under Claude Code, a wrapper line under opencode, a wrapper line through `call_refusal` directly, a refused `sudo`, a refused login file (`call_refusal`), and a `sudo:` line without an `os_user`.
+   - criterion 5: the existing `tests/adapters/test_claude_runtime_container.py` and `tests/adapters/test_opencode_runtime_container.py`, changed as the Interface says (see below). The launch with its mounts and `/work/checkout` is already checked by their `test_a_run_in_a_container_mounts_...` tests.
+   - criterion 6: `tests/entry/test_wiring_container_extras.py::test_the_extras_are_chosen_by_the_stage_environment_in_the_operator_guides_order`. Its inline rows no longer list `confinement`, and I added a row `inline-opencode` (`opencode` right before `agent-run-probe`).
+   - criterion 7: `tests/test_wrapper_out_of_the_call_path.py::test_only_the_guard_s_modules_name_the_wrapper_or_import_its_rules`.
+   - criterion 8: open (the question above).
+
+   Files created:
+   - `tests/adapters/test_runtimes_without_wrapper.py`
+   - `tests/test_wrapper_out_of_the_call_path.py`
+   - the helper `run_folders` in `tests/adapters/container_runtime_support.py`
+
+   Earlier tests changed, under the leave of decision 17 as the Interface lists them:
+   - Deleted the seven whole modules it names.
+   - `tests/adapters/test_agent_launch.py`: deleted the five tests and the now unused `TEMPORARY*` constants.
+   - `test_agent_launch_call_end.py`: dropped `confine_executable` from `Starters`, the row `wrapper-refused`, and the row `printed-and-killed-is-read-for-refusals`, which read a `factory-confine:` line as a refusal.
+   - `test_agent_launch_container.py` and `test_agent_launch_leftovers.py`: `Starters` without `confine_executable`.
+   - `test_claude_runtime_no_hook.py`: dropped the row `confined-guarded`.
+   - Both `*_runtime_container.py`: the refusal half of the containers test went, and the test keeps its name. The no-leftovers test now builds the runtime without `temporary_root` and checks `run_folders()`.
+   - `tests/leftovers_runtime_support.py`: dropped `CLEANUP_SCRIPT` and the kind `removal`.
+   - Both `*_runtime_leftovers.py`: `_runtime` is built without the wrapper or `temporary_root`; no `removal` kind is expected; the row `confine` went.
+   - `test_opencode_runtime_launch.py`: deleted the two tests, the helpers `_confined_runtime` and `_warned_by_wrapper`, and the row `wrapper`.
+   - `test_agent_run_probe.py`: the extra list no longer has `confinement_item`.
+   - `test_wiring_boundaries.py`, `test_wiring_api_login.py`, `test_wiring_login.py`, `test_wiring_provider_limit.py`: no `confine_executable` argument.
+   - `test_wiring_extras.py`: no `confinement` in its lists.
+   - `test_wiring_opencode.py`: deleted the folders test; the `opencode` item now stands right before `agent-run-probe`.
+   - `test_wiring_stage_environment.py`: dropped the argument and the `confine_executable is None` assertion.
+   - `test_hook_removed.py`: the row `confinement-item` expects `False`.
+   - `test_time_limits.py`: dropped the row `claude-confinement-wait`.
+   - `tests/confine_support.py`: removed `confined_runtime`, `write_confine`, `CONFINE_SCRIPT`, `Played` and `ConfineCall`, which no test reads any more.
+
+   Run results:
+   - `make lint`: green.
+   - `make test`: red, as expected. The runner could not import `tests/adapters/test_agent_launch_call_end.py` (collection error: `Starters` still requires `confine_executable`).
+   - Other failures, all because the code is not changed yet: the removed-names and signature rows, `Starters`' fields, the extras lists that still hold `confinement`, the wiring tests that now leave out `confine_executable`, and the `Starters` rows of the leftovers and container tests.
+   - I ran `make test` twice by mistake: once to list the failures, once for the tail. The stage asks for one run.
+
+   Not done: no type check (skipped as this stage says).

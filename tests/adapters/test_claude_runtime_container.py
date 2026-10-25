@@ -12,6 +12,7 @@ from adapters.container_runtime_support import (
     container_environment,
     files_in,
     read_only,
+    run_folders,
     write_record_program,
 )
 from adapters.test_agent_launch_login import API_LOGIN
@@ -86,11 +87,10 @@ def _after(words: list[str], flag: str) -> str:
 
 
 @pytest.mark.parametrize(
-    ("with_containers", "with_confine", "refused"),
+    "with_containers",
     [
-        pytest.param(True, True, True, id="containers-and-confine"),
-        pytest.param(True, False, False, id="containers-alone"),
-        pytest.param(False, False, False, id="without-containers"),
+        pytest.param(True, id="containers"),
+        pytest.param(False, id="without-containers"),
     ],
 )
 def test_a_runtime_keeps_its_containers_and_refuses_them_with_a_confine_executable(
@@ -98,18 +98,11 @@ def test_a_runtime_keeps_its_containers_and_refuses_them_with_a_confine_executab
     fake: FakeContainerRuns,
     *,
     with_containers: bool,
-    with_confine: bool,
-    refused: bool,
 ) -> None:
-    confine = "factory-confine" if with_confine else None
     state = tmp_path / "state"
 
     if not with_containers:
         assert ClaudeCodeRuntime("claude", state).containers is None
-        return
-    if refused:
-        with pytest.raises(ValueError, match=r".+"):
-            ClaudeCodeRuntime("claude", state, containers=fake, confine_executable=confine)
         return
     assert ClaudeCodeRuntime("claude", state, containers=fake).containers is fake
 
@@ -298,15 +291,13 @@ def test_a_call_in_a_container_starts_no_leftovers_program_and_no_temporary_fold
     tmp_path: Path, fake: FakeContainerRuns, recorder: Recorder
 ) -> None:
     program, record = write_record_program(tmp_path / "leftovers-bin")
-    temporary_root = tmp_path / "temporary"
-    temporary_root.mkdir()
+    before = run_folders()
     executable = write_stand_in(tmp_path / "bin", [Step(stdout=REPLY)])
     runtime = ClaudeCodeRuntime(
         str(executable),
         tmp_path / "state",
         containers=fake,
         leftovers=[str(program)],
-        temporary_root=temporary_root,
     )
 
     result = runtime.run(_request(tmp_path))
@@ -314,4 +305,4 @@ def test_a_call_in_a_container_starts_no_leftovers_program_and_no_temporary_fold
     assert result.end_reason == "completed"
     assert not record.exists()
     assert len(recorder.requests) == 1
-    assert files_in(temporary_root) == []
+    assert run_folders() <= before

@@ -7,7 +7,7 @@ import pytest
 
 from adapters.claude_stand_in import Step, read_calls, write_stand_in
 from adapters.test_claude_runtime_os_user import REPLY
-from confine_support import Layout, confined_runtime, run_request
+from confine_support import Layout, run_request
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.domain.agent_runs import AgentRunRequest
 
@@ -29,7 +29,6 @@ def _unguarded(layout: Layout) -> AgentRunRequest:
     [
         pytest.param(_unconfined, _guarded, id="unconfined-guarded"),
         pytest.param(_unconfined, _unguarded, id="unconfined-unguarded"),
-        pytest.param(confined_runtime, _guarded, id="confined-guarded"),
     ],
 )
 def test_no_run_registers_a_hook(

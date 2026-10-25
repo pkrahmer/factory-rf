@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from adapters.opencode_stand_in import MODELS, REPLY, write_opencode
-from confine_support import LINE, Layout, Played, run_request, write_confine
+from confine_support import Layout, run_request
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.domain.errors import AgentRuntimeError
 from leftovers_runtime_support import (
@@ -26,7 +26,6 @@ def _runtime(
     program: Path,
     *,
     sudo_refusal: str = "",
-    confine_played: Played | None = None,
 ) -> OpencodeRuntime:
     sudo = write_sudo(layout.sudo_bin, program, refusal=sudo_refusal)
     layout.state.mkdir()
@@ -35,8 +34,6 @@ def _runtime(
         layout.state,
         models=MODELS,
         sudo_executable=str(sudo),
-        confine_executable=str(write_confine(layout, confine_played)),
-        temporary_root=layout.temporary_root,
         leftovers=[str(program)],
     )
 
@@ -44,13 +41,13 @@ def _runtime(
 @pytest.mark.parametrize(
     ("os_user", "exit_status", "stderr", "expected_kinds", "fault"),
     [
-        pytest.param(OTHER_USER, 0, "", ["run", "program", "removal"], None, id="other-user"),
-        pytest.param(own_user(), 0, "", ["run", "removal"], None, id="own-user"),
+        pytest.param(OTHER_USER, 0, "", ["run", "program"], None, id="other-user"),
+        pytest.param(own_user(), 0, "", ["run"], None, id="own-user"),
         pytest.param(
             OTHER_USER,
             1,
             f"{LEFTOVERS_LINE}\n",
-            ["run", "program", "removal"],
+            ["run", "program"],
             f"cannot end the agent's processes: {LEFTOVERS_LINE}",
             id="program-fails",
         ),
@@ -94,7 +91,7 @@ def test_after_the_call_the_program_runs_as_the_user_from_the_root_before_the_re
         assert program_calls(program_bin) == []
 
 
-@pytest.mark.parametrize("refuser", [pytest.param("sudo"), pytest.param("confine")])
+@pytest.mark.parametrize("refuser", [pytest.param("sudo")])
 def test_a_call_refused_by_sudo_or_the_wrapper_keeps_its_own_error_and_still_starts_the_program(
     layout: Layout, refuser: str
 ) -> None:
@@ -104,12 +101,9 @@ def test_a_call_refused_by_sudo_or_the_wrapper_keeps_its_own_error_and_still_sta
         layout,
         program,
         sudo_refusal=f"{SUDO_LINE}\n" if refuser == "sudo" else "",
-        confine_played=Played() if refuser == "confine" else None,
     )
-    refused_by = (
-        layout.sudo_bin / "sudo" if refuser == "sudo" else layout.confine_bin / "factory-confine"
-    )
-    line = SUDO_LINE if refuser == "sudo" else LINE
+    refused_by = layout.sudo_bin / refuser
+    line = SUDO_LINE
 
     with pytest.raises(AgentRuntimeError) as raised:
         runtime.run(run_request(layout, os_user=OTHER_USER))

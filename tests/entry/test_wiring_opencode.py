@@ -16,13 +16,11 @@ from adapters.opencode_stand_in import (
     write_opencode,
 )
 from adapters.test_agent_launch_login import API_LOGIN
-from confine_support import ConfineCall, Layout, read_records, run_request, write_confine
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.opencode_runtime import CONFIG_VARIABLE, OpencodeRuntime
 from factory.application.boundaries import Boundaries
-from factory.domain.confinement import Confinement
 from factory.domain.provider_limits import ProviderLimit
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries, machine_extras
@@ -30,7 +28,6 @@ from wiring_support import CREDENTIAL, every_tool
 
 LIMIT_REPLY = stdout(step_start(), error("limit reached", status_code=429))
 DENY_PUSH = json.dumps({"permissions": {"allow": [], "deny": ["Bash(git push*)"]}})
-OPENCODE_THREE = [".local/share/opencode", ".local/state/opencode", ".cache/opencode"]
 
 
 @pytest.mark.parametrize(
@@ -47,7 +44,6 @@ def test_the_built_runtime_is_the_one_the_instance_names(
         local_settings.model_copy(update={"agent_runtime": runtime}),
         CREDENTIAL,
         hosting=FakeHostingService(),
-        confine_executable=None,
     )
 
     assert type(boundaries.agent_runtime) is expected
@@ -78,9 +74,7 @@ def test_the_built_opencode_runtime_runs_with_the_instance_s_models_denies_key_a
     write_agent_settings(settings.agent_home, DENY_PUSH)
     runs = settings.state_directory / "runs"
     runs.mkdir(parents=True)
-    boundaries = build_boundaries(
-        settings, CREDENTIAL, hosting=FakeHostingService(), confine_executable=None
-    )
+    boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
 
     result = boundaries.agent_runtime.run(opencode_request(tmp_path / "work"))
 
@@ -95,41 +89,6 @@ def test_the_built_opencode_runtime_runs_with_the_instance_s_models_denies_key_a
     assert result.end_reason == end_reason
 
 
-@pytest.mark.parametrize(
-    ("folders", "expected"),
-    [
-        pytest.param([".config/sso-opencode"], [*OPENCODE_THREE, ".config/sso-opencode"], id="set"),
-        pytest.param([], OPENCODE_THREE, id="unset"),
-    ],
-)
-def test_the_built_opencode_runtime_allows_the_instance_s_folders_after_opencode_s(
-    local_settings: InstanceSettings, layout: Layout, folders: list[str], expected: list[str]
-) -> None:
-    confine = write_confine(layout)
-    executable = write_opencode(layout.stand_in, [Step(stdout=REPLY_EVENTS)])
-    settings = local_settings.model_copy(
-        update={
-            "checkout": layout.checkout,
-            "agent_runtime": "opencode",
-            "opencode_executable": str(executable),
-            "opencode_models": {"sonnet": "anthropic/claude-sonnet-5-5"},
-            "opencode_folders": folders,
-        }
-    )
-    write_agent_settings(settings.agent_home, DENY_PUSH)
-    (settings.state_directory / "runs").mkdir(parents=True)
-    boundaries = build_boundaries(
-        settings, CREDENTIAL, hosting=FakeHostingService(), confine_executable=str(confine)
-    )
-
-    boundaries.agent_runtime.run(run_request(layout))
-
-    [confined] = read_records(layout.confine_bin / "confine-calls.jsonl", ConfineCall)
-    rules = Confinement.model_validate_json(confined.rules_text)
-    in_home = [folder for folder in rules.folders if folder.is_relative_to(layout.home)]
-    assert in_home == [layout.home / folder for folder in expected]
-
-
 SUDO = ["tool:sudo"]
 
 
@@ -139,25 +98,25 @@ SUDO = ["tool:sudo"]
         pytest.param(
             "opencode",
             "agent",
-            ["token-file", "agent-user", *SUDO, "agent-environment", "confinement", "opencode"],
+            ["token-file", "agent-user", *SUDO, "agent-environment", "opencode"],
             id="opencode-agent-user",
         ),
         pytest.param(
             "opencode",
             None,
-            ["token-file", "agent-user", "agent-environment", "confinement", "opencode"],
+            ["token-file", "agent-user", "agent-environment", "opencode"],
             id="opencode-no-agent-user",
         ),
         pytest.param(
             "claude",
             "agent",
-            ["token-file", "agent-user", *SUDO, "agent-environment", "confinement"],
+            ["token-file", "agent-user", *SUDO, "agent-environment"],
             id="claude-agent-user",
         ),
         pytest.param(
             "claude",
             None,
-            ["token-file", "agent-user", "agent-environment", "confinement"],
+            ["token-file", "agent-user", "agent-environment"],
             id="claude-no-agent-user",
         ),
     ],

@@ -38,9 +38,7 @@ def test_the_built_runtime_hands_the_api_login_file_s_key_to_claude(
         claude_executable=str(executable),
         api_login_file=api_login if configured else None,
     )
-    boundaries = build_boundaries(
-        settings, CREDENTIAL, hosting=FakeHostingService(), confine_executable=None
-    )
+    boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
 
     boundaries.agent_runtime.run(_request(tmp_path, None))
 

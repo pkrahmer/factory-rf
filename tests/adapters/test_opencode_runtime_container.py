@@ -15,6 +15,7 @@ from adapters.container_runtime_support import (
     files_in,
     make_state,
     read_only,
+    run_folders,
     write_record_program,
 )
 from adapters.opencode_stand_in import (
@@ -69,11 +70,10 @@ def _runtime(
 
 
 @pytest.mark.parametrize(
-    ("with_containers", "with_confine", "refused"),
+    "with_containers",
     [
-        pytest.param(True, True, True, id="containers-and-confine"),
-        pytest.param(True, False, False, id="containers-alone"),
-        pytest.param(False, False, False, id="without-containers"),
+        pytest.param(True, id="containers"),
+        pytest.param(False, id="without-containers"),
     ],
 )
 def test_a_runtime_keeps_its_containers_and_refuses_them_with_a_confine_executable(
@@ -81,18 +81,11 @@ def test_a_runtime_keeps_its_containers_and_refuses_them_with_a_confine_executab
     fake: FakeContainerRuns,
     *,
     with_containers: bool,
-    with_confine: bool,
-    refused: bool,
 ) -> None:
-    confine = "factory-confine" if with_confine else None
     state = make_state(tmp_path)
 
     if not with_containers:
         assert OpencodeRuntime("opencode", state).containers is None
-        return
-    if refused:
-        with pytest.raises(ValueError, match=r".+"):
-            OpencodeRuntime("opencode", state, containers=fake, confine_executable=confine)
         return
     assert OpencodeRuntime("opencode", state, containers=fake).containers is fake
 
@@ -275,8 +268,7 @@ def test_a_call_in_a_container_starts_no_leftovers_program_and_no_temporary_fold
     recorder = Recorder()
     monkeypatch.setattr(opencode_runtime, "run_process", recorder)
     program, record = write_record_program(tmp_path / "leftovers-bin")
-    temporary_root = tmp_path / "temporary"
-    temporary_root.mkdir()
+    before = run_folders()
     executable = write_opencode(tmp_path / "bin", [REPLY])
     runtime = OpencodeRuntime(
         str(executable),
@@ -284,7 +276,6 @@ def test_a_call_in_a_container_starts_no_leftovers_program_and_no_temporary_fold
         models=MODELS,
         containers=fake,
         leftovers=[str(program)],
-        temporary_root=temporary_root,
     )
 
     result = runtime.run(container_request(tmp_path))
@@ -292,4 +283,4 @@ def test_a_call_in_a_container_starts_no_leftovers_program_and_no_temporary_fold
     assert result.end_reason == "completed"
     assert not record.exists()
     assert recorder.requests == []
-    assert files_in(temporary_root) == []
+    assert run_folders() <= before
