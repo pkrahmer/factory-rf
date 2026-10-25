@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241, 6401865606]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T19:14:51.188864Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -288,6 +284,12 @@ journal:
   kind: started
   at: '2026-10-25T19:14:51.188864Z'
   stage: review
+- number: 51
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T19:15:52.372284Z'
+  stage: review
+  run: ab33d7dfdd034cceb85ce06ef027dce8
 ---
 
 # The inline environment and its setting are removed
@@ -970,3 +972,48 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     `check`: check: green
     `duplicates`: duplicates: 12 new, 35 known, 3 gone
 50. factory: started review as self.
+51. reviewer: Review, round 2. I read the work item and `git diff main...HEAD -- . ':!factory'`: the six source files, `vm/setup.sh` and the rewritten `tests/application/test_stage_environment_of.py`, which is this round's one change. I also searched every added line of the diff for silencing markers (`noqa`, `nosec`, `nosemgrep`, `pragma`, `type: ignore`). There are none.
+
+    - **The human's finding (entry 41) is closed.** `tests/application/test_stage_environment_of.py::test_the_environment_of_the_boundaries_is_the_container_one` keeps its name and has no `# noqa: SLF001` and no reads of `_snapshots` or `_containers`. It now checks criterion 2 through behaviour:
+      - `stage_environment_of(boundaries)` is a `ContainerEnvironment`.
+      - `prepare` rolls back the `boundaries` fixture's own `FakeSnapshots`: the stray file in `<tmp_path>/workspace` is gone. `container_dataset` takes the fixture's fakes and builds no new ones, so the check is on the boundaries' snapshots.
+      - The sync makes exactly one call through the fixture's `FakeContainerRuns`.
+      - The tester explained in entry 47 why the human's two example checks could not be used with today's fakes: `FakeSnapshots` records no calls, and `run_agent` does not launch through `ContainerRuns`. The checks used instead observe the same two links without adding code. The human's instruction said "for example", so this is within it.
+    - **Group 1:** criteria 1 to 8 still each have a parametrized test that checks what the criterion says, including the failing sides (round 1, entry 36). Entry 49 records `make check` green.
+    - **Groups 2 to 5:** the source has not changed since round 1, so entry 36's results still hold. The layers hold. Nothing changed for security, and no marker was added. The quality points (the unused `_settings`, `UndoService` and `MakeProjectCommands`) are covered by the Interface and by decisions 13 and 3. The Description matches what was built.
+
+    no findings
+
+    Earlier tests (item 6), one line each:
+    - tests/application/test_agent_environment_item.py (deleted): the Interface, decision 24.
+    - tests/application/test_machine_checks_container.py: the Interface (inline rows), decision 24.
+    - tests/application/test_machine_checks_runtime.py: the Interface (one test deleted), decision 24.
+    - tests/application/test_opencode_item.py: the Interface, decision 24.
+    - tests/application/test_opencode_item_container.py: the Interface, decision 24.
+    - tests/application/test_preflight.py: the human's entry 26.
+    - tests/application/test_preflight_run.py: the human's entry 26.
+    - tests/application/test_preflight_stale_main_stop.py: the human's entry 26.
+    - tests/application/test_preflight_stops_commit.py: the human's entry 26.
+    - tests/application/test_stage_environment.py (deleted): the Interface, decision 24.
+    - tests/application/test_stage_environment_calls.py: the Interface (one test deleted), and the human's entry 9 (a caller of `inline_boundaries`).
+    - tests/application/test_stage_environment_of.py: the Interface (renamed test), decision 24, and the human's entry 41 (the check through behaviour).
+    - tests/application/test_stage_on_container_fakes.py: the human's entry 9.
+    - tests/application/test_stage_run.py: the human's entries 9 and 16.
+    - tests/application/test_stall_edges.py: the human's entries 9 and 16.
+    - tests/application/test_stall_environment.py: the Interface (one test deleted), decision 24.
+    - tests/application/test_stalls.py: the human's entries 9 and 16.
+    - tests/conftest.py: the Interface (`hosted_environment`), decision 24; `local_settings`: the human's entry 26.
+    - tests/container_support.py: the human's entry 9 (`inline_boundaries`) and entry 26 (`CONTAINER`).
+    - tests/domain/test_settings_agent_user_unread.py: the human's entry 26.
+    - tests/domain/test_settings_paths.py: the Interface, decision 24.
+    - tests/domain/test_settings_stage_environment.py: the Interface, decision 24.
+    - tests/entry/test_run.py, tests/entry/test_run_health_file.py, tests/entry/test_run_waiter.py: the Interface, decision 24.
+    - tests/entry/test_wiring_agent_environment.py (deleted): the human's entry 26.
+    - tests/entry/test_wiring_api_login.py, tests/entry/test_wiring_login.py, tests/entry/test_wiring_provider_limit.py, tests/entry/test_wiring_opencode.py: the Interface, decision 24, and the human's entry 19.
+    - tests/entry/test_wiring_boundaries.py, tests/entry/test_wiring_command_records.py: the Interface, decision 24, and the human's entry 19.
+    - tests/entry/test_wiring_container_extras.py, tests/entry/test_wiring_extras.py, tests/entry/test_wiring_preflight.py, tests/entry/test_wiring_run.py, tests/entry/test_wiring_stage_environment.py: the Interface, decision 24.
+    - tests/entry/test_wiring_stage_environment_home.py (deleted): the Interface, decision 24.
+    - tests/entry/test_wiring_without_agent_user.py: the human's entry 26.
+    - tests/test_make_search.py: the Interface, decision 24.
+    - tests/test_vm_setup_text.py: the human's entry 26.
+    - tests/wiring_support.py: the Interface, decision 24.
