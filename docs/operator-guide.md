@@ -645,7 +645,19 @@ This is the machine of the decisions of 2026-10-24: instance `vm`, an `e2-standa
 
     `factory-watch` shows the board and what the next tick would do. `factory-health` prints `healthy` or one line per stop in force. The console scripts live in the factory's virtual environment, which the environment file's `PATH` does not name, so the full path is needed. The environment file is loaded so that `factory-watch` reads the instance's settings.
 
-12. When the machine is not used, stop it: `gcloud compute instances stop factory-vm --zone=europe-west3-a`. A stopped VM costs only its disks and NAT (see *The costs*). Start it again with `gcloud compute instances start`; the service is enabled and comes up with it.
+12. When the machine is not used, stop the instance first and then the VM. A VM stop during a stage ends the factory after systemd's stop timeout of 90 seconds, and the next start counts that stage as a crash (see *The rebuild after a merge*). So wait until no work item is held by `vm`: on the VM as `factory`, run `factory-watch` as in step 11 and look at the board. Then, on the VM from your own account (leave the `factory` shell with `exit`), stop the instance:
+
+    ```bash
+    sudo systemctl stop factory@vm
+    ```
+
+    Then, on your own computer, stop the VM:
+
+    ```bash
+    gcloud compute instances stop factory-vm --zone=europe-west3-a
+    ```
+
+    A stopped VM costs only its disks and NAT (see *The costs*). Start it again on your own computer with `gcloud compute instances start factory-vm --zone=europe-west3-a`; the service is enabled and comes up with it, because `systemctl stop` does not disable it.
 
 ### On any Ubuntu 24.04 VM
 

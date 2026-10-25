@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 442
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-25T09:50:52.163955Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-25T09:50:52.163955Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T09:51:18.053861Z'
+  stage: docs
+  run: 81a9c89a0d504b889222647307842fdb
 ---
 
 # Step 12 stops the instance between two stages before it stops the VM
@@ -160,3 +162,18 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes, renames or deletes no test file that `main` already holds.
 10. factory: started docs as vm.
+11. documenter: Files changed: `docs/operator-guide.md`, step 12 of `### On GCP, step by step`, and nothing else. Step 12 now tells the operator to wait until `factory-watch` (run as in step 11) shows no work item held by `vm`. Then it tells them to run `sudo systemctl stop factory@vm` on the VM from their own account. Only after that does it tell them to run `gcloud compute instances stop` on their own computer. One sentence gives the reason and points to *The rebuild after a merge*: a VM stop during a stage ends the factory after systemd's 90 s stop timeout, and the next start counts the stage as a crash. The cost sentence, the start with `gcloud compute instances start` and the "service is enabled and comes up with the VM" sentence stay. I added the instance and zone to the start command, and the reason that `systemctl stop` does not disable the service. The two commands are in separate code blocks, so no block holds both `gcloud` and `sudo`. Step 12 holds no `systemctl restart`.
+
+    Checks I ran:
+    - The smoke-test commands give 1 for `sudo systemctl stop factory@vm`, 0 for `systemctl restart`, the stop line first, and 0 mixed blocks.
+    - I did not run the smoke test's `factory-watch` count or its `gcloud compute instances start` count.
+    - `make documents` ends `documents ok`.
+    - I did not run `make check`, because I changed only a document.
+
+    Cross-read and found current: *The rebuild after a merge* (the same wait and stop; step 12 now agrees with it) and steps 11 and 6 of the same guide, which step 12 refers to. The diff outside `factory/` is empty, so no other document had anything to be stale against.
+
+    Not touched: `vm/factory.service` still sets no `TimeoutStopSec`. That is the human's open question (F0043-A0002 and F0043-A0003), outside this story. No findings.
+
+    `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
+    `secrets`: secrets: green (1.0 s)
+    `documents`: documents ok
