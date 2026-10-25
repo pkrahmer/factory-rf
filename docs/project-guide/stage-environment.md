@@ -187,7 +187,7 @@ No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` 
 
 - `StageLauncher.launch`, after the claim is pushed and the pull request ensured and before the cost record begins: `prepare(stage_start.commit, branch, sync_time_limit=...)`, then `run_agent(request, run=PatientRuns(boundaries).run)`. An error from `prepare` ends the launch like one from the agent runtime, after the claim and before any run or cost record.
 - `AfterAgent.process`: `take(started.stage_start, started.path)` once the result and the decision are accepted. `AgentAftermath.take` carries the report, and the entry's closing paragraph names `take.left` (see `stages.md`, *After the agent run*).
-- `agent_run_probe_item` (the preflight): `stage_environment_of(boundaries).run_agent(request)`. The probe reports no fault for a nested repository the run leaves.
+- `agent_run_probe_item` (the preflight): `stage_environment_of(boundaries).run_agent(request)`. The probe calls no `take`: nothing of its run reaches the checkout.
 - `StallService.stall`, with a stage start, after the checkout is put back on the work item's branch: `take(context.stage_start, context.path)`, whatever the reason (`check_red` included), and its report is `StallResult.take`. A stall after `AfterAgent`'s take is a second take within one stage. `StageFinisher` takes only through its stall service: the checks go through `boundaries.project_commands`.
 
 ### The sync time limit
