@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 454
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T20:26:23.329882Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-25T20:26:23.329882Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T20:26:36.900312Z'
+  stage: review
+  run: 4db0a1fbd9094708a50db6200fb5092e
 ---
 
 # The documents close the layers
@@ -160,3 +162,14 @@ Expect: `documents ok`
    `check`: check: green
    `duplicates`: duplicates: 8 new, 35 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I checked: `git diff main...HEAD -- . ':!factory'` is empty. `git diff --name-status main...HEAD` lists only the work item and its new `.costs.jsonl` sidecar, both under `factory/`. So nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/` changed.
+   - Criterion 1 (no change outside the documents): holds. The diff confirms what the tester's entry (5) and the coder's entry (7) say.
+   - Criterion 2 (`make check` stays green): holds. The coder's entry (7) records `check: green` from the factory's run.
+   - Criterion 3 (docs) belongs to the documenter, as its own text says. The smoke test and `make documents` check it after the docs stage.
+   - Interface: it is "None", with no rule that needs a failing-side test.
+   - Architecture, security and quality: there is no code in the diff, so these groups have nothing to judge. The `duplicates: 8 new` in entry 7 cannot come from this story, because it changes nothing under `src/factory`.
+   - Work item hygiene: the Description matches what was built (nothing yet, documents next), and the journal states the choice to hand on with no change. The docs criterion still says what the documenter must make true.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
