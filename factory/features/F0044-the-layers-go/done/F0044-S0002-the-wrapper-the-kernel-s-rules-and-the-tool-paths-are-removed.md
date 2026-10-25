@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -163,6 +163,11 @@ journal:
   at: '2026-10-25T13:03:23.543136Z'
   stage: smoke-test
   run: 680265cb3931448aa218e7934efff633
+- number: 29
+  speaker: factory
+  kind: done
+  at: '2026-10-25T13:04:43.577641Z'
+  stage: approval
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -644,3 +649,4 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
     **Not done:** I did not run `make check` (criterion 8). The factory runs it as this stage's check.
 
     **Open:** nothing.
+29. factory: done (pull request merged); cost: 13 runs, 25.3 min, 162 turns, 533744 tokens in (6225704 more from cache), 69682 out, $6.23
