@@ -10,7 +10,7 @@ from factory.domain.write_paths import PROTECTED_PATHS, expand_write_paths
 
 
 class WritePathService:
-    """The one source of what an agent may write, for the guard and the undo alike.
+    """The one source of what an agent may write, for the take and the undo alike.
 
     It parses the definition itself rather than through `PipelineLoader`: this read is not
     the tick's load, so it checks no installed agent file and raises or clears no stop.
@@ -42,7 +42,6 @@ class WritePathService:
             root=self._boundaries.checkout,
             write_paths=write_paths,
             protected_paths=list(PROTECTED_PATHS),
-            tool_paths=definition.tool_paths,
         )
 
     def _definition_at(self, commit: str) -> PipelineDefinition:

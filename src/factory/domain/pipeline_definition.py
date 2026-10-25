@@ -26,16 +26,7 @@ _FAULT_SEPARATOR = "; "
 # A write path holds at least one character that is not whitespace.
 WritePath = Annotated[str, StringConstraints(pattern=r"\S")]
 
-HOME_PREFIX = "~/"
-_FOLDER_SUFFIX = "/*"
-_WILDCARDS = "*?["
 PARENT_SEGMENT = ".."
-CURRENT_SEGMENT = "."
-
-
-def has_wildcard(pattern: str) -> bool:
-    """Whether `pattern` holds one of fnmatch's wildcards `*`, `?` or `[`."""
-    return any(wildcard in pattern for wildcard in _WILDCARDS)
 
 
 def is_inside_checkout(path: str) -> bool:
@@ -44,25 +35,6 @@ def is_inside_checkout(path: str) -> bool:
     if not path or path.startswith("/"):
         return False
     return PARENT_SEGMENT not in path.split("/")
-
-
-def tool_path_folder(tool_path: str) -> str | None:
-    """The folder of `<folder>/*` or `~/<folder>/*`, `~/` kept; `None` for any other form."""
-    body = tool_path.removeprefix(HOME_PREFIX)
-    if not body.endswith(_FOLDER_SUFFIX):
-        return None
-    segments = body.removesuffix(_FOLDER_SUFFIX).split("/")
-    if not all(_is_plain_segment(segment) for segment in segments):
-        return None
-    return tool_path.removesuffix(_FOLDER_SUFFIX)
-
-
-def _is_plain_segment(segment: str) -> bool:
-    return (
-        bool(segment)
-        and segment not in (CURRENT_SEGMENT, PARENT_SEGMENT)
-        and not has_wildcard(segment)
-    )
 
 
 class RoleDefinition(BaseModel):
@@ -116,7 +88,6 @@ class PipelineDefinition(BaseModel):
     attempts_cap: PositiveInt = 2
     crash_cap: PositiveInt = 2
     acceptance_stage: Name | None = None
-    tool_paths: list[WritePath] = []
 
     @model_validator(mode="after")
     def _follows_the_rules(self) -> Self:
@@ -267,14 +238,6 @@ def _unworked_stage_faults(definition: PipelineDefinition) -> list[str]:
     ]
 
 
-def _tool_path_faults(definition: PipelineDefinition) -> list[str]:
-    return [
-        f"tool path {path}: must be <folder>/* or ~/<folder>/*"
-        for path in definition.tool_paths
-        if tool_path_folder(path) is None
-    ]
-
-
 def _is_checkout_pattern(pattern: str) -> bool:
     # A placeholder is expanded in write paths only; here it would name no path at all.
     return (
@@ -304,6 +267,5 @@ _RULES = (
     _acceptance_stage_faults,
     _empty_next_faults,
     _unworked_stage_faults,
-    _tool_path_faults,
     _not_read_faults,
 )

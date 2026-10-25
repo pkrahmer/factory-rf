@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 445
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T12:35:20.317768Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-25T12:35:20.317768Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-25T12:40:24.971302Z'
+  stage: doing
+  run: ca75f145308144f6b2ca85aacb5dd1ed
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -156,3 +158,37 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
    `lint`: lint: green (0.6 s)
    `test`: FAILED tests/test_hook_removed.py::test_the_hook_s_code_is_gone_and_the_kernel_s_guard_is_kept[confine-command] - AssertionError: assert 'factory-confine' == None
 6. factory: started doing as self.
+7. coder: I removed the kernel's write guard, its start wrapper and the tool paths, as the Interface lists. `make check` is green: the last run gave lint, types, layers, sast, secrets, licenses and test all green, then `check: green`.
+
+   What I built:
+   - Deleted whole: `src/factory/entry/confine.py`, `src/factory/adapters/landlock.py`, `src/factory/domain/confinement.py`.
+   - `src/factory/adapters/process.py`: `replace_process` is gone, with its `os.execvpe` line and that line's two markers. The `Mapping`, `Sequence` and `NoReturn` imports went with it. The `subprocess` import and the one `Popen` keep their markers.
+   - `src/factory/domain/agent_runs.py`:
+     - `CONFINE_COMMAND` is gone.
+     - `GuardSettings` lost `tool_paths` and is now `root`, `write_paths`, `protected_paths`; its docstring says so.
+     - `AgentRunRequest` lost `guard`.
+   - `src/factory/domain/pipeline_definition.py`:
+     - `PipelineDefinition.tool_paths` and the rule `_tool_path_faults` are gone. The model already forbids unknown keys, so a definition that still holds `tool_paths` is now refused like any other unknown key.
+     - Also gone: `tool_path_folder`, `_is_plain_segment`, `HOME_PREFIX`, `_FOLDER_SUFFIX`, `_WILDCARDS`, `has_wildcard` and `CURRENT_SEGMENT`. `PARENT_SEGMENT` stays because `is_inside_checkout` uses it.
+   - `src/factory/domain/contract.py`: `RECORDS_CONTRACT = "2.0"`.
+   - `src/factory/contract/*.schema.json`: regenerated with `uv run python -m factory.entry.contract`. All five files are at version 2.0, and the pipeline definition's schema no longer has `tool_paths`.
+   - The guard is gone from the request in four places:
+     - `src/factory/application/write_paths.py`: `WritePathService.at` no longer passes `tool_paths`. Its class docstring now says "for the take and the undo alike" instead of "the guard".
+     - `src/factory/application/task.py`: `TaskContext.guard` is gone and the request carries no guard.
+     - `src/factory/application/stage.py`: the launcher builds the context without calling `WritePathService`.
+     - `src/factory/application/preflight.py`: `_probe_request` builds no guard.
+   - `template/factory/pipeline.yml`: the comment line and the `tool_paths` line are gone.
+
+   Main choice: I kept `GuardSettings` under its old name and in `domain.agent_runs`, as the Interface says. The take, the undo and `refusal` still read it.
+   - Rejected: renaming it to something like `WriteSettings` now that nothing guards. That would be a wider change than this work item, and the tests name `GuardSettings`.
+
+   Refactor pass: the only change was the `WritePathService` docstring above. The rest of the diff is removals, so there was nothing else to simplify.
+
+   Noticed but not touched:
+   - `pyproject.toml` line 17 still declares the console script `factory-confine = "factory.entry.confine:main"`. That module no longer exists, so the installed `factory-confine` would fail on start. `pyproject.toml` is outside the coder's write paths. The human (or a story that may write it) should remove that line; `make check` is green with it in place.
+   - The tester said three tests use `model_copy(update={"guard": ...})`: `tests/adapters/test_claude_runtime_login.py`, `test_claude_runtime_api_login.py` and `test_claude_runtime_no_hook.py`. They stayed green, since `model_copy` does not validate. Each now adds a field the model no longer has, so the tester may want to drop those updates in a later story.
+   - The docs criterion is the documenter's, and I did not write it.
+   - `git rm` was refused (no permission to write the git index), so I deleted the three modules with plain `rm`. The factory's commit picks up the deletions.
+
+   `check`: check: green
+   `duplicates`: duplicates: 10 new, 35 known, 3 gone

@@ -7,10 +7,10 @@ import selectors
 import signal
 import subprocess  # noqa: S404  # nosec B404
 import time
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
-from typing import IO, Annotated, Literal, NoReturn
+from typing import IO, Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -317,14 +317,3 @@ def run_streaming(request: ProcessRequest, on_line: Callable[[Stream, str], bool
         duration=timedelta(seconds=time.monotonic() - start),
         output_abandoned=outcome == "abandoned",
     )
-
-
-def replace_process(argv: Sequence[str], env: Mapping[str, str]) -> NoReturn:
-    """Replace this process with `argv`, its program found on the `PATH` of `env`.
-
-    An empty `argv` raises `ValueError`; a program that cannot be started raises the
-    `OSError` of the `exec`, and this process then goes on.
-    """
-    if not argv:
-        raise ValueError("replace_process needs a program to start")
-    os.execvpe(argv[0], list(argv), dict(env))  # noqa: S606  # nosec B606
