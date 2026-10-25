@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 446
-comments_read: [6398081877]
+comments_read: [6398081877, 6398161155]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: fa356d01d7c34f9eb40f0adee9d6c81b
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-10-25T13:20:36.416917Z'
+  stage: doing
 ---
 
 # The leftovers program is removed
@@ -206,3 +211,4 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     Refactor: I read the diff once and found nothing else to change.
 
     Noticed but not touched: `security/duplicates-baseline.txt` may still list findings in the removed code; `make duplicates` will report them as gone. `tests/leftovers_runtime_support.py` stays, as the tester said. The comment in `src/factory/application/recovery.py:97` uses the word "leftovers" in its everyday sense and has nothing to do with the program. The Description stays as it is: the journal did not change what the task means.
+11. 2026-10-25 human: (a). The tester removes the line-20 import from `tests/adapters/test_one_call_as_another_user.py` and uses `Step` from `adapters.claude_stand_in` where the test uses `OpencodeStep`. Only that new test file changes; `tests/adapters/opencode_stand_in.py` stays as it is.
