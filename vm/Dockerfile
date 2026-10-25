@@ -1,5 +1,5 @@
 # The stage image of every stage's containers, the tools alone; build: podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> .
-# Every reference is pinned (docs/decisions.md), to the same pins as image/Dockerfile.
+# Every reference is pinned (docs/decisions.md).
 ARG BASE_IMAGE=python:3.12-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258
 FROM ${BASE_IMAGE}
 ARG CLAUDE_CODE_VERSION=2.1.296

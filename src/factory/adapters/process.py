@@ -13,13 +13,9 @@ from typing import IO, Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from factory.domain.sessions import ProcessEntry, left_to_kill, parse_stat
-
 Stream = Literal["stdout", "stderr"]
 
 _READ_SIZE = 65536
-_PROCESS_TABLE = Path("/proc")
-_ROUND_PAUSE_SECONDS = 0.05
 _END_POLL_SECONDS = 0.05
 
 PIPE_DRAIN = timedelta(seconds=5)
@@ -59,49 +55,12 @@ def _seconds(time_limit: timedelta | None) -> float | None:
     return None if time_limit is None else time_limit.total_seconds()
 
 
-def read_process_table(proc: Path = _PROCESS_TABLE) -> list[ProcessEntry]:
-    """Every process of the table under `proc`, sorted by id, each with its folder's owner.
-
-    A process that ends while it is read is left out; a status line that cannot be read
-    raises `ValueError`, and a table that cannot be listed the `OSError` of the listing.
-    """
-    entries: list[ProcessEntry] = []
-    for folder in proc.iterdir():
-        if not folder.name.isdigit():
-            continue
-        try:
-            stat = (folder / "stat").read_bytes()
-            # The folder's owner, not a file's: a process that is not dumpable gets
-            # root-owned files, while its folder keeps its user.
-            uid = folder.stat().st_uid
-        except OSError:
-            # The process ended between the listing and the read.
-            continue
-        entries.append(parse_stat(int(folder.name), _decode(stat), uid=uid))
-    return sorted(entries, key=lambda entry: entry.pid)
-
-
-def _kill_one(pid: int, refused: set[int]) -> None:
-    try:
-        os.kill(pid, signal.SIGKILL)
-    except ProcessLookupError:
-        pass
-    except PermissionError:
-        # Another user's process, such as root's `sudo`: the agent's own `timeout` ends it.
-        refused.add(pid)
-
-
 def _kill_session(process: subprocess.Popen[bytes]) -> None:
-    # The child leads its own session. A descendant may take a group of its own, as
-    # `timeout` does, but it keeps the session; only `setsid` leaves it. The child is not
-    # reaped yet, so the session's id cannot belong to an unrelated process meanwhile.
+    # The child leads its own process group. No agent code runs on the host, so nothing
+    # the factory starts there leaves the group. The child is not reaped yet, so the
+    # group's id cannot belong to an unrelated process meanwhile.
     with contextlib.suppress(ProcessLookupError):
         os.killpg(process.pid, signal.SIGKILL)
-    refused: set[int] = set()
-    while left := left_to_kill(read_process_table(), session=process.pid, refused=refused):
-        for pid in left:
-            _kill_one(pid, refused)
-        time.sleep(_ROUND_PAUSE_SECONDS)
 
 
 def _start(request: ProcessRequest) -> subprocess.Popen[bytes]:
@@ -182,7 +141,7 @@ def _remaining(deadline: float | None) -> float | None:
 
 
 def _has_ended(process: subprocess.Popen[bytes]) -> bool:
-    # WNOWAIT leaves the child unreaped, so its id, the session's, stays reserved for a kill.
+    # WNOWAIT leaves the child unreaped, so its id, the group's, stays reserved for a kill.
     flags = os.WEXITED | os.WNOHANG | os.WNOWAIT
     return os.waitid(os.P_PID, process.pid, flags) is not None
 
@@ -199,7 +158,7 @@ def _read_bounded(
     """Read until the streams close, the reader stops, or the deadline or the drain passes.
 
     The drain counts from `ended_at`, or from the moment the child is seen to have ended:
-    a descendant that left the session may keep a pipe open long after the child.
+    a descendant that left the group may keep a pipe open long after the child.
     """
     drain = PIPE_DRAIN.total_seconds()
     while reader.has_open_stream():
@@ -238,9 +197,9 @@ def _read_to_exit(
 
 
 def run_process(request: ProcessRequest) -> ProcessResult:
-    """Run `request.argv` without a shell and kill every process of its session at the time limit.
+    """Run `request.argv` without a shell and kill its process group at the time limit.
 
-    Once the child has ended, or its session was killed, the output is read for at most
+    Once the child has ended, or its process group was killed, the output is read for at most
     `PIPE_DRAIN`; a pipe still open then is closed and the result says `output_abandoned`.
     A failure to start the program, such as `FileNotFoundError`, is raised to the caller.
     """
@@ -272,9 +231,9 @@ def run_process(request: ProcessRequest) -> ProcessResult:
 def run_streaming(request: ProcessRequest, on_line: Callable[[Stream, str], bool]) -> ProcessResult:
     """Run `request.argv` as `run_process` does and hand `on_line` each line as it arrives.
 
-    `on_line` returning True kills the session at once and passes no further line; so
+    `on_line` returning True kills the process group at once and passes no further line; so
     does the time limit, and neither reads on after the kill. An exception from `on_line`
-    kills the session and propagates. Once the child has ended, the output is read for at
+    kills the process group and propagates. Once the child has ended, the output is read for at
     most `PIPE_DRAIN`, as `run_process` does; a last line without a line feed is then not
     passed.
     """

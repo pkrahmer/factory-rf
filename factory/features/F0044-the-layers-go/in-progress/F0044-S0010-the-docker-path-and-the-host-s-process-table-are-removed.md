@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 453
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T20:04:16.545242Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-25T20:04:16.545242Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-25T20:07:29.117632Z'
+  stage: doing
+  run: 6c4472b3213446968173b706093081ec
 ---
 
 # The Docker path and the host's process table are removed
@@ -130,3 +132,25 @@ Expect: three lines: `0`; `helper-moved`; `gone`
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/adapters/test_process_session.py::test_time_limit_ends_every_process_of_the_group[run_streaming-own-group] - AssertionError: assert True is False
 6. factory: started doing as self.
+7. coder: Removed the Docker path and the process-table kill. `make check` is green: lint, types, layers, sast, secrets, licenses and test (61.4 s), ending `check: green`.
+
+   Built:
+   - Removed `image/Dockerfile`, `image/compose.yml`, `image/entrypoint.sh`, `image/sudoers-factory-agent` and `image/gitconfig`. Moved `image/git-credential-factory` unchanged to `vm/git-credential-factory` with `git mv`; it keeps its mode, and git records it as a rename with the content the same.
+   - `vm/setup.sh`: in the `tools` step, the `cmp` and the `install` now read `$checkout/vm/git-credential-factory`. The rest of the step is unchanged.
+   - `vm/Dockerfile`: the second comment line is now `# Every reference is pinned (docs/decisions.md).`
+   - Removed `src/factory/domain/sessions.py`.
+   - `src/factory/adapters/process.py`: `read_process_table`, `_kill_one`, `_PROCESS_TABLE`, `_ROUND_PAUSE_SECONDS` and the `factory.domain.sessions` import are gone. `_kill_session` only calls `os.killpg(process.pid, signal.SIGKILL)` and suppresses `ProcessLookupError`. Its comment now says why the group is enough: no agent code runs on the host. "session" became "process group" in the docstrings of `run_process` and `run_streaming`, and in the comments of `_has_ended` and `_read_bounded`, because both of those comments mean the same id or group. `run_process`'s first docstring line is shorter ("kill its process group at the time limit"), because "every process of its process group" went past the 100-column limit.
+
+   Main choice: I kept the name `_kill_session`, as the Interface names it, and did not rename it to `_kill_group`. A rename would have gone beyond the Interface and changed the name the tests and the reviewer look for.
+
+   Refactor: I read the diff and found nothing more to change.
+
+   Noticed but not touched:
+   - `pyproject.toml` line 142: mutmut's `also_copy` still lists `"image/"`, which no longer exists. It may break `make mutants`. Intake left `pyproject.toml` to the human's changes 10 and 11.
+   - `security/duplicates-baseline.txt` may hold entries for the removed code. I did not run `make duplicates` and did not check.
+   - The docs criterion (8) is left for the docs stage.
+
+   The journal did not change the meaning of the task, so I left `## Description` as it is.
+
+   `check`: check: green
+   `duplicates`: duplicates: 8 new, 35 known, 3 gone
