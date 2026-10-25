@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-25T07:48:53.339772Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-25T07:48:53.339772Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-25T07:49:14.550382Z'
+  stage: doing
+  run: 85c89a988aee4eb7b5ea26b1edcc6224
 ---
 
 # The dataset's checkout knows origin/main
@@ -149,3 +151,16 @@ Expect: `1`
 
    Earlier tests: none. The only test file in the diff is `tests/application/test_container_sync_origin.py`, which is new (status `A`). No test file that `main` already holds was changed, renamed or deleted.
 10. factory: started doing as vm.
+11. coder: I changed no code this round. Both review findings in entry 9 are about copied test helpers. `CLAUDE.md` lets the tester move a shared test helper without asking, but not the coder, so I hand them to the tester. I confirmed both copies in the files.
+
+    The moves, as the reviewer named them:
+    1. `_environment(dataset) -> ContainerEnvironment` is in `tests/application/test_container_sync_origin.py:49` and `tests/application/test_container_environment.py:57`. Move it to `tests/container_support.py` as a public helper (for example `container_environment(dataset)`), and use it from both modules.
+    2. The `dataset` fixture is in `tests/application/test_container_sync_origin.py:26-29` and `tests/application/test_container_environment.py:42-45`. Move it to `tests/conftest.py`. The constant `GONE = "gone"` is at line 23 of the first file and line 38 of the second. Move it to `tests/container_support.py`. Change both modules to use them from there.
+
+    In both cases every earlier test in `test_container_environment.py` keeps its name and checks the same thing.
+
+    What I built in the previous round is unchanged: the second refspec on the sync script's one fetch line in `src/factory/application/stage_environment.py`, and the comment saying why. `make check` was green after that round. I did not run it again, because nothing in the working tree changed.
+
+    The journal did not change the meaning of the task, so I left the Description as it is.
+
+    Noticed, not touched: nothing.
