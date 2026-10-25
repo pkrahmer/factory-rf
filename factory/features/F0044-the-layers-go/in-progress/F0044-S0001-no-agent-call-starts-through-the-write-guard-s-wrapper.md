@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T11:47:43.386546Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-10-25T11:47:43.386546Z'
   stage: tests
+- number: 14
+  speaker: tester
+  kind: result
+  at: '2026-10-25T11:50:46.770775Z'
+  stage: tests
+  run: a33f6f7ce5ec4593b371d5c78b74cd7b
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -307,3 +309,40 @@ Expect: `7`
     Modules the runner could not import: not known for this run, because `make test` did not start. In entry 8's run, `tests/adapters/test_agent_launch_call_end.py` could not be collected because `Starters` still requires `confine_executable`.
 12. 2026-10-25 human: (a). The cause was on the machine: this instance (`self`) still runs the kernel's guard, and `tool_paths` had been taken out of `factory/pipeline.yml` for an instance without it. `tool_paths` is back on `main` now, so `.reports/` and uv's cache are writable again; rerun `make test` and `make lint`. The work item is not your write path, so leave the Interface as it is: decision 4's line in your journal entry and in `tests/shipped_agents.py::WRITE_PATHS_RULE` is enough.
 13. factory: started tests as self.
+14. tester: The tests for every criterion are written, so this goes to the coder. The test files are already on the branch from journal entries 8 and 11. This run checked them and ran the two commands that the write guard blocked last time: `make test` once and `make lint`. Neither was blocked this time. I added nothing new in this run.
+
+    Criterion → test:
+    - criterion 1: `tests/adapters/test_runtimes_without_wrapper.py::test_the_wrapper_s_names_are_gone` (one row per removed name) and `::test_the_starters_are_sudo_the_login_files_and_the_leftovers_program`
+    - criterion 2: `tests/adapters/test_runtimes_without_wrapper.py::test_no_constructor_takes_the_wrapper_or_its_folders`
+    - criterion 3: `tests/adapters/test_runtimes_without_wrapper.py::test_a_claude_call_as_a_user_starts_the_login_words_then_the_call_after_env_i` (rows: with a login file and without) and `::test_a_call_without_a_user_has_no_rules_file_and_makes_no_run_folder` (rows: Claude Code and opencode)
+    - criterion 4: `tests/adapters/test_runtimes_without_wrapper.py::test_only_sudo_and_the_login_shell_refuse_a_call`. Rows:
+      - a wrapper line under Claude Code
+      - a wrapper line under opencode
+      - a wrapper line through `call_refusal` directly
+      - a refused `sudo`
+      - a refused login file
+      - a `sudo:` line without an `os_user`
+    - criterion 5: the existing tests in `tests/adapters/test_claude_runtime_container.py` and `tests/adapters/test_opencode_runtime_container.py`, changed as the Interface says. Their `test_a_run_in_a_container_mounts_...` tests check the launch, the read-only mounts and `/work/checkout`.
+    - criterion 6: `tests/entry/test_wiring_container_extras.py::test_the_extras_are_chosen_by_the_stage_environment_in_the_operator_guides_order`. Its `inline` rows no longer list `confinement`, and it has an `inline-opencode` row.
+    - criterion 7: `tests/test_wrapper_out_of_the_call_path.py::test_only_the_guard_s_modules_name_the_wrapper_or_import_its_rules`
+    - criterion 8: `tests/test_shipped_agents_r14.py::test_each_agent_holds_the_take_s_r14_once_and_no_kernel_promise`, one row per name in `SHIPPED_NAMES`. The expected line is `tests/shipped_agents.py::WRITE_PATHS_RULE`, and I checked it against the text of decision 4 in journal entry 9.
+
+    Files created (over the runs of this stage):
+    - `tests/adapters/test_runtimes_without_wrapper.py`
+    - `tests/test_wrapper_out_of_the_call_path.py`
+    - `tests/test_shipped_agents_r14.py`
+    - the helper `run_folders` in `tests/adapters/container_runtime_support.py`
+
+    Earlier test files changed:
+    - The files the Interface names, under decision 17, as listed in journal entries 8 and 11. This includes `tests/test_claude_agent_refusal.py`: `WRITE_PATHS_RULE` is now decision 4's text, and the old ending it looks for is the sentence beginning `the kernel refuses every other write`.
+    - `tests/shipped_agents.py`, under the standing leave to move a shared constant: it now holds `WRITE_PATHS_RULE`.
+
+    The Interface still does not quote decision 4's line. The human said to leave it as it is (journal entry 12).
+
+    Run results:
+    - `make test`: red, as intended. The runner could not import `tests/adapters/test_agent_launch_call_end.py`: `ValidationError: 1 validation error for Starters`, because the code's `Starters` still requires `confine_executable`. The other tests fail because the code is not changed yet.
+    - `make lint`: green.
+    - Type check: not run, as this stage says to skip it.
+
+    `lint`: lint: green (0.6 s)
+    `test`: ERROR tests/adapters/test_agent_launch_call_end.py - pydantic_core._pydantic_core.ValidationError: 1 validation error for Starters
