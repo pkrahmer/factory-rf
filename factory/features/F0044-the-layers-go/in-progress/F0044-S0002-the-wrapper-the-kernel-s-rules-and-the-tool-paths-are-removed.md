@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 445
 comments_read: [6397809713]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T12:50:45.847437Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-25T12:50:25.117580Z'
   stage: tests
   run: 9956c8fac07140a9b6e88ca349c83211
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-25T12:50:45.847437Z'
+  stage: doing
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -357,3 +366,4 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
 
     `lint`: lint: green (0.6 s)
     `test`: test: green (66.4 s)
+17. factory: started doing as self.
