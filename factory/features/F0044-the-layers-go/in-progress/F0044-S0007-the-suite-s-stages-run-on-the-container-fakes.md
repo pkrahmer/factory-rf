@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 450
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T16:45:50.059670Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T16:45:29.744802Z'
   stage: intake
   run: dd80478fad82462fbe470d924f9dc08b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:45:50.059670Z'
+  stage: tests
 ---
 
 # The suite's stages run on the container fakes
@@ -86,3 +95,4 @@ Expect: two lines: `1`; `1`
    Smoke test: both commands are runnable. pytest's `addopts` already sets `-q` and the command passes none, so the `N passed in` summary line the first `Expect:` greps for is printed. The second command's two counts are checkable.
    Architecture: the change is in tests, fixtures and the request's working directory, in `application`. It uses the F0042 fakes and adds no interface, no layer break, and no new dependency.
    Scope: it matches S0007 in `feature.md`. The inline environment stays until S0008, and the leaves are those of decision 23, answer 29 (a) and decision 36. Nothing is in "Out of scope".
+4. factory: started tests as self.
