@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 437
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-25T08:31:14.073910Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-25T08:30:53.349642Z'
   stage: tests
   run: d9f2d1afeb27481589e71ab2fce8e787
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T08:31:14.073910Z'
+  stage: doing
 ---
 
 # The chapter "The machine" names all three secrets in every place
@@ -98,3 +107,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.2 s)
    `test`: test: green (194.0 s)
+6. factory: started doing as vm.
