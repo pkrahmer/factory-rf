@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T15:14:21.461492Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-10-25T15:14:00.387776Z'
   stage: review
   run: 3f9951a5183f43b58d447bd31e071af5
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-25T15:14:21.461492Z'
+  stage: docs
 ---
 
 # The second user is removed
@@ -543,3 +552,4 @@ Expect: three lines: `[] False`; `False False`; `3 False`
     - tests/entry/test_wiring_extras.py:63 and tests/application/test_agent_run_probe_factory_user.py:23: their names still mention an agent user, and each now has a single row. The Interface keeps the names, so a later story could rename them.
 
     Open, outside the diff and so not under review: the comment at src/factory/adapters/process.py:90 still says the agent's own `timeout` ends root's `sudo`.
+28. factory: started docs as self.
