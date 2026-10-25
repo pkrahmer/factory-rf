@@ -39,6 +39,7 @@ The guide for the person who runs the factory this repository implements: how to
 - "A restart during a stage"
 - "An expired lease"
 - "Claims, leases and the clock"
+- "Replaced in v1.2"
 - "Replaced from v1"
 
 ## Install
@@ -55,15 +56,15 @@ One factory instance runs one project and is told what it needs through environm
 |---|---|---|
 | `FACTORY_REPOSITORY_URL` | yes | The one repository of the instance. No whitespace and no comma: a list of repositories is refused. |
 | `FACTORY_INSTANCE` | yes | The instance's name, matching `^[a-z][a-z0-9-]*$` (`factory-1`; `Factory-1`, `1st`, `factory_1` and `-x` are refused). |
-| `FACTORY_CHECKOUT` | no | The factory's own checkout, an absolute path. Default `/work/checkout`; unset or blank gives the default. A relative path is refused with `FACTORY_CHECKOUT` as the variable and `is not an absolute path`. |
-| `FACTORY_STATE` | no | The state directory (`health.json`, the factory log, the runs), an absolute path. Default `/state`; unset or blank gives the default. A relative path is refused with `FACTORY_STATE` as the variable and `is not an absolute path`. `factory-health --state-directory <it>` reads the same place. |
+| `FACTORY_CHECKOUT` | no | The factory's own checkout, an absolute path. Default `/work/checkout`; unset or blank gives the default; `vm/setup.sh` sets `/srv/factory/<instance>/repo`. A relative path is refused with `FACTORY_CHECKOUT` as the variable and `is not an absolute path`. |
+| `FACTORY_STATE` | no | The state directory (`health.json`, the factory log, the runs), an absolute path. Default `/state`; unset or blank gives the default; `vm/setup.sh` sets `/srv/factory/<instance>/state`. A relative path is refused with `FACTORY_STATE` as the variable and `is not an absolute path`. `factory-health --state-directory <it>` reads the same place. |
 | `GIT_USER_NAME` | no | Name of the factory's commits. Default `factory`. |
 | `GIT_USER_EMAIL` | no | Email of the factory's commits. Default `factory@noreply.invalid`. |
 | `FACTORY_IMAGE_ID_FILE` | no | The file that holds the identity of the image the instance runs on. Default `/opt/factory/image-id`; `vm/setup.sh` sets `/srv/factory/<instance>/image-id`. |
-| `FACTORY_CLAUDE_HOME` | no | The directory where the agents are installed (`<it>/agents/<role>.md`). Default `$HOME/.claude`, or `/home/agent/.claude` when `HOME` is unset or blank. |
+| `FACTORY_CLAUDE_HOME` | no | The directory where the agents are installed (`<it>/agents/<role>.md`). Default `$HOME/.claude`, or `/home/agent/.claude` when `HOME` is unset or blank; `vm/setup.sh` sets `/srv/factory/<instance>/factory/claude`. |
 | `FACTORY_CLAUDE` | no | Claude Code's executable, used when the runtime is `claude`. Default `claude`. |
-| `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it under Claude Code | The version of Claude Code the image pins (`2.1.296`). The image sets it; a missing or blank value is read as not pinned. |
-| `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default; the image sets it to `/home/factory/.secrets/hosting-token`. |
+| `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it under Claude Code | The version of Claude Code the stage image pins (`2.1.296`). The environment file `factory.env` that `vm/setup.sh` writes sets it from the pins of `vm/Dockerfile`; a missing or blank value is read as not pinned. |
+| `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default; `factory.env` sets it to `/home/factory/.secrets/hosting-token`. |
 | `FACTORY_CLAUDE_LOGIN_FILE` | no | The file that holds the agent's login token, made with `claude setup-token`, as plain ASCII text. A blank value counts as unset. No default; the environment file sets it to `/home/factory/.secrets/claude-token`. See "The agent runtime" and "The agent's login token". |
 | `FACTORY_API_LOGIN_FILE` | no | The file that holds the agent's Anthropic API key, as plain ASCII text. A blank value counts as unset. No default; the environment file sets it to `/home/factory/.secrets/anthropic-api-key`. A key in it wins over the token. See "The agent's API key". |
 | `FACTORY_MIN_FREE_GB` | no | The least free space, in whole gigabytes of 10^9 bytes, at least 1. Default 5; unset or blank gives the default. Anything else (`0`, `-1`, `2.5`, `five`) is refused with `FACTORY_MIN_FREE_GB` as the variable. It guards the disk: when the work directory (the checkout's parent) or the state directory has less free space, the tick stops with `disk_low` (see "The stops of the tick"). |
@@ -73,23 +74,23 @@ One factory instance runs one project and is told what it needs through environm
 | `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` | no | How long the waits of one run may add up to before the run ends `provider_limit`, in whole minutes of ASCII digits, at least 1. Default 120; unset or blank gives the default. Anything else is refused with `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` as the variable; a ceiling below the cool-down is refused with `is shorter than the cool-down`. See "A provider's spend limit". |
 | `FACTORY_AGENT_RUNTIME` | no | The agent runtime of the instance: `claude` (Claude Code, the default) or `opencode`. Unset or blank gives `claude`; surrounding spaces are stripped; anything else (`Opencode`, `both`) is refused with `FACTORY_AGENT_RUNTIME` as the variable and `is neither claude nor opencode`. See "Running on opencode". |
 | `FACTORY_OPENCODE` | no | The opencode executable, used when the runtime is `opencode`. Default `opencode`. |
-| `FACTORY_OPENCODE_VERSION` | no, but the preflight fails without it under opencode | The version of opencode the image pins (`1.19.3`). The image sets it; a blank value is read as not pinned. |
-| `FACTORY_OPENCODE_MODELS` | no | Comma-separated `<alias>=<provider>/<model>` entries that map the agent files' aliases (`opus`, `sonnet`, `haiku`) to opencode's model ids; spaces around each part are stripped. The provider is the part before the first `/`, so `openrouter/anthropic/claude-opus-5-5` is one model. Unset or blank gives none (the image sets the three Anthropic ids). An entry without `=`, with an empty alias or with a model that has no `/` or an empty side, and an alias named twice, are refused with `FACTORY_OPENCODE_MODELS` as the variable. |
+| `FACTORY_OPENCODE_VERSION` | no, but the preflight fails without it under opencode | The version of opencode the stage image pins (`1.19.3`). `factory.env` sets it from the pins of `vm/Dockerfile`; a blank value is read as not pinned. |
+| `FACTORY_OPENCODE_MODELS` | no | Comma-separated `<alias>=<provider>/<model>` entries that map the agent files' aliases (`opus`, `sonnet`, `haiku`) to opencode's model ids; spaces around each part are stripped. The provider is the part before the first `/`, so `openrouter/anthropic/claude-opus-5-5` is one model. Unset or blank gives none (`factory.env` sets the three Anthropic ids from `vm/Dockerfile`). An entry without `=`, with an empty alias or with a model that has no `/` or an empty side, and an alias named twice, are refused with `FACTORY_OPENCODE_MODELS` as the variable. |
 | `FACTORY_DATASET` | yes | The ZFS dataset the stages run on (`tank/factory/vm`). Missing or blank is refused when the instance's boundaries are built, with `FACTORY_DATASET` as the variable and `missing`; `read_settings` itself raises no fault for it. |
 | `FACTORY_WORKSPACE` | yes | The dataset's mount point on the host, an absolute path (`/srv/factory/vm/work`). A relative path is refused by `read_settings` with `FACTORY_WORKSPACE` as the variable and `is not an absolute path`; a missing or blank one when the boundaries are built, with `missing`. |
 | `FACTORY_STAGE_IMAGE` | yes | The image the stage containers run (`factory-stage:1`). Missing or blank is refused when the boundaries are built, with `FACTORY_STAGE_IMAGE` as the variable and `missing`. |
 | `FACTORY_PODMAN` | no | The `podman` executable, one word. Default `podman`; unset or blank gives the default. |
 | `FACTORY_ZFS` | no | The `zfs` executable, one word. Default `zfs`; unset or blank gives the default. |
 
-**The stage environment.** There is one: every stage runs on a ZFS dataset and its commands in throwaway Podman containers. `FACTORY_STAGE_ENVIRONMENT`, which once chose between this and v1.1's way of running in the factory's own container, is read by nothing: an environment file that still holds it is harmless, and any value is ignored.
+**The stage environment.** There is one: every stage runs on a ZFS dataset and its commands in throwaway Podman containers. Nothing chooses between ways: the setting that once did is under "Replaced in v1.2".
 
-An instance needs `FACTORY_DATASET`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE`. `factory-run` refuses to build its boundaries when one is missing, before it builds anything, naming the first missing one in this order: dataset, workspace, image (`<variable>: missing`). There is no kernel write guard: the container is the boundary. The agent's `HOME` is `/work/home` on the dataset. `read_settings` refuses a relative workspace, and a checkout or a state directory that is the workspace or lies inside it, with `FACTORY_CHECKOUT` (checked first) or `FACTORY_STATE` as the variable and `<path> lies inside FACTORY_WORKSPACE`: every rollback of the dataset would reset the factory's own checkout, and the agent's container would reach the health file and the runs. With the default checkout, `FACTORY_WORKSPACE=/work` is refused for that reason.
+An instance needs `FACTORY_DATASET`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE`. `factory-run` refuses to build its boundaries when one is missing, before it builds anything, naming the first missing one in this order: dataset, workspace, image (`<variable>: missing`). The container is the boundary. The agent's `HOME` is `/work/home` on the dataset. `read_settings` refuses a relative workspace, and a checkout or a state directory that is the workspace or lies inside it, with `FACTORY_CHECKOUT` (checked first) or `FACTORY_STATE` as the variable and `<path> lies inside FACTORY_WORKSPACE`: every rollback of the dataset would reset the factory's own checkout, and the agent's container would reach the health file and the runs. With the default checkout, `FACTORY_WORKSPACE=/work` is refused for that reason.
 
 The VM the instance runs on, with the dataset and the stage image, is prepared by `vm/setup.sh`, and the preflight checks them: see "The preflight's items".
 
 A required variable that is missing, empty or only spaces is refused. The two commit-identity variables are decided one by one: a half that is unset or only spaces falls back to its own default, so the commits are `factory <factory@noreply.invalid>` unless you set them. No preflight item checks the identity.
 
-The image identity is read from the file, stripped, so that a rebuild of the image with the same build argument cannot keep an old preflight stamp valid. `vm/setup.sh` makes the file and you renew it after every build of the stage image (see "The stage image"). A file that does not exist, cannot be read or holds only spaces is refused with `FACTORY_IMAGE_ID_FILE` as the variable. The variable `FACTORY_IMAGE` is only a label of the build and is never read as the identity.
+The image identity is read from the file, stripped, so that a rebuild of the image with the same build argument cannot keep an old preflight stamp valid. `vm/setup.sh` makes the file and you renew it after every build of the stage image (see "The stage image" and "The rebuild after a merge"). A file that does not exist, cannot be read or holds only spaces is refused with `FACTORY_IMAGE_ID_FILE` as the variable. The variable `FACTORY_IMAGE` is only a label of the build and is never read as the identity.
 
 A blank value of the three optional variables above counts as unset. The token is read once, when the boundaries are built, from the file `FACTORY_TOKEN_FILE` names, stripped of surrounding whitespace. An unset variable, a file that does not exist or cannot be read, and a file that holds only spaces are each refused with `FACTORY_TOKEN_FILE` as the variable; the message names the path and never the token. The token reaches the hosting service (PyGithub) from the factory process, and git only through its credential helper, `/usr/local/bin/git-credential-factory`, which reads the same file (see "The hosting-service token").
 
@@ -113,7 +114,7 @@ After an iteration the instance pauses 15 seconds when the tick found activity. 
 
 ### The checkout is cloned when it is missing
 
-The checkout lies at `/work/checkout`. When that directory has no `.git`, the instance clones the repository into it. A checkout that has a `.git` is kept as it is: the factory does not check it, does not seal it, does not clone it again and removes no repository nested in the work tree. What an agent can reach is bounded by the container it runs in (see "What the container can and cannot see"), not by checks on the checkout.
+The checkout lies where `FACTORY_CHECKOUT` names (`/srv/factory/<instance>/repo` on the VM). When that directory has no `.git`, the instance clones the repository into it. A checkout that has a `.git` is kept as it is: the factory does not check it, does not clone it again and removes no repository nested in the work tree. What an agent can reach is bounded by the container it runs in (see "What the container can and cannot see"), not by checks on the checkout.
 
 A folder with files and no `.git` is still refused: git will not clone into a non-empty directory and the iteration fails. Delete the checkout directory and let the next iteration clone it again. The checkout is disposable (see "The stops of the tick"), so nothing is lost.
 
@@ -254,9 +255,9 @@ An instance runs its agents on Claude Code unless the operator sets `FACTORY_AGE
 
 The preflight asks for neither: the probe of the agent run shows whether a run can log in.
 
-**Your own build.** Choose an opencode build with `FACTORY_OPENCODE` (its path), `FACTORY_OPENCODE_VERSION` (what `--version` prints) and `FACTORY_OPENCODE_MODELS`. The defaults are the stage image's `opencode-ai`, its pinned version and the three Anthropic ids.
+**Your own build.** Choose an opencode build with `FACTORY_OPENCODE` (its path), `FACTORY_OPENCODE_VERSION` (what `--version` prints) and `FACTORY_OPENCODE_MODELS`: add them to `factory.env` (see "The service"), install the build on the VM and restart the instance. The values `factory.env` carries are the stage image's `opencode-ai`, its pin in `vm/Dockerfile` and the three Anthropic ids.
 
-**The models.** The agent files name `opus`, `sonnet` and `haiku`. `FACTORY_OPENCODE_MODELS` maps each to a `<provider>/<model>` id of opencode; `vm/Dockerfile` sets `opus=anthropic/claude-opus-5-5,sonnet=anthropic/claude-sonnet-5-5,haiku=anthropic/claude-haiku-5-5`. Check that an id exists with `opencode models anthropic`. A model written with a `/` in an agent file is used as it is.
+**The models.** The agent files name `opus`, `sonnet` and `haiku`. `FACTORY_OPENCODE_MODELS` maps each to a `<provider>/<model>` id of opencode; `vm/Dockerfile` pins `opus=anthropic/claude-opus-5-5,sonnet=anthropic/claude-sonnet-5-5,haiku=anthropic/claude-haiku-5-5`. Check that an id exists with `opencode models anthropic`. A model written with a `/` in an agent file is used as it is.
 
 **The version.** The stage image pins opencode (`OPENCODE_VERSION` in `vm/Dockerfile`); the item `agent-runtime-version` compares `opencode --version` with `FACTORY_OPENCODE_VERSION`. The pins are changed in `vm/Dockerfile` alone (see "The stage image").
 
@@ -309,7 +310,7 @@ It holds:
 - `uv`, Claude Code and opencode at exact versions, with the runtimes' environment: `DISABLE_AUTOUPDATER`, `UV_LINK_MODE`, `PYTHONDONTWRITEBYTECODE`, the two version records `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION`, and the opencode model ids `FACTORY_OPENCODE_MODELS`;
 - the agent files (`claude/agents` and `claude/settings.json`) at `/etc/factory/claude`, read-only.
 
-It holds none of what served v1.1's long-lived container: no second user and no group, no `sudo`, no entrypoint, no `/etc/gitconfig`, no `USER`, `WORKDIR`, `ENTRYPOINT` or `CMD`, no copy of the factory's source or its `uv sync`, no image-id file and no login or token path.
+It holds no user of its own and no `sudo`, no copy of the factory's source or its `uv sync`, no image-id file and no login or token path: the container runs as the caller's user (`--userns=keep-id`) and mounts the dataset.
 
 The image only carries the agent files. The sync container copies them into the dataset's `/work/home/.claude` before the base moves (F0042).
 
@@ -681,7 +682,7 @@ The preflight is a list of five items, and of up to twelve with the machine's ex
 
 | Item | Passes when | If it fails |
 |---|---|---|
-| `tool:git`, `tool:uv` | the tool is on the `PATH` | The detail is `<tool> is not on the PATH; add it to the image`. Add the tool to the image and rebuild. |
+| `tool:git`, `tool:uv` | the tool is on the `PATH` | The detail is `<tool> is not on the PATH; add it to the image`, as the code prints it, though the tools are on the VM, not in the image. Install the tool on the VM (`vm/setup.sh` installs `uv` into `/srv/factory/<instance>/tools`, and `git` comes with its package step) and restart the instance. |
 | `hosting-service` | a read-only call (the open pull request of `main`) is answered | The detail holds the operation and the service's message. Check the token (`FACTORY_TOKEN_FILE`) and the network. |
 | `agents` | at least one agent file is in `FACTORY_CLAUDE_HOME` (`<it>/agents/<role>.md`) | The detail names the directory, whether it is empty, missing or unreadable. Install the agents into `FACTORY_CLAUDE_HOME`. |
 | `agent-runtime-version` | the first word of the runtime's `--version` equals the pin of the runtime in force (`FACTORY_CLAUDE_VERSION`; under opencode `FACTORY_OPENCODE_VERSION`) | The detail names both versions (`the agent runtime reports 2.1.290, the image pins 2.1.289`): rebuild the image or change the pinned version. Without the pin it says `the image does not pin a version: FACTORY_CLAUDE_VERSION is not set` (`FACTORY_OPENCODE_VERSION` under opencode); when `claude --version` cannot run, it holds the runtime's error. |
@@ -765,7 +766,7 @@ Missing parent directories are created. If the file cannot be written, the line 
 
 The state directory's `records/` folder holds four JSON Lines files. None is committed; the tick publishes the stop records to `factory/stops.jsonl` on `main` (see "The stop records on main"). `project-commands.jsonl` holds every project command run (below), `known-results.jsonl` is described in "The known results", `stops.jsonl` in "The stop records" and `disk.jsonl` in "The disk record". A line of any of them that a kill cut, or that is not UTF-8, is skipped when the factory reads the file, so a damaged record file needs no repair. A record appended right after a line a kill cut shares that line and is skipped with it; a whole line that is not UTF-8 costs only itself.
 
-`records/project-commands.jsonl` in the state directory (`/state/records/project-commands.jsonl`) holds one JSON line for every project command the factory runs (`check`, `lint`, `test` and the rest), whoever asked for it: the stage checks after an agent, the preflight's probe and the check of `main`. The folder is created on the first run. A line has these fields:
+`records/project-commands.jsonl` in the state directory `FACTORY_STATE` names (`/srv/factory/<instance>/state/records/project-commands.jsonl` on the VM) holds one JSON line for every project command the factory runs (`check`, `lint`, `test` and the rest), whoever asked for it: the stage checks after an agent, the preflight's probe and the check of `main`. The folder is created on the first run. A line has these fields:
 
 | Field | Meaning |
 |---|---|
@@ -782,14 +783,14 @@ The state directory's `records/` folder holds four JSON Lines files. None is com
 To count the `check` runs of each commit, with the most-run commits first:
 
 ```bash
-python3 -c "import json,collections as c; print(c.Counter(r['commit'] for r in map(json.loads, open('/state/records/project-commands.jsonl')) if r['command']=='check').most_common())"
+python3 -c "import json,collections as c; print(c.Counter(r['commit'] for r in map(json.loads, open('/srv/factory/vm/state/records/project-commands.jsonl')) if r['command']=='check').most_common())"
 ```
 
 A commit that appears more than once was checked more than once.
 
 #### The known results
 
-`records/known-results.jsonl` in the state directory holds one JSON line for each run of a stage's check or report and for each time the factory took an earlier result instead of running it. After an agent the factory runs every check and report of the stage; when the last run under the same key passed, it does not run the command again. The preflight's probe and `project-commands.jsonl` are not part of this: the probe still runs, and `project-commands.jsonl` still holds every real run and no reuse. A line has these fields:
+`records/known-results.jsonl` in the state directory `FACTORY_STATE` names (`/srv/factory/<instance>/state` on the VM) holds one JSON line for each run of a stage's check or report and for each time the factory took an earlier result instead of running it. After an agent the factory runs every check and report of the stage; when the last run under the same key passed, it does not run the command again. The preflight's probe and `project-commands.jsonl` are not part of this: the probe still runs, and `project-commands.jsonl` still holds every real run and no reuse. A line has these fields:
 
 | Field | Meaning |
 |---|---|
@@ -825,7 +826,7 @@ When something goes wrong the command runs as it did before, and the factory log
 To count the `check` runs of each tree, the most-run first (a reuse is not counted):
 
 ```bash
-python3 -c "import json,collections as c; print(c.Counter(r['key']['tree'] for r in map(json.loads, open('/state/records/known-results.jsonl')) if r['key']['command']=='check' and r['reused'] is None).most_common())"
+python3 -c "import json,collections as c; print(c.Counter(r['key']['tree'] for r in map(json.loads, open('/srv/factory/vm/state/records/known-results.jsonl')) if r['key']['command']=='check' and r['reused'] is None).most_common())"
 ```
 
 #### The stop records
@@ -843,15 +844,15 @@ python3 -c "import json,collections as c; print(c.Counter(r['key']['tree'] for r
 
 #### The disk record
 
-`records/disk.jsonl` in the state directory holds one JSON line each time the factory measures its folders: `at` (UTC with an offset), `occasion` (`start` or `acceptance`) and `folders`, a list of `{"path", "free_bytes", "used_bytes"}` for the work directory (the checkout's parent), the state directory and the process's temporary directory (`/tmp` in the container), in that order. `free_bytes` is the free space of the file system the folder is on; `used_bytes` is the size of what is under it. A value the factory could not read is `null`.
+`records/disk.jsonl` in the state directory `FACTORY_STATE` names (`/srv/factory/<instance>/state` on the VM) holds one JSON line each time the factory measures its folders: `at` (UTC with an offset), `occasion` (`start` or `acceptance`) and `folders`, a list of `{"path", "free_bytes", "used_bytes"}` for the work directory (the checkout's parent), the state directory and the process's temporary directory (`/tmp`), in that order. `free_bytes` is the free space of the file system the folder is on; `used_bytes` is the size of what is under it. A value the factory could not read is `null`.
 
-The same record is one line in the factory log, for example `disk start: /work 812.3 GB free, 0.7 GB used; /state 812.3 GB free, 0.0 GB used; /tmp 812.3 GB free, 4.3 GB used`, each value in GB or `unknown`.
+The same record is one line in the factory log, for example `disk start: /srv/factory/vm 812.3 GB free, 0.7 GB used; /srv/factory/vm/state 812.3 GB free, 0.0 GB used; /tmp 812.3 GB free, 4.3 GB used`, each value in GB or `unknown`.
 
 It is written at each start of the instance, before the first tick, and at each feature acceptance. No record is written at the end of a run. Compare the new line with the last one to see whether disk use grows. When the line cannot be written, the factory log gets `cannot write the disk record: <error>` and the run goes on. It is not committed; the factory uses only its last record that reads whole, to name the previous measure beside the new one at a feature acceptance.
 
-The size of a folder counts only what the factory user can read. The agent's own folders under `/tmp`, made by pytest or Claude Code with mode `0700`, are left out, while the free space of the file system still shows them.
+The size of a folder counts only what the factory user can read. A folder under `/tmp` that another user made with mode `0700` is left out, while the free space of the file system still shows it.
 
-The record cannot see the host. Read the host's own numbers by hand at the same moments and at the end of a run: the free space of the drive, and the size of the pool (`zpool list`).
+The record cannot see the host. Read the host's own numbers by hand at the same moments and at the end of a run: the free space of the VM's disk, and the size of the pool (`zpool list`).
 
 ## The stops
 
@@ -1213,7 +1214,7 @@ Only Claude Code's runs are given the `Skill` tool. An opencode run leaves it ou
 
 ### The shipped agents and settings
 
-The checkout ships seven agents (`intake`, `tester`, `coder`, `reviewer`, `documenter`, `smoke-tester`, `acceptance-reviewer`) and `settings.json`. Each agent's `tools` ends with `Skill`, and the settings allow it in `permissions.allow`, right after `Grep`. `FACTORY_CLAUDE_HOME` names the checkout's `claude/` folder on the VM, so change the files in the repository. The settings let an agent run `factory-check-story` and no other `factory-` command: it cannot run `factory-run`, `factory-watch` or `factory-bill`. They also deny `git add` and `git commit`, because an agent leaves its changes in the working tree and the factory makes the result commit (an agent user has no git identity of its own), and `git push`, `gh` and the commands that move or rewrite branches, because the factory alone pushes. A new project starts from `template/` in the factory's checkout (a pipeline definition, a `CLAUDE.md` and a `Makefile` whose `SOURCE` and `LAYERS` placeholders you fill in); the story and feature forms are yours to add, and every stage stops until `factory/story-form.md` exists.
+The checkout ships seven agents (`intake`, `tester`, `coder`, `reviewer`, `documenter`, `smoke-tester`, `acceptance-reviewer`) and `settings.json`. Each agent's `tools` ends with `Skill`, and the settings allow it in `permissions.allow`, right after `Grep`. The instance reads them from `FACTORY_CLAUDE_HOME` (`/srv/factory/<instance>/factory/claude`, the `claude/` folder of the factory's own clone), so change the files in the repository: a change reaches the instance by a merge and the steps of "The rebuild after a merge". The settings let an agent run `factory-check-story` and no other `factory-` command: it cannot run `factory-run`, `factory-watch` or `factory-bill`. They also deny `git add` and `git commit`, because an agent leaves its changes in the working tree and the factory makes the result commit (an agent has no git identity of its own), and `git push`, `gh` and the commands that move or rewrite branches, because the factory alone pushes. A new project starts from `template/` in the factory's checkout (a pipeline definition, a `CLAUDE.md` and a `Makefile` whose `SOURCE` and `LAYERS` placeholders you fill in); the story and feature forms are yours to add, and every stage stops until `factory/story-form.md` exists.
 
 ## The records contract
 
@@ -1677,6 +1678,19 @@ An instance claims a stage by pushing the stage-start commit; the claim records 
 - Your own claim is recognised whatever its age. After a restart with the same instance name, the instance reruns its stage at once and does not wait for the lease. Only `factory-watch` judges it by the lease, as a look from outside: within the lease it shows the claim as held, since the tick may be running that stage.
 - Another instance's claim is waited for until its lease has run out (the age reaches `lease_duration`); then it counts as expired and the factory handles it as above.
 - Instances need a synchronised clock (NTP). Expiry compares the start time recorded by the claiming instance with the checking instance's own clock, so a clock that is off by minutes makes a lease end early or late.
+
+## Replaced in v1.2
+
+What v1.1 did and the machine of v1.2 does not, so that a name you remember from v1.1's guide is not mistaken for a live one. The decision log keeps the reasons ("One snapshot instead of many layers").
+
+- The kernel's write guard (F0044-S0001, F0044-S0002): the wrapper `factory-confine`, which put Landlock rules around every agent call, and the pipeline definition's `tool_paths` are gone. The container is the boundary, the dataset's rollback clears what the agent wrote, and the take copies out only the paths the role may write. A pipeline definition that still holds `tool_paths` is refused.
+- The second user (F0044-S0005): the `agent` user, the `sudo` chain that started a call as it and `FACTORY_AGENT_USER` are gone. The agent's container runs as `factory` with `--userns=keep-id` and mounts the dataset only; the token is on the host, which alone pushes.
+- The leftovers program (F0044-S0003): `factory.entry.leftovers`, which ended what a call left running, is gone. The end of the call's container ends everything in it.
+- The fresh home (F0044-S0004): `factory.entry.fresh_home`, which emptied the agent's home before a call, is gone. The agent's home is `home/` on the dataset, and the rollback to the base clears it before every stage.
+- The checkout's hygiene (F0044-S0006): the seal of `.git`, the removal of ignored paths and nested repositories, the re-clone and the stop `nested_repository` are gone. The checks run on a rolled-back copy of the dataset, and only the paths the role may write reach the checkout. The records contract rose to `3.0`.
+- The inline environment (F0044-S0008): v1.1's way of running a stage in the factory's own container, and `FACTORY_STAGE_ENVIRONMENT`, which chose between it and the containers, are gone. `ContainerEnvironment` is the only environment; an instance without `FACTORY_DATASET`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` is refused. An environment file that still holds the variable is harmless: nothing reads it.
+- The undo (F0044-S0009): `UndoService`, which put back what a run wrote outside its write paths, is gone. The take leaves such changes out of the work tree, and the journal says `The factory left out changes outside the write paths: ...`.
+- The Docker path (F0044-S0010): the Docker image, the compose file, the long-lived container with its entrypoint, its health check and `docker exec` are gone, and with them `image/`, apart from the credential helper that moved to `vm/git-credential-factory`. The machine is the VM of "The machine"; the stage image (`vm/Dockerfile`) holds the tools alone.
 
 ## Replaced from v1
 

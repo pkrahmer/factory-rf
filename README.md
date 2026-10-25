@@ -21,7 +21,7 @@ When it works, `make check` ends with the line `check: green`. An instance runs 
 
 Beside the five console commands, `uv run python -m factory.entry.contract [<folder>]` regenerates the records contract's schemas (a story that changes a model the contract covers runs it), and `uv run python -m factory.entry.check_documents` checks these documents (they exist, say what v1.1 does in its own words, and name every stop, kill point and fault-injection path); it prints `documents ok` or one finding per line. It is no console script, and `make check` does not run it.
 
-Every stage runs in throwaway containers on a ZFS dataset (v1.2's way); v1.1's way, the agent in the factory's own container, is gone. An instance runs on a VM prepared by `vm/setup.sh`; the chapter "The machine" of `docs/operator-guide.md` takes you there.
+The factory runs as a service on a Linux VM with ZFS and rootless Podman, and every stage runs in throwaway containers on one ZFS dataset. `vm/setup.sh` prepares the VM; the chapter *The machine* of `docs/operator-guide.md` takes you there, and what v1.1 did differently is under *Replaced in v1.2* in the same guide.
 
 ## Where to look next
 

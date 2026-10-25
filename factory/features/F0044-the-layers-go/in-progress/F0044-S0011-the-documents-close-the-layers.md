@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 454
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T20:26:57.425422Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-25T20:26:57.425422Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T20:31:21.937873Z'
+  stage: docs
+  run: 0c62bff217e440748205b65f96d8c9cd
 ---
 
 # The documents close the layers
@@ -183,3 +185,39 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as self.
+11. documenter: No findings. I changed documents only and left `src/`, `tests/`, `vm/`, `template/` and `claude/` as they were. I did not run `make check`, as the stage allows when only documents change. `make documents` prints `documents ok`, and all five smoke-test blocks give their expected output: `0`; `0` and `1`; `0` and `0`; `1` and `1`; `documents ok`.
+
+    Files changed, one line each:
+    - `docs/decisions.md`: each of the fourteen named entries now ends with one closing line naming its F0044 stories and what replaced it or what stays. The records-contract entry ends with a line saying the version is `3.0` since F0044-S0006 (the code has `RECORDS_CONTRACT = "3.0"`). "One snapshot instead of many layers" gains *What went*: one line per story S0001 to S0011, and one line on what the acceptance measures (decision 27 of `feature.md`).
+    - `docs/operator-guide.md`:
+      - New chapter `## Replaced in v1.2` before `## Replaced from v1`, named in the list at the top, with one bullet for each of the eight layers.
+      - The *Configuration* table rows now say what `factory.env` sets, and the state and checkout defaults name the VM paths.
+      - The paragraph on the image identity points to *The rebuild after a merge*.
+      - *The checkout is cloned when it is missing* names `FACTORY_CHECKOUT` and no seal.
+      - The records sections use the `FACTORY_STATE` path in place of `/state`, and the disk record's example and host numbers no longer name a container path or Docker.
+      - The `tool:git`, `tool:uv` row says to install the tool on the VM and keeps the detail the code prints.
+      - *Running on opencode* says the pins come from `vm/Dockerfile` through `factory.env`, and that an own build is set in `factory.env`.
+      - *The shipped agents and settings* says the agents come from `FACTORY_CLAUDE_HOME` and reach the instance by a merge and *The rebuild after a merge*.
+      - The stage-image and stage-environment paragraphs lost the sentences about v1.1's container.
+    - `docs/project-guide/README.md`: the *Sections* lists name the two new `Replaced in v1.2` sections, and `module_names.py` is added to the helper list. Its other lines already matched the criterion: no missing module or helper, no `compose_service`, `image_layout` or `DOCKERFILE`, and `dockerfile_support.py` already described the readers of `vm/Dockerfile`.
+    - `docs/project-guide/agents.md`:
+      - The `## Rules` bullet now states R14 as R14 reads since F0044-S0001.
+      - The wrapper, `sudo`, `timeout` and `env -i` wording is gone from the shared-launch passages.
+      - The entrypoint sentence is gone.
+      - New `## Replaced in v1.2` section.
+    - `docs/project-guide/processes-and-checks.md`: *Running as another user* is replaced by a `## Replaced in v1.2` bullet. The `make mutants` passage says a kill loses `make`'s process group only, since F0044-S0010. The cited section is *Killing a process group*, and *Container project commands* is now *The checks* in `stage-environment.md`. The umask-and-seal sentence is gone from the temporary-folder paragraph.
+    - `docs/project-guide/watching.md`: the credential helper is `vm/git-credential-factory`. The test it names is `tests/test_git_credential_helper.py`, because `tests/test_image_credentials.py` does not exist. The `RepositoryUnsealed` sentence is gone, since the class is gone.
+    - `docs/project-guide/write-guard.md`: removed the "The kernel's targets do not change" sentence.
+    - `docs/project-guide/stage-environment.md`: removed the "under the write guard" example and the sentence about `FACTORY_STAGE_ENVIRONMENT` and `FACTORY_AGENT_USER`.
+    - `docs/project-guide/stages.md`: `write_paths` imports `is_inside_checkout`; the module `confinement` no longer exists.
+    - `README.md`: the newcomer's paragraph now says the factory runs as a service on a Linux VM with ZFS and rootless Podman, prepared by `vm/setup.sh`, and points to *The machine* and *Replaced in v1.2*.
+
+    Cross-read and found current: `docs/project-guide/costs.md`, `git-and-hosting.md` and `work-items.md` (no removed-layer terms or missing test modules); the *Known results* subsection and the rest of `processes-and-checks.md`; the *Project commands* part that stays true.
+
+    Not run: I cannot run the disk-record log example, so I wrote its paths from `domain/disk.py`'s `disk <occasion>: <folders>` format and the VM layout. The check will not catch a wrong path there.
+
+    Stale text seen, not touched: I read only the passages the criterion names and the smoke test finds, so other long paragraphs of `operator-guide.md` (1,700 lines) may still hold older wording that no pattern matches. `docs/operator-playbook.md` and `docs/runs/` keep their history, as the criterion says.
+
+    `check`: check: green (not run again: passed on tree 4f655f546fa7 at 2026-10-25T20:24:55Z)
+    `secrets`: secrets: green (2.7 s)
+    `documents`: documents ok
