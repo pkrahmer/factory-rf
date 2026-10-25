@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 434
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-25T06:52:37.054408Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,13 @@ journal:
   kind: started
   at: '2026-10-25T06:52:37.054408Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-25T06:57:36.409465Z'
+  stage: doing
+  run: 077334feb3184ef680714cd0336d2784
+  blocked: question
 ---
 
 # The operator guide's chapter "The machine"
@@ -116,3 +119,22 @@ Expect: `documents ok`
    `lint`: lint: green (0.2 s)
    `test`: test: green (186.4 s)
 6. factory: started doing as vm.
+7. coder: I built nothing, and I stopped before handing on because `make check` is red. This is a documents-only story: nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changed in this stage, and `git status --short` is empty (criterion 1). Compared with `main`, the branch changes only this work item's `.md` and `.costs.jsonl`.
+
+   What is red: `make check` stops at `make secrets` (`make: *** [Makefile:61: secrets] Error 1`). detect-secrets flags "Hex High Entropy String" in finished acceptance reports that this branch does not touch:
+   - `factory/features/F0023-a-known-result-is-not-checked-again/done/F0023-A0001-acceptance.md:84`
+   - `factory/features/F0023-a-known-result-is-not-checked-again/done/F0023-A0002-acceptance.md:99` (four times)
+   - `factory/features/F0042-the-stage-environment-behind-one-interface/done/F0042-A0002-acceptance.md:62`
+   - `factory/features/F0042-the-stage-environment-behind-one-interface/done/F0042-A0002-acceptance.md:68`
+
+   The likely cause: this checkout has no remote and no `origin/main` ref (`git branch -a` shows only `main` and the work-item branch; `git diff origin/main` fails with "unknown revision"). So `make secrets` cannot limit itself to the files changed against `origin/main`, and it appears to scan every tracked file instead. These findings are outside this work item and I did not touch them.
+
+   Every other target of `make check`, run one by one in the foreground, is green: `lint: green (0.1 s)`, `types: green (0.2 s)`, `layers: green (0.1 s)`, `sast: green (1.9 s)`, `licenses: green (0.1 s)`, `test: green (187.3 s)`.
+
+   Refactor step: there is no diff, so nothing to refactor. The journal did not change the meaning of the task, so `## Description` stays as it is.
+
+   Question: how should this go forward? The options I see:
+   (a) Provide `origin/main` in the stage's checkout (a remote, or the ref fetched into the dataset), so `make secrets` scans only the changed files, then run `doing` again.
+   (b) Fix the old acceptance reports' high-entropy values, or add them to `.secrets.baseline`, in a separate story or by your own commit. A new baseline entry needs your leave under "Not without asking".
+   (c) Accept that the factory's own check after this stage runs where `origin/main` exists, and let me end with `review` on the next run, since this story changes no file that `make secrets` would check.
+   I would choose (a): the red comes from the missing ref, not from this branch's changes. I would then run (b) as its own story if a full scan on `main` shows the same findings.
