@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 433
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T06:27:53.690221Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,13 @@ journal:
   kind: started
   at: '2026-10-25T06:27:53.690221Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: question
+  at: '2026-10-25T06:28:54.214123Z'
+  stage: tests
+  run: e8eccf1d056a40708edc411da4f7c746
+  blocked: question
 ---
 
 # The setup script writes as factory from its own standard input
@@ -79,3 +82,22 @@ Expect: two lines, `0` and `syntax-ok`
    Architecture: `vm/*` is in the coder's write paths, which feature.md change 1 added. Tests go under `tests/` with `tests/vm_support.py`, and the docs criterion names the operator guide's setup-script chapter. No layer is touched.
    Scope: it is inside F0043 as decision 17 and the Stories list (S0005, before S0004). It changes nothing from the Out of scope list, and no earlier test changes.
 4. factory: started tests as self.
+5. tester: I stopped before writing any test. Criterion 4 conflicts with the Interface.
+
+   What I found: `tests/test_vm_setup_text.py::test_the_files_under_the_instance_folder_are_written_as_factory` (rows `image-id`, `askpass`, `factory-env`) finds a step's write lines through `_writes`. A line counts as a write only if it redirects (`>` or `>>`) into the file or holds one of `WRITE_FORMS` (`install `, `cp `, `mv `, `tee `). It then requires at least one such line, and every one of them must run as factory. The Interface's write line is `write_as_factory 0644 "$base/image-id"`, and lines like it for `$askpass` and `$env_file`. Those lines hold no redirect into the target and none of those forms. So the existing test finds no write line, and the three rows fail.
+
+   I checked this rather than reading it off the code. I rewrote the script's text in memory as the Interface describes: a helper `write_as_factory() { as_factory sh -c 'cat > "$2" && chmod "$1" "$2"' sh "$1" "$2"; }` and the three calls. I then ran the test's own `_written_as_factory` on it. It returned `False False False` (script in `$TMPDIR`, not kept).
+
+   The question: how should criterion 4 be met?
+   - (a) You allow a change to that earlier test. `_writes` would also count a line that calls a function whose body writes through `as_factory` (for example a function whose body holds `cat >`). Every row keeps its name and its check that the write runs as factory. Criterion 4 would then read "passes, with `_writes` also counting a call of the write helper". This is the option I would choose: it keeps the guard against a write as root and fits the new helper.
+   - (b) The coder's call lines keep a word the old test knows. For example, a helper named so that `tee ` appears, or a comment-free `install`. That breaks criterion 1 or bends the code to fit a test, so I would not choose it.
+   - (c) Drop criterion 4 and let the new criterion 2 carry the "written as factory" check for these three files. The old test's three rows would then still need to change or be removed, so this also needs your leave.
+
+   Nothing else is open. Once this is answered, my plan is:
+   - criterion 1: one test that the uncommented text holds no `/dev/stdin` and no line with both `install` and `stdin`.
+   - criterion 2: one parametrized test with rows image-id/askpass/factory-env. Each row checks the step's call of the helper with its mode and target. The helper is found as the script's function whose body calls `as_factory` with `cat >`, and its line must run through `as_factory`.
+   - criterion 3: rows one and two. The test runs the helper's function text with `as_factory() { "$@"; }` through `sh` in `tmp_path` and checks the content and the mode 0640.
+
+   To find the helper's function text I would move `FUNCTION` from `tests/test_vm_setup_text.py` to `tests/vm_support.py`, under the standing leave.
+
+   No files created.
