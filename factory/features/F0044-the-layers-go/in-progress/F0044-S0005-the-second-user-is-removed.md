@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T15:12:26.291532Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-10-25T15:12:26.291532Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T15:14:00.387776Z'
+  stage: review
+  run: 3f9951a5183f43b58d447bd31e071af5
 ---
 
 # The second user is removed
@@ -483,3 +485,61 @@ Expect: three lines: `[] False`; `False False`; `3 False`
     `check`: check: green
     `duplicates`: duplicates: 8 new, 34 known, 4 gone
 26. factory: started review as self.
+27. reviewer: Review, round 1. I read the work item, the stat and `git diff main...HEAD -- . ':!factory'` (9 files under `src/`, 64 under `tests/`), and also the tester's round-1 commit on its own (9e880638..957ddc8c).
+
+    Group 1 holds. Each of criteria 1 to 9 has a test that checks what it names:
+    - 1: `tests/test_second_user_removed.py`
+    - 2, 3, 4 and 9: `tests/adapters/test_calls_as_the_factory_user.py`
+    - 5: `tests/domain/test_settings_agent_user_unread.py`
+    - 6, 7 and 8: `tests/entry/test_wiring_without_agent_user.py`
+
+    The rules the Interface states are tested on both sides:
+    - `killed_at_limit`: the host row, a status that is not a kill, and 255 at both 29.9 s and 30 s.
+    - A `sudo:` line is no refusal.
+    - The formerly refused `Bad Name` and the container with an agent user are both accepted.
+    - The refused login file rests on the unchanged test, as entry 4 confirms.
+
+    `make check` was green after the coder (entry 25).
+
+    Group 2 holds. Every change stays in its layer; the inline environment wires `MakeProjectCommands(settings.checkout)`, and nothing new is wired.
+
+    Group 3 holds. The diff adds no markers, secrets or command strings.
+
+    Group 4 holds:
+    - The source changes are removals.
+    - The docstrings now describe the remaining behaviour (`launch`, `killed_at_limit`, `call_refusal`, `Starters`, `MakeProjectCommands`).
+    - `tool_item` is still used by `MachineChecks`, so it is not dead.
+    - The six round-0 findings are fixed as entry 23 describes: `REPLY` is imported, `write_login_file` and the `versioned_podman`/`listing_zfs` fixtures are shared, `CONTAINER_ITEMS` is pinned once in `tests/wiring_support.py`, `_Which` and `Layout.sudo_bin` are gone, and `both_recorded` builds on the `recorder` fixture.
+
+    Group 5 holds. The journal gives the main choice and what was rejected (`_inline_items` dropped rather than kept as a one-item wrapper). The Description matches what was built, and criterion 11 still describes what the docs must say.
+
+    no findings
+
+    Earlier tests (item 6):
+    - tests/adapters/claude_stand_in.py: the standing leave plus decision 21 (`REPLY`, `claude_request`, `without_locale` and `GIVEN` moved in from test_claude_runtime_os_user.py).
+    - tests/adapters/test_claude_runtime_api_login.py, test_claude_runtime_no_hook.py, test_claude_runtime_provider_limit.py, test_claude_runtime_resume_session.py, test_opencode_runtime.py, tests/entry/test_wiring_api_login.py, test_wiring_login.py, test_wiring_provider_limit.py: the standing leave (they import the moved helpers) plus decision 21. test_opencode_runtime.py's `0o640` assert went as entries 13 and 15 agreed.
+    - tests/adapters/test_runtimes_without_wrapper.py: the standing leave plus decision 21 (one deletion, one rename, the `sudo-refused` row; in round 1, `_login_file` removed once it had no caller).
+    - tests/confine_support.py: decision 21 (`os_user` and `Layout.sudo_bin` go) plus the standing leave (`write_login_file` moved in).
+    - tests/conftest.py: decision 21 (`probe_settings`) plus the standing leave (`versioned_podman` and `listing_zfs` moved in from test_wiring_container_extras.py).
+    - tests/wiring_support.py: decision 21 (`machine_extras` without `every_tool`) plus the standing leave (`PODMAN_VERSION` and `CONTAINER_ITEMS` moved in).
+    - tests/entry/test_wiring_container_extras.py: decision 21 (the agent-user row, `INLINE_ITEMS`) plus the standing leave (it uses the moved fixtures and constants; each test keeps its name and checks).
+    - tests/entry/test_wiring_stage_environment.py: decision 21 (the `which` checks and `_Which` go).
+    - tests/adapters/opencode_stand_in.py, tests/adapters/container_runtime_support.py: decision 21.
+    - tests/adapters/test_agent_launch.py, test_agent_launch_call_end.py, test_agent_launch_container.py, test_agent_launch_container_kill.py, test_kill_at_the_limit_stays.py: decision 21.
+    - tests/adapters/test_claude_runtime_container.py, test_opencode_runtime_container.py, test_claude_runtime_login.py, test_opencode_runtime_launch.py: decision 21.
+    - tests/application/test_agent_run_probe.py, test_agent_run_probe_api_login.py (its `DIED` change follows entries 13 and 15), test_agent_run_probe_factory_user.py, test_agent_run_probe_login.py, test_agent_run_probe_opencode.py, test_task.py, test_sealed_runs.py, test_nested_repositories.py: decision 21.
+    - tests/domain/test_agent_runs.py, test_settings_stage_environment.py, test_settings_url_edges.py: decision 21.
+    - tests/entry/test_wiring_boundaries.py, test_wiring_constants.py, test_wiring_extras.py, test_wiring_opencode.py, test_wiring_run.py, test_wiring_stage_environment_home.py: decision 21.
+    - tests/test_leftovers_program_removed.py, tests/test_test_children.py, tests/test_time_limits.py: decision 21.
+    - Deleted, as the Interface lists them, all under decision 21:
+      - tests/adapters/: test_claude_runtime_os_user.py, test_claude_runtime_sudo_time_limit.py, test_claude_runtime_file_modes.py, test_make_commands_user.py, test_opencode_sudo_time_limit.py, test_one_call_as_another_user.py
+      - tests/application/: test_agent_user_item.py, test_task_os_user.py
+      - tests/domain/: test_settings_agent_user.py
+      - tests/entry/: test_wiring_agent_user.py, test_wiring_project_command_user.py, test_git_repository_modes.py
+      - helper modules: tests/sudo_support.py, tests/leftovers_runtime_support.py
+
+    Notes:
+    - tests/domain/test_settings_agent_user_unread.py:8: `CONTAINER` copies `CONTAINER` of tests/domain/test_settings_stage_environment.py:12. It could live in tests/settings_support.py beside `BASE`.
+    - tests/entry/test_wiring_extras.py:63 and tests/application/test_agent_run_probe_factory_user.py:23: their names still mention an agent user, and each now has a single row. The Interface keeps the names, so a later story could rename them.
+
+    Open, outside the diff and so not under review: the comment at src/factory/adapters/process.py:90 still says the agent's own `timeout` ends root's `sudo`.
