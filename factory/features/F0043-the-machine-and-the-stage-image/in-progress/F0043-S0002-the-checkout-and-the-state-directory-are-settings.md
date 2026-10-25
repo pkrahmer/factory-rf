@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T00:17:56.386012Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-25T00:17:56.386012Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T00:19:19.054877Z'
+  stage: review
+  run: 3e8a102ac619422cad895645ea2d8680
 ---
 
 # The checkout and the state directory are settings
@@ -240,3 +242,14 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 11. factory: started review as self.
+12. reviewer: I checked every criterion and every rule of the Interface against `git diff main...HEAD -- . ':!factory'`. I read `src/factory/domain/settings.py`, `src/factory/entry/run.py`, `tests/domain/test_settings_paths.py` and `tests/entry/test_run_state_variable.py`, and the changes to `tests/domain/test_settings.py`, `tests/entry/test_run.py` and `tests/conftest.py`. Criteria 1 and 3 to 7 each have a test that checks what the criterion states, with every row it names: the fallback, the padded and blank `FACTORY_STATE`, the runner's fault with and without the variable, the workspace sibling, the checkout checked first, and S0010's fault coming first. The coder's `make check` was green (entry 10). I also ran `make duplicates`: all 11 new findings are in `claude_runtime`/`opencode_runtime`, `fake_containers`, `podman_runs`, `zfs_snapshots` and `fake_snapshots`. None of those files is in this diff.
+
+    Findings:
+    1. `tests/domain/test_settings_paths.py:106` (`test_a_fault_of_the_instance_is_reported_before_one_of_the_checkout`): criterion 2 asks for its order rows as rows of one parametrized test. The `FACTORY_INSTANCE=Bad` with `FACTORY_CHECKOUT=relative` row is a separate test function instead, so one side of the order rule (the instance before the checkout) is split from the others (the checkout before the image, the state and `FACTORY_MIN_FREE_GB`). Fix: make it a row of `test_a_relative_checkout_or_state_directory_is_refused_in_its_order`. To do that, change that test's expected column from a variable to the full `(variable, fault)` pair, with the instance's own fault text in that row, and delete the separate function.
+
+    Groups 2 to 5 were not reviewed, because group 1 failed.
+
+    Earlier tests:
+    - `tests/domain/test_settings.py`: the human's leave, decision 15 of `feature.md`, named in the story's Interface. Only the `FACTORY_CHECKOUT` entry was removed and the test renamed to `test_a_variable_the_settings_do_not_name_is_not_read`. The `FACTORY_STATE_DIRECTORY` and `SOMETHING_ELSE` entries and both assertions are kept.
+    - `tests/entry/test_run.py`: the standing leave to move a shared test helper. The `image_file` and `environment` fixtures moved to `tests/conftest.py` unchanged. The module's copy of `HOSTED_URL` now comes from `wiring_support`, which holds the same value. Every test keeps its name and what it checks.
+    - `tests/conftest.py`: the standing leave to move a shared test helper. It only adds the two fixtures moved from `tests/entry/test_run.py`.
