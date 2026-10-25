@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T01:29:19.192885Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -225,6 +229,11 @@ journal:
   at: '2026-10-25T01:28:58.508727Z'
   stage: review
   run: e7220efd31ad46adb3f4ce47fd1869e3
+- number: 40
+  speaker: factory
+  kind: started
+  at: '2026-10-25T01:29:19.192885Z'
+  stage: doing
 ---
 
 # The setup script prepares the machine and installs the service
@@ -712,3 +721,4 @@ Expect: `1`
     Notes:
     - `tests/vm_support.py:5`: imports the private `_uncommented` from `dockerfile_support`. It reuses the helper rather than copying it, but under a private name.
     - `tests/test_vm_setup_text.py:490`: the `chown-keeps-links` row passes without checking any line, because the script holds no `chown`.
+40. factory: started doing as self.
