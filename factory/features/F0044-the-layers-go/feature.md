@@ -107,11 +107,15 @@ Checked against `factory/pipeline.yml` after F0043's change 1: the coder writes 
    - In `Makefile`, recipe `test:`, the line `	# The tests set their own umask (tests/conftest.py); uv syncs .venv under the caller's.` goes; recipe `mutants:`, the line `	umask 022   # the seal refuses a group-writable checkout` goes.
    - In `pyproject.toml`, `[tool.uv]`, the comment above `compile-bytecode = true` becomes `# Every sync writes .venv's bytecode, so the dataset's base keeps it (F0044, decision 8).`
 
-8. **After S0008 is merged**, in `CLAUDE.md`, *Vocabulary*, the last sentence of the bullet that begins "v1.2's words" becomes:
+8. **After S0008 is merged**, one commit on `main`:
 
-   ```markdown
-   The **stage environment** is the interface behind which the container environment stands; v1.1's `inline` went with F0044.
-   ```
+   - In `CLAUDE.md`, *Vocabulary*, the last sentence of the bullet that begins "v1.2's words" becomes:
+
+     ```markdown
+     The **stage environment** is the interface behind which the container environment stands; v1.1's `inline` went with F0044.
+     ```
+
+   - In `CLAUDE.md`, *Architecture*, R12, the clause "; the undo after the run reverts whatever else changed outside the write paths, and no hook judges a tool call." becomes "; since F0044-S0008 no stage runs in the factory's own checkout: the take copies from the dataset only the changed paths the role may write, and no hook judges a tool call." The rest of R12 waits for change 9.
 
 9. **After S0009 is merged and before S0011 starts**, in `CLAUDE.md`, *Architecture*, the bullet that begins "Agent runtime (R12)." becomes:
 
@@ -177,3 +181,4 @@ Checked against `factory/pipeline.yml` after F0043's change 1: the coder writes 
 34. **The human's answers after S0005's pre-check** (2026-10-25, `planning/overnight/precheck/F0044-S0005-1.md`). (a) The leave of decision 21 covers exactly the corrected list of the pre-check's edit 3, with the tests of F0044-S0001, F0044-S0003 and F0042 it names and the helpers that move to `tests/adapters/claude_stand_in.py`. (b) Right after S0005 is merged, `CLAUDE.md`'s R12 text "; every project command runs as the agent's user too (`sudo`, the agent's own `timeout`, `env -i`), with the checkout's git folder sealed; no code an agent wrote runs as the factory's user, and since F0044-S0004" is replaced with "; since F0044-S0005 no agent call and no project command runs as a second user: on the VM every one runs in a throwaway container on the dataset, so no code an agent wrote runs on the host, and since F0044-S0004". The rest of R12 waits for change 9. (c) The further document passages go into S0005's docs criterion (edit 5).
 35. **The human's answers after S0006's pre-check** (2026-10-25, `planning/overnight/precheck/F0044-S0006-1.md`). (a) The leave of decision 22 covers exactly the corrected list of the pre-check's edit 1. (b) With change 7, after S0006, `CLAUDE.md`'s R12 clause "after every run the factory removes the checkout's git-ignored paths, so nothing a run leaves behind reaches the checks;" becomes "since F0044-S0006 the factory removes no git-ignored paths: the checks run on the rolled-back dataset with the taken files, which never hold an ignored path or a `.git`;". The rest of R12 waits for change 9. (c) With change 7, the `pyproject.toml` comment `# No .pytest_cache: the tests run under umask 022, and the factory removes ignored files as another user.` becomes `# No .pytest_cache: pytest's cache is of no use in a stage's throwaway container.` (d) The further document passages and the two decision entries go into S0006's docs criterion (edit 5).
 36. **S0007's pre-check, decided under the human's standing order** (2026-10-25: "Decide for things that are actually not avoidable if the result should be clear off the old layers"; `planning/overnight/precheck/F0044-S0007-1.md`). The leave of answer 29 (a) covers the corrected list of the pre-check's edit 1, among it the five inline-only tests that switch the fakes to `None` until S0008, whose pre-check takes them over; edits 2 to 4 are applied as written.
+37. **S0008's pre-check and the human's answer on `self`** (2026-10-25, `planning/overnight/precheck/F0044-S0008-1.md`). Edits 1 to 8 are applied; edit 6 widens change 8 by R12's undo clause; the leave of decision 23 covers the corrected list of edit 4, with S0007's five inline-only tests. The human chose A: `self` keeps the image it has when S0008 starts and is never rebuilt after S0008's merge; it builds S0009 to S0011 on that image. A copy of `image/compose.yml` is kept outside the repository before S0010 removes it, for change 10's `docker compose down -v`. `vm` takes over once its main probe is green.
