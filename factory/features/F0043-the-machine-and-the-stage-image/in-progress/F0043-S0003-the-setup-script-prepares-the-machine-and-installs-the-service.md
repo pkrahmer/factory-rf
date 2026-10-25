@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T01:32:19.608046Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -236,6 +240,11 @@ journal:
   at: '2026-10-25T01:31:58.794755Z'
   stage: doing
   run: 0f0bff7ff4df4f7bb8bae1d08d23daeb
+- number: 42
+  speaker: factory
+  kind: started
+  at: '2026-10-25T01:32:19.608046Z'
+  stage: tests
 ---
 
 # The setup script prepares the machine and installs the service
@@ -750,3 +759,4 @@ Expect: `1`
     - No skill applied.
 
     `check`: check: green
+42. factory: started tests as self.
