@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T00:08:42.892906Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-25T00:08:22.740686Z'
   stage: intake
   run: 2c5a4b2ffc3745d2967edf2eab935e15
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:08:42.892906Z'
+  stage: tests
 ---
 
 # The checkout and the state directory are settings
@@ -154,3 +163,4 @@ Expect: `1`
    - Smoke test: the three blocks are runnable. The pytest command passes no `-q`, and I did not check the project's pytest configuration for an `addopts` setting. Each `Expect:` line is checkable. The one hedge is that the first block's third `Expect:` line relies on `FACTORY_CHECKOUT` being read before `FACTORY_MIN_FREE_GB`, which criterion 2 pins.
    - Architecture: the changes sit in `domain` (pure settings rules) and `entry` (placing the stop). No new dependency or layer. `factory-health` and the entrypoint are unchanged.
    - Scope: this is decision 1 of `feature.md`, and nothing in its Out of scope is touched. The one earlier test it changes has the human's leave in decision 15.
+7. factory: started tests as self.
