@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 453
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T20:07:50.327836Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-25T20:07:50.327836Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T20:09:35.589260Z'
+  stage: review
+  run: 4b1791f8cd624dc0bea4c5d967e6ddd0
 ---
 
 # The Docker path and the host's process table are removed
@@ -164,3 +166,51 @@ Expect: three lines: `0`; `helper-moved`; `gone`
    `check`: check: green
    `duplicates`: duplicates: 8 new, 35 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I checked (round 0):
+   - Criterion 1: `tests/test_docker_path_removed.py::test_the_docker_files_are_gone_and_the_helper_is_moved` has seven rows: the six `image/` files are absent, and `vm/git-credential-factory` exists and is executable. In the diff the helper's move shows as `R100 image/git-credential-factory -> vm/git-credential-factory` with mode 100755, so its text is the same as on `main`.
+   - Criterion 2: the four tests of `tests/test_git_credential_helper.py` are unchanged except `HELPER`.
+   - Criterion 3: `test_the_setup_script_installs_the_moved_helper` reads `setup_code()` (comment lines dropped) and the `tools` step text, and checks that `sh -n` exits 0. The diff of `vm/setup.sh` changes only the two paths, in the `cmp` and the `install`.
+   - Criterion 4: three rows of one parametrized test.
+   - Criterion 5: the group rows check `is_gone(pid)` with its default wait. The own-group and own-session rows check `is_gone(pid, within=0) is False`, and the `pid_file` fixture kills the grandchild after. The rows for a group already gone (`os.killpg` patched to kill and then raise) and for a child that ends by itself (both runners, exit status 3) form a third parametrized test. The criterion asks for one test, but the Interface names the two renamed tests, so three is acceptable. Every row whose child must start gets `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS`.
+   - Criterion 6: `IMAGE_PATH` through `search_support.modules_matching`, with its own module left out. That module holds the tests of criteria 1, 3 and 6.
+   - The factory's `make check` after the coder was green (entry 7).
+   - Architecture and security: `_kill_session` in `src/factory/adapters/process.py` is now one `os.killpg` with `ProcessLookupError` suppressed. The `factory.domain.sessions` import and the module are gone, and no new marker, dependency or layer import was added. The docstrings and comments say "process group" where the Interface asks. The `vm/Dockerfile` comment line is as the Interface states.
+   - Quality: I compared the moved code by AST. The readers, constants and `_*_findings` helpers in `tests/dockerfile_support.py` are identical to those of `tests/test_image.py` on `main`. The five tests and their helpers in `tests/test_pins.py` are identical too: names and assertions unchanged.
+   - `make duplicates`: 8 new. All are in files this diff does not touch (`claude_runtime`, `opencode_runtime`, `fake_containers`, `podman_runs`, `zfs_snapshots`, `fake_snapshots`, `make_commands`), so none is this story's.
+   - Hygiene: the Description matches what was built. Criterion 8 still describes the docs work.
+   - Open, outside this diff's scope: `image/` is still named in `pyproject.toml:142` (mutmut `also_copy`), `.gitignore:15-16` and `demo/todo-service/README.md`. Intake left these to the human's changes 10 and 11.
+
+   Earlier tests (each changed or deleted under the human's leave, decision 26 of `feature.md`, which the story's Interface names; no change goes beyond what the Interface lists):
+   - tests/adapters/test_process_session.py: human's leave, decision 26
+   - tests/adapters/test_process_table.py (deleted): human's leave, decision 26
+   - tests/compose_support.py (deleted): human's leave, decision 26
+   - tests/conftest.py: human's leave, decision 26
+   - tests/dockerfile_support.py: human's leave, decision 26
+   - tests/domain/test_sessions.py (deleted): human's leave, decision 26
+   - tests/entrypoint_support.py (deleted): human's leave, decision 26
+   - tests/leftovers_support.py (deleted): human's leave, decision 26
+   - tests/test_agent_home_ownership.py (deleted): human's leave, decision 26
+   - tests/test_api_login_mount.py (deleted): human's leave, decision 26
+   - tests/test_claude_token_mount.py (deleted): human's leave, decision 26
+   - tests/test_compose.py (deleted): human's leave, decision 26
+   - tests/test_compose_init.py (deleted): human's leave, decision 26
+   - tests/test_compose_project.py (deleted): human's leave, decision 26
+   - tests/test_entrypoint.py (deleted): human's leave, decision 26
+   - tests/test_entrypoint_skills.py (deleted): human's leave, decision 26
+   - tests/test_entrypoint_support.py (deleted): human's leave, decision 26
+   - tests/test_entrypoint_umask.py (deleted): human's leave, decision 26
+   - tests/test_git_credential_helper.py: human's leave, decision 26
+   - tests/test_image.py (deleted; five tests moved to tests/test_pins.py unchanged): human's leave, decision 26
+   - tests/test_image_credentials.py (deleted): human's leave, decision 26
+   - tests/test_image_gitconfig.py (deleted): human's leave, decision 26
+   - tests/test_image_users.py (deleted): human's leave, decision 26
+   - tests/test_opencode_config_folder.py (deleted): human's leave, decision 26
+   - tests/test_opencode_image.py (deleted): human's leave, decision 26
+   - tests/test_shared_test_helpers.py: human's leave, decision 26
+   - tests/test_stage_image.py: human's leave, decision 26
+   - tests/test_token_folder.py (deleted): human's leave, decision 26
+   - tests/test_vm_setup.py: human's leave, decision 26
+   - tests/test_vm_setup_writes.py: human's leave, decision 26
+   - tests/vm_support.py: human's leave, decision 26
