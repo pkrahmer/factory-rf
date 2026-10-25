@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790, 6394217771]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T06:17:50.809663Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -395,6 +391,12 @@ journal:
   kind: started
   at: '2026-10-25T06:17:50.809663Z'
   stage: review
+- number: 70
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T06:18:55.715590Z'
+  stage: review
+  run: 89fb77c886cb4343b3c83d7e46cbf8d7
 ---
 
 # The setup script prepares the machine and installs the service
@@ -1145,3 +1147,19 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 69. factory: started review as self.
+70. reviewer: Review, round 2, after the human's entry 60. I read the work item, the diff's stat and name-status, all of `vm/setup.sh`, and the tests for criteria 12 to 14 in `tests/test_vm_setup_text.py` (lines 420-611). The tester's entry 66 changed only that file. I did not run `make check`. The factory's check after the coder's entry 68 is green (`check: green`).
+
+    no findings
+
+    - Group 1: entry 60's rule is now in the code. `vm/setup.sh:311` (`tools`) and `:356` (`service`) each install under `if [ "$cloned" = yes ] || [ ! -e <target> ]`, nested inside the `cmp -s` check. `cloned=yes` is set only in the clone's branch (`:288-292`). A file that is in place but differs still gets the `differs from the checkout; not installed` line (`:315`, `:360`). `test_the_checkout_files_are_installed_only_in_the_run_that_cloned` checks both sides, `cloned` and `target-missing`, for each step: 4 cases, as criterion 13 asks. It reads the enclosing `if` of each `install` of the target path, so it tests what the criterion says. Criteria 1 to 12 and 14 keep the tests that entries 36, 39, 47 and 59 checked; the code those tests read has not changed since then except at lines 311 and 356.
+    - Group 2: nothing under `src/` changes.
+    - Group 3: the two new conditions only test paths. Root still installs from the checkout only after a fresh clone or when the target is missing. Every write under `$base` still goes through `as_factory`.
+    - Group 5: the Description, the Interface and criteria 13 and 16 already hold entry 60, written in by entry 62, and match the code. Still open for the documenter (entries 51 and 60): the guide's link refusals (`state`, `repo`, `/home/factory/.secrets`), and the rule that the unit and the helper are installed only in the run that made the clone or when the installed file is missing, with the `differs` line. Criterion 16 asks for both.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`). The only earlier files the diff changes are `docs/operator-guide.md` and `docs/project-guide/README.md`, which are not tests.
+
+    Notes:
+    - `tests/vm_support.py:5`: imports the private `_uncommented` from `dockerfile_support`.
+    - `tests/test_vm_setup_text.py:491` (`chown-keeps-links`): the row passes without checking any line, because the script holds no `chown`.
+    - `tests/test_vm_setup_text.py:539,544`: each of the two side checks takes an argument it does not use (`_path`, `_script`) only so both fit one signature.
+    - `tests/test_vm_setup_text.py:605`: the name `test_the_folders_step_refuses_a_link_at_state_or_repo` now also covers `/home/factory/.secrets`.
