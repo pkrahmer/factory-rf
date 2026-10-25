@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241, 6401865606]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T19:16:13.312673Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -290,6 +294,11 @@ journal:
   at: '2026-10-25T19:15:52.372284Z'
   stage: review
   run: ab33d7dfdd034cceb85ce06ef027dce8
+- number: 52
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:16:13.312673Z'
+  stage: docs
 ---
 
 # The inline environment and its setting are removed
@@ -1017,3 +1026,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     - tests/test_make_search.py: the Interface, decision 24.
     - tests/test_vm_setup_text.py: the human's entry 26.
     - tests/wiring_support.py: the Interface, decision 24.
+52. factory: started docs as self.
