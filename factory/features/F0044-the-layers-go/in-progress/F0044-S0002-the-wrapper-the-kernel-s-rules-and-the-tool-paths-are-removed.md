@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 445
 comments_read: [6397809713]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T12:46:07.860347Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-25T12:46:07.860347Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-25T12:46:26.716680Z'
+  stage: doing
+  run: defabd2b44764e91960f1b455493c9b6
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -308,3 +310,18 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
     Not touched: `pyproject.toml` still has the `factory-confine` console script. The reviewer says the human removes it in change 3 of `feature.md`.
 12. 2026-10-25 human: (a). Leave given for the tester, under decision 17 and the human's standing answer for lists found after the pre-check (decision 29): drop the `guard` updates in `tests/adapters/test_claude_runtime_login.py` (`_guarded_request`), `tests/adapters/test_claude_runtime_api_login.py` and `tests/adapters/test_claude_runtime_no_hook.py`, fold the two `no_hook` rows `unconfined-guarded` and `unconfined-unguarded` into one, and fix that docstring. Each test keeps its name and its other checks. Together with finding 2: move `_has` from `tests/test_hook_removed.py` and `tests/test_kernel_guard_removed.py` into one shared module under `tests/` (the standing helper-move leave). The two docs passages on `ConfinementError` are the documenter's. `pyproject.toml`'s `factory-confine` script is the human's change 3, after the merge.
 13. factory: started doing as self.
+14. coder: Round 1, after the human's answer (a) in entry 12. I changed no code and no tests in this run. The finding 1 fix, which removed `ConfinementError` from `src/factory/domain/errors.py`, was already committed, and nothing under `src` or `tests` names the class any more. The working tree holds no other change.
+
+    The answer calls for test changes only, so I am sending the work item to the tester. The changes are:
+    - Finding 3: drop the `guard` updates from three test files and leave everything else in them as it is. Each test keeps its name and its other checks. The files are:
+      - `tests/adapters/test_claude_runtime_login.py`, in the `_guarded_request` helper (`model_copy(update={"guard": ...})`)
+      - `tests/adapters/test_claude_runtime_api_login.py`
+      - `tests/adapters/test_claude_runtime_no_hook.py`. Here, also fold the rows `unconfined-guarded` and `unconfined-unguarded` into one row, and fix the docstring so it no longer says "with or without guard settings".
+    - Finding 2, under the standing helper-move leave: move `_has(module, name)` out of `tests/test_hook_removed.py` and `tests/test_kernel_guard_removed.py` into one shared module under `tests/`, and make both files import it from there.
+
+    Main choice: I ended with `tests` and did not touch the tests myself, because R9 says the coder never edits tests. The alternative was to end with `review`, but the reviewer's findings 2 and 3 would then still be open.
+
+    Noticed but not touched:
+    - The docs passages on `ConfinementError` (`docs/project-guide/README.md`, `docs/project-guide/write-guard.md`) are left for the documenter.
+    - The `factory-confine` console script in `pyproject.toml` is left for the human's change 3, after the merge.
+    - The journal did not change what the task means, so `## Description` is unchanged.
