@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-25T07:31:39.418977Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-25T07:31:39.418977Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T07:39:21.246335Z'
+  stage: tests
+  run: bbed04612da24a04803e179da953d5c3
 ---
 
 # The dataset's checkout knows origin/main
@@ -75,3 +77,19 @@ Expect: `1`
    Architecture: the change is inside `factory.application`, in the existing sync script. It adds no tool, dependency or layer crossing.
    Scope: this matches decision 18 of `feature.md`, and the story is not under the feature's "Out of scope". The sync is F0042's code, and decision 18 explicitly lets this story change it. `feature.md` says the story is built on `self` while the instance `vm` is stopped.
 4. factory: started tests as vm.
+5. tester: I wrote the tests for criteria 1 to 4 in a new module. No earlier test changed.
+
+   - criterion 1: tests/application/test_container_sync_origin.py::test_the_dataset_checkout_holds_the_host_branches_as_origin_refs. It is parametrized with the rows `origin-main`, `origin-branch` and `local-main`. Each row checks that `git rev-parse --verify <ref>` in the dataset's checkout equals the host's `refs/heads/<branch>`. The host's branch is made from `main` with one commit of its own, so the two commits differ.
+   - criterion 2: tests/application/test_container_sync_origin.py::test_a_branch_deleted_on_the_host_is_gone_from_local_and_origin_refs. After the first `prepare`, both `refs/heads/gone` and `refs/remotes/origin/gone` must exist. After the host deletes the branch and `prepare` runs again, neither must remain.
+   - criterion 3: tests/application/test_container_sync_origin.py::test_the_merge_base_of_head_and_origin_main_is_the_host_main_commit
+   - criterion 4: tests/application/test_container_sync_origin.py::test_the_sync_script_fetches_both_refspecs_on_one_line_and_names_no_container_path. It checks that exactly one line of `_SYNC_SCRIPT` starts with `git fetch`, that this line holds both refspecs, and that the script names neither `/work` nor `/upstream`. It imports `_SYNC_SCRIPT` directly, because the criterion names it.
+   - criteria 5 and 6: these are the coder's `make check` and the documenter's work; they have no tests.
+
+   The tests run `ContainerEnvironment.prepare` on `FakeSnapshots` and `FakeContainerRuns` over the real host repository. They use the helpers in `tests/container_support.py`, as `test_container_environment.py` does.
+
+   File created: tests/application/test_container_sync_origin.py
+
+   Modules the test runner could not import: none, because `factory.application.stage_environment` already exists. The tests fail on wrong results: `origin/main` and `origin/<branch>` are unknown revisions, the `origin/gone` ref is missing, `merge-base HEAD origin/main` fails, and the script lacks the second refspec. The `local-main` row passes already, since the fetch into local branches is today's behaviour. `make lint` is green. I skipped the type check as the stage says.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/application/test_container_sync_origin.py::test_the_sync_script_fetches_both_refspecs_on_one_line_and_names_no_container_path - assert "'+refs/heads/*:refs/remotes/origin/*'" in 'git f...
