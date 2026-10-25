@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 447
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T13:46:22.151881Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-25T13:46:22.151881Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-25T13:46:42.699710Z'
+  stage: intake
+  run: 6879e2bb5eb14438bebfc9560c81cffb
+  blocked: question
 ---
 
 # The fresh home is removed
@@ -76,3 +79,18 @@ Expect: six lines: `gone`, `gone`, `gone`, `gone`, `gone`, `False False True`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: Format check passed. One question.
+
+   1. The Interface moves `beneath_or_at(relative: str, above: str) -> bool` to `factory.domain.containers` "unchanged", and `factory.adapters.fake_containers` imports it from there. No criterion tests either. Criterion 2 covers only removed names. No test under `tests/` names `beneath_or_at` today, and its behaviour is covered only through `tests/domain/test_agent_home.py`, which this story deletes whole. After the story, nothing would catch a broken or missing move. Two coders could also move it differently and still pass every test.
+
+      Options:
+      - (a) Add a criterion, rows of one parametrized test, that `factory.domain.containers.beneath_or_at` exists and gives the same answers as before. The rows would be a path equal to `above`, a path beneath it, a sibling with the same prefix (`ab` against `a`), an unrelated path, and the empty `above` case if the current code handles it. The criterion would go before the two closing ones. Also state in the Interface that `fake_containers` no longer imports `factory.domain.agent_home`, and name the test that carries the rows.
+      - (b) State that its behaviour is covered by the existing container tests, and name them.
+
+      I would choose (a).
+
+   The other checks found nothing else:
+   - **Interface:** names concrete modules and signatures.
+   - **Smoke test:** runnable, with a checkable `Expect:`. It runs no pytest, so the `-q` rule does not apply.
+   - **Architecture:** removals only, layers respected.
+   - **Scope:** inside the feature's S0004 scope.
