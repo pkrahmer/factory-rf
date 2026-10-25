@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T11:51:07.255840Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -87,6 +91,11 @@ journal:
   at: '2026-10-25T11:50:46.770775Z'
   stage: tests
   run: a33f6f7ce5ec4593b371d5c78b74cd7b
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-25T11:51:07.255840Z'
+  stage: doing
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -346,3 +355,4 @@ Expect: `7`
 
     `lint`: lint: green (0.6 s)
     `test`: ERROR tests/adapters/test_agent_launch_call_end.py - pydantic_core._pydantic_core.ValidationError: 1 validation error for Starters
+15. factory: started doing as self.
