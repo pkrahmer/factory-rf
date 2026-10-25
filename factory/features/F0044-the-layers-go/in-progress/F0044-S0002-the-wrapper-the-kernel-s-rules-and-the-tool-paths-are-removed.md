@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 445
 comments_read: [6397809713]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T12:56:10.513474Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-25T12:55:49.402910Z'
   stage: review
   run: ecbdcb3bda7b4291a624ff4796dbc0be
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-25T12:56:10.513474Z'
+  stage: doing
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -460,3 +469,4 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
     - `tests/adapters/test_claude_runtime_no_hook.py:19`: a parametrize with one row and two parameters, one of them constant. It is kept because the answer said to fold the rows into one. It could become a plain test in a later cleanup.
 
     Open, outside this story: `pyproject.toml`'s `factory-confine` console script is the human's change 3, after the merge.
+21. factory: started doing as self.
