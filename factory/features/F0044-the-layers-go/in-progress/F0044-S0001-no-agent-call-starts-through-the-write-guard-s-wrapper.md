@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T11:51:07.255840Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-10-25T11:51:07.255840Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-10-25T11:57:25.881690Z'
+  stage: doing
+  run: 1689c0df95d243f7bc38a967a353625e
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -356,3 +358,44 @@ Expect: `7`
     `lint`: lint: green (0.6 s)
     `test`: ERROR tests/adapters/test_agent_launch_call_end.py - pydantic_core._pydantic_core.ValidationError: 1 validation error for Starters
 15. factory: started doing as self.
+16. coder: Agent calls no longer start through the write guard's wrapper. `make check` is green: the first run passed, and so did the run after the refactor (`check: green`, coverage 99.19 %). I edited no test.
+
+    What I built:
+    - `src/factory/adapters/agent_launch.py`:
+      - Removed every name the Interface lists: `TEMPORARY_PREFIX`, `CLEANUP_SCRIPT`, `_CLEANUP_NAME`, `CLEANUP_TIME_LIMIT`, `CONFINE_PREFIX`, `confined_argv`, `cleanup_argv`, `temporary_folder`, `existing_devices`, `request_home`, `run_confinement`, `device_confinement`, `cleanup_launch`.
+      - Dropped the import of `factory.domain.confinement` and the unused `GuardSettings`.
+      - `Starters` lost `confine_executable`.
+      - `call_refusal` now reads only a `sudo:` line (with an `os_user`) and a refused login file. A `factory-confine:` line is no refusal.
+    - `src/factory/adapters/claude_runtime.py`:
+      - Removed the keywords `confine_executable` and `temporary_root`, the property `confine_executable`, the `ValueError` beside `containers`, `CONFIG_VARIABLE`, `RUNTIME_FOLDER`, `_confinement`, `_config_folder`, `_remove_temporary_folder`, and the two `CLEANUP_*` entries of `__all__`.
+      - `_RunFiles` holds `instructions` alone.
+      - The call's runtime environment is `SWITCHES` alone, so it never sets `CLAUDE_CONFIG_DIR`.
+    - `src/factory/adapters/opencode_runtime.py`:
+      - Removed the keywords `confine_executable`, `temporary_root` and `runtime_folders`, `RUNTIME_FOLDERS`, the `ValueError`, `_confinement` and `_remove_temporary_folder`.
+      - `_RunFiles` holds `config` alone.
+      - `_write_files` lost its now-unused `request` parameter.
+    - `src/factory/application/preflight.py`: removed `confinement_item`, `_kernel_fault`, `_CONFINEMENT_ITEM`, `_KERNEL_ADVICE` and the imports of `abi_fault` and `CONFINE_COMMAND`. `_path_fault` stays.
+    - `src/factory/entry/wiring.py`:
+      - `build_boundaries`, `_inline_environment` and `_agent_runtime` no longer take or pass `confine_executable`, and opencode no longer gets `runtime_folders`.
+      - The `inline` extras have no `confinement` item.
+      - The imports of `abi_version`, `CONFINE_COMMAND` and `RUNTIME_FOLDERS` are gone.
+      - `production_environment`'s comment no longer names the wrapper.
+    - `claude/agents/*.md` (all seven): the `R14.` line is now decision 4's text from journal entry 9, exactly as in `tests/shipped_agents.py::WRITE_PATHS_RULE`.
+
+    Main design choice: I removed the wrapper path outright. When `_RunFiles` lost its rules file and temporary folder, I reduced each to its one file and wrote that file directly, instead of keeping the `written` dict loop. I rejected keeping `confine_executable` as an always-`None` keyword for compatibility: the Interface and criterion 2 call for removing it, and no caller passes it any more.
+
+    Refactor: after the green check I read the diff. I fixed three wording leftovers that still described the guard:
+    - `agent_launch.py`'s module docstring no longer says "rules".
+    - The comment on `RUN_FILE_MODE` says "what it is told" instead of "its own guard".
+    - The comment on the probe's guard in `preflight.py` no longer says "confinement".
+
+    Nothing else needed changing.
+
+    Noticed but not touched:
+    - `factory.domain.agent_runs.CONFINE_COMMAND` stays. Only `factory.entry.confine` uses it now, and S0002 removes it with the guard's modules.
+    - `settings.opencode_folders` now only feeds the folders kept in the agent's home (`wiring.py`, `kept_paths`), no longer any rules.
+    - `AgentRunRequest.guard` and the probe's `GuardSettings` remain; the take and the undo still read them.
+    - The journal changed nothing in the meaning of the task: decision 4's text is in the journal and the tests, as the human asked in entry 12. `## Description` is not my write path and is unchanged.
+
+    `check`: check: green
+    `duplicates`: duplicates: 14 new, 35 known, 3 gone

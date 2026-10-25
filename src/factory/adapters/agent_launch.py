@@ -1,4 +1,4 @@
-"""What every agent runtime shares: its calls' words, rules, refusals and login, and a run's end."""
+"""What every agent runtime shares: its calls' words, refusals and login, and a run's end."""
 
 import math
 import time
@@ -10,8 +10,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, JsonValue
 
 from factory.application.containers import ContainerRuns
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, GuardSettings, Login
-from factory.domain.confinement import Confinement, WriteTarget, confinement_of, write_targets
+from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, Login
 from factory.domain.containers import WORK_CHECKOUT, Mount
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoint, KillPoints
@@ -36,14 +35,8 @@ KILL_STATUSES = frozenset({137, -9})
 # podman's `--timeout` ends the container with 255, not 137 (podman 4.9.3, measured 2026-10-24).
 PODMAN_TIMEOUT_STATUS = 255
 CONTAINER_KILL_STATUSES = KILL_STATUSES | {PODMAN_TIMEOUT_STATUS}
-# The agent reads a run's files through its group and must not rewrite its own guard.
+# The agent reads a run's files through its group and must not rewrite what it is told.
 RUN_FILE_MODE = 0o640
-TEMPORARY_PREFIX = "factory-run-"
-# Run as the run's user, who made the folder; whatever the agent locked inside is opened first.
-CLEANUP_SCRIPT = 'chmod -R u+rwX -- "$1" 2>/dev/null; rm -rf -- "$1"'
-_CLEANUP_NAME = "factory-cleanup"
-CLEANUP_TIME_LIMIT = timedelta(seconds=60)
-CONFINE_PREFIX = "factory-confine:"
 LEFTOVERS_TIME_LIMIT = timedelta(seconds=30)
 LEFTOVERS_FAULT = "cannot end the agent's processes:"
 CONTAINER_OS_USER = "a run in a container has no operating-system user"
@@ -267,92 +260,6 @@ def version_launch(
     return container_launch(containers, argv, {}, files=[], time_limit=time_limit)
 
 
-def confined_argv(argv: Sequence[str], confine_executable: str | None, rules: Path) -> list[str]:
-    """The words that start `argv` through the write guard's wrapper with `rules`, if one is set."""
-    if confine_executable is None:
-        return list(argv)
-    return [confine_executable, "--rules", str(rules), "--", *argv]
-
-
-def cleanup_argv(
-    shell: str, temporary: Path, *, os_user: str | None, sudo_executable: str
-) -> list[str]:
-    """The words that remove a run's `temporary` folder, as `os_user` when one is set."""
-    removal = [shell, "-c", CLEANUP_SCRIPT, _CLEANUP_NAME, str(temporary)]
-    if os_user is None:
-        return removal
-    return [*sudo_prefix(sudo_executable, os_user), *removal]
-
-
-def temporary_folder(root: Path, run: str) -> Path:
-    """The temporary folder of the run `run` under `root`."""
-    return root / f"{TEMPORARY_PREFIX}{run}"
-
-
-def existing_devices(folders: Sequence[str], files: Sequence[str]) -> list[WriteTarget]:
-    """A target for each of the device `folders`, then `files`, that exists on this machine."""
-    existing_folders = [
-        WriteTarget(path=Path(folder), kind="folder") for folder in folders if Path(folder).exists()
-    ]
-    existing_files = [
-        WriteTarget(path=Path(file), kind="file") for file in files if Path(file).exists()
-    ]
-    return [*existing_folders, *existing_files]
-
-
-def request_home(request: AgentRunRequest) -> Path | None:
-    """The home folder the request's environment names, or `None` without `HOME`."""
-    home = request.environment.get("HOME")
-    return None if home is None else Path(home)
-
-
-def run_confinement(
-    request: AgentRunRequest,
-    temporary: Path,
-    *,
-    runtime_folders: Sequence[str],
-    devices: Sequence[WriteTarget],
-) -> Confinement:
-    """The rules of a run: its write paths, the runtime's `runtime_folders` under `HOME`, devices.
-
-    A request without `HOME` gets none of the runtime's folders.
-    """
-    # Without guard settings the run may write nothing of the checkout.
-    guard = request.guard or GuardSettings(
-        root=request.working_directory, write_paths=[], protected_paths=[]
-    )
-    home = request_home(request)
-    targets = write_targets(guard, home=home)
-    existing_files = [
-        target.path for target in targets if target.kind == "file" and target.path.is_file()
-    ]
-    folders = (
-        []
-        if home is None
-        else [WriteTarget(path=home / folder, kind="folder") for folder in runtime_folders]
-    )
-    return confinement_of(
-        targets,
-        root=guard.root,
-        existing_files=existing_files,
-        extras=[*folders, *devices],
-        temporary_directory=temporary,
-    )
-
-
-def device_confinement(
-    request: AgentRunRequest,
-    temporary: Path,
-    *,
-    runtime_folders: Sequence[str],
-    device_folders: Sequence[str],
-    device_files: Sequence[str],
-) -> Confinement:
-    """The rules of a run, with those of the `device_folders` and `device_files` that exist."""
-    devices = existing_devices(device_folders, device_files)
-    return run_confinement(request, temporary, runtime_folders=runtime_folders, devices=devices)
-
-
 def killed_at_limit(
     *,
     os_user: str | None,
@@ -386,12 +293,11 @@ def first_word(output: str) -> str | None:
 
 
 class Starters(BaseModel):
-    """What a runtime starts its calls through: `sudo`, the guard's wrapper, the login files."""
+    """What a runtime starts its calls through: `sudo` and the login files."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     sudo_executable: str
-    confine_executable: str | None
     login_files: LoginFiles
     leftovers: list[str] | None = None
 
@@ -460,37 +366,19 @@ def run_launch(
     )
 
 
-def cleanup_launch(
-    shell: str,
-    temporary: Path,
-    *,
-    os_user: str | None,
-    sudo_executable: str,
-    time_limit: timedelta,
-) -> Launch:
-    """The call that removes a run's `temporary` folder through `shell`, as `os_user` if set."""
-    removal = cleanup_argv(shell, temporary, os_user=os_user, sudo_executable=sudo_executable)
-    return Launch(argv=removal, env={}, time_limit=time_limit)
-
-
 def call_refusal(
     stderr: str, *, printed: bool, timed_out: bool, os_user: str | None, starters: Starters
 ) -> str | None:
-    """Why `sudo`, the write guard's wrapper or the login shell refused a call, or `None`.
+    """Why `sudo` or the login shell refused a call, or `None`.
 
     `printed` says the call printed a reply the runtime reads; one that also ended before its
     time limit was refused by none of them.
     """
-    if not printed or timed_out:
-        if os_user is not None:
-            sudo_line = line_starting(stderr, SUDO_PREFIX)
-            if sudo_line is not None:
-                # A refused `sudo` is a misconfiguration of the machine, not a stalled agent.
-                return f"{starters.sudo_executable} refused the agent run: {sudo_line}"
-        if starters.confine_executable is not None:
-            confine_line = line_starting(stderr, CONFINE_PREFIX)
-            if confine_line is not None:
-                return f"{starters.confine_executable} refused the agent run: {confine_line}"
+    if (not printed or timed_out) and os_user is not None:
+        sudo_line = line_starting(stderr, SUDO_PREFIX)
+        if sudo_line is not None:
+            # A refused `sudo` is a misconfiguration of the machine, not a stalled agent.
+            return f"{starters.sudo_executable} refused the agent run: {sudo_line}"
     if printed:
         return None
     return login_refusal(stderr, starters.login_files)

@@ -12,7 +12,6 @@ from factory.application.boundaries import Boundaries
 from factory.application.stage_environment import stage_environment_of
 from factory.application.stops import StopService
 from factory.domain.agent_runs import (
-    CONFINE_COMMAND,
     QUESTION,
     AgentDefinition,
     AgentRunRequest,
@@ -20,7 +19,6 @@ from factory.domain.agent_runs import (
     Login,
 )
 from factory.domain.checks import CheckResult
-from factory.domain.confinement import abi_fault
 from factory.domain.errors import (
     AgentDefinitionError,
     AgentRuntimeError,
@@ -72,16 +70,11 @@ _NO_AGENT_USER = (
     "who can read the token file"
 )
 _AGENT_ENVIRONMENT_ITEM = "agent-environment"
-_CONFINEMENT_ITEM = "confinement"
 _OPENCODE_ITEM = "opencode"
 _PROBE_ITEM = "agent-run-probe"
 _DATASET_ITEM = "dataset"
 _STAGE_IMAGE_ITEM = "stage-image"
 _NO_MAIN_TO_PREPARE = "no origin/main to prepare the stage environment from"
-_KERNEL_ADVICE = (
-    "update the kernel (on WSL: wsl --update), "
-    "or allow the Landlock system calls in the container runtime's seccomp profile"
-)
 
 PROBE_AGENT = "coder"
 PROBE_PROMPT = "Probe: end with the decision question and the entry probe."
@@ -226,31 +219,6 @@ def _home_fault(environment: Mapping[str, str], is_directory: Callable[[Path], b
     return None
 
 
-def confinement_item(
-    abi: Callable[[], int],
-    environment: Mapping[str, str],
-    find: Callable[[str, str], str | None],
-) -> PreflightItem:
-    """Check that the kernel offers the Landlock the write guard needs and runs find the wrapper."""
-    # Every agent run starts through the wrapper, which refuses to run unguarded, so
-    # either fault would end every run; there is no other guard to fall back to.
-    faults = [
-        fault
-        for fault in (_kernel_fault(abi()), _path_fault(environment, find, CONFINE_COMMAND))
-        if fault is not None
-    ]
-    if faults:
-        return PreflightItem(name=_CONFINEMENT_ITEM, passed=False, detail="; ".join(faults))
-    return PreflightItem(name=_CONFINEMENT_ITEM, passed=True)
-
-
-def _kernel_fault(abi: int) -> str | None:
-    fault = abi_fault(abi)
-    if fault is None:
-        return None
-    return f"{fault}: {_KERNEL_ADVICE}"
-
-
 def opencode_item(
     settings: InstanceSettings,
     environment: Mapping[str, str],
@@ -392,7 +360,7 @@ def _probe_request(
         time_limit=PROBE_RUN_TIME_LIMIT,
         working_directory=checkout,
         environment=dict(environment),
-        # A guard like a stage's gives the probe a stage's confinement, but no write path.
+        # A guard like a stage's, but with no write path.
         guard=GuardSettings(root=checkout, write_paths=[], protected_paths=[]),
         os_user=settings.agent_user,
     )

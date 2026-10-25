@@ -19,13 +19,12 @@ from factory.adapters.disk_space import ShutilDiskSpace
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
-from factory.adapters.landlock import abi_version
 from factory.adapters.make_commands import (
     CommandUser,
     ContainerMakeCommands,
     MakeProjectCommands,
 )
-from factory.adapters.opencode_runtime import RUNTIME_FOLDERS, OpencodeRuntime
+from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.podman_runs import PodmanRuns
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
@@ -63,7 +62,6 @@ from factory.application.preflight import (
     agent_environment_item,
     agent_run_probe_item,
     agent_user_item,
-    confinement_item,
     dataset_item,
     installed_models,
     opencode_item,
@@ -79,7 +77,7 @@ from factory.application.sealed_runs import SealedProjectCommands
 from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
 from factory.domain.agent_home import kept_paths
-from factory.domain.agent_runs import CONFINE_COMMAND, scrub_environment
+from factory.domain.agent_runs import scrub_environment
 from factory.domain.command_records import CommandRecord
 from factory.domain.containers import WORK_HOME
 from factory.domain.disk import DiskRecord
@@ -262,15 +260,14 @@ def build_boundaries(
     *,
     hosting: HostingService | None = None,
     which: Callable[[str], str | None] = shutil.which,
-    confine_executable: str | None = CONFINE_COMMAND,
     end_leftovers: bool = True,
 ) -> Boundaries:
     """Return the boundaries of the instance of `settings`; `hosting` replaces PyGithub.
 
     An inline instance's agent runtime starts the `sudo` that `which` finds, the one the
-    preflight checks, and every call through `confine_executable`, unless it is `None`. With
-    `end_leftovers`, every call as the agent's user is followed by the program that ends its
-    processes. A container instance reads none of the three: its container is the boundary.
+    preflight checks. With `end_leftovers`, every call as the agent's user is followed by the
+    program that ends its processes. A container instance reads neither: its container is the
+    boundary.
     """
     if hosting is None:
         hosting = pygithub_service(repository_name(settings.repository_url), token)
@@ -286,7 +283,6 @@ def build_boundaries(
             git,
             log,
             which=which,
-            confine_executable=confine_executable,
             end_leftovers=end_leftovers,
         )
     return Boundaries(
@@ -341,7 +337,6 @@ def _inline_environment(
     log: FactoryLog,
     *,
     which: Callable[[str], str | None],
-    confine_executable: str | None,
     end_leftovers: bool,
 ) -> _StageEnvironmentBoundaries:
     sudo_executable = which("sudo") or SUDO_EXECUTABLE
@@ -351,7 +346,6 @@ def _inline_environment(
         agent_runtime=_agent_runtime(
             settings,
             sudo_executable=sudo_executable,
-            confine_executable=confine_executable,
             leftovers=leftovers,
         ),
         project_commands=_project_commands(
@@ -460,7 +454,6 @@ def _agent_runtime(
     settings: InstanceSettings,
     *,
     sudo_executable: str = SUDO_EXECUTABLE,
-    confine_executable: str | None = None,
     leftovers: list[str] | None = None,
     containers: PodmanRuns | None = None,
 ) -> AgentRuntime:
@@ -473,9 +466,7 @@ def _agent_runtime(
             settings_file=settings.agent_home / "settings.json",
             sudo_executable=sudo_executable,
             api_login_file=settings.api_login_file,
-            confine_executable=confine_executable,
             provider_limit=settings.provider_limit,
-            runtime_folders=(*RUNTIME_FOLDERS, *settings.opencode_folders),
             leftovers=leftovers,
             containers=containers,
         )
@@ -485,7 +476,6 @@ def _agent_runtime(
         sudo_executable=sudo_executable,
         login_file=settings.claude_login_file,
         api_login_file=settings.api_login_file,
-        confine_executable=confine_executable,
         provider_limit=settings.provider_limit,
         leftovers=leftovers,
         containers=containers,
@@ -504,7 +494,7 @@ def agent_environment(scripts: Path, home: Path) -> dict[str, str]:
 
 def production_environment() -> dict[str, str]:
     """Return the agent environment: the allowed names of the process, its own `PATH` and home."""
-    # The console scripts, `factory-confine` among them, sit next to the interpreter.
+    # The console scripts sit next to the interpreter.
     own = agent_environment(Path(sys.executable).parent, Path.home())
     return scrub_environment({**os.environ, **own})
 
@@ -635,7 +625,6 @@ def _inline_items(
     if settings.agent_user is not None:
         items.append(lambda: tool_item("sudo", which))
     items.append(lambda: agent_environment_item(environment, Path.is_dir))
-    items.append(lambda: confinement_item(abi_version, environment, _which_on))
     return items
 
 
