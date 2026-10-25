@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T19:32:33.871280Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-25T19:32:33.871280Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-25T19:35:58.732226Z'
+  stage: tests
+  run: e9d2dceb20dd4bde8ba77949e584b56e
 ---
 
 # The undo is removed
@@ -241,3 +243,27 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
 
     The journal does not change what the task means, so I did not rewrite the Description.
 12. factory: started tests as self.
+13. tester: Round 1. I made the two test changes that the coder's entry 11 lists, both from the reviewer's findings in entry 9. I changed nothing else. `make test` and `make lint` are both green.
+
+    Changes:
+    1. `tests/application/test_take_rule.py`: removed the local copy `MOUNTED = "checkout"`. The module now imports `MOUNTED` from `take_support` (`tests/take_support.py:14`). This uses the standing leave to use a shared test helper instead of a copy.
+    2. `tests/application/test_stall_environment.py::test_the_stall_module_imports_no_name_of_the_undo`: the hand-written walk over the imports is gone. The test now uses `source_search.imported_modules(tree)` (`tests/source_search.py:23`) and checks that no entry is `factory.application.undo` and none ends in `.UndoService`. The test keeps its name and checks the same two facts. Its change in this story falls under decision 25 of `feature.md`, as the Interface says.
+
+    Criterion → test (unchanged from entry 5):
+    - criterion 1: tests/test_undo_removed.py::test_the_undo_module_is_gone_and_the_take_holds_the_shared_functions
+    - criterion 2: tests/domain/test_agent_entry.py::test_the_left_out_paths_close_the_entry_in_a_paragraph_of_their_own
+    - criterion 3: tests/application/test_left_out_stage.py::test_a_stage_names_the_left_out_paths_and_commits_only_the_taken_ones
+    - criterion 4: tests/application/test_take_rule.py::test_the_take_leaves_out_what_the_rule_refuses_and_restores_the_work_item
+    - criteria 5 and 6: `make check` and the docs; no test.
+
+    Files created this round: none. Earlier test files changed: the two above.
+
+    Modules the test run could not import: none.
+
+    Still open, for the human (unchanged from entries 7, 9 and 11): `security/duplicates-baseline.txt:21` still names `undo.py`, so `make duplicates` reports `take.py: unused variable 'restored_work_item'` as new. That file is outside my write paths.
+
+    `test`: test: green (71.7 s)
+    `lint`: lint: green (0.2 s)
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (75.7 s)
