@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T00:29:39.384488Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-25T00:29:39.384488Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T00:30:11.929143Z'
+  stage: smoke-test
+  run: 78b3b46ca2f64832b0c22aca9faca840
 ---
 
 # The checkout and the state directory are settings
@@ -412,3 +414,40 @@ Expect: `1`
     `secrets`: secrets: green (3.5 s)
     `documents`: documents ok
 23. factory: started smoke-test as self.
+24. smoke-tester: Smoke test, round 1. I ran the three commands under `## Smoke test` from the repository root, in order and as written. All three met their `Expect:` lines. I fixed nothing.
+
+    **Command 1** (`read_settings`: the two path variables, their defaults and the relative-path faults). It met its Expect line: the same five lines, in the same order. The first four lines below are uv creating `.venv` on its first run in this checkout, written to stderr. They are not the script's output.
+
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+    …
+    /srv/factory/vm/repo /srv/factory/vm/state
+    True True /work/checkout /state
+    FACTORY_CHECKOUT | is not an absolute path
+    FACTORY_STATE | is not an absolute path
+    FACTORY_CHECKOUT | is not an absolute path
+    ```
+
+    **Command 2** (`factory-run` with two repositories and `FACTORY_STATE` set to a temporary folder). It met its Expect line: the time-stamped log line, then `status 2`, `1`, `1`. The line in `factory.log` and the `preflight_failed` stop in `health.json` were both written under the directory `FACTORY_STATE` names. The first line is again uv's.
+
+    ```
+    Bytecode compiled 4164 files in 70ms
+    2026-10-25T00:29:57Z settings invalid: FACTORY_REPOSITORY_URL: names more than one repository
+    status 2
+    1
+    1
+    ```
+
+    **Command 3** (pytest over the settings, run and health tests). It met its Expect line, which is `1`. I ran the same pytest a second time without the `grep` to see the summary: `121 passed in 1.30s`.
+
+    ```
+    1
+    ```
+
+    **Against the acceptance criteria:** Nothing the smoke test showed contradicts any criterion. Command 1 matches criteria 1 and 2: the defaults, the stripping of surrounding spaces, and the relative-path fault, including `FACTORY_CHECKOUT` being reported before `FACTORY_MIN_FREE_GB`. Command 2 matches criterion 4: the stop goes to the directory `FACTORY_STATE` names. Command 3 runs the tests that hold criteria 1 to 7, and all of them passed.
+
+    The smoke test does not run `make check` (criterion 8) or look at the docs (criterion 9). The factory's checks and the docs stage cover those, so I did not judge them here.
+
+    **Findings:** none.
