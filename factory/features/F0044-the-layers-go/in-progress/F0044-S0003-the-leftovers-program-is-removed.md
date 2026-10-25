@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 446
-comments_read: []
+comments_read: [6398081877]
 handed_over: null
 claim: null
 journal:
@@ -37,6 +37,11 @@ journal:
   stage: tests
   run: 7d955ccbb648451a877ae899aa1b0286
   blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-10-25T13:13:05.532302Z'
+  stage: tests
 ---
 
 # The leftovers program is removed
@@ -135,3 +140,4 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
    `make test` result: no module failed to import; every failure is a wrong result. These fail, as they should: every test of criteria 1, 2 and 5, test_process_search's markers test, test_wiring's importers test, test_wrapper_search's process-module test, and the `agent-user` and `no-sudo-found` rows of test_wiring_project_command_user.
    Criteria 3 and 4 already pass: with no leftovers program set, the runtimes and the make class make one `sudo` call today. They guard the behaviour while the code is removed.
    `make lint` is green. I did not run the type check, as the stage says.
+6. 2026-10-25 human: (a). Delete `tests/adapters/test_runtimes_without_wrapper.py::test_the_starters_are_sudo_the_login_files_and_the_leftovers_program`: leave given under decision 19 and the human's standing answer for lists found after the pre-check (decision 29). Criterion 2's row `starters-fields` checks the new field list, so nothing is lost. The module's other tests stay as they are.
