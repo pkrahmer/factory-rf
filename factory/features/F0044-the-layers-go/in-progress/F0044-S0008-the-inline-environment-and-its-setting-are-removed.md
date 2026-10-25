@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-25T17:49:35.531640Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T17:49:17.708785Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:49:35.531640Z'
   stage: intake
 ---
 
@@ -124,3 +133,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
       - a checkout and a state directory both inside the workspace give the checkout's fault (checkout before state directory);
       - a `None` workspace gives `None`;
       - `InstanceSettings(...)` built directly with an inner checkout raises a `ValidationError` whose text holds `FACTORY_CHECKOUT: <checkout> lies inside FACTORY_WORKSPACE`.
+5. factory: started intake as self.
