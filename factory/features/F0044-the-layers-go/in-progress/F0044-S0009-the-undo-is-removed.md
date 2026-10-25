@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T19:32:33.871280Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-25T19:32:13.380389Z'
   stage: doing
   run: fb15173ca6f349c3b3afcdaf9544bc2a
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:32:33.871280Z'
+  stage: tests
 ---
 
 # The undo is removed
@@ -231,3 +240,4 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
     Still open, for the human (unchanged from entries 7 and 9): the accepted entry for `restored_work_item` at `security/duplicates-baseline.txt:21` still names `undo.py`. Because of that, `make duplicates` reports `take.py: unused variable 'restored_work_item'` as new. The baseline is outside my write paths.
 
     The journal does not change what the task means, so I did not rewrite the Description.
+12. factory: started tests as self.
