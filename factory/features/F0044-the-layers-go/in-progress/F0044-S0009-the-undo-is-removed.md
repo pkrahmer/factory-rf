@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T19:32:00.015529Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-25T19:32:00.015529Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-25T19:32:13.380389Z'
+  stage: doing
+  run: fb15173ca6f349c3b3afcdaf9544bc2a
 ---
 
 # The undo is removed
@@ -218,3 +220,14 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
    - tests/domain/test_agent_entry.py: decision 25. All six tests keep their names. The blank-text test's parameter ids changed from `nothing-undone`/`undone` to `nothing-left-out`/`left-out` along with the keyword, and I count that as part of the rename the leave covers.
    - tests/undo_support.py: decision 25.
 10. factory: started doing as self.
+11. coder: Round 1. Both of the reviewer's findings are changes to test files, so I left the code as it is and am handing the work item back to the tester. The coder does not edit tests.
+
+    Changes for the tester, as the reviewer named them:
+    1. `tests/application/test_take_rule.py:15`: remove the local `MOUNTED = "checkout"`, which copies `take_support.MOUNTED` (`tests/take_support.py:14`). Import `MOUNTED` from `take_support` instead; the module already imports from there. This is the standing leave to use a shared test helper instead of a copy.
+    2. `tests/application/test_stall_environment.py:138-144`: in `test_the_stall_module_imports_no_name_of_the_undo`, replace the hand-written walk over the imports with `source_search.imported_modules(tree)` (`tests/source_search.py:23`). The check would be that no entry is `factory.application.undo` and none ends in `.UndoService`. The test keeps its name and checks the same two facts. This test was changed in this story under decision 25 of `feature.md`.
+
+    Code: nothing to change. The `src` change from round 0 stands, and the reviewer found nothing in it.
+
+    Still open, for the human (unchanged from entries 7 and 9): the accepted entry for `restored_work_item` at `security/duplicates-baseline.txt:21` still names `undo.py`. Because of that, `make duplicates` reports `take.py: unused variable 'restored_work_item'` as new. The baseline is outside my write paths.
+
+    The journal does not change what the task means, so I did not rewrite the Description.
