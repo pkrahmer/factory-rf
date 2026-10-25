@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T17:12:44.141580Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-10-25T17:12:23.613387Z'
   stage: review
   run: 44f3f759e2914f7dbd4c98a44b4cad12
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:12:44.141580Z'
+  stage: doing
 ---
 
 # The suite's stages run on the container fakes
@@ -333,3 +342,4 @@ Expect: two lines: `1`; `1`
     - tests/git_support.py: the human's leave, `REMOTE_FILES` named in the Interface.
     - tests/proof_support.py: the human's leave, the world, `PASSING_MAKEFILE` and `_outside_writes_undone` named in the Interface.
     - tests/stage_run_support.py: the human's leave, `stage_makefile` named in the Interface.
+20. factory: started doing as self.
