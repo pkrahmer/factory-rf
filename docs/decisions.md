@@ -150,6 +150,7 @@ Date: 2026-10-14 (F0004-S0003). The protected paths (the project's Claude Code d
 
 Date: 2026-10-14 (F0004-S0004). `factory-guard` reads one file, the `GuardSettings` the runtime wrote from `WritePathService.at` at the stage-start commit, and no pipeline definition, so an agent that rewrites `factory/pipeline.yml` in the work tree changes no verdict (R32). The verdict is the domain's `refusal`, applied to the real path of the file, so the guard and the undo share one rule. A payload the guard cannot read (not JSON, no `tool_input`, no or an empty `file_path`) is allowed: it fails open, as v1 does, because there is no path to judge and a refusal would block tools that write nothing; the handover leaves a stricter reading for v2. A settings file the guard cannot read refuses with status 2, since the guard then has no rules. Alternatives rejected: reading the definition from the work tree (the agent could widen its own paths); failing closed on unreadable payloads (blocks tools without paths, a change of behaviour not asked for); argparse (it exits by itself with its own usage text, against "status 2, never an exception").
 - Superseded in part by "The Claude Code hook is removed; the kernel and the undo are the write guard": the hook `factory-guard` this entry describes is removed.
+- The guard went with the hook, F0044-S0009 removed its last user, the undo; the take keeps the rule that the write paths are read at the stage-start commit.
 
 ## The undo reads the write paths at the stage-start commit, and a work item the agent breaks is restored whole
 
@@ -313,6 +314,8 @@ Replaced by *The project commands run as the agent user, with the git folder sea
 
 Date: 2026-10-16 (F0010-S0013; the human, 2026-10-14). `make check`, `lint`, `test` and the preflight's `lint` run code that agents wrote, as the factory's user, who can read the token file; a test can print the token into the output tail the factory writes into the journal. This is not built now. Running them as a user who cannot read the file, or filtering their output, is work for v2. Until then the operator guide says so, and the second operating-system user of F0010 covers the agent run only.
 
+The user they ran as went in F0044-S0005: a check runs in a container of its own on the rolled-back base, which cannot read the token.
+
 ## The agent is started through `sudo -n -u agent -- env -i`, and a run's files are `0640`
 
 Date: 2026-10-16 (F0010-S0014; R32, R33; WE2, WE3.1; the human, 2026-10-14). Every agent runs as the second user `agent`. The runtime calls `sudo -n -u agent -- env -i <NAME=value>... <claude> ...` with an empty environment of its own. `-n` turns a missing rule into an error instead of a prompt. `env -i` is needed because `sudo` keeps or adds variables of its own by policy; with it the agent has exactly the request's environment and the three switches. The composer puts the user in the request (`os_user`), the setting is `FACTORY_AGENT_USER`, and the wiring gives the agent the `HOME` of the agent user. Rejected: `su` or `setpriv` (they need root or add a second tool), and a `sudo` rule that keeps the environment (the factory's variables would come along).
@@ -341,6 +344,7 @@ Date: 2026-10-16 (F0010-S0016; questionnaire 1, Q22; F0001 decisions 17 and 18; 
 
 A refused `sudo` (the misconfiguration behind WE3.1) surfaces in the probe as the runtime's `AgentRuntimeError`, which fails the item with its message. The probe is the first agent call of an instance, before any claim is pushed; an error after a claim would reach the crash path of F0008. Rejected: leaving the check to the first stage run, and a probe that only runs `claude --version` (it carries none of a stage's flags).
 - Superseded in part by "The Claude Code hook is removed; the kernel and the undo are the write guard": its search for `factory-guard` is removed.
+- Replaced in part: the `sudo` chain went with the second user (F0044-S0005) and the probe's guard with the wrapper (F0044-S0001, F0044-S0002); the probe `agent-run-probe` stays, and runs the agent in a throwaway container.
 
 ## The shipped agents carry v1's texts, renamed, and `stuck` does not exist
 
@@ -378,6 +382,8 @@ Date: 2026-10-17 (F0012-S0002). A finding's key is `similar-code <modules>: <fir
 
 Date: 2026-10-17 (F0012-S0003; F0012 decisions 3, 12, 16 and 17). This supersedes the F0011-S0005 entry for the docs stage: the human's `make documents` target is a check of the docs stage, so the check runs where the four documents are written, and a missing row or a v1 word is found before the human sees the pull request. `make check` still does not run it. Also: `DEFAULT_GIT_IDENTITY` now lives in `factory.domain.git`, beside `GitIdentity`, and is the one default: `GitOptions.identity` uses it and `factory.domain.settings` re-exports the same object (through `__all__`, because ruff refuses the `import ... as` form). That settles the "Known duplicate" of the 2026-10-16 identity entry. Behaviour is unchanged: `GIT_USER_NAME` and `GIT_USER_EMAIL` still override each half on its own. In the same story `build_boundaries` gives the agent runtime the `sudo` that the preflight's `tool:sudo` item finds on the `PATH` (`/usr/bin/sudo` only when there is none), and the three commands pass `argv` straight to `argparse`, which reads `sys.argv[1:]` itself when given `None`.
 
+The runtime's `sudo` that this entry's check ran under went with the second user, F0044-S0005; the check in the docs stage and the identity's one home stay.
+
 ## The YAML fault of the pipeline definition is ruamel's problem and position on one line
 
 Date: 2026-10-17 (F0012-S0006). `yaml_fault` in `factory.adapters.pipeline_yaml` reduces a YAML error to `not valid YAML: <problem> (line <l>, column <c>)`, the position 1-based. ruamel's text spans four to seven lines, and the time-stamped factory log stamps each, so a search for `stop repository` found only the context line; one stop now gives one log line, the same fault in the health status, the log and `PipelineDefinitionInvalid`. The context lines are dropped, and so is the hint `To suppress this check see: ...`, which advises switching off the repeated-key check that the factory wants (F0003 decision 11). A line break inside the problem (a repeated key with a block-scalar value is quoted in it) is written as the two characters `\n` or `\r`, chosen by the human. An error with no problem (a control character) gives the first non-blank line of its text. Rejected: cutting up `str(error)` (the problem's line differs from error to error) and collapsing whitespace (it hides where a value broke).
@@ -401,6 +407,8 @@ Date: 2026-10-17 (F0012-S0014; F0012 decision 22). A cost record holds the run's
 ## The disk record is not committed and none is written at the end of a run
 
 Date: 2026-10-17 (F0012-S0016). `DiskRecorder` appends one line to `records/disk.jsonl` in the state directory when an instance starts (and at each feature acceptance, F0012-S0017). The record is not committed, for the reason of the records of project commands: it measures the factory's own machine, not a work item's state, and a commit would add a push and a diff to a pull request for every start. No record is written at the end of a run: the last feature acceptance is near it, and the host's numbers (the drive's free space, Docker's disk image) cannot be seen from the container and are read by hand at the end. A failed append is logged and does not stop the instance.
+
+The container-path numbers (Docker's disk image) went with the Docker path, F0044-S0010; the rule stays: the record is not committed, and none is written at the end of a run.
 
 ## One test checks the configuration of every model; six models ignore unknown keys
 
@@ -437,6 +445,8 @@ Replaced by the machine of v1.2 (`vm/`), F0044-S0010.
 
 Date: 2026-10-17 (F0012-S0026; the human's answer to F0010's open point 6, item 1.10). `factory-health` printed `healthy` for a state directory without `health.json`, so a container whose instance never wrote it, or whose check read another directory, looked healthy while `factory-run` had ended with status 2. Now `run_instance` writes `HealthStatus()` first, when there is no file (an existing file keeps its stops), and `factory-health` prints `no health status: <path> is missing` and exits 1 for a missing file. Docker's `start_period` (60 s) keeps that failure from counting while the instance starts. A damaged file still reads as healthy, because a stop that lasts is raised again. The check lives in `main`, not in the store's `read`: a given store is read as before, and the machine stop relies on `read()` of a missing file returning an empty status.
 
+Docker's health check went with the Docker path, F0044-S0010; the rule stays: `factory-health` refuses a missing file, and `factory-run` writes an empty one at its start.
+
 ## A failed machine clears a main_branch_failing that names a commit no longer main
 
 Date: 2026-10-17 (F0012-S0027; the human's answer to F0010's open point 5, item 1.10; answers the "Open:" of the F0010-S0009 entry about a stop that stays while the machine's items fail). When the machine's items fail (a new image without `make`, say), the preflight cannot run `lint`, so it cannot know whether the new `main` is green; it did return `preflight_failed` before the probe, and a `main_branch_failing` raised earlier stayed even after the human had pushed the fix. Now, before it returns `preflight_failed`, the preflight compares the `main_failed` commit of the stamp it started with to `origin/main`. When `main` is another commit, or gone, it clears `main_branch_failing`: the stop names a commit that is no longer `main`. The new `main` is probed as soon as the machine's items pass again, and a red one raises the stop anew. A stop whose commit is still `main` stays; so does a stop when the stamp has no `main_failed` or when git cannot resolve `origin/main` (nothing is known). The stamp is not rewritten on this path. Rejected: keeping the stop until a probe has run (a fixed `main` would look broken while the machine is the fault), and clearing it on any failure of the machine (hides a red `main` that has not moved).
@@ -462,6 +472,8 @@ Date: 2026-10-17 (F0013-S0002; F0013 decisions 10 and 11). The item `token-file`
 ## The runtimes are Docker Desktop and rootless Podman; on Windows the operator restarts the factory
 
 Date: 2026-10-17 (F0013-S0005; the human's answers of 2026-10-17 from the probe `planning/overnight/podman-probe-2026-10-17.md`, faults 2, 3 and 4). The image and the compose file run under Docker Desktop and under rootless Podman (5.8.3, Windows) with the docker-compose v2 binary as the Compose provider; `podman-compose` 1.5.0 cannot build this compose file on Windows, so it is not a provider. The probe's build under Podman (Buildah behind the Docker-compatible API, the image's owners and modes as built) is the check of Buildah's defaults. On Windows nothing restarts the factory after a machine or host restart: `podman-restart.service` cannot be enabled in the machine (`Access denied`) and an `unless-stopped` container stayed stopped (tested), so the operator starts the machine and then Compose. The restart service on a Linux host (with linger) is the documented way and is untested; the first start on such a host observes it. Rancher Desktop is named untested because the probe did not run it. The team setup is one shared Linux host. The disk record sees the machine's virtual disk under both runtimes. Rejected: a restart task the factory installs (outside the container, not the factory's to own).
+
+Replaced by the machine of v1.2: F0044-S0010 removed the image, the compose file and the Docker path; the factory runs on the VM as a service, under rootless Podman alone, and the service manager restarts it.
 
 ## The factory's git runs no hooks
 
@@ -586,6 +598,7 @@ Date: 2026-10-18 (F0017-S0001; F0017 decisions 1, 4 and 6). On 2026-10-18 v1's c
 - Decision: an autouse fixture, `reopened_tmp_path` in `tests/conftest.py`, calls `reopen(tmp_path)` (`tests/tmp_path_support.py`) after every test that uses `tmp_path` and after the teardowns of its other fixtures. `reopen` walks top down, opening each folder before listing it, adds the owner's bits only (every other bit stays) and does not follow links. A test needs no sudo and no second user, because every entry belongs to the test user.
 - Rejected: a fixture on the seal tests alone (any other test that seals a checkout, and any later one, would leave the same folders); sealing a copy in each test (changes what the tests check); `sudo` or a second user (the container and the developer's machine need neither, and the owner may change the mode of its own entries); a sweep of `/tmp/pytest-of-<user>` at the start of a session (it removes the folders after the damage and from outside the test that caused it, and it cannot open a folder either without the same walk).
 - The fixture cannot reach the `pytest-*` folders that a stopped run leaves locked, because a stopped process runs no teardown; those are handled by *make mutants runs under a temporary root of its own*.
+- The seal this entry's cause names went with F0044-S0006; the fixture `reopened_tmp_path` stays, for the folders a test leaves closed to its owner.
 
 ## make mutants runs under a temporary root of its own
 
@@ -665,6 +678,7 @@ Date: 2026-10-18 (F0019-S0011). R14 sends every agent to `$TMPDIR` for temporary
 - Decision: the tool paths stay kernel-only.
 - Rejected: telling the agents to write temporary files through the shell only (it contradicts R14's intent and leaves the hook and the kernel disagreeing); counting these refusals as expected in the cross-check (it hides real disagreements behind a known one).
 - Superseded in part by "The Claude Code hook is removed; the kernel and the undo are the write guard": the hook is removed.
+- Removed with the hook in F0044-S0002; the run's temporary folder went with the wrapper (F0044-S0001).
 
 ## A question records the block it opened, a stall its reason
 
@@ -703,6 +717,7 @@ Date: 2026-10-19 (F0021-S0006). Readers outside the factory, first a page that r
 - Reasons: a reader needs a description it can fetch without running the factory; a generated file that a test compares cannot drift from its model. Package data ships in the wheel and sits on `main`.
 - Rejected: schemas written by hand (they drift from the models); a folder at the repository's root (it needs a write path of its own); the pipeline definition's `contract` as the records' version (it versions the definition's format and would tie two unrelated changes together).
 - The records contract's version is `2.0` since F0044-S0002: it removed `tool_paths` from the pipeline definition's schema, a change that can break a reader.
+- The records contract's version is `3.0` since F0044-S0006, which removed the stall reason `nested_repository`.
 
 ## An agent run logs in with an API key when its file holds one
 
@@ -726,6 +741,7 @@ Date: 2026-10-19 (F0020-S0002; F0020 decision 4). The opencode runtime starts it
 - Rejected: a base class for the runtimes (they differ in arguments, reply and files, and share only functions); copying the helpers into the opencode runtime (two copies drift).
 - Decision (F0039-S0001; F0039 decisions 1 to 3): the reading of a call's end (`read_call_end`: the kill at the limit, then the refusals) and the state-directory error (`state_directory_error`) moved into `agent_launch` too. The process calls stay in each runtime for the reason above. The state directory differs between the runtimes on purpose: the Claude Code runtime creates it, the opencode runtime must find it, because the image creates `/state/runs`.
 - Decision (F0039-S0007; F0039 decision 12): the similar code `make duplicates` still finds in the two runtimes is the process calls kept in each runtime by the decision above: the call of `<executable> --version` before `version_printed`, the start of the leftovers program and of the folder removal (`_end_leftovers`, `_remove_temporary_folder`), and the lines of `_call` that call them. They are accepted in `security/duplicates-baseline.txt` for that entry's own reason; their words and readers already lie in `agent_launch`. The reading of a call's end was merged by F0039-S0001.
+- The module stays; the wrapper's rules and the `sudo`, `timeout` and `env -i` words left it (F0044-S0001, F0044-S0005), and the leftovers' calls with the leftovers program (F0044-S0003). The runtimes' process calls stay in each runtime.
 
 ## A run's output can be streamed by the one process module
 
@@ -927,6 +943,7 @@ Date: 2026-10-20 (F0036-S0001; F0036 decisions 1, 2 and 4). `PROTECTED_PATHS` he
 - Decision: the kernel's targets stay as they are. Where a write path opens a folder, the kernel allows the nested `.claude/` and the undo removes what the agent wrote.
 - Reasons: the human's decision of 2026-10-19, and F0022's decision 12 with its acceptance's guard walk, which showed the gap.
 - Rejected: a Landlock rule (Landlock only allows, it cannot exclude a folder beneath an allowed one); a rewording of R14 (the rule already names `.claude/`, the pattern list was too narrow).
+- The hook, the kernel's rules and the undo this entry names went (F0044-S0002, F0044-S0009); the take keeps the rule: a nested `.claude/` is refused, and left out of the work tree.
 
 ## The reviewer corrects a stale Description
 
@@ -979,6 +996,7 @@ Date: 2026-10-20 (F0041-S0003; the feature's decisions 2, 3, 5 and 6 and F0019's
 - Decision: a protected path inside a folder a write path opens is written and then reverted by the undo, since the kernel cannot exclude a path beneath an allowed folder (the feature's decision 6). The undo judges the exact write paths; the tool paths widen what the kernel allows only.
 - Reasons: the cross-check of 2026-10-19 compared 405 transcripts and found no refusal by the hook in the 264 runs after the kernel guard went live; its one disagreement was fixed by F0019-S0011. The hook saw two tools only (`Edit` and `Write`), while the kernel refuses a write by any route. The opencode runs had no hook already, so the hook was a second code path for one runtime.
 - Rejected: a reduced hook for the protected paths only (it keeps the command, its settings file and the `PATH` requirement for a rule the undo already enforces).
+- Replaced in v1.2: the kernel's guard went with the wrapper in F0044-S0002 and the undo in F0044-S0009; the dataset's rollback and the take are the one boundary, and nothing judges a tool call, as before.
 
 ## A run's leftover processes are ended by a program that runs as the agent
 
@@ -1032,6 +1050,7 @@ Date: 2026-10-20 (F0040-S0005; the feature's decision 17). `run_process` read un
 - Reasons: the human chose it (answer B, against the pre-check's recommendation to leave it as a known limit). The rule is the module's, for every call: one rule is simpler than a switch, and no caller needs the old wait. A call under `sudo` now ends at most 5 seconds after its inner kill, and one that ended on its own keeps its real result. The end is detected with `os.waitid(..., WNOWAIT)` and not `poll()`, which would reap the child: a limit during the drain would then signal a process group id that an unrelated process could hold.
 - Left: the holder is not killed by this module; the leftovers program after the call ends it. A line it writes after the drain is lost.
 - Rejected: leaving it as a known limit; keeping `communicate()` with a timeout loop (it cannot notice the child's end while a pipe stays open).
+- The `sudo` chain and the leftovers program this entry names went with F0044-S0005 and F0044-S0003; the rule stays in `factory.adapters.process`, for every call.
 
 ## Every agent run and every project command starts from a fresh agent home
 
@@ -1080,6 +1099,22 @@ Date: 2026-10-24 (F0042-S0005; the design is `planning/v1.2-plan.md`, the human'
 - The inline environment and its setting `FACTORY_STAGE_ENVIRONMENT` went with v1.2, in F0044-S0008: `ContainerEnvironment` is the only environment, and an instance without a dataset, a workspace and a stage image is refused when its boundaries are built.
 - Rejected: a stage container that pushes with a token; the factory as root on the VM; keeping `factory-confine` inside the container as a second fence; a dataset with the work tree only (the agents would lose `git diff main`); a second snapshot adapter in v1.2.
 
+*What went* (F0044, the layers of v1.1 one story each; the decision log keeps every entry that described them, closed by a line that says what replaced it):
+
+- F0044-S0001, the wrapper's use: no agent call starts through the write guard's wrapper; the rules file, the run's temporary folder and `CLAUDE_CONFIG_DIR` went from both runtimes.
+- F0044-S0002, the kernel's write guard: `factory-confine`, Landlock, `replace_process` and the pipeline definition's `tool_paths`; the records contract rose to `2.0`.
+- F0044-S0003, the leftovers program: `factory.entry.leftovers` and the ending of leftover processes after a call.
+- F0044-S0004, the fresh home: `factory.entry.fresh_home` and the reset of the agent's home.
+- F0044-S0005, the second user: `sudo`, `env -i`, `FACTORY_AGENT_USER` and the shared mode of the factory's git.
+- F0044-S0006, the checkout's hygiene: the seal, the removal of ignored paths and nested repositories, the re-clone and the stall reason `nested_repository`; the records contract rose to `3.0`.
+- F0044-S0007, the suite: the stages' tests run on the container fakes; nothing of the product went.
+- F0044-S0008, the inline environment: `InlineEnvironment` and `FACTORY_STAGE_ENVIRONMENT`.
+- F0044-S0009, the undo: `UndoService`; the journal sentence now reads `The factory left out changes outside the write paths: ...`.
+- F0044-S0010, the Docker path: `image/`, the compose instance, the entrypoint and the host's process table.
+- F0044-S0011, the documents: this sweep.
+
+What the acceptance measures (the feature's decision 27): the lines removed and added since the tag `v1.1`, apart for `src/factory`, `tests` and the documents, with the plan's target of three removed for one added; the running time of `make test` against `v1.1`'s; and that no value of `StallReason` or `RepositoryStopReason` names a removed layer. The acceptance report holds the numbers.
+
 ## Every container runs without rights and within limits
 
 Date: 2026-10-24 (F0042-S0016, decision 23 of the feature F0042).
@@ -1109,3 +1144,4 @@ Date: 2026-10-24 (F0043; the design and the human's answers are `planning/v1.2-p
 - Why the image without the factory: the factory's code and the tools change at different times. A merge rebuilds the factory's environment with `uv sync` and, when a pin changed, the image; neither drags the other along. The image's identity is not a label but a file, `FACTORY_IMAGE_ID_FILE`, which the operator renews after a build (`vm/setup.sh` makes it when it is missing). Root runs no file of the factory's checkout, which `factory` can write: the operator runs the setup script from their own copy.
 - Rejected: the factory in a container with the podman socket (one more container and a socket that is nearly root, with no gain); the factory as root on the VM (a container escape would be root); a stage container that pushes with a token (the agent runs in that container).
 - Open: F0044 removes the Docker path (`image/`, the compose instance and the long-lived container's layers), and with it the chapters of the operator guide that describe them.
+- Done: F0044-S0010 removed the Docker path (`image/`, the compose instance and the long-lived container's layers) and the chapters of the operator guide that described them; the credential helper moved to `vm/git-credential-factory`.

@@ -34,7 +34,7 @@ A stage runs in the order below (`planning/v1.2-plan.md`, "The cycle of a stage"
 
 Both operations take the command words and, by keyword, `mounts`, `environment`, `time_limit` and `working_directory`:
 
-- `launch(...)` returns a `ContainerLaunch`: the `argv`, the `env` and the `time_limit` that start the command in a container. It runs nothing. A caller that starts the process itself, for example under the write guard, uses it. `env` of `None` means the process's own environment.
+- `launch(...)` returns a `ContainerLaunch`: the `argv`, the `env` and the `time_limit` that start the command in a container. It runs nothing. A caller that starts the process itself uses it. `env` of `None` means the process's own environment.
 - `run(...)` runs the command until it ends or reaches `time_limit` and returns a `ContainerResult`: `exit_status`, the merged `output`, `timed_out` and `duration`. `exit_status` is `None` exactly when `timed_out` is true (a model validator). A command that fails or times out is a result; `ContainerError` means the container could not be started.
 
 A `Mount` has a `source` (an absolute host path), a `target` (a container path) and `read_only` (default false). A target starts with `/` and has no empty segment and no `..` segment, so `/`, `a/b`, `/a//b`, `/a/` and `/a/../b` are refused with `ValidationError`; `/a/./b` is accepted. The dataset is the fixed `/work` mount of every run, so both operations raise `ValueError` for a mount whose target is `/work` or lies under it, and for a command without words. `check_container_call` (`factory.domain.containers`) is that rule; the fake and the podman adapter both call it.
@@ -313,7 +313,7 @@ An instance names its dataset, workspace and stage image in its environment vari
 | `FACTORY_PODMAN` | `podman_executable` | `podman` |
 | `FACTORY_ZFS` | `zfs_executable` | `zfs` |
 
-`read_settings` strips each value and reads a blank one as unset. It raises no fault for a missing dataset, workspace or image. It refuses a relative workspace (`SettingsInvalid(FACTORY_WORKSPACE, "is not an absolute path")`) and then a `checkout` and then a `state_directory` that is the workspace or lies inside it (`Path.is_relative_to`, by path parts): `SettingsInvalid(FACTORY_CHECKOUT, "<checkout> lies inside FACTORY_WORKSPACE")`, or the same for `FACTORY_STATE`. `FACTORY_STAGE_ENVIRONMENT` and `FACTORY_AGENT_USER` are read by nothing: any value is ignored.
+`read_settings` strips each value and reads a blank one as unset. It raises no fault for a missing dataset, workspace or image. It refuses a relative workspace (`SettingsInvalid(FACTORY_WORKSPACE, "is not an absolute path")`) and then a `checkout` and then a `state_directory` that is the workspace or lies inside it (`Path.is_relative_to`, by path parts): `SettingsInvalid(FACTORY_CHECKOUT, "<checkout> lies inside FACTORY_WORKSPACE")`, or the same for `FACTORY_STATE`.
 
 One function, `workspace_overlap_fault(workspace, checkout, state_directory)` (`factory.domain.settings`), holds that rule and gives `None` for a `None` workspace. `read_settings` calls it, and so does the model validator of `InstanceSettings`, so a model built directly refuses the same combinations with a `ValidationError` (the validator's message is `<variable>: <fault>`; it is not turned back into a `SettingsInvalid`).
 

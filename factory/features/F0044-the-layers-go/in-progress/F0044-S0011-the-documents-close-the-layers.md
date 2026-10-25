@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 454
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T20:20:13.100791Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:20:13.106456Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T20:20:32.815053Z'
+  stage: intake
+  run: c10ea9981ed54c3d9d2f8523a1b23771
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:20:53.145517Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T20:23:09.303308Z'
+  stage: tests
+  run: f5901fc611ca4dd9b7c68e7f54878f04
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:23:29.796510Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-25T20:26:02.703986Z'
+  stage: doing
+  run: 1e33581deb8c40339f02953e6e9f776d
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:26:23.329882Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T20:26:36.900312Z'
+  stage: review
+  run: 4db0a1fbd9094708a50db6200fb5092e
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:26:57.425422Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T20:31:21.937873Z'
+  stage: docs
+  run: 0c62bff217e440748205b65f96d8c9cd
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:31:42.814691Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T20:32:27.662144Z'
+  stage: smoke-test
+  run: 290284052afe4d4d9ee43dffb1e35b02
+---
+
 # The documents close the layers
 
 ## Description
@@ -68,3 +152,122 @@ make documents 2>&1 | tail -n 1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: "None" is right for a documents-only sweep; it names what may not change (src/, tests/, vm/, template/, claude/) and what the documenter changes (README.md, docs/operator-guide.md, docs/project-guide/, docs/decisions.md). Criterion 1 pins that nothing outside changes, and criterion 3 names the files and sections.
+   Criteria: each can be judged by one check. The removed-layer terms, the fourteen decision entries, the single `What went` paragraph, the missing test-module paths and `documents ok` are each backed by a smoke command. The rest is named exactly (section names, which table rows change, which bullets move) for the reviewer. Each rule has its failing side: the grep must find 0 outside `Replaced` sections, and each of the fourteen entries must end with a line naming F0044-S00, which the loop counts as 0 failures. `nested_repository` and `tool_paths` are allowed where they remain true. No Interface behaviour is left without a criterion.
+   Smoke test: every command uses awk, grep, a while loop or make, so all are runnable. Each `Expect:` is checkable: `0`; `0` and `1`; `0` and `0`; `1` and `1`; `documents ok`. No command runs pytest, so the `-q` rule does not apply. The `[Dd]ocker\b` pattern does not match `Dockerfile`, as the criterion allows.
+   Architecture: documents and the decision log only, with no layer or interface touched. It keeps the documenter's write paths (`README.md`, `docs/*`). `docs/operator-playbook.md`, `docs/runs/` and `CLAUDE.md` are left alone, as decision 15 says.
+   Scope: matches S0011 in feature.md (the decision log's closing lines and *What went*, the operator guide, the project guide, README). It adds no mechanism and touches nothing in "Out of scope". The format check passed, and no earlier test is changed.
+4. factory: started tests as self.
+5. tester: I wrote no tests and changed nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/`. This story only fixes documents. Its Interface is "None", and no test reads the documents: `not_read` leaves out `README.md` and `docs/*.md`.
+   - criterion 1 (nothing under src/, tests/, vm/, template/ or claude/ changes): no test. This entry is the tester's statement that it holds; the working tree has no change of mine.
+   - criterion 2 (`make check` stays green): no test of its own. The factory's checks cover it. `make test` passed in this stage (`test: green`, coverage 99.55 %) because no new test was added, so there is no red test on purpose. `make lint` passed.
+   - criterion 3 (docs): no test, as the criterion itself says ("no test does"). The smoke test and `make documents` check it after the documenter.
+   Files created: none. Modules the test run could not import: none.
+   For the coder: there is no specification in tests. Hand the story on to the documenter without code changes.
+
+   `lint`: lint: green (0.1 s)
+   `test`: test: green (60.6 s)
+6. factory: started doing as self.
+7. coder: I built nothing and changed nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/`. This story only fixes documents, its Interface is "None", and the tester wrote no tests, so the code had nothing to fail against. The working tree has no change of mine; the one modified file is the work item's `.costs.jsonl`, which belongs to the factory.
+   - Criterion 1: holds; this entry is the coder's statement of it.
+   - Criterion 2: `make check` passed in this stage (`test: green (61.2 s)`, coverage 99.55 %, `check: green`).
+   - Criterion 3 (docs): left to the documenter. `README.md`, `docs/operator-guide.md`, `docs/project-guide/` and `docs/decisions.md` are its files and not the coder's (CLAUDE.md, *Docs*).
+   Main choice: hand on with no change. The alternative I rejected was editing the documents here: they are outside the coder's work, and the criterion gives them to the documenter.
+   Refactor: there is no diff, so there was nothing to change.
+   Description: the journal did not change what the task means, so I left it as it is.
+   Noticed but not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 8 new, 35 known, 3 gone
+8. factory: started review as self.
+9. reviewer: no findings
+
+   What I checked: `git diff main...HEAD -- . ':!factory'` is empty. `git diff --name-status main...HEAD` lists only the work item and its new `.costs.jsonl` sidecar, both under `factory/`. So nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/` changed.
+   - Criterion 1 (no change outside the documents): holds. The diff confirms what the tester's entry (5) and the coder's entry (7) say.
+   - Criterion 2 (`make check` stays green): holds. The coder's entry (7) records `check: green` from the factory's run.
+   - Criterion 3 (docs) belongs to the documenter, as its own text says. The smoke test and `make documents` check it after the docs stage.
+   - Interface: it is "None", with no rule that needs a failing-side test.
+   - Architecture, security and quality: there is no code in the diff, so these groups have nothing to judge. The `duplicates: 8 new` in entry 7 cannot come from this story, because it changes nothing under `src/factory`.
+   - Work item hygiene: the Description matches what was built (nothing yet, documents next), and the journal states the choice to hand on with no change. The docs criterion still says what the documenter must make true.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
+11. documenter: No findings. I changed documents only and left `src/`, `tests/`, `vm/`, `template/` and `claude/` as they were. I did not run `make check`, as the stage allows when only documents change. `make documents` prints `documents ok`, and all five smoke-test blocks give their expected output: `0`; `0` and `1`; `0` and `0`; `1` and `1`; `documents ok`.
+
+    Files changed, one line each:
+    - `docs/decisions.md`: each of the fourteen named entries now ends with one closing line naming its F0044 stories and what replaced it or what stays. The records-contract entry ends with a line saying the version is `3.0` since F0044-S0006 (the code has `RECORDS_CONTRACT = "3.0"`). "One snapshot instead of many layers" gains *What went*: one line per story S0001 to S0011, and one line on what the acceptance measures (decision 27 of `feature.md`).
+    - `docs/operator-guide.md`:
+      - New chapter `## Replaced in v1.2` before `## Replaced from v1`, named in the list at the top, with one bullet for each of the eight layers.
+      - The *Configuration* table rows now say what `factory.env` sets, and the state and checkout defaults name the VM paths.
+      - The paragraph on the image identity points to *The rebuild after a merge*.
+      - *The checkout is cloned when it is missing* names `FACTORY_CHECKOUT` and no seal.
+      - The records sections use the `FACTORY_STATE` path in place of `/state`, and the disk record's example and host numbers no longer name a container path or Docker.
+      - The `tool:git`, `tool:uv` row says to install the tool on the VM and keeps the detail the code prints.
+      - *Running on opencode* says the pins come from `vm/Dockerfile` through `factory.env`, and that an own build is set in `factory.env`.
+      - *The shipped agents and settings* says the agents come from `FACTORY_CLAUDE_HOME` and reach the instance by a merge and *The rebuild after a merge*.
+      - The stage-image and stage-environment paragraphs lost the sentences about v1.1's container.
+    - `docs/project-guide/README.md`: the *Sections* lists name the two new `Replaced in v1.2` sections, and `module_names.py` is added to the helper list. Its other lines already matched the criterion: no missing module or helper, no `compose_service`, `image_layout` or `DOCKERFILE`, and `dockerfile_support.py` already described the readers of `vm/Dockerfile`.
+    - `docs/project-guide/agents.md`:
+      - The `## Rules` bullet now states R14 as R14 reads since F0044-S0001.
+      - The wrapper, `sudo`, `timeout` and `env -i` wording is gone from the shared-launch passages.
+      - The entrypoint sentence is gone.
+      - New `## Replaced in v1.2` section.
+    - `docs/project-guide/processes-and-checks.md`: *Running as another user* is replaced by a `## Replaced in v1.2` bullet. The `make mutants` passage says a kill loses `make`'s process group only, since F0044-S0010. The cited section is *Killing a process group*, and *Container project commands* is now *The checks* in `stage-environment.md`. The umask-and-seal sentence is gone from the temporary-folder paragraph.
+    - `docs/project-guide/watching.md`: the credential helper is `vm/git-credential-factory`. The test it names is `tests/test_git_credential_helper.py`, because `tests/test_image_credentials.py` does not exist. The `RepositoryUnsealed` sentence is gone, since the class is gone.
+    - `docs/project-guide/write-guard.md`: removed the "The kernel's targets do not change" sentence.
+    - `docs/project-guide/stage-environment.md`: removed the "under the write guard" example and the sentence about `FACTORY_STAGE_ENVIRONMENT` and `FACTORY_AGENT_USER`.
+    - `docs/project-guide/stages.md`: `write_paths` imports `is_inside_checkout`; the module `confinement` no longer exists.
+    - `README.md`: the newcomer's paragraph now says the factory runs as a service on a Linux VM with ZFS and rootless Podman, prepared by `vm/setup.sh`, and points to *The machine* and *Replaced in v1.2*.
+
+    Cross-read and found current: `docs/project-guide/costs.md`, `git-and-hosting.md` and `work-items.md` (no removed-layer terms or missing test modules); the *Known results* subsection and the rest of `processes-and-checks.md`; the *Project commands* part that stays true.
+
+    Not run: I cannot run the disk-record log example, so I wrote its paths from `domain/disk.py`'s `disk <occasion>: <folders>` format and the VM layout. The check will not catch a wrong path there.
+
+    Stale text seen, not touched: I read only the passages the criterion names and the smoke test finds, so other long paragraphs of `operator-guide.md` (1,700 lines) may still hold older wording that no pattern matches. `docs/operator-playbook.md` and `docs/runs/` keep their history, as the criterion says.
+
+    `check`: check: green (not run again: passed on tree 4f655f546fa7 at 2026-10-25T20:24:55Z)
+    `secrets`: secrets: green (2.7 s)
+    `documents`: documents ok
+12. factory: started smoke-test as self.
+13. smoke-tester: No findings. I ran the five smoke-test blocks from the repository root as written, in order. Each one met its `Expect:` line. I changed nothing.
+
+    1. Removed-layer terms outside the `Replaced in v1.2` and `Replaced from v1` sections of `docs/operator-guide.md` and `docs/project-guide/*.md`. Expect: `0`. Met.
+    ```
+    0
+    ```
+    2. Closing lines of the fourteen decision-log entries, then the records-contract entry. Expect: two lines, `0` and `1`. Met.
+    ```
+    0
+    1
+    ```
+    3. Missing `tests/<...>.py` modules named in the guides, then removed-layer terms in `README.md`. Expect: two lines, `0` and `0`. Met.
+    ```
+    0
+    0
+    ```
+    4. The heading "One snapshot instead of many layers", then how often *What went* appears. Expect: two lines, `1` and `1`. Met.
+    ```
+    1
+    1
+    ```
+    5. `make documents 2>&1 | tail -n 1`. Expect: `documents ok`. Met.
+    ```
+    documents ok
+    ```
+
+    Reading the acceptance criteria again, I checked these by hand. None is contradicted:
+    - Criterion 1: nothing changed under `src/`, `tests/`, `vm/`, `template/` or `claude/`. `git diff --name-status main...HEAD` and `git status --short` over those paths both print nothing.
+    - Criterion 3, the `Replaced in v1.2` sections:
+      - `docs/operator-guide.md` has the chapter at line 1682, right before `## Replaced from v1` at line 1695. The list at the guide's top names it (line 42).
+      - The chapter has one bullet for each of the eight layers, and each bullet names its story id (S0001/S0002, S0005, S0003, S0004, S0006, S0008, S0009, S0010).
+      - `agents.md`, `processes-and-checks.md` and `write-guard.md` each have a `## Replaced in v1.2` section.
+      - None of these sections holds a subheading.
+    - Criterion 3, `processes-and-checks.md`: no heading named *Running as another user* is left. The *Mutation testing* section says a kill loses `make`'s process group only, so a mutmut that `timeout` put into a group of its own is not ended (since F0044-S0010).
+    - Criterion 3, `agents.md`: the `## Rules` bullet states R14 as the take ("takes only the changed paths the role may write"). It has no `Permission denied`, no `$TMPDIR` as the one temporary place and no refused `/tmp`.
+    - Criterion 3, `README.md`: the newcomer's paragraph (line 24) says the factory runs as a service on a Linux VM with ZFS and rootless Podman, with every stage in throwaway containers on one dataset. It names `vm/setup.sh` and points to *The machine* in `docs/operator-guide.md`.
+
+    Not checked by me: the content of each operator-guide row and passage that criterion 3 lists (Configuration, the records' paths, the preflight's row, opencode, the shipped agents). The documenter's entry 11 reports them and the reviewer judged the stage. Criterion 2 (`make check`) rests on the factory's passed run recorded in entry 11; I did not run it again because this stage runs only the smoke test.
