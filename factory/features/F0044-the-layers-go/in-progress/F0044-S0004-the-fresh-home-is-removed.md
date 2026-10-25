@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 447
 comments_read: [6398446445]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T14:02:30.360283Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-25T14:02:09.682534Z'
   stage: docs
   run: 6740030648b24b18bbb7ac0aab61171b
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:02:30.360283Z'
+  stage: smoke-test
 ---
 
 # The fresh home is removed
@@ -307,3 +316,4 @@ Expect: six lines: `gone`, `gone`, `gone`, `gone`, `gone`, `False False True`
     `check`: check: green (not run again: passed on tree 0040404b5470 at 2026-10-25T13:57:34Z)
     `secrets`: secrets: green (3.5 s)
     `documents`: documents ok
+15. factory: started smoke-test as self.
