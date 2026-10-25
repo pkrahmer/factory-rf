@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 454
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T20:26:57.425422Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-25T20:26:36.900312Z'
   stage: review
   run: 4db0a1fbd9094708a50db6200fb5092e
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:26:57.425422Z'
+  stage: docs
 ---
 
 # The documents close the layers
@@ -173,3 +182,4 @@ Expect: `documents ok`
    - Work item hygiene: the Description matches what was built (nothing yet, documents next), and the journal states the choice to hand on with no change. The docs criterion still says what the documenter must make true.
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as self.
