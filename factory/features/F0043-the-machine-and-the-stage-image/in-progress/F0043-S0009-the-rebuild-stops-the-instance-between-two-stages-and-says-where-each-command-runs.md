@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 440
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-25T09:12:16.149174Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T09:11:56.176217Z'
   stage: intake
   run: fa6954e0c78047aeaa40af2225adbe35
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:12:16.149174Z'
+  stage: tests
 ---
 
 # The rebuild after a merge stops the instance between two stages and says where each command runs
@@ -93,3 +102,4 @@ Expect: `documents ok`
    Smoke test: the commands are runnable awk and grep pipelines over the guide, and `make documents`. The pytest `-q` rule does not apply, because no command runs pytest. Each `Expect:` line is checkable against the output: counts of at least 1, `0`/`1`, `0`, and `documents ok`.
    Architecture: this is documentation only, so the layers are untouched. The documenter's write path covers `docs/*`.
    Scope: the story stays inside F0043's operator-guide work. It touches no code, `vm/` or `factory/`. It leaves the `TimeoutStopSec` change open for the human, as the feature's Out of scope requires.
+4. factory: started tests as vm.
