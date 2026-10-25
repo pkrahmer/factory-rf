@@ -5,8 +5,8 @@ round: 1
 attempts: 0
 crashes: 0
 pull_request: 451
-comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241]
-handed_over: approval
+comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241, 6401865606]
+handed_over: null
 claim: null
 journal:
 - number: 1
@@ -231,6 +231,16 @@ journal:
   at: '2026-10-25T19:02:50.598336Z'
   stage: smoke-test
   run: ac8c64d403654bb285dc5182bff40981
+- number: 41
+  speaker: human
+  kind: comment
+  at: '2026-10-25T19:05:13.524638Z'
+  stage: approval
+- number: 42
+  speaker: human
+  kind: close
+  at: '2026-10-25T19:05:13.525022Z'
+  stage: approval
 ---
 
 # The inline environment and its setting are removed
@@ -859,3 +869,5 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     Against the acceptance criteria: the output agrees with the parts of criterion 1 it covers. `InlineEnvironment` and `STAGE_ENVIRONMENT_VARIABLE` are gone, `REQUIRED_TOOLS == ("git", "uv")`, and `snapshots` and `containers` have no default. It contradicts no other criterion. The smoke test does not cover criteria 2 to 10; the tests and the factory's own checks cover those.
 
     Findings: none.
+41. 2026-10-25 human: Sent back with one finding, for the tester: `tests/application/test_stage_environment_of.py::test_the_environment_of_the_boundaries_is_the_container_one` reads `environment._snapshots` and `environment._containers` behind two `# noqa: SLF001` markers. `CLAUDE.md` allows no silencing marker outside `src/factory/adapters/process.py`. Check criterion 2 ("on its snapshots and containers") through behaviour instead, without a marker: for example, `prepare` on the returned environment rolls back the boundaries' `FakeSnapshots` (its recorded calls) and `run_agent` launches through the boundaries' `FakeContainerRuns` (one recorded launch). The test keeps its name. Nothing else changes.
+42. 2026-10-25 human: closed the pull request.
