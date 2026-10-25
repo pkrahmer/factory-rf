@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 453
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T20:13:21.185170Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-25T20:13:21.185170Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T20:13:55.963901Z'
+  stage: smoke-test
+  run: ba45922f5c764ff89864d443dffdc677
 ---
 
 # The Docker path and the host's process table are removed
@@ -266,3 +268,20 @@ Expect: three lines: `0`; `helper-moved`; `gone`
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
 12. factory: started smoke-test as self.
+13. smoke-tester: Ran the one smoke-test command from the repository root, exactly as written.
+
+    Command 1:
+    ```bash
+    ls image/Dockerfile image/compose.yml image/entrypoint.sh 2>/dev/null | wc -l; test -x vm/git-credential-factory && echo helper-moved; uv run python -c 'import factory.domain.sessions' 2>/dev/null && echo present || echo gone
+    ```
+    Output:
+    ```
+    0
+    helper-moved
+    gone
+    ```
+    Expect: three lines: `0`; `helper-moved`; `gone`. Met.
+
+    Checked against the acceptance criteria once more. Nothing in the run contradicts any criterion. Beyond the command, I checked these things myself, read-only: `git ls-files image/` lists nothing, and the `image/` directory is gone from the working tree. `git diff origin/main -M` shows `image/git-credential-factory` → `vm/git-credential-factory` as a rename at 100 % similarity, which fits criterion 1 (moved unchanged). The helper's mode is executable. The smoke test does not exercise criteria 2, 3, 5, 6 and 8 (helper behaviour, setup.sh text, kill at the limit, test-text scan, docs). I did not judge them here; they belong to the tests, the review and the docs stage. I did not run `make check` (criterion 7); the factory runs it as the stage's check.
+
+    Findings: none. I fixed nothing and left no changes in the working tree.
