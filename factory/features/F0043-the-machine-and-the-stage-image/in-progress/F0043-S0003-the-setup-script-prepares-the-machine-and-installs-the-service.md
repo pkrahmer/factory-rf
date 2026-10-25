@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 432
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T00:32:56.420497Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-25T00:32:56.420497Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-25T00:33:20.767433Z'
+  stage: intake
+  run: 1bb6eb3e18c14e67bb69aab148994b78
+  blocked: question
 ---
 
 # The setup script prepares the machine and installs the service
@@ -95,3 +98,21 @@ Expect: `1`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: Format check passed. Two Interface rules have no criterion, so two coders could read them differently and both pass the tests:
+
+   1. **Option defaults.** The Interface states `--instance` = `vm`, `--pool` = `tank`, `--quota` = `30G`, `--ref` = `main`, `--image` = `factory-stage:<instance>` and `--runtime` = `claude`. No criterion tests any of them. Criterion 7 pins only the names in the environment file, and criteria 2 and 3 pass explicit values. I would add a criterion, rows of one parametrized test, that reads the default assignments from the script text. For example, the text holds `instance=vm`, `pool=tank`, `quota=30G`, `ref=main` and `runtime=claude` once each, and the `--image` default is built from `$instance` as `factory-stage:`. Do you want that, or a different form such as the script's usage text naming the defaults?
+
+   2. **Values of the environment file's lines.** Criterion 7 tests that each of the twenty names appears once, in order. It tests only two values: `FACTORY_STAGE_ENVIRONMENT=container` and the literal `PATH`. Nothing pins these values:
+      - `FACTORY_DATASET=$pool/factory/$instance`
+      - `FACTORY_WORKSPACE`, `FACTORY_CHECKOUT`, `FACTORY_STATE`, `FACTORY_IMAGE_ID_FILE` and `FACTORY_CLAUDE_HOME` under `/srv/factory/<instance>`
+      - the three secret file paths
+      - `XDG_RUNTIME_DIR=/run/user/` followed by the uid from `id -u factory`
+      - `FACTORY_INSTANCE`, `FACTORY_REPOSITORY_URL`, `FACTORY_AGENT_RUNTIME` and `FACTORY_STAGE_IMAGE` taking the arguments
+      - the three pins read from the Dockerfile
+
+      A wrong path or a swapped variable would pass. I would extend criterion 7 so each name's line holds its stated value, in the text's own variable form: `$instance`, `$base`, `$(id -u factory)` and so on. Do you want that? If so, which variable names does the script have to use, or should the test accept any form that holds the stated literal parts?
+
+   Checked and fine:
+   - The Interface names concrete files.
+   - The smoke test commands are runnable. The pytest line passes no `-q`, and `pyproject.toml` already sets it.
+   - The scope and architecture are within `feature.md`.
