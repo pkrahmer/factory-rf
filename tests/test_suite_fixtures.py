@@ -1,6 +1,6 @@
 """The suite's shared fixtures describe a container instance on the fakes."""
 
-import subprocess  # noqa: S404
+import subprocess
 from pathlib import Path
 
 from container_support import timing_lines
@@ -45,7 +45,7 @@ def test_the_remotes_makefile_has_a_silent_sync_that_succeeds(remote: Path, tmp_
     work_tree = clone(remote, tmp_path / "clone")
     assert (work_tree / "Makefile").is_file()
 
-    result = subprocess.run(  # noqa: S603, S607  (fixed command, no input)
+    result = subprocess.run(
         ["make", "-s", "sync"], cwd=work_tree, capture_output=True, text=True, check=False
     )
 

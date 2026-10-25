@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T17:13:25.897029Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-25T17:13:25.897029Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-10-25T17:16:31.387150Z'
+  stage: tests
+  run: 7516dd843e2e4527a062564e37c522c3
 ---
 
 # The suite's stages run on the container fakes
@@ -365,3 +367,21 @@ Expect: two lines: `1`; `1`
 
     Noticed, not touched: the Interface names `factory.application.task.StageTask`, which does not exist. `TaskComposer` is the class that composes the request.
 22. factory: started tests as self.
+23. tester: I made the three test changes the coder listed in entry 21 to fix the reviewer's findings in entry 19. I changed nothing else.
+
+    1. `tests/test_suite_fixtures.py`: I took `# noqa: S404` off `import subprocess` and `# noqa: S603, S607  (fixed command, no input)` off the `subprocess.run(` call. CLAUDE.md allows those markers only in `src/factory/adapters/process.py`, and the per-file ignore for `tests/**` already covers this file. `make lint` passes without them.
+    2. `tests/application/test_cost_image.py`, `_launch`: the docstring is the first statement again. The comment and the two lines that put the fixture's `agent_home` into the settings now come right after it. This fixes my own addition, so it stays within answer 29 (a).
+    3. `tests/application/test_stall_edges.py` and `tests/application/test_stall_environment.py`: I deleted the unused constant `WRITTEN = "written-by-lint.txt"`. Only the two red-check tests this story deleted used it.
+
+    Each test keeps its name and checks the same thing. The criterion → test mapping is unchanged from the earlier tests entries.
+
+    Files changed: tests/test_suite_fixtures.py, tests/application/test_cost_image.py, tests/application/test_stall_edges.py, tests/application/test_stall_environment.py. Files created: none.
+
+    `make lint`: lint: green (0.7 s). `make test` (one run): test: green (72.5 s), coverage 99.55 %.
+
+    Modules the test runner could not import: none.
+
+    Still open: the coder's `make check` run on these changes.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (74.1 s)

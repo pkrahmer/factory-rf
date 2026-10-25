@@ -52,7 +52,6 @@ from stall_support import (
 )
 
 TAKEN = TakeReport(left=["src/b.py"], restored_work_item=False)
-WRITTEN = "written-by-lint.txt"
 
 
 class TakingEnvironment(StageEnvironment):

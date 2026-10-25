@@ -26,7 +26,6 @@ from stage_run_support import (
 )
 
 ELSEWHERE = "elsewhere"
-WRITTEN = "written-by-lint.txt"
 
 
 class CommitThenLeaveRuntime(AgentRuntime):
