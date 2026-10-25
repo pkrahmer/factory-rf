@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T18:49:29.838224Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -176,6 +180,11 @@ journal:
   at: '2026-10-25T18:49:09.087881Z'
   stage: doing
   run: a0d02fdd9323415ba8d59f15eed80b5d
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-10-25T18:49:29.838224Z'
+  stage: tests
 ---
 
 # The inline environment and its setting are removed
@@ -660,3 +669,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     Noticed but not touched: `read_hosting_token` at `src/factory/entry/wiring.py:187` writes the literal `"missing"` rather than `_MISSING`. That is outside this finding.
 
     I did not run `make check` this round, because nothing changed since entry 23 recorded it green.
+31. factory: started tests as self.
