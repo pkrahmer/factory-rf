@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T00:02:24.032476Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-25T00:02:03.352277Z'
   stage: docs
   run: 403364e9162e41859114a42c99727b70
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:02:24.032476Z'
+  stage: smoke-test
 ---
 
 # The stage image is the tools alone
@@ -377,3 +386,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 19798b0f46c2 at 2026-10-24T23:58:01Z)
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
