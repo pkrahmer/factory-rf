@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 438
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-25T08:42:30.916983Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-25T08:42:30.916983Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T08:46:01.693831Z'
+  stage: tests
+  run: 9924d52cf2364bb1984cf6fbf7f00fd1
 ---
 
 # The rebuild after a merge runs the operator's own copy of the setup script
@@ -85,3 +87,12 @@ Expect: `documents ok`
    Architecture: Docs only. No layer is touched, and the root-acts-only-on-what-`factory`-cannot-change rule from F0043-S0003 is the one this story applies.
    Scope: Within F0043. Its scope covers the operator guide's chapter and the decision-log entry of the machine. Nothing in its "Out of scope" is touched. The Description leaves "how the operator obtains a trusted copy" to the human before the story starts. The human started the story, and criterion 3 names the method (a copy from their own checkout of the ref, as in step 6), so I take that as settled and ask nothing.
 4. factory: started tests as vm.
+5. tester: No tests written. This story only changes the docs. Its Interface is "None" and says no test changes, and criterion 3 says no test checks the documents.
+   criterion 1: no test. It limits the story's scope: as the tester, I changed nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/`, and the working tree is clean.
+   criterion 2: no new test. `make check` covers it, run by the factory and by the coder.
+   criterion 3: no test. The smoke test and `make documents` check it, as the criterion says.
+   Files created: none. Modules the test run could not import: none. I did not run `make test` because there are no new tests that should fail. `make lint` is green.
+   Open: nothing for the coder to implement. The documenter writes `docs/operator-guide.md` and the one sentence in `docs/decisions.md`. The coder's entry should also say that nothing under the listed folders changed.
+
+   `lint`: lint: green (0.2 s)
+   `test`: test: green (194.8 s)
