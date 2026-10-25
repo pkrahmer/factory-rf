@@ -32,7 +32,7 @@ from factory.domain.errors import ContainerError, SnapshotError
 from factory.domain.git import CommitId
 from git_support import AGENT_FILE, install_agents, run_git, write_agent, write_files
 from human_clone import HumanClone
-from sealed_run_support import COMPLETED, run_request
+from sealed_run_support import COMPLETED, RecordingRun, run_request
 from undo_support import BRANCH, start_stage
 
 AGENT = "tester"
@@ -275,19 +275,6 @@ def test_the_timeouts_seconds_are_rounded_up(
 def _git_modes(checkout: Path) -> tuple[int, int]:
     folder = checkout / ".git"
     return stat.S_IMODE(folder.stat().st_mode), stat.S_IMODE((folder / "config").stat().st_mode)
-
-
-class RecordingRun:
-    """A run of the test: records each request and returns the completed result."""
-
-    def __init__(self) -> None:
-        """Start with no request."""
-        self.requests: list[AgentRunRequest] = []
-
-    def run(self, request: AgentRunRequest) -> AgentRunResult:
-        """Record `request`."""
-        self.requests.append(request)
-        return COMPLETED
 
 
 @pytest.mark.parametrize("given", [False, True], ids=["runtime", "given-run"])

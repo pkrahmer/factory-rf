@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T16:30:22.461374Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-10-25T16:30:22.461374Z'
   stage: tests
+- number: 26
+  speaker: tester
+  kind: result
+  at: '2026-10-25T16:33:08.060853Z'
+  stage: tests
+  run: 6feb94f917fd4c1eba39b44d56423458
 ---
 
 # The checkout's hygiene is removed
@@ -483,3 +485,18 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
 
     Noticed, not touched: as before, `CheckoutPreparer` stores `self._log` but never reads it. It stays, as entry 14 decided.
 25. factory: started tests as self.
+26. tester: Mode: the approved test change from the coder's entry 24, which is the reviewer's finding in entry 22, group 4, item 1. I made the move under the standing leave in `CLAUDE.md` (*Tests*) to move a shared test helper. No test of a criterion changed.
+
+    The change:
+    - `tests/sealed_run_support.py` now holds `RecordingRun`, beside `COMPLETED` and `run_request`. Its docstrings and body are unchanged. The module docstring now names the recording run too.
+    - `tests/application/test_stage_environment.py` no longer holds its copy of `RecordingRun` and imports it from `sealed_run_support`. The `AgentRunRequest` import, now unused, is gone.
+    - `tests/application/test_container_environment.py` no longer holds its copy and imports it from `sealed_run_support`. It still uses `AgentRunRequest` and `AgentRunResult` in its own stand-in, so those imports stay.
+
+    Every test keeps its name and checks the same thing.
+
+    Earlier test files changed under the standing leave: `tests/application/test_stage_environment.py` and `tests/application/test_container_environment.py`. `tests/sealed_run_support.py` is the shared place that now holds the helper.
+
+    `make lint` is green, and one run of `make test` is green (`test: green`). I created no files, and every module imported.
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (67.8 s)

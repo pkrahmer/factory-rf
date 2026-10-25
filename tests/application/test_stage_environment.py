@@ -18,11 +18,11 @@ from factory.application.stage_environment import (
     stage_environment_of,
 )
 from factory.application.take import TakeReport
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
+from factory.domain.agent_runs import AgentRunResult
 from factory.domain.errors import WorkItemFormatError
 from git_support import write_files
 from human_clone import HumanClone
-from sealed_run_support import COMPLETED, run_request
+from sealed_run_support import COMPLETED, RecordingRun, run_request
 from stage_run_support import INSIDE
 from take_support import AGENT_TEXT
 from undo_support import (
@@ -55,19 +55,6 @@ def test_prepare_does_nothing_and_reads_nothing(
     assert boundaries.git.status() == status
     assert boundaries.git.work_tree_id() == tree
     assert agent_runtime.requests() == []
-
-
-class RecordingRun:
-    """A run of the test: records each request and returns the completed result."""
-
-    def __init__(self) -> None:
-        """Start with no request."""
-        self.requests: list[AgentRunRequest] = []
-
-    def run(self, request: AgentRunRequest) -> AgentRunResult:
-        """Record `request`."""
-        self.requests.append(request)
-        return COMPLETED
 
 
 @pytest.mark.parametrize("given", [False, True], ids=["runtime", "given-run"])
