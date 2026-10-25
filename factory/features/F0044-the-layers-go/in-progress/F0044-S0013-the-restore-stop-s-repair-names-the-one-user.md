@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 457
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T21:16:20.991635Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-25T21:16:00.478917Z'
   stage: docs
   run: 5c55e8ea65ca472abdb5ef13272f7107
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T21:16:20.991635Z'
+  stage: smoke-test
 ---
 
 # The restore stop's repair names the one user
@@ -173,3 +182,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 92c6af88fac5 at 2026-10-25T21:03:03Z)
     `secrets`: secrets: green (0.9 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
