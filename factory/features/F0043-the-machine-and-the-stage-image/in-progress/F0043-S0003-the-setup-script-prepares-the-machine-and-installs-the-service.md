@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T05:58:44.035135Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -314,6 +318,11 @@ journal:
   at: '2026-10-25T05:58:23.203330Z'
   stage: tests
   run: 33419f9e023444d2ad9ffb86eedc9756
+- number: 56
+  speaker: factory
+  kind: started
+  at: '2026-10-25T05:58:44.035135Z'
+  stage: doing
 ---
 
 # The setup script prepares the machine and installs the service
@@ -932,3 +941,4 @@ Expect: `1`
 
     `lint`: lint: green (0.5 s)
     `test`: test: green (67.8 s)
+56. factory: started doing as self.
