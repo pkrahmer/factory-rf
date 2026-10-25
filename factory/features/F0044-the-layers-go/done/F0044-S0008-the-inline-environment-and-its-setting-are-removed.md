@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -312,6 +312,11 @@ journal:
   at: '2026-10-25T19:17:30.169696Z'
   stage: smoke-test
   run: 1b4e0ef91cfa4b26bf58f89a7e0c442b
+- number: 56
+  speaker: factory
+  kind: done
+  at: '2026-10-25T19:18:50.384948Z'
+  stage: approval
 ---
 
 # The inline environment and its setting are removed
@@ -1080,3 +1085,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     I did not run `make check`. It is not a smoke test command, and the factory runs the stage's checks itself.
 
     Findings: none. I fixed nothing and changed no file.
+56. factory: done (pull request merged); cost: 23 runs, 57.6 min, 354 turns, 1011866 tokens in (14907713 more from cache), 161604 out, $13.00
