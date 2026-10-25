@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 442
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-25T09:50:14.708210Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-25T09:49:54.398283Z'
   stage: doing
   run: 86b3319a43ae4273a3f6c92bd01c3ea4
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:50:14.708210Z'
+  stage: review
 ---
 
 # Step 12 stops the instance between two stages before it stops the VM
@@ -129,3 +138,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
+8. factory: started review as vm.
