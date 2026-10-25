@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 433
 comments_read: [6394400610]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T06:41:03.281666Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-25T06:41:03.281666Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T06:41:27.290687Z'
+  stage: smoke-test
+  run: 4b8f421420b24c3391292a9dec7a853b
 ---
 
 # The setup script writes as factory from its own standard input
@@ -243,3 +245,21 @@ Expect: two lines, `0` and `syntax-ok`
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 15. factory: started smoke-test as self.
+16. smoke-tester: I ran the smoke test once, from the repository root, exactly as written. It met its `Expect:` line. I fixed nothing.
+
+    Command: `grep -c '/dev/stdin' vm/setup.sh; sh -n vm/setup.sh && echo syntax-ok`
+    ```
+    0
+    syntax-ok
+    ```
+    Expect: two lines, `0` and `syntax-ok`. Met.
+
+    Checking the criteria against the script: nothing the smoke test showed contradicts any criterion. I also read `vm/setup.sh` with grep, and it agrees:
+    - Criterion 1: no line holds `/dev/stdin`. No `install` reads from standard input. The `install` calls left in the script copy named files or make folders.
+    - Criterion 2: the helper `write_as_factory` is defined at `vm/setup.sh:116`. Its body at `:117` runs `as_factory sh -c 'cat > "$2" && chmod "$1" "$2"' sh "$1" "$2"`. The three writes call it:
+      - `:269`: `0644 "$base/image-id"`, reading from `/proc/sys/kernel/random/uuid`
+      - `:288`: `0755 "$askpass"`
+      - `:355`: `0644 "$env_file"`
+    - Criteria 3 to 6: the smoke test does not check these, and nothing it showed contradicts them. Entry 10 records `make check` as green, and entry 14 records the docs sentence.
+
+    Findings: none.
