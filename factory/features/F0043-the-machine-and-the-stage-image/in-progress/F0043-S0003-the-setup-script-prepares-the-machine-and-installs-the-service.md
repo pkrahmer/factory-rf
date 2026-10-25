@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790, 6394217771]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T06:14:41.362522Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -384,6 +380,12 @@ journal:
   kind: started
   at: '2026-10-25T06:14:41.362522Z'
   stage: doing
+- number: 68
+  speaker: coder
+  kind: result
+  at: '2026-10-25T06:17:30.127250Z'
+  stage: doing
+  run: 7eea60faa55e417c92b405d6e827df0d
 ---
 
 # The setup script prepares the machine and installs the service
@@ -1105,3 +1107,31 @@ Expect: `1`
     `lint`: lint: green (0.5 s)
     `test`: test: green (68.3 s)
 67. factory: started doing as self.
+68. coder: Round 2, after the tester's entry 66. I made no code changes in this run. Entry 60's fix was already in `vm/setup.sh` from entry 64:
+    - `vm/setup.sh:311` (`tools`): `if [ "$cloned" = yes ] || [ ! -e /usr/local/bin/git-credential-factory ]; then`
+    - `vm/setup.sh:356` (`service`): `if [ "$cloned" = yes ] || [ ! -e /etc/systemd/system/factory@.service ]; then`
+
+    I read the tester's new check `_tests_the_missing_target` (`tests/test_vm_setup_text.py:544-546`). It expects `|| [ ! -e <path> ]` in the `if` that encloses the install, and both lines have that form. The `cloned` side still holds: `cloned` is set at `:288`/`:291` in the clone's branch.
+
+    What I built across the story: `vm/setup.sh` and `vm/factory.service`.
+
+    Main choice this run: leave the code alone, because the tester's new rows already match it. I rejected changing anything more, because entry 60 asks for nothing beyond the two conditions.
+
+    Refactor: nothing to change. The diff is the same as in entry 64.
+
+    Verification: I could not run `make check` in this run. Every shell call failed because the tool's safety check returned no verdict, so I have no output to quote. The last results came from earlier runs:
+    - Entry 64: `make check` ended `check: green` (coverage 99.20 %) on this same `vm/setup.sh`.
+    - Entry 66: after the tester's change, `make test` was green (68.3 s) and `make lint` was green.
+    - Not yet run: `make types` (`mypy --strict`) on the tester's changed `tests/test_vm_setup_text.py`. The factory's `make check` after this stage is the first run of it.
+
+    Description: I did not rewrite it. The reviewer already wrote entry 60 into the Description, the Interface and criteria 13 and 16 (entry 62).
+
+    Noticed, not touched (tests, reviewer's notes in entry 62):
+    - `tests/vm_support.py:5` imports the private `_uncommented`.
+    - The `chown-keeps-links` row checks nothing, because the script holds no `chown`.
+    - The name `test_the_folders_step_refuses_a_link_at_state_or_repo` now also covers `.secrets`.
+
+    Open for the documenter (entries 51 and 60): the operator guide's link refusals, and the rule that the unit and the helper are installed only in the run that made the clone or when the installed file is missing.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
