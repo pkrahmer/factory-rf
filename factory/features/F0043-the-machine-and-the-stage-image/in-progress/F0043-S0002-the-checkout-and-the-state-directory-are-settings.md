@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T00:19:39.867729Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-25T00:19:39.867729Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-25T00:19:57.228998Z'
+  stage: doing
+  run: 203cf0d04cdf483197d8625f6b2e6ae8
 ---
 
 # The checkout and the state directory are settings
@@ -263,3 +265,15 @@ Expect: `1`
     - `tests/entry/test_run.py`: the standing leave to move a shared test helper. The `image_file` and `environment` fixtures moved to `tests/conftest.py` unchanged. The module's copy of `HOSTED_URL` now comes from `wiring_support`, which holds the same value. Every test keeps its name and what it checks.
     - `tests/conftest.py`: the standing leave to move a shared test helper. It only adds the two fixtures moved from `tests/entry/test_run.py`.
 13. factory: started doing as self.
+14. coder: Round 1: the reviewer's only finding (entry 12, finding 1) asks for a test change and no code change, so I changed nothing and am sending it to the tester.
+
+    The change the tester should make, in `tests/domain/test_settings_paths.py`:
+    - Move the `FACTORY_INSTANCE=Bad` with `FACTORY_CHECKOUT=relative` case into `test_a_relative_checkout_or_state_directory_is_refused_in_its_order` as one more row.
+    - Change that test's expected column from the variable alone to the full `(variable, fault)` pair, with the instance's own fault text in the new row.
+    - Delete the separate function `test_a_fault_of_the_instance_is_reported_before_one_of_the_checkout`.
+
+    Code: `src/factory/domain/settings.py` already reports the instance's fault before the checkout's, so the merged test should pass with no code change. I did not run it, because the merged test does not exist yet. I did not run `make check` this round either, since nothing in the working tree changed; it was green in entry 10.
+
+    Rejected: changing the test myself. The coder never edits tests.
+
+    Noticed, not touched: nothing new beyond entry 10.
