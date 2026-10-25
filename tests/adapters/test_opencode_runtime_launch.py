@@ -1,4 +1,4 @@
-"""The opencode runtime starts its call as the agent user, through the wrapper, with the API key."""
+"""The opencode runtime starts its call as the agent user, with the API key."""
 
 import time
 from collections.abc import Callable
@@ -17,18 +17,11 @@ from adapters.opencode_stand_in import (
 from adapters.test_agent_launch_login import API_LOGIN
 from adapters.test_claude_runtime_os_user import _sudo_calls, _write_sudo
 from confine_support import (
-    LINE,
-    ConfineCall,
     Layout,
-    Played,
-    read_records,
-    run_request,
-    write_confine,
 )
-from factory.adapters.agent_launch import API_LOGIN_VARIABLE, temporary_folder
+from factory.adapters.agent_launch import API_LOGIN_VARIABLE
 from factory.adapters.opencode_runtime import CONFIG_VARIABLE, SWITCHES, OpencodeRuntime
 from factory.domain.agent_runs import AgentRunRequest
-from factory.domain.confinement import Confinement
 from factory.domain.errors import AgentRuntimeError
 
 GIVEN = {"HOME": "/home/agent", "LANG": "C.UTF-8"}
@@ -100,74 +93,16 @@ def test_with_an_agent_user_sudo_starts_the_call_after_env_i_and_its_environment
     assert sudo_call.arguments[9 + count :] == [str(tmp_path / "bin" / "opencode"), *call.arguments]
 
 
-def _confined_runtime(layout: Layout, steps: list[Step], confine: Path) -> OpencodeRuntime:
-    executable = write_opencode(layout.stand_in, steps)
-    layout.state.mkdir(exist_ok=True)
-    return OpencodeRuntime(
-        str(executable),
-        layout.state,
-        models=MODELS,
-        confine_executable=str(confine),
-        temporary_root=layout.temporary_root,
-    )
-
-
-def test_through_the_wrapper_the_call_gets_its_rules_with_opencode_s_folders(
-    layout: Layout,
-) -> None:
-    confine = write_confine(layout)
-    runtime = _confined_runtime(layout, [Step(stdout=REPLY_EVENTS)], confine)
-
-    result = runtime.run(run_request(layout))
-
-    [call] = read_calls(layout.stand_in)
-    [confined] = read_records(layout.confine_bin / "confine-calls.jsonl", ConfineCall)
-    run = _run_id(call.environment[CONFIG_VARIABLE])
-    rules = Confinement.model_validate_json(confined.rules_text)
-    home = layout.home
-    assert result.end_reason == "completed"
-    assert confined.arguments == [
-        "--rules",
-        str(layout.state / f"confine-{run}.json"),
-        "--",
-        str(layout.stand_in / "opencode"),
-        *call.arguments,
-    ]
-    assert confined.rules_mode == 0o640
-    for folder in (".local/share/opencode", ".local/state/opencode", ".cache/opencode"):
-        assert home / folder in rules.folders
-    assert not any(folder.is_relative_to(home / ".config") for folder in rules.folders)
-    assert not any(file.is_relative_to(home / ".config") for file in rules.files)
-    assert rules.temporary_directory == temporary_folder(layout.temporary_root, run)
-    assert list(layout.temporary_root.iterdir()) == []
-
-
-def test_a_wrapper_line_without_events_is_a_runtime_error_naming_it(layout: Layout) -> None:
-    confine = write_confine(layout, Played())
-    runtime = _confined_runtime(layout, [Step(stdout=REPLY_EVENTS)], confine)
-
-    with pytest.raises(AgentRuntimeError) as raised:
-        runtime.run(run_request(layout))
-
-    assert raised.value.detail == f"{confine} refused the agent run: {LINE}"
-
-
 def _warned_by_sudo(tmp_path: Path, _: Layout) -> tuple[OpencodeRuntime, AgentRunRequest]:
     sudo = _write_sudo(tmp_path / "sudo-bin", warning=f"{SUDO_LINE}\n")
     runtime = _runtime(tmp_path, [Step(stdout=REPLY_EVENTS)], sudo=sudo)
     return runtime, opencode_request(tmp_path / "work", environment=GIVEN, os_user="agent")
 
 
-def _warned_by_wrapper(_: Path, layout: Layout) -> tuple[OpencodeRuntime, AgentRunRequest]:
-    confine = write_confine(layout, Played(stdout=REPLY_EVENTS, exit_status=0))
-    return _confined_runtime(layout, [Step(stdout=REPLY_EVENTS)], confine), run_request(layout)
-
-
 @pytest.mark.parametrize(
     "build",
     [
         pytest.param(_warned_by_sudo, id="sudo"),
-        pytest.param(_warned_by_wrapper, id="wrapper"),
     ],
 )
 def test_a_call_that_printed_valid_events_is_no_refusal_whatever_its_stderr_holds(

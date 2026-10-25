@@ -6,7 +6,6 @@ from collections.abc import Callable
 import pytest
 
 from adapters import opencode_stand_in
-from adapters import test_claude_runtime_confinement as claude_confinement
 from adapters import test_opencode_events as opencode_events
 from adapters import test_opencode_resume_session as opencode_resume_session
 from adapters import test_opencode_sudo_time_limit as opencode_sudo_time_limit
@@ -19,12 +18,6 @@ from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
         pytest.param(ROOMY_LIMIT.total_seconds(), operator.eq, 10.0, id="limit"),
         pytest.param(ROOMY_BOUND_SECONDS, operator.eq, 25, id="bound"),
         pytest.param(ROOMY_BOUND_SECONDS - ROOMY_LIMIT.total_seconds(), operator.ge, 10, id="room"),
-        pytest.param(
-            claude_confinement.WAIT_SECONDS,
-            operator.gt,
-            ROOMY_BOUND_SECONDS,
-            id="claude-confinement-wait",
-        ),
         pytest.param(
             opencode_stand_in.WAIT_SECONDS, operator.gt, ROOMY_BOUND_SECONDS, id="stand-in-wait"
         ),

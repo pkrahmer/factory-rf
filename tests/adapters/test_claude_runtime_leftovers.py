@@ -7,8 +7,7 @@ import pytest
 from adapters.claude_stand_in import Step, read_calls, write_stand_in
 from adapters.test_claude_runtime_login import BUDGET_STOP
 from adapters.test_claude_runtime_os_user import REPLY
-from confine_support import LINE, Layout, Played, run_request, write_confine
-from factory.adapters.agent_launch import CLEANUP_SCRIPT
+from confine_support import Layout, run_request
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.domain.errors import AgentRuntimeError
 from leftovers_runtime_support import (
@@ -37,17 +36,13 @@ def _runtime(
     program: Path,
     with_leftovers: bool = True,
     sudo_refusal: str = "",
-    confine_played: Played | None = None,
 ) -> ClaudeCodeRuntime:
     claude = write_stand_in(layout.stand_in, steps)
-    confine = write_confine(layout, confine_played)
     sudo = write_sudo(layout.sudo_bin, program, refusal=sudo_refusal)
     return ClaudeCodeRuntime(
         str(claude),
         layout.state,
         sudo_executable=str(sudo),
-        confine_executable=str(confine),
-        temporary_root=layout.temporary_root,
         leftovers=[str(program)] if with_leftovers else None,
     )
 
@@ -58,12 +53,12 @@ def _runtime(
         pytest.param(
             OTHER_USER,
             True,
-            ["run", "program", "removal"],
+            ["run", "program"],
             [["--user", OTHER_USER]],
             id="other-user",
         ),
-        pytest.param(own_user(), True, ["run", "removal"], [], id="own-user"),
-        pytest.param(OTHER_USER, False, ["run", "removal"], [], id="without-leftovers"),
+        pytest.param(own_user(), True, ["run"], [], id="own-user"),
+        pytest.param(OTHER_USER, False, ["run"], [], id="without-leftovers"),
     ],
 )
 def test_after_the_call_the_program_runs_as_the_user_from_the_root_before_the_removal(
@@ -93,7 +88,6 @@ def test_after_the_call_the_program_runs_as_the_user_from_the_root_before_the_re
             OTHER_USER,
         ]
         assert started.working_directory == Path("/")
-    assert CLEANUP_SCRIPT in records[-1].arguments
     assert program_calls(_program_bin(layout)) == expected_program_calls
     assert (result.end_reason, result.decision) == ("completed", "doing")
 
@@ -123,7 +117,7 @@ def test_a_resumed_run_starts_the_program_after_each_of_its_calls(layout: Layout
 
     assert len(read_calls(layout.stand_in)) == len(steps)
     assert program_calls(_program_bin(layout)) == [["--user", OTHER_USER]] * 2
-    assert kinds(layout.sudo_bin, program) == ["run", "program", "removal"] * 2
+    assert kinds(layout.sudo_bin, program) == ["run", "program"] * 2
 
 
 @pytest.mark.parametrize(
@@ -148,10 +142,10 @@ def test_a_failed_program_after_a_good_call_is_a_runtime_error_after_the_removal
     else:
         result = runtime.run(request)
         assert (result.end_reason, result.decision, result.entry) == ("completed", "doing", "Done.")
-    assert kinds(layout.sudo_bin, program) == ["run", "program", "removal"]
+    assert kinds(layout.sudo_bin, program) == ["run", "program"]
 
 
-@pytest.mark.parametrize("refuser", [pytest.param("sudo"), pytest.param("confine")])
+@pytest.mark.parametrize("refuser", [pytest.param("sudo")])
 def test_a_call_refused_by_sudo_or_the_wrapper_keeps_its_own_error_and_still_starts_the_program(
     layout: Layout, refuser: str
 ) -> None:
@@ -161,12 +155,9 @@ def test_a_call_refused_by_sudo_or_the_wrapper_keeps_its_own_error_and_still_sta
         [Step(stdout=REPLY)],
         program=program,
         sudo_refusal=f"{SUDO_LINE}\n" if refuser == "sudo" else "",
-        confine_played=Played() if refuser == "confine" else None,
     )
-    refused_by = (
-        layout.sudo_bin / "sudo" if refuser == "sudo" else layout.confine_bin / "factory-confine"
-    )
-    line = SUDO_LINE if refuser == "sudo" else LINE
+    refused_by = layout.sudo_bin / refuser
+    line = SUDO_LINE
 
     with pytest.raises(AgentRuntimeError) as raised:
         runtime.run(run_request(layout, os_user=OTHER_USER))

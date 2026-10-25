@@ -31,7 +31,6 @@ def test_the_program_is_due_only_with_a_program_and_a_user_other_than_the_own(
 ) -> None:
     starters = Starters(
         sudo_executable="/usr/bin/sudo",
-        confine_executable=None,
         login_files=LoginFiles(),
         leftovers=leftovers,
     )

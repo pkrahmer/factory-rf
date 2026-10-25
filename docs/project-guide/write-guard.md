@@ -58,7 +58,7 @@ Tests: `tests/domain/test_tool_paths.py`, `tests/domain/test_write_targets.py`, 
 
 ## The undo
 
-`UndoService(boundaries).undo(stage_start, work_item_path)` (`factory.application.undo`) puts the work tree back after an agent run. The kernel refuses while the agent works; the undo reverts what the kernel allowed outside the write paths: a protected path inside a folder a write path opens, a file the targets widened to its folder. It returns an `UndoReport` (frozen, no unknown fields): `reverted` and `deleted`, sorted ascending without repeats, and `restored_work_item`. `InlineEnvironment.take` (`stage-environment.md`, *The stage environment*) runs it and turns its report into a `TakeReport`; `AfterAgent` calls that take after every completed agent run (see "After the agent run"). The container environment's take is *The take* in `stage-environment.md`; A stall's undo is the inline environment's take too: `StallService` takes through the stage environment (`stage-environment.md`, *Who calls what*).
+`UndoService(boundaries).undo(stage_start, work_item_path)` (`factory.application.undo`) puts the work tree back after an agent run. Nothing refuses a write while the agent works; the undo reverts what the agent wrote outside the write paths, among them a protected path inside a folder a write path opens, a file the targets widened to its folder. It returns an `UndoReport` (frozen, no unknown fields): `reverted` and `deleted`, sorted ascending without repeats, and `restored_work_item`. `InlineEnvironment.take` (`stage-environment.md`, *The stage environment*) runs it and turns its report into a `TakeReport`; `AfterAgent` calls that take after every completed agent run (see "After the agent run"). The container environment's take is *The take* in `stage-environment.md`; A stall's undo is the inline environment's take too: `StallService` takes through the stage environment (`stage-environment.md`, *Who calls what*).
 
 ### What it undoes
 
@@ -89,7 +89,9 @@ Tests: `tests/application/test_undo.py`; a fake agent writes into `boundaries.ch
 
 ## The kernel's write guard
 
-`factory.adapters.landlock` lets a process ask the kernel to refuse its own writes and those of every process it starts later. Its user is the wrapper `factory-confine` (see "The start wrapper"); the agent runtime starts every agent run through it. The kernel refuses a write by any route, a shell command included, during the run; the undo reverts afterwards what the kernel allowed outside the write paths.
+No agent call starts through the kernel's write guard since F0044-S0001, and S0002 removes the module, the wrapper and the kernel's rules. What keeps the write paths now is the take of a `container` instance and the undo of an `inline` one. The rest of this section describes the module as it stands until then.
+
+`factory.adapters.landlock` lets a process ask the kernel to refuse its own writes and those of every process it starts later. Its user is the wrapper `factory-confine` (see "The start wrapper"), which no runtime starts any more. A process it restricts cannot write by any route, a shell command included.
 
 ### What Landlock is
 
@@ -120,11 +122,11 @@ A second call in a restricted process adds a ruleset on top of the first: a writ
 
 The tests (`tests/adapters/test_landlock.py`, `tests/domain/test_confinement_abi.py`) call `restrict_writes` in child processes (`sys.executable -c ...`, paths under `tmp_path`) wherever it reaches the system calls, because the restriction cannot be undone and would bind the pytest worker. The refusals before the first system call also run in the test process (`tests/adapters/test_landlock_checks.py`): every row there names a path that cannot be opened (missing, or a link to a missing target), so a check that is broken still fails at the first system call and binds nothing. The system calls themselves (`_create_ruleset`, `_add_rule`, `_restrict_self`) run only in child processes. Coverage does not measure the children, so the module shows little in the coverage table. No test is skipped without Landlock. Not tested: a failing system call and `abi_version`'s negative result, which no test can make the kernel produce.
 
-`confinement_item(abi, environment, find)` (`factory.application.preflight`) is the preflight item `confinement`. It has two faults: the kernel's (`abi_fault(abi())`, followed by `: ` and the advice to update the kernel, on WSL with `wsl --update`, or to allow the Landlock system calls in the container runtime's seccomp profile) and `factory-confine` missing from the agent run's `PATH` (or no `PATH` at all). When both occur, the detail joins them with `; `, the kernel's first; with neither, the item passes. The wiring (`factory.entry.wiring`) passes `abi_version` and a search on the agent run's `PATH`, so the item runs against what the agent run will see.
-
 ## The start wrapper
 
-`factory-confine --rules <file> -- <command> [<argument>...]` applies the kernel's write guard and becomes the command. It must run after `sudo` has made the process the agent's user (Landlock needs `no_new_privs`, which `sudo` cannot run under) and before the runtime starts, so that the runtime and everything it starts inherit the restriction. `pyproject.toml` registers it as `factory-confine = "factory.entry.confine:main"`; `python -m factory.entry.confine` does the same; `CONFINE_COMMAND` in `factory.domain.agent_runs` is its name. `ClaudeCodeRuntime` starts every agent run through it when it is built with `confine_executable`, which `build_boundaries` passes by default; the command line is in "The `claude -p` runtime".
+No agent call starts through the wrapper since F0044-S0001; S0002 removes the module (`factory.entry.confine`), and nothing below is on the call path of a run.
+
+`factory-confine --rules <file> -- <command> [<argument>...]` applies the kernel's write guard and becomes the command. It must run after `sudo` has made the process the agent's user (Landlock needs `no_new_privs`, which `sudo` cannot run under) and before the runtime starts, so that the runtime and everything it starts inherit the restriction. `pyproject.toml` registers it as `factory-confine = "factory.entry.confine:main"`; `python -m factory.entry.confine` does the same; `CONFINE_COMMAND` in `factory.domain.agent_runs` is its name. Neither runtime takes a confine executable any more; the command line of a call is in "The `claude -p` runtime" in `agents.md`.
 
 ### The arguments and the rules file
 

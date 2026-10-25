@@ -331,11 +331,11 @@ One function, `stage_environment_fault` (`factory.domain.settings`), holds that 
 | | `inline` | `container` |
 |---|---|---|
 | `snapshots`, `containers` | `None` | `ZfsSnapshots(dataset, workspace, executable=zfs_executable)` and `PodmanRuns(podman_executable, stage_image, workspace)` |
-| `agent_runtime` | as today: `sudo`, `factory-confine`, the leftovers program | the runtime of `FACTORY_AGENT_RUNTIME` given `containers`, with no confine executable and no leftovers program |
+| `agent_runtime` | as today: `sudo` when there is an agent user, the leftovers program | the runtime of `FACTORY_AGENT_RUNTIME` given `containers`, with no leftovers program |
 | `project_commands` | `RecordingProjectCommands` around `SealedProjectCommands` | `RecordingProjectCommands` around `ContainerMakeCommands(snapshots, containers, git, checkout=settings.checkout)`, no `SealedProjectCommands` |
 | `agent_home` | the fresh-home reset, when there is an agent user | `None` |
 
-The arguments `which`, `confine_executable` and `end_leftovers` are read for `inline` only; a `container` build asks `which` for nothing. It runs no tool: `zfs` and `podman` start only when a stage uses them. `RecordingProjectCommands.inner` is the implementation it records, which the wiring's tests read.
+The arguments `which` and `end_leftovers` are read for `inline` only; a `container` build asks `which` for nothing. It runs no tool: `zfs` and `podman` start only when a stage uses them. `RecordingProjectCommands.inner` is the implementation it records, which the wiring's tests read.
 
 `agent_run_environment(settings, base)` copies `base` and sets `HOME`: for `container` to `/work/home` (`WORK_HOME_ENVIRONMENT`), on the dataset; for `inline` to the agent user's home when there is one, else the base's. The preflight's items for a container instance are in *The preflight* below. Tests: `tests/domain/test_settings_stage_environment.py`, `tests/entry/test_wiring_stage_environment.py` and `tests/entry/test_wiring_stage_environment_home.py`.
 
@@ -353,7 +353,7 @@ The four new items take callables, so `application` knows no adapter:
 | `dataset` | `dataset_item(dataset, exists)` | `ZfsSnapshots.dataset_exists` | `the dataset <dataset> does not exist; make it with zfs create, and its base with zfs snapshot <dataset>@base`, or `cannot list the dataset <dataset>: <error>` on `SnapshotError` |
 | `stage-image` | `stage_image_item(image, exists)` | `PodmanRuns.image_exists` | `the stage image <image> is not built; build it with podman build`, or `cannot look for the stage image <image>: <error>` on `ContainerError` |
 
-The items left out for `container`: `agent-user`, `tool:sudo`, `confinement` and `agent-environment` check layers a container replaces, or a `HOME` that is a path inside the container. `MachineChecks.run` uses `CONTAINER_TOOLS` (`git`, `uv`) in place of `REQUIRED_TOOLS` plus the runtime's executable: no `tool:make` (it runs only in the sync and check containers) and no `tool:claude` or `tool:opencode` (the executable is the stage image's; `agent-runtime-version` runs it there and is the check of its presence). `opencode_item` checks the aliases only for `container`.
+The items left out for `container`: `agent-user`, `tool:sudo` and `agent-environment` check layers a container replaces, or a `HOME` that is a path inside the container. `MachineChecks.run` uses `CONTAINER_TOOLS` (`git`, `uv`) in place of `REQUIRED_TOOLS` plus the runtime's executable: no `tool:make` (it runs only in the sync and check containers) and no `tool:claude` or `tool:opencode` (the executable is the stage image's; `agent-runtime-version` runs it there and is the check of its presence). `opencode_item` checks the aliases only for `container`.
 
 Both probes go through the environment like a stage. `agent_run_probe_item` resolves `origin/main` (none fails the item with `no origin/main to prepare the stage environment from`, and no run starts), calls `stage_environment_of(boundaries).prepare(main, MAIN_BRANCH, sync_time_limit=PROBE_TIME_LIMIT)` and then `run_agent` on the same object; `SnapshotError` and `ContainerError` from `prepare` fail the item with their message. `Preflight._run_probe` calls the same `prepare` after it puts the checkout on `main` and before `lint`; `Preflight.run` catches both errors beside `GitError` and `ProjectCommandError` and stops with `the probe on main could not run: <error>`. For `inline`, `prepare` does nothing and `resolve` is the one new git call.
 

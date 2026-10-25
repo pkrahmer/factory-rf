@@ -8,7 +8,6 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict
 
 from confine_support import read_records, write_script
-from factory.adapters.agent_launch import CLEANUP_SCRIPT
 
 # A user no test runs as, so that the runtime starts the program for it.
 OTHER_USER = "factory-test-other"
@@ -103,12 +102,10 @@ def program_calls(directory: Path) -> list[list[str]]:
 
 
 def kind(record: SudoRecord, program: Path) -> str:
-    """`program`, `removal` or `run`: what the `sudo` call of `record` started."""
+    """`program` or `run`: what the `sudo` call of `record` started."""
     rest = record.arguments[record.arguments.index("--") + 1 :]
     if rest[0] == str(program):
         return "program"
-    if CLEANUP_SCRIPT in rest:
-        return "removal"
     return "run"
 
 

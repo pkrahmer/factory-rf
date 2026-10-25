@@ -13,7 +13,7 @@ from zfs_support import DATASET, Answer, Zfs, write_zfs
 
 PODMAN_VERSION = "podman version 4.9.3"
 CONTAINER_ITEMS = ["token-file", "podman", "zfs", "dataset", "stage-image"]
-INLINE_ITEMS = ["token-file", "agent-user", "agent-environment", "confinement"]
+INLINE_ITEMS = ["token-file", "agent-user", "agent-environment"]
 
 
 @pytest.fixture
@@ -83,10 +83,14 @@ def _settings(
                 "agent-user",
                 "tool:sudo",
                 "agent-environment",
-                "confinement",
                 "agent-run-probe",
             ],
             id="inline-agent-user",
+        ),
+        pytest.param(
+            {"agent_runtime": "opencode"},
+            [*INLINE_ITEMS, "opencode", "agent-run-probe"],
+            id="inline-opencode",
         ),
     ],
 )

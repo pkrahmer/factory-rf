@@ -2,7 +2,6 @@
 
 import json
 import re
-import tempfile
 import time
 import uuid
 from collections.abc import Callable, Mapping, Sequence
@@ -24,23 +23,18 @@ from pydantic import (
 )
 
 from factory.adapters.agent_launch import (
-    CLEANUP_TIME_LIMIT,
     CONTAINER_OS_USER,
     ENTRY_DESCRIPTION,
     FINISH_MESSAGE,
     RUN_FILE_MODE,
-    SHELL_EXECUTABLE,
     SUDO_EXECUTABLE,
     VERSION_TIME_LIMIT,
     CallEnd,
     Launch,
     LoginFiles,
     Starters,
-    cleanup_launch,
-    confined_argv,
     container_launch,
     denied_path,
-    device_confinement,
     due_leftovers_launch,
     finished_run,
     leftovers_fault,
@@ -53,7 +47,6 @@ from factory.adapters.agent_launch import (
     run_launch,
     since,
     state_directory_error,
-    temporary_folder,
     version_launch,
     version_printed,
 )
@@ -76,16 +69,12 @@ from factory.domain.agent_runs import (
     TokenCounts,
     resumed_result,
 )
-from factory.domain.confinement import DEVICE_FILES, DEVICE_FOLDERS, Confinement
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoints
 from factory.domain.provider_limits import ProviderLimit, limit_in_text, named_wait
 
 CONFIG_VARIABLE = "OPENCODE_CONFIG"
 AGENT_PREFIX = "factory-"
-# Where opencode keeps its sessions, logs and caches; its own configuration folder stays
-# outside the rules, so an agent cannot rewrite what the next run is told.
-RUNTIME_FOLDERS = (".local/share/opencode", ".local/state/opencode", ".cache/opencode")
 # Where opencode keeps a login made by hand in the agent's home.
 LOGIN_STATE_FILE = ".local/share/opencode/auth.json"
 SWITCHES = {"PYTHONDONTWRITEBYTECODE": "1"}
@@ -253,20 +242,13 @@ class _RunFiles(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     config: Path
-    rules: Path
-    temporary: Path
 
     @classmethod
-    def of(cls, state_directory: Path, temporary_root: Path, run: str) -> "_RunFiles":
-        return cls(
-            config=state_directory / f"opencode-{run}.json",
-            rules=state_directory / f"confine-{run}.json",
-            temporary=temporary_folder(temporary_root, run),
-        )
+    def of(cls, state_directory: Path, run: str) -> "_RunFiles":
+        return cls(config=state_directory / f"opencode-{run}.json")
 
     def remove(self) -> None:
-        for path in (self.config, self.rules):
-            path.unlink(missing_ok=True)
+        self.config.unlink(missing_ok=True)
 
 
 def _model(agent: AgentDefinition, models: Mapping[str, str]) -> str:
@@ -523,18 +505,6 @@ def _result(request: AgentRunRequest, process: ProcessResult, watch: _Watch) -> 
     )
 
 
-def _confinement(
-    request: AgentRunRequest, temporary: Path, runtime_folders: Sequence[str]
-) -> Confinement:
-    return device_confinement(
-        request,
-        temporary,
-        runtime_folders=runtime_folders,
-        device_folders=DEVICE_FOLDERS,
-        device_files=DEVICE_FILES,
-    )
-
-
 def _request_of(started: Launch, cwd: Path) -> ProcessRequest:
     return ProcessRequest(
         argv=started.argv, cwd=cwd, env=started.env, time_limit=started.time_limit
@@ -555,10 +525,7 @@ class OpencodeRuntime(AgentRuntime):
         version_time_limit: timedelta = VERSION_TIME_LIMIT,
         sudo_executable: str = SUDO_EXECUTABLE,
         api_login_file: Path | None = None,
-        confine_executable: str | None = None,
-        temporary_root: Path | None = None,
         provider_limit: ProviderLimit | None = None,
-        runtime_folders: Sequence[str] = RUNTIME_FOLDERS,
         leftovers: Sequence[str] | None = None,
         containers: ContainerRuns | None = None,
     ) -> None:
@@ -568,17 +535,11 @@ class OpencodeRuntime(AgentRuntime):
         The shell commands the `Bash(...)` entries of `settings_file` deny are denied.
         A request with an operating-system user is started through `sudo_executable`.
         A run's call gets the key held in `api_login_file`, read by the call's own shell.
-        With `confine_executable`, every call starts through it with the run's rules and
-        its own temporary folder under `temporary_root`, the system's by default.
         A call that shows `provider_limit`, the default limit when `None`, ends `provider_limit`.
-        A run's rules allow each of `runtime_folders` in the agent's home, in their order.
         Every call as another user is followed by `leftovers`, the program that ends that
         user's processes, when it is set.
-        With `containers`, every call runs in a container; the kernel's guard does not reach
-        into one, so `ValueError` with a `confine_executable`.
+        With `containers`, every call runs in a container.
         """
-        if containers is not None and confine_executable is not None:
-            raise ValueError("a run in a container is not confined by factory-confine")
         self._containers = containers
         self._executable = executable
         self._state_directory = state_directory
@@ -588,15 +549,10 @@ class OpencodeRuntime(AgentRuntime):
         self._version_time_limit = version_time_limit
         self._starters = Starters(
             sudo_executable=sudo_executable,
-            confine_executable=confine_executable,
             leftovers=None if leftovers is None else list(leftovers),
             login_files=LoginFiles(api=api_login_file),
         )
-        self._temporary_root = (
-            Path(tempfile.gettempdir()) if temporary_root is None else temporary_root
-        )
         self._provider_limit = ProviderLimit() if provider_limit is None else provider_limit
-        self._runtime_folders = tuple(runtime_folders)
 
     @property
     def leftovers(self) -> list[str] | None:
@@ -622,9 +578,9 @@ class OpencodeRuntime(AgentRuntime):
         started = time.monotonic()
         model = _model(request.agent, self._models)
         configuration = _configuration(request, _bash_permission(self._settings_file))
-        files = _RunFiles.of(self._state_directory, self._temporary_root, str(uuid.uuid4()))
+        files = _RunFiles.of(self._state_directory, str(uuid.uuid4()))
         try:
-            self._write_files(request, files, configuration)
+            self._write_files(files, configuration)
             result = self._call(request, files, model, request.agent.budget_usd)
             if result.end_reason == "budget" and result.session is not None:
                 result = self._resume(request, files, model, result, started)
@@ -649,16 +605,10 @@ class OpencodeRuntime(AgentRuntime):
             stderr=process.stderr,
         )
 
-    def _write_files(self, request: AgentRunRequest, files: _RunFiles, configuration: str) -> None:
-        written = {files.config: configuration}
-        if self._starters.confine_executable is not None:
-            written[files.rules] = _confinement(
-                request, files.temporary, self._runtime_folders
-            ).model_dump_json()
+    def _write_files(self, files: _RunFiles, configuration: str) -> None:
         try:
-            for path, text in written.items():
-                path.write_text(text, encoding="utf-8")
-                path.chmod(RUN_FILE_MODE)
+            files.config.write_text(configuration, encoding="utf-8")
+            files.config.chmod(RUN_FILE_MODE)
         except OSError as exc:
             raise state_directory_error(self._state_directory, exc) from exc
 
@@ -691,8 +641,6 @@ class OpencodeRuntime(AgentRuntime):
         process_request = self._process_request(request, files, model)
         process = self._start(process_request, watch.on_line)
         leftovers_error = self._end_leftovers(request)
-        if self._starters.confine_executable is not None:
-            self._remove_temporary_folder(request, files.temporary)
         end = CallEnd(
             stderr=process.stderr,
             printed=bool(_events(process.stdout)),
@@ -723,17 +671,6 @@ class OpencodeRuntime(AgentRuntime):
             exit_status=process.exit_status, timed_out=process.timed_out, stderr=process.stderr
         )
 
-    def _remove_temporary_folder(self, request: AgentRunRequest, temporary: Path) -> None:
-        # Its status is not read: a folder left behind changes no run's result.
-        removal = cleanup_launch(
-            SHELL_EXECUTABLE,
-            temporary,
-            os_user=request.os_user,
-            sudo_executable=self._starters.sudo_executable,
-            time_limit=CLEANUP_TIME_LIMIT,
-        )
-        self._start(_request_of(removal, request.working_directory))
-
     def _opencode_argv(self, request: AgentRunRequest, model: str) -> list[str]:
         agent = f"{AGENT_PREFIX}{request.agent.name}"
         arguments = ["run", "--format", "json", "--auto", "--model", model, "--agent", agent]
@@ -749,9 +686,7 @@ class OpencodeRuntime(AgentRuntime):
     def _process_request(
         self, request: AgentRunRequest, files: _RunFiles, model: str
     ) -> ProcessRequest:
-        argv = confined_argv(
-            self._opencode_argv(request, model), self._starters.confine_executable, files.rules
-        )
+        argv = self._opencode_argv(request, model)
         runtime_environment = {CONFIG_VARIABLE: str(files.config), **SWITCHES}
         if self._containers is None:
             started = run_launch(

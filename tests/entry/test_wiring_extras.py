@@ -56,7 +56,7 @@ COMPLETED = AgentRunResult(
     [
         pytest.param(
             None,
-            ["token-file", "agent-user", "agent-environment", "confinement", "agent-run-probe"],
+            ["token-file", "agent-user", "agent-environment", "agent-run-probe"],
             id="no-agent-user",
         ),
         pytest.param(
@@ -66,7 +66,6 @@ COMPLETED = AgentRunResult(
                 "agent-user",
                 "tool:sudo",
                 "agent-environment",
-                "confinement",
                 "agent-run-probe",
             ],
             id="agent-user",

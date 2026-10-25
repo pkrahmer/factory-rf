@@ -322,7 +322,6 @@ def test_the_built_agent_runtime_keeps_its_run_files_under_runs(
         settings.model_copy(update={"claude_executable": str(executable)}),
         CREDENTIAL,
         hosting=FakeHostingService(),
-        confine_executable=None,
     )
 
     boundaries.agent_runtime.run(request)

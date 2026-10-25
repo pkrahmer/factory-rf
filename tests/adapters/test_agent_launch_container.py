@@ -169,9 +169,7 @@ def test_a_container_call_killed_at_the_limit_is_read_as_the_limit_and_no_refusa
         duration=timedelta(seconds=61),
         timed_out=False,
     )
-    starters = Starters(
-        sudo_executable="/usr/bin/sudo", confine_executable=None, login_files=LoginFiles()
-    )
+    starters = Starters(sudo_executable="/usr/bin/sudo", login_files=LoginFiles())
 
     assert (
         read_call_end(end, time_limit=MINUTE, os_user=None, starters=starters, in_container=True)

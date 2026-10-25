@@ -126,6 +126,17 @@ SHIPPED_AGENTS = [
 
 SHIPPED_NAMES = [agent.name for agent in SHIPPED_AGENTS]
 
+WRITE_PATHS_RULE = (
+    "R14. The pipeline's own files — `factory/pipeline.yml`, `factory/story-form.md`, every "
+    "feature's `feature.md`, `backlog/`, `done/` and `.claude/` — change only with the human's "
+    "commit or on their explicit instruction. You write only within your write paths in the "
+    "pipeline definition (`{work_item}` there is your own work item, outside its front matter and "
+    "journal), nothing else: after the stage the factory takes only the changed paths your role "
+    "may write and leaves every other change out, whatever tool or command made it, so a write "
+    "elsewhere is lost. When the work needs a path outside your write paths, end with `question` "
+    "and name it. Make temporary files with `mktemp` or `tempfile`; they are lost with the stage."
+)
+
 
 def front_matter_and_body(name: str) -> tuple[str, str]:
     """The raw front matter and the stripped body of the shipped agent file `name`."""

@@ -37,9 +37,7 @@ def test_the_built_runtime_recognizes_the_configured_limit_status(tmp_path: Path
         claude_executable=str(executable),
         provider_limit=ProviderLimit(status=429),
     )
-    boundaries = build_boundaries(
-        settings, CREDENTIAL, hosting=FakeHostingService(), confine_executable=None
-    )
+    boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
 
     result = boundaries.agent_runtime.run(_request(tmp_path, None))
 
