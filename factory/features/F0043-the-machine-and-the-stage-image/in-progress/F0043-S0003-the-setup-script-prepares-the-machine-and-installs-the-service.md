@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T01:11:35.949832Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-10-25T01:11:35.949832Z'
   stage: doing
+- number: 30
+  speaker: coder
+  kind: result
+  at: '2026-10-25T01:15:45.537271Z'
+  stage: doing
+  run: ca73d821c7864977bfeab9721aaee2ff
 ---
 
 # The setup script prepares the machine and installs the service
@@ -536,3 +538,25 @@ Expect: `1`
 
     Earlier tests: none. Every test file in the diff is new (status `A`).
 29. factory: started doing as self.
+30. coder: Round 1 (after the human's entry 26). I fixed the code findings 2, 3 and 4 of entry 28 in `vm/setup.sh` and nothing else. `vm/factory.service` and the tests are unchanged. `make check` ends `check: green`.
+
+    Criterion 12 still has no test, and finding 5 (`tests/test_vm_setup_text.py`, `test_the_options_land_in_their_named_variables`) belongs to the tester. So I end with `tests`. The tester's work:
+    - Write criterion 12's rows as one parametrized test. In the `image-id`, `checkout` and `environment` steps, each write under `$base` runs through `as_factory`, the helper that calls `runuser -u factory --`, and the `image-id` write is one of the rows. No line holds a `chown` on a path under `$base`; the script now has no `chown` at all.
+    - Make the change that entry 26 allows for finding 5: each option's row checks that its parse assigns `<variable>=`, and the `image=factory-stage:$instance` check becomes a row or a test of its own.
+
+    **What I changed in `vm/setup.sh`**
+    - **`image-id`:** root's `cat … > "$base/image-id"`, `chown` and `chmod` are now one line: `as_factory install -m 0644 /dev/stdin "$base/image-id" < /proc/sys/kernel/random/uuid`.
+    - **askpass and `factory.env`:** both are now written with `cat "$staged" | as_factory install -m <mode> /dev/stdin <path>`. The text comes through a pipe because `factory` may not open root's `0600` staging file: opening `/dev/stdin` on a redirected file checks that file's permissions again.
+    - **`datasets`, the mount point:** `chown factory:factory "$base/work"` is now `install -d -o factory -g factory -m 0755 "$base/work"`, which is one of the Interface's two forms.
+    - **The comment on `as_factory`:** it now says why every write under `$base` goes through it, and why the text comes through a pipe.
+
+    I checked in `$TMPDIR` that `install` from `/dev/stdin` works from a pipe and from a redirect. When the destination is a symlink to a missing path, `install` replaces the link and does not create the target.
+
+    **Main choice and the alternative I rejected.** For the mount point I chose `install -d -o factory -g factory`. I rejected `chown -h factory:factory`, which follows entry 26's wording more closely. The existing criterion 9 row `mount-point-owner` looks for the literal `chown factory:factory` or `-o factory -g factory`, so `chown -h` fails it (I tried: `make check` was red). That would have needed a change to that row. The `install -d` form is safe here because its guard, `stat -c '%U:%G'` without `-L`, reads a link that `factory` planted as factory's own, so `install` never runs on such a link.
+
+    **Refactor.** I read the diff once and found nothing to change.
+
+    **Noticed, not touched** (entry 26 says nothing else changes):
+    - `unchanged` runs `cmp` as root on `$askpass` and `$env_file`. Through a planted link, that compares against any file, but it only reads and only decides whether to rewrite.
+    - The `folders` step's `install -d` on `$base/state` and `$base/repo` is the open point of entry 28. The `stat` without `-L` in `owned_with_mode` gives the same protection there as at the mount point, as long as the link's owner is `factory`.
+    - No skill applied.

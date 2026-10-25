@@ -104,6 +104,9 @@ owned_with_mode() {
 }
 
 # runuser keeps root's environment; git and uv must read and write factory's home instead.
+# Every file under $base is written through it: $base is factory's, so a link planted there
+# reaches only what factory may write anyway. The text comes through a pipe, since factory
+# may not open root's staging file.
 as_factory() {
   runuser -u factory -- env HOME=/home/factory "$@"
 }
@@ -180,7 +183,7 @@ if [ "$(zfs get -H -o value quota "$dataset")" != "$quota" ]; then
   changed "set the quota $quota on $dataset"
 fi
 if [ "$(stat -c '%U:%G' "$base/work")" != factory:factory ]; then
-  chown factory:factory "$base/work"
+  install -d -o factory -g factory -m 0755 "$base/work"
   changed "gave $base/work to factory"
 fi
 echo "setup: datasets: $(said "found $pool/factory and $dataset at $base/work with the quota $quota")"
@@ -252,9 +255,7 @@ echo "setup: folders: $(said "found $base, its state, its repo and /home/factory
 
 changes=
 if [ ! -s "$base/image-id" ]; then
-  cat /proc/sys/kernel/random/uuid > "$base/image-id"
-  chown factory:factory "$base/image-id"
-  chmod 0644 "$base/image-id"
+  as_factory install -m 0644 /dev/stdin "$base/image-id" < /proc/sys/kernel/random/uuid
   changed "wrote $base/image-id"
 fi
 echo "setup: image-id: $(said "found $base/image-id")"
@@ -273,7 +274,7 @@ case "$1" in
 esac
 EOF
 if ! unchanged "$askpass"; then
-  install -m 0755 -o factory -g factory "$staged" "$askpass"
+  cat "$staged" | as_factory install -m 0755 /dev/stdin "$askpass"
   changed "wrote $askpass"
 fi
 # Root's git refuses a repository another user owns, so the clone writes its own askPass.
@@ -332,7 +333,7 @@ PATH=/srv/factory/$instance/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sb
 XDG_RUNTIME_DIR=/run/user/$(id -u factory)
 EOF
 if ! unchanged "$env_file"; then
-  install -m 0644 "$staged" "$env_file"
+  cat "$staged" | as_factory install -m 0644 /dev/stdin "$env_file"
   changed "wrote $env_file"
 fi
 echo "setup: environment: $(said "found $env_file unchanged")"
