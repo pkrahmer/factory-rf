@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 442
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-25T09:41:36.601707Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-25T09:41:36.601707Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T09:41:54.209635Z'
+  stage: intake
+  run: 5b8e57a1742c42df8ea14eae8fa4a4cc
 ---
 
 # Step 12 stops the instance between two stages before it stops the VM
@@ -78,3 +80,9 @@ Expect: `documents ok`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: "None" is correct for a documents-only story. It names the one file (`docs/operator-guide.md`) and the one place (step 12 of `### On GCP, step by step`). I found step 12 as a single line at `docs/operator-guide.md:648`, as the Description says. It has no `Interface` comment that states a behaviour, so nothing is missing a criterion.
+   Criteria: each can be checked by a smoke test or by `make documents`, and the story says no test reads the documents. Criterion 1 (nothing changes outside the docs) is checkable by diff. Criterion 2 is `make check`. The docs criterion covers each clause of the Description: wait for no claim by `vm` with `factory-watch`, then `sudo systemctl stop factory@vm`, and the "why" sentence. It also covers the order of the two commands, no `systemctl restart`, where each command runs, and that the cost sentence, the start and the "enabled" sentence stay. The one clause no smoke test checks is the "why" sentence itself, which the reviewer reads. The rule "wait first, then stop" has its failing side in the order check (smoke test 2) and in the no-restart check.
+   Smoke test: all five commands are runnable. The awk range runs from `12. ` to the `### On any Ubuntu 24.04 VM` heading, and both headings exist. Each `Expect:` line can be checked against the output. No command runs pytest, so the `-q` rule does not apply. `make documents` is a project target.
+   Architecture: this changes only `docs/operator-guide.md`, which the documenter stage may write. Nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes.
+   Scope: the story stays inside F0043's chapter "The machine". It leaves `vm/factory.service` and the `TimeoutStopSec` question to the human (F0043-A0002/A0003), and it is not in the feature's Out of scope.
