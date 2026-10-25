@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008, 6400918653]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T17:41:12.821184Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -208,6 +212,11 @@ journal:
   at: '2026-10-25T17:40:52.316828Z'
   stage: doing
   run: 3bdeeaf9af3140c3b62885a15bc714dc
+- number: 37
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:41:12.821184Z'
+  stage: review
 ---
 
 # The suite's stages run on the container fakes
@@ -612,3 +621,4 @@ Expect: two lines: `1`; `1`
 
     `check`: check: green (not run again: passed on tree 4426094bb51c at 2026-10-25T17:18:35Z)
     `duplicates`: duplicates: 7 new, 34 known, 4 gone
+37. factory: started review as self.
