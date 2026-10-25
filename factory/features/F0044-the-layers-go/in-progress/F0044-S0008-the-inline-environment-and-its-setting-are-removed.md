@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T17:57:25.632314Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-10-25T17:57:25.632314Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-25T17:58:58.095611Z'
+  stage: tests
+  run: 5ba88e1544d54d1d8ab35dfebdca02c3
 ---
 
 # The inline environment and its setting are removed
@@ -210,3 +212,28 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
    I would choose (a). Adapting tests that run through the wiring is safer once `build_boundaries` raises the three `missing` faults for real.
 9. 2026-10-25 human: (a). End with `doing`. The coder implements against the new tests, then ends with `tests` and names the Interface's list (decisions 24 and 37) as the approved test change; the tester then adapts all of it in one run against the real code, including `container_support.inline_boundaries`'s callers such as `tests/application/test_stage_on_container_fakes.py`. `tests/entry/test_wiring_extras_path.py` was already deleted by F0044-S0001, so nothing is left to delete there.
 10. factory: started tests as self.
+11. tester: In journal entry 9 the human chose option (a): this stage ends with `doing`. The tests from entry 8 are already committed on the branch, at fbd93b28 and the commits before it, so I wrote no new tests in this run and changed no files. I ran `make lint` again and it is green. I did not run `make test` again: it already ran once, in entry 8. It was red on purpose: the failures were TypeErrors and assertion failures because names are missing, not because a module could not be imported.
+
+    Criterion → test:
+    - criterion 1: tests/test_one_stage_environment.py::test_the_inline_environment_s_names_are_gone
+    - criterion 2: tests/application/test_stage_environment_of.py::test_the_environment_of_the_boundaries_is_the_container_one
+    - criterion 3: tests/domain/test_settings_one_environment.py::test_the_stage_environment_setting_is_read_by_nothing
+    - criterion 4: tests/entry/test_wiring_one_environment.py::test_build_boundaries_needs_the_dataset_the_workspace_and_the_image
+    - criterion 5: tests/entry/test_wiring_one_environment.py::test_the_agent_run_s_home_is_the_dataset_s
+    - criterion 6: tests/entry/test_wiring_one_preflight.py::test_the_preflight_checks_the_one_environment_s_items
+    - criterion 7: tests/application/test_request_working_directory.py::test_the_request_works_in_the_dataset_s_checkout
+    - criterion 8: tests/domain/test_settings_one_environment.py::test_a_workspace_refuses_a_relative_path_and_an_inner_checkout_or_state
+    - criteria 9 and 10: no test (`make check`, docs).
+
+    Files created (in entry 8's run): tests/test_one_stage_environment.py, tests/domain/test_settings_one_environment.py, tests/entry/test_wiring_one_environment.py, tests/entry/test_wiring_one_preflight.py, tests/application/test_request_working_directory.py. Rewritten: tests/application/test_stage_environment_of.py.
+
+    Deleted under decision 24, as entry 8 lists:
+    - whole files: test_stage_environment.py, test_agent_environment_item.py and test_wiring_stage_environment_home.py
+    - three single tests
+
+    Modules the test run could not import: none. Every module under test exists; only names are missing.
+
+    Still open, as the human decided in entry 9: the coder implements against these tests and then ends with `tests`, naming the Interface's test list (decisions 24 and 37) as the approved test change. The tester then adapts all of that list in one run against the real code. This includes the callers of `container_support.inline_boundaries`, such as tests/application/test_stage_on_container_fakes.py.
+
+    `lint`: lint: green (0.2 s)
+    `test`: FAILED tests/entry/test_wiring_one_preflight.py::test_the_preflight_checks_the_one_environment_s_items[opencode-unmapped] - TypeError: opencode_item() missing 2 required positional arguments: 'find...
