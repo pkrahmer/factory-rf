@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T20:53:46.032189Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-25T20:53:25.456841Z'
   stage: tests
   run: ee9e4662e05d40298b40f9d8939a0953
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:53:46.032189Z'
+  stage: doing
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -130,3 +139,4 @@ Expect: `0`
 
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/test_kernel_guard_removed.py - ImportError while importing test module '/work/checkout/tests/test_kernel_guard_removed.py'.
+6. factory: started doing as self.
