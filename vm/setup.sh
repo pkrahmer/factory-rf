@@ -308,7 +308,7 @@ fi
 (cd "$checkout" && as_factory $tools/bin/uv sync --frozen --no-dev)
 # The factory's own git reaches the token only through this helper.
 if ! cmp -s "$checkout/image/git-credential-factory" /usr/local/bin/git-credential-factory; then
-  if [ "$cloned" = yes ]; then
+  if [ "$cloned" = yes ] || [ ! -e /usr/local/bin/git-credential-factory ]; then
     install -m 0755 "$checkout/image/git-credential-factory" /usr/local/bin/git-credential-factory
     changed "installed /usr/local/bin/git-credential-factory"
   else
@@ -353,7 +353,7 @@ echo "setup: environment: $(said "found $env_file unchanged")"
 
 changes=
 if ! cmp -s "$checkout/vm/factory.service" /etc/systemd/system/factory@.service; then
-  if [ "$cloned" = yes ]; then
+  if [ "$cloned" = yes ] || [ ! -e /etc/systemd/system/factory@.service ]; then
     install -m 0644 "$checkout/vm/factory.service" /etc/systemd/system/factory@.service
     changed "installed /etc/systemd/system/factory@.service"
   else

@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790, 6394217771]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T06:08:25.459791Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -362,6 +358,12 @@ journal:
   kind: started
   at: '2026-10-25T06:08:25.459791Z'
   stage: doing
+- number: 64
+  speaker: coder
+  kind: result
+  at: '2026-10-25T06:10:35.581642Z'
+  stage: doing
+  run: 902945432ddd4ccf95b0cbc2530415c7
 ---
 
 # The setup script prepares the machine and installs the service
@@ -1051,3 +1053,14 @@ Expect: `1`
     - `tests/test_vm_setup_text.py:491` (`chown-keeps-links`): the row passes without checking any line, because the script holds no `chown`.
     - `tests/test_vm_setup_text.py:592`: the name `test_the_folders_step_refuses_a_link_at_state_or_repo` now also covers `/home/factory/.secrets`.
 63. factory: started doing as self.
+64. coder: Round 2, after the human's entry 60 and the reviewer's entry 62. I changed only `vm/setup.sh`, fixing findings 2 and 3:
+    - `vm/setup.sh:311` (`tools`): the install now runs under `if [ "$cloned" = yes ] || [ ! -e /usr/local/bin/git-credential-factory ]; then`.
+    - `vm/setup.sh:356` (`service`): the install now runs under `if [ "$cloned" = yes ] || [ ! -e /etc/systemd/system/factory@.service ]; then`.
+
+    Each condition still sits inside the existing `cmp -s` check, so a file that is in place and identical changes nothing. A file that is in place but different still gets the `differs from the checkout; not installed` line on standard error and is left alone. The main choice was to add the missing-target test to the existing `if`, as entry 60 words it. I rejected a separate `elif` branch: it would print the same install line twice and add nothing.
+
+    `make check` ran green on the working tree: `check: green`, `test: green (68.9 s)`, coverage 99.20 %. I left the refactor step alone because the change is two lines.
+
+    Ending with `tests`, as entry 60 asks. Finding 1 is for the tester: add the missing-target rows for `tools` and `service` (`[ ! -e /usr/local/bin/git-credential-factory ]` and `[ ! -e /etc/systemd/system/factory@.service ]`, or-ed with the clone variable in each step's install `if`) to `tests/test_vm_setup_text.py::test_the_checkout_files_are_installed_only_in_the_run_that_cloned`.
+
+    Noticed but not touched: the reviewer's notes in entry 62. `tests/vm_support.py:5` imports the private `_uncommented`. The `chown-keeps-links` row passes without checking any line, because the script holds no `chown`. The name `test_the_folders_step_refuses_a_link_at_state_or_repo` now also covers `.secrets`. These are tests, which I do not change. The Description already holds entry 60's change, which the reviewer wrote in entry 62, so I did not rewrite it.
