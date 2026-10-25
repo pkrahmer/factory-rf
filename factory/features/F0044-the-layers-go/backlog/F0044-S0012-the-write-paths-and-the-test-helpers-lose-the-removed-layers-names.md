@@ -24,7 +24,7 @@ class WritePathService:
 - `factory.application.take` and `factory.application.write_paths` import `WritePathSettings`; nothing else in them changes.
 - No module under `src/factory` names `GuardSettings`.
 
-Tests (the leave is the human's and is to be given before the story starts; `feature.md` does not hold it yet):
+Tests (the leave is decision 42 of `feature.md`):
 
 - Renamed whole, with the same contents: `tests/confine_support.py` becomes `tests/run_layout_support.py`, and `tests/sealed_run_support.py` becomes `tests/agent_run_support.py`. Every importer changes its import line only: `tests/conftest.py`, `tests/podman_support.py`, `tests/zfs_support.py`, `tests/test_test_children.py`, `tests/adapters/test_agent_launch_login.py`, `tests/adapters/test_calls_as_the_factory_user.py`, `tests/adapters/test_opencode_runtime_launch.py`, `tests/adapters/test_runtimes_without_wrapper.py`, `tests/adapters/test_claude_runtime_no_hook.py`, `tests/application/test_container_environment.py`, `tests/application/test_sealed_runs_runner.py`, `tests/application/test_probe_nested_repository.py`.
 - `run_layout_support.Layout` loses `temporary_root`, and `build_layout` stops making `<tmp_path>/tmp`. The module docstring and the class docstring stop naming a temporary root.
