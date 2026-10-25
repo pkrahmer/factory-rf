@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T19:32:00.015529Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-25T19:31:39.514444Z'
   stage: review
   run: e76080944bc04ec18ebb9750a7534e7f
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:32:00.015529Z'
+  stage: doing
 ---
 
 # The undo is removed
@@ -208,3 +217,4 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
    - tests/application/test_undo_nested_claude.py (deleted): decision 25.
    - tests/domain/test_agent_entry.py: decision 25. All six tests keep their names. The blank-text test's parameter ids changed from `nothing-undone`/`undone` to `nothing-left-out`/`left-out` along with the keyword, and I count that as part of the rename the leave covers.
    - tests/undo_support.py: decision 25.
+10. factory: started doing as self.
