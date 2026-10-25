@@ -29,9 +29,14 @@ dead-code src/factory/domain/kill_points.py: unused method 'reached'
 dead-code src/factory/domain/move_rule.py: unused function 'factory_moves'
 dead-code src/factory/domain/paths.py: unused variable 'FACTORY_DIRECTORY'
 dead-code src/factory/domain/write_paths.py: unused function 'is_writable'
-similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: return version_printed(
-similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: leftovers_error = self._end_leftovers(request)
-similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: started = due_leftovers_launch(self._starters, request.os_user, own_identity().user)
 dead-code src/factory/adapters/clock.py: unused class 'ManualWaiter'
 dead-code src/factory/adapters/process.py: unused variable 'output_abandoned'
 dead-code src/factory/application/take.py: unused variable 'restored_work_item'
+similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: return finished_run(result, started, self._kill_points)
+similar-code factory.adapters.podman_runs, factory.adapters.zfs_snapshots: env=None,
+similar-code factory.adapters.fake_containers, factory.adapters.podman_runs: env=launch.env,
+similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: exit_status=process.exit_status,
+dead-code src/factory/adapters/fake_containers.py: unused class 'FakeContainerRuns'
+dead-code src/factory/adapters/fake_containers.py: unused property 'calls'
+dead-code src/factory/adapters/fake_snapshots.py: unused class 'FakeSnapshots'
+dead-code src/factory/adapters/make_commands.py: unused class 'MakeProjectCommands'
