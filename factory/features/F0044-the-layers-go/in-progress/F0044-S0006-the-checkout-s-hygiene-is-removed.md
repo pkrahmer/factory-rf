@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T16:38:05.840213Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-10-25T16:38:05.840213Z'
   stage: docs
+- number: 32
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T16:41:02.001139Z'
+  stage: docs
+  run: dad6a0f53e1642c2be02671b1651e60c
 ---
 
 # The checkout's hygiene is removed
@@ -599,3 +601,52 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     - `tests/test_home_reset_removed.py`: the Interface's test list.
     - `tests/test_tests_umask.py` (deleted): the Interface's test list.
 31. factory: started docs as self.
+32. documenter: Docs, round 1. The checkout's hygiene is removed, and the documentation now says so. I wrote the docs criterion's list, cross-read the rest and found no finding for the coder. The code matches the Interface: I read `git diff main...HEAD` over `src/` against it. I changed only documents, so I did not run `make check`. `make documents` printed `documents ok`.
+
+    Files changed:
+    - `docs/project-guide/git-and-hosting.md`: the five rows (`seal`, `check_seal`, `remove_nested_repositories`, `remove_ignored`, `discard`) are gone. The count says twenty-one. *Restoring the checkout* says three and loses the `remove_ignored()` bullet. *Which part uses which operation* loses its row.
+    - `docs/project-guide/stage-environment.md`:
+      - *The stage environment* and *The container environment* now say `run_agent` returns the `AgentRunResult`.
+      - The inline environment's `run_agent` is described as sealing and removing nothing.
+      - The probe line and the tests line no longer name `run_sealed`.
+      - `SealedRun` is gone.
+      - The `project_commands` row of the wiring table already had no `SealedProjectCommands`, so I left it.
+    - `docs/project-guide/stages.md`:
+      - *The reasons* has ten, without `nested_repository`.
+      - *After the agent run* loses the nested-repository rule, and the remaining steps are renumbered 1 to 5.
+      - The launch step no longer says the inline environment seals.
+    - `docs/project-guide/watching.md`:
+      - The restore step no longer calls `remove_ignored()`.
+      - The probe text no longer names `run_sealed`.
+      - The dispatcher's `RepositoryUnsealed` re-raise is gone.
+      - The module list loses `sealed_runs`.
+      - `RepositoryUnsealed` is gone from the git-environment paragraph.
+      - The "Every agent run is sealed" paragraph is replaced by a short *Agent runs* paragraph.
+      - The preparer is described as: clone when `.git` is missing, otherwise do nothing, and `log` is unused.
+    - `docs/project-guide/write-guard.md`: *Limits* no longer says `run_sealed` removes ignored paths. It now says the factory removes none and the take never brings one in.
+    - `docs/project-guide/processes-and-checks.md`:
+      - *Sealed project commands* is removed.
+      - The paragraph on the tests' umask now says tests run under pytest's starting umask. It names the one exempt fixture, `umask_of`, from the human's answer (a) in entry 9, and the test `tests/test_tests_run_under_the_starting_umask.py`.
+      - *Rules of `run`* and *Mutation testing* held no umask or seal text, so there was nothing to remove there.
+    - `docs/project-guide/README.md`: the `watching.md` line loses `sealed_run_support`'s sibling module `sealed_runs`. The `conftest.py` line loses `group_umask`. The `sealed_run_support.py` line says the agent runs' completed result and request, and `RecordingRun` (the helper moved there in round 1).
+    - `docs/operator-guide.md`:
+      - The section is now *The checkout is cloned when it is missing*, and a kept checkout is not checked.
+      - The sentences on the seal, the nested-repository removal and the project commands' ignored-state removal and umask are gone.
+      - The stall note count says ten, and the nested-repository cause is gone.
+      - The restore text says ignored paths stay. Its `checkout_restore_failed` text no longer mentions an ignored folder it cannot empty.
+      - The cross-reference title is updated.
+      - *The records contract* says `3.0` and why.
+    - `docs/decisions.md`: the six entries you named each gain their closing line. The "disposable" one gets "The seal, the re-clone and the removal of ignored paths went with v1.2 F0044-S0006; the restore stays." The other five get "Replaced by the dataset's rollback, v1.2 F0044-S0006."
+    - `README.md`: none, as the criterion says.
+
+    Cross-read and found current: `docs/project-guide/agents.md` (the umask hits are opencode's run file, unrelated), `docs/project-guide/work-items.md` (the records contract text names no version) and the remaining `docs/decisions.md` entries.
+
+    Stale text I saw and did not touch:
+    1. `docs/operator-guide.md`, *Users and directories*, around line 695: the table row for `/work/checkout/.git` still says `2750`, `factory:factory-work`, "the factory alone writes it" and "the work tree around it stays group-writable". That is the second-user and group layout, which S0005 removed, and it is not on this story's docs criterion.
+    2. `docs/operator-guide.md`, the `checkout_restore_failed` paragraph (around line 1211), still says "Repair with `chmod -R g+w <path>` as root". It belongs to the same second-user layout.
+    3. `docs/operator-playbook.md` lines 55, 117, 118 and 194 mention a nested repository as an attempts-cap cause and the seal's umask rows. That file is the human's, and no stage keeps it.
+    4. `docs/project-guide/processes-and-checks.md` line 15 keeps "the git folder sealed" as the title of a decision-log entry. That title is the entry's real name, so it is correct as it stands.
+
+    `check`: check: green (not run again: passed on tree 121c8da73c66 at 2026-10-25T16:35:16Z)
+    `secrets`: secrets: green (3.8 s)
+    `documents`: documents ok

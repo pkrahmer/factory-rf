@@ -189,6 +189,8 @@ Date: 2026-10-14 (F0006-S0003). `StopService` opens a draft pull request only fo
 
 Date: 2026-10-14 (F0006-S0004). The tick fetches, loads the definition, and then resets the checkout to `main` at `origin/main`: uncommitted changes and untracked files are removed (one log line names them), and the local branches of the work items are deleted. The remote is the only truth, so a local commit that a rejected push left behind, a half-finished stage or a stray file must not decide anything. Rejected: repairing local state case by case (a second writer of the checkout that could itself fail), and keeping a local record of what the last tick did (a second truth that a fresh clone lacks). A restore that fails is the repository stop `checkout_restore_failed`; the load of the definition comes before the restore, so an invalid definition leaves the checkout alone.
 
+The seal, the re-clone and the removal of ignored paths went with v1.2 F0044-S0006; the restore stays.
+
 ## A stale branch is deleted by the tick, not by the discard handler
 
 Date: 2026-10-14 (F0008-S0004). A kill between the push of a discard's move to `backlog/` and the deletion of the branch leaves `work-item/<id>` on the remote, and no event is raised again for a story in `backlog/`, so the closed handler never runs for it. The same holds for a merged story whose branch outlives the archive in `done/`. The tick therefore deletes the branch of any story found in `backlog/` or `done/` on `origin/main`, after the restore and before the evaluation, so that the human need not delete it and a story started again does not find the old state and bill (F0007 decision 21). Rejected: retrying in the handler (it is never called again after the kill), and a hosting-service lookup (the remote's branches and `origin/main` are enough, and the hosting service stays out). An id that also has a file in `in-progress/` keeps its branch, because that is the `duplicate` case. A refused deletion is a log line, not a stop: the tick would otherwise stop all work for a refusal that only concerns a leftover.
@@ -254,6 +256,8 @@ Date: 2026-10-16 (F0010-S0001; the human, 2026-10-14). The settings hold the ide
 Update (F0014-S0006): the factory now removes and clones again a checkout whose `.git` fails the seal check (see "The factory alone writes the checkout's `.git`"); a folder with no `.git` is still refused.
 
 Date: 2026-10-16 (F0010-S0002). `CheckoutPreparer.prepare` clones when `checkout/.git` is missing and does nothing else; it does not check that an existing clone is whole. The checkout is disposable (R18) and a clone killed half-way is rare, so the operator deletes the directory (see "The loop and its pauses" in the operator guide). A directory with files but no `.git` is refused by git itself, as a `GitError` that the scheduler logs and counts as idle. Rejected: probing the clone's health on every iteration (a git call per tick to cover a rare case) and deleting a directory the factory did not clone (it could destroy what the operator put there). `pause_after` doubles step by step to the cap instead of computing `FIRST_PAUSE * 2 ** n`, which overflows `timedelta` after about 43 idle ticks.
+
+Replaced by the dataset's rollback, v1.2 F0044-S0006.
 
 ## Git gets its credential helper and shared group through `GitOptions.environment`
 
@@ -463,6 +467,8 @@ Date: 2026-10-17 (F0014-S0006; F0014 decisions 20 to 23; the human's word, 2026-
 
 Rejected: a sticky bit on the checkout's root (it would stop the agent from renaming, removing or replacing any of the factory's files there, such as `uv.lock` and `.venv`); a git folder outside the work tree under `GIT_DIR`; a volume mounted at `.git`; a umask of `022` for git (it would close the work tree too); a check before every git command. Open, not planned (see *v2 is retired; nothing is left for v2*): the clone's working folder (the checkout's parent) and the process environment `GitCli` passes on first. The hooks fix stays as defence in depth. `make test` has no second user, so the tests use a mode bit and a changed effective user id; the real check as `agent` is one of the operator guide's checks on a running instance.
 
+Replaced by the dataset's rollback, v1.2 F0044-S0006.
+
 ## No nested repository in the work tree
 
 Date: 2026-10-17 (F0014-S0010; F0014 decisions 30 to 32). The seal keeps the checkout's own `.git` the factory's alone, but the agent can still make a git repository anywhere in the work tree it may write, for example with `uv run ...`. The pre-check found the route with git 2.39.5: the factory's commit (`git add --all`) adds such a repository as a gitlink with only a warning, and from then on the factory's `git status` and `git diff` start a child `git status` inside it, which reads that repository's own configuration. Its `core.fsmonitor` ran as `factory`, the user who can read the hosting token. A nested `.git` the agent makes itself may also pass git's ownership check, since the agent can rename one of the factory's group-writable folders into place. `diff.ignoreSubmodules=all` did not stop the child.
@@ -474,6 +480,8 @@ Date: 2026-10-17 (F0014-S0010; F0014 decisions 30 to 32). The seal keeps the che
 - `git clean -f -d`, the restore, keeps a nested repository; only `-ff` would remove it. The removal does not use git for this, so it does not depend on either flag.
 
 Left open: an index entry of mode `160000` without a repository behind it is not refused, since no child git starts for it; and a folder the factory cannot list is not searched, since its git cannot read it either.
+
+Replaced by the dataset's rollback, v1.2 F0044-S0006.
 
 ## The agent's git trusts the shared checkout
 
@@ -883,6 +891,8 @@ Date: 2026-10-20 (F0033-S0001; F0033 decisions 1 and 2). On 2026-10-19 an agent'
 - Decision: the `Makefile`'s `test` recipe sets no umask, so uv syncs `.venv` under the caller's umask: `002` in the container and under `sudo`. `make mutants` keeps its `umask 022`.
 - Rejected: `UV_NO_SYNC` for agents (an agent's `make check` after a dependency change would test a stale environment); a repair of modes after every agent call (it fixes the symptom, needs a new step as `agent`, and misses the factory's own `644` files); a shell wrapper in the recipe, `uv run sh -c 'umask 022; exec pytest ...'` (a test module run on its own with `uv run pytest <module>` would not get the tests' umask, and the hook in `tests/conftest.py` makes the `Makefile` simpler).
 
+Replaced by the dataset's rollback, v1.2 F0044-S0006.
+
 ## No stage writes a .claude folder at any depth
 
 Date: 2026-10-20 (F0036-S0001; F0036 decisions 1, 2 and 4). `PROTECTED_PATHS` held `.claude/*`, which protects the repository's root `.claude/` only. F0022's decision 12 left a nested `.claude/` open, and its acceptance walked the guard and found `src/.claude/skills/x/SKILL.md -> allowed` under the write path `src/*`. On 2026-10-19 the human decided that no agent writes any `.claude/` folder, at any depth.
@@ -972,6 +982,8 @@ Date: 2026-10-20 (F0027-S0003; the feature's decisions 2 and 4 to 7). Nothing re
 - Accepted: an agent can un-ignore a path inside its write paths (F0027 decision 7), and no rule is added against it. A nested `.gitignore` there with a negated rule (`!__pycache__/` in `src/`) makes a `.pyc` untracked and not ignored, so `remove_ignored()` keeps it. Nothing is hidden by that: the path is committed with the result and shows in the pull request's diff, where the reviewer and the human see it, and the undo removes it when it lies outside the stage's write paths. Inside the tool paths no `.gitignore` takes effect, because git does not read the rules of an ignored folder. An agent cannot write the root `.gitignore` or `.git/info/exclude`: the kernel's rules and the seal refuse it. A later story that finds an un-ignored file in a diff should not add a rule for it without asking.
 - Test children (F0027-S0004): the tests' shared helpers (`write_script` in `tests/confine_support.py`, `python_argv` in `tests/process_support.py`) and every script the tests write for their own interpreter start it with `-B`, and `tests/test_test_children.py` scans `tests/` so that a shebang `#!{sys.executable}` without the flag fails. The tests run under umask `022`, so a bytecode folder a test child writes during an agent's `make check` is one the factory's removal cannot remove; that stopped F0027's acceptance twice on 2026-10-20.
 - Seen on 2026-10-20: F0027's acceptance ran `make check` as `agent` and left `.venv/lib/python3.12/site-packages/__pycache__/` as `drwxr-sr-x`. The removal after the run raised `GitError`, the stage ended without a result, and it crashed twice (the second run hit the same folder) up to `crash_cap`. The human's quick fix is `export UV_COMPILE_BYTECODE := 1` in the `Makefile` (fd0fcd0b): uv writes `.venv`'s bytecode at its sync, group-writable, so the test children find it there and write none. It hides the cause and does not remove it: a child without `-B` still writes bytecode under the tests' umask `022` for a module that has none, and the test helpers' `-B` (S0004) removes the cause. The answer lies in how the files are written and not in a later repair: a fix of modes after every agent call was rejected (*The tests set their own umask, and uv syncs under the caller's*), so what an agent's commands write must be group-writable from the start.
+
+Replaced by the dataset's rollback, v1.2 F0044-S0006.
 
 ## The project commands run as the agent user, with the git folder sealed
 

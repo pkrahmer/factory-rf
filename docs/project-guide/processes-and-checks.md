@@ -14,60 +14,11 @@ The contract between a project and the factory is four make targets: `check`, `l
 
 Removed (F0044-S0005): `MakeProjectCommands` runs `make` as the factory's own user and takes no user. The factory's other users are gone with the second user: an `inline` instance runs a project command as the factory's user, and a `container` instance runs it in a check container (*Container project commands*). The decision log keeps the chain that stood here (*The project commands run as the agent user, with the git folder sealed*).
 
-### Sealed project commands
-
-`SealedProjectCommands(inner, git, log)` (`factory.application.sealed_runs`) inherits `ProjectCommands` and runs another implementation's commands with the checkout's git folder sealed, as `run_sealed` does for an agent run. `run(command, *, time_limit)` works in this order:
-
-1. `git.seal()`. A `RepositoryUnsealed` propagates and nothing runs.
-2. `inner.run(command, time_limit=time_limit)`.
-3. Also when the inner run raised: `git.check_seal()`, then `git.remove_nested_repositories()`.
-
-The inner result is returned unchanged. A `RepositoryUnsealed` of the check propagates, also over an error of the inner run, which becomes its `__context__`; a failed check removes nothing. A `ProjectCommandError` or `ValueError` of the inner run propagates when the seal holds. The removed repositories are logged in one line, `removed nested repositories after <command>: a/.git, b/c/.git` (the paths as `remove_nested_repositories` gave them, in its order); none removed, no line. It does not call `remove_ignored`: that stays with the agent run.
-
-Wiring (`build_boundaries`, `factory.entry.wiring`): no caller builds a `SealedProjectCommands` since F0044-S0005; `sealed_runs.py` goes with S0006. An `inline` instance's `boundaries.project_commands` is `RecordingProjectCommands(MakeProjectCommands(settings.checkout), ...)`. Building starts no process. The records, `KnownResults` and the time limits are unchanged, and the preflight's `lint` goes through the same object.
-
-Tests: `tests/application/test_sealed_project_commands.py` (a real clone and a recording `ProjectCommands`), `tests/entry/test_wiring_without_agent_user.py` (reads the built objects).
-
-### Container project commands
-
-`ContainerMakeCommands(snapshots, containers, git, *, checkout)` (`factory.adapters.make_commands`) is the second implementation, for the container stage environment: it runs a command in a check container on the dataset, not in a process on the host. It inherits `ProjectCommands`. `build_boundaries` puts it behind `RecordingProjectCommands` for a `container` instance (`stage-environment.md`, *The settings and the wiring*). `stage-environment.md`, *The checks*, says where it sits in the cycle of a stage.
-
-`run(command, *, time_limit)` does these steps in order:
-
-1. The call is refused as `MakeProjectCommands` refuses it (the shared `_check_call`): a `time_limit` of zero or less raises `ValueError`, a `command` that does not match `^[a-z][a-z0-9-]*$` raises `ProjectCommandError` (`invalid command name 'Check'`). Nothing has run or been reset yet.
-2. `snapshots.reset()` rolls the dataset back to the base.
-3. `copy_changed(checkout, snapshots.mount_point / "checkout", git.changed_paths("HEAD"))` copies in what differs from `HEAD` on the host: after a take, the taken files, the restored work item and the cost record. Added and modified files arrive with the host's bytes, deleted ones are removed, and what the host's `.gitignore` ignores is not listed. With a work tree equal to `HEAD` nothing is copied. The dataset's own `.git` is never touched (`changed_paths` lists no `.git` path and `copy_changed` writes under `checkout` only).
-4. `containers.run` starts `/bin/sh -c '"$1" sync && "$1" --no-print-directory "$2"' factory-check make <command>` with no mounts, `time_limit` as the limit, `/work/checkout` as the working directory and `CHECK_ENVIRONMENT` as the environment: the `SYNC_ENVIRONMENT` of the stage environment (`PATH=/usr/local/bin:/usr/bin:/bin`, `HOME=/work/home`), so a check sees the same system and home as the sync before the agent. The command name is an argument, never part of the script text, so the shell never parses it. `sync` runs first, so a failing `sync` is the result (`failed`, exit status 2, the `last_line` of its output) and `<command>` does not run.
-5. The result is read by the code that `MakeProjectCommands` uses (`_read_result`): `status_of` the exit status (`time_limit` with `exit_status` `None` when the container timed out), `last_line`, the last 30 lines as `output_tail`, and `target_times` of the whole output, so `sync`'s own `sync: green (<seconds> s)` line is the first of `targets`.
-
-Faults: a `SnapshotError` of the reset and a `ContainerError` of the container become `ProjectCommandError(command, <the error's message>)`. A `GitError` of `changed_paths` and a `ValueError` of `copy_changed` (a path that is absolute or has `..`) propagate as they are, before any container starts.
-
-A check's files stay in the container's dataset: nothing is copied back, and the next `run` resets them away. The host's work tree is the same before and after a run.
-
-Tests: `tests/adapters/test_make_commands_container.py`, on `FakeSnapshots` and `FakeContainerRuns` under `tmp_path`, a real clone as the host's checkout and the real `make`.
-
-### Rules of `run`
-
-
-- `time_limit` of zero or less raises `ValueError`.
-- `command` must match `^[a-z][a-z0-9-]*$`, checked with a full match. Otherwise `ProjectCommandError` is raised before anything is started. So is an `executable` that cannot be started; the detail is the operating system's message.
-- The exit status is the only judgment. 0 is `"passed"`, any other is `"failed"`, and a command ended by the `time_limit` is `"time_limit"` with `exit_status` `None`; every process of its session is killed. GNU make, not the recipe, sets the status: it exits 2 whenever a recipe fails, whatever status the recipe's command had, and when the target is missing. A missing target is therefore a failed command, not an error.
-- `output_tail` is the last 30 lines (`OUTPUT_TAIL_LINES`) of the merged output, in the order written; all of it when shorter.
-- `last_line` is the last line that is not blank and does not start with `make:` or `make[` (make's own messages); `""` when there is none.
-- `duration` is the time the command ran.
-- `kill_points` is accepted so that wiring builds every wrapper the same way; this wrapper reaches no kill point.
-
-`CheckResult` (`factory.domain.checks`) is frozen, forbids unknown keys, and has the fields `command`, `status`, `exit_status`, `duration`, `last_line`, `output_tail`, `targets` and `reused`. `status` and `exit_status` must agree (`status_of(exit_status)` is the one mapping), or validation fails; so does a `reused` on a result that did not pass. `passed` is true only for `"passed"`. The result is generic: it carries no layer names (R8), and no identifier in the three modules contains `layer`.
-
-`targets` is a list of `TargetTime` (`target`, `seconds`), one for each line of the whole output (not only the tail) that is exactly `<target>: green (<seconds> s)`, in the order printed; `target_times(output)` reads them. A target printed twice gives two entries, and a project whose Makefile prints no such line gets `[]`. A red target prints no such line. This repository's `Makefile` prints that line for each target, so the factory knows no target names.
-
-`RecordingProjectCommands(inner, git, records, clock, log)` (`factory.application.project_commands`) is the `ProjectCommands` that the wiring hands out: it wraps another implementation (`MakeProjectCommands`) and records every run. `run` reads `git.resolve("HEAD")` (a `GitError` gives `commit=None`) and the clock, runs `inner.run`, appends a `CommandRecord` (`factory.domain.command_records`: command, commit, `started_at`, `duration_seconds`, status, exit status, targets) and returns the inner result unchanged. A `ProjectCommandError` or `ValueError` of the inner run propagates and records nothing. An `OSError` of the append is logged as `cannot write the record of <command>: <error>` and the result is still returned.
-
 The records go through `RecordLog[R]` (`factory.application.files`), an interface for an append-only file of records: `append(record)` raises `OSError` when it cannot write, `read()` gives the records in file order, `[]` without a file, and skips a blank line, a line that is not UTF-8 and a line that does not validate. `JsonLinesRecordLog(path, model)` (`factory.adapters.record_log_jsonl`) is its implementation: one `model_dump_json()` line per record, written in one write to the file opened for appending, the folder created on the first append. It reads the file's bytes, splits them at `\n` alone and decodes each line on its own as strict UTF-8, so a line cut inside a multibyte character by a kill is skipped and a record holding U+2028, U+2029 or U+0085 stays whole (`str.splitlines` would cut it). A record appended after a torn line shares its line and is skipped with it. `build_boundaries` points it at `<state directory>/records/project-commands.jsonl`. Tests use `UnwritableRecordLog` (`tests/record_support.py`) for a log that cannot be written.
 
 The disk record uses the same log. `DiskRecord` (`factory.domain.disk`: `at`, `occasion` of `DiskOccasion` = `start` or `acceptance`, and `folders`, a list of `DiskUse` with `path`, `free_bytes` and `used_bytes`, `None` when unknown) is what `Boundaries.disk_records` holds; `disk_line(record)` is its factory log line. `DiskRecorder(boundaries)` (`factory.application.disk_records`) measures the checkout's parent, the state directory and, when `InstanceSettings.temporary_directory` is set, that directory through `DiskSpace`: `record(occasion)` appends the record, logs its line and returns it (a failed append is logged and the record still returned), and `last()` gives the latest record whatever its occasion. `run_instance` records `start` once; `read_environment_settings` sets `temporary_directory`, `read_settings` does not. `build_boundaries` points the log at `<state directory>/records/disk.jsonl`.
 
-The tests set their own umask, `0o022`, in `pytest_configure` of `tests/conftest.py` (`TESTS_UMASK`), so that the checkouts they make are not group-writable and the seal accepts them, whatever umask pytest starts under. The `Makefile` sets no umask for `make test`, so `uv run` syncs `.venv` under the caller's umask, which is `002` in the container. A test that needs another umask sets it and restores the earlier one, as `group_umask` does. Test: `tests/test_tests_umask.py`.
+The tests run under the umask pytest was started with; no module under `tests/` sets one, except the fixture `umask_of` of `tests/adapters/test_calls_as_the_factory_user.py`, which sets a umask for one test and puts the earlier one back. Test: `tests/test_tests_run_under_the_starting_umask.py`.
 
 The suite removes the agent's two login variables, `CLAUDE_CODE_OAUTH_TOKEN` and `ANTHROPIC_API_KEY` (`LOGIN_VARIABLE` and `API_LOGIN_VARIABLE` of `factory.adapters.agent_launch`), from every test's environment: the autouse fixture `without_agent_login` in `tests/conftest.py` calls `monkeypatch.delenv` for each. An agent's run holds them, a child process that gets the process's own environment (the `version()` calls of both runtimes) inherits them, and an assertion message prints what it compares, so a failing test could print a key into the run's output. A test may still set either name with `monkeypatch.setenv`; `monkeypatch` restores the process's value afterwards. An assertion about an environment compares names, `set(environment)`, never the mapping, so that a failure prints names and no value. Test: `tests/test_no_agent_login.py`.
 
