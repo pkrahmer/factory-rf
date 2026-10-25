@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 444
-comments_read: []
+comments_read: [6396634457]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 706131791ff74a248cca348a9c60d198
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-25T10:43:19.809593Z'
+  stage: intake
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -132,3 +137,7 @@ Expect: `7`
    - Smoke test: the commands are runnable and run no pytest. Each `Expect:` line is checkable against the output (`[]`, `[]`, `False`; `7`).
    - Architecture: the changes stay in the layers `CLAUDE.md` describes, and the removed names have no other callers.
    - Scope: the story is S0001 of `feature.md` and keeps the S0002 modules. R14's text is decision 4 word for word, with the human's leave from decisions 17, 29(e) and 30.
+4. 2026-10-25 human: 1: yes, add the row (a line beginning `sudo:` on the standard error of a call without an `os_user`, no reply printed: no refusal, the call ends `died`) to criterion 4's parametrized test.
+   2: yes, add the `factory-run-` check to the opencode row of criterion 3.
+   3: (a), widen criterion 7 to the bare `factory-confine` for `factory.entry.wiring` only.
+   Add all three yourself, then continue.
