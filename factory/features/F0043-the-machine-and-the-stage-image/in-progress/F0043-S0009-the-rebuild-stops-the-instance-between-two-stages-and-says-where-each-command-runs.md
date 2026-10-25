@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 440
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-25T09:25:06.612501Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-25T09:24:46.197738Z'
   stage: docs
   run: 16838a3b7c9d40c9b4a368041ee8cfad
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:25:06.612501Z'
+  stage: smoke-test
 ---
 
 # The rebuild after a merge stops the instance between two stages and says where each command runs
@@ -197,3 +206,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
