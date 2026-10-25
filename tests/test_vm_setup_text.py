@@ -523,8 +523,7 @@ def _clone_variables(checkout: str) -> list[str]:
     return re.findall(r"(?m)^\s*(\w+)=", "\n".join(branch))
 
 
-def _installed_only_after_the_clone(script: Script, step: str, path: str) -> bool:
-    variables = _clone_variables(script.steps["checkout"])
+def _install_conditions(script: Script, step: str, path: str) -> list[str] | None:
     lines = script.steps[step].splitlines()
     installs = [
         i
@@ -532,15 +531,19 @@ def _installed_only_after_the_clone(script: Script, step: str, path: str) -> boo
         if re.search(r"(?<![\w-])install\s", line) and path in line
     ]
     conditions = [_enclosing_if(lines, i) for i in installs]
-    return (
-        installs != []
-        and variables != []
-        and all(
-            condition is not None
-            and any(re.search(rf"\$\{{?{name}(?!\w)", lines[condition]) for name in variables)
-            for condition in conditions
-        )
-    )
+    if installs == [] or None in conditions:
+        return None
+    return [lines[condition] for condition in conditions if condition is not None]
+
+
+def _tests_the_clone(script: Script, condition: str, _path: str) -> bool:
+    variables = _clone_variables(script.steps["checkout"])
+    return any(re.search(rf"\$\{{?{name}(?!\w)", condition) for name in variables)
+
+
+def _tests_the_missing_target(_script: Script, condition: str, path: str) -> bool:
+    missing = rf"\[\s+!\s+-e\s+\"?{re.escape(path)}\"?\s+\]"
+    return re.search(rf"\|\|\s*{missing}|{missing}\s*\|\|", condition) is not None
 
 
 @pytest.mark.parametrize(
@@ -550,10 +553,20 @@ def _installed_only_after_the_clone(script: Script, step: str, path: str) -> boo
         ("service", "/etc/systemd/system/factory@.service"),
     ],
 )
+@pytest.mark.parametrize(
+    "side",
+    [
+        pytest.param(_tests_the_clone, id="cloned"),
+        pytest.param(_tests_the_missing_target, id="target-missing"),
+    ],
+)
 def test_the_checkout_files_are_installed_only_in_the_run_that_cloned(
-    script: Script, step: str, path: str
+    script: Script, step: str, path: str, side: Callable[[Script, str, str], bool]
 ) -> None:
-    assert _installed_only_after_the_clone(script, step, path)
+    conditions = _install_conditions(script, step, path)
+
+    assert conditions is not None
+    assert all(side(script, condition, path) for condition in conditions)
     assert [
         line
         for line in _lines_with(script.steps[step], f"setup: {step}: ")

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790, 6394217771]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T06:10:56.762678Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -373,6 +369,12 @@ journal:
   kind: started
   at: '2026-10-25T06:10:56.762678Z'
   stage: tests
+- number: 66
+  speaker: tester
+  kind: result
+  at: '2026-10-25T06:14:20.581888Z'
+  stage: tests
+  run: 368d47b889f84af98fc210e3389d3c22
 ---
 
 # The setup script prepares the machine and installs the service
@@ -1074,3 +1076,22 @@ Expect: `1`
 
     Noticed but not touched: the reviewer's notes in entry 62. `tests/vm_support.py:5` imports the private `_uncommented`. The `chown-keeps-links` row passes without checking any line, because the script holds no `chown`. The name `test_the_folders_step_refuses_a_link_at_state_or_repo` now also covers `.secrets`. These are tests, which I do not change. The Description already holds entry 60's change, which the reviewer wrote in entry 62, so I did not rewrite it.
 65. factory: started tests as self.
+66. tester: Tests, round 2. I made the test change approved in the human's entry 60 and named in the coder's entry 64: the missing-target rows for criterion 13. I changed only `tests/test_vm_setup_text.py`. I created no new files.
+
+    criterion 13: tests/test_vm_setup_text.py::test_the_checkout_files_are_installed_only_in_the_run_that_cloned
+
+    What changed:
+    - The test keeps its name and its `(step, path)` rows (`tools` with `/usr/local/bin/git-credential-factory`, `service` with `/etc/systemd/system/factory@.service`).
+    - It now also takes a second parametrize, `side`, with two rows:
+      - `cloned`: the `if` above each `install` of the path tests a variable set in the clone's branch of the `checkout` step. This is the check that was there before.
+      - `target-missing`: the same `if` holds `[ ! -e <path> ]` on the target's own path, joined to the rest of the condition by `||`.
+    - That makes four cases, one per step for each of the two sides, as criterion 13 now asks.
+    - Both sides still check that the step's text holds a `setup: <step>: ` line with `differs from the checkout; not installed`.
+    - The old helper `_installed_only_after_the_clone` became `_install_conditions` plus the two side checks `_tests_the_clone` and `_tests_the_missing_target`. The unused-argument names in the side checks start with `_` so ruff's ARG001 passes.
+
+    Run: one run of `make test` before the lint rename; the last line was `test: green (69.1 s)`, coverage 99.20 %. The new rows already pass because the coder's change in entry 64 is in `vm/setup.sh` (lines 311 and 356). After renaming the two arguments, `make lint` is green. I did not run `make test` again after the rename, because the stage allows one run. Every module imported. I did not run the type check, as this stage says.
+
+    Not touched (the reviewer's notes in entry 62, outside the approved change): the private `_uncommented` import at `tests/vm_support.py:5`, the `chown-keeps-links` row that checks nothing, and the name of `test_the_folders_step_refuses_a_link_at_state_or_repo`.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (68.3 s)
