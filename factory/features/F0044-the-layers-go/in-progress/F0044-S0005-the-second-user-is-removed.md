@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T14:56:02.876681Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-10-25T14:55:41.804315Z'
   stage: tests
   run: f697b57bf79a47b5be3bc48ebd6f1765
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:56:02.876681Z'
+  stage: doing
 ---
 
 # The second user is removed
@@ -302,3 +311,4 @@ Expect: three lines: `[] False`; `False False`; `3 False`
 
     `lint`: lint: green (0.7 s)
     `test`: test: green (70.1 s)
+16. factory: started doing as self.
