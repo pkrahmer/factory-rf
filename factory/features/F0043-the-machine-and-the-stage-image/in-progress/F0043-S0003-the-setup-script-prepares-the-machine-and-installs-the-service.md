@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 432
-comments_read: []
+comments_read: [6391472234]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 1bb6eb3e18c14e67bb69aab148994b78
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-25T00:34:37.836563Z'
+  stage: intake
 ---
 
 # The setup script prepares the machine and installs the service
@@ -116,3 +121,7 @@ Expect: `1`
    - The Interface names concrete files.
    - The smoke test commands are runnable. The pytest line passes no `-q`, and `pyproject.toml` already sets it.
    - The scope and architecture are within `feature.md`.
+4. 2026-10-25 human: Yes to both; add them to the criteria yourself, then continue.
+
+   1. **The option defaults**: a new criterion, rows of one parametrized test reading the script's text (comment lines dropped): it holds the assignments `instance=vm`, `pool=tank`, `quota=30G`, `ref=main` and `runtime=claude` once each, before the option parsing, and the image default is built from the instance as `image=factory-stage:$instance` when no `--image` is given. The variable names are exactly `instance`, `pool`, `quota`, `ref`, `runtime`, `image`, `device` and `repository_url`, beside the Interface's `base=/srv/factory/$instance`.
+   2. **The environment file's values**: criterion 7 is extended so each name's line holds its value in the text's own variable form, one row each: `FACTORY_INSTANCE=$instance`, `FACTORY_REPOSITORY_URL=$repository_url`, `FACTORY_AGENT_RUNTIME=$runtime`, `FACTORY_STAGE_IMAGE=$image`, `FACTORY_DATASET=$pool/factory/$instance`; `FACTORY_WORKSPACE`, `FACTORY_CHECKOUT`, `FACTORY_STATE`, `FACTORY_IMAGE_ID_FILE` and `FACTORY_CLAUDE_HOME` each starting with `$base/` and ending in the path the Interface gives; the three secret paths as `/home/factory/.secrets/hosting-token`, `/home/factory/.secrets/claude-token` and `/home/factory/.secrets/anthropic-api-key`; `XDG_RUNTIME_DIR=/run/user/$(id -u factory)`; the three pins as the values read from the Dockerfile's `ARG` lines (the variable the script reads them into may be named by the coder). The test matches these forms exactly; no other form.
