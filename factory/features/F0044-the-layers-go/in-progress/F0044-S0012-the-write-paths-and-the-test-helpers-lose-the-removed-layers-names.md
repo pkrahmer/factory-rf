@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T20:49:45.712822Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T20:49:25.382137Z'
   stage: intake
   run: 1885233b036e46639b4264ebd2851dc2
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:49:45.712822Z'
+  stage: tests
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -97,3 +106,4 @@ Expect: `0`
    Smoke test: three runnable commands with no pytest call, so the `-q` rule does not apply. Each `Expect:` can be checked against the output: `True False ['path', 'settings']`, six present/gone lines, and `0`.
    Architecture: a rename within `factory.domain` and `factory.application`, with no new layer, interface or dependency. The docs and test helpers are within the write paths of the documenter and the tester. `docs/decisions.md` keeps its history.
    Scope: within F0044's goal of removing the removed layers' names. The refusal rule is unchanged, which matches "Out of scope" in `feature.md`. The three test modules named after removed layers keep their names. Decision 42 of `feature.md` adds this story and gives the leave.
+4. factory: started tests as self.
