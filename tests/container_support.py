@@ -42,6 +42,7 @@ SYNC_MARKER = ".synced"
 SYNC_RECIPE = f"@echo synced > {SYNC_MARKER}"
 TIMING_PREFIX = "stage environment:"
 TAKE_SECONDS = 0.25
+GONE = "gone"
 FIVE_MINUTES = timedelta(minutes=5)
 CONTAINER: dict[str, object] = {
     "stage_environment": "container",
@@ -98,6 +99,11 @@ def container_dataset(boundaries: Boundaries, tmp_path: Path, *, with_base: bool
         workspace=workspace,
         base=base,
     )
+
+
+def container_environment(dataset: Dataset) -> ContainerEnvironment:
+    """The container environment on the dataset's boundaries and its two fakes."""
+    return ContainerEnvironment(dataset.boundaries, dataset.snapshots, dataset.containers)
 
 
 def push_main(boundaries: Boundaries, human: HumanClone, files: dict[str, str]) -> CommitId:

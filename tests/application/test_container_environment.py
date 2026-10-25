@@ -12,9 +12,11 @@ import pytest
 
 from container_support import (
     FIVE_MINUTES,
+    GONE,
     SYNC_MARKER,
     Dataset,
     container_dataset,
+    container_environment,
     dataset_git,
     local_branches,
     push_main,
@@ -35,14 +37,7 @@ from undo_support import BRANCH, start_stage
 
 AGENT = "tester"
 CHANGED_AGENT_FILE = AGENT_FILE.replace("Do the work.", "Do the work again.")
-GONE = "gone"
 STRAY = "stray.txt"
-
-
-@pytest.fixture
-def dataset(boundaries: Boundaries, tmp_path: Path) -> Dataset:
-    """An empty dataset with an empty base, its fakes set in the boundaries."""
-    return container_dataset(boundaries, tmp_path)
 
 
 @pytest.fixture
@@ -54,14 +49,10 @@ def main_commit(boundaries: Boundaries, human: HumanClone, agent_home: Path) -> 
     return commit
 
 
-def _environment(dataset: Dataset) -> ContainerEnvironment:
-    return ContainerEnvironment(dataset.boundaries, dataset.snapshots, dataset.containers)
-
-
 def test_prepare_syncs_the_dataset_to_the_commit_and_moves_the_base(
     dataset: Dataset, main_commit: CommitId, agent_home: Path
 ) -> None:
-    _environment(dataset).prepare(main_commit, "main", sync_time_limit=FIVE_MINUTES)
+    container_environment(dataset).prepare(main_commit, "main", sync_time_limit=FIVE_MINUTES)
 
     assert dataset_git(dataset, "rev-parse", "HEAD").strip() == main_commit
     assert dataset_git(dataset, "symbolic-ref", "--short", "HEAD").strip() == "main"
@@ -79,7 +70,7 @@ def test_the_sync_container_gets_container_paths_mounts_environment_and_limit(
 ) -> None:
     boundaries = dataset.boundaries
 
-    _environment(dataset).prepare(main_commit, "main", sync_time_limit=FIVE_MINUTES)
+    container_environment(dataset).prepare(main_commit, "main", sync_time_limit=FIVE_MINUTES)
 
     [call] = dataset.containers.calls
     assert call.command[:2] == ["/bin/sh", "-c"]
@@ -113,7 +104,7 @@ def test_a_second_prepare_reuses_the_repository_and_resets_everything_else(
 ) -> None:
     run_git(boundaries.checkout, "branch", GONE)
     write_agent(agent_home, "extra", AGENT_FILE)
-    environment = _environment(dataset)
+    environment = container_environment(dataset)
     environment.prepare(main_commit, "main", sync_time_limit=FIVE_MINUTES)
     assert GONE in local_branches(dataset)
     write_files(dataset.workspace / "checkout", {STRAY: "left\n"})
@@ -309,12 +300,12 @@ def test_run_agent_runs_unsealed_through_the_runtime_or_the_given_run(
 
     if given:
         recorder = RecordingRun()
-        sealed = _environment(dataset).run_agent(request, run=recorder.run)
+        sealed = container_environment(dataset).run_agent(request, run=recorder.run)
         assert recorder.requests == [request]
         assert agent_runtime.requests() == []
     else:
         agent_runtime.queue(ScriptedRun(result=COMPLETED))
-        sealed = _environment(dataset).run_agent(request)
+        sealed = container_environment(dataset).run_agent(request)
         assert agent_runtime.requests() == [request]
 
     assert sealed.result == COMPLETED
@@ -339,7 +330,7 @@ def test_run_agent_leaves_nested_repositories_ignored_files_and_the_home(
         write_files(agent_home, {home_file.name: "the agent's\n"})
         return agent_runtime.run(request)
 
-    sealed = _environment(dataset).run_agent(run_request(checkout), run=run)
+    sealed = container_environment(dataset).run_agent(run_request(checkout), run=run)
 
     assert sealed.nested_repositories == []
     assert (checkout / "notes" / ".git" / "HEAD").is_file()

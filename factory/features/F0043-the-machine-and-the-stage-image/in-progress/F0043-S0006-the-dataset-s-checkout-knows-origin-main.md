@@ -1,3 +1,131 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 435
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T07:31:02.886621Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:31:02.891950Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T07:31:19.327397Z'
+  stage: intake
+  run: 33354200d4ea46099677878ccdb64883
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:31:39.418977Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T07:39:21.246335Z'
+  stage: tests
+  run: bbed04612da24a04803e179da953d5c3
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:39:41.385849Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-25T07:47:25.095485Z'
+  stage: doing
+  run: f6e60d0b845e432097d548edaf88b0f2
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:47:46.047615Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T07:48:33.060683Z'
+  stage: review
+  run: 845813b550fc4982bc7af8cffbf121f5
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:48:53.339772Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-25T07:49:14.550382Z'
+  stage: doing
+  run: 85c89a988aee4eb7b5ea26b1edcc6224
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:49:34.838753Z'
+  stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-25T07:56:53.274141Z'
+  stage: tests
+  run: d4db6caf2a1e40dea565c6c924cf3b45
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:57:13.653586Z'
+  stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-25T08:04:18.167500Z'
+  stage: doing
+  run: 3ec274c9c75f4668aa8dcda6fa05c6cf
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-25T08:04:38.863815Z'
+  stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T08:05:14.339353Z'
+  stage: review
+  run: 8a52809efcd94400923e318ae60e9217
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-25T08:05:34.773111Z'
+  stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T08:06:02.770362Z'
+  stage: docs
+  run: 66e95f3860164afd9b3c77bfaecf262e
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-25T08:06:23.051381Z'
+  stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T08:06:38.256743Z'
+  stage: smoke-test
+  run: 8acc8076852b44be856b37296b17a361
+---
+
 # The dataset's checkout knows origin/main
 
 ## Description
@@ -27,3 +155,168 @@ grep -c "'+refs/heads/\*:refs/remotes/origin/\*'" src/factory/application/stage_
 Expect: `1`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names the concrete module `factory.application.stage_environment` and the one line to change. I checked `_SYNC_SCRIPT` at line 36 and its fetch line at line 42; it matches the story's description of today's line. The target is exact: one `git fetch` with two refspecs, plus a comment saying why.
+   Criteria: each is testable by one test function. 1 is parametrized: origin/main, origin/<branch> and main each equal the host's commit. 2 covers a branch deleted on the host and gone from both `refs/heads/` and `refs/remotes/origin/` (the prune side). 3 covers merge-base HEAD origin/main. 4 covers both refspecs on the one fetch line and no `/work` or `/upstream`. 5 and 6 are the closing criteria. The Interface states no limit, validation or error, so no failing side is missing. The "nothing else changes" clauses (the checkout and reset, inline instances) are existing behaviour that earlier tests already pin, and the story changes no earlier test.
+   Smoke test: the `grep -c` command is runnable and does not run pytest. Its `Expect: 1` is checkable, because the refspec appears once in the file.
+   Architecture: the change is inside `factory.application`, in the existing sync script. It adds no tool, dependency or layer crossing.
+   Scope: this matches decision 18 of `feature.md`, and the story is not under the feature's "Out of scope". The sync is F0042's code, and decision 18 explicitly lets this story change it. `feature.md` says the story is built on `self` while the instance `vm` is stopped.
+4. factory: started tests as vm.
+5. tester: I wrote the tests for criteria 1 to 4 in a new module. No earlier test changed.
+
+   - criterion 1: tests/application/test_container_sync_origin.py::test_the_dataset_checkout_holds_the_host_branches_as_origin_refs. It is parametrized with the rows `origin-main`, `origin-branch` and `local-main`. Each row checks that `git rev-parse --verify <ref>` in the dataset's checkout equals the host's `refs/heads/<branch>`. The host's branch is made from `main` with one commit of its own, so the two commits differ.
+   - criterion 2: tests/application/test_container_sync_origin.py::test_a_branch_deleted_on_the_host_is_gone_from_local_and_origin_refs. After the first `prepare`, both `refs/heads/gone` and `refs/remotes/origin/gone` must exist. After the host deletes the branch and `prepare` runs again, neither must remain.
+   - criterion 3: tests/application/test_container_sync_origin.py::test_the_merge_base_of_head_and_origin_main_is_the_host_main_commit
+   - criterion 4: tests/application/test_container_sync_origin.py::test_the_sync_script_fetches_both_refspecs_on_one_line_and_names_no_container_path. It checks that exactly one line of `_SYNC_SCRIPT` starts with `git fetch`, that this line holds both refspecs, and that the script names neither `/work` nor `/upstream`. It imports `_SYNC_SCRIPT` directly, because the criterion names it.
+   - criteria 5 and 6: these are the coder's `make check` and the documenter's work; they have no tests.
+
+   The tests run `ContainerEnvironment.prepare` on `FakeSnapshots` and `FakeContainerRuns` over the real host repository. They use the helpers in `tests/container_support.py`, as `test_container_environment.py` does.
+
+   File created: tests/application/test_container_sync_origin.py
+
+   Modules the test runner could not import: none, because `factory.application.stage_environment` already exists. The tests fail on wrong results: `origin/main` and `origin/<branch>` are unknown revisions, the `origin/gone` ref is missing, `merge-base HEAD origin/main` fails, and the script lacks the second refspec. The `local-main` row passes already, since the fetch into local branches is today's behaviour. `make lint` is green. I skipped the type check as the stage says.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/application/test_container_sync_origin.py::test_the_sync_script_fetches_both_refspecs_on_one_line_and_names_no_container_path - assert "'+refs/heads/*:refs/remotes/origin/*'" in 'git f...
+6. factory: started doing as vm.
+7. coder: I added the second refspec to the sync script's fetch. `make check` is green, and the new tests in tests/application/test_container_sync_origin.py pass.
+
+   Built: in src/factory/application/stage_environment.py, `_SYNC_SCRIPT`'s one fetch is now `git fetch -q --prune --update-head-ok "$3" '+refs/heads/*:refs/heads/*' '+refs/heads/*:refs/remotes/origin/*'`. With this, the dataset's checkout gets `origin/<branch>` at the host's commit, the way a clone does, and `--prune` removes a branch deleted on the host from both namespaces. The comment above the script now says why: the project's commands read `origin/main`. Nothing else in the script or the module changed.
+
+   Main choice: the one fetch line is 109 characters, and ruff's E501 limit is 100. I split the source line with a Python backslash-newline inside the triple-quoted string. Python removes that line break, so the script's value keeps the fetch on one line, which the criterion 4 test checks. One sentence in the comment explains the escaped line end.
+   Rejected:
+   - a shell line continuation (`\\`): it would split the fetch over two script lines and fail the one-line test;
+   - a `# noqa: E501`;
+   - moving the refspecs into a separate constant that is formatted into the script: that changes the module beyond what the Interface allows.
+
+   Refactor: I read the diff; there was nothing to change. The smoke test's grep finds the refspec once, on the fetch line.
+
+   Noticed, not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 11 new, 36 known, 2 gone
+8. factory: started review as vm.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`: one change in `src/factory/application/stage_environment.py` and one new test module. The src change is correct. The backslash-newline inside the non-raw triple-quoted string is removed by Python, so `_SYNC_SCRIPT` has one fetch line with both refspecs. The comment says why the second refspec is there. Nothing else in the module changed. I read criteria 1 to 4 against their tests in `tests/application/test_container_sync_origin.py` and each test checks what its criterion says. The Interface states no rejected input and no limit. The journal (entry 7) records `make check` green after the coder. The Description, Interface and docs criterion still match what was built. Round 0, so points about the quality of the added test file count as findings:
+
+   1. `tests/application/test_container_sync_origin.py:49` `_environment`: this is a second copy of `_environment` in `tests/application/test_container_environment.py:57`. Fix: under the standing leave, the tester moves it once to `tests/container_support.py` as a public helper (for example `container_environment(dataset)`). Both modules then use it, and every earlier test keeps its name and what it checks.
+   2. `tests/application/test_container_sync_origin.py:26-29` fixture `dataset` (and the constant `GONE` at line 23): this is a second copy of the `dataset` fixture and of `GONE` in `tests/application/test_container_environment.py:38,42-45`. Fix: under the standing leave, the tester moves the fixture to `tests/conftest.py` and `GONE` to `tests/container_support.py`, and changes `test_container_environment.py` to use them from there, every earlier test keeping its name and what it checks.
+
+   Earlier tests: none. The only test file in the diff is `tests/application/test_container_sync_origin.py`, which is new (status `A`). No test file that `main` already holds was changed, renamed or deleted.
+10. factory: started doing as vm.
+11. coder: I changed no code this round. Both review findings in entry 9 are about copied test helpers. `CLAUDE.md` lets the tester move a shared test helper without asking, but not the coder, so I hand them to the tester. I confirmed both copies in the files.
+
+    The moves, as the reviewer named them:
+    1. `_environment(dataset) -> ContainerEnvironment` is in `tests/application/test_container_sync_origin.py:49` and `tests/application/test_container_environment.py:57`. Move it to `tests/container_support.py` as a public helper (for example `container_environment(dataset)`), and use it from both modules.
+    2. The `dataset` fixture is in `tests/application/test_container_sync_origin.py:26-29` and `tests/application/test_container_environment.py:42-45`. Move it to `tests/conftest.py`. The constant `GONE = "gone"` is at line 23 of the first file and line 38 of the second. Move it to `tests/container_support.py`. Change both modules to use them from there.
+
+    In both cases every earlier test in `test_container_environment.py` keeps its name and checks the same thing.
+
+    What I built in the previous round is unchanged: the second refspec on the sync script's one fetch line in `src/factory/application/stage_environment.py`, and the comment saying why. `make check` was green after that round. I did not run it again, because nothing in the working tree changed.
+
+    The journal did not change the meaning of the task, so I left the Description as it is.
+
+    Noticed, not touched: nothing.
+12. factory: started tests as vm.
+13. tester: I moved the two shared test helpers that review entry 9 found copied and coder entry 11 handed to me. CLAUDE.md's standing leave under *Tests* lets the tester move a shared test helper without asking. I changed no test's name or what it checks, and I touched no source code.
+
+    - `_environment(dataset)` is now a public helper, `container_environment(dataset)`, in `tests/container_support.py`. Both test modules now call it from there.
+    - The constant `GONE = "gone"` is now in `tests/container_support.py`. Both modules import it from there.
+    - The `dataset` fixture is now in `tests/conftest.py`, which imports `Dataset` and `container_dataset` from `container_support` for it. I removed both module-level copies.
+
+    Earlier test files I changed under the standing leave: `tests/application/test_container_environment.py` (its `GONE`, `dataset` fixture and `_environment` removed, its calls now go through `container_environment`), `tests/conftest.py` and `tests/container_support.py`. I also changed `tests/application/test_container_sync_origin.py`, which this story wrote.
+
+    Criterion → test, unchanged:
+    - criterion 1: tests/application/test_container_sync_origin.py::test_the_dataset_checkout_holds_the_host_branches_as_origin_refs
+    - criterion 2: tests/application/test_container_sync_origin.py::test_a_branch_deleted_on_the_host_is_gone_from_local_and_origin_refs
+    - criterion 3: tests/application/test_container_sync_origin.py::test_the_merge_base_of_head_and_origin_main_is_the_host_main_commit
+    - criterion 4: tests/application/test_container_sync_origin.py::test_the_sync_script_fetches_both_refspecs_on_one_line_and_names_no_container_path
+
+    Files created: none this round. The test runner imported every module.
+
+    `make test`: green (194.4 s). `make lint`: green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (194.3 s)
+14. factory: started doing as vm.
+15. coder: No code changed this round. The two review findings in entry 9 were about copied test helpers. The tester moved them in entry 13: `container_environment` and `GONE` now live in `tests/container_support.py`, and the `dataset` fixture is in `tests/conftest.py`. The code needs nothing more for those findings.
+
+    Built (unchanged since entry 7): in `src/factory/application/stage_environment.py`, `_SYNC_SCRIPT` still has one fetch line that carries both refspecs, `'+refs/heads/*:refs/heads/*'` and `'+refs/heads/*:refs/remotes/origin/*'`. The comment above the script says why the second refspec is there: the project's commands read `origin/main`.
+
+    Main choice (from entry 7): the line was too long for ruff, so I split the source line with a backslash-newline inside the triple-quoted string. Python drops that break, so the script still has the fetch on one line. I rejected a shell line continuation, because it would split the fetch across two script lines and fail the criterion 4 test. I also rejected a `# noqa: E501` marker.
+
+    Refactor: nothing to change. The diff in `src` is still the one fetch line and its comment.
+
+    The journal did not change what the task means, so I left the Description as it is.
+
+    Noticed, not touched: nothing.
+
+    `check`: check: green (test: green (195.1 s), coverage 99.20 %)
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
+16. factory: started review as vm.
+17. reviewer: no findings
+
+    I reviewed `git diff main...HEAD -- . ':!factory'` against the work item. It touches five files: `src/factory/application/stage_environment.py`, the new `tests/application/test_container_sync_origin.py`, and the helper moves in `tests/application/test_container_environment.py`, `tests/conftest.py` and `tests/container_support.py`.
+
+    - Source: `_SYNC_SCRIPT` (`src/factory/application/stage_environment.py:38`) still has one fetch line, now with both refspecs. The backslash-newline sits inside a non-raw triple-quoted string, so Python drops it. I printed the script's value to confirm: the fetch is one line holding both `'+refs/heads/*:refs/heads/*'` and `'+refs/heads/*:refs/remotes/origin/*'`. The comment above says why the second refspec is there. Nothing else in the module changed, and the script names no container path. That matches the Interface.
+    - Criteria 1 to 4: I read each test against its criterion.
+      - 1: one parametrized test with the rows origin-main, origin-branch and local-main. The branch has a commit of its own, so the main and branch commits differ.
+      - 2: refs are checked in both `refs/heads/` and `refs/remotes/origin/`, after the first prepare and after the second.
+      - 3: `merge-base HEAD origin/main` equals the host's `main` commit.
+      - 4: one `git fetch` line holding both refspecs, and neither `/work` nor `/upstream` in the script.
+      The Interface states no limit and no failing side.
+    - Checks: the journal records `make check` green after the coder (entry 15, coverage 99.20 %).
+    - Architecture and security: the change stays inside `factory.application`'s existing sync script. No new tool, dependency, string-built shell from input, or silencing marker.
+    - Round-0 findings from entry 9: both resolved by the tester's move in entry 13. `container_environment` and `GONE` are now in `tests/container_support.py`, and the `dataset` fixture is in `tests/conftest.py`. No other `dataset` fixture or `_environment` copy is left under `tests/`.
+    - Smoke test: the grep matches the refspec on one line.
+    - Work item: the Description, the Interface and the docs criterion still describe what was built.
+
+    Earlier tests:
+    - `tests/application/test_container_environment.py`: the standing leave to move a shared test helper. The diff only removes `GONE`, the `dataset` fixture and `_environment`, and changes the calls to the shared `container_environment`. Every test keeps its name and what it checks.
+    - `tests/conftest.py`: the standing leave to move a shared test helper (the `dataset` fixture moved here). No earlier fixture changed.
+    - `tests/container_support.py`: the standing leave to move a shared test helper (`GONE` and `container_environment` added). No earlier helper changed.
+
+    Notes:
+    - `tests/application/test_container_sync_origin.py:396` `main_commit`: overlaps the `main_commit` fixture of `tests/application/test_container_environment.py:43`. The earlier one also gives the host the branch, so it is not a straight copy, but a shared fixture with the branch as an option would serve both.
+18. factory: started docs as vm.
+19. documenter: Docs for the sync's second refspec. No findings.
+
+    Changed:
+    - `docs/project-guide/stage-environment.md`, *The sync script*, step 4: it now names both refspecs on the one `git fetch`. It says the second one makes the checkout know `origin/main` and `origin/<branch>` as a clone would, because the project's commands read `origin/main`. It also says what happened on the first VM stage without it: F0043-S0004's `make check` stopped at `make secrets` on old hex values in finished acceptance reports the branch never touched. I wrote the sentence from the story's Description; I did not reproduce that failure.
+
+    I changed no other file. The docs criterion names no change to `docs/decisions.md` or `README.md`. I ran no `make` target, because I changed only a document and the factory's checks run next.
+
+    Diff against the story: the source diff is `_SYNC_SCRIPT` and its comment in `src/factory/application/stage_environment.py`, which matches the Interface. The Interface, the code and the docs agree.
+
+    Cross-read and found current:
+    - `docs/project-guide/stage-environment.md` otherwise, including the claim that no container path appears in the script and the `--prune` and `--update-head-ok` explanations. The doc's test list names `tests/container_support.py` helpers. It does not list the new `container_environment` helper or `GONE` there, nor the new test module `tests/application/test_container_sync_origin.py`. I left that as is: the list is not claimed to be complete, and that is test-layout detail rather than something the reader needs to run or change the sync.
+    - The grep of `docs/` and `README.md` for `refs/heads` found no other text about the sync's fetch.
+
+    Stale text I saw and did not touch:
+    - `docs/runs/2026-10-12-overnight/night-log.md` is the human's file. Its row for 07:00 says the sync fetches local branches only. That was true when written.
+    - The reviewer's note about the overlapping `main_commit` fixture in the two test modules is test code, not mine to fix.
+
+    `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok
+20. factory: started smoke-test as vm.
+21. smoke-tester: I ran the smoke test from the repository root exactly as written. It met its expectation, and I found nothing wrong.
+
+    Command 1: `grep -c "'+refs/heads/\*:refs/remotes/origin/\*'" src/factory/application/stage_environment.py`
+    ```
+    1
+    ```
+    Expected `1`, got `1`, so it met its `Expect:` line. The command exited with 0.
+
+    I checked the acceptance criteria against the smoke test by reading `_SYNC_SCRIPT` in `src/factory/application/stage_environment.py`. The match is on the script's `git fetch -q --prune --update-head-ok "$3"` line, which holds both refspecs.
+    - That line is split in the source with a backslash-newline inside a non-raw triple-quoted string. Python removes that break, so the script still has the fetch on one line (criterion 4).
+    - The comment above the script says why the second refspec is there: the project's commands read `origin/main`.
+    - The script names no container path such as `/work` or `/upstream`.
+
+    Nothing the smoke test showed contradicts criteria 1 to 6. Criteria 1 to 3 are about how the sync behaves at run time. The smoke test does not exercise that; the tests from entry 13 cover it.
+
+    Findings: none.

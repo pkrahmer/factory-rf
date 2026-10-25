@@ -32,14 +32,17 @@ _SYNC_COMMAND = "sync"
 # Every container path comes as an argument and none in the text, so that a run played on
 # the host can map them. `--update-head-ok`: git refuses to
 # fetch into the checked-out branch, an unborn one too; the checkout and the reset after it
-# put the work tree right.
+# put the work tree right. The host's branches come in as `origin/<branch>` too, as in a
+# clone of the host's repository: the project's commands read `origin/main`. The escaped
+# line end keeps the fetch on one line of the script.
 _SYNC_SCRIPT = """set -eu
 mkdir -p "$1" "$2"
 rm -rf "$2/.claude"
 cp -R "$4" "$2/.claude"
 cd "$1"
 if [ ! -e .git ]; then git init -q; fi
-git fetch -q --prune --update-head-ok "$3" '+refs/heads/*:refs/heads/*'
+git fetch -q --prune --update-head-ok "$3" '+refs/heads/*:refs/heads/*' \
+'+refs/heads/*:refs/remotes/origin/*'
 git checkout -q -f "$5"
 git reset -q --hard "$6"
 make sync

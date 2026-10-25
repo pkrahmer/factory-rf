@@ -13,6 +13,7 @@ from acceptance_walk import AcceptanceWalk
 from adapters.container_runtime_support import make_workspace
 from compose_support import COMPOSE
 from confine_support import Layout, build_layout
+from container_support import Dataset, container_dataset
 from definition_support import pipeline_definition
 from disk_support import FakeDiskSpace
 from entrypoint_support import Layout as ImageLayout
@@ -376,3 +377,9 @@ def podman(tmp_path: Path) -> Podman:
 def runs(podman: Podman) -> PodmanRuns:
     """Return a `PodmanRuns` over the stand-in `podman`, its dataset at a fixed host path."""
     return PodmanRuns(str(podman.path), IMAGE, Path("/srv/factory/vm/work"))
+
+
+@pytest.fixture
+def dataset(boundaries: Boundaries, tmp_path: Path) -> Dataset:
+    """An empty dataset with an empty base, its fakes set in the boundaries."""
+    return container_dataset(boundaries, tmp_path)
