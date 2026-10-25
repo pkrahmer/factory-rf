@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 434
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-25T06:48:50.696492Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T06:48:30.650010Z'
   stage: intake
   run: 8b2f6c251d904cdc93ca1669de54d7b8
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:48:50.696492Z'
+  stage: tests
 ---
 
 # The operator guide's chapter "The machine"
@@ -85,3 +94,4 @@ Expect: `documents ok`
    Smoke test: all three blocks are runnable. The first prints the eleven `###` lines. The second counts eight present words, then prints 1 for the decision title and 1 for `vm/setup.sh` in `README.md`, which matches `8`, `1`, `1`. The third is `make documents | tail -n 1` and expects `documents ok`. None runs pytest, so the `-q` rule does not apply. Every `Expect:` line is checkable against the output.
    Architecture: no layer is touched. The files are the human-facing docs that `CLAUDE.md` assigns to the documenter. Nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes.
    Scope: it matches the feature's Scope bullet for the operator guide's chapter and the decision-log entry, and it is the last story in the feature's build order. It touches nothing in "Out of scope": no GCP calls, no change to `image/`, and no code for the stage environment.
+4. factory: started tests as vm.
