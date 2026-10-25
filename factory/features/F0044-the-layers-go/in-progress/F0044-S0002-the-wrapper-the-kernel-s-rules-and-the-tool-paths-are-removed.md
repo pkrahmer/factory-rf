@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 445
 comments_read: [6397809713]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T13:00:07.472248Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -141,6 +145,11 @@ journal:
   at: '2026-10-25T12:59:47.013606Z'
   stage: review
   run: b17d10b622e24082ac3fb916d570a216
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:00:07.472248Z'
+  stage: docs
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -569,3 +578,4 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
       - `tests/adapters/test_claude_runtime_no_hook.py`
 
     Open, outside this story: the `factory-confine` console script in `pyproject.toml` is the human's change 3, after the merge.
+25. factory: started docs as self.
