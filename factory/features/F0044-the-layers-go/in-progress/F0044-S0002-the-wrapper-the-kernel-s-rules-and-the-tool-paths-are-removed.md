@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 445
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T12:40:46.038572Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-25T12:40:46.038572Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T12:42:58.310162Z'
+  stage: review
+  run: 1cfe7bc129534c7bb7d4d50554e2c2f3
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -202,3 +204,57 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
    `check`: check: green
    `duplicates`: duplicates: 10 new, 35 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Review, round 0. I read the work item, the diff of `src/`, `template/` and `tests/`, and the feature's decisions 18, 31 and change 3. I ran `make duplicates` to read its new findings. Groups 1 to 3 pass:
+   - Criteria 1 to 7 each have a test that checks what the criterion says.
+   - The one rule with a failing side, the unknown key `tool_paths`, has its refused row.
+   - `test_take.py` is unchanged.
+   - The coder's `make check` was green.
+   - Only removals touch the layers, and the two markers on `os.execvpe` went with their line.
+   - The `factory-confine` line left in `pyproject.toml` is not a finding: the human removes it in change 3 of `feature.md`, after this story is merged.
+
+   Group 4 (quality) fails:
+
+   1. `src/factory/domain/errors.py:122`: `ConfinementError` is now dead code. Only `adapters/landlock.py` and `entry/confine.py` used it, and both are gone (`make duplicates` reports it as new dead code). Fix: the coder removes the class.
+   2. `tests/test_kernel_guard_removed.py:21`: `_has(module, name)` is a second copy of `_has` in `tests/test_hook_removed.py:16`. Fix: the tester moves it to one shared module under `tests/` under the standing leave, and both modules import it from there.
+   3. Against the story: three earlier tests that the Interface does not list still inject a `guard` the model no longer has, through `model_copy(update={"guard": ...})`:
+      - `tests/adapters/test_claude_runtime_login.py:82-85` (`_guarded_request`)
+      - `tests/adapters/test_claude_runtime_api_login.py:130-132`
+      - `tests/adapters/test_claude_runtime_no_hook.py:19-31`
+      `model_copy` does not validate, so the suite stays green. But the requests are invalid, and in `no_hook` the rows `unconfined-guarded` and `unconfined-unguarded` are now the same case; its docstring still says "with or without guard settings". Fix: the coder asks the human (R8/R9) for leave to drop those updates and fold the two rows into one. The tester then makes exactly that change.
+
+   Earlier tests (item 6):
+   - Deleted, each under decision 18 / 31a (all thirteen are listed in the Interface):
+     - `tests/adapters/test_landlock.py`
+     - `tests/adapters/test_landlock_checks.py`
+     - `tests/adapters/test_process_replace.py`
+     - `tests/adapters/test_process_replace_faults.py`
+     - `tests/application/test_write_paths_tool_paths.py`
+     - `tests/domain/test_confinement_abi.py`
+     - `tests/domain/test_confinement_model.py`
+     - `tests/domain/test_confinement_of.py`
+     - `tests/domain/test_tool_paths.py`
+     - `tests/domain/test_write_targets.py`
+     - `tests/entry/test_confine.py`
+     - `tests/entry/test_confine_defaults.py`
+     - `tests/entry/test_confine_steps.py`
+   - Changed as the Interface names, under decision 18 / 31a:
+     - `tests/test_process_search.py`
+     - `tests/test_wrapper_search.py`
+     - `tests/entry/test_wiring.py`
+     - `tests/domain/test_pipeline_not_read.py`
+     - `tests/test_hook_removed.py` (the row id `four-fields` became `three-fields`; the test keeps its name)
+     - `tests/domain/test_contract.py`
+     - `tests/domain/test_contract_provider_limit.py`
+     - `tests/confine_support.py` (`Layout` also lost `confine_bin`, a name of the wrapper, as the Interface allows)
+     - `tests/application/test_stage_launch.py`
+     - `tests/application/test_no_state_refusals.py`
+     - `tests/application/test_agent_run_probe.py`
+     - `tests/domain/test_agent_runs.py`
+     - `tests/adapters/test_claude_runtime.py`
+     - `tests/adapters/test_claude_runtime_resume.py`
+     - `tests/adapters/test_claude_runtime_file_modes.py`
+     - `tests/entry/test_wiring_boundaries.py`
+   - Changed under decision 18 / 31a, plus follow-on edits: their named `_context`/`_context_values` helpers lost `tmp_path`, so `_prompt_lines` and the callers' signatures lost it too, for lint. Each test keeps its name and its checks:
+     - `tests/application/test_task.py`
+     - `tests/application/test_task_acceptance.py`
+     - `tests/application/test_task_os_user.py`
