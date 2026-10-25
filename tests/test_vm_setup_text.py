@@ -495,3 +495,100 @@ def test_the_files_under_the_instance_folder_are_written_as_factory(
     script: Script, check: Check
 ) -> None:
     assert check(script)
+
+
+def _indent(line: str) -> int:
+    return len(line) - len(line.lstrip())
+
+
+def _enclosing_if(lines: list[str], index: int) -> int | None:
+    for earlier in range(index - 1, -1, -1):
+        line = lines[earlier]
+        if line.strip() and _indent(line) < _indent(lines[index]):
+            return earlier if line.lstrip().startswith("if ") else None
+    return None
+
+
+def _clone_variables(checkout: str) -> list[str]:
+    lines = checkout.splitlines()
+    clone = next((i for i, line in enumerate(lines) if "git clone" in line), None)
+    start = None if clone is None else _enclosing_if(lines, clone)
+    if start is None:
+        return []
+    branch = []
+    for line in lines[start + 1 :]:
+        if line.strip() and _indent(line) <= _indent(lines[start]):
+            break
+        branch.append(line)
+    return re.findall(r"(?m)^\s*(\w+)=", "\n".join(branch))
+
+
+def _installed_only_after_the_clone(script: Script, step: str, path: str) -> bool:
+    variables = _clone_variables(script.steps["checkout"])
+    lines = script.steps[step].splitlines()
+    installs = [
+        i
+        for i, line in enumerate(lines)
+        if re.search(r"(?<![\w-])install\s", line) and path in line
+    ]
+    conditions = [_enclosing_if(lines, i) for i in installs]
+    return (
+        installs != []
+        and variables != []
+        and all(
+            condition is not None
+            and any(re.search(rf"\$\{{?{name}(?!\w)", lines[condition]) for name in variables)
+            for condition in conditions
+        )
+    )
+
+
+@pytest.mark.parametrize(
+    ("step", "path"),
+    [
+        ("tools", "/usr/local/bin/git-credential-factory"),
+        ("service", "/etc/systemd/system/factory@.service"),
+    ],
+)
+def test_the_checkout_files_are_installed_only_in_the_run_that_cloned(
+    script: Script, step: str, path: str
+) -> None:
+    assert _installed_only_after_the_clone(script, step, path)
+    assert [
+        line
+        for line in _lines_with(script.steps[step], f"setup: {step}: ")
+        if "differs from the checkout; not installed" in line
+    ] != []
+
+
+def _before_first_install_d(text: str) -> str:
+    position = text.find("install -d")
+    return text if position < 0 else text[:position]
+
+
+@pytest.mark.parametrize(
+    "check",
+    [
+        *(
+            pytest.param(
+                lambda text, folder=folder: re.search(
+                    rf"-L\s+\"?\$\{{?base\}}?/{folder}(?![\w.-])", text
+                ),
+                id=f"link-test-{folder}",
+            )
+            for folder in ("state", "repo")
+        ),
+        pytest.param(
+            lambda text: [line for line in _lines_with(text, "setup: folders: ") if ">&2" in line],
+            id="line-to-standard-error",
+        ),
+        pytest.param(lambda text: "exit 1" in text, id="exit-1"),
+    ],
+)
+def test_the_folders_step_refuses_a_link_at_state_or_repo(
+    script: Script, check: Callable[[str], object]
+) -> None:
+    folders = script.steps["folders"]
+
+    assert "install -d" in folders
+    assert check(_before_first_install_d(folders))

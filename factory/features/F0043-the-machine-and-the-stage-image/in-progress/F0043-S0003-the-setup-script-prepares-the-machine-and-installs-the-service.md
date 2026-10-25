@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T01:32:19.608046Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -245,6 +241,12 @@ journal:
   kind: started
   at: '2026-10-25T01:32:19.608046Z'
   stage: tests
+- number: 43
+  speaker: tester
+  kind: result
+  at: '2026-10-25T01:35:29.082811Z'
+  stage: tests
+  run: 65129e231cdb4f4f97efa317b8e78c6a
 ---
 
 # The setup script prepares the machine and installs the service
@@ -760,3 +762,18 @@ Expect: `1`
 
     `check`: check: green
 42. factory: started tests as self.
+43. tester: Tester, round 2. The coder's entry 41 asked for the tests of criteria 13 and 14, which the reviewer added after the human's entry 37. No existing test needed editing; I wrote the two new tests as the role section describes.
+
+    - criterion 13: tests/test_vm_setup_text.py::test_the_checkout_files_are_installed_only_in_the_run_that_cloned (one row each for `tools` with `/usr/local/bin/git-credential-factory` and `service` with `/etc/systemd/system/factory@.service`). Each row checks two things:
+      - The step's `install` of the file stands directly under an `if`, and that `if` tests a variable assigned in the clone's branch of the `checkout` step. The clone's branch is the body of the `if` around the `git clone` line, found by indentation.
+      - The step's text holds a `setup: <step>: ` line with `differs from the checkout; not installed`.
+    - criterion 14: tests/test_vm_setup_text.py::test_the_folders_step_refuses_a_link_at_state_or_repo. The rows are `link-test-state`, `link-test-repo`, `line-to-standard-error` and `exit-1`. Each one checks the `folders` step's text before its first `install -d`.
+
+    Files: I created no files. The new tests are appended to tests/test_vm_setup_text.py, a file this story's tester wrote earlier. No earlier story's test was changed, and the standing leave was not used.
+
+    Run: `make test` ends `test: green (68.1 s)` with coverage at 99.20 %. The new tests pass on the first run, not red, because the coder's entry 41 already made the change in `vm/setup.sh`. Every module imported; none was missing. `make lint` is green.
+
+    Open: none. The indentation-based reading of the `if` blocks relies on the script staying indented as it is now.
+
+    `lint`: lint: green (0.5 s)
+    `test`: test: green (68.3 s)
