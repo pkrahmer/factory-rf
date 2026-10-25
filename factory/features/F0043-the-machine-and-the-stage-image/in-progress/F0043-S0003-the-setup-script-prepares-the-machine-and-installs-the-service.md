@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T05:55:34.403074Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -303,6 +307,11 @@ journal:
   at: '2026-10-25T05:55:13.566611Z'
   stage: doing
   run: e56246bde12c4be28874268d91503e86
+- number: 54
+  speaker: factory
+  kind: started
+  at: '2026-10-25T05:55:34.403074Z'
+  stage: tests
 ---
 
 # The setup script prepares the machine and installs the service
@@ -912,3 +921,4 @@ Expect: `1`
     - The `chown-keeps-links` row checks nothing, because the script holds no `chown`.
 
     The Description and Interface were already corrected by the reviewer in entry 51.
+54. factory: started tests as self.
