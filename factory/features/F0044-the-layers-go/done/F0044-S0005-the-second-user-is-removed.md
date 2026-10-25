@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-10-25T15:18:36.750402Z'
   stage: smoke-test
   run: 49f5c13ad7184041a4c977e877c92251
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-10-25T15:59:55.624437Z'
+  stage: approval
 ---
 
 # The second user is removed
@@ -634,3 +639,4 @@ Expect: three lines: `[] False`; `False False`; `3 False`
     Findings: none.
 
     Open: nothing. The working tree shows only the work item's `.costs.jsonl` sidecar as modified. That file is the factory's; I did not write it.
+32. factory: done (pull request merged); cost: 14 runs, 32.1 min, 224 turns, 761315 tokens in (11805573 more from cache), 119798 out, $9.64
