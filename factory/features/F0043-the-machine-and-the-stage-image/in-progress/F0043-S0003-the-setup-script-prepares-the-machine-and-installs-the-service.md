@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T00:42:08.808766Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-25T00:41:48.223076Z'
   stage: tests
   run: 6a2115083e014220b8316dcc63048cdb
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:42:08.808766Z'
+  stage: doing
 ---
 
 # The setup script prepares the machine and installs the service
@@ -191,3 +200,4 @@ Expect: `1`
 
    `lint`: lint: green (0.6 s)
    `test`: ERROR tests/test_vm_setup_text.py::test_the_options_land_in_their_named_variables[repository_url] - FileNotFoundError: [Errno 2] No such file or directory: '/work/checkout/vm/setup.sh'
+9. factory: started doing as self.
