@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T15:02:50.740807Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-10-25T15:02:30.197936Z'
   stage: review
   run: 3dd957a23cb04c19b412ea489e6c27cb
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-25T15:02:50.740807Z'
+  stage: doing
 ---
 
 # The second user is removed
@@ -378,3 +387,4 @@ Expect: three lines: `[] False`; `False False`; `3 False`
     - Deleted, as the Interface lists them: tests/adapters/test_claude_runtime_os_user.py, test_claude_runtime_sudo_time_limit.py, test_claude_runtime_file_modes.py, test_make_commands_user.py, test_opencode_sudo_time_limit.py, test_one_call_as_another_user.py; tests/application/test_agent_user_item.py, test_task_os_user.py; tests/domain/test_settings_agent_user.py; tests/entry/test_wiring_agent_user.py, test_wiring_project_command_user.py, test_git_repository_modes.py; tests/sudo_support.py, tests/leftovers_runtime_support.py. All under decision 21.
 
     Open, outside the diff, so not under review: `src/factory/adapters/process.py:90` still has a comment saying the agent's own `timeout` ends root's `sudo` (the coder named this in entry 13).
+20. factory: started doing as self.
