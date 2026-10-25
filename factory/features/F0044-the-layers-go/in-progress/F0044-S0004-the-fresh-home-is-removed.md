@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 447
 comments_read: [6398446445]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T14:00:58.972371Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-25T14:00:58.972371Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T14:02:09.682534Z'
+  stage: docs
+  run: 6740030648b24b18bbb7ac0aab61171b
 ---
 
 # The fresh home is removed
@@ -277,3 +279,31 @@ Expect: six lines: `gone`, `gone`, `gone`, `gone`, `gone`, `False False True`
     - tests/entry/test_wiring.py: the set loses `factory.entry.fresh_home` and the test keeps its name, under the human's leave (decisions 20 and 33(a))
     - tests/entry/test_wiring_stage_environment.py: the assertion `boundaries.agent_home is None` is gone and the test keeps its name, under the human's leave (decision 20)
 13. factory: started docs as self.
+14. documenter: I wrote the documentation criterion 8 asks for and cross-read the rest against the diff. The code matches the Interface, so there are no findings. I changed only documents, so I did not run `make check`; the factory's checks after this stage decide.
+
+    Files changed, one line each:
+    - `docs/project-guide/agents.md`: *The fresh home* (the program, its rule, its walk, `SudoAgentHome`, `agent_home_of`, what was kept, its tests) is replaced by one paragraph, *The agent's home*. The home is the dataset's `home/`, the rollback makes it fresh, and a resumed run finds its session there. In **opencode's folders** the fresh home, `FACTORY_OPENCODE_FOLDERS` and `agent_home_of` are gone, and the rollback is named.
+    - `docs/project-guide/watching.md`, *Boundaries*: the `agent_home` field and its wiring are gone, and `snapshots` and `containers` are now described as the last fields.
+    - `docs/project-guide/processes-and-checks.md`, *Sealed project commands*: the signature is `SealedProjectCommands(inner, git, log)`. The `home` parameter and the reset with its error path are gone, and the text says it resets no home.
+    - `docs/project-guide/stage-environment.md`: the `agent_home` row of the table of the two environments is gone. `run_agent` of the inline environment no longer says that the home is reset.
+    - `docs/project-guide/README.md`: the `agents.md` line no longer lists the removed modules and refers to *The agent's home*. The line of `home_files_support.py` under *Shared test helpers* is gone.
+    - `docs/operator-guide.md`:
+      - The heading *The home is cleared before every run* and its text, up to and including **First reset after the upgrade.**, are replaced by one sentence: the dataset's rollback clears the home. The paragraphs after them stay.
+      - The sentence "The agent's home is cleared before every run (see ...)" is gone. The agent-files paragraph now says the rollback clears what a run wrote.
+      - The login token's paragraph no longer says the fresh home keeps the login or clears `.claude.json`.
+      - The rows *The home is fresh* and *The home is reset* are gone from the table of checks.
+      - The `FACTORY_OPENCODE_FOLDERS` row is gone from *Configuration*.
+      - *Running on opencode* names no fresh home and no `FACTORY_OPENCODE_FOLDERS`.
+    - `docs/decisions.md`: the entry "Every agent run and every project command starts from a fresh agent home" gains the closing line "Replaced by the dataset's rollback, v1.2 F0044-S0004."
+    - `README.md`: not changed, as the criterion says.
+
+    Cross-read and found current: `README.md`; `docs/project-guide/stages.md`. After the edits, a grep of the README, the operator guide and the project guide finds no `fresh_home`, `agent_home_of`, `home_files`, `FACTORY_OPENCODE_FOLDERS`, `LOGIN_STATE_FILE`, `kept_paths` or `inside_home`. `InstanceSettings.agent_home` and `FACTORY_CLAUDE_HOME` stay documented. The other mentions of `agent_home`, in `watching.md` and `stages.md`, are about that setting or about test helper arguments, not the removed field. I ran no example, because I wrote none that is a command.
+
+    Seen and not touched:
+    - `docs/decisions.md` keeps older entries that name `FACTORY_OPENCODE_FOLDERS`, `AgentHome` and `fresh_home` (lines near 760, 866 and 990). They are history, and only the one closing line was asked for.
+    - `docs/operator-guide.md`, in the opencode section: "every recreated container has a fresh home" describes the Docker path. It is unrelated to this story and F0044 removes that path later.
+    - `docs/project-guide/agents.md` (line 121 in the old file) still describes `LOGIN_STATE_FILE`-free logins only through other paragraphs. I found no remaining reference.
+
+    `check`: check: green (not run again: passed on tree 0040404b5470 at 2026-10-25T13:57:34Z)
+    `secrets`: secrets: green (3.5 s)
+    `documents`: documents ok
