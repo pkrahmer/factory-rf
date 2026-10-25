@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-25T08:06:23.051381Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-25T08:06:02.770362Z'
   stage: docs
   run: 66e95f3860164afd9b3c77bfaecf262e
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-25T08:06:23.051381Z'
+  stage: smoke-test
 ---
 
 # The dataset's checkout knows origin/main
@@ -292,3 +301,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok
+20. factory: started smoke-test as vm.
