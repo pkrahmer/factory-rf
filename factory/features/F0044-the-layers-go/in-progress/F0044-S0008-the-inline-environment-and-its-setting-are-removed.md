@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T17:57:25.632314Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T17:57:07.782087Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:57:25.632314Z'
   stage: tests
 ---
 
@@ -200,3 +209,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
    (b) Run this tests stage again so that it adapts them all before the coder starts. The adaptations would be written blind, against code that does not exist yet.
    I would choose (a). Adapting tests that run through the wiring is safer once `build_boundaries` raises the three `missing` faults for real.
 9. 2026-10-25 human: (a). End with `doing`. The coder implements against the new tests, then ends with `tests` and names the Interface's list (decisions 24 and 37) as the approved test change; the tester then adapts all of it in one run against the real code, including `container_support.inline_boundaries`'s callers such as `tests/application/test_stage_on_container_fakes.py`. `tests/entry/test_wiring_extras_path.py` was already deleted by F0044-S0001, so nothing is left to delete there.
+10. factory: started tests as self.
