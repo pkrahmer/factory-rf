@@ -241,6 +241,11 @@ else
 fi
 
 changes=
+# install -d as root on a link factory planted there would reach the link's target.
+if [ -L "$base/state" ] || [ -L "$base/repo" ]; then
+  echo "setup: folders: $base/state or $base/repo is a link; remove it and run this script again" >&2
+  exit 1
+fi
 if ! owned_with_mode factory:factory 755 "$base" \
   || ! owned_with_mode factory:factory 755 "$base/state" \
   || ! owned_with_mode factory:factory 755 "$base/repo"; then
@@ -278,8 +283,12 @@ if ! unchanged "$askpass"; then
   changed "wrote $askpass"
 fi
 # Root's git refuses a repository another user owns, so the clone writes its own askPass.
+# Only a fresh clone holds the remote's text before the service ever ran, so only then are
+# files of the checkout installed as root.
+cloned=no
 if [ ! -d "$checkout/.git" ]; then
   as_factory GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 git clone -q --branch "$ref" --config core.askPass="$askpass" "$repository_url" "$checkout"
+  cloned=yes
   changed "cloned $ref into $checkout"
 fi
 echo "setup: checkout: $(said "found $askpass unchanged and $checkout")"
@@ -299,10 +308,14 @@ fi
 (cd "$checkout" && as_factory $tools/bin/uv sync --frozen --no-dev)
 # The factory's own git reaches the token only through this helper.
 if ! cmp -s "$checkout/image/git-credential-factory" /usr/local/bin/git-credential-factory; then
-  install -m 0755 "$checkout/image/git-credential-factory" /usr/local/bin/git-credential-factory
-  changed "installed /usr/local/bin/git-credential-factory"
+  if [ "$cloned" = yes ]; then
+    install -m 0755 "$checkout/image/git-credential-factory" /usr/local/bin/git-credential-factory
+    changed "installed /usr/local/bin/git-credential-factory"
+  else
+    echo "setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed" >&2
+  fi
 fi
-echo "setup: tools: $(said "found $tools with uv $uv_version, the virtual environment of $checkout in sync and /usr/local/bin/git-credential-factory unchanged")"
+echo "setup: tools: $(said "found $tools with uv $uv_version, the virtual environment of $checkout in sync and /usr/local/bin/git-credential-factory in place")"
 
 changes=
 env_file=$base/factory.env
@@ -340,14 +353,18 @@ echo "setup: environment: $(said "found $env_file unchanged")"
 
 changes=
 if ! cmp -s "$checkout/vm/factory.service" /etc/systemd/system/factory@.service; then
-  install -m 0644 "$checkout/vm/factory.service" /etc/systemd/system/factory@.service
-  changed "installed /etc/systemd/system/factory@.service"
+  if [ "$cloned" = yes ]; then
+    install -m 0644 "$checkout/vm/factory.service" /etc/systemd/system/factory@.service
+    changed "installed /etc/systemd/system/factory@.service"
+  else
+    echo "setup: service: /etc/systemd/system/factory@.service differs from the checkout; not installed" >&2
+  fi
 fi
 systemctl daemon-reload
 if ! systemctl is-enabled --quiet factory@"$instance"; then
   systemctl enable factory@"$instance"
   changed "enabled factory@$instance; it is not started"
 fi
-echo "setup: service: $(said "found /etc/systemd/system/factory@.service unchanged and factory@$instance enabled")"
+echo "setup: service: $(said "found /etc/systemd/system/factory@.service in place and factory@$instance enabled")"
 
 printf 'setup: done: build the stage image and start factory@%s; see the operator guide, "The machine"\n' "$instance"

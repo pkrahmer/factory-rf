@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T01:29:19.192885Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -234,6 +230,12 @@ journal:
   kind: started
   at: '2026-10-25T01:29:19.192885Z'
   stage: doing
+- number: 41
+  speaker: coder
+  kind: result
+  at: '2026-10-25T01:31:58.794755Z'
+  stage: doing
+  run: 0f0bff7ff4df4f7bb8bae1d08d23daeb
 ---
 
 # The setup script prepares the machine and installs the service
@@ -722,3 +724,29 @@ Expect: `1`
     - `tests/vm_support.py:5`: imports the private `_uncommented` from `dockerfile_support`. It reuses the helper rather than copying it, but under a private name.
     - `tests/test_vm_setup_text.py:490`: the `chown-keeps-links` row passes without checking any line, because the script holds no `chown`.
 40. factory: started doing as self.
+41. coder: Round 2, after the human's entry 37. I made the reviewer's changes 3 and 4 from entry 39 in `vm/setup.sh` and nothing else. `vm/factory.service` and the tests are unchanged. `sh -n vm/setup.sh` passes. Smoke test command 2 still prints `in-order 14`. `make check` ends `check: green`, with coverage at 99.20 %.
+
+    Criteria 13 and 14 have no test yet, so I end with `tests`. The tester's work:
+    - **Criterion 13:** one parametrized test, one row each for the `tools` and `service` steps.
+    - **Criterion 14:** its rows for the `folders` step.
+
+    **What I changed in `vm/setup.sh`**
+    - **`checkout` step:** `cloned=no` is set before the clone's `if`, and `cloned=yes` inside it, after `git clone`. A comment says why: only a fresh clone holds the remote's text from before the service ever ran.
+    - **`tools` and `service` steps:**
+      - When the installed file differs from the checkout's copy, the step tests `[ "$cloned" = yes ]`. Only then does it run the `install` of `/usr/local/bin/git-credential-factory` or `/etc/systemd/system/factory@.service`.
+      - Otherwise it prints `setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed` (or the `setup: service: ...` line for the unit) to standard error and leaves the file.
+      - The step's "found" text now says the file is "in place" rather than "unchanged". That way the stdout line does not contradict the "differs" warning.
+    - **`folders` step:** before the first `install -d`, `if [ -L "$base/state" ] || [ -L "$base/repo" ]` prints `setup: folders: $base/state or $base/repo is a link; remove it and run this script again` to standard error and exits 1. A comment says why. I wrote both `-L` tests out in full rather than looping over a variable, so the criterion's `-L` tests of `$base/state` and `$base/repo` can be read straight from the text.
+
+    **Main choice and the alternative I rejected.** The "differs; not installed" line goes to standard error as its own line. The step's one stdout line stays as it was. I rejected folding the warning into that stdout line through `changed`/`said`: criterion 13 wants the literal text `setup: <step>: ... differs from the checkout; not installed`, and the warning is not something the step changed.
+
+    **Refactor.** I read the diff once and found nothing to change.
+
+    **Description.** The reviewer already wrote entry 37 into it (entry 39). Nothing more to change.
+
+    **Noticed, not touched**
+    - On a later run, a missing installed helper or unit also counts as "differs" and is not installed. That follows entry 37's rule: only the clone's run installs.
+    - The Interface still says "unless identical" for these two installs. Entry 39 already notes this.
+    - No skill applied.
+
+    `check`: check: green
