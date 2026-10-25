@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790, 6394217771]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T06:06:31.754540Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -341,6 +345,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T06:06:12.169041Z'
+  stage: review
+- number: 61
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:06:31.754540Z'
   stage: review
 ---
 
@@ -1009,3 +1018,4 @@ Expect: `1`
     - `tests/test_vm_setup_text.py:491` (`chown-keeps-links`): the row passes without checking any line, because the script holds no `chown`.
     - `tests/test_vm_setup_text.py:592`: the name `test_the_folders_step_refuses_a_link_at_state_or_repo` now also covers `/home/factory/.secrets`.
 60. 2026-10-25 human: (a), as you propose: the `tools` and `service` steps install also when the target file is missing (`if [ "$cloned" = yes ] || [ ! -e <target> ]`); a file that is in place but differs is still left alone and reported. Add it to criterion 13 and the Interface; the tester adds the missing-target row; the coder ends with `tests`. This keeps the Description's promise that a second run completes the rest, and the safety of entry 37. The documenter carries the open points of entry 51 in the docs round.
+61. factory: started review as self.
