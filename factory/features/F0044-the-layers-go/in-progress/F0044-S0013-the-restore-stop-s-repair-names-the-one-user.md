@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 457
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T21:15:32.480119Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-25T21:15:11.840248Z'
   stage: review
   run: 06db5bdd20e143e9a06b130b2824b591
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T21:15:32.480119Z'
+  stage: docs
 ---
 
 # The restore stop's repair names the one user
@@ -138,3 +147,4 @@ Expect: `documents ok`
    - Work item hygiene: the coder's entry gives the main choice (leave the documents to the documenter) and what it rejected (editing the operator-guide paragraph itself). The Description still matches what the story is: it changes documents only and nothing was built. The docs criterion still says what the reader must know: the paragraph without `chmod`, `g+w` or a group, without "agent run left", and with the removal repair through `sudo -iu factory` or as root. It also says the next tick clears the stop, states the crash cap only if the code still records a crash, and has the `watching.md` step **Restore** checked for the same claims.
 
    Earlier tests: none. `git diff --name-status main...HEAD` lists no test file.
+10. factory: started docs as self.
