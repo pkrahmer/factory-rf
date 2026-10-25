@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T01:01:57.332139Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-25T01:01:37.032642Z'
   stage: smoke-test
   run: c160f8f18a6b415c9dc55b95ef417f84
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-25T01:01:57.332139Z'
+  stage: doing
 ---
 
 # The setup script prepares the machine and installs the service
@@ -428,3 +437,4 @@ Expect: `1`
     1. Smoke test command 2 (the order loop over the fourteen words). Expected `in-order 14`; observed `out-of-order 14`. The read-only `zfs allow "$dataset"` in the helper `delegated()` (code line 116) comes before `zfs create` (line 167), so the first `zfs allow` is out of order. No criterion is contradicted: the delegation command itself is in order, and criterion 4 names the full `zfs allow -u factory …` text. There are two fixes, and the coder chooses:
        - Change the script so that no `zfs allow` comes before the `datasets` step. For example, define or inline the check of the current permissions inside the `delegation` step.
        - Ask the human (R8) to change the smoke test's word to `zfs allow -u`. `## Smoke test` is the human's, so no stage may edit it without that answer.
+21. factory: started doing as self.
