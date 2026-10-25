@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T13:30:09.158072Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-10-25T13:29:48.618013Z'
   stage: review
   run: 91b5c74d7f754137ac17ba62219936a6
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:30:09.158072Z'
+  stage: doing
 ---
 
 # The leftovers program is removed
@@ -337,3 +346,4 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     - tests/leftovers_support.py: Interface leave (decision 19). The module docstring now matches `process_entry`.
     - tests/test_process_search.py: Interface leave (decision 19).
     - tests/test_wrapper_search.py: Interface leave (decision 19).
+20. factory: started doing as self.
