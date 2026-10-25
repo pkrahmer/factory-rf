@@ -604,6 +604,7 @@ Date: 2026-10-18 (F0019-S0004). The pieces (the Landlock adapter, the wrapper, t
 - Decision: one temporary folder per run, `<temporary root>/factory-run-<session>` (`/tmp` in the container), made by the wrapper as the run's user with mode `0700` and refused when it exists, with `TMPDIR` pointing to it. The runtime removes it after every call, also after a kill or an error, as the run's user (`chmod -R u+rwX`, then `rm -rf`). A resumed call gets it fresh. A removal that fails changes no result. It also ends the growth of `/tmp/pytest-of-agent` found by F0018's acceptance, since pytest follows `TMPDIR`.
 - Decision: the runtime confines when it is built with `confine_executable`; `build_boundaries` passes `factory-confine` by default and the package's callers pass nothing else. A request without guard settings is confined too, with no path of the checkout. Tests that build the runtime directly pass nothing and keep their command lines.
 - Rejected: leaving the confinement to a flag of the operator (an unconfined run would be one setting away); a fallback when the kernel is too old (the run stops with the wrapper's line instead); allowing the agent's whole home.
+- Replaced by the dataset's rollback and the take, v1.2 F0044-S0001.
 
 ## No agent runs without the kernel's write guard
 
@@ -613,6 +614,7 @@ Date: 2026-10-18 (F0019-S0005). Every run starts through `factory-confine`, so a
 - Reasons: the hook covers only `Edit` and `Write`, so a fallback would drop the guard for every other route on exactly the machine that lacks it; the hook is to go after the cross-check, and a fallback would keep it as a second code path; the kernels the factory runs on offer ABI 3 or higher (6.18 offers 7; WSL2 kernels are 6.6 or later, `wsl --update`).
 - Alternative left to the human: an operator setting that falls back to the hook alone, with a warning on every tick.
 - Superseded in part by "The Claude Code hook is removed; the kernel and the undo are the write guard": there is no hook to fall back to.
+- Replaced by the dataset's rollback and the take, v1.2 F0044-S0001.
 
 ## The hook allows the run's temporary folder
 

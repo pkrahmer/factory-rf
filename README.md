@@ -18,7 +18,7 @@ When it works, `make check` ends with the line `check: green`. An instance runs 
 | `factory-bill [<work item id>]` | shows what a work item cost |
 | `factory-watch` | shows what the next tick would do and the board of features and work items; it changes nothing |
 | `factory-health` | prints `healthy`, or one line per stop in force |
-| `factory-confine` | run by the agent runtime: starts every agent run with its writes confined by the kernel |
+| `factory-confine` | the kernel's write guard as a command; no agent run starts through it any more, and F0044-S0002 removes it |
 
 Beside the six console commands, `uv run python -m factory.entry.contract [<folder>]` regenerates the records contract's schemas (a story that changes a model the contract covers runs it), and `uv run python -m factory.entry.check_documents` checks these documents (they exist, say what v1.1 does in its own words, and name every stop, kill point and fault-injection path); it prints `documents ok` or one finding per line. It is no console script, and `make check` does not run it.
 

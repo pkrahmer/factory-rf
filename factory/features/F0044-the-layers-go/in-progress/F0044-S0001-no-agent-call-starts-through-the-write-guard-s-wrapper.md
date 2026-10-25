@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T12:20:40.737986Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -206,6 +202,12 @@ journal:
   kind: started
   at: '2026-10-25T12:20:40.737986Z'
   stage: docs
+- number: 36
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T12:23:30.661563Z'
+  stage: docs
+  run: 82dddf1de4bf47f4a0a08271ac142c9f
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -744,3 +746,30 @@ Expect: `7`
     - `tests/test_hook_removed.py`: decision 17.
     - `tests/test_time_limits.py`: decision 17.
 35. factory: started docs as self.
+36. documenter: Documents only; I did not run `make check`, because the factory runs the stage's checks right after me. `make documents` printed `documents ok`.
+
+    Changed files, one line each:
+    - `docs/project-guide/agents.md`: the claude -p runtime, container-call, shared-launch and opencode sections now describe a call without wrapper, rules file, temporary folder or `CLAUDE_CONFIG_DIR`. The constructor signatures lose `confine_executable`, `temporary_root` and `runtime_folders`. The *Confinement* block, `confined_argv`, `temporary_folder`, `cleanup_argv`, `run_confinement` and `CONFINE_PREFIX` are gone. `call_refusal` reads only `sudo:` (with an `os_user`) and the login shell. The leftovers cycle loses its temporary-folder step. *opencode's folders* is rewritten. The R14 bullet gives decision 4's meaning.
+    - `docs/project-guide/write-guard.md`: a sentence at the top of *The kernel's write guard* and of *The start wrapper* says no agent call starts through them since F0044-S0001 and that S0002 removes them. The `confinement_item` paragraph is gone. The wrapper section's claim that `ClaudeCodeRuntime` starts every run through it is corrected. *The undo* no longer says the kernel refuses writes while the agent works.
+    - `docs/project-guide/stage-environment.md`: the wiring table and the list of items a `container` instance leaves out no longer name `factory-confine`, the confine executable or `confinement`.
+    - `docs/project-guide/watching.md`: the `build_boundaries` signature and text lose `confine_executable`. The `production_environment` text no longer names `factory-confine` among the console scripts.
+    - `docs/project-guide/README.md`: the `confine_support.py` line follows the kept names. The `write-guard.md` line notes that nothing on the call path uses the guard or the wrapper.
+    - `README.md`: the `factory-confine` table row said it starts every agent run. It now says no run starts through it and that S0002 removes it. This is outside the criterion's "none", but the row was false after the story.
+    - `docs/operator-guide.md`:
+      - The `sudo` chain has no `factory-confine --rules ...` words.
+      - The run-files sentence, the wrapper-refusal paragraph, the `CLAUDE_CONFIG_DIR` mentions and the `PATH` sentence are corrected.
+      - The section *The kernel refuses every other write* is now *The kernel no longer refuses writes*. It says what keeps the write paths: the take on a `container` instance, the undo on an `inline` one.
+      - The preflight loses the `confinement` row and the `confinement:` stop form. The `inline` maximum falls from fourteen to thirteen; the `container` counts are unchanged.
+      - The claude-home volume note now says `.claude.json` lives in the home's root and the fresh home clears it. I checked `kept_paths` and the `LOGIN_STATE_FILE` values (`.claude/.credentials.json` and the opencode auth file), which keep only the login files.
+    - `docs/decisions.md`: the closing line "Replaced by the dataset's rollback and the take, v1.2 F0044-S0001." is added to "Every agent run is confined by the kernel" and "No agent runs without the kernel's write guard".
+
+    Cross-read and found current: `docs/project-guide/{costs,stages,git-and-hosting,processes-and-checks}.md` (their hits for "wrapper" are the git or process wrapper). The code matches the Interface; I found nothing for the coder.
+
+    Stale text I saw and left alone, because S0002 owns it:
+    - `docs/operator-guide.md`, the `tool_paths` section (about line 1374 and the paragraph on the template and demo `.reports/*`): "refused by the kernel" and "ends with `Permission denied`" are no longer true. `tool_paths` and the kernel's rules go in S0002.
+    - `docs/project-guide/write-guard.md`, *The kernel's targets*: the text on `confinement_of` and the temporary directory still describes the domain module as it stands.
+    - The `docs/operator-guide.md` rows at about lines 299 to 310 that show `Permission denied` come from file permissions, not the kernel. I did not check them in detail.
+
+    `check`: check: green (not run again: passed on tree 38975be38bd0 at 2026-10-25T12:16:54Z)
+    `secrets`: secrets: green (4.0 s)
+    `documents`: documents ok
