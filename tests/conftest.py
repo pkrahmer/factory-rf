@@ -54,6 +54,7 @@ from human_clone import HumanClone
 from podman_support import IMAGE, Podman, write_podman
 from proof_support import World, build_world, start_story
 from run_process_recorder import Recorder
+from stage_run_support import INSTANCE
 from tmp_path_support import reopen
 from wiring_support import HOSTED_URL
 
@@ -193,6 +194,24 @@ def compose_service() -> dict[str, object]:
     found = services["factory"]
     assert isinstance(found, dict)
     return found
+
+
+@pytest.fixture
+def image_file(tmp_path: Path) -> Path:
+    """Return an image identity file in `tmp_path` that holds `build-7`."""
+    path = tmp_path / "image-id"
+    path.write_text("build-7\n", encoding="utf-8")
+    return path
+
+
+@pytest.fixture
+def environment(image_file: Path) -> dict[str, str]:
+    """Return a valid environment whose image identity file lies in `tmp_path`."""
+    return {
+        "FACTORY_REPOSITORY_URL": HOSTED_URL,
+        "FACTORY_INSTANCE": INSTANCE,
+        "FACTORY_IMAGE_ID_FILE": str(image_file),
+    }
 
 
 @pytest.fixture

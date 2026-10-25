@@ -51,12 +51,14 @@ Install the factory with `uv sync`, then check the installation with `make check
 
 ## Configuration
 
-One factory instance runs one project and is told what it needs through environment variables. `factory.domain.settings.read_settings` reads them and refuses a bad one with `SettingsInvalid`, whose message is `<variable>: <fault>`; it reports the first fault in the order of the table. `factory-run` calls it first; `factory-watch` reads the same environment.
+One factory instance runs one project and is told what it needs through environment variables. `factory.domain.settings.read_settings` reads them and refuses a bad one with `SettingsInvalid`, whose message is `<variable>: <fault>`; it reports the first fault in this order: the repository, the instance, `FACTORY_CHECKOUT`, `FACTORY_STATE`, the image identity file, `FACTORY_AGENT_USER`, the stage environment's faults (the inside-workspace fault of a `container` instance among them), then the variables below those in the table. `factory-run` calls it first; `factory-watch` reads the same environment.
 
 | Variable | Required | Meaning |
 |---|---|---|
 | `FACTORY_REPOSITORY_URL` | yes | The one repository of the instance. No whitespace and no comma: a list of repositories is refused. |
 | `FACTORY_INSTANCE` | yes | The instance's name, matching `^[a-z][a-z0-9-]*$` (`factory-1`; `Factory-1`, `1st`, `factory_1` and `-x` are refused). |
+| `FACTORY_CHECKOUT` | no | The factory's own checkout, an absolute path. Default `/work/checkout`; unset or blank gives the default. A relative path is refused with `FACTORY_CHECKOUT` as the variable and `is not an absolute path`. |
+| `FACTORY_STATE` | no | The state directory (`health.json`, the factory log, the runs), an absolute path. Default `/state`; unset or blank gives the default. A relative path is refused with `FACTORY_STATE` as the variable and `is not an absolute path`. `factory-health --state-directory <it>` reads the same place. |
 | `GIT_USER_NAME` | no | Name of the factory's commits. Default `factory`. |
 | `GIT_USER_EMAIL` | no | Email of the factory's commits. Default `factory@noreply.invalid`. |
 | `FACTORY_IMAGE_ID_FILE` | no | The file that holds the identity of the image the instance runs on. Default `/opt/factory/image-id`. |
@@ -86,7 +88,7 @@ One factory instance runs one project and is told what it needs through environm
 
 **The stage environment.** `FACTORY_STAGE_ENVIRONMENT` says where a stage runs. `inline` is v1.1's way and what every instance runs today: the agent runs in the factory's container as the second user, behind `factory-confine`, and nothing needs to be set.
 
-`container` runs each stage on a ZFS dataset and its commands in Podman containers. It needs `FACTORY_DATASET`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE`, and is refused when one is missing. It runs no second user, so `FACTORY_AGENT_USER` must stay unset (setting it is refused with `FACTORY_AGENT_USER` as the variable and `is set, but the container environment runs no second user`), and it has no kernel write guard: the container is the boundary. The agent's `HOME` is `/work/home` on the dataset. The faults are reported in this order: dataset, workspace, image, agent user.
+`container` runs each stage on a ZFS dataset and its commands in Podman containers. It needs `FACTORY_DATASET`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE`, and is refused when one is missing. It runs no second user, so `FACTORY_AGENT_USER` must stay unset (setting it is refused with `FACTORY_AGENT_USER` as the variable and `is set, but the container environment runs no second user`), and it has no kernel write guard: the container is the boundary. The agent's `HOME` is `/work/home` on the dataset. The faults are reported in this order: dataset, workspace, image, agent user. After those, a checkout or a state directory that is the workspace or lies inside it is refused with `FACTORY_CHECKOUT` (checked first) or `FACTORY_STATE` as the variable and `<path> lies inside FACTORY_WORKSPACE`: every rollback of the dataset would reset the factory's own checkout, and the agent's container would reach the health file and the runs. With the default checkout, `FACTORY_WORKSPACE=/work` is refused for that reason.
 
 This only lets an instance choose the environment. The VM it runs on, with the dataset and the stage image, is F0043's, and the preflight checks them: see "The preflight's items".
 
@@ -98,7 +100,7 @@ A blank value of the three optional variables above counts as unset. The token i
 
 The repository's `owner/name`, which the hosting service needs, is taken from `FACTORY_REPOSITORY_URL`: `https://host/owner/name(.git)`, `ssh://git@host/owner/name(.git)` or `git@host:owner/name(.git)`. Any other URL is refused with `FACTORY_REPOSITORY_URL` as the variable. `factory-run` builds the boundaries from them when it starts.
 
-The checkout and the state directory are not settings you can change: the checkout is always `/work/checkout` and the state directory `/state`. `FACTORY_CHECKOUT`, `FACTORY_STATE_DIRECTORY` and any other variable are ignored.
+The checkout and the state directory are settings: `FACTORY_CHECKOUT` and `FACTORY_STATE`. The image leaves both unset, so a compose instance keeps `/work/checkout` and `/state`; the VM of v1.2 sets both under `/srv/factory/<instance>` (see "The machine"). `FACTORY_STATE_DIRECTORY` and any other variable the table does not name are ignored.
 
 ### A repository URL with a password is refused
 
@@ -106,7 +108,7 @@ A URL whose user information holds a colon, that is a user name followed by a pa
 
 ## When the process refuses to start
 
-`factory-run` ends with status 2, never with a traceback, when the environment is invalid (any fault in the table above, including a missing or empty image identity file), when the token file cannot be read, and when the repository URL has no owner and no name. It writes one time-stamped line to the factory log and standard output, `settings invalid: <variable>: <fault>`, and a `preflight_failed` stop with scope `machine` to `health.json`, so the container's health check fails and the fault is visible without opening the log. The stop is added to the stops already in the file; an older `preflight_failed` stop is replaced and no other stop is dropped. When the state directory cannot be written (a `state` volume mounted read-only or with the wrong owner), `factory-run` still ends with status 2: the time-stamped line reaches standard output, two lines go to standard error, `factory-run: settings invalid: <variable>: <fault>` and `factory-run: cannot write the machine stop: <error type>: <message>`, and no stop is written. Check the `state` volume's owner and mode. Correct the variable or the file and start the instance again.
+`factory-run` ends with status 2, never with a traceback, when the environment is invalid (any fault in the table above, including a missing or empty image identity file), when the token file cannot be read, and when the repository URL has no owner and no name. It writes one time-stamped line to the factory log and standard output, `settings invalid: <variable>: <fault>`, and a `preflight_failed` stop with scope `machine` to `health.json`, both in the directory `FACTORY_STATE` names, else in `/state`; a relative `FACTORY_STATE` is itself the fault reported, and its stop goes to `/state`, so the container's health check fails and the fault is visible without opening the log. The stop is added to the stops already in the file; an older `preflight_failed` stop is replaced and no other stop is dropped. When the state directory cannot be written (a `state` volume mounted read-only or with the wrong owner), `factory-run` still ends with status 2: the time-stamped line reaches standard output, two lines go to standard error, `factory-run: settings invalid: <variable>: <fault>` and `factory-run: cannot write the machine stop: <error type>: <message>`, and no stop is written. Check the `state` volume's owner and mode. Correct the variable or the file and start the instance again.
 
 ## The loop and its pauses
 
@@ -536,11 +538,11 @@ The service sets `init: true`, so the container's first process (PID 1) is the c
 3. creates `/state/runs` if needed and sets its mode to `2750`: `prepared /state/runs`;
 4. writes `starting instance <name>` and starts the factory (`python -m factory.entry.run`) from `/opt/factory` with `exec`, so the factory runs as the init's child, not as PID 1, and no shell stands between them.
 
-It sets no git configuration; the factory's git gets its identity and credential helper from the factory itself. For tests, `FACTORY_OPT`, `FACTORY_CLAUDE_HOME` and `FACTORY_STATE` move the three directories; leave them unset in a container (the factory ignores `FACTORY_STATE`: the state directory is fixed).
+It sets no git configuration; the factory's git gets its identity and credential helper from the factory itself. For tests, `FACTORY_OPT`, `FACTORY_CLAUDE_HOME` and `FACTORY_STATE` move the three directories; leave them unset in a container (the factory reads `FACTORY_STATE` too, as the state directory; the image leaves it unset).
 
 ### The health check and the restart policy
 
-Docker runs `python -m factory.entry.health` every 30 seconds (10 seconds to answer, three failures to be unhealthy, 60 seconds of grace at the start). It reads `health.json` in the state directory. With no stop it prints `healthy` and exits 0; when the file is missing it prints `no health status: <path> is missing` and exits 1 (`factory-run` writes an empty status when it starts, so a missing file means the instance has not started or the check reads another state directory; Docker counts the failure only after the 60 seconds of grace); with stops it prints one line per stop and exits 1:
+Docker runs `python -m factory.entry.health` every 30 seconds (10 seconds to answer, three failures to be unhealthy, 60 seconds of grace at the start). It reads `health.json` in the state directory, `/state` unless `--state-directory <path>` names another (on the VM, the directory `FACTORY_STATE` names). With no stop it prints `healthy` and exits 0; when the file is missing it prints `no health status: <path> is missing` and exits 1 (`factory-run` writes an empty status when it starts, so a missing file means the instance has not started or the check reads another state directory; Docker counts the failure only after the 60 seconds of grace); with stops it prints one line per stop and exits 1:
 
 ```
 preflight_failed (machine): tool:make: make is not on the PATH (since 2026-10-12T08:00:00Z)
