@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 445
 comments_read: [6397809713]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T12:46:07.860347Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -74,6 +78,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T12:45:50.038311Z'
+  stage: doing
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-25T12:46:07.860347Z'
   stage: doing
 ---
 
@@ -298,3 +307,4 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
 
     Not touched: `pyproject.toml` still has the `factory-confine` console script. The reviewer says the human removes it in change 3 of `feature.md`.
 12. 2026-10-25 human: (a). Leave given for the tester, under decision 17 and the human's standing answer for lists found after the pre-check (decision 29): drop the `guard` updates in `tests/adapters/test_claude_runtime_login.py` (`_guarded_request`), `tests/adapters/test_claude_runtime_api_login.py` and `tests/adapters/test_claude_runtime_no_hook.py`, fold the two `no_hook` rows `unconfined-guarded` and `unconfined-unguarded` into one, and fix that docstring. Each test keeps its name and its other checks. Together with finding 2: move `_has` from `tests/test_hook_removed.py` and `tests/test_kernel_guard_removed.py` into one shared module under `tests/` (the standing helper-move leave). The two docs passages on `ConfinementError` are the documenter's. `pyproject.toml`'s `factory-confine` script is the human's change 3, after the merge.
+13. factory: started doing as self.
