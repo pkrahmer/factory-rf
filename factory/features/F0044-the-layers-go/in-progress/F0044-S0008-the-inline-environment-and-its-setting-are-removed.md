@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T18:56:00.274271Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -207,6 +203,12 @@ journal:
   kind: started
   at: '2026-10-25T18:56:00.274271Z'
   stage: review
+- number: 36
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T18:57:22.899889Z'
+  stage: review
+  run: 94e03d6cc8be43168de762481de7795f
 ---
 
 # The inline environment and its setting are removed
@@ -729,3 +731,60 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     `check`: check: green
     `duplicates`: duplicates: 12 new, 35 known, 3 gone
 35. factory: started review as self.
+36. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`: the six source files, `vm/setup.sh`, the five new test modules, the rewritten `test_stage_environment_of.py` and `tests/wiring_support.py`. This time I went through groups 1 to 5 in full, because the round-0 review stopped at group 1.
+
+    - **Group 1 (criteria):**
+      - Entry 28's finding is closed. The row `dataset-before-workspace-and-image` in `tests/entry/test_wiring_one_environment.py::test_build_boundaries_needs_the_dataset_the_workspace_and_the_image` now checks that the dataset is refused before the workspace and the image.
+      - Criteria 1 to 8 each have a parametrized test that checks what the criterion says.
+      - Every rule of the Interface has a test for its failing side: the three `missing` faults in order, the refusal before `get_repo`, the relative workspace before the checkout, the checkout before the state directory, a `None` workspace, the validator's `ValidationError`, and the unmapped alias. `MachineChecks.run` asks for neither `make`, `claude` nor `opencode`. Criterion 3's row with `FACTORY_WORKSPACE=/work` gets its `/work/checkout` from the default checkout, because `settings_support.BASE` sets no `FACTORY_CHECKOUT`.
+      - Entry 34 records `make check` green.
+      - The Interface's `test_task.py` already asserts the dataset's checkout on `main` (`tmp_path / "workspace" / "checkout"`), so it needed no change.
+    - **Group 2 (architecture):** the layers hold. `workspace_overlap_fault` stays pure: `is_absolute` does no I/O. The wiring alone builds `ZfsSnapshots`, `PodmanRuns` and `ContainerMakeCommands`.
+    - **Group 3 (security):** nothing new. No marker was added, and the faults name only variables.
+    - **Group 4 (quality):**
+      - The diff is mostly deletions.
+      - `_container_adapters` raises the three faults in the order the Interface gives.
+      - `agent_run_environment` keeps an unused `_settings` because the Interface states the signature `(settings, base)`.
+      - The remaining unused code is decided: `UndoService` by decision 13, `MakeProjectCommands` by decision 3.
+      - Docstrings are present and accurate.
+    - **Group 5 (work item):** the journal explains the main choice (the faults are raised in `_container_adapters`) and what was rejected (a separate check before the build). The Description matches what was built, and the docs criterion covers what the reader needs to know.
+
+    no findings
+
+    Notes:
+    1. `tests/entry/test_wiring_one_environment.py::_record_get_repo` is a copy of `_record_get_repo` in `tests/entry/test_wiring_boundaries.py`. It could be moved to `tests/wiring_support.py` under the standing leave.
+    2. `tests/domain/test_settings_one_environment.py::CONTAINER` repeats the `CONTAINER` environment dict of `tests/domain/test_settings_agent_user_unread.py` and `tests/domain/test_settings_stage_environment.py`. A shared constant could live in `tests/settings_support.py`.
+
+    Earlier tests (item 6), one line each:
+    - tests/application/test_agent_environment_item.py (deleted): the Interface, decision 24.
+    - tests/application/test_machine_checks_container.py: the Interface (inline rows), decision 24.
+    - tests/application/test_machine_checks_runtime.py: the Interface (one test deleted), decision 24.
+    - tests/application/test_opencode_item.py: the Interface, decision 24.
+    - tests/application/test_opencode_item_container.py: the Interface, decision 24.
+    - tests/application/test_preflight.py: the human's entry 26.
+    - tests/application/test_preflight_run.py: the human's entry 26.
+    - tests/application/test_preflight_stale_main_stop.py: the human's entry 26.
+    - tests/application/test_preflight_stops_commit.py: the human's entry 26.
+    - tests/application/test_stage_environment.py (deleted): the Interface, decision 24.
+    - tests/application/test_stage_environment_calls.py: the Interface (one test deleted), and the human's entry 9 (a caller of `inline_boundaries`).
+    - tests/application/test_stage_environment_of.py: the Interface (renamed test), decision 24.
+    - tests/application/test_stage_on_container_fakes.py: the human's entry 9.
+    - tests/application/test_stage_run.py: the human's entries 9 and 16.
+    - tests/application/test_stall_edges.py: the human's entries 9 and 16.
+    - tests/application/test_stall_environment.py: the Interface (one test deleted), decision 24.
+    - tests/application/test_stalls.py: the human's entries 9 and 16.
+    - tests/conftest.py: the Interface (`hosted_environment`), decision 24; `local_settings`: the human's entry 26.
+    - tests/container_support.py: the human's entry 9 (`inline_boundaries`) and entry 26 (`CONTAINER`).
+    - tests/domain/test_settings_agent_user_unread.py: the human's entry 26.
+    - tests/domain/test_settings_paths.py: the Interface, decision 24.
+    - tests/domain/test_settings_stage_environment.py: the Interface, decision 24.
+    - tests/entry/test_run.py, tests/entry/test_run_health_file.py, tests/entry/test_run_waiter.py: the Interface, decision 24.
+    - tests/entry/test_wiring_agent_environment.py (deleted): the human's entry 26.
+    - tests/entry/test_wiring_api_login.py, tests/entry/test_wiring_login.py, tests/entry/test_wiring_provider_limit.py, tests/entry/test_wiring_opencode.py: the Interface, decision 24, and the human's entry 19.
+    - tests/entry/test_wiring_boundaries.py, tests/entry/test_wiring_command_records.py: the Interface, decision 24, and the human's entry 19.
+    - tests/entry/test_wiring_container_extras.py, tests/entry/test_wiring_extras.py, tests/entry/test_wiring_preflight.py, tests/entry/test_wiring_run.py, tests/entry/test_wiring_stage_environment.py: the Interface, decision 24.
+    - tests/entry/test_wiring_stage_environment_home.py (deleted): the Interface, decision 24.
+    - tests/entry/test_wiring_without_agent_user.py: the human's entry 26.
+    - tests/test_make_search.py: the Interface, decision 24.
+    - tests/test_vm_setup_text.py: the human's entry 26.
+    - tests/wiring_support.py: the Interface, decision 24.
