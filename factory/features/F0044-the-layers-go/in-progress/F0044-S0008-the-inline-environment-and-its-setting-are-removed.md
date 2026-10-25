@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995]
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T17:49:35.531640Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-25T17:49:35.531640Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-25T17:49:55.229130Z'
+  stage: intake
+  run: 17f36ac62fe444399f4a3eb8ee039054
 ---
 
 # The inline environment and its setting are removed
@@ -92,8 +94,10 @@ Tests (the leave is decision 24 of `feature.md`):
 4. `build_boundaries` refuses an incomplete instance (rows of one parametrized test, each with `hosting` the fake): settings without a dataset raise `SettingsInvalid` naming `FACTORY_DATASET` with `missing`; with a dataset and without a workspace, `FACTORY_WORKSPACE`; with both and without an image, `FACTORY_STAGE_IMAGE`; without a dataset and with `hosting` left out, the refusal comes before PyGithub's `get_repo` is called; with all three the build succeeds, runs no `zfs` and no `podman` (the stand-ins record no call), and gives a `ZfsSnapshots`, a `PodmanRuns`, a runtime whose `containers is boundaries.containers` and project commands whose `inner` is a `ContainerMakeCommands`.
 5. `agent_run_environment(settings, {"HOME": "/home/x", "PATH": "/usr/bin", "LANG": "C.UTF-8"})` gives `HOME` `/work/home` and keeps `PATH` and `LANG`, and the given dict is unchanged.
 6. The preflight (rows of one parametrized test): `machine_extras` under Claude Code gives `token-file`, `podman`, `zfs`, `dataset`, `stage-image`, `agent-run-probe`, under opencode the same with `opencode` before `agent-run-probe`; `MachineChecks.run` with a `which` that records its names gives first `tool:git`, `tool:uv`, `hosting-service`, `agents`, `agent-runtime-version` and asks for neither `make`, `claude` nor `opencode`; `opencode_item(settings, ["sonnet"])` passes with every alias mapped and fails with `no model is set for sonnet in FACTORY_OPENCODE_MODELS` without.
-7. `make check` stays green.
-8. docs: `docs/operator-guide.md`, *Configuration*: the row `FACTORY_STAGE_ENVIRONMENT` goes, the rows `FACTORY_DATASET`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` say required, and the paragraph *The stage environment* says there is one; *The preflight's items*: the rows `agent-environment`, `tool:make` and the runtime's tool go, the `opencode` item has one form, and the count follows; *The agent runtime*, *The agent in a container*: one environment; *The agent run's `PATH` and `HOME`*: the `HOME` is `/work/home`, and no item `agent-environment` checks it; *The service*: the environment file's table loses the row `FACTORY_STAGE_ENVIRONMENT`; `docs/project-guide/stage-environment.md`: *The stage environment* and *The settings and the wiring* describe one environment and `build_boundaries`' three faults; `docs/project-guide/watching.md`, *Boundaries*: `snapshots` and `containers` are required; *The tick*: one list of machine extras, `opencode_item(settings, agent_models)`, and no runtime executable among the tools; `docs/project-guide/stage-environment.md`, the opening paragraph and *The cycle*: one environment; *`run_agent`*: no comparison with the inline environment; *The preflight*: one list of items and no `CONTAINER_TOOLS`; `docs/project-guide/processes-and-checks.md`, *Project commands*: the string `"make"` appears in `factory.adapters.make_commands` alone, as `tests/test_make_search.py` allows; *Running as another user*: no `inline` instance; `docs/project-guide/README.md`, *The files*: the line of `stage-environment.md` follows; `README.md`: the paragraph that names `FACTORY_STAGE_ENVIRONMENT` says that every stage runs in throwaway containers on a ZFS dataset and points to the operator guide's chapter `## The machine`. `docs/decisions.md`: the entry "One snapshot instead of many layers" gains one line that the inline environment and its setting went with v1.2 F0044-S0008.
+7. The request of a stage task (composed by `TaskComposer` in `factory.application.task`, with `factory.application.take.agent_working_directory`) and the probe's request (`_probe_request`) have `working_directory == boundaries.snapshots.mount_point / "checkout"` (two rows of one parametrized test).
+8. `workspace_overlap_fault(workspace, checkout, state_directory)` (rows of one parametrized test): a state directory inside the workspace gives `("FACTORY_STATE", "<state directory> lies inside FACTORY_WORKSPACE")`; a relative workspace together with an inner checkout gives the relative-workspace fault `("FACTORY_WORKSPACE", "is not an absolute path")` (checked first); a checkout and a state directory both inside the workspace give the checkout's fault (checkout before state directory); a `None` workspace gives `None`; `InstanceSettings(...)` built directly with an inner checkout raises a `ValidationError` whose text holds `FACTORY_CHECKOUT: <checkout> lies inside FACTORY_WORKSPACE`.
+9. `make check` stays green.
+10. docs: `docs/operator-guide.md`, *Configuration*: the row `FACTORY_STAGE_ENVIRONMENT` goes, the rows `FACTORY_DATASET`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` say required, and the paragraph *The stage environment* says there is one; *The preflight's items*: the rows `agent-environment`, `tool:make` and the runtime's tool go, the `opencode` item has one form, and the count follows; *The agent runtime*, *The agent in a container*: one environment; *The agent run's `PATH` and `HOME`*: the `HOME` is `/work/home`, and no item `agent-environment` checks it; *The service*: the environment file's table loses the row `FACTORY_STAGE_ENVIRONMENT`; `docs/project-guide/stage-environment.md`: *The stage environment* and *The settings and the wiring* describe one environment and `build_boundaries`' three faults; `docs/project-guide/watching.md`, *Boundaries*: `snapshots` and `containers` are required; *The tick*: one list of machine extras, `opencode_item(settings, agent_models)`, and no runtime executable among the tools; `docs/project-guide/stage-environment.md`, the opening paragraph and *The cycle*: one environment; *`run_agent`*: no comparison with the inline environment; *The preflight*: one list of items and no `CONTAINER_TOOLS`; `docs/project-guide/processes-and-checks.md`, *Project commands*: the string `"make"` appears in `factory.adapters.make_commands` alone, as `tests/test_make_search.py` allows; *Running as another user*: no `inline` instance; `docs/project-guide/README.md`, *The files*: the line of `stage-environment.md` follows; `README.md`: the paragraph that names `FACTORY_STAGE_ENVIRONMENT` says that every stage runs in throwaway containers on a ZFS dataset and points to the operator guide's chapter `## The machine`. `docs/decisions.md`: the entry "One snapshot instead of many layers" gains one line that the inline environment and its setting went with v1.2 F0044-S0008.
 
 ## Smoke test
 
@@ -134,3 +138,10 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
       - a `None` workspace gives `None`;
       - `InstanceSettings(...)` built directly with an inner checkout raises a `ValidationError` whose text holds `FACTORY_CHECKOUT: <checkout> lies inside FACTORY_WORKSPACE`.
 5. factory: started intake as self.
+6. intake: accepted
+   Carried in from journal entry 4 (the human's answer to my questions in entry 3): I added two criteria before the two closing ones, which are now 9 (`make check`) and 10 (`docs:`). New criterion 7: the stage task's request and the probe's request have `working_directory == boundaries.snapshots.mount_point / "checkout"`. New criterion 8: the rows of `workspace_overlap_fault` and the `InstanceSettings` validator. These are the rows the human listed: a state directory inside the workspace, with `FACTORY_STATE` and the wording `<path> lies inside FACTORY_WORKSPACE`; relative workspace first; checkout before state directory; a `None` workspace; and a direct `InstanceSettings` with an inner checkout giving a `ValidationError`. The Description is unchanged, because the task's meaning did not change.
+   - Interface: concrete modules and signatures (`stage_environment_of`, `Boundaries`, `workspace_overlap_fault`, `build_boundaries`, `agent_run_environment`, `machine_extras`, `opencode_item`, `REQUIRED_TOOLS`). The names that go are listed, and so are the tests changed or deleted.
+   - Criteria: each is testable by a parametrized test. Every rule has its failing side: the three `missing` faults in order, the relative workspace, the inner checkout, the inner state directory, the removed names, and the `opencode_item` failure text. The ordering clauses are covered by criteria 4 and 8.
+   - Smoke test: one runnable `uv run python -` script. It has no pytest command, so the `-q` rule does not apply. Its two `Expect:` lines are checkable against the output.
+   - Architecture: the changes keep the layer order (domain settings, application boundaries/preflight/task, entry wiring). The container environment stays the only implementation behind the interface, and the runtimes' call without a container stays (decision 2).
+   - Scope: within the feature's S0008 scope and its decisions 2, 3, 10, 13, 16, 24 and 37. The undo's module stays for S0009, and no "Out of scope" item is touched. The test changes are covered by the human's leave in decision 24, on the corrected list of decision 37.
