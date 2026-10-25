@@ -8,6 +8,7 @@ The guide for the person who runs the factory this repository implements: how to
 - "The loop and its pauses"
 - "The project's make targets"
 - "The agent runtime"
+- "The machine"
 - "The machine's image"
 - "The container: compose, entrypoint and health check"
 - "Container runtimes"
@@ -387,7 +388,37 @@ The image makes `/home/agent/.config/opencode`, owned by `factory` and read-only
 - No structured reply. The agent ends its message with a `<factory-result>` block; a reply without a valid block ends the run `no_result`.
 - The budget is the factory's own (see "An opencode run's budget").
 
+## The machine
+
+The machine of v1.2 runs every stage in containers on a dataset. This chapter describes it as its stories build it.
+
+### The stage image
+
+Every container of a v1.2 stage (the sync, the agent, the checks) starts from one image that holds the tools and nothing of the factory. `vm/Dockerfile` builds it.
+
+It holds:
+
+- the pinned base image, and Debian's `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs` and `npm`, each at an exact version;
+- `uv`, Claude Code and opencode at exact versions, with the runtimes' environment: `DISABLE_AUTOUPDATER`, `UV_LINK_MODE`, `PYTHONDONTWRITEBYTECODE`, the two version records `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION`, and the opencode model ids `FACTORY_OPENCODE_MODELS`;
+- the agent files (`claude/agents` and `claude/settings.json`) at `/etc/factory/claude`, read-only.
+
+It does not hold what served the long-lived container of `image/Dockerfile`: no second user and no group, no `sudo`, no entrypoint, no `/etc/gitconfig`, no `USER`, `WORKDIR`, `ENTRYPOINT` or `CMD`, no copy of the factory's source or its `uv sync`, no image-id file and no login or token path.
+
+The image only carries the agent files. The sync container copies them into the dataset's `/work/home/.claude` before the base moves (F0042).
+
+Build it on the VM as the user `factory`, from a checkout:
+
+```bash
+podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> <the checkout>
+```
+
+`--build-arg FACTORY_IMAGE=<ref>` sets the label `factory.image`; it defaults to `unlabelled`. The label is not the identity of the image. The settings read the identity from the file `FACTORY_IMAGE_ID_FILE` names, and you renew that file after every build. How `vm/setup.sh` makes the file is not described here yet. Nothing in `make check` builds the image.
+
+To update a pin, follow *Update the pins* under "The machine's image" and change the same lines in `vm/Dockerfile`. Until F0044 removes `image/`, `tests/test_stage_image.py` holds the two Dockerfiles to the same pins (the base image, the three versions, the seven Debian packages and the opencode model ids), so a pin changed in one file alone fails it.
+
 ## The machine's image
+
+`vm/Dockerfile` is the stage image of v1.2 (see "The stage image"); `image/Dockerfile` is the machine of v1.1 until F0044. Everything below describes `image/Dockerfile`.
 
 `image/Dockerfile` builds the machine the factory runs on. Nothing in it floats: the base image is named with its digest, Claude Code, opencode, `uv` and the eight Debian tools have exact versions, and the factory's own dependencies are installed by `uv sync --frozen --no-dev` from `uv.lock` alone (the build backend, `hatchling`, is pinned in `pyproject.toml`). `tests/test_image.py` checks this statically; it reports any reference that floats, such as a `FROM` without a digest, an `apt-get install` package without `=version`, `latest`, or a download piped into a shell.
 

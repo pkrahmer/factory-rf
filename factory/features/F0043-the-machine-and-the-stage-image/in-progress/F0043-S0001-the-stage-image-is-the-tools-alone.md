@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T00:01:14.200519Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-25T00:01:14.200519Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T00:02:03.352277Z'
+  stage: docs
+  run: 403364e9162e41859114a42c99727b70
 ---
 
 # The stage image is the tools alone
@@ -349,3 +351,29 @@ Expect: `1`
     - tests/test_stage_image.py:208-238: criterion 4 says "rows of one parametrized test", but the installs are spread over three functions (`test_each_tool_is_installed_once_at_its_pinned_version`, `test_opencode_is_installed_after_claude_code`, `test_no_other_install_is_made`).
     - tests/test_stage_image.py:255-318: the same holds for criterion 6, which is spread over four functions besides criterion 9's.
 18. factory: started docs as self.
+19. documenter: Round 1 docs. I found no contradiction between `vm/Dockerfile` and the Interface. Only documents changed, so I did not run `make check`. `make documents` printed `documents ok` after my last edit.
+
+    Files changed:
+    - `docs/operator-guide.md`: a new chapter `## The machine`, placed before `## The machine's image`, with its first section `### The stage image`.
+      - The section lists what the image holds and what it leaves out, and says the agent files sit at `/etc/factory/claude` and the sync container copies them (F0042).
+      - It gives the build on the VM as the user `factory` (`podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> <the checkout>`, with `--build-arg FACTORY_IMAGE=<ref>` for the label).
+      - It says the label is not the identity: the operator renews the file `FACTORY_IMAGE_ID_FILE` names after each build.
+      - It says how `vm/setup.sh` makes that file is not described yet, because S0003's documenter adds it.
+      - It says how to update a pin: follow *Update the pins* and change the same lines in `vm/Dockerfile`. `tests/test_stage_image.py` holds the two files to the same pins until F0044.
+      - I also added the chapter to the table of contents at the top.
+    - `docs/operator-guide.md`, `## The machine's image`: one opening sentence saying `vm/Dockerfile` is the stage image of v1.2 and `image/Dockerfile` is the machine of v1.1 until F0044.
+    - `docs/project-guide/README.md`, *Shared test helpers*: the line for `dockerfile_support.py` now names what the module offers after this story: `DOCKERFILE`, `dockerfile_instructions`, `SECRET_WORDS`, `_uncommented`, `_declared_names`, `_after` and `_apt_packages`.
+
+    Cross-read and found current:
+    - The rest of `docs/operator-guide.md`: the configuration table row and the paragraph on `FACTORY_IMAGE_ID_FILE`, and the sections on the image's build, pins and users. All of these describe `image/Dockerfile`, which this story did not change.
+    - The rest of `docs/project-guide/README.md`.
+    - `README.md` mentions no stage image, so I left it alone.
+    - `docs/decisions.md` is untouched, as the docs criterion says.
+
+    Noticed and not touched:
+    - Reviewer's note, both are test-side and neither contradicts the Interface or the criteria: criteria 4 and 6 say "rows of one parametrized test", but `tests/test_stage_image.py` spreads them over several functions (the reviewer cites lines 208-238 and 255-318).
+    - The docs criterion says the "Update the pins" lines apply to `vm/Dockerfile`. The existing text under *Update the pins* names eight Debian packages including `sudo`, which only `image/Dockerfile` has. My new section says "the same lines" and leaves out `sudo`. A reader who follows the older list for `vm/Dockerfile` would look for a pin that is not there. This is not a defect of this story.
+
+    `check`: check: green (not run again: passed on tree 19798b0f46c2 at 2026-10-24T23:58:01Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
