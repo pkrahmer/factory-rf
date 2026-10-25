@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-25T07:57:13.653586Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-25T07:56:53.274141Z'
   stage: tests
   run: d4db6caf2a1e40dea565c6c924cf3b45
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:57:13.653586Z'
+  stage: doing
 ---
 
 # The dataset's checkout knows origin/main
@@ -196,3 +205,4 @@ Expect: `1`
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (194.3 s)
+14. factory: started doing as vm.
