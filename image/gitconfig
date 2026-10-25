@@ -1,5 +1,0 @@
-# The agent's git trusts the checkout the factory owns; without it git refuses a repository
-# of another user. The factory's git wrapper reads no system configuration, so this file
-# never reaches the factory's own git commands.
-[safe]
-	directory = /work/checkout

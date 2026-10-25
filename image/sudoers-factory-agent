@@ -1,8 +1,0 @@
-# The factory's user may run a command as the agent's user, and nothing else.
-# umask 0002 with umask_override: the agent's files stay group-writable, so the
-# factory can restore the work tree after an agent run. No pseudo-terminal, so
-# the agent stays in the factory's session.
-Defaults:factory umask=0002
-Defaults:factory umask_override
-Defaults:factory !use_pty
-factory ALL=(agent) NOPASSWD: ALL

@@ -4,9 +4,10 @@ import re
 from pathlib import Path
 
 from dockerfile_support import _uncommented
-from entrypoint_support import ROOT, SYSTEM_PATH
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 
+ROOT = Path(__file__).parent.parent
+SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
 SETUP = ROOT / "vm" / "setup.sh"
 SERVICE = ROOT / "vm" / "factory.service"
 STEPS = (

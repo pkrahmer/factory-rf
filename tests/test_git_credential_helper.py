@@ -10,7 +10,7 @@ from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.entry.wiring import git_environment
 
 ROOT = Path(__file__).parent.parent
-HELPER = ROOT / "image" / "git-credential-factory"
+HELPER = ROOT / "vm" / "git-credential-factory"
 EXAMPLE_VALUE = "example-value"
 GIT_REQUEST = "protocol=https\nhost=github.com\n\n"
 SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"

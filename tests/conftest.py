@@ -6,16 +6,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-from ruamel.yaml import YAML
 
 from acceptance_walk import AcceptanceWalk
 from adapters.container_runtime_support import make_workspace
-from compose_support import COMPOSE
 from confine_support import Layout, build_layout
 from container_support import Dataset, container_dataset, fake_dataset
 from definition_support import pipeline_definition
 from disk_support import FakeDiskSpace
-from entrypoint_support import Layout as ImageLayout
 from factory.adapters import claude_runtime
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
@@ -174,17 +171,6 @@ def probe_settings(agent_home: Path, tmp_path: Path) -> InstanceSettings:
 
 
 @pytest.fixture
-def compose_service() -> dict[str, object]:
-    """Return the service `factory` of the compose file."""
-    loaded = YAML(typ="safe").load(COMPOSE.read_text(encoding="utf-8"))
-    services = loaded["services"]
-    assert isinstance(services, dict)
-    found = services["factory"]
-    assert isinstance(found, dict)
-    return found
-
-
-@pytest.fixture
 def image_file(tmp_path: Path) -> Path:
     """Return an image identity file in `tmp_path` that holds `build-7`."""
     path = tmp_path / "image-id"
@@ -329,12 +315,6 @@ def work_item(world: World) -> WorkItemId:
 def layout(tmp_path: Path) -> Layout:
     """A checkout with `src` and `other`, a home and a temporary root under `tmp_path`."""
     return build_layout(tmp_path)
-
-
-@pytest.fixture
-def image_layout(tmp_path: Path) -> ImageLayout:
-    """Return the image layout, homes, state and stubs of one entrypoint run under `tmp_path`."""
-    return ImageLayout(tmp_path)
 
 
 @pytest.fixture

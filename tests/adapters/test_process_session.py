@@ -1,15 +1,15 @@
-"""The kill at a time limit, a stop or an error ends every process of the child's session."""
+"""The kill at a time limit, a stop or an error ends every process of the child's group."""
 
 import contextlib
 import os
 import signal
 import time
 from collections.abc import Callable, Iterator
+from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
-from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.process import (
     ProcessRequest,
     ProcessResult,
@@ -32,6 +32,7 @@ CHILD = (
     "time.sleep(60)"
 )
 OWN_GROUP = "{'process_group': 0}"
+OWN_SESSION = "{'start_new_session': True}"
 
 Runner = Callable[[ProcessRequest], ProcessResult]
 
@@ -57,22 +58,18 @@ def _grandchild(pid_file: Path) -> int:
 
 
 @pytest.mark.parametrize(
-    ("runner", "placement", "gone"),
+    ("runner", "placement", "ended"),
     [
         pytest.param(run_process, "{}", True, id="run_process-group"),
-        pytest.param(run_process, OWN_GROUP, True, id="run_process-own-group"),
-        pytest.param(
-            run_process, "{'start_new_session': True}", False, id="run_process-own-session"
-        ),
+        pytest.param(run_process, OWN_GROUP, False, id="run_process-own-group"),
+        pytest.param(run_process, OWN_SESSION, False, id="run_process-own-session"),
         pytest.param(_streaming, "{}", True, id="run_streaming-group"),
-        pytest.param(_streaming, OWN_GROUP, True, id="run_streaming-own-group"),
-        pytest.param(
-            _streaming, "{'start_new_session': True}", False, id="run_streaming-own-session"
-        ),
+        pytest.param(_streaming, OWN_GROUP, False, id="run_streaming-own-group"),
+        pytest.param(_streaming, OWN_SESSION, False, id="run_streaming-own-session"),
     ],
 )
-def test_time_limit_ends_every_process_of_the_session(
-    tmp_path: Path, pid_file: Path, runner: Runner, placement: str, gone: bool
+def test_time_limit_ends_every_process_of_the_group(
+    tmp_path: Path, pid_file: Path, runner: Runner, placement: str, *, ended: bool
 ) -> None:
     request = ProcessRequest(
         argv=python_argv(CHILD, str(pid_file), placement), cwd=tmp_path, time_limit=ROOMY_LIMIT
@@ -84,7 +81,10 @@ def test_time_limit_ends_every_process_of_the_session(
     assert time.monotonic() - start < ROOMY_BOUND_SECONDS
     assert result.timed_out is True
     assert result.exit_status is None
-    assert is_gone(_grandchild(pid_file), within=0) is gone
+    if ended:
+        assert is_gone(_grandchild(pid_file))
+    else:
+        assert is_gone(_grandchild(pid_file), within=0) is False
 
 
 def _stop_on_started(_stream: Stream, line: str) -> bool:
@@ -104,11 +104,11 @@ def _raise_on_started(_stream: Stream, line: str) -> bool:
         pytest.param(_raise_on_started, True, id="raise"),
     ],
 )
-def test_stop_and_error_of_the_callback_end_every_process_of_the_session(
+def test_stop_and_error_of_the_callback_end_every_process_of_the_group(
     tmp_path: Path, pid_file: Path, on_line: Callable[[Stream, str], bool], raises: bool
 ) -> None:
     request = ProcessRequest(
-        argv=python_argv(CHILD, str(pid_file), OWN_GROUP), cwd=tmp_path, time_limit=ROOMY_LIMIT
+        argv=python_argv(CHILD, str(pid_file), "{}"), cwd=tmp_path, time_limit=ROOMY_LIMIT
     )
     start = time.monotonic()
 
@@ -119,70 +119,55 @@ def test_stop_and_error_of_the_callback_end_every_process_of_the_session(
         assert run_streaming(request, on_line).stopped is True
 
     assert time.monotonic() - start < ROOMY_LIMIT.total_seconds()
-    assert is_gone(_grandchild(pid_file), within=0)
+    assert is_gone(_grandchild(pid_file))
 
 
-@pytest.mark.parametrize(
-    "flag",
-    [
-        pytest.param("", id="own-group"),
-        pytest.param("--foreground ", id="foreground"),
-    ],
-)
-def test_time_limit_of_a_make_target_ends_what_timeout_started(
-    tmp_path: Path, pid_file: Path, flag: str
-) -> None:
-    recipe = (
-        f"timeout {flag}60 sh -c 'echo $$$$ > {pid_file.name}; exec sleep 60' 2>&1 | tee run.txt"
-    )
-    (tmp_path / "Makefile").write_text(
-        f"SHELL := /bin/bash\n.SHELLFLAGS := -eu -o pipefail -c\nslow:\n\t{recipe}\n",
-        encoding="utf-8",
-    )
-    start = time.monotonic()
+def _group_already_gone(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> ProcessResult:
+    real_killpg = os.killpg
 
-    result = MakeProjectCommands(tmp_path).run("slow", time_limit=ROOMY_LIMIT)
+    def killpg_then_gone(group: int, sig: int) -> None:
+        real_killpg(group, sig)
+        raise ProcessLookupError(group)
 
-    assert time.monotonic() - start < ROOMY_BOUND_SECONDS
-    assert result.status == "time_limit"
-    assert is_gone(_grandchild(pid_file), within=0)
-
-
-@pytest.mark.parametrize(
-    ("error", "ended"),
-    [
-        pytest.param(PermissionError, False, id="may-not-signal"),
-        pytest.param(ProcessLookupError, True, id="ended-in-between"),
-    ],
-)
-def test_process_the_kill_cannot_reach_does_not_hold_the_call(
-    tmp_path: Path,
-    pid_file: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    error: type[OSError],
-    ended: bool,
-) -> None:
-    real_kill = os.kill
-
-    def failing_kill(pid: int, sig: int) -> None:
-        if pid_file.exists() and pid == _grandchild(pid_file):
-            if ended:
-                real_kill(pid, sig)
-            raise error(pid)
-        real_kill(pid, sig)
-
-    monkeypatch.setattr(os, "kill", failing_kill)
+    monkeypatch.setattr(os, "killpg", killpg_then_gone)
     request = ProcessRequest(
-        argv=python_argv(CHILD, str(pid_file), OWN_GROUP), cwd=tmp_path, time_limit=ROOMY_LIMIT
+        argv=python_argv("import time; time.sleep(60)"),
+        cwd=tmp_path,
+        time_limit=timedelta(seconds=1),
     )
+    return run_process(request)
+
+
+def _ends_by_itself(runner: Runner) -> Callable[[Path, pytest.MonkeyPatch], ProcessResult]:
+    def call(tmp_path: Path, _monkeypatch: pytest.MonkeyPatch) -> ProcessResult:
+        request = ProcessRequest(
+            argv=python_argv("import sys; sys.exit(3)"), cwd=tmp_path, time_limit=ROOMY_LIMIT
+        )
+        return runner(request)
+
+    return call
+
+
+@pytest.mark.parametrize(
+    ("call", "timed_out", "exit_status"),
+    [
+        pytest.param(_group_already_gone, True, None, id="group-already-gone"),
+        pytest.param(_ends_by_itself(run_process), False, 3, id="run_process-ends-by-itself"),
+        pytest.param(_ends_by_itself(_streaming), False, 3, id="run_streaming-ends-by-itself"),
+    ],
+)
+def test_a_call_without_a_group_to_kill_ends_as_its_child_does(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    call: Callable[[Path, pytest.MonkeyPatch], ProcessResult],
+    *,
+    timed_out: bool,
+    exit_status: int | None,
+) -> None:
     start = time.monotonic()
 
-    result = run_process(request)
+    result = call(tmp_path, monkeypatch)
 
     assert time.monotonic() - start < ROOMY_BOUND_SECONDS
-    assert result.timed_out is True
-    grandchild = _grandchild(pid_file)
-    assert is_gone(grandchild, within=0) is ended
-    monkeypatch.undo()
-    if not ended:
-        os.kill(grandchild, signal.SIGKILL)
+    assert result.timed_out is timed_out
+    assert result.exit_status == exit_status

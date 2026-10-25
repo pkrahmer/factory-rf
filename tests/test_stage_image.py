@@ -1,23 +1,27 @@
-"""The stage image: the tools alone, pinned as the machine's image pins them."""
+"""The stage image: the tools alone, pinned."""
 
 import re
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
-from dockerfile_support import SECRET_WORDS, _after, _apt_packages, _declared_names, _uncommented
-from test_image import (
+from dockerfile_support import (
     DIGEST,
-    DOCKERFILE,
+    SECRET_WORDS,
     THREE_NUMBERS,
     Command,
     Instruction,
+    _after,
+    _apt_packages,
     _arg_defaults,
     _commands,
+    _declared_names,
     _env,
     _from_references,
     _instructions,
     _pipelines,
+    _uncommented,
     floating_references,
 )
 
@@ -79,11 +83,6 @@ def stage_instructions(stage_dockerfile: str) -> list[Instruction]:
     return _instructions(stage_dockerfile)
 
 
-@pytest.fixture
-def machine_instructions() -> list[Instruction]:
-    return _instructions(DOCKERFILE.read_text(encoding="utf-8"))
-
-
 def _pins(instructions: list[Instruction]) -> dict[str, str]:
     """The ARG defaults, with the ENV values over them."""
     return _arg_defaults(instructions, before_from=False) | _env(instructions)
@@ -128,47 +127,52 @@ def test_the_stage_image_has_one_instruction_of_each_kind(
     assert [each for each, _ in stage_instructions].count(keyword) == 1
 
 
+MODEL = re.compile(r"^[\w.-]+/[\w.-]+$")
+
+
+def _is_digest(value: str) -> bool:
+    return DIGEST.search(value) is not None
+
+
+def _is_three_numbers(value: str) -> bool:
+    return THREE_NUMBERS.match(value) is not None
+
+
+def _maps_the_three_models(value: str) -> bool:
+    pairs = [pair.partition("=") for pair in value.strip("\"'").split(",")]
+    models = {name: model for name, _, model in pairs}
+    return sorted(models) == ["haiku", "opus", "sonnet"] and all(
+        MODEL.match(model) for model in models.values()
+    )
+
+
 @pytest.mark.parametrize(
-    ("name", "is_version"),
+    ("name", "has_its_form"),
     [
-        ("BASE_IMAGE", False),
-        ("CLAUDE_CODE_VERSION", True),
-        ("OPENCODE_VERSION", True),
-        ("UV_VERSION", True),
-        ("FACTORY_OPENCODE_MODELS", False),
+        ("BASE_IMAGE", _is_digest),
+        ("CLAUDE_CODE_VERSION", _is_three_numbers),
+        ("OPENCODE_VERSION", _is_three_numbers),
+        ("UV_VERSION", _is_three_numbers),
+        ("FACTORY_OPENCODE_MODELS", _maps_the_three_models),
     ],
 )
-def test_the_stage_image_carries_the_machine_images_pins(
-    stage_instructions: list[Instruction],
-    machine_instructions: list[Instruction],
-    name: str,
-    is_version: bool,
+def test_each_pin_of_the_stage_image_has_its_form(
+    stage_instructions: list[Instruction], name: str, has_its_form: Callable[[str], bool]
 ) -> None:
-    stage = _pins(stage_instructions)
-
-    assert stage[name] == _pins(machine_instructions)[name]
-    assert not is_version or THREE_NUMBERS.match(stage[name])
+    assert has_its_form(_pins(stage_instructions)[name])
 
 
 @pytest.mark.parametrize("package", STAGE_PACKAGES)
-def test_each_debian_package_is_pinned_as_the_machine_image_pins_it(
-    stage_dockerfile: str, package: str
-) -> None:
+def test_each_debian_package_is_pinned(stage_dockerfile: str, package: str) -> None:
     stage = [
         each
         for each in _apt_packages(_commands(stage_dockerfile))
-        if each.partition("=")[0] == package
-    ]
-    machine = [
-        each
-        for each in _apt_packages(_commands(DOCKERFILE.read_text(encoding="utf-8")))
         if each.partition("=")[0] == package
     ]
     version = stage[0].partition("=")[2] if len(stage) == 1 else ""
 
     assert len(stage) == 1
     assert version not in {"", "*"}
-    assert [version] == [each.partition("=")[2] for each in machine]
 
 
 def test_the_one_apt_install_is_the_tools_without_recommends(

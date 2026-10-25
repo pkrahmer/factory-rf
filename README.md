@@ -9,7 +9,7 @@ uv sync                       # install
 make check                    # everything the pipeline checks: lint, types, layers, sast, secrets, licenses, tests
 ```
 
-When it works, `make check` ends with the line `check: green`. An instance runs in the container: see *The container: compose, entrypoint and health check* in `docs/operator-guide.md`, which also gives the exit statuses of the commands you run.
+When it works, `make check` ends with the line `check: green`. An instance runs on a VM that `vm/setup.sh` prepares: see the chapter *The machine* in `docs/operator-guide.md`, which also gives the exit statuses of the commands you run.
 
 | Command | What it does |
 | --- | --- |
