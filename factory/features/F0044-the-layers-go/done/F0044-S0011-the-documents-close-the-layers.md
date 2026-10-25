@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-25T20:32:27.662144Z'
   stage: smoke-test
   run: 290284052afe4d4d9ee43dffb1e35b02
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-25T20:34:50.463373Z'
+  stage: approval
 ---
 
 # The documents close the layers
@@ -271,3 +276,4 @@ Expect: `documents ok`
     - Criterion 3, `README.md`: the newcomer's paragraph (line 24) says the factory runs as a service on a Linux VM with ZFS and rootless Podman, with every stage in throwaway containers on one dataset. It names `vm/setup.sh` and points to *The machine* in `docs/operator-guide.md`.
 
     Not checked by me: the content of each operator-guide row and passage that criterion 3 lists (Configuration, the records' paths, the preflight's row, opencode, the shipped agents). The documenter's entry 11 reports them and the reviewer judged the stage. Criterion 2 (`make check`) rests on the factory's passed run recorded in entry 11; I did not run it again because this stage runs only the smoke test.
+14. factory: done (pull request merged); cost: 6 runs, 8.1 min, 77 turns, 213421 tokens in (4771936 more from cache), 35060 out, $2.06
