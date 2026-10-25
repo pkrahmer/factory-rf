@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 454
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T20:23:29.796510Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-25T20:23:09.303308Z'
   stage: tests
   run: f5901fc611ca4dd9b7c68e7f54878f04
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:23:29.796510Z'
+  stage: doing
 ---
 
 # The documents close the layers
@@ -127,3 +136,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.1 s)
    `test`: test: green (60.6 s)
+6. factory: started doing as self.
