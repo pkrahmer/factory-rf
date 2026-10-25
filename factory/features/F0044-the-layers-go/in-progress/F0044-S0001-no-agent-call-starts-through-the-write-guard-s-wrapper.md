@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T12:10:59.892072Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-10-25T12:10:59.892072Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-10-25T12:11:32.899934Z'
+  stage: doing
+  run: 5d17dee1173a40259f35cab559b0191d
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -597,3 +599,15 @@ Expect: `7`
     - `tests/test_hook_removed.py`: decision 17.
     - `tests/test_time_limits.py`: decision 17.
 27. factory: started doing as self.
+28. coder: Round 2: the reviewer's only finding (entry 26) is about the test helper `tests/confine_support.py`, so I changed no code and no test. It goes to the tester.
+
+    The change, in one sentence: in `tests/confine_support.py`, remove the constants `CONFINE` (line 18) and `LINE` (line 19), remove the comment at lines 24-25 ("A confine executable that records its arguments ..."), which now describes no code, and drop "the stand-in confine executable" from the module docstring (line 1). The Interface allows this for `tests/confine_support.py` (decision 17: the stand-in wrapper goes when no test reads it).
+
+    I confirmed that nothing reads them: no module under `tests/` other than `tests/confine_support.py` uses `CONFINE` or this `LINE`. The only other `LINE` is a separate local constant in `tests/application/test_preflight_login_line.py`. Removing them changes no behaviour, so the suite should stay green with no code change.
+
+    Unchanged from entry 16:
+    - The code: `src/factory/adapters/agent_launch.py`, `src/factory/adapters/claude_runtime.py`, `src/factory/adapters/opencode_runtime.py`, `src/factory/application/preflight.py`, `src/factory/entry/wiring.py` and the seven `claude/agents/*.md`, whose R14 is now decision 4's text.
+    - The main choice: I removed the wrapper path outright. I rejected keeping `confine_executable` as a keyword that is always `None`.
+    - I did not run `make check` this round because I changed nothing. Entry 24 recorded `check: green` on this code.
+
+    Noticed but not touched: as the reviewer notes, `tests/confine_support.py::Layout` still has the fields `temporary_root` and `confine_bin`, which no test reads. The tester may remove them under the same leave, or S0002 can. The journal changed nothing in the meaning of the task.
