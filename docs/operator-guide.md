@@ -441,7 +441,7 @@ podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> <the checkout>
 
 `--build-arg FACTORY_IMAGE=<ref>` sets the label `factory.image`; it defaults to `unlabelled`. The label is not the identity of the image. The settings read the identity from the file `FACTORY_IMAGE_ID_FILE` names, and you renew that file after every build. `vm/setup.sh` makes the file with a fresh uuid when it is missing or empty (see *The script*). Nothing in `make check` builds the image.
 
-To update a pin, follow *Update the pins* under "The machine's image" and change the same lines in `vm/Dockerfile`. Until F0044 removes `image/`, `tests/test_stage_image.py` holds the two Dockerfiles to the same pins (the base image, the three versions, the seven Debian packages and the opencode model ids), so a pin changed in one file alone fails it.
+`vm/Dockerfile` pins seven Debian packages: `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs` and `npm`. `sudo` is pinned in `image/Dockerfile` alone. To update a pin, change the same lines in both Dockerfiles, following *Update the pins* under "The machine's image" for the shared ones. Check a changed pin with `uv run pytest tests/test_stage_image.py tests/test_image.py`. Until F0044 removes `image/`, `tests/test_stage_image.py` holds the two Dockerfiles to the same pins (the base image, the three versions, the seven Debian packages and the opencode model ids), so a pin changed in one file alone fails it.
 
 ### The script
 
@@ -490,7 +490,7 @@ The script ends with `setup: done: build the stage image and start factory@<inst
 
 #### The two passes
 
-The checkout of the private repository needs the hosting token. When `/home/factory/.secrets/hosting-token` is not there at step 10, the script prints `setup: checkout: waiting for /home/factory/.secrets/hosting-token; place the secrets and run this script again` and exits 0. Place the token, and the login file for your runtime (`claude-token` or `anthropic-api-key`), in `/home/factory/.secrets`, readable by `factory`, and run the same command again: steps 1 to 9 report `found` and the rest completes.
+The checkout of the private repository needs the hosting token. When `/home/factory/.secrets/hosting-token` is not there at step 10, the script prints `setup: checkout: waiting for /home/factory/.secrets/hosting-token; place the secrets and run this script again` and exits 0. Place all three files, `hosting-token`, `claude-token` and `anthropic-api-key`, in `/home/factory/.secrets`, readable by `factory`, and run the same command again: steps 1 to 9 report `found` and the rest completes. All three must exist whatever the runtime; with the `claude` runtime the key file stays empty.
 
 The token is written into no file. Git asks the askpass script (`/srv/factory/<instance>/askpass`) for it, and only that script reads the token file; the clone sets `core.askPass` on its own command line, not in any git configuration.
 
@@ -615,7 +615,7 @@ This is the machine of the decisions of 2026-10-24: instance `vm`, an `e2-standa
    shred -u hosting-token claude-token anthropic-api-key
    ```
 
-   All three files must exist. An empty `anthropic-api-key` means no key: podman refuses to mount a missing file, and every agent run would stop with exit status 125 (decision 10 of the feature F0043). With the `claude` runtime the key file stays empty.
+   All three files must exist, because the factory mounts every login file the environment file names and podman refuses to mount a missing one; every agent run would stop with exit status 125 (decision 10 of the feature F0043). An empty `anthropic-api-key` means no key. With the `claude` runtime the key file stays empty.
 
 9. Run the script a second time with the same arguments. It clones the factory, installs the tools, writes the environment file and installs and enables the unit.
 

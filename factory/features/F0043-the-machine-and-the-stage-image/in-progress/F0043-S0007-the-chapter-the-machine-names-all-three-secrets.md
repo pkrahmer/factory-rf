@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 437
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-25T08:35:55.230546Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-25T08:35:55.230546Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T08:36:18.461367Z'
+  stage: docs
+  run: 35dbae3daeef4864a02227c977c0ed05
 ---
 
 # The chapter "The machine" names all three secrets in every place
@@ -150,3 +152,17 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as vm.
+11. documenter: Changed one file, `docs/operator-guide.md`, in three places in chapter `## The machine`. No other section was touched.
+    - *The stage image*: names the seven Debian packages of `vm/Dockerfile` (`git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs`, `npm`). It says `sudo` is pinned in `image/Dockerfile` alone, and that a changed pin is checked with `uv run pytest tests/test_stage_image.py tests/test_image.py`. The old sentence sent the operator to *Update the pins* for a pin list that has eight packages including `sudo`.
+    - *The two passes*: the operator places all three files (`hosting-token`, `claude-token`, `anthropic-api-key`). All three must exist whatever the runtime, and the key file stays empty with `claude`. The words "the login file for your runtime" are gone.
+    - *On GCP*, step 8: now two facts in separate sentences. All three files must exist because the factory mounts every login file the environment file names and podman refuses a missing one (exit 125). An empty `anthropic-api-key` means no key. "means no key: podman" is gone.
+
+    Checked against the smoke test: both phrases count 0 in the chapter. The pytest command appears once in *The stage image*. `make documents` ends with `documents ok`. I did not run `make check`, because I changed only a document. The pytest command I wrote was not run here, and I read `vm/Dockerfile` and `image/Dockerfile` only through the reviewer's entry.
+
+    Cross-read and found current: the rest of the chapter `## The machine` and the diff, which is empty outside the work item, so no other document had a name or behaviour to be stale against.
+
+    Stale text noticed and not touched: none. No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
+    `secrets`: secrets: green (1.0 s)
+    `documents`: documents ok
