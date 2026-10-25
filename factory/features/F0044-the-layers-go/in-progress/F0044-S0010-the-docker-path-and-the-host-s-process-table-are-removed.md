@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 453
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T20:07:50.327836Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-25T20:07:29.117632Z'
   stage: doing
   run: 6c4472b3213446968173b706093081ec
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:07:50.327836Z'
+  stage: review
 ---
 
 # The Docker path and the host's process table are removed
@@ -154,3 +163,4 @@ Expect: three lines: `0`; `helper-moved`; `gone`
 
    `check`: check: green
    `duplicates`: duplicates: 8 new, 35 known, 3 gone
+8. factory: started review as self.
