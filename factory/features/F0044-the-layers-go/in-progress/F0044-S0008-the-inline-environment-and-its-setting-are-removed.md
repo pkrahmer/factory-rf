@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241, 6401865606]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T19:06:41.296158Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -266,6 +262,12 @@ journal:
   kind: started
   at: '2026-10-25T19:06:41.296158Z'
   stage: tests
+- number: 47
+  speaker: tester
+  kind: result
+  at: '2026-10-25T19:11:09.010087Z'
+  stage: tests
+  run: 6c7bd1ca8f0f4181b27e076d184e4914
 ---
 
 # The inline environment and its setting are removed
@@ -910,3 +912,25 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     Main choice: hand the change to the tester under R9, not touch the test myself. The rejected alternative was adding public accessors on `ContainerEnvironment` so the test could read them. That would add code only to serve a test, and the human asked for a check through behaviour.
     Noticed, not touched: nothing new.
 46. factory: started tests as self.
+47. tester: Tests, round 2, mode: a test change the human approved (entry 41, handed on by the coder in entry 45). I changed one test and no other file.
+
+    The change is in `tests/application/test_stage_environment_of.py::test_the_environment_of_the_boundaries_is_the_container_one`. The test keeps its name. I removed the two reads of `environment._snapshots` and `environment._containers` and their `# noqa: SLF001` markers. The test now checks criterion 2 ("on its snapshots and containers") through behaviour:
+    - It sets up a sync Makefile on `main` with `push_main` and installs one agent with `install_agents`, the same setup as `test_container_environment.py`'s `main_commit` fixture.
+    - It writes a stray file into the boundaries' dataset (`FakeSnapshots` over `<tmp_path>/workspace`, empty base).
+    - It calls `prepare` on the environment that `stage_environment_of(boundaries)` returns.
+    - It asserts the environment is a `ContainerEnvironment`, the stray file is gone (the boundaries' snapshots were rolled back), and the boundaries' `FakeContainerRuns.calls` holds exactly one call (the sync ran through the boundaries' containers).
+
+    I did not use the two exact checks entry 41 gave as examples, because neither can be observed with today's fakes:
+    - `FakeSnapshots` records no calls, so the rollback is checked through its effect, the stray file being removed.
+    - `run_agent` goes straight to the agent runtime and never touches `ContainerRuns`, so it records no launch. The sync container in `prepare` is the one call the environment makes through the containers.
+
+    If the human wants those two literal checks, the fakes would need new code. I would not add code just to serve a test.
+
+    `make test` is green (test: green, 64.9 s). `make lint` is green. As the stage says, I skipped the type check.
+
+    Mapping: criterion 2 → `tests/application/test_stage_environment_of.py::test_the_environment_of_the_boundaries_is_the_container_one`. The other criteria's tests are unchanged.
+    Files created: none. Changed: `tests/application/test_stage_environment_of.py`.
+    Modules the test run could not import: none.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (65.2 s)
