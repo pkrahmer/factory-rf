@@ -452,12 +452,12 @@ Each step prints one line, `setup: <step>: `, followed by what it changed (joine
 5. `datasets`: `<pool>/factory` and `<pool>/factory/<instance>`, both with `compression=lz4` and `atime=off`, the second mounted at `/srv/factory/<instance>/work`, with the quota, and the mount point owned by `factory`.
 6. `delegation`: `zfs allow -u factory snapshot,destroy,rollback,diff,mount` on the instance's dataset, unless all five are already delegated.
 7. `sudoers`: only with `--sudoers`, see below. Without it the line says `not asked` and neither file is touched.
-8. `folders`: `/srv/factory/<instance>` with `state` and `repo`, owned by `factory` (mode `0755`), and `/home/factory/.secrets` (mode `0700`). The script sets the secrets folder's owner and mode and never touches a file in it: the secrets you placed stay as they are on every run.
+8. `folders`: `/srv/factory/<instance>` with `state` and `repo`, owned by `factory` (mode `0755`), and `/home/factory/.secrets` (mode `0700`). If `state`, `repo` or `/home/factory/.secrets` is a link, the script prints `setup: folders: ...` to standard error and exits 1 before it makes anything in the step: remove the link and run it again. The script sets the secrets folder's owner and mode and never touches a file in it: the secrets you placed stay as they are on every run.
 9. `image-id`: `/srv/factory/<instance>/image-id`, a fresh uuid (mode `0644`) when the file is missing or empty. A rebuilt image needs a new id; renew the file yourself (see *The stage image*).
 10. `checkout`: the factory at `--ref`, cloned as `factory` into `/srv/factory/<instance>/factory`, unless it holds a `.git`.
-11. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `image/`. `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
+11. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `image/` (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
 12. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`).
-13. `service`: the unit `vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
+13. `service`: the unit `vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
 
 The script ends with `setup: done: build the stage image and start factory@<instance>; see the operator guide, "The machine"`.
 
@@ -466,6 +466,8 @@ The script ends with `setup: done: build the stage image and start factory@<inst
 The checkout of the private repository needs the hosting token. When `/home/factory/.secrets/hosting-token` is not there at step 10, the script prints `setup: checkout: waiting for /home/factory/.secrets/hosting-token; place the secrets and run this script again` and exits 0. Place the token, and the login file for your runtime (`claude-token` or `anthropic-api-key`), in `/home/factory/.secrets`, readable by `factory`, and run the same command again: steps 1 to 9 report `found` and the rest completes.
 
 The token is written into no file. Git asks the askpass script (`/srv/factory/<instance>/askpass`) for it, and only that script reads the token file; the clone sets `core.askPass` on its own command line, not in any git configuration.
+
+The unit and the credential helper come from the checkout, and root installs them only in the run that made the clone (whose content is the remote's at `--ref`, before the service ever ran) or when the installed file is missing. So a first run that stopped after the clone is completed by the next. A later run that finds the installed file in place but different from the checkout installs nothing and prints `setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed` or `setup: service: /etc/systemd/system/factory@.service differs from the checkout; not installed` to standard error. To take the checkout's version, remove the installed file and run the script again.
 
 #### The environment file
 

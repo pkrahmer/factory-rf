@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790, 6394217771]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T06:19:16.878212Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -406,6 +402,12 @@ journal:
   kind: started
   at: '2026-10-25T06:19:16.878212Z'
   stage: docs
+- number: 72
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T06:19:59.638965Z'
+  stage: docs
+  run: 3f0ed84a012f4713bc062b14e58fd86a
 ---
 
 # The setup script prepares the machine and installs the service
@@ -1173,3 +1175,25 @@ Expect: `1`
     - `tests/test_vm_setup_text.py:539,544`: each of the two side checks takes an argument it does not use (`_path`, `_script`) only so both fit one signature.
     - `tests/test_vm_setup_text.py:605`: the name `test_the_folders_step_refuses_a_link_at_state_or_repo` now also covers `/home/factory/.secrets`.
 71. factory: started docs as self.
+72. documenter: Docs, round 2. I changed only `docs/operator-guide.md`, so I did not run `make check`. The factory's checks run right after this stage.
+
+    Changed:
+    - `docs/operator-guide.md`, *The script*, step 8 `folders`: it now says that a link at `state`, `repo` or `/home/factory/.secrets` makes the script print a `setup: folders: ...` line to standard error and exit 1 before it makes anything in the step, and that the operator removes the link and runs it again (criteria 14 and 16; `vm/setup.sh:245-248`).
+    - `docs/operator-guide.md`, *The two passes*: a new paragraph on the unit and the credential helper. Root installs them from the checkout only in the run that made the clone, or when the installed file is missing. A first run that stopped after the clone is therefore completed by the next. A later run that finds the file in place but different installs nothing and prints `setup: tools: ... differs from the checkout; not installed` or `setup: service: ... differs from the checkout; not installed` to standard error. The paragraph also says how to take the checkout's version: remove the installed file and run again. This matches `vm/setup.sh:310-317` and `:355-362`.
+    - `docs/operator-guide.md`, steps 11 and 13: each now points to *The two passes* for that rule.
+
+    Cross-read and found current:
+    - Round 1's sections in `docs/operator-guide.md`: *The script* (options, steps, sudoers fallback with the `diff -FH` reason), *The service* and the environment-variable table, checked against all of `vm/setup.sh` and `vm/factory.service`. The twenty variables, their order and their values match, and the unit's keys match.
+    - *The stage image* sentence about `image-id`.
+    - `docs/project-guide/README.md`, the `vm_support.py` line under *Shared test helpers*.
+    - `README.md` and the rest of `docs/` hold no other mention of `setup.sh`.
+
+    Findings: none. The code matches the Interface and the criteria. I ran no example, because the script needs root, ZFS and a VM, and none of my changes are examples.
+
+    Stale text I did not touch:
+    - `docs/operator-guide.md` from "The machine's image" down still describes v1.1's `image/` until F0044 removes it. The section says so itself.
+    - Reviewer's notes on tests, not mine to fix: `tests/vm_support.py:5` imports the private `_uncommented`. The `chown-keeps-links` row checks nothing, because the script holds no `chown`. The test name `test_the_folders_step_refuses_a_link_at_state_or_repo` now also covers `.secrets`.
+
+    `check`: check: green (not run again: passed on tree c356dcaa8070 at 2026-10-25T06:16:09Z)
+    `secrets`: secrets: green (2.6 s)
+    `documents`: documents ok
