@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T13:24:56.768922Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-25T13:24:56.768922Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-25T13:28:15.080637Z'
+  stage: doing
+  run: 034b94342aab40df995e95eef2c78553
 ---
 
 # The leftovers program is removed
@@ -268,3 +270,29 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     `lint`: lint: green (0.7 s)
     `test`: test: green (69.6 s)
 16. factory: started doing as self.
+17. coder: I changed no code in this run. The removal from entry 10 is in 934c3efa. With the tester's import fix from entry 15 in place, I ran `make check` in the foreground and it ended `check: green`: `test: green (70.1 s)`, coverage 99.50 %. The tests of criteria 1 to 5 pass.
+
+    What I built, all in 934c3efa:
+    - Deleted `src/factory/entry/leftovers.py` and `src/factory/domain/leftovers.py`.
+    - `src/factory/adapters/process.py`: `own_identity`, `signal_every_other` and the imports of `pwd` and `Identity` are gone.
+    - `src/factory/adapters/agent_launch.py`: the leftovers constants, functions and the `LEFTOVERS_PREFIX` import are gone. `Starters` now has only `sudo_executable` and `login_files`.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: the `leftovers` keyword, the property, `_end_leftovers`, the leftovers fault after a call and their imports are gone.
+    - `src/factory/adapters/make_commands.py`: `CommandUser.leftovers` and `_end_leftovers` are gone. `_start` lost `merge_stderr` and now always passes `True`.
+    - `src/factory/entry/wiring.py`: `LEFTOVERS_MODULE` and `leftovers_command` are gone, from `__all__` too, and `build_boundaries` lost `end_leftovers`.
+
+    Main choice: a pure removal with nothing in its place. In `_start` I set `merge_stderr=True` explicitly, because `ProcessRequest` defaults to `False`. I rejected keeping a keyword that only one caller still used.
+
+    Refactor: I read the diff again against `main`. Nothing needed changing. The `_request_of` helpers in both runtimes still have two callers each.
+
+    Noticed but not touched:
+    - `make duplicates` is a record, not a check. It reports `7 new, 34 known, 4 gone`.
+      - The 4 gone are the removed leftovers code.
+      - Two of the new are claude/opencode similar-code findings that were already there, now at shifted line ranges (`return finished_run(...)` and `exit_status=process.exit_status`).
+      - The other five are in `fake_containers`, `podman_runs`, `zfs_snapshots` and `fake_snapshots`, which this story does not touch.
+      - `security/duplicates-baseline.txt` is unchanged.
+    - `tests/leftovers_runtime_support.py` stays for S0005.
+    - The word "leftover" in `src/factory/application/recovery.py:97` and `handlers/recording.py:70` has its everyday meaning.
+    - The journal did not change what the task means, so the Description stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 34 known, 4 gone
