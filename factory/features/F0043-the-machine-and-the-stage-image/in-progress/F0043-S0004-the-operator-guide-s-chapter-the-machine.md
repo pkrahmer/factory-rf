@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 434
 comments_read: [6394738591]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-25T07:19:49.080669Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-25T07:19:28.651031Z'
   stage: review
   run: 8b0d0641d4dc4df492cc85d0501e54bc
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:19:49.080669Z'
+  stage: docs
 ---
 
 # The operator guide's chapter "The machine"
@@ -189,3 +198,4 @@ Expect: `documents ok`
     6. Earlier tests: the diff changes no test file.
 
     Open, and not this story's: the high-entropy values in the done acceptance reports of F0023 and F0042 that a full `make secrets` scan flags. The human took them up in entry 8.
+13. factory: started docs as vm.
