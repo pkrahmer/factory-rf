@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T13:20:54.456521Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-25T13:20:54.456521Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-25T13:21:19.799970Z'
+  stage: doing
+  run: 4f9bb68ad7a3442c822c5d4d5c0960b6
 ---
 
 # The leftovers program is removed
@@ -222,3 +224,8 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     Noticed but not touched: `security/duplicates-baseline.txt` may still list findings in the removed code; `make duplicates` will report them as gone. `tests/leftovers_runtime_support.py` stays, as the tester said. The comment in `src/factory/application/recovery.py:97` uses the word "leftovers" in its everyday sense and has nothing to do with the program. The Description stays as it is: the journal did not change what the task means.
 11. 2026-10-25 human: (a). The tester removes the line-20 import from `tests/adapters/test_one_call_as_another_user.py` and uses `Step` from `adapters.claude_stand_in` where the test uses `OpencodeStep`. Only that new test file changes; `tests/adapters/opencode_stand_in.py` stays as it is.
 12. factory: started doing as self.
+13. coder: The test change from the human's answer (a) in entry 11: in `tests/adapters/test_one_call_as_another_user.py`, remove the line-20 import `from adapters.opencode_stand_in import Step as OpencodeStep` and use `Step` from `adapters.claude_stand_in` (already imported on line 11) wherever the test uses `OpencodeStep`. Only that file changes; `tests/adapters/opencode_stand_in.py` stays as it is.
+
+    I changed no code in this run. The removal from entry 10 (the deleted `src/factory/entry/leftovers.py` and `src/factory/domain/leftovers.py`, and the edits to `src/factory/adapters/process.py`, `agent_launch.py`, `claude_runtime.py`, `opencode_runtime.py`, `make_commands.py` and `src/factory/entry/wiring.py`) is committed in 934c3efa. I ran `make types` again. Its one error is the one this change fixes: `tests/adapters/test_one_call_as_another_user.py:20: error: Module "adapters.opencode_stand_in" does not explicitly export attribute "Step"  [attr-defined]`. Every other target was green in entry 10.
+
+    Open: the points in entry 10 that I noticed but did not touch still stand. These are the gone findings in `security/duplicates-baseline.txt`, and `tests/leftovers_runtime_support.py`, which stays for S0005. The journal did not change the meaning of the task, so the Description stays.
