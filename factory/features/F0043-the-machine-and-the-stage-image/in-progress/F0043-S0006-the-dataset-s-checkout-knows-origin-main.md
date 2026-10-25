@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-25T07:47:46.047615Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-25T07:47:25.095485Z'
   stage: doing
   run: f6e60d0b845e432097d548edaf88b0f2
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:47:46.047615Z'
+  stage: review
 ---
 
 # The dataset's checkout knows origin/main
@@ -121,3 +130,4 @@ Expect: `1`
 
    `check`: check: green
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
+8. factory: started review as vm.
