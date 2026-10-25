@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -419,6 +419,11 @@ journal:
   at: '2026-10-25T06:21:12.742281Z'
   stage: smoke-test
   run: 65342a85291c454e9014dcdef0111559
+- number: 75
+  speaker: factory
+  kind: done
+  at: '2026-10-25T06:23:38.008351Z'
+  stage: approval
 ---
 
 # The setup script prepares the machine and installs the service
@@ -1259,3 +1264,4 @@ Expect: `1`
     Nothing in the smoke test contradicts a criterion. The script's real steps need a VM, which is outside this smoke test as the description says; I did not run them. I did not run `make check` (criterion 15); the factory's checks cover it.
 
     Findings: none.
+75. factory: done (pull request merged); cost: 33 runs, 64.9 min, 350 turns, 1440238 tokens in (10291356 more from cache), 216709 out, $17.02
