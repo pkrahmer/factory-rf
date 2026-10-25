@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 437
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-25T08:31:14.073910Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-25T08:31:14.073910Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-25T08:34:53.903274Z'
+  stage: doing
+  run: d4c9d65504df427b8d4d656aecf0aa37
 ---
 
 # The chapter "The machine" names all three secrets in every place
@@ -108,3 +110,11 @@ Expect: `documents ok`
    `lint`: lint: green (0.2 s)
    `test`: test: green (194.0 s)
 6. factory: started doing as vm.
+7. coder: Nothing built. Criterion 1: nothing changed under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/`. The story only corrects `docs/operator-guide.md`, which the documenter writes, and the tester left no red test. The working tree was clean when I started and is still clean.
+   Main choice: I made no code change. The other option was to edit the guide here, and I rejected it: CLAUDE.md gives the documents to the documenter stage, and the Interface says "None". The journal did not change what the task means, so I left the Description as it was. There was no diff, so there was nothing to refactor.
+   Noticed, not touched: nothing.
+
+   `check`: check: green (test: green (196.2 s), coverage 99.20 %)
+
+   `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
+   `duplicates`: duplicates: 11 new, 36 known, 2 gone
