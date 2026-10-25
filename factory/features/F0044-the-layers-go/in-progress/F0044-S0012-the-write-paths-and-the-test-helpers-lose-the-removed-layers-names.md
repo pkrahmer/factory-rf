@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T20:56:46.553967Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-25T20:56:46.553967Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T20:57:30.549752Z'
+  stage: review
+  run: c7e90b722ac44ba69af3cb1ee1fde9a9
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -168,3 +170,35 @@ Expect: `0`
    `check`: check: green
    `duplicates`: duplicates: 8 new, 35 known, 3 gone
 8. factory: started review as self.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. Criteria 1 to 4 each have a parametrized test in `tests/test_removed_layer_names.py`, and each test checks what its criterion says. Criterion 2's failing side is the `planted-is-found` row. Criterion 3 checks the writable path and both refusal texts. Criterion 4 checks the five fields and that `tmp` is not created. The coder's `make check` was green (entry 7).
+
+   The `src/factory` change only renames names. `WritePathSettings` keeps the docstring, fields and config of `GuardSettings`. `refusal`'s body is unchanged apart from the parameter. No `GuardSettings`, `confine_support` or `sealed_run_support` is left under `src` or `tests`. The only remaining hits are the `GuardSettingsInvalid` row and the runtimes' `temporary_root` rows, which the Interface keeps. Architecture and security groups hold: the change is within the layers, adds no marker and no dependency.
+
+   The Description matches what was built, and criterion 6 still describes what the documenter has to do.
+
+   Findings:
+   1. `tests/test_removed_layer_names.py:23` (`_files_holding`) copies `search_support.modules_matching` (`tests/search_support.py:10`): same regex compile, `rglob("*.py")`, read and sorted relative paths. The only difference is a root parameter. `SOURCE` at line 15 also rebuilds `source_search.SRC` (`tests/source_search.py:8`). Fix: give `modules_matching` a root argument that defaults to `TESTS`, so its earlier callers stay unchanged. Then use it for all four rows (the planted row's tmp root included, so criterion 2's "same search function" still holds), and import `SRC` from `source_search`. This is the tester's change. If the tester judges that adding a parameter to `search_support` goes beyond the standing leave, it is a question to the human.
+
+   Earlier tests changed. The leave for all of them is the human's decision 42 in `feature.md`, which names S0012's Interface:
+   - tests/confine_support.py → tests/run_layout_support.py: decision 42 (renamed whole, `temporary_root` and the `tmp` folder dropped, docstrings changed to match)
+   - tests/sealed_run_support.py → tests/agent_run_support.py: decision 42 (renamed whole, unchanged)
+   - tests/conftest.py: decision 42 (import line)
+   - tests/podman_support.py: decision 42 (import line)
+   - tests/zfs_support.py: decision 42 (import line)
+   - tests/test_test_children.py: decision 42 (import line)
+   - tests/adapters/test_agent_launch_login.py: decision 42 (import line)
+   - tests/adapters/test_calls_as_the_factory_user.py: decision 42 (import line)
+   - tests/adapters/test_opencode_runtime_launch.py: decision 42 (import line)
+   - tests/adapters/test_runtimes_without_wrapper.py: decision 42 (import line)
+   - tests/adapters/test_claude_runtime_no_hook.py: decision 42 (import line)
+   - tests/application/test_container_environment.py: decision 42 (import line)
+   - tests/application/test_sealed_runs_runner.py: decision 42 (import line)
+   - tests/application/test_probe_nested_repository.py: decision 42 (import line)
+   - tests/application/test_write_paths_guard.py: decision 42 (`GuardSettings` → `WritePathSettings`)
+   - tests/application/test_write_paths.py: decision 42 (`GuardSettings` → `WritePathSettings`)
+   - tests/domain/test_agent_runs.py: decision 42 (`GuardSettings` → `WritePathSettings`, reformatted)
+   - tests/domain/test_project_agent_paths.py: decision 42 (`GuardSettings` → `WritePathSettings`)
+   - tests/domain/test_write_paths.py: decision 42 (`GuardSettings` → `WritePathSettings`)
+   - tests/domain/test_nested_claude_paths.py: decision 42 (`GuardSettings` → `WritePathSettings`)
+   - tests/test_kernel_guard_removed.py: decision 42 (`GuardSettings` → `WritePathSettings`, row ids kept)
+   - tests/test_hook_removed.py: decision 42 (`GuardSettings` → `WritePathSettings`; the `GuardSettingsInvalid` row is kept as it was)
