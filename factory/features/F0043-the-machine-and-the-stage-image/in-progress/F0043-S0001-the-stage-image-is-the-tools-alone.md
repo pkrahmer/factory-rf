@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T00:01:14.200519Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-25T00:00:53.440900Z'
   stage: review
   run: ea4f6b7c8a8b415487f06705810b806f
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:01:14.200519Z'
+  stage: docs
 ---
 
 # The stage image is the tools alone
@@ -339,3 +348,4 @@ Expect: `1`
     Notes:
     - tests/test_stage_image.py:208-238: criterion 4 says "rows of one parametrized test", but the installs are spread over three functions (`test_each_tool_is_installed_once_at_its_pinned_version`, `test_opencode_is_installed_after_claude_code`, `test_no_other_install_is_made`).
     - tests/test_stage_image.py:255-318: the same holds for criterion 6, which is spread over four functions besides criterion 9's.
+18. factory: started docs as self.
