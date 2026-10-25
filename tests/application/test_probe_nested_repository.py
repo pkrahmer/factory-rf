@@ -34,4 +34,4 @@ def test_a_probe_run_that_leaves_a_nested_repository_passes(
 
     assert item.name == "agent-run-probe"
     assert item.passed
-    assert item.detail is None
+    assert item.detail == ""

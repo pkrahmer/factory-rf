@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T16:20:36.003413Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-10-25T16:20:36.003413Z'
   stage: tests
+- number: 18
+  speaker: tester
+  kind: result
+  at: '2026-10-25T16:23:16.762856Z'
+  stage: tests
+  run: 0a992b28086d416489bb94493ddca4a7
 ---
 
 # The checkout's hygiene is removed
@@ -332,3 +334,14 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
 
     Noticed, not touched: `CheckoutPreparer` still stores `self._log` but never reads it. It stays, because the Interface keeps the parameter and the human agreed in entry 14. `make duplicates` (vulture) may list it.
 17. factory: started tests as self.
+18. tester: I made the two test changes that the human approved in entry 14 and the coder listed in entry 16. I changed nothing else.
+
+    1. `tests/application/test_probe_nested_repository.py::test_a_probe_run_that_leaves_a_nested_repository_passes`: the line `assert item.detail is None` is now `assert item.detail == ""`. `PreflightItem.detail` is typed `str` and stays that way, and the probe returns an empty detail when the run has no login.
+    2. `tests/application/test_tick_restore_ignored.py`: I added `import pytest` and `pytestmark = pytest.mark.usefixtures("installed_agents")`, the same line `tests/application/test_tick.py` has. Without the fixture the tick stopped at the load with "agent home unavailable" and never reached the restore.
+
+    Both are test modules this story added, so no earlier story's test changed. Files changed: the two above. No files created.
+
+    Run: `make lint`: lint: green (0.7 s). `make test`: test: green (70.4 s), total coverage 99.55 %. Every module imported.
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (69.6 s)
