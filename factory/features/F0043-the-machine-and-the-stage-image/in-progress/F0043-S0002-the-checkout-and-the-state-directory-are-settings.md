@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 431
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T00:06:11.848014Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-25T00:06:11.848014Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-25T00:06:29.801429Z'
+  stage: intake
+  run: 018f722281c84e70a5ca444649c82dcb
+  blocked: question
 ---
 
 # The checkout and the state directory are settings
@@ -113,3 +116,10 @@ Expect: `1`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: Format check passed. Interface, smoke tests and architecture look sound, and the scope is within feature.md decision 1. Three Interface rules have no criterion, so two coders could read them differently and still pass:
+
+   1. The Interface says `InstanceSettings` built directly refuses "the same" through its model validator. That includes a `state_directory` inside the workspace of a `container` instance. Criterion 7's directly built rows cover only the `checkout` side: the default checkout with `workspace=/work` is refused, and a valid pair is accepted. Nothing tests a directly built `state_directory` inside `workspace`, for example `workspace=/srv/factory/vm/work` with `state_directory=/srv/factory/vm/work/state` and a valid checkout. Proposed: add that row as `ValidationError`. I would choose this.
+
+   2. The `main` rule says the stop of a `SettingsInvalid` the runner raises goes under the `FACTORY_STATE` directory, "else under `state_directory`". Criterion 6 covers only the first branch, with `FACTORY_STATE` set. Nothing tests the runner-raised fault with `FACTORY_STATE` unset, blank or relative. Today's behaviour (always `state_directory`) would pass every criterion in either case. Proposed: add a row in which the runner raises `SettingsInvalid` and `FACTORY_STATE` is unset, and the stop and the log line land under `<tmp>/fallback`. I would choose this.
+
+   3. The `main` rule says `FACTORY_STATE` is read "(stripped)". No criterion has a padded value in `main`. Criterion 1 tests the strip only in `read_settings`, and `main` reads the variable separately to place the stop. Proposed: add a row in which `FACTORY_STATE` is `  <tmp>/state  ` with an invalid environment, and the stop lands under `<tmp>/state`. I would choose this.
