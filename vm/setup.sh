@@ -108,6 +108,31 @@ as_factory() {
   runuser -u factory -- env HOME=/home/factory "$@"
 }
 
+# Each step gathers what it changed and prints it as its one line, or what it found done.
+changed() {
+  changes="$changes; $1"
+}
+
+said() {
+  if [ -n "$changes" ]; then
+    printf '%s' "${changes#; }"
+  else
+    printf '%s' "$1"
+  fi
+}
+
+# zfs allow lists each user's permissions comma-separated, in an order of its own.
+delegated() {
+  permissions=$(zfs allow "$dataset" | sed -n 's/^[[:space:]]*user factory //p' | tr '\n' ',')
+  for permission in snapshot destroy rollback diff mount; do
+    case ",$permissions," in
+      *",$permission,"*) ;;
+      *) return 1 ;;
+    esac
+  done
+}
+
+changes=
 packages="zfsutils-linux podman uidmap slirp4netns git make python3.12-venv"
 missing=
 for package in $packages; do
@@ -115,74 +140,77 @@ for package in $packages; do
     missing="$missing $package"
   fi
 done
-if [ -z "$missing" ]; then
-  echo "setup: packages: found every package installed"
-else
+if [ -n "$missing" ]; then
   apt-get update -q
   # Unquoted on purpose: one word per missing package.
   DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $missing
-  echo "setup: packages: installed$missing"
+  changed "installed$missing"
 fi
+echo "setup: packages: $(said "found every package installed")"
 
-if zpool list -H -o name "$pool" >/dev/null 2>&1; then
-  echo "setup: pool: found $pool"
-else
+changes=
+if ! zpool list -H -o name "$pool" >/dev/null 2>&1; then
   zpool create -o ashift=12 -O compression=lz4 -O atime=off "$pool" "$device"
-  echo "setup: pool: made $pool on $device"
+  changed "made $pool on $device"
 fi
+echo "setup: pool: $(said "found $pool")"
 
-if id factory >/dev/null 2>&1; then
-  echo "setup: user: found factory"
-else
+changes=
+if ! id factory >/dev/null 2>&1; then
   useradd --create-home --shell /bin/bash factory
-  echo "setup: user: made factory"
+  changed "made factory"
 fi
 if ! grep -q '^factory:' /etc/subuid || ! grep -q '^factory:' /etc/subgid; then
   echo "setup: user: no subuid and subgid range for factory; add one with usermod --add-subuids and --add-subgids" >&2
   exit 1
 fi
-echo "setup: user: found the subuid and subgid ranges of factory"
+echo "setup: user: $(said "found factory with its subuid and subgid ranges")"
 
-if [ -e /var/lib/systemd/linger/factory ]; then
-  echo "setup: linger: found linger for factory"
-else
+changes=
+if [ ! -e /var/lib/systemd/linger/factory ]; then
   loginctl enable-linger factory
-  echo "setup: linger: enabled linger for factory"
+  changed "enabled linger for factory"
 fi
+echo "setup: linger: $(said "found linger for factory")"
 
-if zfs list -H -o name "$pool/factory" >/dev/null 2>&1; then
-  echo "setup: datasets: found $pool/factory"
-else
+changes=
+if ! zfs list -H -o name "$pool/factory" >/dev/null 2>&1; then
   zfs create "$pool/factory"
-  echo "setup: datasets: made $pool/factory"
+  changed "made $pool/factory"
 fi
-zfs set compression=lz4 atime=off "$pool/factory"
-if zfs list -H -o name "$dataset" >/dev/null 2>&1; then
-  echo "setup: datasets: found $dataset"
-else
+if [ "$(zfs get -H -o value compression,atime "$pool/factory" | tr '\n' ' ')" != "lz4 off " ]; then
+  zfs set compression=lz4 atime=off "$pool/factory"
+  changed "set compression=lz4 atime=off on $pool/factory"
+fi
+if ! zfs list -H -o name "$dataset" >/dev/null 2>&1; then
   zfs create -o mountpoint="$base/work" "$dataset"
-  echo "setup: datasets: made $dataset at $base/work"
+  changed "made $dataset at $base/work"
 fi
-zfs set quota="$quota" "$dataset"
-chown factory:factory "$base/work"
-echo "setup: datasets: $dataset has the quota $quota and its mount point is factory's"
+if [ "$(zfs get -H -o value quota "$dataset")" != "$quota" ]; then
+  zfs set quota="$quota" "$dataset"
+  changed "set the quota $quota on $dataset"
+fi
+if [ "$(stat -c '%U:%G' "$base/work")" != factory:factory ]; then
+  chown factory:factory "$base/work"
+  changed "gave $base/work to factory"
+fi
+echo "setup: datasets: $(said "found $pool/factory and $dataset at $base/work with the quota $quota")"
 
-if zfs allow "$dataset" | grep -q 'user factory diff,destroy,mount,rollback,snapshot'; then
-  echo "setup: delegation: found the delegation to factory on $dataset"
-else
+changes=
+if ! delegated; then
   zfs allow -u factory snapshot,destroy,rollback,diff,mount "$dataset"
-  echo "setup: delegation: delegated snapshot, destroy, rollback, diff and mount on $dataset to factory"
+  changed "delegated snapshot, destroy, rollback, diff and mount on $dataset to factory"
 fi
+echo "setup: delegation: $(said "found the delegation to factory on $dataset")"
 
+changes=
 zfs_command=zfs
 if [ "$sudoers" = yes ]; then
   zfs_command=/usr/local/bin/zfs-factory
   stage <<EOF
 factory ALL=(root) NOPASSWD: /usr/sbin/zfs snapshot $dataset@base, /usr/sbin/zfs destroy $dataset@base, /usr/sbin/zfs rollback -r $dataset@base, /usr/sbin/zfs diff -FH $dataset@base
 EOF
-  if unchanged /etc/sudoers.d/factory-zfs; then
-    echo "setup: sudoers: found /etc/sudoers.d/factory-zfs unchanged"
-  else
+  if ! unchanged /etc/sudoers.d/factory-zfs; then
     cp "$staged" /etc/sudoers.d/factory-zfs
     chmod 0440 /etc/sudoers.d/factory-zfs
     if ! visudo -cf /etc/sudoers.d/factory-zfs >/dev/null; then
@@ -190,7 +218,7 @@ EOF
       echo "setup: sudoers: visudo -cf refused /etc/sudoers.d/factory-zfs; removed it" >&2
       exit 1
     fi
-    echo "setup: sudoers: wrote /etc/sudoers.d/factory-zfs"
+    changed "wrote /etc/sudoers.d/factory-zfs"
   fi
   stage <<'EOF'
 #!/bin/sh
@@ -199,40 +227,38 @@ case "$1" in
   *) exec /usr/sbin/zfs "$@" ;;
 esac
 EOF
-  if unchanged /usr/local/bin/zfs-factory; then
-    echo "setup: sudoers: found /usr/local/bin/zfs-factory unchanged"
-  else
+  if ! unchanged /usr/local/bin/zfs-factory; then
     install -m 0755 "$staged" /usr/local/bin/zfs-factory
-    echo "setup: sudoers: wrote /usr/local/bin/zfs-factory"
+    changed "wrote /usr/local/bin/zfs-factory"
   fi
+  echo "setup: sudoers: $(said "found /etc/sudoers.d/factory-zfs and /usr/local/bin/zfs-factory unchanged")"
 else
   echo "setup: sudoers: not asked; the factory reaches zfs through zfs allow, and neither file is touched"
 fi
 
-if owned_with_mode factory:factory 755 "$base" \
-  && owned_with_mode factory:factory 755 "$base/state" \
-  && owned_with_mode factory:factory 755 "$base/repo"; then
-  echo "setup: folders: found $base, its state and its repo"
-else
+changes=
+if ! owned_with_mode factory:factory 755 "$base" \
+  || ! owned_with_mode factory:factory 755 "$base/state" \
+  || ! owned_with_mode factory:factory 755 "$base/repo"; then
   install -d -o factory -g factory -m 0755 "$base" "$base/state" "$base/repo"
-  echo "setup: folders: made $base, its state and its repo factory's"
+  changed "made $base, its state and its repo factory's"
 fi
-if owned_with_mode factory:factory 700 /home/factory/.secrets; then
-  echo "setup: folders: found /home/factory/.secrets"
-else
+if ! owned_with_mode factory:factory 700 /home/factory/.secrets; then
   install -d -o factory -g factory -m 0700 /home/factory/.secrets
-  echo "setup: folders: made /home/factory/.secrets factory's alone"
+  changed "made /home/factory/.secrets factory's alone"
 fi
+echo "setup: folders: $(said "found $base, its state, its repo and /home/factory/.secrets")"
 
-if [ -s "$base/image-id" ]; then
-  echo "setup: image-id: found $base/image-id"
-else
+changes=
+if [ ! -s "$base/image-id" ]; then
   cat /proc/sys/kernel/random/uuid > "$base/image-id"
   chown factory:factory "$base/image-id"
   chmod 0644 "$base/image-id"
-  echo "setup: image-id: wrote $base/image-id"
+  changed "wrote $base/image-id"
 fi
+echo "setup: image-id: $(said "found $base/image-id")"
 
+changes=
 if [ ! -f /home/factory/.secrets/hosting-token ]; then
   echo "setup: checkout: waiting for /home/factory/.secrets/hosting-token; place the secrets and run this script again"
   exit 0
@@ -245,44 +271,38 @@ case "$1" in
   *) cat /home/factory/.secrets/hosting-token ;;
 esac
 EOF
-if unchanged "$askpass"; then
-  echo "setup: checkout: found $askpass unchanged"
-else
+if ! unchanged "$askpass"; then
   install -m 0755 -o factory -g factory "$staged" "$askpass"
-  echo "setup: checkout: wrote $askpass"
+  changed "wrote $askpass"
 fi
 # Root's git refuses a repository another user owns, so the clone writes its own askPass.
-if [ -d "$checkout/.git" ]; then
-  echo "setup: checkout: found $checkout"
-else
+if [ ! -d "$checkout/.git" ]; then
   as_factory GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 git clone -q --branch "$ref" --config core.askPass="$askpass" "$repository_url" "$checkout"
-  echo "setup: checkout: cloned $ref into $checkout"
+  changed "cloned $ref into $checkout"
 fi
+echo "setup: checkout: $(said "found $askpass unchanged and $checkout")"
 
+changes=
 dockerfile=$checkout/vm/Dockerfile
 uv_version=$(sed -n 's/^ARG UV_VERSION=//p' "$dockerfile")
-if [ -d "$tools" ]; then
-  echo "setup: tools: found $tools"
-else
+if [ ! -d "$tools" ]; then
   as_factory python3 -m venv "$tools"
-  echo "setup: tools: made $tools"
+  changed "made $tools"
 fi
-if [ "$(as_factory $tools/bin/uv --version 2>/dev/null || true)" = "uv $uv_version" ]; then
-  echo "setup: tools: found uv $uv_version"
-else
+if [ "$(as_factory $tools/bin/uv --version 2>/dev/null || true)" != "uv $uv_version" ]; then
   as_factory $tools/bin/pip install -q "uv==$uv_version"
-  echo "setup: tools: installed uv $uv_version"
+  changed "installed uv $uv_version"
 fi
+# uv sync changes nothing when the virtual environment already matches the lockfile.
 (cd "$checkout" && as_factory $tools/bin/uv sync --frozen --no-dev)
-echo "setup: tools: synced the virtual environment of $checkout"
 # The factory's own git reaches the token only through this helper.
-if cmp -s "$checkout/image/git-credential-factory" /usr/local/bin/git-credential-factory; then
-  echo "setup: tools: found /usr/local/bin/git-credential-factory unchanged"
-else
+if ! cmp -s "$checkout/image/git-credential-factory" /usr/local/bin/git-credential-factory; then
   install -m 0755 "$checkout/image/git-credential-factory" /usr/local/bin/git-credential-factory
-  echo "setup: tools: installed /usr/local/bin/git-credential-factory"
+  changed "installed /usr/local/bin/git-credential-factory"
 fi
+echo "setup: tools: $(said "found $tools with uv $uv_version, the virtual environment of $checkout in sync and /usr/local/bin/git-credential-factory unchanged")"
 
+changes=
 env_file=$base/factory.env
 claude_version=$(sed -n 's/^ARG CLAUDE_CODE_VERSION=//p' "$dockerfile")
 opencode_version=$(sed -n 's/^ARG OPENCODE_VERSION=//p' "$dockerfile")
@@ -310,25 +330,22 @@ FACTORY_OPENCODE_MODELS=$opencode_models
 PATH=/srv/factory/$instance/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 XDG_RUNTIME_DIR=/run/user/$(id -u factory)
 EOF
-if unchanged "$env_file"; then
-  echo "setup: environment: found $env_file unchanged"
-else
+if ! unchanged "$env_file"; then
   install -m 0644 "$staged" "$env_file"
-  echo "setup: environment: wrote $env_file"
+  changed "wrote $env_file"
 fi
+echo "setup: environment: $(said "found $env_file unchanged")"
 
-if cmp -s "$checkout/vm/factory.service" /etc/systemd/system/factory@.service; then
-  echo "setup: service: found /etc/systemd/system/factory@.service unchanged"
-else
+changes=
+if ! cmp -s "$checkout/vm/factory.service" /etc/systemd/system/factory@.service; then
   install -m 0644 "$checkout/vm/factory.service" /etc/systemd/system/factory@.service
-  echo "setup: service: installed /etc/systemd/system/factory@.service"
+  changed "installed /etc/systemd/system/factory@.service"
 fi
 systemctl daemon-reload
-if systemctl is-enabled --quiet factory@"$instance"; then
-  echo "setup: service: found factory@$instance enabled"
-else
+if ! systemctl is-enabled --quiet factory@"$instance"; then
   systemctl enable factory@"$instance"
-  echo "setup: service: enabled factory@$instance; it is not started"
+  changed "enabled factory@$instance; it is not started"
 fi
+echo "setup: service: $(said "found /etc/systemd/system/factory@.service unchanged and factory@$instance enabled")"
 
 printf 'setup: done: build the stage image and start factory@%s; see the operator guide, "The machine"\n' "$instance"
