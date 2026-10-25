@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 433
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T06:27:15.696525Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-25T06:27:15.696525Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T06:27:33.487862Z'
+  stage: intake
+  run: fa0d8f8981e5443bb3252a73adf48d7f
 ---
 
 # The setup script writes as factory from its own standard input
@@ -61,3 +63,9 @@ Expect: two lines, `0` and `syntax-ok`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names `vm/setup.sh` and one concrete helper (`write_as_factory <mode> <target>` beside `as_factory`) with the exact `sh -c 'cat > "$2" && chmod "$1" "$2"'` command, its standard-input sources, and the test module and support file. It states no rule beyond what criteria 1 to 3 test.
+   Criteria: each is testable by one test function or one parametrized test. 1 covers the absence of `/dev/stdin`/`install` with stdin. 2 has one row for each of the three writes (mode and target) plus the helper's `as_factory` line. 3 covers content, mode and rewrite on the helper's pass side, and 4 pins the existing test. The helper has no refusal path, so no failing side is needed. "Write only when the text differs, as today" is kept unchanged by the Interface's "nothing else changes". I did not add a criterion for it.
+   Smoke test: `grep -c '/dev/stdin' vm/setup.sh; sh -n vm/setup.sh && echo syntax-ok` runs as written. The grep prints 0 (its non-zero status is ignored because of the `;`), then `syntax-ok`. The Expect line is checkable. It runs no pytest, so the `-q` rule does not apply.
+   Architecture: `vm/*` is in the coder's write paths, which feature.md change 1 added. Tests go under `tests/` with `tests/vm_support.py`, and the docs criterion names the operator guide's setup-script chapter. No layer is touched.
+   Scope: it is inside F0043 as decision 17 and the Stories list (S0005, before S0004). It changes nothing from the Out of scope list, and no earlier test changes.
