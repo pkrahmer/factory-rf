@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T18:39:41.099596Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -126,6 +130,11 @@ journal:
   at: '2026-10-25T18:39:20.210376Z'
   stage: tests
   run: fe39a864fdf14e0c84da983f0ad74afb
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-25T18:39:41.099596Z'
+  stage: doing
 ---
 
 # The inline environment and its setting are removed
@@ -463,3 +472,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (63.6 s)
+22. factory: started doing as self.
