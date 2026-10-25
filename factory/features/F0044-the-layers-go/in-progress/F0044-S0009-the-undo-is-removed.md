@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T19:26:35.909626Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-25T19:26:14.347703Z'
   stage: tests
   run: e660995187c1402192687ece6dea1336
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:26:35.909626Z'
+  stage: doing
 ---
 
 # The undo is removed
@@ -138,3 +147,4 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/application/test_after_agent.py::test_the_own_cost_record_file_is_not_named_as_undone[with-an-outside-file] - AssertionError: assert 'tests writte...hs: src/b.py.' == 'tests writte...h...
+6. factory: started doing as self.
