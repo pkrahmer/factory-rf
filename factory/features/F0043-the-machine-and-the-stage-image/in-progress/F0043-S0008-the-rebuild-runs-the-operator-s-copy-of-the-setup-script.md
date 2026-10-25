@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 438
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-25T08:50:21.657228Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-25T08:50:21.657228Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T08:50:53.204458Z'
+  stage: review
+  run: c0b950ad4b1246afa48c2daf653288a0
 ---
 
 # The rebuild after a merge runs the operator's own copy of the setup script
@@ -64,7 +66,7 @@ journal:
 
 ## Description
 
-S0003 closed every path from the user `factory` to root that the reviewers found in `vm/setup.sh`. Each fix rests on one rule: root acts on nothing that `factory` can change without the operator seeing it. That is why every file under `/srv/factory/<instance>` is written as `factory`, links at `state`, `repo` and `/home/factory/.secrets` are refused, and the unit and the credential helper are installed from the checkout only in the run that cloned it or when the installed file is missing (the human's answers in S0003's journal, entries 26, 37, 49 and 60). But the operator guide's *The rebuild after a merge* tells the operator to run `sudo sh /srv/factory/vm/factory/vm/setup.sh ...`. That executes, as root, a script inside the checkout `factory` owns and can write, so whatever that file holds at that moment runs as root. *On GCP, step by step*, step 6, already does it the safe way: the operator copies `vm/setup.sh` from their own checkout of the ref. This story makes the rebuild do the same. The operator takes `vm/setup.sh` from their own checkout of the ref the instance runs, or from the reviewed merge, copies it to the VM, and runs that copy as root. The section says why, in one sentence. What stays: the rebuild's other steps (the pull, `uv sync`, `podman build` and the renewed `image-id`, all as `factory`), `vm/setup.sh` itself, the code, and every other section. How the operator obtains a trusted copy is the human's to refine before the story starts. The acceptance report lists the options (its check 6).
+S0003 closed every path from the user `factory` to root that the reviewers found in `vm/setup.sh`. Each fix rests on one rule: root acts on nothing that `factory` can change without the operator seeing it. That is why every file under `/srv/factory/<instance>` is written as `factory`, links at `state`, `repo` and `/home/factory/.secrets` are refused, and the unit and the credential helper are installed from the checkout only in the run that cloned it or when the installed file is missing (the human's answers in S0003's journal, entries 26, 37, 49 and 60). But the operator guide's *The rebuild after a merge* tells the operator to run `sudo sh /srv/factory/vm/factory/vm/setup.sh ...`. That executes, as root, a script inside the checkout `factory` owns and can write, so whatever that file holds at that moment runs as root. *On GCP, step by step*, step 6, already does it the safe way: the operator copies `vm/setup.sh` from their own checkout of the ref. This story makes the rebuild do the same. The operator takes `vm/setup.sh` from their own checkout of the ref the instance runs, copies it to the VM as in step 6 (`gcloud compute scp --tunnel-through-iap`), and runs that copy as root. The section says why, in one sentence. What stays: the rebuild's other steps (the pull, `uv sync`, `podman build` and the renewed `image-id`, all as `factory`), `vm/setup.sh` itself, the code, and every other section.
 
 ## Interface
 
@@ -129,3 +131,13 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   I reviewed `git diff main...HEAD -- . ':!factory'`, and it is empty. The branch changes only the work item and its `.costs.jsonl` sidecar (`git diff --name-status main...HEAD`).
+   - Group 1, acceptance criteria. Criterion 1 holds: nothing changes under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/`, and the tester (entry 5) and the coder (entry 7) each say so. Criterion 2 holds: the coder's entry records `check: green`. Criterion 3 is the documenter's and is checked by the smoke test and `make documents`, so it needs no test. The Interface states no rules, so there is no failing side or limit to test.
+   - Groups 2 to 4 (architecture, security, quality): there is no code or test in the diff to judge. The coder's record shows `duplicates: 11 new`, but this diff changes nothing under `src/factory`, so none of those findings come from this story.
+   - Group 5, work item hygiene: the coder's entry explains the main choice (it leaves the documents to the documenter) and what it rejected. Criterion 3 still says exactly what the documenter must write.
+
+   description corrected: "The operator takes `vm/setup.sh` from their own checkout of the ref the instance runs, or from the reviewed merge, copies it to the VM, and runs that copy as root. ... How the operator obtains a trusted copy is the human's to refine before the story starts. The acceptance report lists the options (its check 6)." -> "The operator takes `vm/setup.sh` from their own checkout of the ref the instance runs, copies it to the VM as in step 6 (`gcloud compute scp --tunnel-through-iap`), and runs that copy as root." Criterion 3 already settles the method (a copy from the operator's own checkout of the ref, as in step 6), and intake took it as settled in entry 3. Nothing else in the work item changed.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
