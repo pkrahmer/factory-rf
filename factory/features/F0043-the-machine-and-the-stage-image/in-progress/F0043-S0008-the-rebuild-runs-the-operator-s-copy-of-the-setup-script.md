@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-25T08:41:49.627998Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T08:41:49.622617Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T08:41:49.627998Z'
+  stage: intake
+---
+
 # The rebuild after a merge runs the operator's own copy of the setup script
 
 <!-- proposed by feature acceptance of 2026-10-25; refine before starting -->
@@ -37,3 +64,6 @@ make documents 2>&1 | tail -n 1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as vm.
