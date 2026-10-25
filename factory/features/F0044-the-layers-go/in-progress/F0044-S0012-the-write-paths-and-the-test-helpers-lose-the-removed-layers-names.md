@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T21:01:32.309430Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-25T21:01:11.506938Z'
   stage: tests
   run: 1c353b0afaa0463799d49f91da7fab35
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-25T21:01:32.309430Z'
+  stage: doing
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -253,3 +262,4 @@ Expect: `0`
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (60.7 s)
+14. factory: started doing as self.
