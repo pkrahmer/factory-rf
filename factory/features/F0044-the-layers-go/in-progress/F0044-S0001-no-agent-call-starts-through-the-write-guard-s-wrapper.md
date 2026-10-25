@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T12:23:51.691230Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -217,6 +213,12 @@ journal:
   kind: started
   at: '2026-10-25T12:23:51.691230Z'
   stage: smoke-test
+- number: 38
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T12:24:17.751419Z'
+  stage: smoke-test
+  run: d34546ad2c9e40af93b3c911faff2235
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -783,3 +785,33 @@ Expect: `7`
     `secrets`: secrets: green (4.0 s)
     `documents`: documents ok
 37. factory: started smoke-test as self.
+38. smoke-tester: Smoke test, round 2: I ran both commands from the repository root exactly as written. Both met their `Expect:` lines. I changed nothing.
+
+    Command 1 (`uv run python - <<'EOF' … EOF`, which looks up the removed names, constructor parameters and `confinement_item`):
+
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+             If the cache and target directories are on different filesystems, hardlinking may not be supported.
+             If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+    Installed 106 packages in 99ms
+    Bytecode compiled 4164 files in 437ms
+    []
+    []
+    False
+    ```
+
+    Exit status 0. Met: the script printed three lines, `[]`, `[]`, `False`. The lines before them are uv building the virtual environment on stderr, not the script's output.
+
+    Command 2 (`grep -L 'the kernel refuses every other write' claude/agents/*.md | wc -l`):
+
+    ```
+    7
+    ```
+
+    Met: `7`. None of the seven shipped agent files still holds the old R14 sentence.
+
+    Against the acceptance criteria: nothing in this output contradicts any criterion. The two commands cover parts of criteria 1, 2 and 8. Command 2 only shows that the old sentence is gone; it does not show that decision 4's line is present exactly once, so that half of criterion 8 is left to its test. Criteria 3–7 (the call's words and environment, how a call's end is read, container calls, the preflight's extras, the source scan) are outside what these commands exercise. I did not run `make check` (criterion 9); the factory runs it as the stage's check.
+
+    Findings: none.
