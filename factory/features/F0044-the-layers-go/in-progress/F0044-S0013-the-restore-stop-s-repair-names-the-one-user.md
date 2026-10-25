@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 457
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T21:14:51.138621Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-25T21:14:30.381119Z'
   stage: doing
   run: 9bd4166690aa45e9ada1937d642a6208
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-25T21:14:51.138621Z'
+  stage: review
 ---
 
 # The restore stop's repair names the one user
@@ -117,3 +126,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 92c6af88fac5 at 2026-10-25T21:03:03Z)
    `duplicates`: duplicates: 8 new, 35 known, 3 gone
+8. factory: started review as self.
