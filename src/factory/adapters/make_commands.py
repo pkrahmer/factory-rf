@@ -9,16 +9,13 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict
 
 from factory.adapters.agent_launch import (
-    LEFTOVERS_FAULT,
     SHELL_EXECUTABLE,
     SUDO_PREFIX,
     Launch,
     killed_at_limit,
     launch,
-    leftovers_fault,
-    leftovers_launch,
 )
-from factory.adapters.process import ProcessRequest, ProcessResult, own_identity, run_process
+from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.application.containers import ContainerRuns
 from factory.application.git import Git
 from factory.application.project_commands import ProjectCommands
@@ -75,7 +72,6 @@ class CommandUser(BaseModel):
     os_user: str
     sudo_executable: str
     environment: dict[str, str]
-    leftovers: list[str] | None = None
 
 
 class MakeProjectCommands(ProjectCommands):
@@ -108,7 +104,7 @@ class MakeProjectCommands(ProjectCommands):
 
         Without a user the run is judged by its exit status alone. With a user it runs
         through `sudo` as that user: a kill at the limit is a `time_limit` result, and a
-        refusal by `sudo` or a fault of the leftovers program raises `ProjectCommandError`.
+        refusal by `sudo` raises `ProjectCommandError`.
         """
         _check_call(command, time_limit)
         argv = [self._executable, "--no-print-directory", command]
@@ -140,41 +136,20 @@ class MakeProjectCommands(ProjectCommands):
         )
         # A `sudo:` warning before a kill at the limit is no refusal.
         refusal = None if killed else _refusal(user, result)
-        leftovers_error = self._end_leftovers(user, command)
         if refusal is not None:
             raise ProjectCommandError(command, refusal)
-        if leftovers_error is not None:
-            raise ProjectCommandError(command, leftovers_error)
         if killed:
             return _check_result(command, result.model_copy(update={"exit_status": None}))
         return _check_result(command, result)
 
-    def _end_leftovers(self, user: CommandUser, command: str) -> str | None:
-        # Never for the factory's own user: the program would end the factory itself.
-        if user.leftovers is None or user.os_user == own_identity().user:
-            return None
-        started = leftovers_launch(
-            user.leftovers, os_user=user.os_user, sudo_executable=user.sudo_executable
-        )
-        try:
-            # From the root, so the program holds no folder of the project open.
-            result = self._start(command, started, Path("/"), merge_stderr=False)
-        except ProjectCommandError as exc:
-            return f"{LEFTOVERS_FAULT} {exc.detail}"
-        return leftovers_fault(
-            exit_status=result.exit_status, timed_out=result.timed_out, stderr=result.stderr
-        )
-
     @staticmethod
-    def _start(
-        command: str, started: Launch, cwd: Path, *, merge_stderr: bool = True
-    ) -> ProcessResult:
+    def _start(command: str, started: Launch, cwd: Path) -> ProcessResult:
         request = ProcessRequest(
             argv=started.argv,
             cwd=cwd,
             env=started.env,
             time_limit=started.time_limit,
-            merge_stderr=merge_stderr,
+            merge_stderr=True,
         )
         try:
             return run_process(request)

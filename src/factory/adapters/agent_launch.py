@@ -14,7 +14,6 @@ from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, Login
 from factory.domain.containers import WORK_CHECKOUT, Mount
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoint, KillPoints
-from factory.domain.leftovers import LEFTOVERS_PREFIX
 
 ENTRY_DESCRIPTION = (
     "your journal entry, without its number or your name: "
@@ -37,8 +36,6 @@ PODMAN_TIMEOUT_STATUS = 255
 CONTAINER_KILL_STATUSES = KILL_STATUSES | {PODMAN_TIMEOUT_STATUS}
 # The agent reads a run's files through its group and must not rewrite what it is told.
 RUN_FILE_MODE = 0o640
-LEFTOVERS_TIME_LIMIT = timedelta(seconds=30)
-LEFTOVERS_FAULT = "cannot end the agent's processes:"
 CONTAINER_OS_USER = "a run in a container has no operating-system user"
 
 SHELL_EXECUTABLE = "/bin/sh"
@@ -299,45 +296,6 @@ class Starters(BaseModel):
 
     sudo_executable: str
     login_files: LoginFiles
-    leftovers: list[str] | None = None
-
-
-def leftovers_due(starters: Starters, os_user: str | None, own_user: str) -> bool:
-    """Whether a call as `os_user` is followed by the program that ends its leftover processes.
-
-    Never for the factory's own user: the program would end the factory itself.
-    """
-    return starters.leftovers is not None and os_user is not None and os_user != own_user
-
-
-def leftovers_launch(leftovers: Sequence[str], *, os_user: str, sudo_executable: str) -> Launch:
-    """The call of the program `leftovers` that ends every process of `os_user`, as that user."""
-    return Launch(
-        argv=[*sudo_prefix(sudo_executable, os_user), *leftovers, "--user", os_user],
-        env={},
-        time_limit=LEFTOVERS_TIME_LIMIT,
-    )
-
-
-def due_leftovers_launch(starters: Starters, os_user: str | None, own_user: str) -> Launch | None:
-    """The call of the leftovers program after a call as `os_user`, or `None` when none is due."""
-    leftovers = starters.leftovers
-    # `leftovers_due` holds only with both set; testing them again narrows their types.
-    if leftovers is None or os_user is None or not leftovers_due(starters, os_user, own_user):
-        return None
-    return leftovers_launch(leftovers, os_user=os_user, sudo_executable=starters.sudo_executable)
-
-
-def leftovers_fault(*, exit_status: int | None, timed_out: bool, stderr: str) -> str | None:
-    """Why the leftovers program did not end the agent's processes, or `None` when it did."""
-    if timed_out:
-        seconds = math.ceil(LEFTOVERS_TIME_LIMIT.total_seconds())
-        return f"{LEFTOVERS_FAULT} no end within {seconds} s"
-    if exit_status == 0:
-        return None
-    line = line_starting(stderr, LEFTOVERS_PREFIX)
-    reason = f"exit status {exit_status}" if line is None else line
-    return f"{LEFTOVERS_FAULT} {reason}"
 
 
 def run_environment(

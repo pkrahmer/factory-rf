@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 446
 comments_read: [6398081877]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T13:16:54.219413Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-10-25T13:16:54.219413Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-10-25T13:19:52.886198Z'
+  stage: doing
+  run: fa356d01d7c34f9eb40f0adee9d6c81b
+  blocked: question
 ---
 
 # The leftovers program is removed
@@ -180,3 +183,26 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
    `lint`: lint: green (0.7 s)
    `test`: FAILED tests/test_leftovers_program_removed.py::test_the_names_that_started_the_leftovers_program_are_gone[leftovers_launch] - assert False
 9. factory: started doing as self.
+10. coder: Question: the tester's new test file `tests/adapters/test_one_call_as_another_user.py` fails `make types`, so `make check` cannot go green without a change to that test. The coder may not change tests. Line 20 is `from adapters.opencode_stand_in import Step as OpencodeStep`, and mypy --strict reports:
+    `tests/adapters/test_one_call_as_another_user.py:20: error: Module "adapters.opencode_stand_in" does not explicitly export attribute "Step"  [attr-defined]`
+    `opencode_stand_in` imports `Step` from `adapters.claude_stand_in` itself (its line 10) and does not export it again. So `OpencodeStep` is the same class as the `Step` that the test already imports from `adapters.claude_stand_in` on line 11.
+    The options I see:
+    (a) The tester removes the line-20 import and uses `Step` (from `adapters.claude_stand_in`) where the test uses `OpencodeStep`. Only the new test file changes. This is the one I would choose.
+    (b) The tester makes `tests/adapters/opencode_stand_in.py` export `Step` again (`from adapters.claude_stand_in import STEPS, Step as Step`, or an `__all__`). That changes a helper another story wrote, which goes beyond the leave in the Interface.
+    Once the answer comes back I end with `tests` and name the change.
+
+    Where I stopped: the removal is complete in the working tree, and every other target passes. `lint`, `layers`, `sast`, `secrets` and `licenses` are green. `test` is green as well (70.3 s, 99.50 % coverage), with every test of criteria 1 to 5 passing.
+
+    What I built:
+    - Deleted `src/factory/entry/leftovers.py` and `src/factory/domain/leftovers.py`. `git rm` was refused (no write access to `.git/index.lock`), so I removed them with plain `rm` and the deletions are in the working tree.
+    - `src/factory/adapters/process.py`: `own_identity`, `signal_every_other`, and the imports of `pwd` and `Identity` are gone.
+    - `src/factory/adapters/agent_launch.py`: `LEFTOVERS_TIME_LIMIT`, `LEFTOVERS_FAULT`, `leftovers_due`, `leftovers_launch`, `due_leftovers_launch`, `leftovers_fault` and the `LEFTOVERS_PREFIX` import are gone. `Starters` now has only `sudo_executable` and `login_files`.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: the `leftovers` keyword and property, `_end_leftovers`, the leftovers fault after a call, and the imports that only these used are gone. In the Claude runtime, `_call` now returns the `model_copy` directly, because ruff's RET504 flagged the leftover assignment.
+    - `src/factory/adapters/make_commands.py`: `CommandUser.leftovers` and `_end_leftovers` are gone. `_start` lost its `merge_stderr` keyword and now always passes `merge_stderr=True`.
+    - `src/factory/entry/wiring.py`: `LEFTOVERS_MODULE` and `leftovers_command` are gone, from `__all__` too. `build_boundaries` and `_inline_environment` lost `end_leftovers`, and `_project_commands` and `_agent_runtime` lost `leftovers`.
+
+    Main choice: this is a pure removal and nothing replaces the program. In `MakeProjectCommands._start` I wrote `merge_stderr=True` explicitly rather than taking the field's default, because `ProcessRequest` defaults to `False`. The alternative I rejected was keeping the keyword with only one caller, which would leave a parameter no one varies.
+
+    Refactor: I read the diff once and found nothing else to change.
+
+    Noticed but not touched: `security/duplicates-baseline.txt` may still list findings in the removed code; `make duplicates` will report them as gone. `tests/leftovers_runtime_support.py` stays, as the tester said. The comment in `src/factory/application/recovery.py:97` uses the word "leftovers" in its everyday sense and has nothing to do with the program. The Description stays as it is: the journal did not change what the task means.
