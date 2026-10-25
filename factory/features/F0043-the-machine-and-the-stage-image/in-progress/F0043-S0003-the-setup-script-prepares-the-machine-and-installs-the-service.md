@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T05:51:10.946443Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -280,6 +284,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T05:50:52.823411Z'
+  stage: review
+- number: 50
+  speaker: factory
+  kind: started
+  at: '2026-10-25T05:51:10.946443Z'
   stage: review
 ---
 
@@ -855,3 +864,4 @@ Expect: `1`
     - `tests/test_vm_setup_text.py:491` (`chown-keeps-links`): the row passes without checking any line, because the script holds no `chown`.
 48. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 49. 2026-10-25 human: Continue. The reviewer's round-2 finding is the same hole as for `state` and `repo`, closed the same way: the `folders` step refuses with `exit 1` and a `setup: folders: ` line on standard error when `/home/factory/.secrets` is a link (`[ -L ]`), before any `install -d` on it; the tester adds the row. Also correct the stale Interface sentence: the `tools` and `service` steps install from the checkout only in the run that made the clone, as entry 37 decided, not "unless identical" (the reviewer may correct the Interface for this one sentence). Nothing else changes.
+50. factory: started review as self.
