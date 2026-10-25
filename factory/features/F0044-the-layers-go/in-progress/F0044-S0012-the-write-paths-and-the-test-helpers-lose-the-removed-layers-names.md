@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T21:04:32.426481Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-25T21:04:32.426481Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T21:05:20.385171Z'
+  stage: review
+  run: 8c3a0f5668044c0e9dc8e3d90c6d48b9
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -289,3 +291,39 @@ Expect: `0`
     `check`: check: green
     `duplicates`: duplicates: 8 new, 35 known, 3 gone
 16. factory: started review as self.
+17. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item. I read the code itself rather than the earlier entries.
+
+    no findings
+
+    What I checked:
+    - Criteria 1 to 4 each have a parametrized test in `tests/test_removed_layer_names.py`, and each test checks what its criterion says. Criterion 1 is covered by the rows new-name, old-name, fields, refusal-parameters and refusal-no-guard. Criterion 2 is covered by source-guard-settings, tests-confine, tests-sealed and planted-is-found. The planted-is-found row is the failing side, and it goes through the same `search_support.modules_matching` as the other three rows. Criterion 3 checks the writable path and both refusal texts, and those texts match `refusal` in `src/factory/domain/write_paths.py`. Criterion 4 checks the five fields and that no `tmp` folder is made.
+    - The coder's `make check` was green (entry 15). The one-off `make sast` segfault in that entry was followed by a green rerun and a green full check.
+    - Round 0's finding 1 is fixed. The copied `_files_holding` and the rebuilt `SOURCE` are gone. The test now uses `modules_matching(..., root)` and `source_search.SRC`.
+    - `src/factory`: names only. `WritePathSettings` keeps the docstring, fields and config. `refusal(path, settings)` keeps its body. `take.is_refused` and `WritePathService.at` change only the type and one docstring word. No alias is left, and no `GuardSettings` is left under `src`. No import of `confine_support` or `sealed_run_support` is left under `tests`.
+    - Groups 2 and 3 hold: the layers are unchanged, and there is no new dependency, marker or baseline entry.
+    - Group 5 holds: the Description matches what was built, and criterion 6 still describes the documenter's work (the guide's file rename, its index lines, `GuardSettings` in the guide).
+
+    Earlier tests changed:
+    - tests/confine_support.py → tests/run_layout_support.py: decision 42 of `feature.md` (renamed whole; `temporary_root`, the `tmp` folder and the docstrings' temporary root dropped)
+    - tests/sealed_run_support.py → tests/agent_run_support.py: decision 42 (renamed whole, R100)
+    - tests/conftest.py: decision 42 (import line)
+    - tests/podman_support.py: decision 42 (import line)
+    - tests/zfs_support.py: decision 42 (import line)
+    - tests/test_test_children.py: decision 42 (import line)
+    - tests/adapters/test_agent_launch_login.py: decision 42 (import line)
+    - tests/adapters/test_calls_as_the_factory_user.py: decision 42 (import line)
+    - tests/adapters/test_opencode_runtime_launch.py: decision 42 (import line)
+    - tests/adapters/test_runtimes_without_wrapper.py: decision 42 (import line; its `temporary_root` rows are about the runtimes and stay)
+    - tests/adapters/test_claude_runtime_no_hook.py: decision 42 (import line)
+    - tests/application/test_container_environment.py: decision 42 (import line)
+    - tests/application/test_sealed_runs_runner.py: decision 42 (import line)
+    - tests/application/test_probe_nested_repository.py: decision 42 (import line)
+    - tests/application/test_write_paths_guard.py: decision 42 (`GuardSettings` → `WritePathSettings`)
+    - tests/application/test_write_paths.py: decision 42 (`GuardSettings` → `WritePathSettings`)
+    - tests/domain/test_agent_runs.py: decision 42 (`GuardSettings` → `WritePathSettings`, rewrapped)
+    - tests/domain/test_project_agent_paths.py: decision 42 (`GuardSettings` → `WritePathSettings`)
+    - tests/domain/test_write_paths.py: decision 42 (`GuardSettings` → `WritePathSettings`)
+    - tests/domain/test_nested_claude_paths.py: decision 42 (`GuardSettings` → `WritePathSettings`)
+    - tests/test_kernel_guard_removed.py: decision 42 (`GuardSettings` → `WritePathSettings`, row ids kept)
+    - tests/test_hook_removed.py: decision 42 (`GuardSettings` → `WritePathSettings`; the guard-settings row now checks that `WritePathSettings` is present; the `GuardSettingsInvalid` row is unchanged)
+    - tests/search_support.py: the standing leave for shared test helpers. `modules_matching` gains an optional `root` that defaults to `TESTS`, so the new test uses the shared helper instead of a copy. Its three earlier callers (`test_shared_test_helpers.py`, `test_docker_path_removed.py`, `test_opencode_shared_steps.py`) are unchanged and check the same thing. A judgement call for the human to see at approval: this extends the shared helper rather than only moving it there, and it is the narrowest change that avoids the copy round 0 counted as a finding.
