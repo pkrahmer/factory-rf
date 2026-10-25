@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008, 6400918653]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T17:41:12.821184Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -217,6 +213,12 @@ journal:
   kind: started
   at: '2026-10-25T17:41:12.821184Z'
   stage: review
+- number: 38
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T17:42:10.492791Z'
+  stage: review
+  run: 788147960cab48dfb7f8179c5eae8c4a
 ---
 
 # The suite's stages run on the container fakes
@@ -234,7 +236,7 @@ The suite runs a stage, a tick or a world of ticks on the `boundaries` fixture o
 Tests (the leave is decision 23 of `feature.md`, with the list its pre-check added, and answer 29 (a)):
 
 - `tests/git_support.py`: `REMOTE_FILES` gains `"Makefile"` with a target `sync` whose recipe is `@:` (it prints nothing and succeeds). Every stage and every probe on the fixture runs `prepare`, whose sync runs `make sync`, so every `Makefile` a test pushes before one gains the same target `sync` with the recipe `@:`: `stage_makefile` of `tests/stage_run_support.py`, `PASSING_MAKEFILE` of `tests/proof_support.py`, `_makefile` of `tests/application/test_costs.py`, `tests/application/test_stage_finish.py` and `tests/application/test_stall_labels.py`, `MAKEFILE` of `tests/application/test_cost_image.py`, `tests/application/test_preflight_run.py` and `tests/application/test_tick_preflight.py`, and the pushed `Makefile` of `tests/application/test_agent_run_probe.py::test_the_probe_runs_once_for_each_image_build`, `tests/entry/test_wiring_run.py::test_build_tick_runs_one_stage_in_the_production_environment_under_its_instance` and `tests/entry/test_wiring_extras.py::test_a_tick_stops_on_a_failed_extra_and_otherwise_probes_in_the_stages_environment`. `whole_stage` of `tests/container_support.py` keeps its own `sync` after `stage_makefile()` (make takes the last recipe).
-- `tests/conftest.py`: the fixture `boundaries` gives `snapshots=FakeSnapshots(<tmp_path>/workspace, <tmp_path>/workspace-base)` and `containers=FakeContainerRuns(<tmp_path>/workspace)`, the base made empty first as `container_dataset` of `tests/container_support.py` makes it (that helper may then take the fixture's fakes, under the standing leave); `project_commands` stays `MakeProjectCommands` on the host checkout.
+- `tests/conftest.py`: the fixture `boundaries` gives the fakes of `fake_dataset` (`FakeSnapshots(<tmp_path>/workspace, <tmp_path>/workspace-base)` and `FakeContainerRuns(<tmp_path>/workspace)`), the base made empty first as `container_dataset` of `tests/container_support.py` makes it (that helper may then take the fixture's fakes, under the standing leave); `project_commands` stays `MakeProjectCommands` on the host checkout.
 - `tests/proof_support.py`: the world's `Boundaries(...)` the same, and `_outside_writes_undone` reads that a write outside the write paths is not in the result commit (taken out, not undone).
 - `tests/application/test_stall_edges.py::test_a_red_check_stall_undoes_what_the_check_wrote` and `tests/application/test_stall_environment.py::test_a_finisher_built_without_an_environment_undoes_what_a_red_check_wrote` are deleted (a check's files stay in its container; `tests/application/test_stall_container.py` pins the take of a stall).
 - `tests/application/test_after_agent.py::test_a_file_written_outside_the_write_paths_is_undone_and_reported`, `::test_undone_paths_are_named_in_a_last_paragraph_of_the_entry`, `::test_the_own_cost_record_file_is_not_named_as_undone`, `tests/application/test_costs.py::test_the_sidecar_is_written_again_after_the_undo`, `::test_an_agent_inside_its_write_paths_is_not_told_of_the_sidecar_undo`, `tests/application/test_stage_finish.py::test_the_checks_see_the_work_tree_after_the_undo`, `tests/application/test_stalls.py::test_a_stall_keeps_the_writes_inside_the_write_paths_and_drops_the_rest`, `tests/test_kill_points.py::test_a_died_run_loses_its_writes_outside_the_write_paths`: the scripted writes reach the dataset and the take leaves out what the role may not write; each passes unchanged on the fixture (the pre-check's run) and keeps its name and what it checks of the result commit, the work tree and the entry.
@@ -264,9 +266,9 @@ uv run pytest tests/application/test_stage_run.py tests/application/test_after_a
 Expect: `1`
 
 ```bash
-grep -c '"Makefile"' tests/git_support.py; grep -c 'FakeSnapshots(' tests/conftest.py
+grep -c '"Makefile"' tests/git_support.py; grep -c 'fake_dataset(tmp_path)' tests/conftest.py; grep -c 'FakeSnapshots(' tests/container_support.py
 ```
-Expect: two lines: `1`; `1`
+Expect: three lines: `1`; `1`; `1`
 
 ## Journal
 
@@ -622,3 +624,44 @@ Expect: two lines: `1`; `1`
     `check`: check: green (not run again: passed on tree 4426094bb51c at 2026-10-25T17:18:35Z)
     `duplicates`: duplicates: 7 new, 34 known, 4 gone
 37. factory: started review as self.
+38. reviewer: Round 2. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item. I compared it with the diff I reviewed in round 1 (entry 27): outside `docs/`, the code and the tests are unchanged. The merge of `origin/main` (5859ed39) brought in only the human's files (`planning/`, `docs/runs/`), which are outside this review. The documenter's changes to `docs/project-guide/README.md` and `docs/project-guide/stage-environment.md` cover what criterion 8 names. The earlier rounds' results still hold:
+    - Groups 1 to 5 pass.
+    - The Interface's one rule has four rows in one parametrized test.
+    - Entry 36 records `check: green`.
+
+    I ran the new smoke command 2. It prints `1`, `1`, `1`.
+
+    no findings
+
+    description corrected: Interface, `tests/conftest.py` line, "the fixture `boundaries` gives `snapshots=FakeSnapshots(<tmp_path>/workspace, <tmp_path>/workspace-base)` and `containers=FakeContainerRuns(<tmp_path>/workspace)`" -> "the fixture `boundaries` gives the fakes of `fake_dataset` (`FakeSnapshots(<tmp_path>/workspace, <tmp_path>/workspace-base)` and `FakeContainerRuns(<tmp_path>/workspace)`)" (the human's answer, entry 34).
+    description corrected: Smoke test, command 2 "`grep -c '"Makefile"' tests/git_support.py; grep -c 'FakeSnapshots(' tests/conftest.py`, Expect: two lines: `1`; `1`" -> "`grep -c '"Makefile"' tests/git_support.py; grep -c 'fake_dataset(tmp_path)' tests/conftest.py; grep -c 'FakeSnapshots(' tests/container_support.py`, Expect: three lines: `1`; `1`; `1`" (the human's answer, entry 34).
+
+    Earlier tests (status M):
+    - tests/application/test_agent_run_probe.py: the human's leave, named in the Interface (decision 23, answer 29 (a)).
+    - tests/application/test_agent_run_probe_project_agent.py: the human's leave, named in the Interface.
+    - tests/application/test_cost_image.py: the human's leave (`MAKEFILE` is named in the Interface). The `agent_home` lines in `_launch` fall under answer 29 (a) (tester's entry 5).
+    - tests/application/test_costs.py: the human's leave, `_makefile` named in the Interface.
+    - tests/application/test_preflight_run.py: the human's leave, `MAKEFILE` named in the Interface.
+    - tests/application/test_stage_environment.py: the human's leave, the Interface's five tests.
+    - tests/application/test_stage_environment_calls.py: the human's leave, both tests named in the Interface.
+    - tests/application/test_stage_finish.py: the human's leave, `_makefile` named in the Interface.
+    - tests/application/test_stage_launch.py: the human's leave, named in the Interface.
+    - tests/application/test_stage_provider_limit.py: the human's leave, named in the Interface.
+    - tests/application/test_stage_run.py: the human's leave, named in the Interface.
+    - tests/application/test_stall_edges.py: the human's leave (the deletion and `inline_boundaries` are named in the Interface). The dead constant and import went with the deleted test.
+    - tests/application/test_stall_environment.py: the human's leave (the deletion and `inline_boundaries` are named in the Interface). The dead constant went with the deleted test.
+    - tests/application/test_stall_labels.py: the human's leave, `_makefile` named in the Interface.
+    - tests/application/test_stalls.py: the human's leave, both tests named in the Interface.
+    - tests/application/test_task.py: the human's leave, named in the Interface.
+    - tests/application/test_tick_preflight.py: the human's leave, `MAKEFILE` named in the Interface.
+    - tests/conftest.py: the human's leave, the `boundaries` fixture named in the Interface (entry 34 for `fake_dataset`).
+    - tests/container_support.py: the human's leave (`container_dataset` takes the fixture's fakes; entry 34 keeps `fake_dataset` as the one place), and the standing leave for the shared helpers `fake_dataset` and `inline_boundaries`.
+    - tests/entry/test_wiring_extras.py: the human's leave, named in the Interface.
+    - tests/entry/test_wiring_run.py: the human's leave, named in the Interface.
+    - tests/git_support.py: the human's leave, `REMOTE_FILES` named in the Interface.
+    - tests/proof_support.py: the human's leave (the world, `PASSING_MAKEFILE` and `_outside_writes_undone` are named in the Interface).
+    - tests/stage_run_support.py: the human's leave, `stage_makefile` named in the Interface.
+
+    Notes:
+    - tests/test_suite_fixtures.py:64: the literal `"stage environment: reset"` duplicates `RESET_PREFIX` of `tests/application/test_stage_on_container_fakes.py` (carried from entry 27).
+    - tests/test_suite_fixtures.py:40: the walk's loop repeats most of `drive` in `tests/proof_support.py` (carried from entry 27).
