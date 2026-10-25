@@ -11,7 +11,6 @@ from factory.application.claims import StageStart
 from factory.application.containers import ContainerRuns
 from factory.application.snapshots import Snapshots
 from factory.application.take import TakeReport, TakeService
-from factory.application.undo import UndoService
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.checks import last_line
 from factory.domain.containers import WORK, WORK_CHECKOUT, WORK_HOME, ContainerResult, Mount
@@ -79,37 +78,6 @@ class StageEnvironment(ABC):
         `WorkItemFormatError` naming `work_item_path` when the work item is absent or
         unreadable at the stage-start commit; the work tree is then left untouched.
         """
-
-
-class InlineEnvironment(StageEnvironment):
-    """v1.1's way: the agent in the factory's own checkout; the undo after."""
-
-    def __init__(self, boundaries: Boundaries) -> None:
-        """Run in the checkout of `boundaries`."""
-        self._boundaries = boundaries
-
-    @override
-    def prepare(self, commit: CommitId, branch: str, *, sync_time_limit: timedelta) -> None:
-        """Do nothing: the claim already left the checkout on `branch` at `commit`."""
-
-    @override
-    def run_agent(
-        self,
-        request: AgentRunRequest,
-        *,
-        run: Callable[[AgentRunRequest], AgentRunResult] | None = None,
-    ) -> AgentRunResult:
-        """Run the agent in the checkout."""
-        return (run or self._boundaries.agent_runtime.run)(request)
-
-    @override
-    def take(self, stage_start: StageStart, work_item_path: str) -> TakeReport:
-        """Undo what the agent changed outside its write paths; what the undo put back is left."""
-        undo = UndoService(self._boundaries).undo(stage_start, work_item_path)
-        return TakeReport(
-            left=sorted({*undo.reverted, *undo.deleted}),
-            restored_work_item=undo.restored_work_item,
-        )
 
 
 class ContainerEnvironment(StageEnvironment):
@@ -219,7 +187,5 @@ def _seconds(duration: timedelta) -> str:
 
 
 def stage_environment_of(boundaries: Boundaries) -> StageEnvironment:
-    """The container environment when snapshots and containers are set, else the inline one."""
-    if boundaries.snapshots is not None and boundaries.containers is not None:
-        return ContainerEnvironment(boundaries, boundaries.snapshots, boundaries.containers)
-    return InlineEnvironment(boundaries)
+    """The container environment on the boundaries' snapshots and containers."""
+    return ContainerEnvironment(boundaries, boundaries.snapshots, boundaries.containers)

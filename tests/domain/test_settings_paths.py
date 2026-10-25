@@ -11,12 +11,10 @@ from factory.domain.settings import InstanceSettings, read_settings
 from settings_support import BASE, raising
 
 CONTAINER = {
-    "FACTORY_STAGE_ENVIRONMENT": "container",
     "FACTORY_DATASET": "tank/factory/vm",
     "FACTORY_STAGE_IMAGE": "factory-stage:1",
 }
 DIRECT_CONTAINER: dict[str, object] = {
-    "stage_environment": "container",
     "dataset": "tank/factory/vm",
     "stage_image": "factory-stage:1",
 }
@@ -199,7 +197,11 @@ def test_settings_built_directly_refuse_a_relative_checkout_or_state_directory(
             None,
             id="sibling",
         ),
-        pytest.param({"FACTORY_WORKSPACE": "/work"}, None, id="inline"),
+        pytest.param(
+            {"FACTORY_WORKSPACE": "/work"},
+            ("FACTORY_CHECKOUT", "/work/checkout lies inside FACTORY_WORKSPACE"),
+            id="inline",
+        ),
     ],
 )
 def test_a_container_instance_keeps_its_checkout_and_state_outside_the_workspace(

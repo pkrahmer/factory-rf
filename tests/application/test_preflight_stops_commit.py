@@ -79,7 +79,7 @@ def test_a_failed_machine_keeps_the_failing_stop_only_across_stop_records_commit
     failed_once: Rig, tmp_path: Path, move: Callable[[Rig], None], stays: bool
 ) -> None:
     _move_main(failed_once, move)
-    del failed_once.which.paths["make"]
+    del failed_once.which.paths["uv"]
 
     assert failed_once.preflight(OTHER_IMAGE).run() == "preflight_failed"
     assert ("main_branch_failing" in failed_once.reasons()) is stays
@@ -101,7 +101,7 @@ def test_a_kept_failing_stop_appends_no_cleared_record(
 ) -> None:
     before = len(records.read())
     _move_main(failed_once_recording, move)
-    del failed_once_recording.which.paths["make"]
+    del failed_once_recording.which.paths["uv"]
 
     assert failed_once_recording.preflight(OTHER_IMAGE).run() == "preflight_failed"
     appended = [
@@ -116,7 +116,7 @@ def test_a_failed_machine_clears_the_stop_when_the_remembered_commit_is_not_in_t
     failed_once: Rig, tmp_path: Path
 ) -> None:
     failed_once.stamps.write(PreflightStamp(image=IMAGE, main_failed="a" * 40))
-    del failed_once.which.paths["make"]
+    del failed_once.which.paths["uv"]
 
     assert failed_once.preflight(OTHER_IMAGE).run() == "preflight_failed"
     assert "main_branch_failing" not in failed_once.reasons()

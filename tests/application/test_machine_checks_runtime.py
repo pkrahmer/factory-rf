@@ -28,30 +28,6 @@ def _settings(agent_home: Path, **fields: object) -> InstanceSettings:
 
 
 @pytest.mark.parametrize(
-    ("runtime", "tools"),
-    [
-        pytest.param(
-            "opencode", ["tool:git", "tool:uv", "tool:make", "tool:opencode"], id="opencode"
-        ),
-        pytest.param("claude", ["tool:git", "tool:uv", "tool:make", "tool:claude"], id="claude"),
-    ],
-)
-def test_the_last_required_tool_is_the_runtime_s_executable(
-    installed: Boundaries, agent_home: Path, *, runtime: str, tools: list[str]
-) -> None:
-    asked: list[str] = []
-
-    def which(name: str) -> str | None:
-        asked.append(name)
-        return every_tool(name)
-
-    report = MachineChecks(installed, _settings(agent_home, agent_runtime=runtime), which).run()
-
-    assert [item.name for item in report.items[:4]] == tools
-    assert asked[:4] == [tool.removeprefix("tool:") for tool in tools]
-
-
-@pytest.mark.parametrize(
     ("fields", "reported", "passed", "detail"),
     [
         pytest.param(

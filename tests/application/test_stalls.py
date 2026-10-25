@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from container_support import inline_boundaries
 from definition_support import pipeline_definition
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
@@ -22,7 +21,7 @@ from factory.domain.hosting import PostKey, PullRequestView
 from factory.domain.journal import JournalRecord, NewEntry, append_entry, entry_text
 from factory.domain.post_texts import stall_cause, stall_note
 from factory.domain.work_item import WorkItemState
-from git_support import install_agents, remote_commit
+from git_support import remote_commit
 from human_clone import HumanClone
 from stage_run_support import (
     BRANCH,
@@ -35,13 +34,10 @@ from stage_run_support import (
     pushed_state,
 )
 from stall_support import (
-    COMMITTED_ELSEWHERE,
     CREATED,
     DIED,
-    ELSEWHERE,
     OUTSIDE,
     WRITES,
-    SwitchingRuntime,
     launch_stage,
     open_work_item,
     stall_context,
@@ -302,29 +298,6 @@ def test_an_agent_that_committed_nothing_gets_exactly_one_stall_commit_pushed(
     assert commits[0].parents == [started.stage_start.commit]
 
 
-def test_the_agents_own_commit_stays_below_the_one_stall_commit(
-    boundaries: Boundaries,
-    *,
-    human: HumanClone,
-    agent_home: Path,
-    agent_runtime: FakeAgentRuntime,
-    remote: Path,
-) -> None:
-    boundaries = inline_boundaries(boundaries)
-    started = started_stage(
-        boundaries, human=human, agent_home=agent_home, agent_runtime=agent_runtime
-    )
-    agent_commit = boundaries.git.commit("the agent's own commit")
-
-    result = _stall(boundaries, stall_context(started, pull_request=started.pull_request))
-
-    commits = boundaries.git.log(result.commit, since=agent_commit)
-    assert len(commits) == 1
-    assert commits[0].parents == [agent_commit]
-    assert boundaries.git.is_ancestor(agent_commit, branch_head(remote))
-    assert boundaries.git.show_file(agent_commit, INSIDE) == AGENT_TEXT
-
-
 @pytest.mark.parametrize(
     "agent_subject", [None, "the agent's own commit"], ids=["no-agent-commit", "agent-commit"]
 )
@@ -415,43 +388,6 @@ def test_a_stall_before_the_stage_started_undoes_nothing_and_still_counts(
     assert result.commit == branch_head(remote)
     assert len(hosting.factory_posts(result.pull_request)) == 1
     assert result.note == "posted"
-
-
-def test_an_agent_that_left_the_branch_is_brought_back_and_its_other_branch_kept(
-    boundaries: Boundaries,
-    *,
-    human: HumanClone,
-    agent_home: Path,
-    agent_runtime: FakeAgentRuntime,
-    remote: Path,
-    hosting: FakeHostingService,
-) -> None:
-    boundaries = inline_boundaries(boundaries)
-    install_agents(agent_home, ["tester"])
-    open_work_item(boundaries, human, WorkItemState(stage="tests", journal=[CREATED]))
-    runtime = SwitchingRuntime(
-        agent_runtime, remote=remote, branch=BRANCH, hosting=hosting, checkout=boundaries.git
-    )
-    started = launch_stage(
-        boundaries, agent_runtime, ScriptedRun(writes=WRITES, result=DIED), runtime
-    )
-    elsewhere_head = runtime.elsewhere_head
-    assert elsewhere_head is not None
-    assert boundaries.git.status().branch == ELSEWHERE
-
-    result = _stall(
-        boundaries, stall_context(started, pull_request=started.pull_request), "left_branch"
-    )
-
-    status = boundaries.git.status()
-    assert status.branch == BRANCH
-    assert status.head == result.commit
-    [stall_commit] = boundaries.git.log(result.commit, since=started.stage_start.commit)
-    assert stall_commit.parents == [started.stage_start.commit]
-    for path in (INSIDE, OUTSIDE, COMMITTED_ELSEWHERE):
-        assert not (boundaries.checkout / path).exists()
-        assert boundaries.git.show_file(result.commit, path) is None
-    assert boundaries.git.resolve(ELSEWHERE) == elsewhere_head
 
 
 def test_a_given_document_keeps_its_entries_above_the_stall_entry(

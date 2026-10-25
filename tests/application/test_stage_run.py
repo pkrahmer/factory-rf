@@ -6,18 +6,15 @@ from pathlib import Path
 
 import pytest
 
-from container_support import inline_boundaries
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.agent_runtime import AgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.git import Git
 from factory.domain.agent_runs import QUESTION, AgentRunRequest, AgentRunResult
-from factory.domain.git import CommitId
 from human_clone import HumanClone
 from stage_run_support import (
     BRANCH,
     ENVIRONMENT,
-    INSIDE,
     NOTES,
     branch_head,
     completed,
@@ -26,31 +23,23 @@ from stage_run_support import (
     run_stage,
     stage_makefile,
 )
-from take_support import AGENT_TEXT
 
 BUILT = "build/out.txt"
 IGNORED = "ignored/out.txt"
 
 
-class CommittingRuntime(AgentRuntime):
-    """Notes the head a run starts on, optionally commits a file as the agent, then delegates."""
+class HeadNotingRuntime(AgentRuntime):
+    """Notes the head a run starts on, then delegates."""
 
-    def __init__(self, delegate: FakeAgentRuntime, git: Git, *, commits: bool) -> None:
-        """Run on `delegate`; commit `INSIDE` through `git` when `commits`."""
+    def __init__(self, delegate: FakeAgentRuntime, git: Git) -> None:
+        """Run on `delegate`; read the head through `git`."""
         self._delegate = delegate
         self._git = git
-        self._commits = commits
         self.start_head: str | None = None
-        self.agent_commit: CommitId | None = None
 
     def run(self, request: AgentRunRequest) -> AgentRunResult:
-        """Note the head, commit when asked, then let the delegate play."""
+        """Note the head, then let the delegate play."""
         self.start_head = self._git.status().head
-        if self._commits:
-            target = request.working_directory / INSIDE
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(AGENT_TEXT, encoding="utf-8")
-            self.agent_commit = self._git.commit("the agent's own commit")
         return self._delegate.run(request)
 
     def version(self) -> str:
@@ -58,9 +47,6 @@ class CommittingRuntime(AgentRuntime):
         return self._delegate.version()
 
 
-@pytest.mark.parametrize(
-    "commits", [False, True], ids=["agent-committed-nothing", "agent-committed"]
-)
 @pytest.mark.parametrize(
     ("decision", "statuses"),
     [("doing", {}), (QUESTION, {}), ("doing", {"lint": 1})],
@@ -75,22 +61,18 @@ def test_a_run_adds_exactly_one_commit_of_its_own(
     remote: Path,
     decision: str,
     statuses: dict[str, int],
-    commits: bool,
 ) -> None:
-    boundaries = inline_boundaries(boundaries)
     open_story(boundaries, human, agent_home, makefile=stage_makefile(statuses))
     agent_runtime.queue(ScriptedRun(result=completed(decision)))
-    runtime = CommittingRuntime(agent_runtime, boundaries.git, commits=commits)
+    runtime = HeadNotingRuntime(agent_runtime, boundaries.git)
 
     report = run_stage(replace(boundaries, agent_runtime=runtime))
 
-    base = runtime.agent_commit if commits else runtime.start_head
+    base = runtime.start_head
     assert base is not None
     assert report.commit == branch_head(remote)
     [own] = boundaries.git.log(report.commit, since=base)
     assert own.parents == [base]
-    if runtime.agent_commit is not None:
-        assert boundaries.git.show_file(runtime.agent_commit, INSIDE) == AGENT_TEXT
 
 
 def test_the_result_commit_holds_what_a_check_created_unless_it_is_ignored(

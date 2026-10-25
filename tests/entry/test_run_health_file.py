@@ -11,6 +11,7 @@ from factory.domain.settings import InstanceSettings
 from factory.domain.stops import HealthStatus, RepositoryStop
 from factory.entry.run import run_instance
 from factory.entry.wiring import health_file, health_store
+from wiring_support import with_dataset
 
 FETCH_FAILED = RepositoryStop(
     scope="repository",
@@ -27,14 +28,17 @@ def settings(tmp_path: Path, remote: Path, agent_home: Path) -> InstanceSettings
     token_file.write_text("example-value\n", encoding="utf-8")
     state = tmp_path / "instance-state"
     state.mkdir()
-    return InstanceSettings(
-        repository_url=str(remote),
-        instance="factory-1",
-        checkout=tmp_path / "instance-checkout",
-        state_directory=state,
-        agent_home=agent_home,
-        claude_executable=str(tmp_path / "no-claude"),
-        token_file=token_file,
+    return with_dataset(
+        InstanceSettings(
+            repository_url=str(remote),
+            instance="factory-1",
+            checkout=tmp_path / "instance-checkout",
+            state_directory=state,
+            agent_home=agent_home,
+            claude_executable=str(tmp_path / "no-claude"),
+            token_file=token_file,
+        ),
+        tmp_path,
     )
 
 

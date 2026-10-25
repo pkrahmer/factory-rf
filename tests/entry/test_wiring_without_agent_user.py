@@ -8,7 +8,7 @@ import pytest
 
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.make_commands import ContainerMakeCommands, MakeProjectCommands
+from factory.adapters.make_commands import ContainerMakeCommands
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
 from factory.application.project_commands import RecordingProjectCommands
@@ -67,15 +67,12 @@ def test_git_environment_holds_the_credential_helper_and_no_hooks_alone() -> Non
 @pytest.mark.parametrize(
     ("fields", "names"),
     [
-        pytest.param(
-            {}, ["token-file", "agent-environment", "agent-run-probe"], id="inline-claude"
-        ),
+        pytest.param({}, CONTAINER_PROBED_ITEMS, id="claude"),
         pytest.param(
             {"agent_runtime": "opencode"},
-            ["token-file", "agent-environment", "opencode", "agent-run-probe"],
-            id="inline-opencode",
+            [*CONTAINER_ITEMS, "opencode", "agent-run-probe"],
+            id="opencode",
         ),
-        pytest.param({"stage_environment": "container"}, CONTAINER_PROBED_ITEMS, id="container"),
     ],
 )
 def test_the_extras_name_no_agent_user_and_no_sudo(
@@ -133,20 +130,9 @@ def test_a_died_probe_names_the_factory_user(
         assert words in item.detail
 
 
-@pytest.mark.parametrize(
-    ("fields", "inner"),
-    [
-        pytest.param({}, MakeProjectCommands, id="inline"),
-        pytest.param({"stage_environment": "container"}, ContainerMakeCommands, id="container"),
-    ],
-)
-def test_the_project_commands_run_without_a_user(
-    settings_of: InstanceSettings, *, fields: dict[str, object], inner: type[object]
-) -> None:
-    settings = settings_of.model_copy(update=fields)
-
-    boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
+def test_the_project_commands_run_without_a_user(settings_of: InstanceSettings) -> None:
+    boundaries = build_boundaries(settings_of, CREDENTIAL, hosting=FakeHostingService())
 
     commands = boundaries.project_commands
     assert isinstance(commands, RecordingProjectCommands)
-    assert type(commands.inner) is inner
+    assert type(commands.inner) is ContainerMakeCommands

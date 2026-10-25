@@ -1,44 +1,27 @@
-"""The boundaries choose the environment: containers with snapshots and containers, else inline."""
+"""The boundaries' environment is the container one, on their snapshots and containers."""
 
-from dataclasses import replace
 from pathlib import Path
 
-import pytest
-
-from factory.adapters.fake_containers import FakeContainerRuns
-from factory.adapters.fake_snapshots import FakeSnapshots
+from container_support import FIVE_MINUTES, container_dataset, push_main, sync_makefile
 from factory.application.boundaries import Boundaries
-from factory.application.stage_environment import (
-    ContainerEnvironment,
-    InlineEnvironment,
-    StageEnvironment,
-    stage_environment_of,
-)
+from factory.application.stage_environment import ContainerEnvironment, stage_environment_of
+from git_support import install_agents
+from human_clone import HumanClone
+
+STRAY = "stray.txt"
 
 
-@pytest.mark.parametrize(
-    ("with_snapshots", "with_containers", "expected"),
-    [
-        pytest.param(True, True, ContainerEnvironment, id="both"),
-        pytest.param(True, False, InlineEnvironment, id="snapshots-only"),
-        pytest.param(False, True, InlineEnvironment, id="containers-only"),
-        pytest.param(False, False, InlineEnvironment, id="neither"),
-    ],
-)
-def test_the_container_environment_needs_both_snapshots_and_containers(
-    boundaries: Boundaries,
-    tmp_path: Path,
-    *,
-    with_snapshots: bool,
-    with_containers: bool,
-    expected: type[StageEnvironment],
+def test_the_environment_of_the_boundaries_is_the_container_one(
+    boundaries: Boundaries, human: HumanClone, agent_home: Path, tmp_path: Path
 ) -> None:
-    workspace = tmp_path / "workspace"
-    snapshots = FakeSnapshots(workspace, tmp_path / "base") if with_snapshots else None
-    containers = FakeContainerRuns(workspace) if with_containers else None
+    dataset = container_dataset(boundaries, tmp_path)
+    commit = push_main(boundaries, human, {"Makefile": sync_makefile()})
+    install_agents(agent_home, ["tester"])
+    (dataset.workspace / STRAY).write_text("left by an earlier stage\n", encoding="utf-8")
+    environment = stage_environment_of(boundaries)
 
-    environment = stage_environment_of(
-        replace(boundaries, snapshots=snapshots, containers=containers)
-    )
+    environment.prepare(commit, "main", sync_time_limit=FIVE_MINUTES)
 
-    assert type(environment) is expected
+    assert isinstance(environment, ContainerEnvironment)
+    assert not (dataset.workspace / STRAY).exists()
+    assert len(dataset.containers.calls) == 1

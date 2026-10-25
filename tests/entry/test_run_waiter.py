@@ -7,6 +7,7 @@ from factory.domain.settings import InstanceSettings
 from factory.entry.run import run_instance
 from factory.entry.wiring import health_store
 from git_support import run_git
+from wiring_support import with_dataset
 
 
 def test_run_instance_over_a_remote_without_commits_stops_and_pauses_thirty_seconds(
@@ -17,14 +18,17 @@ def test_run_instance_over_a_remote_without_commits_stops_and_pauses_thirty_seco
     token_file.write_text("example-value\n", encoding="utf-8")
     state = tmp_path / "instance-state"
     state.mkdir()
-    settings = InstanceSettings(
-        repository_url=str(tmp_path / "empty.git"),
-        instance="factory-1",
-        checkout=tmp_path / "instance-checkout",
-        state_directory=state,
-        agent_home=agent_home,
-        claude_executable=str(tmp_path / "no-claude"),
-        token_file=token_file,
+    settings = with_dataset(
+        InstanceSettings(
+            repository_url=str(tmp_path / "empty.git"),
+            instance="factory-1",
+            checkout=tmp_path / "instance-checkout",
+            state_directory=state,
+            agent_home=agent_home,
+            claude_executable=str(tmp_path / "no-claude"),
+            token_file=token_file,
+        ),
+        tmp_path,
     )
     sleeps: list[float] = []
 

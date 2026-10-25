@@ -65,7 +65,6 @@ AGENT_RUNTIME_VARIABLE = "FACTORY_AGENT_RUNTIME"
 OPENCODE_EXECUTABLE_VARIABLE = "FACTORY_OPENCODE"
 OPENCODE_VERSION_VARIABLE = "FACTORY_OPENCODE_VERSION"
 OPENCODE_MODELS_VARIABLE = "FACTORY_OPENCODE_MODELS"
-STAGE_ENVIRONMENT_VARIABLE = "FACTORY_STAGE_ENVIRONMENT"
 DATASET_VARIABLE = "FACTORY_DATASET"
 WORKSPACE_VARIABLE = "FACTORY_WORKSPACE"
 STAGE_IMAGE_VARIABLE = "FACTORY_STAGE_IMAGE"
@@ -77,13 +76,10 @@ _CLAUDE_EXECUTABLE_DEFAULT = "claude"
 _OPENCODE_EXECUTABLE_DEFAULT = "opencode"
 _PODMAN_EXECUTABLE_DEFAULT = "podman"
 _ZFS_EXECUTABLE_DEFAULT = "zfs"
-_MISSING_FOR_CONTAINER = "missing for the container environment"
 _NOT_ABSOLUTE = "is not an absolute path"
 
 AgentRuntimeName = Literal["claude", "opencode"]
 _AGENT_RUNTIMES: tuple[AgentRuntimeName, ...] = ("claude", "opencode")
-StageEnvironmentName = Literal["inline", "container"]
-_STAGE_ENVIRONMENTS: tuple[StageEnvironmentName, ...] = ("inline", "container")
 
 _NAME = TypeAdapter(Name)
 
@@ -112,7 +108,6 @@ class InstanceSettings(BaseModel):
     opencode_executable: str = _OPENCODE_EXECUTABLE_DEFAULT
     pinned_opencode_version: str | None = None
     opencode_models: dict[str, str] = {}
-    stage_environment: StageEnvironmentName = "inline"
     dataset: str | None = None
     workspace: Path | None = None
     stage_image: str | None = None
@@ -127,70 +122,31 @@ class InstanceSettings(BaseModel):
         return path
 
     @model_validator(mode="after")
-    def _runnable_stage_environment(self) -> Self:
-        fault = stage_environment_fault(
-            self.stage_environment,
-            dataset=self.dataset,
-            workspace=self.workspace,
-            stage_image=self.stage_image,
-        ) or workspace_overlap_fault(
-            self.stage_environment, self.workspace, self.checkout, self.state_directory
-        )
+    def _workspace_apart(self) -> Self:
+        fault = workspace_overlap_fault(self.workspace, self.checkout, self.state_directory)
         if fault is not None:
             variable, text = fault
             raise ValueError(f"{variable}: {text}")
         return self
 
 
-def stage_environment_fault(
-    stage_environment: StageEnvironmentName,
-    *,
-    dataset: str | None,
-    workspace: Path | None,
-    stage_image: str | None,
-) -> tuple[str, str] | None:
-    """The variable and the fault that keep an instance from running `stage_environment`.
-
-    `None` when it can run: `inline` always can; `container` needs a dataset, an absolute
-    workspace and a stage image.
-    """
-    if stage_environment == "inline":
-        return None
-    return _container_fault(dataset, workspace, stage_image)
-
-
 def workspace_overlap_fault(
-    stage_environment: StageEnvironmentName,
-    workspace: Path | None,
-    checkout: Path,
-    state_directory: Path,
+    workspace: Path | None, checkout: Path, state_directory: Path
 ) -> tuple[str, str] | None:
-    """The variable and the fault of a checkout or state directory inside the workspace.
+    """The variable and the fault of a relative workspace or of a path inside it.
 
-    `None` for an `inline` instance, which has no workspace of its own, and for a `container`
-    instance whose checkout and state directory both lie outside it.
+    `None` without a workspace and for an absolute one that holds neither the checkout nor the
+    state directory.
     """
-    if stage_environment == "inline" or workspace is None:
+    if workspace is None:
         return None
+    if not workspace.is_absolute():
+        return WORKSPACE_VARIABLE, _NOT_ABSOLUTE
     # Every rollback of the dataset would reset the factory's own work tree, and the agent's
     # container would reach the health file and the runs.
     for variable, path in ((CHECKOUT_VARIABLE, checkout), (STATE_VARIABLE, state_directory)):
         if path.is_relative_to(workspace):
             return variable, f"{path} lies inside FACTORY_WORKSPACE"
-    return None
-
-
-def _container_fault(
-    dataset: str | None, workspace: Path | None, stage_image: str | None
-) -> tuple[str, str] | None:
-    if dataset is None:
-        return DATASET_VARIABLE, _MISSING_FOR_CONTAINER
-    if workspace is None:
-        return WORKSPACE_VARIABLE, _MISSING_FOR_CONTAINER
-    if not workspace.is_absolute():
-        return WORKSPACE_VARIABLE, _NOT_ABSOLUTE
-    if stage_image is None:
-        return STAGE_IMAGE_VARIABLE, _MISSING_FOR_CONTAINER
     return None
 
 
@@ -203,17 +159,11 @@ def read_settings(
     checkout = _absolute_path(environ, CHECKOUT_VARIABLE, CHECKOUT_PATH)
     state_directory = _absolute_path(environ, STATE_VARIABLE, STATE_DIRECTORY)
     image = None if read_file is None else _image(environ, read_file)
-    stage_environment = _stage_environment(environ)
     dataset = _optional(environ, DATASET_VARIABLE) or None
     workspace = _optional_path(environ, WORKSPACE_VARIABLE)
     stage_image = _optional(environ, STAGE_IMAGE_VARIABLE) or None
     # Checked here too, so that a fault names its variable instead of a validation error.
-    fault = stage_environment_fault(
-        stage_environment,
-        dataset=dataset,
-        workspace=workspace,
-        stage_image=stage_image,
-    ) or workspace_overlap_fault(stage_environment, workspace, checkout, state_directory)
+    fault = workspace_overlap_fault(workspace, checkout, state_directory)
     if fault is not None:
         raise SettingsInvalid(*fault)
     return InstanceSettings(
@@ -237,7 +187,6 @@ def read_settings(
         or _OPENCODE_EXECUTABLE_DEFAULT,
         pinned_opencode_version=_optional(environ, OPENCODE_VERSION_VARIABLE) or None,
         opencode_models=_opencode_models(environ),
-        stage_environment=stage_environment,
         dataset=dataset,
         workspace=workspace,
         stage_image=stage_image,
@@ -286,18 +235,6 @@ def _agent_runtime(environ: Mapping[str, str]) -> AgentRuntimeName:
             return runtime
     raise SettingsInvalid(
         AGENT_RUNTIME_VARIABLE, f"holds {value}, which is neither claude nor opencode"
-    )
-
-
-def _stage_environment(environ: Mapping[str, str]) -> StageEnvironmentName:
-    value = _optional(environ, STAGE_ENVIRONMENT_VARIABLE)
-    if not value:
-        return "inline"
-    for environment in _STAGE_ENVIRONMENTS:
-        if value == environment:
-            return environment
-    raise SettingsInvalid(
-        STAGE_ENVIRONMENT_VARIABLE, f"holds {value}, which is neither inline nor container"
     )
 
 

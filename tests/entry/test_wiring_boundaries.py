@@ -11,7 +11,6 @@ from pathlib import Path
 import github
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls, write_stand_in
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.clock import SystemClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
@@ -38,7 +37,8 @@ from factory.entry.wiring import (
     repository_name,
 )
 from git_support import clone, install_agents, write_executable
-from wiring_support import CREDENTIAL
+from podman_support import PodmanPlan
+from wiring_support import CREDENTIAL, after_image, dataset_podman, run_words, with_dataset
 
 GITHUB_URL = "https://github.com/owner/project.git"
 LOCAL_URL = "/srv/project.git"
@@ -61,12 +61,15 @@ REPLY = json.dumps(
 def settings(tmp_path: Path) -> InstanceSettings:
     """Settings whose checkout, state directory and agent home lie in `tmp_path`; none exists."""
     root = tmp_path.resolve()
-    return InstanceSettings(
-        repository_url=LOCAL_URL,
-        instance="factory-1",
-        checkout=root / "checkout",
-        state_directory=root / "state",
-        agent_home=root / "agents-home",
+    return with_dataset(
+        InstanceSettings(
+            repository_url=LOCAL_URL,
+            instance="factory-1",
+            checkout=root / "checkout",
+            state_directory=root / "state",
+            agent_home=root / "agents-home",
+        ),
+        tmp_path,
     )
 
 
@@ -255,16 +258,6 @@ def test_the_built_git_runs_with_the_git_options_of_the_settings(
     assert environment["GIT_CONFIG_VALUE_2"] == "false"
 
 
-def test_the_built_project_commands_run_in_the_checkout(settings: InstanceSettings) -> None:
-    settings.checkout.mkdir()
-    (settings.checkout / "Makefile").write_text("lint:\n\t@pwd\n", encoding="utf-8")
-    boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
-
-    result = boundaries.project_commands.run("lint", time_limit=timedelta(seconds=30))
-
-    assert result.last_line == str(settings.checkout)
-
-
 def test_the_built_agent_definitions_are_read_from_the_agent_home(
     tmp_path: Path, remote: Path, monkeypatch: pytest.MonkeyPatch, settings: InstanceSettings
 ) -> None:
@@ -295,9 +288,9 @@ def test_the_built_log_and_health_file_lie_in_the_state_directory(
 def test_the_built_agent_runtime_keeps_its_run_files_under_runs(
     tmp_path: Path, settings: InstanceSettings
 ) -> None:
-    executable = write_stand_in(tmp_path / "bin", [Step(stdout=REPLY)])
+    podman = dataset_podman(tmp_path, PodmanPlan(stdout=REPLY))
     work = tmp_path / "work"
-    work.mkdir()
+    work.mkdir(exist_ok=True)
     instructions = "Write the code."
     request = AgentRunRequest(
         agent=AgentDefinition(
@@ -314,18 +307,15 @@ def test_the_built_agent_runtime_keeps_its_run_files_under_runs(
         working_directory=work,
         environment={},
     )
-    boundaries = build_boundaries(
-        settings.model_copy(update={"claude_executable": str(executable)}),
-        CREDENTIAL,
-        hosting=FakeHostingService(),
-    )
+    boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
 
     boundaries.agent_runtime.run(request)
 
-    calls = read_calls(tmp_path / "bin")
-    assert len(calls) == 1
-    parents = [Path(path).parent for path, text in calls[0].files.items() if text == instructions]
-    assert parents == [settings.state_directory / "runs"]
+    words = run_words(podman)
+    command = after_image(words)
+    instructions_file = Path(command[command.index("--append-system-prompt-file") + 1])
+    assert instructions_file.parent == settings.state_directory / "runs"
+    assert f"{instructions_file}:{instructions_file}:ro" in words
 
 
 def test_build_boundaries_refuses_a_url_without_owner_and_name(

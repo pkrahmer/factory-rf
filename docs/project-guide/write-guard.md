@@ -34,7 +34,7 @@ Tests: `tests/domain/test_write_paths.py`, `tests/application/test_write_paths.p
 
 ## The undo
 
-`UndoService(boundaries).undo(stage_start, work_item_path)` (`factory.application.undo`) puts the work tree back after an agent run. Nothing refuses a write while the agent works; the undo reverts what the agent wrote outside the write paths, among them a protected path inside a folder a write path opens. It returns an `UndoReport` (frozen, no unknown fields): `reverted` and `deleted`, sorted ascending without repeats, and `restored_work_item`. `InlineEnvironment.take` (`stage-environment.md`, *The stage environment*) runs it and turns its report into a `TakeReport`; `AfterAgent` calls that take after every completed agent run (see "After the agent run"). The container environment's take is *The take* in `stage-environment.md`; A stall's undo is the inline environment's take too: `StallService` takes through the stage environment (`stage-environment.md`, *Who calls what*).
+`UndoService(boundaries).undo(stage_start, work_item_path)` (`factory.application.undo`) puts the work tree back after an agent run. Nothing refuses a write while the agent works; the undo reverts what the agent wrote outside the write paths, among them a protected path inside a folder a write path opens. It returns an `UndoReport` (frozen, no unknown fields): `reverted` and `deleted`, sorted ascending without repeats, and `restored_work_item`. Nothing calls it since F0044-S0008 removed `InlineEnvironment`, its one caller; F0044-S0009 removes the module. The take of a stage is *The take* in `stage-environment.md`, which `AfterAgent` and `StallService` call through the stage environment (`stage-environment.md`, *Who calls what*).
 
 ### What it undoes
 

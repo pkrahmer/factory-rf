@@ -67,29 +67,12 @@ def container_settings(tmp_path: Path, zfs: Path, podman: Path) -> InstanceSetti
         checkout=root / "checkout",
         state_directory=root / "state",
         agent_home=root / "agents-home",
-        stage_environment="container",
         dataset=DATASET,
         workspace=root / "work",
         stage_image=IMAGE,
         zfs_executable=str(zfs),
         podman_executable=str(podman),
     )
-
-
-def test_an_inline_instance_has_no_snapshots_and_no_containers(tmp_path: Path) -> None:
-    root = tmp_path.resolve()
-    settings = InstanceSettings(
-        repository_url="/srv/project.git",
-        instance="factory-1",
-        checkout=root / "checkout",
-        state_directory=root / "state",
-        agent_home=root / "agents-home",
-    )
-
-    boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
-
-    assert boundaries.snapshots is None
-    assert boundaries.containers is None
 
 
 def test_a_container_instance_gets_the_dataset_s_adapters_and_asks_for_no_tool(

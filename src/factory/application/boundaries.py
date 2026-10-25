@@ -49,6 +49,5 @@ class Boundaries:
     stop_records: RecordLog[StopRecord]
     waiter: Waiter
     result_records: RecordLog[ResultRecord]
-    # Both `None` while the stages run inline; with both set they run in containers on the dataset.
-    snapshots: Snapshots | None = None
-    containers: ContainerRuns | None = None
+    snapshots: Snapshots
+    containers: ContainerRuns

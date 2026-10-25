@@ -38,8 +38,6 @@ MAKEFILE = "lint:\n\ttest ! -f BROKEN\nsync:\n\t@:\n"
 TOOLS = {
     "git": "/usr/bin/git",
     "uv": "/usr/local/bin/uv",
-    "make": "/usr/bin/make",
-    "claude": "/usr/local/bin/claude",
 }
 ROLES = (
     "intake",
@@ -220,7 +218,7 @@ def test_a_fix_pushed_to_main_clears_the_stop_of_the_red_main(red_main: Rig) -> 
 
 
 def test_a_failed_machine_item_is_a_machine_stop_and_no_lint_runs(rig: Rig) -> None:
-    del rig.which.paths["make"]
+    del rig.which.paths["uv"]
 
     reason = rig.preflight().run()
 
@@ -229,7 +227,7 @@ def test_a_failed_machine_item_is_a_machine_stop_and_no_lint_runs(rig: Rig) -> N
     assert len(stops) == 1
     assert stops[0].scope == "machine"
     assert stops[0].reason == "preflight_failed"
-    assert "tool:make" in stops[0].detail
+    assert "tool:uv" in stops[0].detail
     assert rig.commands.calls == []
 
 
@@ -307,13 +305,13 @@ def test_without_an_image_identity_the_machine_items_run_every_time(rig: Rig) ->
 def test_a_failed_machine_report_writes_no_stamp_and_its_stop_goes_once_they_pass(
     rig: Rig,
 ) -> None:
-    del rig.which.paths["make"]
+    del rig.which.paths["uv"]
     assert rig.preflight().run() == "preflight_failed"
     assert rig.stamps.read() is None
-    rig.which.paths["make"] = TOOLS["make"]
+    rig.which.paths["uv"] = TOOLS["uv"]
 
     assert rig.preflight().run() is None
-    assert rig.which.asked.count("make") == 2
+    assert rig.which.asked.count("uv") == 2
     assert "preflight_failed" not in rig.reasons()
 
 

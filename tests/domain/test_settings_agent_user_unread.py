@@ -6,7 +6,6 @@ from factory.domain.settings import read_settings
 from settings_support import BASE
 
 CONTAINER = {
-    "FACTORY_STAGE_ENVIRONMENT": "container",
     "FACTORY_DATASET": "tank/factory/vm",
     "FACTORY_WORKSPACE": "/srv/factory/vm/work",
     "FACTORY_STAGE_IMAGE": "factory-stage:1",

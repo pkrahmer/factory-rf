@@ -1,10 +1,10 @@
 # The stage environment
 
-This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.stage_environment`, `factory.application.snapshots`, `factory.application.containers`, `factory.application.take`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.podman_runs`, `factory.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. The stage protocol calls the stage environment (*The cycle* lists its steps, *The stage environment* the interface). An instance chooses its environment by setting (*The settings and the wiring*): `inline` is v1.1's way and the default, `container` is the dataset and the containers. The wiring also lives in `factory.domain.settings` and `factory.entry.wiring`.
+This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.stage_environment`, `factory.application.snapshots`, `factory.application.containers`, `factory.application.take`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.podman_runs`, `factory.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. The stage protocol calls the stage environment (*The cycle* lists its steps, *The stage environment* the interface). There is one environment, the dataset and the containers: v1.1's `inline` environment and its setting went with F0044-S0008 (*The settings and the wiring*). The wiring also lives in `factory.domain.settings` and `factory.entry.wiring`.
 
 ## The cycle
 
-A stage runs in the order below, whatever the environment (`planning/v1.2-plan.md`, "The cycle of a stage"). Each step names the section that describes it. Under `inline` `prepare` does nothing, so steps 2 to 4 are not taken; the sections for the details are *The stage environment* and *The container environment*.
+A stage runs in the order below (`planning/v1.2-plan.md`, "The cycle of a stage"). Each step names the section that describes it. The sections for the details are *The stage environment* and *The container environment*.
 
 1. The factory claims the stage and commits the claim, outside the environment (`stages.md`).
 2. `prepare` rolls the dataset back to `@base` (*The snapshots*, *The container environment*).
@@ -181,17 +181,7 @@ No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` 
 - `run_agent(request, *, run=None)`: runs the request's agent in this environment and returns its `AgentRunResult`. With `run` the environment calls it once instead of the boundaries' runtime; whatever it does inside, such as the resumes of `PatientRuns` after a provider limit, happens in the same prepared place.
 - `take(stage_start, work_item_path)`: brings the agent's result into the work tree as far as the role may write, and returns a `TakeReport` (`left`, `restored_work_item`; see *The take*). `WorkItemFormatError` naming `work_item_path` when the work item is absent or unreadable at the stage-start commit; the work tree is then left untouched.
 
-### The inline environment
-
-`InlineEnvironment(boundaries)` is v1.1's way, the agent in the factory's own checkout:
-
-- `prepare` does nothing and reads nothing: the claim has left the checkout on the branch at the stage-start commit. Its arguments are accepted and ignored.
-- `run_agent` calls `(run or boundaries.agent_runtime.run)(request)` and returns the result. It seals nothing and removes nothing: the checkout's git folder, a nested repository and the ignored paths are left as the run left them.
-- `take` is `UndoService(boundaries).undo(stage_start, work_item_path)` (see *The undo*, `write-guard.md`) turned into a report: `left` is the undo's `reverted` and `deleted` paths, joined, sorted, each once; `restored_work_item` is the undo's.
-
-`InlineEnvironment` is the only module that calls `UndoService` for a stage. `StallService` reaches the undo only through this environment: its stall takes like `AfterAgent` does.
-
-`stage_environment_of(boundaries)` gives the environment the boundaries describe. It gives a `ContainerEnvironment` when `boundaries.snapshots` and `boundaries.containers` are both set, and an `InlineEnvironment` when one or both is `None` (see *The container environment*).
+`stage_environment_of(boundaries)` gives the `ContainerEnvironment` on `boundaries.snapshots` and `boundaries.containers`, both required (see *The container environment*). `StallService` reaches the take only through the environment it is given: its stall takes like `AfterAgent` does. Nothing calls `UndoService` for a stage any more; its module stays until F0044-S0009 removes it (`write-guard.md`).
 
 ### Who calls what
 
@@ -202,13 +192,13 @@ No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` 
 
 ### The sync time limit
 
-`StageLauncher` takes the limit from the pipeline definition: the `time_limit` of its `sync` project command, in minutes, and when the definition has no `sync` command the default of a project command, `ProjectCommandDefinition().time_limit` (10 minutes). The inline environment ignores it.
+`StageLauncher` takes the limit from the pipeline definition: the `time_limit` of its `sync` project command, in minutes, and when the definition has no `sync` command the default of a project command, `ProjectCommandDefinition().time_limit` (10 minutes).
 
 ### One environment per runner
 
 `StageLauncher`, `AfterAgent`, `StageFinisher` and `StallService` take an optional keyword `stage_environment`; `None` means `stage_environment_of(boundaries)`. `StageRunner` builds one environment and gives it to all four, so that the object that saw a stage's `prepare` sees its `take`.
 
-Tests: `tests/application/test_stage_environment.py` (the interface and the inline environment and the undo), `tests/application/test_stage_environment_calls.py` (a stand-in environment that records its calls, given to `StageLauncher` and `AfterAgent`), and the interface's row in `tests/application/test_interfaces.py`.
+Tests: `tests/application/test_stage_environment_of.py` (the environment of the boundaries), `tests/application/test_stage_environment_calls.py` (a stand-in environment that records its calls, given to `StageLauncher` and `AfterAgent`), and the interface's row in `tests/application/test_interfaces.py`.
 
 ## The container environment
 
@@ -245,7 +235,7 @@ The first `prepare` on a dataset creates the repository; the next ones reuse it,
 
 ### `run_agent`
 
-`run_agent(request, *, run=None)` calls `(run or boundaries.agent_runtime.run)(request)` and returns the result, as the inline environment does. Nothing is sealed, searched or removed: the dataset is rolled back by the next `prepare`, so nothing the agent leaves survives.
+`run_agent(request, *, run=None)` calls `(run or boundaries.agent_runtime.run)(request)` and returns the result. Nothing is sealed, searched or removed: the dataset is rolled back by the next `prepare`, so nothing the agent leaves survives.
 
 ### `take`
 
@@ -259,7 +249,7 @@ After the first take of a stage, one line goes to the factory log through `bound
 2026-10-24T18:00:07Z stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s, take 0.2 s
 ```
 
-Each duration is in seconds with one decimal (Python's rounding). `reset`, `sync` and `advance` are those of the last successful `prepare` of the same object (replaced by each, never added), `take` is the time of this `take`, `changed_paths` included. A `take` without a `prepare` on the object writes `0.0` for the first three. One line per stage: the first `take` after a `prepare` on the object writes it (or the first `take` on an object without a `prepare`), none after `prepare` alone. A stall after `AfterAgent`'s take (an empty entry, a broken form, a red check) is a second take: it takes again from the dataset, as the first did, and writes no line. To read the plan's measures, take the lines from `/state/factory.log`: `reset` and `advance` are the cost of the snapshots, `sync` the cost of the container with `make sync`, `take` the cost of listing the changes and copying them. The inline environment writes no such line.
+Each duration is in seconds with one decimal (Python's rounding). `reset`, `sync` and `advance` are those of the last successful `prepare` of the same object (replaced by each, never added), `take` is the time of this `take`, `changed_paths` included. A `take` without a `prepare` on the object writes `0.0` for the first three. One line per stage: the first `take` after a `prepare` on the object writes it (or the first `take` on an object without a `prepare`), none after `prepare` alone. A stall after `AfterAgent`'s take (an empty entry, a broken form, a red check) is a second take: it takes again from the dataset, as the first did, and writes no line. To read the plan's measures, take the lines from `/state/factory.log`: `reset` and `advance` are the cost of the snapshots, `sync` the cost of the container with `make sync`, `take` the cost of listing the changes and copying them.
 
 ### Wiring and tests
 
@@ -269,7 +259,7 @@ The suite's stages run on it: the `boundaries` fixture holds `FakeSnapshots(work
 
 ## The sync command
 
-`make sync` is the fourth target of the project contract (`processes-and-checks.md`, *Project commands*). For a project it must bring the checkout's tools up to date and nothing else: `uv sync --frozen` in the template, the project's own command in another stack. It must work on a checkout without ignored state and end with its usual green line. The sync container's time limit is the `time_limit` of the `sync` project command, as *The sync time limit* (under *The stage environment*) says. Only a `container` instance runs it, in the sync container of `prepare` and before every check; under `inline` nothing runs it.
+`make sync` is the fourth target of the project contract (`processes-and-checks.md`, *Project commands*). For a project it must bring the checkout's tools up to date and nothing else: `uv sync --frozen` in the template, the project's own command in another stack. It must work on a checkout without ignored state and end with its usual green line. The sync container's time limit is the `time_limit` of the `sync` project command, as *The sync time limit* (under *The stage environment*) says. It runs in the sync container of `prepare` and before every check.
 
 ## The agent's container
 
@@ -313,40 +303,37 @@ What is copied is what differs from `HEAD` on the host (`git.changed_paths("HEAD
 
 ## The settings and the wiring
 
-An instance names its stage environment in its environment variables (`factory.domain.settings`; the operator guide, *Configuration*, has the table).
+An instance names its dataset, workspace and stage image in its environment variables (`factory.domain.settings`; the operator guide, *Configuration*, has the table).
 
 | Variable | `InstanceSettings` field | Default |
 |---|---|---|
-| `FACTORY_STAGE_ENVIRONMENT` | `stage_environment` (`StageEnvironmentName`: `inline` or `container`) | `inline` |
 | `FACTORY_DATASET` | `dataset` | none |
 | `FACTORY_WORKSPACE` | `workspace` (`Path`) | none |
 | `FACTORY_STAGE_IMAGE` | `stage_image` | none |
 | `FACTORY_PODMAN` | `podman_executable` | `podman` |
 | `FACTORY_ZFS` | `zfs_executable` | `zfs` |
 
-`read_settings` strips each value and reads a blank one as unset. Anything but `inline` or `container` is `SettingsInvalid(FACTORY_STAGE_ENVIRONMENT, "holds <value>, which is neither inline nor container")`. For `container`, the first of these that applies is raised: `FACTORY_DATASET` missing, `FACTORY_WORKSPACE` missing (`missing for the container environment`) or relative (`is not an absolute path`), `FACTORY_STAGE_IMAGE` missing. `FACTORY_AGENT_USER` is read by nothing. `inline` keeps the other values and raises nothing for them. After those, `workspace_overlap_fault` (same module) refuses, for `container` only, a `checkout` and then a `state_directory` that is the workspace or lies inside it (`Path.is_relative_to`, by path parts): `SettingsInvalid(FACTORY_CHECKOUT, "<checkout> lies inside FACTORY_WORKSPACE")`, or the same for `FACTORY_STATE`. The model validator calls it too.
+`read_settings` strips each value and reads a blank one as unset. It raises no fault for a missing dataset, workspace or image. It refuses a relative workspace (`SettingsInvalid(FACTORY_WORKSPACE, "is not an absolute path")`) and then a `checkout` and then a `state_directory` that is the workspace or lies inside it (`Path.is_relative_to`, by path parts): `SettingsInvalid(FACTORY_CHECKOUT, "<checkout> lies inside FACTORY_WORKSPACE")`, or the same for `FACTORY_STATE`. `FACTORY_STAGE_ENVIRONMENT` and `FACTORY_AGENT_USER` are read by nothing: any value is ignored.
 
-One function, `stage_environment_fault` (`factory.domain.settings`), holds that rule. `read_settings` calls it, and so does the model validator of `InstanceSettings`, so a model built directly refuses the same combinations with a `ValidationError` (the validator's message is `<variable>: <fault>`; it is not turned back into a `SettingsInvalid`).
+One function, `workspace_overlap_fault(workspace, checkout, state_directory)` (`factory.domain.settings`), holds that rule and gives `None` for a `None` workspace. `read_settings` calls it, and so does the model validator of `InstanceSettings`, so a model built directly refuses the same combinations with a `ValidationError` (the validator's message is `<variable>: <fault>`; it is not turned back into a `SettingsInvalid`).
 
-`build_boundaries` (`factory.entry.wiring`) builds the pieces that differ in `_inline_environment` or `_container_environment`, and the rest as before:
+`build_boundaries(settings, token, *, hosting=None)` (`factory.entry.wiring`) refuses an incomplete instance first, before it builds anything and before PyGithub's `get_repo` is called: `_container_adapters` raises `SettingsInvalid(FACTORY_DATASET, "missing")`, then `SettingsInvalid(FACTORY_WORKSPACE, "missing")`, then `SettingsInvalid(FACTORY_STAGE_IMAGE, "missing")`, the first of the three that is `None`. Then it builds:
 
-| | `inline` | `container` |
-|---|---|---|
-| `snapshots`, `containers` | `None` | `ZfsSnapshots(dataset, workspace, executable=zfs_executable)` and `PodmanRuns(podman_executable, stage_image, workspace)` |
-| `agent_runtime` | `ClaudeCodeRuntime` or `OpencodeRuntime`, started as the factory's own user | the runtime of `FACTORY_AGENT_RUNTIME` given `containers` |
-| `project_commands` | `RecordingProjectCommands` around `MakeProjectCommands(settings.checkout)` | `RecordingProjectCommands` around `ContainerMakeCommands(snapshots, containers, git, checkout=settings.checkout)` |
+| Boundary | Built as |
+|---|---|
+| `snapshots`, `containers` | `ZfsSnapshots(dataset, workspace, executable=zfs_executable)` and `PodmanRuns(podman_executable, stage_image, workspace)` |
+| `agent_runtime` | the runtime of `FACTORY_AGENT_RUNTIME` given `containers` |
+| `project_commands` | `RecordingProjectCommands` around `ContainerMakeCommands(snapshots, containers, git, checkout=settings.checkout)` |
 
 `build_boundaries` takes no `which`. It runs no tool: `zfs` and `podman` start only when a stage uses them. `RecordingProjectCommands.inner` is the implementation it records, which the wiring's tests read.
 
-`agent_run_environment(settings, base)` copies `base` and sets `HOME`: for `container` to `/work/home` (`WORK_HOME_ENVIRONMENT`), on the dataset; for `inline` to the base's. The preflight's items for a container instance are in *The preflight* below. Tests: `tests/domain/test_settings_stage_environment.py`, `tests/entry/test_wiring_stage_environment.py` and `tests/entry/test_wiring_stage_environment_home.py`.
+`agent_run_environment(settings, base)` copies `base` and sets `HOME` to `/work/home` (`WORK_HOME_ENVIRONMENT`), on the dataset, whatever the settings; the dict it is given is unchanged. The preflight's items are in *The preflight* below. Tests: `tests/domain/test_settings_stage_environment.py`, `tests/domain/test_settings_one_environment.py`, `tests/entry/test_wiring_stage_environment.py` and `tests/entry/test_wiring_one_environment.py`.
 
 ## The preflight
 
-The preflight (`factory.application.preflight`; the tick, the stamp and the stops are in `watching.md`) chooses its items by `settings.stage_environment`. The `inline` items are unchanged and in their order.
+The preflight (`factory.application.preflight`; the tick, the stamp and the stops are in `watching.md`) has one list of items. `machine_extras` (`factory.entry.wiring`) gives, in this order: `token-file`, `podman`, `zfs`, `dataset`, `stage-image`, `opencode` under opencode only, `agent-run-probe`. It builds a `ZfsSnapshots` and a `PodmanRuns` of its own through `_container_adapters`, the function `build_boundaries` also calls, because `boundaries.snapshots` and `boundaries.containers` are typed as the interfaces and nothing narrows them. Building them runs no command.
 
-For `container`, `machine_extras` (`factory.entry.wiring`) gives, in this order: `token-file`, `podman`, `zfs`, `dataset`, `stage-image`, `opencode` under opencode only, `agent-run-probe`. It builds a `ZfsSnapshots` and a `PodmanRuns` of its own through `_container_adapters`, the function `_container_environment` also calls, because `boundaries.snapshots` and `boundaries.containers` are typed as the interfaces and nothing narrows them. Building them runs no command.
-
-The four new items take callables, so `application` knows no adapter:
+The four items that reach the machine take callables, so `application` knows no adapter:
 
 | Item | Function | Callable | Fails with |
 |---|---|---|---|
@@ -354,8 +341,8 @@ The four new items take callables, so `application` knows no adapter:
 | `dataset` | `dataset_item(dataset, exists)` | `ZfsSnapshots.dataset_exists` | `the dataset <dataset> does not exist; make it with zfs create, and its base with zfs snapshot <dataset>@base`, or `cannot list the dataset <dataset>: <error>` on `SnapshotError` |
 | `stage-image` | `stage_image_item(image, exists)` | `PodmanRuns.image_exists` | `the stage image <image> is not built; build it with podman build`, or `cannot look for the stage image <image>: <error>` on `ContainerError` |
 
-The items left out for `container`: `agent-environment` checks a `HOME` that is a path inside the container, not a directory on the factory's machine. `MachineChecks.run` uses `CONTAINER_TOOLS` (`git`, `uv`) in place of `REQUIRED_TOOLS` plus the runtime's executable: no `tool:make` (it runs only in the sync and check containers) and no `tool:claude` or `tool:opencode` (the executable is the stage image's; `agent-runtime-version` runs it there and is the check of its presence). `opencode_item` checks the aliases only for `container`.
+`MachineChecks.run` checks `REQUIRED_TOOLS` (`git`, `uv`) and asks for no runtime executable on the host: no `tool:make` (it runs only in the sync and check containers) and no `tool:claude` or `tool:opencode` (the executable is the stage image's; `agent-runtime-version` runs it there and is the check of its presence). There is no `agent-environment` item: the agent's `HOME` is a path inside the container. `opencode_item(settings, agent_models)` checks the aliases only.
 
-Both probes go through the environment like a stage. `agent_run_probe_item` resolves `origin/main` (none fails the item with `no origin/main to prepare the stage environment from`, and no run starts), calls `stage_environment_of(boundaries).prepare(main, MAIN_BRANCH, sync_time_limit=PROBE_TIME_LIMIT)` and then `run_agent` on the same object; `SnapshotError` and `ContainerError` from `prepare` fail the item with their message. `Preflight._run_probe` calls the same `prepare` after it puts the checkout on `main` and before `lint`; `Preflight.run` catches both errors beside `GitError` and `ProjectCommandError` and stops with `the probe on main could not run: <error>`. For `inline`, `prepare` does nothing and `resolve` is the one new git call.
+Both probes go through the environment like a stage. `agent_run_probe_item` resolves `origin/main` (none fails the item with `no origin/main to prepare the stage environment from`, and no run starts), calls `stage_environment_of(boundaries).prepare(main, MAIN_BRANCH, sync_time_limit=PROBE_TIME_LIMIT)` and then `run_agent` on the same object; `SnapshotError` and `ContainerError` from `prepare` fail the item with their message. `Preflight._run_probe` calls the same `prepare` after it puts the checkout on `main` and before `lint`; `Preflight.run` catches both errors beside `GitError` and `ProjectCommandError` and stops with `the probe on main could not run: <error>`.
 
 Tests: `tests/application/test_container_items.py`, `test_opencode_item_container.py`, `test_machine_checks_container.py`, `test_agent_run_probe_environment.py`, `test_preflight_run_environment.py` and `tests/entry/test_wiring_container_extras.py`.

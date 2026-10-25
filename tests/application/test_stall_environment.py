@@ -9,7 +9,6 @@ from typing import get_args, override
 import pytest
 
 import factory.application.stalls
-from container_support import inline_boundaries
 from definition_support import pipeline_definition
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
@@ -31,7 +30,6 @@ from git_support import install_agents, remote_commit
 from human_clone import HumanClone
 from stage_run_support import (
     BRANCH,
-    INSIDE,
     INSTANCE,
     PATH,
     WORK_ITEM,
@@ -42,8 +40,6 @@ from stage_run_support import (
 from stall_support import (
     CREATED,
     DIED,
-    OUTSIDE,
-    WRITES,
     SwitchingRuntime,
     launched_stage,
     open_work_item,
@@ -225,29 +221,6 @@ def test_a_fault_of_the_take_ends_the_stall_before_anything_is_written_or_said(
     assert remote_commit(remote, BRANCH) == started.stage_start.commit
     assert hosting.factory_posts(number) == []
     assert hosting.labels(number) == labels
-
-
-def test_a_stall_built_without_an_environment_undoes_inline_as_before(
-    boundaries: Boundaries,
-    *,
-    human: HumanClone,
-    agent_home: Path,
-    agent_runtime: FakeAgentRuntime,
-) -> None:
-    boundaries = inline_boundaries(boundaries)
-    started = started_stage(
-        boundaries, human=human, agent_home=agent_home, agent_runtime=agent_runtime
-    )
-    service = StallService(boundaries, INSTANCE, pipeline_definition(boundaries))
-
-    result = service.stall(stall_context(started, pull_request=started.pull_request), "died")
-
-    assert boundaries.git.show_file(result.commit, INSIDE) == WRITES[INSIDE]
-    assert boundaries.git.show_file(result.commit, OUTSIDE) is None
-    assert not (boundaries.checkout / OUTSIDE).exists()
-    assert result.take == TakeReport(
-        left=[cost_records_path(PATH), OUTSIDE], restored_work_item=False
-    )
 
 
 def _finish(

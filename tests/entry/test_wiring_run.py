@@ -21,7 +21,7 @@ from factory.entry.wiring import (
 )
 from git_support import PIPELINE_YAML, install_agents, remote_commit, run_git
 from human_clone import HumanClone
-from wiring_support import every_tool
+from wiring_support import every_tool, with_dataset
 
 INSTANCE = "factory-7"
 WORK_ITEM = "F0001-S0001"
@@ -64,13 +64,16 @@ COMPLETED = AgentRunResult(
 @pytest.fixture
 def settings(tmp_path: Path, remote: Path, agent_home: Path) -> InstanceSettings:
     """Return settings of `factory-7` whose checkout and state lie in `tmp_path`."""
-    return InstanceSettings(
-        repository_url=str(remote),
-        instance=INSTANCE,
-        checkout=tmp_path / "instance-checkout",
-        state_directory=tmp_path / "state",
-        agent_home=agent_home,
-        claude_executable=str(tmp_path / "no-claude"),
+    return with_dataset(
+        InstanceSettings(
+            repository_url=str(remote),
+            instance=INSTANCE,
+            checkout=tmp_path / "instance-checkout",
+            state_directory=tmp_path / "state",
+            agent_home=agent_home,
+            claude_executable=str(tmp_path / "no-claude"),
+        ),
+        tmp_path,
     )
 
 

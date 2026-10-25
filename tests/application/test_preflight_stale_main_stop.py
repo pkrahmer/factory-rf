@@ -52,7 +52,7 @@ def test_a_failed_machine_clears_the_stop_of_a_main_that_moved_on(
 ) -> None:
     before = failed_once.stamps.read()
     move_main(failed_once, tmp_path)
-    del failed_once.which.paths["make"]
+    del failed_once.which.paths["uv"]
 
     assert failed_once.preflight(OTHER_IMAGE).run() == "preflight_failed"
     assert failed_once.reasons() == ["preflight_failed"]
@@ -63,7 +63,7 @@ def test_a_failed_machine_clears_the_stop_of_a_main_that_moved_on(
 def test_a_failed_machine_keeps_the_stop_of_a_main_that_has_not_moved(failed_once: Rig) -> None:
     before = failed_once.stamps.read()
     earlier = _failing_details(failed_once)
-    del failed_once.which.paths["make"]
+    del failed_once.which.paths["uv"]
 
     assert failed_once.preflight(OTHER_IMAGE).run() == "preflight_failed"
     assert sorted(failed_once.reasons()) == ["main_branch_failing", "preflight_failed"]
@@ -83,7 +83,7 @@ def test_a_failed_machine_keeps_a_standing_stop_when_the_stamp_names_no_failed_m
             at=rig.clock.now(),
         )
     )
-    del rig.which.paths["make"]
+    del rig.which.paths["uv"]
 
     assert rig.preflight(OTHER_IMAGE).run() == "preflight_failed"
     assert sorted(rig.reasons()) == ["main_branch_failing", "preflight_failed"]
@@ -93,7 +93,7 @@ def test_a_failed_machine_keeps_the_stop_when_git_cannot_resolve_main(
     failed_once: Rig, tmp_path: Path
 ) -> None:
     shutil.rmtree(tmp_path / CHECKOUT)
-    del failed_once.which.paths["make"]
+    del failed_once.which.paths["uv"]
 
     assert failed_once.preflight(OTHER_IMAGE).run() == "preflight_failed"
     assert "main_branch_failing" in failed_once.reasons()
@@ -118,9 +118,9 @@ def test_the_moved_main_is_probed_once_when_the_machine_passes_again(
     failed_once: Rig, move_main: Callable[[Rig], None], expected: str | None
 ) -> None:
     move_main(failed_once)
-    del failed_once.which.paths["make"]
+    del failed_once.which.paths["uv"]
     assert failed_once.preflight(OTHER_IMAGE).run() == "preflight_failed"
-    failed_once.which.paths["make"] = TOOLS["make"]
+    failed_once.which.paths["uv"] = TOOLS["uv"]
 
     assert failed_once.preflight(OTHER_IMAGE).run() == expected
     assert [command for command, _limit in failed_once.commands.calls] == ["lint", "lint"]

@@ -14,7 +14,7 @@ from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_tick, machine_extras
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
-from wiring_support import every_tool
+from wiring_support import CONTAINER_ITEMS, every_tool, with_dataset
 
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 STORY = """\
@@ -55,7 +55,7 @@ COMPLETED = AgentRunResult(
     "names",
     [
         pytest.param(
-            ["token-file", "agent-environment", "agent-run-probe"],
+            [*CONTAINER_ITEMS, "agent-run-probe"],
             id="no-agent-user",
         ),
     ],
@@ -67,11 +67,14 @@ def test_the_extras_come_in_the_operator_guides_order_sudo_only_with_an_agent_us
     *,
     names: list[str],
 ) -> None:
-    settings = InstanceSettings(
-        repository_url="/srv/project.git",
-        instance="factory-1",
-        state_directory=tmp_path / "state",
-        agent_home=agent_home,
+    settings = with_dataset(
+        InstanceSettings(
+            repository_url="/srv/project.git",
+            instance="factory-1",
+            state_directory=tmp_path / "state",
+            agent_home=agent_home,
+        ),
+        tmp_path,
     )
     environment = {"PATH": "/usr/bin", "HOME": str(tmp_path)}
 
@@ -102,15 +105,18 @@ def test_a_tick_stops_on_a_failed_extra_and_otherwise_probes_in_the_stages_envir
         token_file.chmod(0o600)
     agent_runtime.queue(ScriptedRun(result=PROBE))
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
-    settings = InstanceSettings(
-        repository_url=str(remote),
-        instance="factory-7",
-        checkout=tmp_path / "instance-checkout",
-        state_directory=tmp_path / "state",
-        agent_home=agent_home,
-        claude_executable=str(tmp_path / "no-claude"),
-        pinned_agent_version="fake",
-        token_file=token_file,
+    settings = with_dataset(
+        InstanceSettings(
+            repository_url=str(remote),
+            instance="factory-7",
+            checkout=tmp_path / "instance-checkout",
+            state_directory=tmp_path / "state",
+            agent_home=agent_home,
+            claude_executable=str(tmp_path / "no-claude"),
+            pinned_agent_version="fake",
+            token_file=token_file,
+        ),
+        tmp_path,
     )
     tick = build_tick(dataclasses.replace(boundaries, settings=settings), settings, every_tool)
 
@@ -121,7 +127,7 @@ def test_a_tick_stops_on_a_failed_extra_and_otherwise_probes_in_the_stages_envir
         [stop] = boundaries.health.read().stops
         assert "token-file" in stop.detail
         return
-    assert outcome.stopped is None
+    assert outcome.stopped is None, boundaries.health.read().stops
     probe, stage = agent_runtime.requests()
     assert probe.allowed_decisions == ["question"]
     assert stage.environment == probe.environment

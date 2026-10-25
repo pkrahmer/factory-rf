@@ -12,15 +12,6 @@ from factory.domain.settings import InstanceSettings
 from wiring_support import every_tool
 
 CONTAINER_ITEMS = ["tool:git", "tool:uv", "hosting-service", "agents", "agent-runtime-version"]
-INLINE_CLAUDE_ITEMS = [
-    "tool:git",
-    "tool:uv",
-    "tool:make",
-    "tool:claude",
-    "hosting-service",
-    "agents",
-    "agent-runtime-version",
-]
 EXTRA = "extra"
 
 
@@ -40,7 +31,6 @@ def _extra() -> PreflightItem:
             "opencode",
             id="container-opencode",
         ),
-        pytest.param({"agent_runtime": "claude"}, INLINE_CLAUDE_ITEMS, None, id="inline"),
     ],
 )
 def test_a_container_instance_checks_git_and_uv_but_no_make_and_no_runtime_executable(

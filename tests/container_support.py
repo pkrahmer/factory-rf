@@ -48,7 +48,6 @@ TAKE_SECONDS = 0.25
 GONE = "gone"
 FIVE_MINUTES = timedelta(minutes=5)
 CONTAINER: dict[str, object] = {
-    "stage_environment": "container",
     "dataset": DATASET,
     "workspace": str(MOUNT_POINT),
     "stage_image": IMAGE,
@@ -329,8 +328,3 @@ def assert_taken_and_pushed(boundaries: Boundaries, remote: Path, report: StageR
     assert NOTES in journal
     assert len(timing_lines(boundaries)) == 1
     assert boundaries.git.status().changes == []
-
-
-def inline_boundaries(boundaries: Boundaries) -> Boundaries:
-    """The boundaries without the fixture's fakes, so their stages run in the inline environment."""
-    return replace(boundaries, snapshots=None, containers=None)

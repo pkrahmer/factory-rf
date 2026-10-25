@@ -172,7 +172,6 @@ ENVIRONMENT = (
     ("FACTORY_INSTANCE", re.escape("$instance") + VALUE_END),
     ("FACTORY_REPOSITORY_URL", re.escape("$repository_url") + VALUE_END),
     ("FACTORY_AGENT_RUNTIME", re.escape("$runtime") + VALUE_END),
-    ("FACTORY_STAGE_ENVIRONMENT", "container" + VALUE_END),
     ("FACTORY_DATASET", re.escape("$pool/factory/$instance") + VALUE_END),
     ("FACTORY_WORKSPACE", re.escape("$base/work") + VALUE_END),
     ("FACTORY_STAGE_IMAGE", re.escape("$image") + VALUE_END),

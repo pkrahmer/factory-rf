@@ -10,14 +10,19 @@ from factory.domain.command_records import CommandRecord
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
 from git_support import clone
-from wiring_support import CREDENTIAL
+from podman_support import PodmanPlan
+from wiring_support import CREDENTIAL, dataset_podman
 
 
 def test_the_built_project_commands_record_a_run_in_the_state_directory(
-    remote: Path, local_settings: InstanceSettings
+    tmp_path: Path, remote: Path, local_settings: InstanceSettings
 ) -> None:
     checkout = clone(remote, local_settings.checkout)
     (checkout / "Makefile").write_text("lint:\n\t@true\n", encoding="utf-8")
+    assert local_settings.workspace is not None
+    # The dataset's base holds the checkout the stand-in `zfs` cannot roll back to.
+    (local_settings.workspace / "checkout").mkdir()
+    dataset_podman(tmp_path.resolve(), PodmanPlan(stdout="lint: green (0 s)\n"))
     boundaries = build_boundaries(local_settings, CREDENTIAL, hosting=FakeHostingService())
 
     boundaries.project_commands.run("lint", time_limit=timedelta(seconds=30))
