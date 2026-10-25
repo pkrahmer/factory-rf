@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-25T08:05:34.773111Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-25T08:05:34.773111Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T08:06:02.770362Z'
+  stage: docs
+  run: 66e95f3860164afd9b3c77bfaecf262e
 ---
 
 # The dataset's checkout knows origin/main
@@ -270,3 +272,23 @@ Expect: `1`
     Notes:
     - `tests/application/test_container_sync_origin.py:396` `main_commit`: overlaps the `main_commit` fixture of `tests/application/test_container_environment.py:43`. The earlier one also gives the host the branch, so it is not a straight copy, but a shared fixture with the branch as an option would serve both.
 18. factory: started docs as vm.
+19. documenter: Docs for the sync's second refspec. No findings.
+
+    Changed:
+    - `docs/project-guide/stage-environment.md`, *The sync script*, step 4: it now names both refspecs on the one `git fetch`. It says the second one makes the checkout know `origin/main` and `origin/<branch>` as a clone would, because the project's commands read `origin/main`. It also says what happened on the first VM stage without it: F0043-S0004's `make check` stopped at `make secrets` on old hex values in finished acceptance reports the branch never touched. I wrote the sentence from the story's Description; I did not reproduce that failure.
+
+    I changed no other file. The docs criterion names no change to `docs/decisions.md` or `README.md`. I ran no `make` target, because I changed only a document and the factory's checks run next.
+
+    Diff against the story: the source diff is `_SYNC_SCRIPT` and its comment in `src/factory/application/stage_environment.py`, which matches the Interface. The Interface, the code and the docs agree.
+
+    Cross-read and found current:
+    - `docs/project-guide/stage-environment.md` otherwise, including the claim that no container path appears in the script and the `--prune` and `--update-head-ok` explanations. The doc's test list names `tests/container_support.py` helpers. It does not list the new `container_environment` helper or `GONE` there, nor the new test module `tests/application/test_container_sync_origin.py`. I left that as is: the list is not claimed to be complete, and that is test-layout detail rather than something the reader needs to run or change the sync.
+    - The grep of `docs/` and `README.md` for `refs/heads` found no other text about the sync's fetch.
+
+    Stale text I saw and did not touch:
+    - `docs/runs/2026-10-12-overnight/night-log.md` is the human's file. Its row for 07:00 says the sync fetches local branches only. That was true when written.
+    - The reviewer's note about the overlapping `main_commit` fixture in the two test modules is test code, not mine to fix.
+
+    `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok
