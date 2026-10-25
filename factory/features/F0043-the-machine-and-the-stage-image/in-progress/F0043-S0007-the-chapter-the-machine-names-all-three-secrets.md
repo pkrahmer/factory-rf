@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 437
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-25T08:35:14.559958Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-25T08:35:14.559958Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T08:35:35.188656Z'
+  stage: review
+  run: 14e6007fe901455e81bb473c7dc5ace7
 ---
 
 # The chapter "The machine" names all three secrets in every place
@@ -128,3 +130,13 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar, so nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changed.
+   - Criterion 1: holds. The tester's entry (5) and the coder's entry (7) both say that nothing under those paths changed.
+   - Criterion 2: the factory's `make check` after the coder was green (entry 7: `check: green`, coverage 99.20 %).
+   - Criterion 3 (docs): the documenter writes it next. I checked that it still matches the repository. `docs/operator-guide.md:493` still holds "the login file for your runtime", and `docs/operator-guide.md:618` still holds "means no key: podman". `vm/Dockerfile:12` pins the seven packages the criterion names (`git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs`, `npm`), and `sudo` is pinned only in `image/Dockerfile:12`. `tests/test_stage_image.py` and `tests/test_image.py` both exist. The criterion is accurate, so the Description needs no correction.
+   - Architecture, security and quality: there is no code in the diff to judge. The coder's `duplicates: 11 new` cannot come from this branch, because it changes nothing under `src/factory`.
+   - Work item hygiene: the coder's entry gives the main choice (no edit to the guide, which belongs to the documenter) and what it rejected.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
