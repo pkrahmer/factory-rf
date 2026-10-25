@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 438
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-25T08:46:22.040078Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-25T08:46:01.693831Z'
   stage: tests
   run: 9924d52cf2364bb1984cf6fbf7f00fd1
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T08:46:22.040078Z'
+  stage: doing
 ---
 
 # The rebuild after a merge runs the operator's own copy of the setup script
@@ -96,3 +105,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.2 s)
    `test`: test: green (194.8 s)
+6. factory: started doing as vm.
