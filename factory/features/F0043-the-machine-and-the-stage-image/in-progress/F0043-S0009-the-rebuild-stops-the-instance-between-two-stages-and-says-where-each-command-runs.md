@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 440
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-25T09:12:16.149174Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-25T09:12:16.149174Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T09:19:00.152277Z'
+  stage: tests
+  run: 23725e0771f24bcea3930865491ef1ce
 ---
 
 # The rebuild after a merge stops the instance between two stages and says where each command runs
@@ -103,3 +105,12 @@ Expect: `documents ok`
    Architecture: this is documentation only, so the layers are untouched. The documenter's write path covers `docs/*`.
    Scope: the story stays inside F0043's operator-guide work. It touches no code, `vm/` or `factory/`. It leaves the `TimeoutStopSec` change open for the human, as the feature's Out of scope requires.
 4. factory: started tests as vm.
+5. tester: No tests written. This story changes the documents only, and its Interface says no test reads them.
+   - criterion 1 (nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes): no test. I changed nothing under `tests/` or anywhere else, and `git status` shows a clean working tree.
+   - criterion 2 (`make check` stays green): no test. The existing suite covers it.
+   - criterion 3 (docs, `### The rebuild after a merge` in `docs/operator-guide.md`): no test. The work item says the smoke test and `make documents` check it, and that no test does.
+   Files created: none. Modules the test runner could not import: none.
+   `make test` passed (`test: green`, coverage 99.20 %) and `make lint` passed. There are no red tests on purpose this time. The coder writes no code; the documenter makes the change. Nothing is open from the tests stage.
+
+   `lint`: lint: green (0.2 s)
+   `test`: test: green (194.6 s)
