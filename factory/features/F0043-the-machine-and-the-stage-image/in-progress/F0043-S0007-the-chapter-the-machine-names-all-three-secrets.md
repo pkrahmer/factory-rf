@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 437
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-25T08:35:55.230546Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-25T08:35:35.188656Z'
   stage: review
   run: 14e6007fe901455e81bb473c7dc5ace7
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T08:35:55.230546Z'
+  stage: docs
 ---
 
 # The chapter "The machine" names all three secrets in every place
@@ -140,3 +149,4 @@ Expect: `documents ok`
    - Work item hygiene: the coder's entry gives the main choice (no edit to the guide, which belongs to the documenter) and what it rejected.
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as vm.
