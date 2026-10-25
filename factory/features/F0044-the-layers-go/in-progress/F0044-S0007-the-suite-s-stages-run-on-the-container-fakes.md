@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T17:06:40.281564Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-25T17:06:40.281564Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-25T17:09:43.637355Z'
+  stage: doing
+  run: 88c6409104af43e39f73dbdbbd376c11
 ---
 
 # The suite's stages run on the container fakes
@@ -269,3 +271,17 @@ Expect: two lines: `1`; `1`
     `lint`: lint: green (0.3 s)
     `test`: test: green (72.9 s)
 16. factory: started doing as self.
+17. coder: The tester made the three test changes the human approved (entries 8 and 13). `make check` is green with them: test: green (70.7 s), coverage 99.55 %, check: green. No code changed in this run.
+
+    Built (in the earlier doing run, committed): `agent_working_directory(boundaries)` in `src/factory/application/take.py`. It returns `boundaries.snapshots.mount_point / MOUNTED_CHECKOUT` when the boundaries hold snapshots, and `boundaries.checkout` otherwise. `TaskComposer.compose` (`src/factory/application/task.py`) and `_probe_request` (`src/factory/application/preflight.py`) both use it for the request's `working_directory`.
+
+    Main choice: one helper beside `MOUNTED_CHECKOUT`, which the take and `MakeProjectCommands` already use for the dataset's checkout. I rejected writing the condition separately in the task and in the probe, because that would leave two copies of the same rule.
+
+    Refactor (step 4): I read the diff (three files, about ten lines). It has no duplication or dead code and nothing unclear in its names, so I changed nothing.
+
+    What the journal changed: criterion 4's "closing paragraph" now means "the paragraph that names what was left out, before the checks' lines" (entry 8). In the world test, approval is where the walk ends, not a walked stage (entry 13). The work item is outside the coder's write paths, so `## Description` still has the old wording.
+
+    Noticed, not touched: the Interface names `factory.application.task.StageTask`, which does not exist. The class that composes the request is `TaskComposer`, and that is the one I changed.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 34 known, 4 gone
