@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T16:33:30.113202Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-10-25T16:33:30.113202Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-10-25T16:36:36.030940Z'
+  stage: doing
+  run: a0c18e7c066444e1bf5c55c675b27c98
 ---
 
 # The checkout's hygiene is removed
@@ -510,3 +512,26 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     `lint`: lint: green (0.7 s)
     `test`: test: green (67.8 s)
 27. factory: started doing as self.
+28. coder: Round 1. The reviewer's only finding (entry 22, group 4, item 1: the copied `RecordingRun`) was a change to tests, and the tester made it in entry 26: the class now lives in `tests/sealed_run_support.py`, and both `tests/application/test_stage_environment.py` and `tests/application/test_container_environment.py` import it from there. I changed no code and no test in this run. I ran `make check` in the foreground on the committed state and it is green: `test: green (65.7 s)`, coverage 99.55 %, `check: green`.
+
+    What I built (unchanged since 0edf9d3f; entry 13 has the full list):
+    - Deleted `src/factory/application/sealed_runs.py`.
+    - Removed the five Git operations from `src/factory/application/git.py` and `src/factory/adapters/git_cli.py`, so Git has twenty-one.
+    - Removed `RepositoryUnsealed` from `src/factory/domain/errors.py`, and the re-raise of it from `src/factory/application/dispatcher.py`.
+    - `src/factory/application/scheduler.py`: `CheckoutPreparer.prepare` now only clones a missing checkout.
+    - `src/factory/application/tick.py`: the restore no longer removes ignored paths.
+    - `src/factory/application/stage_environment.py`: `run_agent` returns the `AgentRunResult` itself.
+    - Removed the `nested_repository` stall and the probe's fault for it from `src/factory/application/stage.py` and `src/factory/application/preflight.py`.
+    - Removed `nested_repository` from `src/factory/domain/journal.py` and `src/factory/domain/post_texts.py`.
+    - `RECORDS_CONTRACT` is "3.0". I regenerated the schemas under `src/factory/contract/` with `uv run python -m factory.entry.contract`.
+
+    Main choice: each environment calls the runtime in its own `run_agent`. I rejected a shared concrete helper on the abstract `StageEnvironment`, because the project's interfaces carry no behaviour.
+
+    Refactor: there was no new diff in this round, so there was nothing to refactor.
+
+    What the journal changed: nothing new in this round. The Description is outside my write paths.
+
+    Noticed, not touched: `CheckoutPreparer` still stores `self._log` but never reads it. It stays, as the human decided in entry 14.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 34 known, 4 gone
