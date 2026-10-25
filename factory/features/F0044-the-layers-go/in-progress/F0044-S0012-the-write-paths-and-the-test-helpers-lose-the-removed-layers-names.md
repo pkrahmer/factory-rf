@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T20:57:51.039362Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-25T20:57:30.549752Z'
   stage: review
   run: c7e90b722ac44ba69af3cb1ee1fde9a9
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:57:51.039362Z'
+  stage: doing
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -202,3 +211,4 @@ Expect: `0`
    - tests/domain/test_nested_claude_paths.py: decision 42 (`GuardSettings` → `WritePathSettings`)
    - tests/test_kernel_guard_removed.py: decision 42 (`GuardSettings` → `WritePathSettings`, row ids kept)
    - tests/test_hook_removed.py: decision 42 (`GuardSettings` → `WritePathSettings`; the `GuardSettingsInvalid` row is kept as it was)
+10. factory: started doing as self.
