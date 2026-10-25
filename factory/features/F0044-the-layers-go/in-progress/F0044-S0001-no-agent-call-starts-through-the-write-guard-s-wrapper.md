@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-25T10:44:17.892927Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-25T10:43:57.792726Z'
   stage: intake
   run: 12fda58793ae484899727422536edcd1
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-25T10:44:17.892927Z'
+  stage: tests
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -169,3 +178,4 @@ Expect: `7`
    - Smoke test: both commands are runnable and run no pytest, so no `-q` question arises. Each `Expect:` line is checkable: `[]`, `[]`, `False`, and `7`.
    - Architecture: the changes stay inside the four layers `CLAUDE.md` describes. The three kept modules (`confine`, `landlock`, `confinement`) are left to S0002 as stated.
    - Scope: the story is S0001 of `feature.md`. The R14 text change is the one agent edit the feature allows. The test leave is decisions 17, 29(f) and 30(a), and the docs passages follow 30(c).
+7. factory: started tests as vm.
