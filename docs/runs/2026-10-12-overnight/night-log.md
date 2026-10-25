@@ -1169,3 +1169,7 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 | 14:04 | Change 5 (CLAUDE.md Tests bullet on the fresh-home program goes) and decision 33b (R12 fresh_home clause replaced). |
 | 14:05 | Rebuilt self (no claim). F0044-S0005 waits for its pre-check, still running. |
 | 14:29 | Pre-check of F0044-S0005 (the second user is removed), round 1: accepted at intake, edits 1-4 required, 5-7 optional; all applied once; form check ok; secrets hook clean. The human answered the quiz: (a) leave for the corrected list, (b) the R12 sudo clause replaced right after S0005, (c) the extra docs passages into S0005. Recorded as decision 34. Started F0044-S0005. |
+| 14:33 | self had not ticked since about 14:07 (checkout stuck at 9718936f, no child process, start commit of F0044-S0005 unseen for 25 min). No claim: restarted the container; it took S0005 at once. **For the morning:** a hung tick on self with no log line; cause not found. |
+| 14:33 | F0044-S0005 intake questions on #448: (1) answered (a), a umask criterion; (2) confirmed, no further criterion. |
+| 14:40 | F0044-S0005 tester question on #448 (the earlier-test changes did not fit the run): answered (a), the tests stage runs again for all of them; both readings confirmed. |
+| 15:57 | Pre-check of F0044-S0006 (the checkout's hygiene is removed), round 1: accepted at intake, edits 1-4 required, 5-8 optional; all applied once; form check ok; secrets hook clean. The human answered the quiz: all four recommended answers, recorded as decision 35. |
