@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-10-25T14:03:07.689529Z'
   stage: smoke-test
   run: e18f9bc4598b4d388c46f19f4b499cbe
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-10-25T14:04:28.077986Z'
+  stage: approval
 ---
 
 # The fresh home is removed
@@ -341,3 +346,4 @@ Expect: six lines: `gone`, `gone`, `gone`, `gone`, `gone`, `False False True`
     Checked against the acceptance criteria: nothing in the smoke test contradicts any of them. Command 1 confirms criterion 1 (the modules are gone). Command 2 confirms the field parts of criterion 2: `Boundaries` has no `agent_home`, and `InstanceSettings` has no `opencode_folders` but still has `agent_home`. That `agent_home` setting is the one criterion 5 keeps. A grep of `src/` also finds no `OPENCODE_FOLDERS`, `fresh_home`, `LOGIN_STATE_FILE` or `agent_home_of`; that is consistent with criteria 2 and 3, though the smoke test did not ask for it. The smoke test does not cover criteria 4, 6, 7 and 8; the stage's tests and checks do.
 
     Findings: none.
+17. factory: done (pull request merged); cost: 7 runs, 9.5 min, 73 turns, 240350 tokens in (2238161 more from cache), 32550 out, $2.46
