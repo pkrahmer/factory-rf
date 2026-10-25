@@ -17,7 +17,6 @@ from factory.application.take import TakeReport
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.errors import SnapshotError
 from factory.domain.git import CommitId
-from factory.domain.journal import entry_text
 from factory.domain.paths import cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from git_support import PIPELINE_YAML, remote_commit
@@ -30,9 +29,7 @@ from stage_run_support import (
     WORK_ITEM,
     completed,
     open_story,
-    pushed,
     pushed_state,
-    run_stage,
 )
 from take_support import AGENT_TEXT
 from work_item_support import checkout_text
@@ -205,25 +202,3 @@ def test_after_the_agent_the_environment_takes_and_its_report_closes_the_entry(
         assert UNDONE_PARAGRAPH not in processed.entry.text
     else:
         assert processed.entry.text.endswith(paragraph)
-
-
-def test_a_stage_built_without_an_environment_runs_the_inline_one(
-    boundaries: Boundaries,
-    *,
-    human: HumanClone,
-    agent_home: Path,
-    agent_runtime: FakeAgentRuntime,
-    remote: Path,
-) -> None:
-    boundaries = inline_boundaries(boundaries)
-    open_story(boundaries, human, agent_home)
-    agent_runtime.queue(ScriptedRun(writes={OUTSIDE: AGENT_TEXT}, result=completed()))
-
-    run_stage(boundaries)
-
-    assert checkout_text(boundaries, OUTSIDE) is None
-    document = pushed(boundaries, remote)
-    state = document.state
-    assert state is not None
-    [record] = [record for record in state.journal if record.speaker == "tester"]
-    assert f"{UNDONE_PARAGRAPH}{OUTSIDE}." in entry_text(document, record.number)

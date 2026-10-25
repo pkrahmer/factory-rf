@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 451
 comments_read: [6401042995]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T17:50:15.483400Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-10-25T17:50:15.483400Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-25T17:55:50.643103Z'
+  stage: tests
+  run: d8a4e097c52243d49318363f4fb42d6a
+  blocked: question
 ---
 
 # The inline environment and its setting are removed
@@ -155,3 +158,39 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
    - Architecture: the changes keep the layer order (domain settings, application boundaries/preflight/task, entry wiring). The container environment stays the only implementation behind the interface, and the runtimes' call without a container stays (decision 2).
    - Scope: within the feature's S0008 scope and its decisions 2, 3, 10, 13, 16, 24 and 37. The undo's module stays for S0009, and no "Out of scope" item is touched. The test changes are covered by the human's leave in decision 24, on the corrected list of decision 37.
 7. factory: started tests as self.
+8. tester: I wrote the tests for criteria 1 to 8 and made the deletions the Interface names. I stopped before adapting the existing tests the Interface lists, because the budget would not cover them. That list is the wiring-based tests, which need a dataset, workspace and image, plus `wiring_support`, `hosted_environment`, the inline rows and the narrowed `opencode_item` callers. The question is who adapts them and when.
+
+   Criterion → test:
+   - criterion 1: tests/test_one_stage_environment.py::test_the_inline_environment_s_names_are_gone
+   - criterion 2: tests/application/test_stage_environment_of.py::test_the_environment_of_the_boundaries_is_the_container_one. This is the renamed test; the file is rewritten. It checks "on its snapshots and containers" through `ContainerEnvironment._snapshots` and `._containers`, with `noqa: SLF001`.
+   - criterion 3: tests/domain/test_settings_one_environment.py::test_the_stage_environment_setting_is_read_by_nothing
+   - criterion 4: tests/entry/test_wiring_one_environment.py::test_build_boundaries_needs_the_dataset_the_workspace_and_the_image
+   - criterion 5: tests/entry/test_wiring_one_environment.py::test_the_agent_run_s_home_is_the_dataset_s
+   - criterion 6: tests/entry/test_wiring_one_preflight.py::test_the_preflight_checks_the_one_environment_s_items
+   - criterion 7: tests/application/test_request_working_directory.py::test_the_request_works_in_the_dataset_s_checkout
+   - criterion 8: tests/domain/test_settings_one_environment.py::test_a_workspace_refuses_a_relative_path_and_an_inner_checkout_or_state
+   - criteria 9 and 10: no test (`make check`, docs).
+
+   Files created: tests/test_one_stage_environment.py, tests/domain/test_settings_one_environment.py, tests/entry/test_wiring_one_environment.py, tests/entry/test_wiring_one_preflight.py, tests/application/test_request_working_directory.py.
+
+   Earlier test files changed under decision 24's leave:
+   - Deleted whole: tests/application/test_stage_environment.py, tests/application/test_agent_environment_item.py, tests/entry/test_wiring_stage_environment_home.py. The Interface also names tests/entry/test_wiring_extras_path.py for deletion, but that file does not exist on this branch.
+   - Rewritten: tests/application/test_stage_environment_of.py.
+   - Single tests deleted: test_the_last_required_tool_is_the_runtime_s_executable in tests/application/test_machine_checks_runtime.py, test_a_stage_built_without_an_environment_runs_the_inline_one in tests/application/test_stage_environment_calls.py, and test_a_stall_built_without_an_environment_undoes_inline_as_before in tests/application/test_stall_environment.py. Ruff removed the imports this left unused.
+
+   One `make test` run is red. The failures I saw are for the right reason: `opencode_item()` still wants `find` and `environment`, and `MachineChecks.run` still asks for `make` and the runtime's executable. `make lint` is green. No module was missing at import: every module under test exists. Only names are missing, so the failures are TypeErrors and assertion failures, not collection errors.
+
+   Not done: the rest of the Interface's test list.
+   - The wiring-based tests: tests/wiring_support.py, the `hosted_environment` fixture, test_wiring_boundaries (11 tests), test_wiring_run, test_wiring_handlers, test_wiring_environment, test_wiring_human_handlers, test_wiring_acceptance, test_wiring_preflight, test_wiring_api_login/login/provider_limit/opencode/command_records/known_results/project_agents/record_logs/stop_records/waiter, test_run (10 tests), test_run_health_file, test_run_waiter, test_watch_main, test_watch_settings.
+   - The inline rows of test_machine_checks_container, test_opencode_item_container and test_wiring_container_extras.
+   - The three tests of test_opencode_item.
+   - test_wiring_extras.
+   - test_make_search::test_only_the_make_class_names_make.
+   - The rows of test_settings_stage_environment, test_wiring_stage_environment and test_settings_paths.
+   - test_task::test_the_request_carries_the_agent_checkout_and_guard_without_os_user.
+   - tests/application/test_stage_on_container_fakes.py: it uses `inline_boundaries` (snapshots=None), which stops type-checking once `snapshots` is required, and so do the other callers of `container_support.inline_boundaries`.
+
+   Options:
+   (a) Move to `doing` now. The coder implements against the new tests, then ends with `tests`, naming the Interface's list (decision 24) as the approved test change. The tester then adapts those tests against the real code in a "test change the human approved" run.
+   (b) Run this tests stage again so that it adapts them all before the coder starts. The adaptations would be written blind, against code that does not exist yet.
+   I would choose (a). Adapting tests that run through the wiring is safer once `build_boundaries` raises the three `missing` faults for real.
