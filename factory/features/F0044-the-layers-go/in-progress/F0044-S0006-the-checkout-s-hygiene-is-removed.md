@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T16:38:05.840213Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -175,6 +179,11 @@ journal:
   at: '2026-10-25T16:37:45.008872Z'
   stage: review
   run: 92fb6dc8da1146fc87f9c5032d154ec4
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:38:05.840213Z'
+  stage: docs
 ---
 
 # The checkout's hygiene is removed
@@ -589,3 +598,4 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     - `tests/sealed_run_support.py`: the Interface's test list (`leave` gone). It now holds `RecordingRun` as the shared place, under the standing leave to move a shared test helper.
     - `tests/test_home_reset_removed.py`: the Interface's test list.
     - `tests/test_tests_umask.py` (deleted): the Interface's test list.
+31. factory: started docs as self.
