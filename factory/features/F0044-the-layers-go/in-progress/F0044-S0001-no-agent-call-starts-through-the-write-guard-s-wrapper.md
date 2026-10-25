@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T11:43:31.932455Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,13 @@ journal:
   kind: started
   at: '2026-10-25T11:43:31.932455Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: question
+  at: '2026-10-25T11:45:01.766509Z'
+  stage: tests
+  run: 69d974b9c27741b9bbabe83d216d6acb
+  blocked: question
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -257,3 +260,34 @@ Expect: `7`
 
    Then write criterion 8's test and set `_WRITE_PATHS_RULE` and `_OLD_ENDING` in `tests/test_claude_agent_refusal.py` as you planned.
 10. factory: started tests as self.
+11. tester: Stopped after writing the tests for criterion 8 and the change to `tests/test_claude_agent_refusal.py`. Neither `make test` nor `make lint` could run: the write guard refused both. I did not work around either one (R11, R14).
+
+    - `make test`: `mkdir: cannot create directory '.reports': Permission denied` (Makefile:85). The stage cannot create `.reports/` in the checkout.
+    - `make lint`: `error: failed to open file '/home/agent/.cache/uv/sdists-v9/.git': Permission denied (os error 13)` (Makefile:33). uv's package cache in the agent's home is not readable.
+    - Pasting decision 4's line into the work item's Interface, as journal entry 9 asked, was also refused (`PermissionError: [Errno 13]` on the work item's `.md`). The exact text is in journal entry 9 and now in `tests/shipped_agents.py::WRITE_PATHS_RULE`. The Interface still needs it.
+
+    Question: can this instance's run write `.reports/` in the checkout and read `/home/agent/.cache/uv`, and can the work item be written? Options:
+    (a) Fix the machine or the write paths, then rerun this stage. It would only run `make test` once and `make lint`. I would choose this.
+    (b) Accept the tests as they stand and hand forward to `doing`. `make lint` would then first run in the factory's own check, and the red run would not be recorded here.
+
+    Criterion → test (criteria 1–7 come from journal entry 8, files committed):
+    - criterion 1: `tests/adapters/test_runtimes_without_wrapper.py::test_the_wrapper_s_names_are_gone` and `::test_the_starters_are_sudo_the_login_files_and_the_leftovers_program`
+    - criterion 2: `tests/adapters/test_runtimes_without_wrapper.py::test_no_constructor_takes_the_wrapper_or_its_folders`
+    - criterion 3: `tests/adapters/test_runtimes_without_wrapper.py::test_a_claude_call_as_a_user_starts_the_login_words_then_the_call_after_env_i` and `::test_a_call_without_a_user_has_no_rules_file_and_makes_no_run_folder`
+    - criterion 4: `tests/adapters/test_runtimes_without_wrapper.py::test_only_sudo_and_the_login_shell_refuse_a_call`
+    - criterion 5: the existing tests in `tests/adapters/test_claude_runtime_container.py` and `tests/adapters/test_opencode_runtime_container.py`, changed as the Interface says
+    - criterion 6: `tests/entry/test_wiring_container_extras.py::test_the_extras_are_chosen_by_the_stage_environment_in_the_operator_guides_order`
+    - criterion 7: `tests/test_wrapper_out_of_the_call_path.py::test_only_the_guard_s_modules_name_the_wrapper_or_import_its_rules`
+    - criterion 8: `tests/test_shipped_agents_r14.py::test_each_agent_holds_the_take_s_r14_once_and_no_kernel_promise`, parametrized over `SHIPPED_NAMES`
+
+    Files created this run: `tests/test_shipped_agents_r14.py`.
+
+    Earlier test files changed this run:
+    - `tests/test_claude_agent_refusal.py`, under the Interface's leave (decision 17):
+      - The R14 constant is decision 4's text.
+      - `_OLD_ENDING` is the sentence beginning `the kernel refuses every other write`.
+      - The module docstring now fits the new rule.
+      - Every test keeps its name.
+    - `tests/shipped_agents.py`, under the standing leave to move a shared constant: it now holds `WRITE_PATHS_RULE`. Both modules import it, so they no longer each carry a copy.
+
+    Modules the runner could not import: not known for this run, because `make test` did not start. In entry 8's run, `tests/adapters/test_agent_launch_call_end.py` could not be collected because `Starters` still requires `confine_executable`.
