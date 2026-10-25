@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 454
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T20:20:53.145517Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T20:20:32.815053Z'
   stage: intake
   run: c10ea9981ed54c3d9d2f8523a1b23771
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:20:53.145517Z'
+  stage: tests
 ---
 
 # The documents close the layers
@@ -106,3 +115,4 @@ Expect: `documents ok`
    Smoke test: every command uses awk, grep, a while loop or make, so all are runnable. Each `Expect:` is checkable: `0`; `0` and `1`; `0` and `0`; `1` and `1`; `documents ok`. No command runs pytest, so the `-q` rule does not apply. The `[Dd]ocker\b` pattern does not match `Dockerfile`, as the criterion allows.
    Architecture: documents and the decision log only, with no layer or interface touched. It keeps the documenter's write paths (`README.md`, `docs/*`). `docs/operator-playbook.md`, `docs/runs/` and `CLAUDE.md` are left alone, as decision 15 says.
    Scope: matches S0011 in feature.md (the decision log's closing lines and *What went*, the operator guide, the project guide, README). It adds no mechanism and touches nothing in "Out of scope". The format check passed, and no earlier test is changed.
+4. factory: started tests as self.
