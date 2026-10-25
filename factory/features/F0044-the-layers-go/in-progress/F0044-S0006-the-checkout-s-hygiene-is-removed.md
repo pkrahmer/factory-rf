@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T16:29:37.198543Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-10-25T16:29:16.531850Z'
   stage: review
   run: bda3abe802c544df9f4898a0a6f14edf
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:29:37.198543Z'
+  stage: doing
 ---
 
 # The checkout's hygiene is removed
@@ -439,3 +448,4 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     - `tests/sealed_run_support.py`: the Interface's list (`leave` gone), plus the module docstring that followed.
     - `tests/test_home_reset_removed.py`: the Interface's list (the `sealed-project-commands-parameters` row and its import gone).
     - `tests/test_tests_umask.py` (deleted): the Interface's list.
+23. factory: started doing as self.
