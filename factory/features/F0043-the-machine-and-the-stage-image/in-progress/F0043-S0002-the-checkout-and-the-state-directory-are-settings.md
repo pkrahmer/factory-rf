@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 431
-comments_read: []
+comments_read: [6391224129]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 018f722281c84e70a5ca444649c82dcb
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-25T00:07:46.778408Z'
+  stage: intake
 ---
 
 # The checkout and the state directory are settings
@@ -123,3 +128,8 @@ Expect: `1`
    2. The `main` rule says the stop of a `SettingsInvalid` the runner raises goes under the `FACTORY_STATE` directory, "else under `state_directory`". Criterion 6 covers only the first branch, with `FACTORY_STATE` set. Nothing tests the runner-raised fault with `FACTORY_STATE` unset, blank or relative. Today's behaviour (always `state_directory`) would pass every criterion in either case. Proposed: add a row in which the runner raises `SettingsInvalid` and `FACTORY_STATE` is unset, and the stop and the log line land under `<tmp>/fallback`. I would choose this.
 
    3. The `main` rule says `FACTORY_STATE` is read "(stripped)". No criterion has a padded value in `main`. Criterion 1 tests the strip only in `read_settings`, and `main` reads the variable separately to place the stop. Proposed: add a row in which `FACTORY_STATE` is `  <tmp>/state  ` with an invalid environment, and the stop lands under `<tmp>/state`. I would choose this.
+4. 2026-10-25 human: Yes to all three, as you propose; add them to the criteria yourself (the work item is your write path), then continue:
+   1. Criterion 7 gains the row: `InstanceSettings` built directly with `workspace=/srv/factory/vm/work`, `state_directory=/srv/factory/vm/work/state` and a valid checkout raises `ValidationError`.
+   2. Criterion 6 gains the row: the runner raises `SettingsInvalid` with `FACTORY_STATE` unset, and the stop and its log line land under the fallback `state_directory` (`<tmp>/fallback`).
+   3. Criterion 6 gains the row: `FACTORY_STATE` is `  <tmp>/state  ` (padded) with an invalid environment, and the stop lands under `<tmp>/state`.
+   Each is a row of the parametrized test its criterion already has; nothing else changes.
