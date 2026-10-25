@@ -1,17 +1,13 @@
 ---
-stage: smoke-test
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T17:23:27.345649Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-10-25T17:23:27.345649Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T17:25:22.159915Z'
+  stage: smoke-test
+  run: a8314285eaa746b7aa3e604c044ae507
 ---
 
 # The suite's stages run on the container fakes
@@ -519,3 +521,34 @@ Expect: two lines: `1`; `1`
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
 30. factory: started smoke-test as self.
+31. smoke-tester: I ran the two smoke-test commands as written, from the repository root. I fixed nothing.
+
+    Command 1:
+    ```bash
+    uv run pytest tests/application/test_stage_run.py tests/application/test_after_agent.py tests/application/test_stalls.py tests/test_kill_points.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '
+    ```
+    ```
+    1
+    ```
+    It met `Expect: 1`. When I ran it without the grep, the last line was `128 passed in 40.55s`.
+
+    Command 2:
+    ```bash
+    grep -c '"Makefile"' tests/git_support.py; grep -c 'FakeSnapshots(' tests/conftest.py
+    ```
+    ```
+    1
+    0
+    ```
+    It did not meet `Expect: two lines: 1; 1`. The second line is `0`.
+
+    What I saw: the `boundaries` fixture in `tests/conftest.py` (line 238) calls `snapshots, containers = fake_dataset(tmp_path)`. The helper `fake_dataset` in `tests/container_support.py` (lines 89-98) builds `FakeSnapshots(workspace, base)` and `FakeContainerRuns(workspace)`. So the fixture does sit on `FakeSnapshots` at `<tmp_path>/workspace` with an empty base at `<tmp_path>/workspace-base`, and the Interface allows the helper to share them. But the literal `FakeSnapshots(` the smoke test greps for is not in `tests/conftest.py`.
+
+    I read the acceptance criteria again. The first command's suite passes, and nothing I saw contradicts criteria 1 to 6. The finding is only that command 2's output does not match its `Expect:` line.
+
+    Findings:
+    1. Command: `grep -c '"Makefile"' tests/git_support.py; grep -c 'FakeSnapshots(' tests/conftest.py`. Expected: `1` and `1`. Observed: `1` and `0`. The fixture builds `FakeSnapshots` through `fake_dataset` of `tests/container_support.py`, not with a direct call in `tests/conftest.py`. The criterion this touches is the Interface's `tests/conftest.py` line, that the fixture "gives `snapshots=FakeSnapshots(<tmp_path>/workspace, <tmp_path>/workspace-base)`". As far as I can see, criterion 1's behaviour holds. There are two ways to close this:
+       - (a) the fixture calls `FakeSnapshots(...)` itself;
+       - (b) the human changes the smoke test's expectation to allow the helper.
+
+       Choosing between them is not this stage's call.
