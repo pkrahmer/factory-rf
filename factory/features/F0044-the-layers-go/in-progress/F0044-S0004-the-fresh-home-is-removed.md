@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 447
 comments_read: [6398446445]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T14:00:58.972371Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-25T14:00:37.818140Z'
   stage: review
   run: 2da4563cb0664ba5a747048afa7d545a
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:00:58.972371Z'
+  stage: docs
 ---
 
 # The fresh home is removed
@@ -267,3 +276,4 @@ Expect: six lines: `gone`, `gone`, `gone`, `gone`, `gone`, `False False True`
     - tests/test_wrapper_search.py: the set loses `factory.adapters.agent_home` and the test keeps its name, under the human's leave (decision 20)
     - tests/entry/test_wiring.py: the set loses `factory.entry.fresh_home` and the test keeps its name, under the human's leave (decisions 20 and 33(a))
     - tests/entry/test_wiring_stage_environment.py: the assertion `boundaries.agent_home is None` is gone and the test keeps its name, under the human's leave (decision 20)
+13. factory: started docs as self.
