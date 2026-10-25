@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T20:57:51.039362Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-25T20:57:51.039362Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-25T20:58:13.181126Z'
+  stage: doing
+  run: 492a7f6c74664c048b8291003dd09f0f
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -212,3 +214,12 @@ Expect: `0`
    - tests/test_kernel_guard_removed.py: decision 42 (`GuardSettings` → `WritePathSettings`, row ids kept)
    - tests/test_hook_removed.py: decision 42 (`GuardSettings` → `WritePathSettings`; the `GuardSettingsInvalid` row is kept as it was)
 10. factory: started doing as self.
+11. coder: Round 1. The reviewer's only finding (entry 9, finding 1) is about tests and asks for no code change, so I changed no code. The `src/factory` rename from entry 7 stays as it was.
+
+    The change for the tester: in `tests/test_removed_layer_names.py`, remove the copied helper `_files_holding` (line 23) and the rebuilt `SOURCE` constant (line 15). Instead, give `search_support.modules_matching` (`tests/search_support.py:10`) a `root` argument that defaults to `TESTS`, so its earlier callers stay unchanged. Then use it for all four rows of `test_no_file_holds_a_removed_layer_s_name`, the planted row's `tmp_path` root included, so that criterion 2's "same search function" still holds. Import `SRC` from `source_search` (`tests/source_search.py:8`) in place of `SOURCE`.
+
+    I checked the finding against the code. `_files_holding` repeats what `modules_matching` already does: it compiles the regex, runs `rglob("*.py")`, reads each file and returns sorted relative paths. Only the root parameter is new. `SOURCE` rebuilds `source_search.SRC`. One thing for the tester to settle: `modules_matching` takes a required `leave_out` argument and compiles with `re.DOTALL` as well as `re.MULTILINE`. The anchored import patterns of criterion 2 should behave the same under `DOTALL`, but the tester should check that.
+
+    The standing leave in `CLAUDE.md` covers moving a shared helper. Adding a parameter to `search_support` may go beyond that leave, and the reviewer said so. If the tester judges that it does, it is a question to the human.
+
+    The journal did not change the meaning of the task, so `## Description` is as it was. I noticed nothing else and touched nothing else.
