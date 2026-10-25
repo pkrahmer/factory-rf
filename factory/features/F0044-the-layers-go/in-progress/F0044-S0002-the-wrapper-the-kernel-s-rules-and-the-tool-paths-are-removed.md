@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-25T12:27:43.093855Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T12:27:43.087257Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T12:27:43.093855Z'
+  stage: intake
+---
+
 # The wrapper, the kernel's rules and the tool paths are removed
 
 ## Description
@@ -64,3 +91,6 @@ uv run python -c 'from factory.domain.agent_runs import GuardSettings as g; from
 Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as self.
