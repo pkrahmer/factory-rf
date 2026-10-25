@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008, 6400918653]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T17:39:14.214151Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -196,6 +200,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T17:38:56.365356Z'
+  stage: doing
+- number: 35
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:39:14.214151Z'
   stage: doing
 ---
 
@@ -584,3 +593,4 @@ Expect: two lines: `1`; `1`
     - The Interface's conftest line reads: "gives the fakes of `fake_dataset` (`FakeSnapshots(<tmp_path>/workspace, <tmp_path>/workspace-base)` and `FakeContainerRuns(<tmp_path>/workspace)`)".
     - Smoke command 2 becomes `grep -c '"Makefile"' tests/git_support.py; grep -c 'fake_dataset(tmp_path)' tests/conftest.py; grep -c 'FakeSnapshots(' tests/container_support.py`, with `Expect: three lines: 1; 1; 1`.
     The human does not push to the work-item branch, so the reviewer makes these two text edits to the work item (the reviewer may correct the work item's text, F0034). End with `review`.
+35. factory: started doing as self.
