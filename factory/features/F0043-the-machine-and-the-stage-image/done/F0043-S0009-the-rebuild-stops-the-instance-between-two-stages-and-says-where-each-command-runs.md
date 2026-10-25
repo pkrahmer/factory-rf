@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-25T09:25:36.716612Z'
   stage: smoke-test
   run: c9b94a7303344eeb9e02b1c7cb08a49f
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-25T09:27:59.005212Z'
+  stage: approval
 ---
 
 # The rebuild after a merge stops the instance between two stages and says where each command runs
@@ -249,3 +254,4 @@ Expect: `documents ok`
     - Criterion 3, no other section: the two diff hunks of the guide (at lines 695 and 708) both lie inside this section, which starts at line 696. `make documents` ends with `documents ok`.
 
     Still open for the human, as the Description says: a `TimeoutStopSec` beyond the lease in `vm/factory.service` (F0043-A0002, check 6).
+14. factory: done (pull request merged); cost: 6 runs, 8.7 min, 31 turns, 111274 tokens in (468269 more from cache), 10867 out, $0.94
