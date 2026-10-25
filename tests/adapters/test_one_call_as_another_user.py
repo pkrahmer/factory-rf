@@ -1,9 +1,7 @@
 """A call as another user is one `sudo` call, with no program started after it."""
 
-import json
 from collections.abc import Callable
 from datetime import timedelta
-from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -17,58 +15,25 @@ from adapters.opencode_stand_in import (
     over_budget,
     write_opencode,
 )
+from adapters.test_claude_runtime_login import BUDGET_STOP
+from adapters.test_claude_runtime_login import REPLY as CLAUDE_REPLY
+from adapters.test_claude_runtime_os_user import _request
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.make_commands import CommandUser, MakeProjectCommands
 from factory.adapters.opencode_runtime import OpencodeRuntime
-from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from sudo_support import Sudo, write_sudo
 
 LIMIT = timedelta(seconds=30)
 USER = "agent"
 
 
-def _claude_reply(subtype: str = "success", cost: float = 0.1) -> str:
-    reply: dict[str, object] = {
-        "type": "result",
-        "subtype": subtype,
-        "is_error": subtype != "success",
-        "num_turns": 1,
-        "total_cost_usd": cost,
-        "usage": {"input_tokens": 1, "output_tokens": 1},
-        "permission_denials": [],
-    }
-    if subtype == "success":
-        reply["structured_output"] = {"decision": "doing", "entry": "Done."}
-    return json.dumps(reply)
-
-
-def _claude_request(tmp_path: Path) -> AgentRunRequest:
-    work = tmp_path / "work"
-    work.mkdir()
-    return AgentRunRequest(
-        agent=AgentDefinition(
-            name="coder",
-            model="sonnet",
-            tools=["Read"],
-            budget_usd=Decimal("3"),
-            instructions="Write the code.",
-        ),
-        prompt="Stage: doing",
-        allowed_decisions=["doing", "question"],
-        time_limit=LIMIT,
-        working_directory=work,
-        environment={"HOME": "/home/agent", "LANG": "C.UTF-8"},
-        os_user=USER,
-    )
-
-
 def _claude(tmp_path: Path, sudo: Sudo, *, resumed: bool) -> None:
-    steps = [Step(stdout=_claude_reply())]
+    steps = [Step(stdout=CLAUDE_REPLY)]
     if resumed:
-        steps.insert(0, Step(stdout=_claude_reply("error_max_budget_usd", 3.0)))
+        steps.insert(0, Step(stdout=BUDGET_STOP))
     executable = write_stand_in(tmp_path / "bin", steps)
     runtime = ClaudeCodeRuntime(str(executable), tmp_path / "state", sudo_executable=str(sudo.path))
-    result = runtime.run(_claude_request(tmp_path))
+    result = runtime.run(_request(tmp_path, USER))
     assert result.end_reason == "completed"
 
 

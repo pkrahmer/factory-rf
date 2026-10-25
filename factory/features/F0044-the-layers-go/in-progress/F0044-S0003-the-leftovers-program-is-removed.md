@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T13:30:58.417483Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-25T13:30:58.417483Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-10-25T13:34:20.110265Z'
+  stage: tests
+  run: eb04aa7e7b6e45dd8e529a74bbb25d7c
 ---
 
 # The leftovers program is removed
@@ -364,3 +366,15 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
 
     The code is unchanged since 934c3efa. Entry 17 recorded `check: green`; I did not run `make check` again in this run because no code changed. Still open from entry 17: `tests/leftovers_runtime_support.py` stays for S0005, and `make duplicates` reported 4 findings as gone. The journal did not change what the task means, so the Description stays as it is.
 22. factory: started tests as self.
+23. tester: I made the test change from the reviewer's finding 1 (entry 19), which the coder named in entry 21. The change is in `tests/adapters/test_one_call_as_another_user.py` only:
+    - I deleted the copies `_claude_reply` and `_claude_request`, and the imports only they used (`json`, `Decimal`, `AgentDefinition`, `AgentRunRequest`).
+    - I now import `BUDGET_STOP` and `REPLY as CLAUDE_REPLY` from `adapters.test_claude_runtime_login`, and `_request` from `adapters.test_claude_runtime_os_user`. The alias is needed because `REPLY` from `adapters.opencode_stand_in` stays.
+    - `_claude_reply()` is now `CLAUDE_REPLY`, `_claude_reply("error_max_budget_usd", 3.0)` is now `BUDGET_STOP`, and `_claude_request(tmp_path)` is now `_request(tmp_path, USER)`.
+    - The resumed row works with `_request`'s 1 USD budget, so I did not need `model_copy`.
+
+    The test `test_a_call_as_another_user_is_one_sudo_call_per_agent_call` keeps its name, its row ids and its expected `sudo` call counts.
+
+    The criterion-to-test mapping is the same as in entry 15. I changed no other file and created no new ones. The test runner imported every module. I ran `make test` once and it ended `test: green (70.6 s)`. `make lint` is green.
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (71.0 s)
