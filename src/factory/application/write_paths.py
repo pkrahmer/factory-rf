@@ -10,7 +10,7 @@ from factory.domain.write_paths import PROTECTED_PATHS, expand_write_paths
 
 
 class WritePathService:
-    """The one source of what an agent may write, for the take and the undo alike.
+    """The one source of what an agent may write, for the take.
 
     It parses the definition itself rather than through `PipelineLoader`: this read is not
     the tick's load, so it checks no installed agent file and raises or clears no stop.

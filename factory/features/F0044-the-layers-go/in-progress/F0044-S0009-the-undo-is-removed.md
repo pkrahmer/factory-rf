@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T19:26:35.909626Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-25T19:26:35.909626Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-25T19:29:53.000356Z'
+  stage: doing
+  run: 86166a8002814005a61b47e820e255f2
 ---
 
 # The undo is removed
@@ -148,3 +150,22 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/application/test_after_agent.py::test_the_own_cost_record_file_is_not_named_as_undone[with-an-outside-file] - AssertionError: assert 'tests writte...hs: src/b.py.' == 'tests writte...h...
 6. factory: started doing as self.
+7. coder: I removed the undo and moved what the take shared with it into the take. `make check` is green.
+
+   What I built:
+   - `src/factory/application/undo.py` is deleted, and `UndoService`, `UndoReport` and `_paths_of` went with it.
+   - `src/factory/application/take.py` now holds `read_baseline`, `restore_work_item`, `is_refused` and the private `_is_in_an_in_progress_folder`. Their code is unchanged. The constant `_IN_PROGRESS` and the imports these functions need moved with them, and the import from `factory.application.undo` is gone.
+   - `src/factory/domain/decisions.py` now has the constant `_LEFT_OUT_PARAGRAPH` with the sentence `The factory left out changes outside the write paths: `. The keyword of `agent_entry` is now `left_out`, and its docstring follows.
+   - `src/factory/application/stage.py`: `AfterAgent._entry` passes `left_out=` the take's `left`, less the own cost records path.
+   - `src/factory/application/write_paths.py`: the docstring of `WritePathService` names the take alone.
+
+   Main choice: the three functions are module-level functions in `take.py`, placed after `TakeService` and before the private file helpers, with their bodies copied unchanged. I rejected making them methods of `TakeService`. The Interface asks for them as attributes of the module, and the take is their only caller now.
+
+   Refactor: I read my diff and changed nothing. The move is verbatim and nothing new was added.
+
+   Noticed, not touched:
+   - `make duplicates` reports 9 new findings. Eight are in files I did not change and were not new with this change: similar code between `claude_runtime` and `opencode_runtime`, between `fake_containers` and `podman_runs`, and between `podman_runs` and `zfs_snapshots`; and unused-code findings for `FakeContainerRuns`, its `calls`, `FakeSnapshots` and `MakeProjectCommands`. The ninth, `take.py: unused variable 'restored_work_item'`, is the field `TakeReport.restored_work_item`, which already existed. It appears only because the matching accepted entry in `security/duplicates-baseline.txt` (line 21) still names `undo.py`. That entry is now gone. The baseline is outside my write paths, so I left it as it is.
+   - The journal changed nothing in what the task means, so I did not rewrite the Description.
+
+   `check`: check: green
+   `duplicates`: duplicates: 9 new, 34 known, 4 gone

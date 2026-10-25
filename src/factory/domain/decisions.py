@@ -16,7 +16,7 @@ from factory.domain.work_item import Blocked, WorkItemState
 
 StallReason = journal.StallReason
 
-_UNDONE_PARAGRAPH = "The factory undid changes outside the write paths: "
+_LEFT_OUT_PARAGRAPH = "The factory left out changes outside the write paths: "
 
 
 def stall_reason_of(result: AgentRunResult) -> StallReason | None:
@@ -27,18 +27,18 @@ def stall_reason_of(result: AgentRunResult) -> StallReason | None:
 
 
 def agent_entry(
-    *, role: str, stage: str, decision: str, text: str, undone: Sequence[str]
+    *, role: str, stage: str, decision: str, text: str, left_out: Sequence[str]
 ) -> NewEntry | None:
     """The agent's entry, spoken by `role`; `None` when its text is blank without a name prefix.
 
     One leading `<role>:` or `<stage>:` is removed, since the speaker already names it; the
-    `undone` paths, when there are any, are named in a closing paragraph.
+    `left_out` paths, when there are any, are named in a closing paragraph.
     """
     cleaned = _without_name_prefix(text.strip(), (role, stage)).strip()
     if not cleaned:
         return None
-    if undone:
-        cleaned += f"\n\n{_UNDONE_PARAGRAPH}{', '.join(sorted(undone))}."
+    if left_out:
+        cleaned += f"\n\n{_LEFT_OUT_PARAGRAPH}{', '.join(sorted(left_out))}."
     kind: JournalKind = "question" if decision == QUESTION else "result"
     return NewEntry(speaker=role, kind=kind, text=cleaned, on=None)
 

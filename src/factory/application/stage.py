@@ -248,9 +248,9 @@ class AfterAgent:
         role = _role_of(self._definition, started.stage)
         # The factory rewrites its own cost records after the take; that is no news to the agent.
         sidecar = cost_records_path(started.path)
-        undone = sorted(path for path in take.left if path != sidecar)
+        left_out = sorted(path for path in take.left if path != sidecar)
         return agent_entry(
-            role=role, stage=started.stage, decision=decision, text=text, undone=undone
+            role=role, stage=started.stage, decision=decision, text=text, left_out=left_out
         )
 
     def _stall(
