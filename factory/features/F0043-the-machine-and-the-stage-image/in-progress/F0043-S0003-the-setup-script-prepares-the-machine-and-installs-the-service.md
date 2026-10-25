@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T00:35:35.257037Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-25T00:35:14.685866Z'
   stage: intake
   run: 50c85af711aa4e429e3b2aa6caaf025c
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:35:35.257037Z'
+  stage: tests
 ---
 
 # The setup script prepares the machine and installs the service
@@ -146,3 +155,4 @@ Expect: `1`
    - Scope: the story is within `feature.md`'s S0003 scope and touches nothing in its "Out of scope". `image/` stays unchanged. No suite test or smoke test runs `zfs`, `systemctl` or `apt-get`.
 
    I added criterion 11 and the extension to criterion 7 from journal entry 4, which is the human's edit carried in. The Description is unchanged because the meaning of the task did not change.
+7. factory: started tests as self.
