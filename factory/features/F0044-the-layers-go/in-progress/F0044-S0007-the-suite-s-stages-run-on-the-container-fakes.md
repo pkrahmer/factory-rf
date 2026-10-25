@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T17:03:34.962810Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T17:03:16.908562Z'
+  stage: tests
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:03:34.962810Z'
   stage: tests
 ---
 
@@ -233,3 +242,4 @@ Expect: two lines: `1`; `1`
 
     Files changed: tests/test_suite_fixtures.py, tests/application/test_stage_on_container_fakes.py.
 13. 2026-10-25 human: (a). The loop does not record `approval` in `walked` (`if stage not in walked and stage != "approval":`); the expected list stays `intake … smoke-test`, and the test still waits for `handed_over == "approval"`. Approval is where the walk ends, not a stage an agent runs.
+14. factory: started tests as self.
