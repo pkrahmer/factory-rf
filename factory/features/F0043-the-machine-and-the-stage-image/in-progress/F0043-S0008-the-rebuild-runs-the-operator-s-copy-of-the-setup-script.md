@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 438
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-25T08:41:49.627998Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-25T08:41:49.627998Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T08:42:10.964504Z'
+  stage: intake
+  run: 3d5a0759a86148649717204fc0952fe2
 ---
 
 # The rebuild after a merge runs the operator's own copy of the setup script
@@ -67,3 +69,9 @@ Expect: `documents ok`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: "None" is right for a docs-only story. It names no module or signature because nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes. It names the documents the documenter changes: `docs/operator-guide.md`, and one sentence in `docs/decisions.md`.
+   Criteria: Each criterion can be checked by one test function or smoke command with no further decisions. Criterion 1 is a scope statement (nothing in the code areas changes). Criterion 2 is `make check`. Criterion 3 has three docs clauses: the rebuild section runs the setup script from the operator's own copy (`sudo sh setup.sh`) and has no root command that runs a file under `/srv/factory/<instance>/factory`; the decision entry gains one sentence; `make documents` ends with `documents ok`. The Interface states no rules, so there is no failing side to cover. I read the current text. `docs/operator-guide.md` line 712 holds the unsafe `sudo sh /srv/factory/vm/factory/vm/setup.sh`. Step 6 of *On GCP, step by step* (lines 594 to 603) already uses the `gcloud compute scp` plus `sudo sh setup.sh` form. The decision entry `## The factory runs on the host, and the stage image carries the tools alone` exists at line 1039. The "one sentence why" is not checked by a smoke command. The docs reviewer judges it from the criterion text.
+   Smoke test: All three commands can be run. The awk/grep pair uses the real heading `### The rebuild after a merge`. The first expects `0`, and it matches today's line 712, so it fails before the change and passes after. The second expects a count of at least 1. The third runs `make documents` and expects `documents ok` as the last line. No pytest command is involved, so the `-q` rule does not apply.
+   Architecture: Docs only. No layer is touched, and the root-acts-only-on-what-`factory`-cannot-change rule from F0043-S0003 is the one this story applies.
+   Scope: Within F0043. Its scope covers the operator guide's chapter and the decision-log entry of the machine. Nothing in its "Out of scope" is touched. The Description leaves "how the operator obtains a trusted copy" to the human before the story starts. The human started the story, and criterion 3 names the method (a copy from their own checkout of the ref, as in step 6), so I take that as settled and ask nothing.
