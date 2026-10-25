@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 433
 comments_read: [6394400610]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T06:41:03.281666Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-25T06:40:42.751853Z'
   stage: docs
   run: 886c4507728840aa90af2b8b18b3f852
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:41:03.281666Z'
+  stage: smoke-test
 ---
 
 # The setup script writes as factory from its own standard input
@@ -233,3 +242,4 @@ Expect: two lines, `0` and `syntax-ok`
     `check`: check: green (not run again: passed on tree 97d9666fa5e7 at 2026-10-25T06:37:22Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+15. factory: started smoke-test as self.
