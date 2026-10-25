@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T16:33:30.113202Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -153,6 +157,11 @@ journal:
   at: '2026-10-25T16:33:08.060853Z'
   stage: tests
   run: 6feb94f917fd4c1eba39b44d56423458
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:33:30.113202Z'
+  stage: doing
 ---
 
 # The checkout's hygiene is removed
@@ -500,3 +509,4 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
 
     `lint`: lint: green (0.7 s)
     `test`: test: green (67.8 s)
+27. factory: started doing as self.
