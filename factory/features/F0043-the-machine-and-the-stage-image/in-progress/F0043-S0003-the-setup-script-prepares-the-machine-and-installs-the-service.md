@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T00:56:59.426326Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-25T00:56:38.638334Z'
   stage: doing
   run: cfa8c5bf2f3846c595e2c08f12aaa88c
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:56:59.426326Z'
+  stage: review
 ---
 
 # The setup script prepares the machine and installs the service
@@ -299,3 +308,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
+15. factory: started review as self.
