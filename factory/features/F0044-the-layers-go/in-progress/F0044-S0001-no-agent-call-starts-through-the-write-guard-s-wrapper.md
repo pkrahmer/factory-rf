@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T11:43:31.932455Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T11:43:13.780440Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T11:43:31.932455Z'
   stage: tests
 ---
 
@@ -247,3 +256,4 @@ Expect: `7`
    ```
 
    Then write criterion 8's test and set `_WRITE_PATHS_RULE` and `_OLD_ENDING` in `tests/test_claude_agent_refusal.py` as you planned.
+10. factory: started tests as self.
