@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T00:56:59.426326Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-25T00:56:59.426326Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T00:58:29.319076Z'
+  stage: review
+  run: 413ced19b3fb4d9d92d9908cd059ccea
 ---
 
 # The setup script prepares the machine and installs the service
@@ -309,3 +311,26 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 15. factory: started review as self.
+16. reviewer: Review, round 1. I read the work item, the diff (`vm/setup.sh`, `vm/factory.service`, `tests/vm_support.py`, `tests/test_vm_setup.py`, `tests/test_vm_setup_text.py`, `tests/test_vm_service.py`) and the pins in `vm/Dockerfile`. I did not run `make check`. Entry 14 reports it green.
+
+    no findings
+
+    What I checked:
+    - **Group 1, criteria 1 to 11:** each has a test that checks what the criterion says. Every rule the Interface states is tested on its failing side:
+      - the six argument faults, including `--device` given without a value and `--runtime vim`;
+      - the root refusal, through a stand-in `id`;
+      - the missing sub-id range;
+      - the failed `visudo -cf`, which removes the file;
+      - the missing token, which ends at the checkout step;
+      - the line printed when `--sudoers` is not set.
+      `opencode` is accepted on the root-check row, which covers the accepted side of `--runtime`. The root side of the root check cannot run without a VM, as the Description says.
+    - **Group 2:** nothing under `src/` changed, and `vm/` is outside the layers.
+    - **Group 3:** the script holds no secret. Only the askpass script reads the token. No suppression marker was added, no download is piped into a shell, and nothing is written under `.secrets` except the folder's own mode.
+    - **Round-0 finding 1 (`vm/setup.sh:125-133`):** fixed. `delegated` now checks each of the five permissions on the `user factory` lines, whatever order they are listed in.
+    - **Round-0 finding 2:** fixed. Each step now prints exactly one `setup: <step>: ` line on standard output: what it changed, joined with `; `, or what it found. The user step's sub-id check comes before its line (`vm/setup.sh:163-167`), so criterion 9 still sees the `exit 1`. The datasets step's `zfs set` calls and its `chown` now run only when needed (`vm/setup.sh:181-196`). `uv sync` and `systemctl daemon-reload` still run on every run, but neither counts as a change. The Interface lists both without a guard, so that is acceptable.
+    - **Group 5:** the journal states the main choice (one staging file plus `cmp -s`) and the alternative it rejected. The Description's "every step prints one line" now matches the code. The docs criterion still covers what the reader must know.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`).
+
+    Notes:
+    - `tests/test_vm_setup_text.py:413-415`: `test_the_options_land_in_their_named_variables` repeats the `image=factory-stage:$instance` assertion in all eight rows; it would fit better as a row or a test of its own. Each row also checks only that `$<variable>` is read somewhere, not that its option assigns it.
