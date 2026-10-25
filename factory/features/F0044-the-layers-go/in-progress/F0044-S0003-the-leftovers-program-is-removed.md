@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T13:24:56.768922Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-10-25T13:24:36.205858Z'
   stage: tests
   run: d87c1e9d08114cee86f18554def5d430
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:24:56.768922Z'
+  stage: doing
 ---
 
 # The leftovers program is removed
@@ -258,3 +267,4 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
 
     `lint`: lint: green (0.7 s)
     `test`: test: green (69.6 s)
+16. factory: started doing as self.
