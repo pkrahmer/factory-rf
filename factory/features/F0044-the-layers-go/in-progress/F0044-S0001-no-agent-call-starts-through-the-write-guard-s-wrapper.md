@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T12:04:58.022339Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-10-25T12:04:58.022339Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-10-25T12:08:11.116733Z'
+  stage: doing
+  run: e4f29ea8d41e44e690f1fd5a3d28c462
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -504,3 +506,15 @@ Expect: `7`
     `lint`: lint: green (0.7 s)
     `test`: test: green (71.1 s)
 23. factory: started doing as self.
+24. coder: Round 1, after the tester's change (entry 22): the reviewer's one finding (entry 18) was a test change. The tester made it in `tests/adapters/test_runtimes_without_wrapper.py::test_only_sudo_and_the_login_shell_refuse_a_call`, where the row `sudo-refused` now expects the stand-in sudo's own path. Nothing was left for the code, so this round I changed no code and no test.
+
+    What I built is unchanged from entry 16: `src/factory/adapters/agent_launch.py`, `src/factory/adapters/claude_runtime.py`, `src/factory/adapters/opencode_runtime.py`, `src/factory/application/preflight.py`, `src/factory/entry/wiring.py` and the seven `claude/agents/*.md` (R14 is now decision 4's text). The main choice and the alternative I rejected are also in entry 16: I removed the wrapper path outright and did not keep `confine_executable` as a keyword that is always `None`.
+
+    `make check` is green on the committed state with the tester's change: coverage 99.19 %, `test: green (70.0 s)`, `check: green`.
+
+    Refactor: nothing to change. The diff is the same one I reviewed in entry 16.
+
+    Noticed but not touched: nothing new beyond entry 16. That covers `CONFINE_COMMAND`, which stays for S0002; `settings.opencode_folders`, which now only feeds the kept home paths; and `AgentRunRequest.guard`, which the take and the undo still read. The journal changed nothing in the meaning of the task.
+
+    `check`: check: green
+    `duplicates`: duplicates: 14 new, 35 known, 3 gone
