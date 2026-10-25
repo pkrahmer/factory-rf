@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T00:17:56.386012Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-25T00:17:35.673762Z'
   stage: doing
   run: 13f82b7124804b1888f38bcc53bef24a
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:17:56.386012Z'
+  stage: review
 ---
 
 # The checkout and the state directory are settings
@@ -230,3 +239,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
+11. factory: started review as self.
