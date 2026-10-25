@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-25T07:31:39.418977Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-25T07:31:19.327397Z'
   stage: intake
   run: 33354200d4ea46099677878ccdb64883
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:31:39.418977Z'
+  stage: tests
 ---
 
 # The dataset's checkout knows origin/main
@@ -65,3 +74,4 @@ Expect: `1`
    Smoke test: the `grep -c` command is runnable and does not run pytest. Its `Expect: 1` is checkable, because the refspec appears once in the file.
    Architecture: the change is inside `factory.application`, in the existing sync script. It adds no tool, dependency or layer crossing.
    Scope: this matches decision 18 of `feature.md`, and the story is not under the feature's "Out of scope". The sync is F0042's code, and decision 18 explicitly lets this story change it. `feature.md` says the story is built on `self` while the instance `vm` is stopped.
+4. factory: started tests as vm.
