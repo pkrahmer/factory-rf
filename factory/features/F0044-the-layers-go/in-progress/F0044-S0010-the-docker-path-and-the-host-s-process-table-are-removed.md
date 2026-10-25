@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 453
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T20:09:56.151653Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-25T20:09:35.589260Z'
   stage: review
   run: 4b1791f8cd624dc0bea4c5d967e6ddd0
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:09:56.151653Z'
+  stage: docs
 ---
 
 # The Docker path and the host's process table are removed
@@ -214,3 +223,4 @@ Expect: three lines: `0`; `helper-moved`; `gone`
    - tests/test_vm_setup.py: human's leave, decision 26
    - tests/test_vm_setup_writes.py: human's leave, decision 26
    - tests/vm_support.py: human's leave, decision 26
+10. factory: started docs as self.
