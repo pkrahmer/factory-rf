@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T12:11:53.860771Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-10-25T12:11:53.860771Z'
   stage: tests
+- number: 30
+  speaker: tester
+  kind: result
+  at: '2026-10-25T12:14:40.743472Z'
+  stage: tests
+  run: bc8c42ce9a6b482aaeb224b5f3b5a817
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -621,3 +623,16 @@ Expect: `7`
 
     Noticed but not touched: as the reviewer notes, `tests/confine_support.py::Layout` still has the fields `temporary_root` and `confine_bin`, which no test reads. The tester may remove them under the same leave, or S0002 can. The journal changed nothing in the meaning of the task.
 29. factory: started tests as self.
+30. tester: Round 2, the test change from the coder's entry 28, which is the reviewer's finding in entry 26. The Interface allows it for `tests/confine_support.py` (decision 17: the stand-in wrapper goes once no test reads it).
+
+    What I changed, only in `tests/confine_support.py`:
+    - Removed the constants `CONFINE` and `LINE`. A grep over `tests/` found no reader of either; the `LINE` in `tests/application/test_preflight_login_line.py` is a separate local constant.
+    - Removed the orphan comment "A confine executable that records its arguments ...".
+    - Changed the module docstring to "The run layout and the request of the runtime's guard tests.", which drops "the stand-in confine executable".
+
+    What I left alone: the `Layout` fields `temporary_root` and `confine_bin`. The approved change does not name them, and the reviewer left them to S0002. No other test file changed, no test function was renamed, and no criterion's mapping changed (see entry 26).
+
+    Results: `make test` passed (`test: green (71.3 s)`, coverage 99.19 %) and `make lint` passed (`lint: green`).
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (70.5 s)

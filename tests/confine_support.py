@@ -1,4 +1,4 @@
-"""The run layout, the stand-in confine executable and the request of the runtime's guard tests."""
+"""The run layout and the request of the runtime's guard tests."""
 
 import json
 import stat
@@ -14,15 +14,9 @@ from pydantic import BaseModel
 
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, GuardSettings
 
-# The installed wrapper, beside the interpreter that runs the tests.
-CONFINE = str(Path(sys.executable).parent / "factory-confine")
-LINE = "factory-confine: the kernel offers Landlock ABI 2, the write guard needs ABI 3 or higher"
 STAND_IN_TOOL_PATH = "stand-in/*"
 LIMIT = timedelta(seconds=30)
 USAGE = "factory-confine: usage: factory-confine --rules <file> -- <command> [<argument>...]\n"
-
-# A confine executable that records its arguments and the rules file's text and mode, then
-# plays its line or runs what follows `--`.
 
 
 @dataclass(frozen=True)
