@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T14:56:02.876681Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-25T14:56:02.876681Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-25T14:59:26.847373Z'
+  stage: doing
+  run: 1b5ef15e08654600a9b51eded3fd954e
 ---
 
 # The second user is removed
@@ -312,3 +314,26 @@ Expect: three lines: `[] False`; `False False`; `3 False`
     `lint`: lint: green (0.7 s)
     `test`: test: green (70.1 s)
 16. factory: started doing as self.
+17. coder: The code from entry 13 was already committed, and the tester made the two test changes in entry 15. In this run I changed no code. `make check` passed on the committed state and ended with `test: green (67.5 s)`, total coverage 99.53 %, and `check: green`.
+
+    What I built (from entry 13, unchanged):
+    - `src/factory/adapters/agent_launch.py`: the `sudo` chain and `env -i` are gone. `launch`, `run_launch`, `killed_at_limit`, `call_refusal` and `read_call_end` have the Interface's signatures, and `Starters` holds `login_files` alone. `killed_at_limit` is true only `in_container`.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: no `sudo_executable`, no refusal of an `os_user` and no `chmod` of the run files.
+    - `src/factory/adapters/make_commands.py`: `CommandUser` and the `sudo` path are gone; `make` runs as the factory's own user.
+    - `src/factory/domain/agent_runs.py`: the request has no `os_user`. `src/factory/domain/settings.py`: `AGENT_USER_VARIABLE`, `agent_user` and the container fault for an agent user are gone.
+    - `src/factory/application/task.py`: the request carries no `os_user`. `src/factory/application/preflight.py`: `agent_user_item` is gone and the hints name the factory user.
+    - `src/factory/entry/wiring.py`: `build_boundaries(settings, token, *, hosting=None)`. The inline environment's project commands are `MakeProjectCommands(settings.checkout)`. `machine_extras` has no `which`, and `git_environment` holds three pairs.
+
+    Main choice (entry 13): in `machine_extras`, the inline branch appends `agent-environment` directly. I rejected keeping `_inline_items` as a wrapper around that one item.
+
+    Refactor: I read the diff against `main` (`git diff main -- . ':!factory' ':!tests'`) again and found nothing to change.
+
+    Noticed, not touched:
+    - `src/factory/adapters/process.py:90`: a comment still says root's `sudo` is ended by the agent's own `timeout`. `process.py` is outside this story's Interface, and its `PermissionError` branch stays.
+    - `SealedProjectCommands` (`src/factory/application/sealed_runs.py`) now has no caller until S0006, as the Description says.
+    - The Dockerfile and VM-setup tests that still mention `FACTORY_AGENT_USER`, which the tester named in entry 11.
+
+    Description: unchanged. The journal changed nothing beyond criterion 9, which intake had already written in.
+
+    `check`: check: green
+    `duplicates`: duplicates: 8 new, 34 known, 4 gone
