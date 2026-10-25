@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-25T08:06:38.256743Z'
   stage: smoke-test
   run: 8acc8076852b44be856b37296b17a361
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-25T08:11:03.416964Z'
+  stage: approval
 ---
 
 # The dataset's checkout knows origin/main
@@ -320,3 +325,4 @@ Expect: `1`
     Nothing the smoke test showed contradicts criteria 1 to 6. Criteria 1 to 3 are about how the sync behaves at run time. The smoke test does not exercise that; the tests from entry 13 cover it.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 18.7 min, 64 turns, 217118 tokens in (1309573 more from cache), 21134 out, $2.19
