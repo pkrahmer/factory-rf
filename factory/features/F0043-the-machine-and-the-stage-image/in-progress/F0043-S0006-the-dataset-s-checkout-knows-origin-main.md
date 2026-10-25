@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-25T07:39:41.385849Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-25T07:39:41.385849Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-25T07:47:25.095485Z'
+  stage: doing
+  run: f6e60d0b845e432097d548edaf88b0f2
 ---
 
 # The dataset's checkout knows origin/main
@@ -103,3 +105,19 @@ Expect: `1`
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/application/test_container_sync_origin.py::test_the_sync_script_fetches_both_refspecs_on_one_line_and_names_no_container_path - assert "'+refs/heads/*:refs/remotes/origin/*'" in 'git f...
 6. factory: started doing as vm.
+7. coder: I added the second refspec to the sync script's fetch. `make check` is green, and the new tests in tests/application/test_container_sync_origin.py pass.
+
+   Built: in src/factory/application/stage_environment.py, `_SYNC_SCRIPT`'s one fetch is now `git fetch -q --prune --update-head-ok "$3" '+refs/heads/*:refs/heads/*' '+refs/heads/*:refs/remotes/origin/*'`. With this, the dataset's checkout gets `origin/<branch>` at the host's commit, the way a clone does, and `--prune` removes a branch deleted on the host from both namespaces. The comment above the script now says why: the project's commands read `origin/main`. Nothing else in the script or the module changed.
+
+   Main choice: the one fetch line is 109 characters, and ruff's E501 limit is 100. I split the source line with a Python backslash-newline inside the triple-quoted string. Python removes that line break, so the script's value keeps the fetch on one line, which the criterion 4 test checks. One sentence in the comment explains the escaped line end.
+   Rejected:
+   - a shell line continuation (`\\`): it would split the fetch over two script lines and fail the one-line test;
+   - a `# noqa: E501`;
+   - moving the refspecs into a separate constant that is formatted into the script: that changes the module beyond what the Interface allows.
+
+   Refactor: I read the diff; there was nothing to change. The smoke test's grep finds the refspec once, on the fetch line.
+
+   Noticed, not touched: nothing.
+
+   `check`: check: green
+   `duplicates`: duplicates: 11 new, 36 known, 2 gone
