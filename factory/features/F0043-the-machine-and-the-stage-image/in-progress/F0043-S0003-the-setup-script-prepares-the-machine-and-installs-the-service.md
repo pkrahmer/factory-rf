@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790, 6394217771]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T06:08:25.459791Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -353,6 +357,11 @@ journal:
   at: '2026-10-25T06:08:04.983169Z'
   stage: review
   run: a7279e46b60b447bad78849c556a83c9
+- number: 63
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:08:25.459791Z'
+  stage: doing
 ---
 
 # The setup script prepares the machine and installs the service
@@ -1041,3 +1050,4 @@ Expect: `1`
     - `tests/vm_support.py:5`: imports the private `_uncommented` from `dockerfile_support`.
     - `tests/test_vm_setup_text.py:491` (`chown-keeps-links`): the row passes without checking any line, because the script holds no `chown`.
     - `tests/test_vm_setup_text.py:592`: the name `test_the_folders_step_refuses_a_link_at_state_or_repo` now also covers `/home/factory/.secrets`.
+63. factory: started doing as self.
