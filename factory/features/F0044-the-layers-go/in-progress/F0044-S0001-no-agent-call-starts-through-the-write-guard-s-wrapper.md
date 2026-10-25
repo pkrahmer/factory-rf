@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T12:00:27.977645Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   at: '2026-10-25T12:00:05.663710Z'
   stage: review
   run: 1ea1bee3563441318838edd76a7c4cca
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-25T12:00:27.977645Z'
+  stage: doing
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -449,3 +458,4 @@ Expect: `7`
     - `tests/test_claude_agent_refusal.py`: decision 17, and it now uses the moved constant.
     - `tests/test_hook_removed.py`: decision 17.
     - `tests/test_time_limits.py`: decision 17.
+19. factory: started doing as self.
