@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 454
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T20:31:42.814691Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-25T20:31:21.937873Z'
   stage: docs
   run: 0c62bff217e440748205b65f96d8c9cd
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:31:42.814691Z'
+  stage: smoke-test
 ---
 
 # The documents close the layers
@@ -221,3 +230,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 4f655f546fa7 at 2026-10-25T20:24:55Z)
     `secrets`: secrets: green (2.7 s)
     `documents`: documents ok
+12. factory: started smoke-test as self.
