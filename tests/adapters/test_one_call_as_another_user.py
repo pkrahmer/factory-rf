@@ -17,7 +17,6 @@ from adapters.opencode_stand_in import (
     over_budget,
     write_opencode,
 )
-from adapters.opencode_stand_in import Step as OpencodeStep
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.make_commands import CommandUser, MakeProjectCommands
 from factory.adapters.opencode_runtime import OpencodeRuntime
@@ -74,7 +73,7 @@ def _claude(tmp_path: Path, sudo: Sudo, *, resumed: bool) -> None:
 
 
 def _opencode(tmp_path: Path, sudo: Sudo, *, resumed: bool) -> None:
-    steps: list[OpencodeStep] = [over_budget(), RESUME_REPLY] if resumed else [REPLY]
+    steps: list[Step] = [over_budget(), RESUME_REPLY] if resumed else [REPLY]
     executable = write_opencode(tmp_path / "bin", steps)
     state = tmp_path / "state"
     state.mkdir()

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T13:21:40.382261Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-10-25T13:21:40.382261Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-25T13:24:36.205858Z'
+  stage: tests
+  run: d87c1e9d08114cee86f18554def5d430
 ---
 
 # The leftovers program is removed
@@ -239,3 +241,20 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
 
     Open: the points in entry 10 that I noticed but did not touch still stand. These are the gone findings in `security/duplicates-baseline.txt`, and `tests/leftovers_runtime_support.py`, which stays for S0005. The journal did not change the meaning of the task, so the Description stays.
 14. factory: started tests as self.
+15. tester: I made the test change from the human's answer (a) in entry 11, which the coder named in entry 13. In `tests/adapters/test_one_call_as_another_user.py` I removed the import `from adapters.opencode_stand_in import Step as OpencodeStep`. The one place that used `OpencodeStep`, the type of the opencode steps list, now uses `Step` from `adapters.claude_stand_in`, which line 11 already imports and which is the same class. No other file changed, and `tests/adapters/opencode_stand_in.py` stays as it is.
+
+    The mapping is unchanged from entry 8:
+    criterion 1: tests/test_leftovers_program_removed.py::test_the_leftovers_modules_are_gone
+    criterion 2: tests/test_leftovers_program_removed.py::test_the_names_that_started_the_leftovers_program_are_gone
+    criterion 3: tests/adapters/test_one_call_as_another_user.py::test_a_call_as_another_user_is_one_sudo_call_per_agent_call
+    criterion 4: tests/adapters/test_kill_at_the_limit_stays.py::test_a_call_is_still_killed_at_its_time_limit
+    criterion 5: tests/test_leftovers_program_removed.py::test_no_module_names_the_leftovers_program_or_its_fault
+
+    Files created: none in this run. The earlier runs of this stage created tests/test_leftovers_program_removed.py, tests/adapters/test_one_call_as_another_user.py and tests/adapters/test_kill_at_the_limit_stays.py.
+
+    Modules the test runner could not import: none.
+
+    `make test` is green (73.3 s, coverage 99.50 %), now that the coder's removal is committed. `make lint` is green. I also ran `make types` to confirm that the error from entry 10 is gone; it is green.
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (69.6 s)
