@@ -64,6 +64,12 @@ def _record_get_repo(monkeypatch: pytest.MonkeyPatch) -> list[tuple[object, ...]
             "FACTORY_WORKSPACE",
             id="workspace-before-image",
         ),
+        pytest.param(
+            {"dataset": None, "workspace": None, "stage_image": None},
+            True,
+            "FACTORY_DATASET",
+            id="dataset-before-workspace-and-image",
+        ),
         pytest.param({"stage_image": None}, True, "FACTORY_STAGE_IMAGE", id="no-image"),
         pytest.param(
             {"dataset": None, "repository_url": HOSTED_URL},

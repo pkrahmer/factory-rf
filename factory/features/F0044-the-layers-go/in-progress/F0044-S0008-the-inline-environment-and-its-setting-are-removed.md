@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T18:49:29.838224Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -185,6 +181,12 @@ journal:
   kind: started
   at: '2026-10-25T18:49:29.838224Z'
   stage: tests
+- number: 32
+  speaker: tester
+  kind: result
+  at: '2026-10-25T18:52:15.228151Z'
+  stage: tests
+  run: be6e2a31c4df4eadbecb3194c998beb8
 ---
 
 # The inline environment and its setting are removed
@@ -670,3 +672,15 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
 
     I did not run `make check` this round, because nothing changed since entry 23 recorded it green.
 31. factory: started tests as self.
+32. tester: Mode: the test change the human approved, as the coder named it in entry 30 for finding 1 of entry 28. I made exactly that change and nothing else.
+
+    Changed: in `tests/entry/test_wiring_one_environment.py`, I added one row to the parametrization of `test_build_boundaries_needs_the_dataset_the_workspace_and_the_image`. The row is `dataset-before-workspace-and-image`, with changes `{"dataset": None, "workspace": None, "stage_image": None}`, `hosted=True` (the fake hosting service), and an expected `SettingsInvalid` naming `FACTORY_DATASET` with fault `missing`. Why: no row tested that the dataset is refused before the workspace and the image, which is the Interface's order of the three `missing` faults.
+
+    Criterion mapping is unchanged from entry 21. This row belongs to the existing test of the missing-settings criterion: tests/entry/test_wiring_one_environment.py::test_build_boundaries_needs_the_dataset_the_workspace_and_the_image.
+
+    Files created: none. Files changed: tests/entry/test_wiring_one_environment.py, a test this story wrote. Every module was imported, none failed.
+
+    `make test` ran once and was green ("test: green (63.9 s)", 99.56 % coverage). As the coder expected, the new row passes without a code change. `make lint` is green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (64.6 s)
