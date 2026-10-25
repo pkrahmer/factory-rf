@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 445
 comments_read: [6397809713]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T12:54:22.457816Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-25T12:54:01.911258Z'
   stage: doing
   run: abf62dff188d4c6e9242ab705039353b
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-25T12:54:22.457816Z'
+  stage: review
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -388,3 +397,4 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
 
     `check`: check: green
     `duplicates`: duplicates: 9 new, 35 known, 3 gone
+19. factory: started review as self.
