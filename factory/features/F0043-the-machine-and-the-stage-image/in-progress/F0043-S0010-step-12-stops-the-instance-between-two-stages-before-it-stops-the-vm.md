@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 442
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-25T09:50:52.163955Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-25T09:50:32.021075Z'
   stage: review
   run: 436a4318347e459cbba7edb2ebfeb17b
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:50:52.163955Z'
+  stage: docs
 ---
 
 # Step 12 stops the instance between two stages before it stops the VM
@@ -150,3 +159,4 @@ Expect: `documents ok`
    - Work item hygiene: the coder's entry gives the main decision (leave `docs/operator-guide.md` to the docs stage) and the alternative it rejected (writing step 12 itself). The Description still matches the story: a rewrite of step 12 only, still to be written. The docs criterion still says what the documenter must write: wait for no claim by `vm` with `factory-watch`, then `sudo systemctl stop factory@vm` on the VM. It also gives the reason (systemd's stop timeout of 90 seconds, then a crash at the next start), the order of the commands, where each command runs, no `systemctl restart`, and the cost, start and enabled sentences that stay.
 
    Earlier tests: none. The diff changes, renames or deletes no test file that `main` already holds.
+10. factory: started docs as vm.
