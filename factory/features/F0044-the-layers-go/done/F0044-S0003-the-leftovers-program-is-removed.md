@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-10-25T13:43:01.987053Z'
   stage: smoke-test
   run: f221c013f2fd49e385527fde795abf21
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-10-25T13:44:23.449169Z'
+  stage: approval
 ---
 
 # The leftovers program is removed
@@ -533,3 +538,4 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     - The smoke test does not exercise criteria 3, 4 and 6 (`make check`). The tests and the factory's checks cover those.
 
     Findings: none.
+32. factory: done (pull request merged); cost: 14 runs, 23.1 min, 146 turns, 456486 tokens in (4785570 more from cache), 51940 out, $5.06
