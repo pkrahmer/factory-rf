@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-25T00:30:11.929143Z'
   stage: smoke-test
   run: 78b3b46ca2f64832b0c22aca9faca840
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-25T00:31:31.076194Z'
+  stage: approval
 ---
 
 # The checkout and the state directory are settings
@@ -451,3 +456,4 @@ Expect: `1`
     The smoke test does not run `make check` (criterion 8) or look at the docs (criterion 9). The factory's checks and the docs stage cover those, so I did not judge them here.
 
     **Findings:** none.
+25. factory: done (pull request merged); cost: 11 runs, 14.0 min, 96 turns, 338379 tokens in (2504315 more from cache), 48383 out, $3.68
