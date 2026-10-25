@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 442
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-25T09:51:38.450811Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-25T09:51:38.450811Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T09:52:07.887191Z'
+  stage: smoke-test
+  run: dbe1bbf9de614ceeaa07ac25866056c0
 ---
 
 # Step 12 stops the instance between two stages before it stops the VM
@@ -187,3 +189,38 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: Ran the five `## Smoke test` commands from the repository root exactly as written, in order. All five met their `Expect:` line, and no criterion is contradicted. No findings.
+
+    Command 1 (counts of `sudo systemctl stop factory@vm` and `factory-watch` in step 12). Expect: two lines, each at least `1`. Met.
+    ```
+    1
+    1
+    ```
+
+    Command 2 (count of `systemctl restart`, and whether the stop line comes first). Expect: `0`, `1`. Met.
+    ```
+    0
+    1
+    ```
+
+    Command 3 (code blocks in step 12 that hold both a `gcloud` and a `sudo` command). Expect: `0`. Met.
+    ```
+    0
+    ```
+
+    Command 4 (count of `gcloud compute instances start` in step 12). Expect: at least `1`. Met.
+    ```
+    1
+    ```
+
+    Command 5 (`make documents 2>&1 | tail -n 1`). Expect: `documents ok`. Met.
+    ```
+    documents ok
+    ```
+
+    Re-read against `## Acceptance criteria`:
+    - Criterion 1: `git diff --stat main...HEAD` lists only `docs/operator-guide.md` and the work item's own `.md` and `.costs.jsonl`. Nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes. The tester (entry 5) and the coder (entry 7) each said so.
+    - Criterion 2: I did not run `make check` myself. Entries 7 and 11 record `check: green`, and the factory runs the stage's checks.
+    - Criterion 3: the diff to `docs/operator-guide.md` is one hunk, and it covers step 12 only. The step tells the operator to wait for no work item held by `vm` with `factory-watch` "as in step 11". Then they run `sudo systemctl stop factory@vm` "on the VM from your own account", and after that `gcloud compute instances stop` "on your own computer". One sentence gives the reason (systemd's 90-second stop timeout, then a crash at the next start) and points to *The rebuild after a merge*. The two commands sit in separate code blocks. The start is introduced as "on your own computer". The cost sentence, the start with `gcloud compute instances start` and the "service is enabled and comes up with it" sentence are still there. No other section changed.
+
+    Open: nothing for this story. The `TimeoutStopSec` question for `vm/factory.service` is still the human's (F0043-A0002/A0003).
