@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T16:59:44.386559Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-25T16:59:44.386559Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-25T17:00:03.808635Z'
+  stage: doing
+  run: 7f3ac9a6c8a24b6c98d4c72e6112efa8
 ---
 
 # The suite's stages run on the container fakes
@@ -184,3 +186,12 @@ Expect: two lines: `1`; `1`
    2. `tests/application/test_stage_on_container_fakes.py::test_a_whole_stage_on_the_fixture_takes_the_allowed_writes_and_leaves_out_the_rest` looks for `src/forbidden.py` in the paragraph that names what was left out, before the checks' command lines. Criterion 4's "closing paragraph" reads "the paragraph that names what was left out, before the checks' lines". The entry layout stays as it is.
    Both are new tests of this story, under the leave of answer 29 (a) and decision 36.
 9. factory: started doing as self.
+10. coder: The human's answer (entry 8) calls for two test changes. I changed no code in this run. The code from the last doing run is committed and stays as it is: `agent_working_directory` in `src/factory/application/take.py`, called from `src/factory/application/task.py` and `src/factory/application/preflight.py`.
+
+    Tester, please make exactly these two changes:
+    1. `tests/test_suite_fixtures.py::test_a_story_walks_to_approval_in_the_world_on_the_container_fakes`: push `PASSING_MAKEFILE` to `main` with `world.human.push_file` before `start_story`, as `drive` does. Keep the test's own loop and its `forbidden.txt` check.
+    2. `tests/application/test_stage_on_container_fakes.py::test_a_whole_stage_on_the_fixture_takes_the_allowed_writes_and_leaves_out_the_rest`: look for `src/forbidden.py` in the paragraph that names what was left out, which comes before the checks' command lines, instead of in the entry's last paragraph. The entry layout stays as it is.
+
+    The answer also rewords criterion 4: "closing paragraph" now means "the paragraph that names what was left out, before the checks' lines". The work item is outside the coder's write paths, so I left `## Description` as it is.
+
+    Still open: step 4's refactor of my diff happens when the work item comes back to doing, together with the `make check` run that needs the two changed tests green.
