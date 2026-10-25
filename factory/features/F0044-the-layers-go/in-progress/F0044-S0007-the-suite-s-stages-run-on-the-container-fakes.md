@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 450
-comments_read: [6400499867]
+comments_read: [6400499867, 6400543008]
 handed_over: null
 claim: null
 journal:
@@ -76,6 +76,11 @@ journal:
   stage: tests
   run: 940819d58b8f439d8ae1d7f4901b0b51
   blocked: question
+- number: 13
+  speaker: human
+  kind: comment
+  at: '2026-10-25T17:03:16.908562Z'
+  stage: tests
 ---
 
 # The suite's stages run on the container fakes
@@ -227,3 +232,4 @@ Expect: two lines: `1`; `1`
     I would choose (a). The criterion names the stages walked to approval, and approval is where the walk ends, not a stage the agent runs. I tried (a) on that single test and it passed. I then restored the file, so the working tree holds only the two approved changes.
 
     Files changed: tests/test_suite_fixtures.py, tests/application/test_stage_on_container_fakes.py.
+13. 2026-10-25 human: (a). The loop does not record `approval` in `walked` (`if stage not in walked and stage != "approval":`); the expected list stays `intake … smoke-test`, and the test still waits for `handed_over == "approval"`. Approval is where the walk ends, not a stage an agent runs.
