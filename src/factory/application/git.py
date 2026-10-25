@@ -133,36 +133,6 @@ class Git(ABC):
         """
 
     @abstractmethod
-    def seal(self) -> None:
-        """Take the group's and others' write permission from the repository folder and its entries.
-
-        Raises `RepositoryUnsealed` when the folder is missing, is a symbolic link, is not a
-        directory, holds no regular file `HEAD` or belongs to another user, or when an entry
-        cannot be read or changed.
-        """
-
-    @abstractmethod
-    def check_seal(self) -> None:
-        """Raise `RepositoryUnsealed` unless the repository folder is the factory's alone.
-
-        That is a directory, not a symbolic link, of the factory's own user, that neither its
-        group nor others may write and that holds a regular file `HEAD`. Changes nothing.
-        """
-
-    @abstractmethod
-    def remove_nested_repositories(self) -> list[str]:
-        """Remove every entry named `.git` below the working copy other than its own repository.
-
-        A folder, a file or a symbolic link counts. Returns their paths relative to the working
-        copy, `/`-separated and sorted; `[]` when there is none. Raises `RepositoryUnsealed`
-        when one cannot be removed.
-        """
-
-    @abstractmethod
-    def discard(self) -> None:
-        """Remove the working copy and its repository; a missing working copy is no error."""
-
-    @abstractmethod
     def work_tree_id(self, left_out: Sequence[str] = ()) -> TreeId:
         """The tree a commit of the work tree would record now, less the paths matching `left_out`.
 
@@ -170,14 +140,6 @@ class Git(ABC):
         not ignored count, deleted and ignored files do not. A path is left out when
         `matches_any(path, left_out)`. The index, `HEAD`, the refs and the work tree stay
         as they are.
-        """
-
-    @abstractmethod
-    def remove_ignored(self) -> None:
-        """Remove every untracked path the ignore rules match, a folder with all it holds.
-
-        Tracked files, untracked paths no rule matches and the repository stay. A path that
-        cannot be removed raises `GitError`.
         """
 
     @abstractmethod

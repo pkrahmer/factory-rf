@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T16:14:44.454755Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,13 @@ journal:
   kind: started
   at: '2026-10-25T16:14:44.454755Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: question
+  at: '2026-10-25T16:18:10.042438Z'
+  stage: doing
+  run: 5ca76f4ec92d4dfba986a12ee2daba12
+  blocked: question
 ---
 
 # The checkout's hygiene is removed
@@ -242,3 +245,35 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     `lint`: lint: green (0.7 s)
     `test`: FAILED tests/application/test_repository_waiter.py::test_a_failing_clone_or_fetch_is_one_stop_naming_the_git_error[_deleted_after_clone-cannot fetch: git fetch --prune origin failed] - assert False
 12. factory: started doing as self.
+13. coder: The code is done, but two of the new tests cannot pass against the code, so `make test` is red. I changed no test.
+
+    **What I built.** All in the working tree:
+    - `src/factory/application/sealed_runs.py` is deleted.
+    - `src/factory/application/git.py` and `src/factory/adapters/git_cli.py` lose `seal`, `check_seal`, `remove_nested_repositories`, `discard` and `remove_ignored`. `GitCli` also loses `_check_git_folder`, `_raise_unsealed`, `_close`, `_nested_repositories`, `_remove_entry`, `SHARED_WRITE` and the `stat` import.
+    - `src/factory/domain/errors.py` loses `RepositoryUnsealed`. `src/factory/application/dispatcher.py` loses its re-raise and the docstring's exception.
+    - `src/factory/application/scheduler.py`: `CheckoutPreparer.prepare` only clones a missing checkout and has the docstring the Interface gives. `_keep_or_clone_again` and `_write_log` are gone; the signature is kept.
+    - `src/factory/application/tick.py`: `_restore_checkout` no longer calls `remove_ignored`.
+    - `src/factory/application/stage_environment.py`: both environments' `run_agent` return `(run or boundaries.agent_runtime.run)(request)` as an `AgentRunResult`.
+    - `src/factory/application/stage.py`: `LaunchedStage.nested_repositories` and the `nested_repository` branch of `_early_stall` are gone.
+    - `src/factory/application/preflight.py`: the probe's nested-repository fault is gone.
+    - `src/factory/domain/journal.py` and `src/factory/domain/post_texts.py` lose `nested_repository`.
+    - `src/factory/domain/contract.py` has `RECORDS_CONTRACT = "3.0"`. The five schemas were regenerated with `uv run python -m factory.entry.contract`.
+
+    **Main choice.** Each environment calls the runtime itself in its own `run_agent`. I rejected a shared concrete helper on the abstract base: the Interface has `run_agent` as an `@abstractmethod`, and an interface carries no behaviour here.
+
+    **Where I stopped.** `make lint types layers sast secrets licenses` are each green. `make test` fails only in these two new tests:
+
+    1. `tests/application/test_probe_nested_repository.py::test_a_probe_run_that_leaves_a_nested_repository_passes` fails with `assert item.detail is None` (`AssertionError: assert '' is None`). `PreflightItem.detail` is typed `str = ""` and is never `None`. The probe passes (`passed` is true) with the detail `""`, which is what `_login_detail` returns for a run without a login. Options:
+       - (a) The test asserts `item.detail == ""` (or drops that line). This is what I would choose: criterion 9 says only "reports no fault; the probe item passes".
+       - (b) `PreflightItem.detail` becomes `str | None`. That is outside this story's Interface.
+
+    2. `tests/application/test_tick_restore_ignored.py::test_the_restore_discards_an_untracked_file_and_keeps_an_ignored_one` fails with `assert not (directory / "src" / "a.py").exists()`. The tick never gets to the restore: it stops at the load with `stop repository pipeline_definition_invalid: agent home unavailable: no agents directory at …/agent-home/agents`. The module lacks the `installed_agents` fixture that `tests/application/test_tick.py` applies with `pytestmark = pytest.mark.usefixtures("installed_agents")`. Option: add the same `pytestmark` line to the test module. That is what I would choose. The same scenario in `test_tick.py::test_the_restore_discards_changes_and_names_them_in_one_line` already passes against this code, with `ignored.log` kept.
+
+    I would answer (a) for 1 and the `pytestmark` for 2, then send both back to the tester as `tests`.
+
+    **Refactor.** I read my diff and found nothing to change.
+
+    **Noticed, not touched.**
+    - `CheckoutPreparer` still stores `self._log` but no longer reads it. The Interface keeps the `log` parameter, so `make duplicates` (vulture) may list it as unused.
+    - The comment in `src/factory/entry/wiring.py:156` about a child git started for a nested repository belongs to the factory's git environment, which stays.
+    - The docs criterion is the documenter's.

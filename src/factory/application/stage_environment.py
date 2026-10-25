@@ -9,7 +9,6 @@ from typing import override
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.containers import ContainerRuns
-from factory.application.sealed_runs import SealedRun, run_sealed
 from factory.application.snapshots import Snapshots
 from factory.application.take import TakeReport, TakeService
 from factory.application.undo import UndoService
@@ -66,11 +65,11 @@ class StageEnvironment(ABC):
         request: AgentRunRequest,
         *,
         run: Callable[[AgentRunRequest], AgentRunResult] | None = None,
-    ) -> SealedRun:
+    ) -> AgentRunResult:
         """Run `request`'s agent in this environment, through `run` or the boundaries' runtime.
 
         `run` is called once; whatever it does inside (resumes after a provider limit) happens
-        in the same prepared place. The result and the nested repositories removed after it.
+        in the same prepared place. Returns the run's result.
         """
 
     @abstractmethod
@@ -83,7 +82,7 @@ class StageEnvironment(ABC):
 
 
 class InlineEnvironment(StageEnvironment):
-    """v1.1's way: the agent in the factory's own checkout, sealed around; the undo after."""
+    """v1.1's way: the agent in the factory's own checkout; the undo after."""
 
     def __init__(self, boundaries: Boundaries) -> None:
         """Run in the checkout of `boundaries`."""
@@ -99,9 +98,9 @@ class InlineEnvironment(StageEnvironment):
         request: AgentRunRequest,
         *,
         run: Callable[[AgentRunRequest], AgentRunResult] | None = None,
-    ) -> SealedRun:
-        """Run the agent in the checkout with its git folder sealed around the run."""
-        return run_sealed(self._boundaries, request, run=run)
+    ) -> AgentRunResult:
+        """Run the agent in the checkout."""
+        return (run or self._boundaries.agent_runtime.run)(request)
 
     @override
     def take(self, stage_start: StageStart, work_item_path: str) -> TakeReport:
@@ -149,10 +148,9 @@ class ContainerEnvironment(StageEnvironment):
         request: AgentRunRequest,
         *,
         run: Callable[[AgentRunRequest], AgentRunResult] | None = None,
-    ) -> SealedRun:
-        """Run the agent unsealed: the dataset is rolled back before the next stage anyway."""
-        result = (run or self._boundaries.agent_runtime.run)(request)
-        return SealedRun(result=result, nested_repositories=[])
+    ) -> AgentRunResult:
+        """Run the agent on the dataset, which is rolled back before the next stage anyway."""
+        return (run or self._boundaries.agent_runtime.run)(request)
 
     @override
     def take(self, stage_start: StageStart, work_item_path: str) -> TakeReport:

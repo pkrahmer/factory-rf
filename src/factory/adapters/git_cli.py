@@ -2,7 +2,6 @@
 
 import os
 import shutil
-import stat
 import tempfile
 from collections.abc import Sequence
 from datetime import UTC, datetime
@@ -10,7 +9,7 @@ from pathlib import Path
 
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.application.git import Git
-from factory.domain.errors import FetchFailed, GitError, NothingToCommit, RepositoryUnsealed
+from factory.domain.errors import FetchFailed, GitError, NothingToCommit
 from factory.domain.git import (
     ChangedPath,
     ChangeKind,
@@ -48,8 +47,6 @@ IGNORE_GROUP = 1000
 NONE_IGNORED = 1
 # The source, line and pattern before the tab of a `check-ignore --verbose` line no rule matched.
 NO_RULE = "::"
-# The write permission of the group and of others, which the git folder must not carry.
-SHARED_WRITE = 0o022
 DIFF_KINDS: dict[str, ChangeKind] = {"A": "added", "D": "deleted"}
 UNREACHABLE_MARKERS = (
     "Could not read from remote repository",
@@ -139,42 +136,6 @@ def _status_header(entries: list[str], name: str, placeholder: str) -> str | Non
 
 def _sorted_changes(changes: dict[str, ChangeKind]) -> list[ChangedPath]:
     return [ChangedPath(path=path, change=changes[path]) for path in sorted(changes)]
-
-
-def _raise_unsealed(error: OSError) -> None:
-    # `os.walk` skips a folder it cannot list unless its `onerror` raises.
-    raise RepositoryUnsealed(f"{error.filename}: {error}") from error
-
-
-def _close(path: Path) -> None:
-    try:
-        mode = path.lstat().st_mode
-        if not stat.S_ISLNK(mode) and mode & SHARED_WRITE:
-            path.chmod(stat.S_IMODE(mode) & ~SHARED_WRITE)
-    except OSError as error:
-        raise RepositoryUnsealed(f"{path}: {error}") from error
-
-
-def _nested_repositories(root: Path) -> list[Path]:
-    found: list[Path] = []
-    # A folder the walk cannot list is skipped: the factory's git cannot look into it either.
-    for parent, folders, files in os.walk(root, followlinks=False):
-        here = Path(parent)
-        if here != root and (".git" in folders or ".git" in files):
-            found.append(here / ".git")
-        if ".git" in folders:
-            folders.remove(".git")
-    return found
-
-
-def _remove_entry(path: Path) -> None:
-    try:
-        if stat.S_ISDIR(path.lstat().st_mode):
-            shutil.rmtree(path)
-        else:
-            path.unlink()
-    except OSError as error:
-        raise RepositoryUnsealed(f"{path}: {error}") from error
 
 
 def _is_ignoring(line: str) -> bool:
@@ -394,41 +355,6 @@ class GitCli(Git):
         (self._directory / destination).parent.mkdir(parents=True, exist_ok=True)
         self._run(["mv", "--", source, destination])
 
-    def seal(self) -> None:
-        """Take the group's and others' write bits from `.git` and every entry in it."""
-        folder = self._check_git_folder()
-        _close(folder)
-        for parent, folders, files in os.walk(folder, onerror=_raise_unsealed):
-            for name in [*folders, *files]:
-                _close(Path(parent) / name)
-
-    def check_seal(self) -> None:
-        """Raise `RepositoryUnsealed` unless `.git` is the factory's alone; changes nothing."""
-        folder = self._check_git_folder()
-        if folder.lstat().st_mode & SHARED_WRITE:
-            raise RepositoryUnsealed(f"{folder} is writable by its group or by others")
-
-    def remove_nested_repositories(self) -> list[str]:
-        """Remove each `.git` below the working copy but its own, without a git process."""
-        found = _nested_repositories(self._directory)
-        for path in found:
-            _remove_entry(path)
-        return sorted(path.relative_to(self._directory).as_posix() for path in found)
-
-    def discard(self) -> None:
-        """Remove the working copy with its `.git`; a missing one is no error."""
-        if not os.path.lexists(self._directory):
-            return
-        try:
-            shutil.rmtree(self._directory)
-        except OSError as error:
-            raise GitError("discard", None, str(error)) from error
-
-    def remove_ignored(self) -> None:
-        """Remove every untracked path that `.gitignore` or `.git/info/exclude` matches."""
-        # The second `--force` also removes an ignored folder that holds a repository.
-        self._run(["clean", "--quiet", "--force", "--force", "-d", "-X"])
-
     def ignored(self, paths: Sequence[str]) -> list[str]:
         """Ask `check-ignore` about `paths` in groups and keep those a rule (not `!`) ignores."""
         for path in paths:
@@ -512,25 +438,6 @@ class GitCli(Git):
     def _untracked_paths(self) -> list[str]:
         listing = self._run(["ls-files", "--others", "--exclude-standard", "-z"]).stdout
         return [path for path in listing.split("\0") if path]
-
-    def _check_git_folder(self) -> Path:
-        folder = self._directory / ".git"
-        try:
-            folder_stat = folder.lstat()
-        except FileNotFoundError:
-            raise RepositoryUnsealed(f"{folder} does not exist") from None
-        mode = folder_stat.st_mode
-        if stat.S_ISLNK(mode):
-            raise RepositoryUnsealed(f"{folder} is a symbolic link")
-        if not stat.S_ISDIR(mode):
-            raise RepositoryUnsealed(f"{folder} is not a directory")
-        owner, effective = folder_stat.st_uid, os.geteuid()
-        if owner != effective:
-            raise RepositoryUnsealed(f"{folder} belongs to the user {owner}, not to {effective}")
-        head = folder / "HEAD"
-        if not os.path.lexists(head) or not stat.S_ISREG(head.lstat().st_mode):
-            raise RepositoryUnsealed(f"{folder} holds no HEAD file")
-        return folder
 
     def _reach(self, point: KillPoint) -> None:
         if self._options.kill_points is not None:

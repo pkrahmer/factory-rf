@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "x-records-contract": "2.0",
+  "x-records-contract": "3.0",
   "$defs": {
     "ProjectCommandDefinition": {
       "additionalProperties": false,

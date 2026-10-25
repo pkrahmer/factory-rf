@@ -48,14 +48,6 @@ class NothingToCommit(GitError):
     """A commit was asked for, but no change was staged."""
 
 
-class RepositoryUnsealed(GitError):
-    """The checkout's git folder is not the factory's alone."""
-
-    def __init__(self, detail: str) -> None:
-        """Say what about the git folder is not the factory's alone."""
-        super().__init__("seal", None, detail)
-
-
 class PushFailed(FactoryError):
     """A push did not reach the remote: the branch and how the push ended."""
 

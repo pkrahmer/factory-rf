@@ -34,9 +34,6 @@ _STALL_SENTENCES: dict[StallReason, str] = {
     "form_invalid": "the work item's form broke during the stage",
     "check_red": "a check is red after the stage",
     "merge_conflict": "merging the main branch conflicts and the merge was aborted",
-    "nested_repository": (
-        "the agent left a git repository in the work tree, which the factory removed"
-    ),
     "provider_limit": "the provider's spend limit lasted past the waiting ceiling",
 }
 

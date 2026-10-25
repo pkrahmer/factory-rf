@@ -261,16 +261,9 @@ def agent_run_probe_item(
         request = _probe_request(boundaries, agent, environment)
         stage_environment = stage_environment_of(boundaries)
         stage_environment.prepare(main, MAIN_BRANCH, sync_time_limit=PROBE_TIME_LIMIT)
-        sealed = stage_environment.run_agent(request)
+        result = stage_environment.run_agent(request)
     except (AgentDefinitionError, AgentRuntimeError, SnapshotError, ContainerError) as error:
         return PreflightItem(name=_PROBE_ITEM, passed=False, detail=str(error))
-    if sealed.nested_repositories:
-        detail = (
-            "the probe run left a git repository in the work tree, which the factory removed: "
-            + ", ".join(sealed.nested_repositories)
-        )
-        return PreflightItem(name=_PROBE_ITEM, passed=False, detail=detail)
-    result = sealed.result
     if result.end_reason != "completed":
         detail = (
             f"the probe run ended {result.end_reason}; "
