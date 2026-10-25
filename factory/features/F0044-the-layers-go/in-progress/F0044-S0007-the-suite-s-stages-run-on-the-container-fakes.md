@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008, 6400918653]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T17:42:31.121572Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -219,6 +223,11 @@ journal:
   at: '2026-10-25T17:42:10.492791Z'
   stage: review
   run: 788147960cab48dfb7f8179c5eae8c4a
+- number: 39
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:42:31.121572Z'
+  stage: docs
 ---
 
 # The suite's stages run on the container fakes
@@ -665,3 +674,4 @@ Expect: three lines: `1`; `1`; `1`
     Notes:
     - tests/test_suite_fixtures.py:64: the literal `"stage environment: reset"` duplicates `RESET_PREFIX` of `tests/application/test_stage_on_container_fakes.py` (carried from entry 27).
     - tests/test_suite_fixtures.py:40: the walk's loop repeats most of `drive` in `tests/proof_support.py` (carried from entry 27).
+39. factory: started docs as self.
