@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 438
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-25T08:46:22.040078Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-25T08:46:22.040078Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-25T08:50:00.970208Z'
+  stage: doing
+  run: cb1138f658ed43a087de0d667daa29d9
 ---
 
 # The rebuild after a merge runs the operator's own copy of the setup script
@@ -106,3 +108,14 @@ Expect: `documents ok`
    `lint`: lint: green (0.2 s)
    `test`: test: green (194.8 s)
 6. factory: started doing as vm.
+7. coder: I built nothing, so there are no paths. This story only changes the docs. The Interface is "None", the tester wrote no tests, and no test fails, so there is nothing for the coder to implement.
+   criterion 1: I changed nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/`. The working tree is clean (`git status --short` is empty).
+   criterion 2: `make check` is green (`test: green (194.2 s)`, `check: green`).
+   criterion 3: this is the documenter's. It changes `docs/operator-guide.md` (*The rebuild after a merge*) and adds one sentence to the decision entry `## The factory runs on the host, and the stage image carries the tools alone` in `docs/decisions.md`.
+   Main choice: I left the docs alone, because CLAUDE.md says the documenter writes them and the coder does not. I rejected editing the operator guide here: that would take over the documenter's work.
+   Refactor: there is no diff, so nothing needed changing.
+   Description: the journal did not change the meaning of the task.
+   Noticed but not touched: nothing.
+
+   `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
+   `duplicates`: duplicates: 11 new, 36 known, 2 gone
