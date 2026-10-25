@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 440
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-25T09:23:21.633230Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-25T09:23:21.633230Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T09:23:49.819169Z'
+  stage: review
+  run: 9861bcef779e49ecbcd91ed95615d349
 ---
 
 # The rebuild after a merge stops the instance between two stages and says where each command runs
@@ -147,3 +149,18 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. `git diff --name-status main...HEAD` lists only the work item's `.md` (M) and its `.costs.jsonl` sidecar (A).
+   - Criterion 1: the diff is empty, so nothing changed under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/`. The tester's entry (5) and the coder's entry (7) each say so.
+   - Criterion 2: entry 7 records the factory's `make check` as `check: green`. The `duplicates` record of 11 new findings cannot come from this story, because the story changes no code.
+   - Criterion 3 (docs): this is the documenter's work, next. I checked that what the criterion refers to exists in `docs/operator-guide.md`:
+     - `### The rebuild after a merge` is at line 696.
+     - Step 11 of *On GCP, step by step* runs `factory-watch` (lines 636-646).
+     - *On any Ubuntu 24.04 VM* is at line 650.
+     - The sentence "Root runs nothing from `/srv/factory/vm/factory`, ..." is at line 709. The paragraph on a differing unit or helper ends the section.
+     - The current section does have the gaps the Description names: `systemctl restart` after the pull, and one block that holds both the `gcloud` and the `sudo` commands.
+   - Interface: "None". It states no rule or limit, so there is no failing side to test.
+   - Hygiene: the Description matches what has been built so far (nothing yet, the documenter writes next). The docs criterion says what the reader must know after this story. The `TimeoutStopSec` question is left open for the human, as the Description says.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
