@@ -1156,3 +1156,8 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 | 12:45 | F0044-S0002 question on #445 (three earlier tests still add a removed `guard` field): answered (a), leave for the tester under decisions 17/29 plus the helper move of `_has`. **For the morning:** a leave given beyond the pre-check list, in the spirit of decision 29. |
 | 13:04 | F0044-S0002 (the wrapper and rules removed) at approval, PR #445: six checks met (write paths; earlier tests all in decision 18/31a or the answer of entry 12 or the helper leave; check green, entry 18 and the stage checks; reviewer no findings, entry 24; both Expect lines met; no markers). 13 runs, $6.23. Merged. |
 | 13:05 | Change 3 of F0044: `factory-confine` out of `[project.scripts]`; CLAUDE.md marker exception reduced to process.py's four markers. |
+| 13:05 | Rebuilt self (no claim), started F0044-S0003. |
+| 13:06 | Started the pre-check of F0044-S0004 (the fresh home is removed), round 1, an Opus helper, while S0003 builds. |
+| 13:12 | F0044-S0003 question on #446 (an S0001 test pins `Starters`' old fields): answered (a), delete it, criterion 2 covers it; leave under decisions 19/29. **For the morning:** a leave beyond the pre-check list. |
+| 13:20 | F0044-S0003 second question on #446 (the new test fails mypy on a re-exported `Step`): answered (a), only the new test file changes. |
+| 13:26 | Pre-check of F0044-S0004 (the fresh home is removed), round 1: accepted at intake, edits 1-3 required, 4-5 optional; all five applied once; form check ok; secrets hook clean. The human answered the quiz: (a) leave for the corrected list, (b) the CLAUDE.md R12 fresh_home clause replaced with change 5, (c) the extra docs passages into S0004. Recorded as decision 33. |
