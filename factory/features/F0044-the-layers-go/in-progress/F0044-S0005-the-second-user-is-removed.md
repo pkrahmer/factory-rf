@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T14:48:23.803148Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-10-25T14:48:03.008378Z'
   stage: tests
   run: 57db5d0a3b7340e4b442aaf8276f0da4
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:48:23.803148Z'
+  stage: doing
 ---
 
 # The second user is removed
@@ -243,3 +252,4 @@ Expect: three lines: `[] False`; `False False`; `3 False`
 
     `lint`: lint: green (0.8 s)
     `test`: ERROR tests/adapters/test_agent_launch_call_end.py - pydantic_core._pydantic_core.ValidationError: 1 validation error for Starters
+12. factory: started doing as self.
