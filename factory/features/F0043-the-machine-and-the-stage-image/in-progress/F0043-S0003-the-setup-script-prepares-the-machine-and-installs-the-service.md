@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T05:58:44.035135Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -323,6 +319,12 @@ journal:
   kind: started
   at: '2026-10-25T05:58:44.035135Z'
   stage: doing
+- number: 57
+  speaker: coder
+  kind: result
+  at: '2026-10-25T06:02:03.969511Z'
+  stage: doing
+  run: 5e3cf13117204ea79e7de59d44c1619b
 ---
 
 # The setup script prepares the machine and installs the service
@@ -942,3 +944,19 @@ Expect: `1`
     `lint`: lint: green (0.5 s)
     `test`: test: green (67.8 s)
 56. factory: started doing as self.
+57. coder: Round 1, after the tester's entry 55. I made no code changes in this run because none was needed. The code fix the human ordered in entry 49 has been in `vm/setup.sh` since entry 53. In the `folders` step, `[ -L /home/factory/.secrets ]` sits in the one link refusal next to the tests of `$base/state` and `$base/repo`, before the first `install -d`. It prints its `setup: folders: ` line with `>&2` and ends with `exit 1`. The tester's new row `tests/test_vm_setup_text.py::test_the_folders_step_refuses_a_link_at_state_or_repo[link-test-secrets]` passes against it. I ran `make check` on the committed state and it ends `check: green` (`test: green (68.9 s)`, coverage 99.20 %).
+
+    What I built across the story: `vm/setup.sh` and `vm/factory.service`. This run's main choice was to leave the code alone. The alternative I rejected was touching it again: the new test row already passes, and the human allowed nothing beyond the entry-49 change.
+
+    Refactor: nothing to change. The diff is the same as in entry 53, which I already re-read then.
+
+    Description: unchanged by me. The reviewer already wrote entry 49 into the Description, the Interface and criteria 14 and 16 (entry 51).
+
+    Noticed, not touched (both in tests, reviewer's notes in entry 51):
+    - `tests/vm_support.py:5` imports the private `_uncommented` from `dockerfile_support`.
+    - The `chown-keeps-links` row checks nothing, because the script holds no `chown`.
+
+    Open for the documenter (entry 51): the round-1 sections of `docs/operator-guide.md` need to be brought up to the current criterion 16. That covers the link refusals and the installs only in the run that made the clone.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
