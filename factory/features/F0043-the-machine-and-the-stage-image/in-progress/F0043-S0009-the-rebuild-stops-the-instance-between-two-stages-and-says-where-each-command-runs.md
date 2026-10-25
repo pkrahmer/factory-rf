@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 440
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-25T09:19:20.760407Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-25T09:19:00.152277Z'
   stage: tests
   run: 23725e0771f24bcea3930865491ef1ce
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:19:20.760407Z'
+  stage: doing
 ---
 
 # The rebuild after a merge stops the instance between two stages and says where each command runs
@@ -114,3 +123,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.2 s)
    `test`: test: green (194.6 s)
+6. factory: started doing as vm.
