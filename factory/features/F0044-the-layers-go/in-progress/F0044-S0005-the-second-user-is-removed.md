@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T15:02:50.740807Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-25T15:02:50.740807Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-25T15:03:19.473409Z'
+  stage: doing
+  run: 7c92051f457c42798237a84d137bbd21
 ---
 
 # The second user is removed
@@ -388,3 +390,18 @@ Expect: three lines: `[] False`; `False False`; `3 False`
 
     Open, outside the diff, so not under review: `src/factory/adapters/process.py:90` still has a comment saying the agent's own `timeout` ends root's `sudo` (the coder named this in entry 13).
 20. factory: started doing as self.
+21. coder: Round 1. The reviewer's six findings in entry 19 are all changes to tests, and the code under `src/` doesn't need any change. A coder doesn't edit tests, so I'm handing them to the tester. In this run I changed no code and ran no `make check`: nothing outside the tests changed, and the last run was green (entry 17).
+
+    These are the changes the tester should make, each exactly as entry 19 says:
+    1. `tests/adapters/test_calls_as_the_factory_user.py:33`: delete the copy `CLAUDE_REPLY` and import `REPLY` from `tests/adapters/claude_stand_in.py` instead (for example `from adapters.claude_stand_in import REPLY as CLAUDE_REPLY`).
+    2. `tests/adapters/test_calls_as_the_factory_user.py:60` and `tests/adapters/test_runtimes_without_wrapper.py:85`: move `_login_file` to one shared place under the standing leave (for example `tests/confine_support.py`, beside `Layout`), and have both modules use it. The two copies differ only in the file name, so it becomes a parameter.
+    3. `tests/entry/test_wiring_without_agent_user.py:29-49` and `tests/entry/test_wiring_container_extras.py:15-35`: move the fixtures `podman` and `zfs` and the container item list to one shared place under the standing leave. That is either a module at the `tests/` root or `tests/conftest.py`, under names that don't clash with the existing `podman` fixture. `CONTAINER_ITEMS` then builds on that one list plus `agent-run-probe`.
+    4. `tests/entry/test_wiring_stage_environment.py:79`: delete the dead class `_Which` (decision 21).
+    5. `tests/confine_support.py:25,40`: remove the dead field `Layout.sudo_bin` and its value (decision 21; if the tester finds that decision 21 doesn't cover this shared helper, the tester asks).
+    6. `tests/adapters/test_calls_as_the_factory_user.py:79-89`: `_recorded` should take the `recorder` fixture from `tests/conftest.py:362` and add only the opencode patches (`run_process` and `run_streaming`), not build its own `Recorder` and patch `claude_runtime.run_process` again.
+
+    Main choice: end with `tests` and change no code. The other option was to make no change and ask, which I rejected: every finding is a test change, and decision 21 or the standing leave in `CLAUDE.md` covers each one, so no question for the human is needed.
+
+    Noticed, not touched (as in entries 13 and 17): the comment at `src/factory/adapters/process.py:90` still says the agent's own `timeout` ends root's `sudo`, and `process.py` is outside this story's Interface. `SealedProjectCommands` has no caller until S0006. The Dockerfile and VM-setup tests still mention `FACTORY_AGENT_USER`.
+
+    Description: unchanged. The review's findings don't change what the task means.
