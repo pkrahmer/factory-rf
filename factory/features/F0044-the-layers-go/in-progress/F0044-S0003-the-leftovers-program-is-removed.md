@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T13:16:54.219413Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-25T13:16:33.027942Z'
   stage: tests
   run: a3dc60b0c0bc42bfbc65757b69b2da2a
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:16:54.219413Z'
+  stage: doing
 ---
 
 # The leftovers program is removed
@@ -170,3 +179,4 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
 
    `lint`: lint: green (0.7 s)
    `test`: FAILED tests/test_leftovers_program_removed.py::test_the_names_that_started_the_leftovers_program_are_gone[leftovers_launch] - assert False
+9. factory: started doing as self.
