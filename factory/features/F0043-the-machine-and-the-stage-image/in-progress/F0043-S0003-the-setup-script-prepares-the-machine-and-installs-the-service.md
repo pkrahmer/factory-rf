@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T01:19:54.980308Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-10-25T01:19:54.980308Z'
   stage: doing
+- number: 34
+  speaker: coder
+  kind: result
+  at: '2026-10-25T01:23:04.006807Z'
+  stage: doing
+  run: 04a15555462648ccada6db2c4060403d
 ---
 
 # The setup script prepares the machine and installs the service
@@ -596,3 +598,29 @@ Expect: `1`
     `lint`: lint: green (0.6 s)
     `test`: test: green (67.6 s)
 33. factory: started doing as self.
+34. coder: Round 1, after the tester's entry 32. I made no code changes in this run. The code fix the human ordered in entry 26 was already in `vm/setup.sh` from entry 30. The tester has since added the new rows for criterion 12 and reworked criterion 11's test (`tests/test_vm_setup_text.py`). I ran `make check` against the committed state and it ends `check: green`, with coverage at 99.20 % and `test: green (65.9 s)`.
+
+    **What is built.** These paths are unchanged since entry 30:
+    - `vm/setup.sh`. Every write under `$base` after the `folders` step goes through `as_factory`, which is `runuser -u factory -- env HOME=/home/factory ...`:
+      - the `image-id` file (line 258)
+      - the askpass script (line 277)
+      - `factory.env` (line 336)
+      - the clone, the venv and `uv`.
+
+      The script has no `chown` at all, so the "chown needs `-h`" rule has nothing to check.
+    - `vm/factory.service`.
+
+    **Main choice and the alternative I rejected.** This is entry 30's choice and it stands. The mount point is made with `install -d -o factory -g factory`. I rejected `chown -h factory:factory` because the existing criterion 9 row `mount-point-owner` accepts only the literal `chown factory:factory` or `-o factory -g factory`.
+
+    **Refactor.** This run has no diff of its own, so there was nothing to refactor.
+
+    **Description.** The journal changed nothing further. The reviewer already added entry 26's rule to `## Description` and criterion 12.
+
+    **Noticed, not touched.** These are still the human's to decide; the human said in entry 26 that nothing else changes:
+    - In the `folders` step, `install -d` runs as root on `$base/state` and `$base/repo` (the open point of entry 28). Its guard, `stat` without `-L`, reads a link that `factory` planted as factory's own, so `install` does not run on such a link.
+    - `unchanged` runs `cmp` as root on `$askpass` and `$env_file`. It only reads.
+
+    No skill applied.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
