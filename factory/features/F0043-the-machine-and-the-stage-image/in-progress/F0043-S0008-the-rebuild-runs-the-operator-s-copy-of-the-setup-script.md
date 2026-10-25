@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 438
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-25T08:52:03.562134Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-25T08:52:03.562134Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T08:52:37.062459Z'
+  stage: smoke-test
+  run: 50159b15c069485e9ba4ed0d519a266c
 ---
 
 # The rebuild after a merge runs the operator's own copy of the setup script
@@ -178,3 +180,33 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.8 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: I ran the three smoke commands from the repository root, exactly as written and in order. All three met their `Expect:` line. I found nothing.
+
+    1. Root-run checkout path in *The rebuild after a merge*:
+    ```
+    0
+    ```
+    This met `Expect: 0`. The exit status was 1, which is what `grep -c` returns when it finds no match. That is expected, not an error.
+
+    2. `sudo sh setup.sh` in the same section:
+    ```
+    1
+    ```
+    This met `Expect: a number of at least 1`.
+
+    3. `make documents 2>&1 | tail -n 1`:
+    ```
+    documents ok
+    ```
+    This met `Expect: documents ok`.
+
+    I read the acceptance criteria again against the branch (`git diff main...HEAD`):
+    - Criterion 1: the diff touches only `docs/decisions.md`, `docs/operator-guide.md`, the work item and its `.costs.jsonl`. Nothing changed under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/`. The tester (entry 5) and the coder (entry 7) each said so.
+    - Criterion 2: the coder's and documenter's entries record `check: green` on the tree. This stage did not run `make check` again; the factory gates it.
+    - Criterion 3, operator guide: the rebuild's root step now matches step 6 of *On GCP, step by step*. It runs `gcloud compute scp --zone=europe-west3-a --tunnel-through-iap vm/setup.sh factory-vm:`, then `gcloud compute ssh`, then `sudo sh setup.sh` with the first run's `--device`, `--repository-url` and `--ref` arguments. The section has no command that runs a file under `/srv/factory/vm/factory` as root. One sentence gives the reason: "Root runs nothing from `/srv/factory/vm/factory`, because `factory` can write that checkout." The steps run as `factory`, the restart and the paragraph about a differing unit or helper are unchanged; the diff touches only the lead-in paragraph and the first line of the root command block.
+    - Criterion 3, decision log: the image bullet of `## The factory runs on the host, and the stage image carries the tools alone` gained one sentence: "Root runs no file of the factory's checkout, which `factory` can write: the operator runs the setup script from their own copy." No other entry changed.
+    - Criterion 3, `make documents`: it ends with `documents ok` (command 3).
+
+    Something I checked: the awk in commands 1 and 2 ends the section at the first line that starts with `#`. The section's code block has no such line, so the commands read the whole section.
+
+    Open: nothing.
