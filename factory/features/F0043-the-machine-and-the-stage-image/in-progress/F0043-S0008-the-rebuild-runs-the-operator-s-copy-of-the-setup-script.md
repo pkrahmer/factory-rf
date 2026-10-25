@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 438
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-25T08:51:13.623463Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-25T08:50:53.204458Z'
   stage: review
   run: c0b950ad4b1246afa48c2daf653288a0
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T08:51:13.623463Z'
+  stage: docs
 ---
 
 # The rebuild after a merge runs the operator's own copy of the setup script
@@ -141,3 +150,4 @@ Expect: `documents ok`
    description corrected: "The operator takes `vm/setup.sh` from their own checkout of the ref the instance runs, or from the reviewed merge, copies it to the VM, and runs that copy as root. ... How the operator obtains a trusted copy is the human's to refine before the story starts. The acceptance report lists the options (its check 6)." -> "The operator takes `vm/setup.sh` from their own checkout of the ref the instance runs, copies it to the VM as in step 6 (`gcloud compute scp --tunnel-through-iap`), and runs that copy as root." Criterion 3 already settles the method (a copy from the operator's own checkout of the ref, as in step 6), and intake took it as settled in entry 3. Nothing else in the work item changed.
 
    Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
+10. factory: started docs as vm.
