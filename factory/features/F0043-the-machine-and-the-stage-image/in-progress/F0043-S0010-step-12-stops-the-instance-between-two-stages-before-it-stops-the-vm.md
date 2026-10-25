@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 442
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-25T09:42:14.581626Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-25T09:42:14.581626Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T09:45:48.302626Z'
+  stage: tests
+  run: 6fb4f020c78a4651968f96c8360f2f1d
 ---
 
 # Step 12 stops the instance between two stages before it stops the VM
@@ -96,3 +98,11 @@ Expect: `documents ok`
    Architecture: this changes only `docs/operator-guide.md`, which the documenter stage may write. Nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes.
    Scope: the story stays inside F0043's chapter "The machine". It leaves `vm/factory.service` and the `TimeoutStopSec` question to the human (F0043-A0002/A0003), and it is not in the feature's Out of scope.
 4. factory: started tests as vm.
+5. tester: No tests written. This story only changes documents. The Interface says nothing changes under `src/factory/` or in any test, and that no test reads the documents. The smoke test and `make documents` check the docs criterion.
+   criterion 1 (nothing under src/, tests/, vm/, image/, template/ or claude/ changes): no test function; this stage changed nothing under any of those paths, and `git status` shows a clean working tree.
+   criterion 2 (`make check` stays green): no test function; the factory's checks cover it. `make lint` ends `lint: green`.
+   criterion 3 (docs, step 12 of `### On GCP, step by step`): no test function, because the criterion says no test checks it; the smoke test and `make documents` do.
+   Files created: none. Modules the test run could not import: none, since no new tests exist. I did not run `make test` to look for red tests because there are none to see; the factory's `make test` after this stage should stay green. Nothing is open.
+
+   `lint`: lint: green (0.2 s)
+   `test`: test: green (194.7 s)
