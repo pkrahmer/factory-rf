@@ -94,7 +94,7 @@ layers = ["factory.entry", "factory.adapters", "factory.application", "factory.d
 # --- Tests -------------------------------------------------------------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-# No .pytest_cache: the tests run under umask 022, and the factory removes ignored files as another user.
+# No .pytest_cache: pytest's cache is of no use in a stage's throwaway container.
 addopts = "-q --strict-markers -p no:cacheprovider"
 # The kill-to-rerun seconds reach the JUnit report only in the xunit1 family (F0011 acceptance).
 junit_family = "xunit1"
@@ -102,7 +102,7 @@ junit_family = "xunit1"
 tmp_path_retention_policy = "failed"
 
 [tool.uv]
-# Every sync writes .venv's bytecode itself, group-writable, so no later process of another umask writes it.
+# Every sync writes .venv's bytecode, so the dataset's base keeps it (F0044, decision 8).
 compile-bytecode = true
 
 [tool.coverage.run]

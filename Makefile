@@ -10,8 +10,7 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 .ONESHELL:
-# uv compiles .venv's bytecode at its sync, group-writable: a test child that starts it without
-# PYTHONDONTWRITEBYTECODE then writes nothing the factory's removal of ignored files cannot remove.
+# uv compiles .venv's bytecode at its sync, so the dataset's base keeps it and no stage's container compiles it again.
 export UV_COMPILE_BYTECODE := 1
 
 # `$(start)` opens a recipe and `$(green)` ends it with "<target>: green (<seconds> s)",
@@ -84,7 +83,6 @@ licenses:
 test:
 	$(start)
 	mkdir -p .reports
-	# The tests set their own umask (tests/conftest.py); uv syncs .venv under the caller's.
 	# COLUMNS: each FAILED line keeps its error message, so the tail a stall quotes names it.
 	COLUMNS=200 uv run pytest -q --no-header --tb=short -p no:cacheprovider -n auto --dist worksteal 	  --junit-xml=.reports/junit.xml --cov --cov-report=term-missing:skip-covered
 	$(green)
@@ -120,7 +118,6 @@ mutants:
 	# three days under pytest's root in /tmp: give each run a root of its own and remove it after.
 	temporary=$$(mktemp -d)
 	trap 'chmod -R u+rwX "$$temporary" 2>/dev/null || true; rm -rf "$$temporary" || true' EXIT
-	umask 022   # the seal refuses a group-writable checkout
 	# Nothing is kept between runs (the human, 2026-10-19): mutmut makes mutants/ anew, copies the
 	# other files under src/ (the contract's schemas) afresh and runs its stats again.
 	rm -rf mutants
