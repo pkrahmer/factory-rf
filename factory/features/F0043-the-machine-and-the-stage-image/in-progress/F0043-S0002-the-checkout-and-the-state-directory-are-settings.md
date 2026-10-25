@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T00:20:17.501316Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-25T00:19:57.228998Z'
   stage: doing
   run: 203cf0d04cdf483197d8625f6b2e6ae8
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:20:17.501316Z'
+  stage: tests
 ---
 
 # The checkout and the state directory are settings
@@ -277,3 +286,4 @@ Expect: `1`
     Rejected: changing the test myself. The coder never edits tests.
 
     Noticed, not touched: nothing new beyond entry 10.
+15. factory: started tests as self.
