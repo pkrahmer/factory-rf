@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 440
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-25T09:24:10.207706Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-25T09:24:10.207706Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T09:24:46.197738Z'
+  stage: docs
+  run: 16838a3b7c9d40c9b4a368041ee8cfad
 ---
 
 # The rebuild after a merge stops the instance between two stages and says where each command runs
@@ -174,3 +176,24 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as vm.
+11. documenter: Files changed: `docs/operator-guide.md`, section `### The rebuild after a merge` only. Why: the docs criterion.
+    - The section now has the order wait, stop, update as `factory`, copy and run `setup.sh`, start.
+    - Before the pull it tells the operator to wait until `factory-watch` (as in step 11) shows no work item held by `vm`. Then it tells them to run `sudo systemctl stop factory@vm`. One sentence gives the reason: a stop during a stage ends the factory after systemd's 90-second stop timeout, and the restart counts the stage as a crash.
+    - Every block is introduced by where it runs: the VM from the operator's own account (stop), the VM as `factory` (pull, `uv sync`, `podman build`, `image-id`), the operator's own computer (the two `gcloud compute` commands), and the VM from the operator's own account (`sudo sh setup.sh`, `systemctl start`). The `gcloud` commands and the `sudo` commands are in separate blocks.
+    - One sentence covers a VM outside GCP: copy `vm/setup.sh` from your own checkout by your own means, such as `scp`, as *On any Ubuntu 24.04 VM* does.
+    - The section ends with `sudo systemctl start factory@vm` and holds no `restart`.
+    - Kept unchanged: the commands as `factory`, the copy from the operator's own checkout, the sentence "Root runs nothing from `/srv/factory/vm/factory`, ...", and the paragraph on a differing unit or helper.
+
+    Checks I ran:
+    - All five smoke commands give the expected output: 1 and 1, then 0 and 1, then 0, then at least 1 for `factory-watch`, then `documents ok`.
+    - I changed only a document, so I did not run `make check`. The factory's checks decide.
+
+    Cross-read and found current: the quoted text "If the factory dies while a stage runs" (line 1856, the `crash_cap` text it relies on); steps 6 and 11 of *On GCP, step by step*; *On any Ubuntu 24.04 VM*. I checked these against the diff, which changes no code.
+
+    No findings for the coder.
+
+    Stale text noticed, not touched: none. Still open for the human, as the Description says: a `TimeoutStopSec` beyond the lease in `vm/factory.service`, so that a stop lets a stage finish (F0043-A0002, check 6). The guide now works around it by telling the operator to stop only when no work item is held.
+
+    `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
+    `secrets`: secrets: green (1.0 s)
+    `documents`: documents ok
