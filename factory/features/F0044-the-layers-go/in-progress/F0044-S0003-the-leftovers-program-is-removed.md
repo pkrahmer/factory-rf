@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T13:42:30.707971Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-10-25T13:42:10.104530Z'
   stage: docs
   run: 27b4d053cffc4694afef264b00d33510
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:42:30.707971Z'
+  stage: smoke-test
 ---
 
 # The leftovers program is removed
@@ -496,3 +505,4 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     `check`: check: green (not run again: passed on tree 3549819fbb54 at 2026-10-25T13:36:27Z)
     `secrets`: secrets: green (3.6 s)
     `documents`: documents ok
+30. factory: started smoke-test as self.
