@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T19:42:08.589264Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-25T19:42:08.589264Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T19:42:38.605417Z'
+  stage: smoke-test
+  run: 91db60aadfe64687a79719e1942eace1
 ---
 
 # The undo is removed
@@ -398,3 +400,25 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
     `secrets`: secrets: green (2.6 s)
     `documents`: documents ok
 20. factory: started smoke-test as self.
+21. smoke-tester: I ran the two smoke test commands from the repository root, in order and exactly as written. Both met their `Expect:` line. There are no findings.
+
+    Command 1: `uv run python -c 'import factory.application.undo' 2>/dev/null && echo present || echo gone`
+    ```
+    gone
+    ```
+    Met: the first expected line is `gone`.
+
+    Command 2: `uv run python -c 'from factory.domain.decisions import agent_entry; print(agent_entry(role="tester", stage="tests", decision="doing", text="done", left_out=["b.py", "a.py"]).text.splitlines()[-1])'`
+    ```
+    Bytecode compiled 4164 files in 86ms
+    The factory left out changes outside the write paths: a.py, b.py.
+    ```
+    Met: the second expected line is `The factory left out changes outside the write paths: a.py, b.py.`, with the paths sorted. The extra `Bytecode compiled ...` line is uv's own status message on stderr; it is not output from the command under test. Command 1 sends stderr to `/dev/null`, so the message does not appear there.
+
+    Against the acceptance criteria: the smoke test contradicts none of them. As a read-only cross-check of criteria 1 and 2 I also ran:
+    - `src/factory/application/undo.py` does not exist.
+    - `grep` finds no `undid`, `UndoService` or `UndoReport` under `src/factory`.
+    - `factory.application.take` has `is_refused`, `read_baseline` and `restore_work_item` (the check printed `True`).
+    - `agent_entry(..., left_out=[])` gives the text `'done'` with no closing paragraph.
+
+    Not covered here: criteria 3 and 4 (the whole stage on the `boundaries` fixture, and the refusal rule through the take) are left to the tests, and the factory runs `make check` (criterion 5) itself. Criterion 6 (docs) was not part of this smoke test.
