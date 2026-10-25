@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 445
 comments_read: [6397809713]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T12:56:10.513474Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-25T12:56:10.513474Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-25T12:58:04.999701Z'
+  stage: doing
+  run: 8294add96bab4daba29fc0ecf214cc17
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -470,3 +472,21 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
 
     Open, outside this story: `pyproject.toml`'s `factory-confine` console script is the human's change 3, after the merge.
 21. factory: started doing as self.
+22. coder: Round 2. The reviewer's one round-1 finding was about the work item, not the code, so this run changed only the work item's text. I changed no code and no tests.
+
+    What I changed:
+    - The work item, criterion 9: the part about `docs/project-guide/README.md` now also says that the `ConfinementError` paragraph under *Errors* goes. It now reads: "*The files*: the line of `write-guard.md` follows its sections, *Shared test helpers*: the line of `confine_support.py` names only the helpers it keeps, and *Errors*: the paragraph on `ConfinementError` goes". That paragraph is at `docs/project-guide/README.md:105` today. The criterion still comes before nothing but the end of the list, and the two closing criteria stay last.
+    - `## Description` is unchanged in this run. The reviewer already corrected it in entry 20, so it names `ConfinementError` among the removals.
+
+    Main choice: I added the paragraph to the docs criterion's existing `README.md` part and did not write the doc change myself. The documenter writes from the criterion, and `docs/` is not the coder's to write. I rejected adding the two `write-guard.md` mentions (lines 115 and 149), as the reviewer said: they sit inside sections that criterion 9 already removes.
+
+    Refactor pass: nothing to change. This run's diff is one sentence in the work item.
+
+    `make check` is green: `test: green (67.7 s)`, then `check: green`, with coverage at 99.47 %.
+
+    Noticed but not touched: `pyproject.toml` still has the `factory-confine` console script. That is the human's change 3, after the merge.
+
+    The factory undid changes outside the write paths: factory/features/F0044-the-layers-go/in-progress/F0044-S0002-the-wrapper-the-kernel-s-rules-and-the-tool-paths-are-removed.md.
+
+    `check`: check: green (not run again: passed on tree f2793d357ebc at 2026-10-25T12:52:42Z)
+    `duplicates`: duplicates: 9 new, 35 known, 3 gone
