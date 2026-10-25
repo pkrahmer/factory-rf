@@ -43,7 +43,8 @@ The project's `factory/pipeline.yml` is read by `RuamelPipelineDefinitionReader.
 | `attempts_cap` | attempts before the human is asked | 2 |
 | `crash_cap` | crashes before the human is asked | 2 |
 | `acceptance_stage` | the stage of the feature acceptance | none |
-| `tool_paths` | folders every role's agent run writes besides its write paths (the project's tool state); each is `<folder>/*` in the checkout or `~/<folder>/*` in the agent's home | `[]` |
+
+An unknown key, `tool_paths` of earlier versions included, is refused like any other.
 
 A stage has `role` (none: no agent runs there), `next` (`next[0]` is the forward move), `approval` (the human decides), `checks` (project commands run after the agent), `reports` (project commands run after green, recorded only) and `round_cap` (none: no cap). A role has `write_paths` (required; `{work_item}` is the work item's own file and `{feature}` its feature directory, the constants `WORK_ITEM_PLACEHOLDER` and `FEATURE_PLACEHOLDER`), `lease_duration` (60 minutes) and `time_limit` (40 minutes, the agent run's). A project command has `time_limit` (10 minutes). Every limit is a positive integer; stage, role and command names match `^[a-z][a-z0-9-]*$`.
 
@@ -83,9 +84,6 @@ The faults, in the order of the rules (`<s>` a stage, `<t>` a stage name, `<r>` 
 | 9 | `acceptance_stage <t> is not a stage with a role` |
 | 10 | `stage <s>: next is empty` |
 | 11 | `stage <s>: has neither a role nor approval` |
-| 12 | `tool path <path>: must be <folder>/* or ~/<folder>/*`, once for each such path |
-
-Rule 12: `<folder>` is one or more `/`-separated segments, each non-empty, none `.` or `..`, none holding `*`, `?` or `[`, and it does not start with `/`. `*.log`, `.venv`, `/var/cache/*`, `a/*/b/*`, `~/*` and `a/./b/*` are refused; `.venv/*`, `a/b/*` and `~/.cache/*` pass. The helper `tool_path_folder` (`factory.domain.pipeline_definition`) returns the folder of a valid tool path, `~/` kept, and `None` for any other form. A `tool_paths` that is not a list is refused by the model (`invalid tool_paths: Input should be a valid list`).
 
 Rules 10 and 11 apply to every stage except `done`, and only when the stage `done` exists. Without it the end of the pipeline is unknown, and rule 3's fault is the one that matters. A stage with an empty `next` has nowhere to send a forward outcome or an approval; a stage with neither a role nor `approval: true` runs no agent and waits for no human. Rule 10's faults come before rule 11's, each in the order of the stages. A stage no `next` names (such as `acceptance`) is accepted: there is no rule on reachability.
 

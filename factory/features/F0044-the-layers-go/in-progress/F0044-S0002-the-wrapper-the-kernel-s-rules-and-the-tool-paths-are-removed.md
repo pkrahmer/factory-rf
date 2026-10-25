@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 445
 comments_read: [6397809713]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T13:00:07.472248Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,12 @@ journal:
   kind: started
   at: '2026-10-25T13:00:07.472248Z'
   stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T13:02:27.057925Z'
+  stage: docs
+  run: 7921a4f7f04d45788ff6f9d46afe72df
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -579,3 +581,27 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
 
     Open, outside this story: the `factory-confine` console script in `pyproject.toml` is the human's change 3, after the merge.
 25. factory: started docs as self.
+26. documenter: Docs, round 2. The earlier docs run had left the documents untouched, so I wrote all of criterion 9 now. Only documents changed, so I did not run `make check`. `uv run python -m factory.entry.check_documents` prints `documents ok`.
+
+    Files changed:
+    - `docs/project-guide/write-guard.md`: removed *The kernel's targets*, *The kernel's write guard* and *The start wrapper*; added *Replaced in v1.2* with one line for each (the dataset's rollback and the take). Retitled the file to "The write paths, the guard and the undo" and fixed its intro and the sentences that named the kernel's targets or said the kernel knows a rule. *The write paths* no longer names tool paths.
+    - `docs/project-guide/stages.md`: `tool_paths` row, rule 12 and its paragraph are gone. A new sentence says an unknown key, `tool_paths` included, is refused.
+    - `docs/project-guide/agents.md`: the `template/factory/pipeline.yml` bullet no longer names `tool_paths`. Two more places named `factory-confine`, so I corrected them: the `agent_launch` paragraph, and the `call_refusal` parenthesis.
+    - `docs/project-guide/processes-and-checks.md`: removed `replace_process`. The boundary test paragraph now says no `os.exec*` at all and four markers in `process.py`, besides `noqa: PLR0913` of `entry/leftovers.py`.
+    - `docs/project-guide/README.md`: the `write-guard.md` line and its section list follow the file. The `confine_support.py` line names the four helpers it keeps. The `ConfinementError` paragraph is gone.
+    - `docs/project-guide/work-items.md`: `RECORDS_CONTRACT` is `2.0`.
+    - `docs/project-guide/stage-environment.md`: dropped `factory-confine`, rules file and temporary folder from the list of what a container call lacks.
+    - `docs/operator-guide.md`: `tool_paths` row and paragraph are gone; the new text says an unknown key is refused with `pipeline_definition_invalid` and the fix is to remove the key. The paragraph on running under the guard with `.reports/*` is gone. The records contract version is `2.0`, with the reason it rose. *The kernel no longer refuses writes* is replaced by one paragraph under *The agent runtime*: the take keeps the write paths, and a write elsewhere is lost. Two mentions of `factory-confine` as a refusing program are gone.
+    - `docs/decisions.md`: closing lines on the four entries criterion 9 names, and on the records-contract entry (`2.0` removed `tool_paths`).
+    - `README.md`: row `factory-confine` removed; the sentence now counts five console commands.
+
+    Cross-read and found current: the rest of `docs/project-guide/*` (costs, watching, work-items beyond the version) and `docs/operator-guide.md` outside the passages above; none names removed items. Code contradicts none of the Interface (a search of `src/` finds no `confine`).
+
+    Stale text noticed, not mine to fix:
+    - `docs/decisions.md` has older entries that still describe the kernel's guard and `factory-confine` as live (for example "Every agent run is confined by the kernel", "No agent runs without the kernel's write guard"). They are history. Criterion 9 names four entries for closing lines and no others.
+    - `pyproject.toml` still registers the `factory-confine` console script. That is the human's change 3, after the merge. The README no longer lists it.
+    - `docs/operator-playbook.md` and `docs/runs/` mention the wrapper or the kernel. They are the human's.
+
+    `check`: check: green (not run again: passed on tree f2793d357ebc at 2026-10-25T12:52:42Z)
+    `secrets`: secrets: green (4.0 s)
+    `documents`: documents ok
