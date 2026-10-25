@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T20:53:46.032189Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-25T20:53:46.032189Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-25T20:56:25.783407Z'
+  stage: doing
+  run: aa079c481a3a4c36ac5ee3c2ffefa8c5
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -140,3 +142,19 @@ Expect: `0`
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/test_kernel_guard_removed.py - ImportError while importing test module '/work/checkout/tests/test_kernel_guard_removed.py'.
 6. factory: started doing as self.
+7. coder: I renamed `GuardSettings` to `WritePathSettings` in `src/factory/domain/agent_runs.py` and changed its importers: `src/factory/domain/write_paths.py`, `src/factory/application/take.py` and `src/factory/application/write_paths.py`. The new class has the same docstring, fields and configuration as the old one, and no alias under the old name remains. `refusal`'s parameter `guard` is now `settings`, and its body is unchanged. In `WritePathService.at` the docstring now says "The write path settings of the claimed stage" instead of "The guard settings", so it matches the new name. A search for `guard` across `src/factory` now finds nothing.
+
+   `make check` is green, and the tester's tests pass unchanged.
+
+   Main choice: I only renamed names and changed nothing else. The alternative I rejected was moving `WritePathSettings` from `agent_runs` into `factory.domain.write_paths`, next to the rule that reads it. That would put the model beside its rule, but the Interface keeps it in `factory.domain.agent_runs`, and the move would be a restructuring outside this story.
+
+   Refactor: I read the diff and there was nothing to change.
+
+   The journal changed nothing in the meaning of the task, so `## Description` is as it was. The records contract is untouched, because `GuardSettings` is in none of its schemas.
+
+   Noticed, not touched:
+   - The project guide's `docs/project-guide/write-guard.md` and its mentions of `GuardSettings`. Criterion 6 gives those to the documenter.
+   - The test modules named after removed layers, which the Description leaves to the human.
+
+   `check`: check: green
+   `duplicates`: duplicates: 8 new, 35 known, 3 gone
