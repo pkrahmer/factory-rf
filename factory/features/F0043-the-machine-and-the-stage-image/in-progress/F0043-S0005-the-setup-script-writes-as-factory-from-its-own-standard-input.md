@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 433
 comments_read: [6394400610]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T06:39:02.953281Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-25T06:38:42.495463Z'
   stage: doing
   run: 522abd557b2c408488e9ab86f6392bc2
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:39:02.953281Z'
+  stage: review
 ---
 
 # The setup script writes as factory from its own standard input
@@ -169,3 +178,4 @@ Expect: two lines, `0` and `syntax-ok`
 
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
+11. factory: started review as self.
