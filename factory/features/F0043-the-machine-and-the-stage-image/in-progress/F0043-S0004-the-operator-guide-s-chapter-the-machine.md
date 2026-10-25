@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 434
 comments_read: [6394738591]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-25T07:19:03.339648Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-25T07:19:03.339648Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T07:19:28.651031Z'
+  stage: review
+  run: 8b0d0641d4dc4df492cc85d0501e54bc
 ---
 
 # The operator guide's chapter "The machine"
@@ -178,3 +180,12 @@ Expect: `documents ok`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 11. factory: started review as vm.
+12. reviewer: no findings
+
+    What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty (0 lines). The branch changes only this work item's `.md` and its new `.costs.jsonl` sidecar, both under `factory/`.
+    1. Acceptance criteria: criterion 1 holds, because nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes. The tester (entry 5) and the coder (entry 10) each end with an entry that says so. Criterion 2: the journal records that the factory's `make check` after the coder ended `check: green` (entry 10). Criterion 3 is the docs criterion: the documenter writes it next, and the smoke test and `make documents` check it. The Interface states no rule, so there is no failing side to test.
+    2 to 4. Architecture, security, quality: no code, so nothing to judge. `duplicates: 11 new` in entry 10 is not from this branch, since nothing under `src/factory` changed.
+    5. Work item hygiene: the journal gives the main decision (hand on with no change, after the human's answer in entry 8) and what was rejected (touching the old acceptance reports or `.secrets.baseline`). The `## Description` matches what was built so far: nothing. The documenter's chapter and decision-log entry still lie ahead. The docs criterion still says what the reader must know.
+    6. Earlier tests: the diff changes no test file.
+
+    Open, and not this story's: the high-entropy values in the done acceptance reports of F0023 and F0042 that a full `make secrets` scan flags. The human took them up in entry 8.
