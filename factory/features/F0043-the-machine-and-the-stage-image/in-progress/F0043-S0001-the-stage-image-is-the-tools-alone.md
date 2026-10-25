@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 430
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-24T23:59:38.004662Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-24T23:59:38.004662Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T00:00:53.440900Z'
+  stage: review
+  run: ea4f6b7c8a8b415487f06705810b806f
 ---
 
 # The stage image is the tools alone
@@ -306,3 +308,34 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 16. factory: started review as self.
+17. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`. The diff touches five files: `vm/Dockerfile` and `tests/test_stage_image.py` are new; `tests/dockerfile_support.py`, `tests/test_image.py` and `tests/test_image_credentials.py` are changed. Nothing under `image/` or `src/` changed: `git diff main...HEAD -- image` is empty, so criterion 8 holds.
+
+    What I checked:
+    - `vm/Dockerfile` against each clause of the Interface:
+      - one `FROM ${BASE_IMAGE}`, after `ARG BASE_IMAGE=` and pinned by digest;
+      - the four build arguments, and `FACTORY_IMAGE` used only in its `ARG` and the `LABEL`;
+      - the seven packages at the versions `image/Dockerfile` pins, with `--no-install-recommends` and `/var/lib/apt/lists` removed in the same `RUN`;
+      - the pip install, then the npm installs with Claude Code before opencode;
+      - the one `COPY`, with a comment above it and the chmod `RUN` directly after it, and no `chown` anywhere;
+      - six `ENV` lines, one name each;
+      - none of the forbidden words outside comments;
+      - the first line is the build comment.
+    - Every criterion from 1 to 9 against `tests/test_stage_image.py`. Each has a test that checks what the criterion says:
+      - The `DIGEST` regex is anchored at the end, so criterion 1's "ends in" holds.
+      - Criterion 3's exact set of packages covers its refused side, `sudo`.
+      - Criterion 6's exact set of names covers its refused side, `PATH`.
+      - Criterion 9's test has the file as built as its accepted row, plus four refused forms as rows of one parametrized test.
+    - The coder's entry 15 records `check: green`.
+    - The tester's moves into `tests/dockerfile_support.py` (`_uncommented`, `_after`, `_apt_packages`, `SECRET_WORDS`, `_declared_names`) behave the same as the code they replace.
+    - The Description still matches what was built. `claude/` holds both `agents/` and `settings.json`, as the Description says. The docs criterion (11) still describes what the reader needs.
+
+    no findings
+
+    Earlier tests:
+    - tests/dockerfile_support.py: the standing leave to move a shared test helper. It gains the helpers moved from `test_image.py`, `test_image_credentials.py` and `test_stage_image.py`, and `dockerfile_instructions` keeps its behaviour.
+    - tests/test_image.py: the standing leave to move a shared test helper. `_after` moved out; `_instructions` and `test_every_debian_package_is_pinned_and_the_set_is_the_tools` now use the shared `_uncommented` and `_apt_packages`. Every test keeps its name and assertions.
+    - tests/test_image_credentials.py: the standing leave to move a shared test helper. `SECRET_WORDS` and `_declared_names` moved to `tests/dockerfile_support.py` and are imported from there. Its tests are unchanged.
+
+    Notes:
+    - tests/test_stage_image.py:208-238: criterion 4 says "rows of one parametrized test", but the installs are spread over three functions (`test_each_tool_is_installed_once_at_its_pinned_version`, `test_opencode_is_installed_after_claude_code`, `test_no_other_install_is_made`).
+    - tests/test_stage_image.py:255-318: the same holds for criterion 6, which is spread over four functions besides criterion 9's.
