@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 437
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-25T08:35:14.559958Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-25T08:34:53.903274Z'
   stage: doing
   run: d4c9d65504df427b8d4d656aecf0aa37
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-25T08:35:14.559958Z'
+  stage: review
 ---
 
 # The chapter "The machine" names all three secrets in every place
@@ -118,3 +127,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
    `duplicates`: duplicates: 11 new, 36 known, 2 gone
+8. factory: started review as vm.
