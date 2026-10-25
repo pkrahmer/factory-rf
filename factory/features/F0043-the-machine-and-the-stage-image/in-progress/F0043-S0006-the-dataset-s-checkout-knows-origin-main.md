@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-25T07:49:34.838753Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-25T07:49:14.550382Z'
   stage: doing
   run: 85c89a988aee4eb7b5ea26b1edcc6224
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:49:34.838753Z'
+  stage: tests
 ---
 
 # The dataset's checkout knows origin/main
@@ -164,3 +173,4 @@ Expect: `1`
     The journal did not change the meaning of the task, so I left the Description as it is.
 
     Noticed, not touched: nothing.
+12. factory: started tests as vm.
