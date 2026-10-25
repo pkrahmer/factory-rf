@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-25T08:05:34.773111Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-25T08:05:14.339353Z'
   stage: review
   run: 8a52809efcd94400923e318ae60e9217
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-25T08:05:34.773111Z'
+  stage: docs
 ---
 
 # The dataset's checkout knows origin/main
@@ -260,3 +269,4 @@ Expect: `1`
 
     Notes:
     - `tests/application/test_container_sync_origin.py:396` `main_commit`: overlaps the `main_commit` fixture of `tests/application/test_container_environment.py:43`. The earlier one also gives the host the branch, so it is not a straight copy, but a shared fixture with the branch as an option would serve both.
+18. factory: started docs as vm.
