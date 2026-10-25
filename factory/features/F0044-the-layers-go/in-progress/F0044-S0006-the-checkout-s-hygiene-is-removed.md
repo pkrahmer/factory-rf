@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T16:36:57.809384Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-10-25T16:36:57.809384Z'
   stage: review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T16:37:45.008872Z'
+  stage: review
+  run: 92fb6dc8da1146fc87f9c5032d154ec4
 ---
 
 # The checkout's hygiene is removed
@@ -545,3 +547,45 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     `check`: check: green
     `duplicates`: duplicates: 7 new, 34 known, 4 gone
 29. factory: started review as self.
+30. reviewer: Review, round 1. I read the work item, the diff's `--stat` and name-status, the whole diff under `src/` (the regenerated schemas aside), the round-1 move of `RecordingRun` and the two test modules it touched. I also searched `src` and `tests`, after the merge of `origin/main`, for names of the removed hygiene that might be left.
+
+    no findings
+
+    - Group 1: entry 22's reading still holds. Criteria 1 to 9 each have a test that checks what the criterion says, and the failing sides the Interface states are covered. The factory's `make check` after the coder was green (entry 28: `check: green`).
+    - Group 2: the `src/` diff only removes code, apart from `run_agent`'s new return type. Each environment returns `(run or boundaries.agent_runtime.run)(request)`, as the Interface says. No layer gains an import.
+    - Group 3: no marker that silences a check is added.
+    - Group 4: last round's only finding is fixed. `RecordingRun` now lives once, in `tests/sealed_run_support.py`, and `tests/application/test_stage_environment.py` and `tests/application/test_container_environment.py` both import it from there. No copy is left.
+    - Leftovers: none of `seal(`, `check_seal`, `remove_nested_repositories`, `remove_ignored`, `discard(`, `RepositoryUnsealed`, `nested_repository`, `sealed_runs`, `SealedRun`, `group_umask` or `TESTS_UMASK` is left in `src`. In `tests` the only hits are the new tests that check the names are gone, and `tests/entry/test_git_nested_repositories.py`, which belongs to the factory's git environment, which stays.
+    - Group 5: the Description and the docs criterion match what was built.
+    - `CheckoutPreparer._log` is stored and never read. It stays by the human's answer in entry 14.
+
+    Earlier tests (files `main` held that the diff changes or deletes):
+    - `tests/adapters/test_git_cli_ignored.py` (deleted): the Interface's test list (decision 22 of `feature.md`).
+    - `tests/adapters/test_git_cli_nested.py` (deleted): the Interface's test list.
+    - `tests/adapters/test_git_cli_seal.py`: the Interface's test list.
+    - `tests/application/test_checkout_preparer_seal.py`: the Interface's test list.
+    - `tests/application/test_container_environment.py`: the Interface's test list. Moving `RecordingRun` out of it falls under the standing leave to move a shared test helper.
+    - `tests/application/test_dispatcher_unsealed.py` (deleted): the Interface's test list.
+    - `tests/application/test_git_interface.py`: the Interface's test list.
+    - `tests/application/test_interfaces.py`: the Interface's test list.
+    - `tests/application/test_nested_repositories.py` (deleted): the Interface's test list.
+    - `tests/application/test_sealed_project_commands.py` (deleted): the Interface's test list.
+    - `tests/application/test_sealed_runs.py` (deleted): the Interface's test list.
+    - `tests/application/test_sealed_runs_ignored.py` (deleted): the Interface's test list.
+    - `tests/application/test_sealed_runs_no_home.py` (deleted): the Interface's test list.
+    - `tests/application/test_sealed_runs_runner.py`: the Interface's test list.
+    - `tests/application/test_stage_environment.py`: the Interface's test list. Moving `RecordingRun` out of it falls under the standing leave to move a shared test helper.
+    - `tests/application/test_stage_environment_calls.py`: the Interface's test list.
+    - `tests/application/test_stage_run_ignored.py` (deleted): the Interface's test list.
+    - `tests/application/test_stall_environment.py`: the Interface's test list.
+    - `tests/application/test_tick.py`: the Interface's test list.
+    - `tests/application/test_tick_docstrings.py`: the Interface's test list.
+    - `tests/application/test_tick_ignored.py` (deleted): the Interface's test list.
+    - `tests/conftest.py`: the Interface's test list.
+    - `tests/domain/test_contract.py`: the Interface's test list.
+    - `tests/domain/test_contract_provider_limit.py`: the Interface's test list.
+    - `tests/domain/test_contract_version_2.py`: the Interface's test list.
+    - `tests/domain/test_stall_texts.py`: the Interface's test list.
+    - `tests/sealed_run_support.py`: the Interface's test list (`leave` gone). It now holds `RecordingRun` as the shared place, under the standing leave to move a shared test helper.
+    - `tests/test_home_reset_removed.py`: the Interface's test list.
+    - `tests/test_tests_umask.py` (deleted): the Interface's test list.
