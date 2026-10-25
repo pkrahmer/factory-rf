@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 445
 comments_read: [6397809713]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T13:02:48.092424Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -161,6 +157,12 @@ journal:
   kind: started
   at: '2026-10-25T13:02:48.092424Z'
   stage: smoke-test
+- number: 28
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T13:03:23.543136Z'
+  stage: smoke-test
+  run: 680265cb3931448aa218e7934efff633
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -615,3 +617,30 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
     `secrets`: secrets: green (4.0 s)
     `documents`: documents ok
 27. factory: started smoke-test as self.
+28. smoke-tester: Smoke test, round 2: I ran both commands under `## Smoke test` from the repository root, exactly as written and in order. Both met their `Expect:` line, and I found nothing wrong.
+
+    **Command 1** (try to import each removed module):
+    ```
+    factory.adapters.landlock gone
+    factory.domain.confinement gone
+    factory.entry.confine gone
+    ```
+    Met `Expect:`. These are the three lines expected, in the order expected.
+
+    **Command 2** (contract version, the definition's fields and the guard settings' fields, then a count of `tool_paths` in the template):
+    ```
+    Bytecode compiled 4164 files in 81ms
+    2.0 False ['protected_paths', 'root', 'write_paths']
+    0
+    ```
+    Met `Expect:`. The program printed the two expected lines: `2.0 False ['protected_paths', 'root', 'write_paths']` and `0`. The `Bytecode compiled …` line is uv's own message on stderr (the first command sends stderr to `/dev/null`, this one does not); the program did not print it.
+
+    **Checks against the acceptance criteria:** I made a few extra read-only checks for criteria the commands do not target, and none contradicts a criterion:
+    - `src/factory/entry/confine.py`, `src/factory/adapters/landlock.py` and `src/factory/domain/confinement.py` do not exist (criterion 1).
+    - `factory.adapters.process` has no attribute `replace_process`, and `src/factory` names neither `execvpe` nor `replace_process` (criteria 2 and 7).
+    - `tool_paths` appears neither in `factory/pipeline.yml` nor in `template/factory/pipeline.yml` nor in `src/factory/contract/` (criteria 5 and 6).
+    - Each of the five schema files under `src/factory/contract/` holds `"x-records-contract": "2.0"` (criterion 5).
+
+    **Not done:** I did not run `make check` (criterion 8). The factory runs it as this stage's check.
+
+    **Open:** nothing.
