@@ -31,7 +31,6 @@ def settings(agent_home: Path, tmp_path: Path) -> InstanceSettings:
         state_directory=tmp_path / "state",
         agent_home=agent_home,
         pinned_agent_version="fake",
-        agent_user="agent",
         claude_login_file=LOGIN_FILE,
         api_login_file=API_LOGIN_FILE,
     )

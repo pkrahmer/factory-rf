@@ -93,9 +93,7 @@ def test_build_tick_runs_one_stage_in_the_production_environment_under_its_insta
     token_file.chmod(0o600)
     agent_runtime.queue(ScriptedRun(result=PROBE))
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
-    ready = settings.model_copy(
-        update={"pinned_agent_version": "fake", "token_file": token_file, "agent_user": "agent"}
-    )
+    ready = settings.model_copy(update={"pinned_agent_version": "fake", "token_file": token_file})
     tick = build_tick(boundaries, ready, every_tool)
 
     outcome = tick.run()

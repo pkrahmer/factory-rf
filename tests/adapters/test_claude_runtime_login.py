@@ -6,8 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls, write_stand_in
-from adapters.test_claude_runtime_os_user import _request, _sudo_calls, _write_sudo
+from adapters.claude_stand_in import Step, claude_request, read_calls, write_stand_in
 from factory.adapters.claude_runtime import (
     LOGIN_SCRIPT,
     LOGIN_VARIABLE,
@@ -65,15 +64,10 @@ def _write_login(path: Path, content: bytes | None) -> None:
 
 
 def _runtime(
-    tmp_path: Path, login_file: Path | None, steps: list[Step], sudo: Path | None = None
+    tmp_path: Path, login_file: Path | None, steps: list[Step]
 ) -> tuple[ClaudeCodeRuntime, Path]:
     executable = write_stand_in(tmp_path / "bin", steps)
-    if sudo is None:
-        runtime = ClaudeCodeRuntime(str(executable), tmp_path / "state", login_file=login_file)
-    else:
-        runtime = ClaudeCodeRuntime(
-            str(executable), tmp_path / "state", sudo_executable=str(sudo), login_file=login_file
-        )
+    runtime = ClaudeCodeRuntime(str(executable), tmp_path / "state", login_file=login_file)
     return runtime, executable
 
 
@@ -94,7 +88,7 @@ def test_the_call_gets_the_login_from_a_file_that_holds_one_and_otherwise_none(
     _write_login(login, content)
     runtime, _ = _runtime(tmp_path, login if configured else None, [Step(stdout=REPLY)])
 
-    result = runtime.run(_request(tmp_path, None))
+    result = runtime.run(claude_request(tmp_path))
 
     [call] = read_calls(tmp_path / "bin")
     assert call.environment.get(LOGIN_VARIABLE) == expected
@@ -117,7 +111,7 @@ def test_the_request_s_login_entry_is_dropped_for_the_file_s(
     login = _login_path(tmp_path)
     _write_login(login, content)
     runtime, _ = _runtime(tmp_path, login if configured else None, [Step(stdout=REPLY)])
-    request = _request(tmp_path, None)
+    request = claude_request(tmp_path)
     carrying = request.model_copy(
         update={"environment": {**request.environment, LOGIN_VARIABLE: REQUEST_LOGIN}}
     )
@@ -137,7 +131,7 @@ def test_a_resumed_call_reads_the_login_file_again(tmp_path: Path) -> None:
     ]
     runtime, _ = _runtime(tmp_path, login, steps)
 
-    result = runtime.run(_request(tmp_path, None))
+    result = runtime.run(claude_request(tmp_path))
 
     first, resumed = read_calls(tmp_path / "bin")
     assert "--resume" in resumed.arguments
@@ -168,35 +162,33 @@ def test_one_runtime_reads_the_login_file_again_at_every_run(
     _write_login(login, before)
     runtime, _ = _runtime(tmp_path, login, [Step(stdout=REPLY), Step(stdout=REPLY)])
 
-    runtime.run(_request(tmp_path, None))
+    runtime.run(claude_request(tmp_path))
     _write_login(login, after)
-    runtime.run(_request(tmp_path, None))
+    runtime.run(claude_request(tmp_path))
 
     first, second = read_calls(tmp_path / "bin")
     assert first.environment.get(LOGIN_VARIABLE) == expected_before
     assert second.environment.get(LOGIN_VARIABLE) == expected_after
 
 
-def test_with_a_user_the_login_shell_runs_after_sudo_and_env_i_and_hands_over_the_login(
-    tmp_path: Path,
+def test_the_login_stands_in_no_argument_no_run_file_and_no_result(
+    tmp_path: Path, recorder: Recorder
 ) -> None:
     login = _login_path(tmp_path)
     _write_login(login, f"{LOGIN}\n".encode())
-    sudo = _write_sudo(tmp_path / "sudo-bin")
-    runtime, executable = _runtime(tmp_path, login, [Step(stdout=REPLY)], sudo)
+    runtime, executable = _runtime(tmp_path, login, [Step(stdout=REPLY)])
 
-    runtime.run(_request(tmp_path, "agent"))
+    result = runtime.run(claude_request(tmp_path))
 
     [claude_call] = read_calls(tmp_path / "bin")
     assert claude_call.environment[LOGIN_VARIABLE] == LOGIN
-    [sudo_call] = _sudo_calls(tmp_path / "sudo-bin")
-    expected = {**GIVEN, **SWITCHES}
-    head = ["-n", "-u", "agent", "--", "timeout", "--signal=KILL", "30s", "env", "-i"]
-    arguments = sudo_call.arguments
-    assert arguments[: len(head)] == head
-    assignments = arguments[len(head) : len(head) + len(expected)]
-    assert sorted(assignments) == sorted(f"{name}={value}" for name, value in expected.items())
-    assert arguments[len(head) + len(expected) :] == [
+    assert all(LOGIN not in argument for argument in claude_call.arguments)
+    assert len(claude_call.files) == 1
+    assert all(LOGIN not in text for text in claude_call.files.values())
+    assert LOGIN not in result.model_dump_json()
+    [process_request] = recorder.requests
+    assert LOGIN not in process_request.model_dump_json()
+    assert process_request.argv == [
         SHELL_EXECUTABLE,
         "-c",
         LOGIN_SCRIPT,
@@ -205,42 +197,6 @@ def test_with_a_user_the_login_shell_runs_after_sudo_and_env_i_and_hands_over_th
         str(executable),
         *claude_call.arguments,
     ]
-
-
-@pytest.mark.parametrize(
-    "os_user", [pytest.param("agent", id="user"), pytest.param(None, id="no-user")]
-)
-def test_the_login_stands_in_no_argument_no_run_file_and_no_result(
-    tmp_path: Path, recorder: Recorder, os_user: str | None
-) -> None:
-    login = _login_path(tmp_path)
-    _write_login(login, f"{LOGIN}\n".encode())
-    sudo = _write_sudo(tmp_path / "sudo-bin")
-    runtime, executable = _runtime(tmp_path, login, [Step(stdout=REPLY)], sudo)
-
-    result = runtime.run(_request(tmp_path, os_user))
-
-    [claude_call] = read_calls(tmp_path / "bin")
-    assert claude_call.environment[LOGIN_VARIABLE] == LOGIN
-    assert all(LOGIN not in argument for argument in claude_call.arguments)
-    assert len(claude_call.files) == 1
-    assert all(LOGIN not in text for text in claude_call.files.values())
-    for sudo_call in _sudo_calls(tmp_path / "sudo-bin"):
-        assert all(LOGIN not in argument for argument in sudo_call.arguments)
-    assert LOGIN not in result.model_dump_json()
-    [process_request] = recorder.requests
-    assert LOGIN not in process_request.model_dump_json()
-    if os_user is None:
-        assert _sudo_calls(tmp_path / "sudo-bin") == []
-        assert process_request.argv == [
-            SHELL_EXECUTABLE,
-            "-c",
-            LOGIN_SCRIPT,
-            "factory-login",
-            str(login),
-            str(executable),
-            *claude_call.arguments,
-        ]
 
 
 def _folder(path: Path) -> None:
@@ -256,24 +212,22 @@ def _utf_16_le(path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    ("make", "os_user", "reason"),
+    ("make", "reason"),
     [
-        pytest.param(_folder, None, "cannot be read", id="folder"),
-        pytest.param(_utf_16, None, "not ASCII text", id="utf-16"),
-        pytest.param(_utf_16_le, None, "not ASCII text", id="utf-16-without-mark"),
-        pytest.param(_utf_16, "agent", "not ASCII text", id="utf-16-with-a-user"),
+        pytest.param(_folder, "cannot be read", id="folder"),
+        pytest.param(_utf_16, "not ASCII text", id="utf-16"),
+        pytest.param(_utf_16_le, "not ASCII text", id="utf-16-without-mark"),
     ],
 )
 def test_a_login_file_that_cannot_be_used_stops_the_run_naming_the_file(
-    tmp_path: Path, *, make: Callable[[Path], None], os_user: str | None, reason: str
+    tmp_path: Path, *, make: Callable[[Path], None], reason: str
 ) -> None:
     login = _login_path(tmp_path)
     make(login)
-    sudo = _write_sudo(tmp_path / "sudo-bin")
-    runtime, _ = _runtime(tmp_path, login, [Step(stdout=REPLY)], sudo)
+    runtime, _ = _runtime(tmp_path, login, [Step(stdout=REPLY)])
 
     with pytest.raises(AgentRuntimeError) as raised:
-        runtime.run(_request(tmp_path, os_user))
+        runtime.run(claude_request(tmp_path))
 
     assert str(raised.value) == (
         f"agent runtime failed: cannot read the agent's login file {login}: {reason}"

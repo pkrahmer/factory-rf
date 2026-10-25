@@ -72,13 +72,6 @@ def test_the_password_rule_judges_only_the_authority(url: str, accepted: bool) -
             id="instance",
         ),
         pytest.param(
-            {"FACTORY_AGENT_USER": "Agent"},
-            None,
-            "FACTORY_AGENT_USER",
-            "is not a name",
-            id="agent-user",
-        ),
-        pytest.param(
             {
                 "FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES": "30",
                 "FACTORY_PROVIDER_LIMIT_CEILING_MINUTES": "20",

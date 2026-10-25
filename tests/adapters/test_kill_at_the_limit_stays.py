@@ -31,32 +31,13 @@ def _timed_out_in_bound(tmp_path: Path) -> bool:
     [
         pytest.param(
             lambda _: killed_at_limit(
-                os_user="agent", exit_status=137, duration=LIMIT, time_limit=LIMIT
-            ),
-            True,
-            id="sudo-at-the-limit",
-        ),
-        pytest.param(
-            lambda _: killed_at_limit(
-                os_user="agent",
-                exit_status=137,
-                duration=timedelta(seconds=29.9),
-                time_limit=LIMIT,
-            ),
-            False,
-            id="sudo-before-the-limit",
-        ),
-        pytest.param(
-            lambda _: killed_at_limit(
-                os_user=None, exit_status=255, duration=LIMIT, time_limit=LIMIT, in_container=True
+                exit_status=255, duration=LIMIT, time_limit=LIMIT, in_container=True
             ),
             True,
             id="container-at-the-limit",
         ),
         pytest.param(
-            lambda _: killed_at_limit(
-                os_user=None, exit_status=255, duration=LIMIT, time_limit=LIMIT
-            ),
+            lambda _: killed_at_limit(exit_status=255, duration=LIMIT, time_limit=LIMIT),
             False,
             id="not-in-a-container",
         ),

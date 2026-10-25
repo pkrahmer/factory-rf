@@ -211,7 +211,6 @@ def opencode_request(
     tools: tuple[str, ...] = ("Read", "Bash"),
     environment: Mapping[str, str] | None = None,
     time_limit: timedelta = timedelta(seconds=30),
-    os_user: str | None = None,
 ) -> AgentRunRequest:
     """A coder's request with the prompt `Stage: doing` in `work`, which is made if missing."""
     work.mkdir(parents=True, exist_ok=True)
@@ -230,7 +229,6 @@ def opencode_request(
         environment={"HOME": "/home/agent", "LANG": "C.UTF-8"}
         if environment is None
         else dict(environment),
-        os_user=os_user,
     )
 
 

@@ -15,10 +15,9 @@ from probe_support import ENVIRONMENT, opencode_died, opencode_sso_hint
 
 
 @pytest.mark.parametrize(
-    ("agent_user", "named"),
+    "named",
     [
-        pytest.param(None, "the factory user", id="no-user"),
-        pytest.param("agent", "agent", id="agent"),
+        pytest.param("the factory user", id="no-user"),
     ],
 )
 def test_the_opencode_login_hint_names_the_agent_user_or_the_factory_user(
@@ -27,13 +26,11 @@ def test_the_opencode_login_hint_names_the_agent_user_or_the_factory_user(
     agent_runtime: FakeAgentRuntime,
     agent_home: Path,
     *,
-    agent_user: str | None,
     named: str,
 ) -> None:
     install_agents(agent_home, ["coder"])
     settings = probe_settings.model_copy(
         update={
-            "agent_user": agent_user,
             "agent_runtime": "opencode",
             "pinned_opencode_version": "1.19.3",
         }

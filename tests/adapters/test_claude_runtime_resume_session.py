@@ -4,8 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls, write_stand_in
-from adapters.test_claude_runtime_os_user import REPLY, _request
+from adapters.claude_stand_in import REPLY, Step, claude_request, read_calls, write_stand_in
 from adapters.test_claude_runtime_resume import _after, _budget_reply
 from factory.adapters.claude_runtime import FINISH_MESSAGE, ClaudeCodeRuntime
 from factory.domain.agent_runs import AgentRunRequest
@@ -19,7 +18,7 @@ def _runtime(tmp_path: Path, steps: list[Step]) -> ClaudeCodeRuntime:
 
 
 def _resuming(tmp_path: Path, resume_session: str | None) -> AgentRunRequest:
-    return _request(tmp_path, None).model_copy(update={"resume_session": resume_session})
+    return claude_request(tmp_path).model_copy(update={"resume_session": resume_session})
 
 
 def _files_id(arguments: list[str]) -> str:

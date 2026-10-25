@@ -236,7 +236,6 @@ def _probe_settings(tmp_path: Path, agent_home: Path) -> InstanceSettings:
         state_directory=tmp_path / "state",
         agent_home=agent_home,
         pinned_agent_version="fake",
-        agent_user="agent",
     )
 
 

@@ -8,12 +8,12 @@ from factory.application.boundaries import Boundaries
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import machine_extras
 from podman_support import IMAGE, Podman, PodmanPlan, write_podman
-from wiring_support import every_tool, machine_item
+from wiring_support import machine_item
 from zfs_support import DATASET, Answer, Zfs, write_zfs
 
 PODMAN_VERSION = "podman version 4.9.3"
 CONTAINER_ITEMS = ["token-file", "podman", "zfs", "dataset", "stage-image"]
-INLINE_ITEMS = ["token-file", "agent-user", "agent-environment"]
+INLINE_ITEMS = ["token-file", "agent-environment"]
 
 
 @pytest.fixture
@@ -77,17 +77,6 @@ def _settings(
         ),
         pytest.param({}, [*INLINE_ITEMS, "agent-run-probe"], id="inline-no-agent-user"),
         pytest.param(
-            {"agent_user": "agent"},
-            [
-                "token-file",
-                "agent-user",
-                "tool:sudo",
-                "agent-environment",
-                "agent-run-probe",
-            ],
-            id="inline-agent-user",
-        ),
-        pytest.param(
             {"agent_runtime": "opencode"},
             [*INLINE_ITEMS, "opencode", "agent-run-probe"],
             id="inline-opencode",
@@ -107,7 +96,7 @@ def test_the_extras_are_chosen_by_the_stage_environment_in_the_operator_guides_o
 ) -> None:
     settings = _settings(tmp_path, agent_home, podman, zfs, fields)
 
-    extras = machine_extras(boundaries, settings, every_tool, environment)
+    extras = machine_extras(boundaries, settings, environment)
 
     assert [check().name for check in extras] == names
 

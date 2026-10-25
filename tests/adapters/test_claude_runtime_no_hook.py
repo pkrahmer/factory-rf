@@ -5,8 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls, write_stand_in
-from adapters.test_claude_runtime_os_user import REPLY
+from adapters.claude_stand_in import REPLY, Step, read_calls, write_stand_in
 from confine_support import Layout, run_request
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.domain.agent_runs import AgentRunRequest

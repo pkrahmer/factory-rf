@@ -52,23 +52,11 @@ COMPLETED = AgentRunResult(
 
 
 @pytest.mark.parametrize(
-    ("agent_user", "names"),
+    "names",
     [
         pytest.param(
-            None,
-            ["token-file", "agent-user", "agent-environment", "agent-run-probe"],
+            ["token-file", "agent-environment", "agent-run-probe"],
             id="no-agent-user",
-        ),
-        pytest.param(
-            "agent",
-            [
-                "token-file",
-                "agent-user",
-                "tool:sudo",
-                "agent-environment",
-                "agent-run-probe",
-            ],
-            id="agent-user",
         ),
     ],
 )
@@ -77,7 +65,6 @@ def test_the_extras_come_in_the_operator_guides_order_sudo_only_with_an_agent_us
     tmp_path: Path,
     agent_home: Path,
     *,
-    agent_user: str | None,
     names: list[str],
 ) -> None:
     settings = InstanceSettings(
@@ -85,11 +72,10 @@ def test_the_extras_come_in_the_operator_guides_order_sudo_only_with_an_agent_us
         instance="factory-1",
         state_directory=tmp_path / "state",
         agent_home=agent_home,
-        agent_user=agent_user,
     )
     environment = {"PATH": "/usr/bin", "HOME": str(tmp_path)}
 
-    extras = machine_extras(boundaries, settings, every_tool, environment)
+    extras = machine_extras(boundaries, settings, environment)
 
     assert [check().name for check in extras] == names
 
@@ -124,7 +110,6 @@ def test_a_tick_stops_on_a_failed_extra_and_otherwise_probes_in_the_stages_envir
         agent_home=agent_home,
         claude_executable=str(tmp_path / "no-claude"),
         pinned_agent_version="fake",
-        agent_user="agent",
         token_file=token_file,
     )
     tick = build_tick(dataclasses.replace(boundaries, settings=settings), settings, every_tool)

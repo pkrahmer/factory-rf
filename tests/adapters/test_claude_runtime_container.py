@@ -27,17 +27,13 @@ from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.process import ProcessResult
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.containers import WORK_CHECKOUT, ContainerCall
-from factory.domain.errors import AgentRuntimeError
 from run_process_recorder import Recorder
 from time_limits import ROOMY_BOUND_SECONDS
 
 LIMIT = timedelta(seconds=30)
-OS_USER_DETAIL = "a run in a container has no operating-system user"
 
 
-def _request(
-    tmp_path: Path, *, time_limit: timedelta = LIMIT, os_user: str | None = None
-) -> AgentRunRequest:
+def _request(tmp_path: Path, *, time_limit: timedelta = LIMIT) -> AgentRunRequest:
     work = tmp_path / "work"
     work.mkdir(exist_ok=True)
     return AgentRunRequest(
@@ -53,7 +49,6 @@ def _request(
         time_limit=time_limit,
         working_directory=work,
         environment=container_environment(tmp_path / "bin"),
-        os_user=os_user,
     )
 
 
@@ -161,19 +156,6 @@ def test_a_run_in_a_container_reports_the_login_read_from_the_mounted_file(
     result = runtime.run(_request(tmp_path))
 
     assert result.login == "subscription"
-
-
-def test_a_request_with_an_operating_system_user_is_refused_in_a_container(
-    tmp_path: Path, fake: FakeContainerRuns
-) -> None:
-    runtime = _runtime(tmp_path, [Step(stdout=REPLY)], fake)
-
-    with pytest.raises(AgentRuntimeError) as raised:
-        runtime.run(_request(tmp_path, os_user="agent"))
-
-    assert raised.value.detail == OS_USER_DETAIL
-    assert fake.calls == []
-    assert files_in(tmp_path / "state") == []
 
 
 @pytest.mark.parametrize(

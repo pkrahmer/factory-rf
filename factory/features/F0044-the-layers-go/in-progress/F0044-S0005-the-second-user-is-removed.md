@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T14:40:56.469016Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-10-25T14:40:56.469016Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-25T14:48:03.008378Z'
+  stage: tests
+  run: 57db5d0a3b7340e4b442aaf8276f0da4
 ---
 
 # The second user is removed
@@ -202,3 +204,42 @@ Expect: three lines: `[] False`; `False False`; `3 False`
       - Criterion 7's died-probe details through `agent_run_probe_item`, the last item `machine_extras` returns.
       - Criterion 9: `0o666 & ~umask` for a regular file, so `0o600` under `0o077` and `0o644` under `0o022`.
 10. factory: started tests as self.
+11. tester: I made the changes to existing tests that the Interface lists under "Tests", following the human's answer in entry 9: the helper move first, then the deletions, then the row and helper edits. The tests for criteria 1 to 9, written in the earlier run, are unchanged.
+
+    Criterion → test:
+    - criterion 1: tests/test_second_user_removed.py::test_the_second_user_s_names_are_gone
+    - criterion 2: tests/adapters/test_calls_as_the_factory_user.py::test_a_call_without_a_container_starts_the_runtime_itself_with_the_request_s_environment
+    - criterion 3: tests/adapters/test_calls_as_the_factory_user.py::test_launch_hands_over_the_call_its_environment_and_its_limit
+    - criterion 4: tests/adapters/test_calls_as_the_factory_user.py::test_only_a_container_call_is_read_as_killed_at_its_limit
+    - criterion 5: tests/domain/test_settings_agent_user_unread.py::test_the_agent_user_setting_changes_no_setting
+    - criterion 6: tests/entry/test_wiring_without_agent_user.py::test_git_environment_holds_the_credential_helper_and_no_hooks_alone
+    - criterion 7: tests/entry/test_wiring_without_agent_user.py::test_the_extras_name_no_agent_user_and_no_sudo and ::test_a_died_probe_names_the_factory_user (through `agent_run_probe_item`, as entry 9 confirmed)
+    - criterion 8: tests/entry/test_wiring_without_agent_user.py::test_the_project_commands_run_without_a_user
+    - criterion 9: tests/adapters/test_calls_as_the_factory_user.py::test_the_run_files_keep_the_mode_the_umask_gives (`0o666 & ~umask`, as entry 9 confirmed)
+
+    Files created in the earlier run: tests/test_second_user_removed.py, tests/adapters/test_calls_as_the_factory_user.py, tests/domain/test_settings_agent_user_unread.py, tests/entry/test_wiring_without_agent_user.py. No new files in this run.
+
+    Helper move (standing leave plus decision 21): `REPLY`, `_request` without its `os_user`, and `_without_locale` went from tests/adapters/test_claude_runtime_os_user.py into tests/adapters/claude_stand_in.py, as `REPLY`, `claude_request(tmp_path)` and `without_locale`, together with the `GIVEN` that the request uses. Their importers now import them from there, and each `_request(tmp_path, None)` call became `claude_request(tmp_path)`: test_claude_runtime_api_login.py, test_claude_runtime_login.py, test_claude_runtime_no_hook.py, test_claude_runtime_provider_limit.py, test_claude_runtime_resume_session.py, test_opencode_runtime.py, test_runtimes_without_wrapper.py, tests/entry/test_wiring_api_login.py, test_wiring_login.py, test_wiring_provider_limit.py.
+
+    Deleted whole, as listed: the 12 test modules and the two helper modules `sudo_support.py` and `leftovers_runtime_support.py`. `git rm` was refused (the index lock is not writable), so I removed them from the working tree with `rm`.
+
+    Earlier test files changed, all as the Interface lists:
+    - Shared helpers that lost `os_user`: tests/confine_support.py, tests/adapters/opencode_stand_in.py, tests/adapters/container_runtime_support.py, and `_request` in tests/adapters/test_claude_runtime_container.py. `machine_extras` is now called without `every_tool` in tests/wiring_support.py, test_wiring_extras.py, test_wiring_opencode.py and test_wiring_container_extras.py.
+    - tests/adapters/: test_agent_launch.py, test_agent_launch_call_end.py, test_agent_launch_container.py, test_agent_launch_container_kill.py, test_claude_runtime_container.py and test_opencode_runtime_container.py (the os-user refusal test is deleted from both), test_claude_runtime_login.py, test_claude_runtime_api_login.py, test_opencode_runtime_launch.py, test_runtimes_without_wrapper.py (with the rename to `test_only_the_login_shell_refuses_a_call`), test_kill_at_the_limit_stays.py.
+    - tests/application/: test_agent_run_probe.py, test_agent_run_probe_factory_user.py, test_agent_run_probe_login.py, test_agent_run_probe_api_login.py, test_agent_run_probe_opencode.py, test_task.py, test_sealed_runs.py, test_nested_repositories.py.
+    - tests/domain/: test_agent_runs.py, test_settings_stage_environment.py, test_settings_url_edges.py.
+    - tests/entry/: test_wiring_boundaries.py (with the rename to `test_git_environment_gives_the_credential_helper_and_no_hooks`), test_wiring_constants.py, test_wiring_container_extras.py, test_wiring_extras.py, test_wiring_opencode.py, test_wiring_run.py, test_wiring_stage_environment.py, test_wiring_stage_environment_home.py.
+    - tests/ root: tests/conftest.py (`probe_settings`), test_test_children.py, test_time_limits.py, test_leftovers_program_removed.py.
+
+    Choices where the list left room, for the reviewer to check:
+    - test_opencode_runtime_launch.py: `_warned_by_sudo` now has the stand-in itself print the `sudo:` line on stderr, so the test still shows that a stderr line is no refusal once valid events were printed. `test_the_call_gets_the_api_file_s_key_and_the_result_names_the_login` now checks the key against the call's own arguments; the old check of the `sudo` arguments went with the user.
+    - test_agent_launch_call_end.py: the timed-out test keeps its two host rows. The refusal test loses the `sudo-refused` row and keeps the other two without `os_user`, so its refusal branch has no row left.
+    - test_agent_run_probe_opencode.py: `DIED` and `SSO_HINT` now name "the factory user", since its settings no longer carry an agent user.
+    - `ruff check --fix` removed the imports these edits left unused.
+
+    Run: `make lint` is green. The one `make test` ended with collection errors in tests/adapters/test_agent_launch_call_end.py: its module constant `Starters(login_files=LoginFiles())` fails Pydantic validation because `Starters` still requires `sudo_executable`. That is the old model, not a mistake in the test. Every other module imported; no module under test is missing. As in the earlier run, the new tests fail on their assertions and signatures because the old names still exist.
+
+    Open: the Dockerfile and VM-setup tests that still mention `FACTORY_AGENT_USER` (test_image_users.py, test_stage_image.py, test_claude_token_mount.py, test_vm_setup_text.py) are not on the story's list, so I left them untouched.
+
+    `lint`: lint: green (0.8 s)
+    `test`: ERROR tests/adapters/test_agent_launch_call_end.py - pydantic_core._pydantic_core.ValidationError: 1 validation error for Starters

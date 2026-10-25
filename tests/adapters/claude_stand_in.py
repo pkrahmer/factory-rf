@@ -2,12 +2,30 @@
 
 import json
 import sys
+from datetime import timedelta
+from decimal import Decimal
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
+from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
+
 CALLS = "calls.jsonl"
 STEPS = "steps.json"
+GIVEN = {"HOME": "/home/agent", "LANG": "C.UTF-8"}
+REPLY = json.dumps(
+    {
+        "type": "result",
+        "subtype": "success",
+        "is_error": False,
+        "num_turns": 1,
+        "total_cost_usd": 0.1,
+        "duration_ms": 100,
+        "usage": {"input_tokens": 1, "output_tokens": 1},
+        "permission_denials": [],
+        "structured_output": {"decision": "doing", "entry": "Done."},
+    }
+)
 
 SCRIPT = r"""
 import json
@@ -94,3 +112,28 @@ def read_calls(directory: Path) -> list[StandInCall]:
         StandInCall.model_validate_json(line)
         for line in calls.read_text(encoding="utf-8").splitlines()
     ]
+
+
+def claude_request(tmp_path: Path) -> AgentRunRequest:
+    """A coder's request that works in `tmp_path / "work"` with a small given environment."""
+    work = tmp_path / "work"
+    work.mkdir(exist_ok=True)
+    return AgentRunRequest(
+        agent=AgentDefinition(
+            name="coder",
+            model="sonnet",
+            tools=["Read"],
+            budget_usd=Decimal("1"),
+            instructions="Write the code.",
+        ),
+        prompt="Stage: doing",
+        allowed_decisions=["doing", "question"],
+        time_limit=timedelta(seconds=30),
+        working_directory=work,
+        environment=GIVEN,
+    )
+
+
+def without_locale(environment: dict[str, str]) -> dict[str, str]:
+    """`environment` without the `LC_CTYPE` a stand-in's Python adds in an empty environment."""
+    return {name: value for name, value in environment.items() if name != "LC_CTYPE"}

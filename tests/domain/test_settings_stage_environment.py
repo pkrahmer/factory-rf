@@ -145,28 +145,9 @@ def test_read_settings_reads_the_stage_environment_and_its_values(
             id="blank-image",
         ),
         pytest.param(
-            {**CONTAINER, "FACTORY_AGENT_USER": "agent"},
-            ("FACTORY_AGENT_USER", "is set, but the container environment runs no second user"),
-            id="agent-user",
-        ),
-        pytest.param(
-            {"FACTORY_STAGE_ENVIRONMENT": "container", "FACTORY_AGENT_USER": "agent"},
-            ("FACTORY_DATASET", "missing for the container environment"),
-            id="agent-user-after-no-dataset",
-        ),
-        pytest.param(
             {"FACTORY_STAGE_ENVIRONMENT": "inline"},
             {"stage_environment": "inline", "dataset": None},
             id="inline-none",
-        ),
-        pytest.param(
-            {
-                "FACTORY_STAGE_ENVIRONMENT": "inline",
-                "FACTORY_AGENT_USER": "agent",
-                "FACTORY_DATASET": "tank/x",
-            },
-            {"stage_environment": "inline", "agent_user": "agent", "dataset": "tank/x"},
-            id="inline-agent-user-and-dataset",
         ),
         pytest.param(
             {"FACTORY_STAGE_ENVIRONMENT": "inline", "FACTORY_WORKSPACE": "srv/work"},
@@ -206,7 +187,6 @@ _DIRECT_CONTAINER: dict[str, object] = {
         pytest.param({"workspace": _UNSET}, False, id="no-workspace"),
         pytest.param({"stage_image": _UNSET}, False, id="no-image"),
         pytest.param({"workspace": Path("srv/work")}, False, id="relative-workspace"),
-        pytest.param({"agent_user": "agent"}, False, id="agent-user"),
         pytest.param({"stage_environment": "podman"}, False, id="unknown-environment"),
         pytest.param(
             {

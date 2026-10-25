@@ -1,7 +1,6 @@
 """The Python children the tests start write no bytecode, and every shebang they write says `-B`."""
 
 import re
-import stat
 import subprocess
 import sys
 from collections.abc import Callable
@@ -9,7 +8,6 @@ from pathlib import Path
 
 import pytest
 
-from adapters.test_claude_runtime_os_user import _write_sudo
 from confine_support import write_script
 from process_support import python_argv
 
@@ -45,13 +43,6 @@ def test_a_child_started_by_the_helpers_writes_no_bytecode(
     )
 
     assert (tmp_path / "__pycache__").exists() is writes_bytecode
-
-
-def test_the_stand_in_sudo_starts_the_interpreter_without_bytecode(tmp_path: Path) -> None:
-    path = _write_sudo(tmp_path / "sudo-bin")
-
-    assert path.read_text(encoding="utf-8").splitlines()[0] == f"#!{sys.executable} -B"
-    assert stat.S_IMODE(path.stat().st_mode) == 0o755
 
 
 @pytest.mark.parametrize(

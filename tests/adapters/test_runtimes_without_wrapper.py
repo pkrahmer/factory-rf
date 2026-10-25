@@ -2,16 +2,14 @@
 
 import inspect
 import json
-import re
 from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls, write_stand_in
+from adapters.claude_stand_in import REPLY, Step, write_stand_in
 from adapters.container_runtime_support import run_folders
 from adapters.opencode_stand_in import MODELS, REPLY_EVENTS, write_opencode
-from adapters.test_claude_runtime_os_user import REPLY, _sudo_calls, _write_sudo
 from confine_support import Layout, run_request, write_script
 from factory.adapters import agent_launch, claude_runtime, opencode_runtime
 from factory.adapters.agent_launch import LOGIN_PREFIX, LoginFiles, Starters, call_refusal
@@ -23,7 +21,6 @@ from factory.entry.wiring import build_boundaries
 
 CONFINE_LINE = "factory-confine: the kernel offers Landlock ABI 2"
 SUDO_LINE = "sudo: a password is required"
-ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 SEEN = "seen.json"
 RECORDING = """\
 import json, os, sys
@@ -102,31 +99,6 @@ def _seen(folder: Path) -> dict[str, object]:
     return seen
 
 
-@pytest.mark.parametrize("with_login", [True, False], ids=["login-file", "no-login-file"])
-def test_a_claude_call_as_a_user_starts_the_login_words_then_the_call_after_env_i(
-    layout: Layout, *, with_login: bool
-) -> None:
-    executable = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
-    sudo = _write_sudo(layout.sudo_bin)
-    login = _login_file(layout) if with_login else None
-    runtime = ClaudeCodeRuntime(
-        str(executable), layout.state, sudo_executable=str(sudo), login_file=login
-    )
-
-    runtime.run(run_request(layout, os_user="agent"))
-
-    [call] = _sudo_calls(layout.sudo_bin)
-    words = call.arguments
-    start = words.index("-i") + 1
-    while ASSIGNMENT.match(words[start]):
-        start += 1
-    login_words = agent_launch.login_argv(LoginFiles(subscription=login)) if login else []
-    [claude_call] = read_calls(layout.stand_in)
-    assert words[start:] == [*login_words, str(executable), *claude_call.arguments]
-    assert "--rules" not in words
-    assert not any(word.endswith("factory-confine") for word in words)
-
-
 @pytest.mark.parametrize(
     ("runtime_of", "pattern"),
     [
@@ -191,29 +163,9 @@ def _opencode_end(layout: Layout, stderr: str) -> tuple[str | None, str | None]:
     return None, result.end_reason
 
 
-def _sudo_refused(layout: Layout) -> tuple[str | None, str | None]:
-    executable = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
-    sudo = _write_sudo(layout.sudo_bin, (f"{SUDO_LINE}\n", 1))
-    runtime = ClaudeCodeRuntime(str(executable), layout.state, sudo_executable=str(sudo))
-    try:
-        result = runtime.run(run_request(layout, os_user="agent"))
-    except AgentRuntimeError as error:
-        return error.detail, None
-    return None, result.end_reason
-
-
 def _login_refused(_: Layout) -> tuple[str | None, str | None]:
-    starters = Starters(
-        sudo_executable="/usr/bin/sudo",
-        login_files=LoginFiles(subscription=Path("/home/agent/.claude-token")),
-    )
-    refusal = call_refusal(
-        f"{LOGIN_PREFIX} cannot be read\n",
-        printed=False,
-        timed_out=False,
-        os_user=None,
-        starters=starters,
-    )
+    starters = Starters(login_files=LoginFiles(subscription=Path("/home/agent/.claude-token")))
+    refusal = call_refusal(f"{LOGIN_PREFIX} cannot be read\n", printed=False, starters=starters)
     return refusal, None
 
 
@@ -237,21 +189,13 @@ def _login_refused(_: Layout) -> tuple[str | None, str | None]:
                 call_refusal(
                     f"{CONFINE_LINE}\n",
                     printed=False,
-                    timed_out=False,
-                    os_user="agent",
-                    starters=Starters(sudo_executable="/usr/bin/sudo", login_files=LoginFiles()),
+                    starters=Starters(login_files=LoginFiles()),
                 ),
                 None,
             ),
             None,
             None,
             id="call-refusal-wrapper-line",
-        ),
-        pytest.param(
-            _sudo_refused,
-            lambda layout: [f"{layout.sudo_bin / 'sudo'} refused the agent run: {SUDO_LINE}"],
-            None,
-            id="sudo-refused",
         ),
         pytest.param(
             _login_refused,
@@ -267,7 +211,7 @@ def _login_refused(_: Layout) -> tuple[str | None, str | None]:
         ),
     ],
 )
-def test_only_sudo_and_the_login_shell_refuse_a_call(
+def test_only_the_login_shell_refuses_a_call(
     layout: Layout,
     end_of: Callable[[Layout], tuple[str | None, str | None]],
     refusal_words: Callable[[Layout], list[str]] | None,

@@ -24,7 +24,7 @@ from factory.application.boundaries import Boundaries
 from factory.domain.provider_limits import ProviderLimit
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries, machine_extras
-from wiring_support import CREDENTIAL, every_tool
+from wiring_support import CREDENTIAL
 
 LIMIT_REPLY = stdout(step_start(), error("limit reached", status_code=429))
 DENY_PUSH = json.dumps({"permissions": {"allow": [], "deny": ["Bash(git push*)"]}})
@@ -89,36 +89,15 @@ def test_the_built_opencode_runtime_runs_with_the_instance_s_models_denies_key_a
     assert result.end_reason == end_reason
 
 
-SUDO = ["tool:sudo"]
-
-
 @pytest.mark.parametrize(
-    ("runtime", "agent_user", "names"),
+    ("runtime", "names"),
     [
         pytest.param(
             "opencode",
-            "agent",
-            ["token-file", "agent-user", *SUDO, "agent-environment", "opencode"],
-            id="opencode-agent-user",
-        ),
-        pytest.param(
-            "opencode",
-            None,
-            ["token-file", "agent-user", "agent-environment", "opencode"],
+            ["token-file", "agent-environment", "opencode"],
             id="opencode-no-agent-user",
         ),
-        pytest.param(
-            "claude",
-            "agent",
-            ["token-file", "agent-user", *SUDO, "agent-environment"],
-            id="claude-agent-user",
-        ),
-        pytest.param(
-            "claude",
-            None,
-            ["token-file", "agent-user", "agent-environment"],
-            id="claude-no-agent-user",
-        ),
+        pytest.param("claude", ["token-file", "agent-environment"], id="claude-no-agent-user"),
     ],
 )
 def test_the_opencode_item_comes_after_confinement_only_under_opencode(
@@ -127,7 +106,6 @@ def test_the_opencode_item_comes_after_confinement_only_under_opencode(
     agent_home: Path,
     *,
     runtime: str,
-    agent_user: str | None,
     names: list[str],
 ) -> None:
     settings = InstanceSettings.model_validate(
@@ -136,12 +114,11 @@ def test_the_opencode_item_comes_after_confinement_only_under_opencode(
             "instance": "factory-1",
             "state_directory": tmp_path / "state",
             "agent_home": agent_home,
-            "agent_user": agent_user,
             "agent_runtime": runtime,
         }
     )
     environment = {"PATH": "/usr/bin", "HOME": str(tmp_path)}
 
-    extras = machine_extras(boundaries, settings, every_tool, environment)
+    extras = machine_extras(boundaries, settings, environment)
 
     assert [check().name for check in extras] == [*names, "agent-run-probe"]

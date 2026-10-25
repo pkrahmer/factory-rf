@@ -106,15 +106,12 @@ def test_an_inline_instance_has_no_snapshots_and_no_containers(tmp_path: Path) -
 def test_a_container_instance_gets_the_dataset_s_adapters_and_asks_for_no_tool(
     tmp_path: Path, container_settings: InstanceSettings, zfs: Path, podman: Path
 ) -> None:
-    which = _Which()
     boundaries = build_boundaries(
         container_settings,
         CREDENTIAL,
         hosting=FakeHostingService(),
-        which=which,
     )
 
-    assert which.asked == []
     snapshots = boundaries.snapshots
     containers = boundaries.containers
     assert isinstance(snapshots, ZfsSnapshots)
@@ -146,15 +143,12 @@ def test_a_container_instance_gets_the_dataset_s_adapters_and_asks_for_no_tool(
 def test_a_container_instance_s_runtime_runs_in_its_containers_unconfined(
     container_settings: InstanceSettings, runtime: str, kind: type[object]
 ) -> None:
-    which = _Which()
     boundaries = build_boundaries(
         container_settings.model_copy(update={"agent_runtime": runtime}),
         CREDENTIAL,
         hosting=FakeHostingService(),
-        which=which,
     )
 
-    assert which.asked == []
     agent_runtime = boundaries.agent_runtime
     assert isinstance(agent_runtime, kind)
     assert isinstance(agent_runtime, ClaudeCodeRuntime | OpencodeRuntime)

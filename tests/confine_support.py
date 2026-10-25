@@ -63,7 +63,6 @@ def run_request(
     layout: Layout,
     *,
     with_home: bool = True,
-    os_user: str | None = None,
     time_limit: timedelta = LIMIT,
 ) -> AgentRunRequest:
     """Return a coder's request in the layout's checkout."""
@@ -80,5 +79,4 @@ def run_request(
         time_limit=time_limit,
         working_directory=layout.checkout,
         environment={"HOME": str(layout.home)} if with_home else {},
-        os_user=os_user,
     )

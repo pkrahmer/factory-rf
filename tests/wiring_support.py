@@ -20,7 +20,7 @@ def machine_item(
 ) -> PreflightItem:
     """Return the item `name` of `machine_extras`, running only the items before it."""
     # The items run in order up to the one asked for, so the agent run probe never starts.
-    for check in machine_extras(boundaries, settings, every_tool, environment):
+    for check in machine_extras(boundaries, settings, environment):
         item = check()
         if item.name == name:
             return item

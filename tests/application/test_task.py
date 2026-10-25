@@ -240,7 +240,6 @@ def test_the_request_carries_the_agent_checkout_and_guard_without_os_user(
 
     assert request.agent == agent
     assert request.working_directory == boundaries.checkout
-    assert request.os_user is None
 
 
 def test_the_request_holds_the_given_environment_unchanged(boundaries: Boundaries) -> None:

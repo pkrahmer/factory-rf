@@ -241,7 +241,6 @@ def test_the_probe_raises_when_the_run_swaps_git_and_the_preflight_lets_it_out(
         state_directory=tmp_path / "state",
         agent_home=agent_home,
         pinned_agent_version="fake",
-        agent_user="agent",
     )
     agent_runtime.queue(ScriptedRun(result=COMPLETED))
     agent_runtime.queue(ScriptedRun(result=COMPLETED))

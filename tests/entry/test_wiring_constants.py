@@ -32,7 +32,6 @@ KEPT = (
     "machine_extras",
     "machine_log",
     "production_environment",
-    "project_command_environment",
     "read_environment_settings",
     "read_hosting_token",
     "repository_name",

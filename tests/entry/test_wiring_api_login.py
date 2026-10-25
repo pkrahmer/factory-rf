@@ -4,10 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls, write_stand_in
+from adapters.claude_stand_in import Step, claude_request, read_calls, write_stand_in
 from adapters.test_agent_launch_login import API_LOGIN
 from adapters.test_claude_runtime_login import REPLY
-from adapters.test_claude_runtime_os_user import _request
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.domain.settings import InstanceSettings
@@ -40,7 +39,7 @@ def test_the_built_runtime_hands_the_api_login_file_s_key_to_claude(
     )
     boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
 
-    boundaries.agent_runtime.run(_request(tmp_path, None))
+    boundaries.agent_runtime.run(claude_request(tmp_path))
 
     [call] = read_calls(tmp_path / "bin")
     assert call.environment.get(API_LOGIN_VARIABLE) == expected

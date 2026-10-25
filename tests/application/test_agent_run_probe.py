@@ -100,7 +100,6 @@ def test_the_probe_runs_the_coder_on_a_small_budget_with_the_question_alone(
     assert request.time_limit == timedelta(minutes=2)
     assert request.working_directory == boundaries.checkout
     assert request.environment == ENVIRONMENT
-    assert request.os_user == "agent"
     installed = boundaries.agent_definitions.read("coder")
     assert request.agent.name == "coder"
     assert (request.agent.model, request.agent.tools) == (installed.model, installed.tools)
@@ -109,31 +108,21 @@ def test_the_probe_runs_the_coder_on_a_small_budget_with_the_question_alone(
 
 @pytest.mark.usefixtures("coder")
 @pytest.mark.parametrize("reason", ["died", "no_result", "time_limit", "budget"])
-@pytest.mark.parametrize(
-    ("agent_user", "named"),
-    [
-        pytest.param("agent", "agent", id="agent-user"),
-        pytest.param(None, "the factory user", id="no-agent-user"),
-    ],
-)
 def test_a_probe_that_does_not_complete_fails_with_its_detail(
     boundaries: Boundaries,
     probe_settings: InstanceSettings,
     agent_runtime: FakeAgentRuntime,
     *,
     reason: EndReason,
-    agent_user: str | None,
-    named: str,
 ) -> None:
     agent_runtime.queue(_ended(reason))
-    probed = probe_settings.model_copy(update={"agent_user": agent_user})
 
-    item = agent_run_probe_item(boundaries, probed, ENVIRONMENT)
+    item = agent_run_probe_item(boundaries, probe_settings, ENVIRONMENT)
 
     assert item.name == "agent-run-probe"
     assert not item.passed
     assert item.detail == (
-        f"the probe run ended {reason}; run claude -p by hand as {named} to see why"
+        f"the probe run ended {reason}; run claude -p by hand as the factory user to see why"
     )
 
 
@@ -174,10 +163,9 @@ def test_the_probe_calls_claude_with_the_flags_of_a_stage(
     executable = write_stand_in(bin_directory, [Step(stdout=REPLY), Step(stdout=REPLY)])
     runtime = ClaudeCodeRuntime(str(executable), tmp_path / "runtime-state")
     claude = dataclasses.replace(boundaries, agent_runtime=runtime)
-    as_factory_user = probe_settings.model_copy(update={"agent_user": None})
     environment = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path)}
 
-    item = agent_run_probe_item(claude, as_factory_user, environment)
+    item = agent_run_probe_item(claude, probe_settings, environment)
     stage = AgentRunRequest(
         agent=boundaries.agent_definitions.read("coder"),
         prompt="Do the stage.",

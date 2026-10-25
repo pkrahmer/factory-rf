@@ -147,21 +147,19 @@ def test_a_hosting_token_that_cannot_be_read_is_refused(tmp_path: Path, case: st
         ("/opt/other-helper", "/opt/other-helper"),
     ],
 )
-def test_git_environment_gives_the_credential_helper_the_shared_group_and_no_hooks(
+def test_git_environment_gives_the_credential_helper_and_no_hooks(
     helper: str | None, expected_helper: str
 ) -> None:
     environment = git_environment() if helper is None else git_environment(helper)
 
     assert environment == {
-        "GIT_CONFIG_COUNT": "4",
+        "GIT_CONFIG_COUNT": "3",
         "GIT_CONFIG_KEY_0": "credential.helper",
         "GIT_CONFIG_VALUE_0": expected_helper,
-        "GIT_CONFIG_KEY_1": "core.sharedRepository",
-        "GIT_CONFIG_VALUE_1": "0640",
-        "GIT_CONFIG_KEY_2": "core.hooksPath",
-        "GIT_CONFIG_VALUE_2": "/dev/null",
-        "GIT_CONFIG_KEY_3": "core.fsmonitor",
-        "GIT_CONFIG_VALUE_3": "false",
+        "GIT_CONFIG_KEY_1": "core.hooksPath",
+        "GIT_CONFIG_VALUE_1": "/dev/null",
+        "GIT_CONFIG_KEY_2": "core.fsmonitor",
+        "GIT_CONFIG_VALUE_2": "false",
     }
 
 
@@ -251,11 +249,10 @@ def test_the_built_git_runs_with_the_git_options_of_the_settings(
     assert environment["GIT_AUTHOR_NAME"] == "Ann"
     assert environment["GIT_CONFIG_KEY_0"] == "credential.helper"
     assert environment["GIT_CONFIG_VALUE_0"] == "/usr/local/bin/git-credential-factory"
-    assert environment["GIT_CONFIG_VALUE_1"] == "0640"
-    assert environment["GIT_CONFIG_KEY_2"] == "core.hooksPath"
-    assert environment["GIT_CONFIG_VALUE_2"] == "/dev/null"
-    assert environment["GIT_CONFIG_KEY_3"] == "core.fsmonitor"
-    assert environment["GIT_CONFIG_VALUE_3"] == "false"
+    assert environment["GIT_CONFIG_KEY_1"] == "core.hooksPath"
+    assert environment["GIT_CONFIG_VALUE_1"] == "/dev/null"
+    assert environment["GIT_CONFIG_KEY_2"] == "core.fsmonitor"
+    assert environment["GIT_CONFIG_VALUE_2"] == "false"
 
 
 def test_the_built_project_commands_run_in_the_checkout(settings: InstanceSettings) -> None:
@@ -352,19 +349,3 @@ def test_build_boundaries_without_hosting_hands_pygithub_the_repository(
 
     assert isinstance(boundaries.hosting, PyGithubHostingService)
     assert repositories == [("owner/project",)]
-
-
-@pytest.mark.parametrize(
-    ("found", "expected"),
-    [("/opt/tools/sudo", "/opt/tools/sudo"), (None, "/usr/bin/sudo")],
-)
-def test_the_built_agent_runtime_starts_the_sudo_on_the_path_or_usr_bin_sudo(
-    settings: InstanceSettings, found: str | None, expected: str
-) -> None:
-    def which(name: str) -> str | None:
-        return found if name == "sudo" else None
-
-    boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService(), which=which)
-
-    assert isinstance(boundaries.agent_runtime, ClaudeCodeRuntime)
-    assert boundaries.agent_runtime.sudo_executable == expected

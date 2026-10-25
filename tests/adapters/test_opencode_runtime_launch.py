@@ -1,4 +1,4 @@
-"""The opencode runtime starts its call as the agent user, with the API key."""
+"""The opencode runtime starts its call with the API key."""
 
 import time
 from collections.abc import Callable
@@ -15,17 +15,15 @@ from adapters.opencode_stand_in import (
     write_opencode,
 )
 from adapters.test_agent_launch_login import API_LOGIN
-from adapters.test_claude_runtime_os_user import _sudo_calls, _write_sudo
 from confine_support import (
     Layout,
 )
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE
-from factory.adapters.opencode_runtime import CONFIG_VARIABLE, SWITCHES, OpencodeRuntime
+from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.domain.agent_runs import AgentRunRequest
 from factory.domain.errors import AgentRuntimeError
 
 GIVEN = {"HOME": "/home/agent", "LANG": "C.UTF-8"}
-SUDO_HEAD = ["-n", "-u", "agent", "--", "timeout", "--signal=KILL", "30s", "env", "-i"]
 SUDO_LINE = "sudo: a password is required"
 # A few seconds, so the child has room to start; the stand-in waits far longer.
 SHORT_LIMIT = timedelta(seconds=3)
@@ -36,26 +34,16 @@ def _runtime(
     tmp_path: Path,
     steps: list[Step],
     *,
-    sudo: Path | None = None,
     api_login_file: Path | None = None,
     version_time_limit: timedelta = timedelta(seconds=30),
 ) -> OpencodeRuntime:
     executable = write_opencode(tmp_path / "bin", steps)
     state = tmp_path / "state"
     state.mkdir(exist_ok=True)
-    if sudo is None:
-        return OpencodeRuntime(
-            str(executable),
-            state,
-            models=MODELS,
-            api_login_file=api_login_file,
-            version_time_limit=version_time_limit,
-        )
     return OpencodeRuntime(
         str(executable),
         state,
         models=MODELS,
-        sudo_executable=str(sudo),
         api_login_file=api_login_file,
         version_time_limit=version_time_limit,
     )
@@ -65,38 +53,9 @@ def _run_id(config: str) -> str:
     return Path(config).name.removeprefix("opencode-").removesuffix(".json")
 
 
-@pytest.mark.parametrize(
-    "refused", [pytest.param(False, id="runs"), pytest.param(True, id="refused")]
-)
-def test_with_an_agent_user_sudo_starts_the_call_after_env_i_and_its_environment(
-    tmp_path: Path, *, refused: bool
-) -> None:
-    sudo = _write_sudo(tmp_path / "sudo-bin", (f"{SUDO_LINE}\n", 1) if refused else None)
-    runtime = _runtime(tmp_path, [Step(stdout=REPLY_EVENTS)], sudo=sudo)
-    request = opencode_request(tmp_path / "work", environment=GIVEN, os_user="agent")
-
-    if refused:
-        with pytest.raises(AgentRuntimeError) as raised:
-            runtime.run(request)
-        assert raised.value.detail == f"{sudo} refused the agent run: {SUDO_LINE}"
-        return
-    runtime.run(request)
-
-    [call] = read_calls(tmp_path / "bin")
-    [sudo_call] = _sudo_calls(tmp_path / "sudo-bin")
-    expected = {**GIVEN, CONFIG_VARIABLE: call.environment[CONFIG_VARIABLE], **SWITCHES}
-    count = len(expected)
-    assert sudo_call.arguments[:9] == SUDO_HEAD
-    assert sorted(sudo_call.arguments[9 : 9 + count]) == sorted(
-        f"{name}={value}" for name, value in expected.items()
-    )
-    assert sudo_call.arguments[9 + count :] == [str(tmp_path / "bin" / "opencode"), *call.arguments]
-
-
 def _warned_by_sudo(tmp_path: Path, _: Layout) -> tuple[OpencodeRuntime, AgentRunRequest]:
-    sudo = _write_sudo(tmp_path / "sudo-bin", warning=f"{SUDO_LINE}\n")
-    runtime = _runtime(tmp_path, [Step(stdout=REPLY_EVENTS)], sudo=sudo)
-    return runtime, opencode_request(tmp_path / "work", environment=GIVEN, os_user="agent")
+    runtime = _runtime(tmp_path, [Step(stdout=REPLY_EVENTS, stderr=f"{SUDO_LINE}\n")])
+    return runtime, opencode_request(tmp_path / "work", environment=GIVEN)
 
 
 @pytest.mark.parametrize(
@@ -139,22 +98,17 @@ def _api_file(tmp_path: Path, content: str | None) -> Path | None:
 def test_the_call_gets_the_api_file_s_key_and_the_result_names_the_login(
     tmp_path: Path, content: str | None, key: str | None, login: str | None
 ) -> None:
-    sudo = _write_sudo(tmp_path / "sudo-bin")
     api = _api_file(tmp_path, content)
-    runtime = _runtime(tmp_path, [Step(stdout=REPLY_EVENTS)], sudo=sudo, api_login_file=api)
+    runtime = _runtime(tmp_path, [Step(stdout=REPLY_EVENTS)], api_login_file=api)
 
-    result = runtime.run(opencode_request(tmp_path / "work", environment=GIVEN, os_user="agent"))
+    result = runtime.run(opencode_request(tmp_path / "work", environment=GIVEN))
 
     [call] = read_calls(tmp_path / "bin")
-    [sudo_call] = _sudo_calls(tmp_path / "sudo-bin")
     assert call.environment.get(API_LOGIN_VARIABLE) == key
     assert result.login == login
-    assert all(API_LOGIN not in argument for argument in sudo_call.arguments)
+    assert all(API_LOGIN not in argument for argument in call.arguments)
     assert all(API_LOGIN not in config for config in call.files.values())
     assert API_LOGIN not in result.model_dump_json()
-    if api is None:
-        count = len({**GIVEN, CONFIG_VARIABLE: "", **SWITCHES})
-        assert sudo_call.arguments[9 + count] == str(tmp_path / "bin" / "opencode")
 
 
 def test_an_api_file_that_is_a_folder_stops_the_run_naming_it(tmp_path: Path) -> None:
