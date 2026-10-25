@@ -942,6 +942,7 @@ Date: 2026-10-20 (F0027-S0001; the feature's decisions 8 to 10). A process that 
 - Reasons: the agent's own user is the only boundary that holds the leftovers and nothing else; `kill(-1)` reaches them wherever their session, group or parent is, and spares the program. As root, or as a user a stand-in `sudo` did not switch, the same call would end the container or the factory, so the program refuses first. A test that ran it as its own user would end the run that runs it.
 - Reuse: it reads the table through F0030-S0001's `ProcessEntry` and `read_process_table` (now public, sorted, with `uid` added) and not through a second reading of `/proc` (the human, 2026-10-20). The owner is the folder's, since a process that makes itself not dumpable gets root-owned files under its folder.
 - Rejected: waiting with `kill -0 -1` (Linux counts a target the caller may not signal as found, so it never settles).
+- Replaced by the end of the call's container, v1.2 F0044-S0003.
 
 ## Every agent call is followed by the end of the agent's leftover processes
 
@@ -951,6 +952,7 @@ Date: 2026-10-20 (F0027-S0002; the feature's decisions 10 to 12). S0001 built th
 - Decision: when the program fails or does not end in time, the run raises `AgentRuntimeError` (`cannot end the agent's processes: <line>`), after the removal. The call's own refusal wins when there is one.
 - Reasons: nothing the factory cannot vouch for may reach the undo and the checks, so a failure is an error and not a stall. Running it inside the runtime leaves no window between the call and the program. Never when the user is the factory's own: in an agent's `make test` that user is `agent`, and the program would end the run itself. A runtime a test builds has no command, so earlier runtime tests keep their calls.
 - Rejected: running it from the stage code after `agent_runtime.run` (a window in which a process can still write); ignoring a failure (the checks would run on a tree the factory cannot vouch for).
+- Replaced by the end of the call's container, v1.2 F0044-S0003.
 
 ## The factory removes the git-ignored paths after every agent run and at the restore
 

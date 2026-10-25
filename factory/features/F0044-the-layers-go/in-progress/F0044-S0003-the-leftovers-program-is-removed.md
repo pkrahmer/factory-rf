@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T13:40:02.254844Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-10-25T13:40:02.254844Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T13:42:10.104530Z'
+  stage: docs
+  run: 27b4d053cffc4694afef264b00d33510
 ---
 
 # The leftovers program is removed
@@ -463,3 +465,34 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     - tests/test_process_search.py: Interface leave (decision 19).
     - tests/test_wrapper_search.py: Interface leave (decision 19).
 28. factory: started docs as self.
+29. documenter: Documented the removal of the leftovers program. The code matches the Interface and the docs criterion, so I have no findings. Only documents changed, so I did not run `make check`; the factory runs it after this stage. `make documents` printed `documents ok`.
+
+    Files changed:
+    - `docs/project-guide/agents.md`: removed `leftovers` from both runtime signatures. In *The shared launch module*, dropped the make class's `leftovers_launch` and `leftovers_fault`, and the `Starters.leftovers` bullet became one line saying `Starters` holds `sudo_executable` and `login_files`. In *Calls in a container*, the "no leftovers program" bullet now says the container ends with its call and podman's `--timeout` ends it whole. The section *Ending the agent's leftover processes* is now one paragraph: the container ends with the call, the program went with F0044-S0003, and the kill at the time limit stays. The `factory.entry.leftovers` mention in the fresh-home tests line is gone.
+    - `docs/project-guide/write-guard.md`: removed the section *The end of a run's processes*. Added one line to *Replaced in v1.2*.
+    - `docs/project-guide/processes-and-checks.md`:
+      - *Running as another user*: dropped `CommandUser.leftovers` and the "leftovers" bullet, and added a "Nothing follows" bullet. The tests line now points to `tests/adapters/test_one_call_as_another_user.py`.
+      - Wiring paragraph: no leftovers program in the `CommandUser`.
+      - Exit-status paragraph and the known limits of *Starting a process*: no leftovers program ends a holder; in a container it ends with the container.
+      - The process-table paragraph: `own_identity` and `signal_every_other` are gone; the session kill still uses the reader.
+      - The process-search paragraph: dropped the `PLR0913` marker of the removed entry module.
+    - `docs/project-guide/watching.md`, *Boundaries*: removed the `leftovers_command` paragraph. `build_boundaries` no longer has `end_leftovers`.
+    - `docs/project-guide/stage-environment.md`: the environment table, the sentence after it and the *Calls in a container* pointer no longer mention a leftovers program or `end_leftovers`.
+    - `docs/project-guide/README.md`: the line for `write-guard.md` no longer names the program or the removed modules. The line for `leftovers_support.py` names only `process_entry`.
+    - `docs/operator-guide.md`:
+      - Removed the paragraph *The end of the agent's processes*.
+      - Removed the verification row and the paragraph *The agent's processes after a run*, which promised that the program ended them.
+      - Dropped the leftovers sentences from *A `time_limit` under `sudo`*, from the check row and from *The project commands run as `agent`*.
+      - The operator's warning that a shell opened as `agent` is ended by the next call went with it, since that is no longer true.
+    - `docs/decisions.md`: each of the two entries named in the criterion got the closing line "Replaced by the end of the call's container, v1.2 F0044-S0003."
+
+    Cross-read and found current: `README.md`, `docs/project-guide/{costs,git-and-hosting,stages,work-items}.md`. I read the rest of `docs/operator-guide.md` and the remaining files for the removed names. No other mention remained.
+
+    Left alone:
+    - The line for `leftovers_runtime_support.py` in `docs/project-guide/README.md` stays. The module stays, because `tests/adapters/test_make_commands_user.py` imports `SUDO_LINE` from it, and the criterion removes the line only if the module goes. The line still lists the stand-in leftovers program; that is stale only once S0005 deletes the module.
+    - `docs/decisions.md` still says, in the F0040-S0002 entry (the `CommandUser` with "the leftovers program") and in the F0040-S0005 entry's "Left" line ("the leftovers program after the call ends it"), that the program exists. These entries are history, and the criterion names only the two entries I changed. The human may want closing lines on them too.
+    - `docs/decisions.md` line 690 (F0039-S0007) also names the leftovers program's start, as history.
+
+    `check`: check: green (not run again: passed on tree 3549819fbb54 at 2026-10-25T13:36:27Z)
+    `secrets`: secrets: green (3.6 s)
+    `documents`: documents ok
