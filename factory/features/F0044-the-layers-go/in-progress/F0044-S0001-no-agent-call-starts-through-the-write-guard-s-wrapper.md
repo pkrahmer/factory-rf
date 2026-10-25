@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-25T10:43:37.543152Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-25T10:43:37.543152Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-25T10:43:57.792726Z'
+  stage: intake
+  run: 12fda58793ae484899727422536edcd1
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -98,11 +100,11 @@ Tests (the tester writes and changes them; the leave is decision 17 of `feature.
 
 1. The removed names (rows of one parametrized test): none of `TEMPORARY_PREFIX`, `CLEANUP_SCRIPT`, `CLEANUP_TIME_LIMIT`, `CONFINE_PREFIX`, `confined_argv`, `cleanup_argv`, `temporary_folder`, `existing_devices`, `request_home`, `run_confinement`, `device_confinement`, `cleanup_launch` is an attribute of `factory.adapters.agent_launch`; `Starters.model_fields` is exactly `sudo_executable`, `login_files`, `leftovers`; `confinement_item` is no attribute of `factory.application.preflight`; `RUNTIME_FOLDERS` is none of `factory.adapters.opencode_runtime`, and `CONFIG_VARIABLE` and `RUNTIME_FOLDER` none of `factory.adapters.claude_runtime`.
 2. The constructors (rows of one parametrized test over `inspect.signature`): `ClaudeCodeRuntime.__init__` has no parameter `confine_executable` or `temporary_root`, and `OpencodeRuntime.__init__` none of `confine_executable`, `temporary_root`, `runtime_folders`; `build_boundaries` has no parameter `confine_executable`; `ClaudeCodeRuntime` has no attribute `confine_executable`.
-3. A Claude Code call without a container (rows of one parametrized test): with an `os_user` and a stand-in `sudo` that records its words, the words after `env -i` and its assignments are the login shell's words when a login file is set and none when it is not, then the executable, then the arguments, and no word is `--rules` or ends in `factory-confine`; without an `os_user`, with a stand-in `claude` that records its environment and the files of the state directory while it runs, the environment holds `SWITCHES` and no `CLAUDE_CONFIG_DIR`, while the call runs the state directory holds one `instructions-*.md` file and no `confine-*.json`, and after the run no folder whose name begins `factory-run-` exists under the system's temporary folder that was not there before. The same for opencode: while the call runs the state directory holds one `opencode-*.json` and no `confine-*.json`.
-4. The reading of a call's end (rows of one parametrized test over `call_refusal` and the runtimes): a call that printed no reply and whose standard error holds `factory-confine: the kernel offers Landlock ABI 2` raises no `AgentRuntimeError` and ends `died` (Claude Code and opencode, one row each); a call with an `os_user` whose standard error holds `sudo: a password is required` still raises `AgentRuntimeError` naming the `sudo` executable and that line; a login file the shell refused still raises naming the file.
+3. A Claude Code call without a container (rows of one parametrized test): with an `os_user` and a stand-in `sudo` that records its words, the words after `env -i` and its assignments are the login shell's words when a login file is set and none when it is not, then the executable, then the arguments, and no word is `--rules` or ends in `factory-confine`; without an `os_user`, with a stand-in `claude` that records its environment and the files of the state directory while it runs, the environment holds `SWITCHES` and no `CLAUDE_CONFIG_DIR`, while the call runs the state directory holds one `instructions-*.md` file and no `confine-*.json`, and after the run no folder whose name begins `factory-run-` exists under the system's temporary folder that was not there before. The same for opencode: while the call runs the state directory holds one `opencode-*.json` and no `confine-*.json`, and after the run no folder whose name begins `factory-run-` exists under the system's temporary folder that was not there before.
+4. The reading of a call's end (rows of one parametrized test over `call_refusal` and the runtimes): a call that printed no reply and whose standard error holds `factory-confine: the kernel offers Landlock ABI 2` raises no `AgentRuntimeError` and ends `died` (Claude Code and opencode, one row each); a call with an `os_user` whose standard error holds `sudo: a password is required` still raises `AgentRuntimeError` naming the `sudo` executable and that line; a login file the shell refused still raises naming the file; a call without an `os_user` that printed no reply and whose standard error holds a line beginning `sudo:` is no refusal: it raises no `AgentRuntimeError` and ends `died`.
 5. A call in a container is unchanged: the existing tests of `tests/adapters/test_claude_runtime_container.py` and `tests/adapters/test_opencode_runtime_container.py` stay green with the changes the Interface names, and a runtime built with `containers` and a `FakeContainerRuns` records one launch whose read-only mounts are the set login files and the instructions (or configuration) file at their own paths and whose working directory is `/work/checkout`.
 6. The preflight's extras (rows of one parametrized test over `machine_extras`): an `inline` instance without an agent user gives `token-file`, `agent-user`, `agent-environment`, `agent-run-probe`; with an agent user `token-file`, `agent-user`, `tool:sudo`, `agent-environment`, `agent-run-probe`; under opencode `opencode` stands right before `agent-run-probe`; a `container` instance gives F0042-S0011's list unchanged; no list holds `confinement`.
-7. The source (one test reading `src/factory`): no module but `factory.entry.confine`, `factory.adapters.landlock` and `factory.domain.confinement` holds the string `factory-confine:` or `CLAUDE_CONFIG_DIR`, and only those three import `factory.domain.confinement` or `factory.adapters.landlock`.
+7. The source (one test reading `src/factory`): no module but `factory.entry.confine`, `factory.adapters.landlock` and `factory.domain.confinement` holds the string `factory-confine:` or `CLAUDE_CONFIG_DIR`, and only those three import `factory.domain.confinement` or `factory.adapters.landlock`; and `factory.entry.wiring` holds not even the bare string `factory-confine` (its comment included).
 8. R14 (rows of one parametrized test over the seven files under `claude/agents/`): each holds the line of decision 4 of `feature.md` exactly once, and none holds `the kernel refuses every other write` or `$TMPDIR`.
 9. `make check` stays green.
 10. docs: `docs/project-guide/agents.md`, *The shared launch module*, *The `claude -p` runtime* and *The opencode runtime*: a call starts the runtime's command directly or in a container, with no wrapper, rules file, temporary folder or `CLAUDE_CONFIG_DIR`; *The seven agents*: the bullet on R14 says what decision 4's text says (the take keeps only the role's write paths, a write elsewhere is lost, temporary files through `mktemp` or `tempfile`); `docs/project-guide/write-guard.md`, *The start wrapper* and *The kernel's write guard*: one sentence at the top of each that no agent call starts through the wrapper since F0044-S0001 and that S0002 removes the module, and the paragraph on `confinement_item` goes; `docs/project-guide/stage-environment.md`: the list of items a `container` instance leaves out no longer names `confinement`; `docs/operator-guide.md`, *The agent runs as a second user*: the `sudo` chain has no `factory-confine --rules ...` words; `docs/operator-guide.md`, *The kernel refuses every other write*: the section says that the kernel's guard is no longer started and what keeps the write paths (the take on a `container` instance, the undo on an `inline` one), and *The preflight's items*: the row `confinement` goes and the count of items for each environment follows. `docs/decisions.md`: the entries "Every agent run is confined by the kernel" and "No agent runs without the kernel's write guard" each gain one closing line: "Replaced by the dataset's rollback and the take, v1.2 F0044-S0001." `README.md`: none.
@@ -151,3 +153,19 @@ Expect: `7`
    3: (a), widen criterion 7 to the bare `factory-confine` for `factory.entry.wiring` only.
    Add all three yourself, then continue.
 5. factory: started intake as vm.
+6. intake: accepted
+
+   Carried in from the human's answer (journal entry 4), written into the story as the human's edits and not as my own improvements:
+   - Criterion 3, opencode row: after the run, no folder whose name begins `factory-run-` exists under the system's temporary folder that was not there before (answer 2).
+   - Criterion 4: a new row. A call without an `os_user` that printed no reply and whose standard error holds a line beginning `sudo:` is no refusal. It raises no `AgentRuntimeError` and ends `died` (answer 1).
+   - Criterion 7: `factory.entry.wiring` holds not even the bare string `factory-confine`, its comment included (answer 3, option a).
+
+   Checks:
+   - Interface: it names concrete modules, names and signatures. `Starters` is shown in full. Every removal is listed per module, and the earlier tests to delete or change are named one by one. R14 is decision 4's text, which the human confirmed in 29(e).
+   - Criteria: each is testable by a parametrized test or a single test.
+     - Every rule has its failing side. `call_refusal` reads `sudo:` only with an `os_user` (criterion 4, both sides now), and `factory-confine:` is no refusal (criterion 4).
+     - The two rules on starting a call are covered by criterion 3: the login words only when a login file is set, and no rules file or `factory-run-` folder.
+     - R14 is covered by criterion 8, and the container call being unchanged by criterion 5.
+   - Smoke test: both commands are runnable and run no pytest, so no `-q` question arises. Each `Expect:` line is checkable: `[]`, `[]`, `False`, and `7`.
+   - Architecture: the changes stay inside the four layers `CLAUDE.md` describes. The three kept modules (`confine`, `landlock`, `confinement`) are left to S0002 as stated.
+   - Scope: the story is S0001 of `feature.md`. The R14 text change is the one agent edit the feature allows. The test leave is decisions 17, 29(f) and 30(a), and the docs passages follow 30(c).
