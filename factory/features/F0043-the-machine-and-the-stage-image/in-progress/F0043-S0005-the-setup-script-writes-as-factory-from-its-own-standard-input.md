@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-25T06:27:15.696525Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T06:27:15.690887Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:27:15.696525Z'
+  stage: intake
+---
+
 # The setup script writes as factory from its own standard input
 
 ## Description
@@ -31,3 +58,6 @@ grep -c '/dev/stdin' vm/setup.sh; sh -n vm/setup.sh && echo syntax-ok
 Expect: two lines, `0` and `syntax-ok`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as self.
