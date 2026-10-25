@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 434
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-25T06:48:13.940918Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-25T06:48:13.940918Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T06:48:30.650010Z'
+  stage: intake
+  run: 8b2f6c251d904cdc93ca1669de54d7b8
 ---
 
 # The operator guide's chapter "The machine"
@@ -77,3 +79,9 @@ Expect: `documents ok`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: "None" is right for a documents-only story. It names the files the documenter changes (`docs/operator-guide.md`, `docs/decisions.md`, `README.md`, and `docs/project-guide/README.md` only if needed), and all of them are within the documenter's write paths. The Interface states no behaviour, so no rule is missing a criterion.
+   Criteria: the criteria are checkable by the smoke test and `make documents`, as the story says, not by tests. Criterion 1 (nothing outside the docs changes) and criterion 2 (`make check` stays green) are testable. Criterion 3 is a docs criterion with concrete, checkable bullets: the exact list and order of `###` sections, the named strings and their order of first occurrence, the numbered list of at least ten items, the decision-log section title and the words it names, and one `vm/setup.sh` sentence in `README.md`. This is a documents story, so there is no failing side to cover.
+   Smoke test: all three blocks are runnable. The first prints the eleven `###` lines. The second counts eight present words, then prints 1 for the decision title and 1 for `vm/setup.sh` in `README.md`, which matches `8`, `1`, `1`. The third is `make documents | tail -n 1` and expects `documents ok`. None runs pytest, so the `-q` rule does not apply. Every `Expect:` line is checkable against the output.
+   Architecture: no layer is touched. The files are the human-facing docs that `CLAUDE.md` assigns to the documenter. Nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes.
+   Scope: it matches the feature's Scope bullet for the operator guide's chapter and the decision-log entry, and it is the last story in the feature's build order. It touches nothing in "Out of scope": no GCP calls, no change to `image/`, and no code for the stage environment.
