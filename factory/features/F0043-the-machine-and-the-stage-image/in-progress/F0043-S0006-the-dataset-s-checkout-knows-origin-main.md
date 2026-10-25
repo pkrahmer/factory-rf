@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-25T07:31:02.891950Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T07:31:02.886621Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:31:02.891950Z'
+  stage: intake
+---
+
 # The dataset's checkout knows origin/main
 
 ## Description
@@ -27,3 +54,6 @@ grep -c "'+refs/heads/\*:refs/remotes/origin/\*'" src/factory/application/stage_
 Expect: `1`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as vm.
