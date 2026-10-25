@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T00:19:39.867729Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-25T00:19:19.054877Z'
   stage: review
   run: 3e8a102ac619422cad895645ea2d8680
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:19:39.867729Z'
+  stage: doing
 ---
 
 # The checkout and the state directory are settings
@@ -253,3 +262,4 @@ Expect: `1`
     - `tests/domain/test_settings.py`: the human's leave, decision 15 of `feature.md`, named in the story's Interface. Only the `FACTORY_CHECKOUT` entry was removed and the test renamed to `test_a_variable_the_settings_do_not_name_is_not_read`. The `FACTORY_STATE_DIRECTORY` and `SOMETHING_ELSE` entries and both assertions are kept.
     - `tests/entry/test_run.py`: the standing leave to move a shared test helper. The `image_file` and `environment` fixtures moved to `tests/conftest.py` unchanged. The module's copy of `HOSTED_URL` now comes from `wiring_support`, which holds the same value. Every test keeps its name and what it checks.
     - `tests/conftest.py`: the standing leave to move a shared test helper. It only adds the two fixtures moved from `tests/entry/test_run.py`.
+13. factory: started doing as self.
