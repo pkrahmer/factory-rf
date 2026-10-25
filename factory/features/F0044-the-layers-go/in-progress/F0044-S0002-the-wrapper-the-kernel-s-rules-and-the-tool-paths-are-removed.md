@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 445
 comments_read: [6397809713]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T12:46:47.517958Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-25T12:46:26.716680Z'
   stage: doing
   run: defabd2b44764e91960f1b455493c9b6
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-25T12:46:47.517958Z'
+  stage: tests
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -325,3 +334,4 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
     - The docs passages on `ConfinementError` (`docs/project-guide/README.md`, `docs/project-guide/write-guard.md`) are left for the documenter.
     - The `factory-confine` console script in `pyproject.toml` is left for the human's change 3, after the merge.
     - The journal did not change what the task means, so `## Description` is unchanged.
+15. factory: started tests as self.
