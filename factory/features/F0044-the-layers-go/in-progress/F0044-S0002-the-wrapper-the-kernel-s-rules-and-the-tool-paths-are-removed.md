@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 445
 comments_read: [6397809713]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T13:02:48.092424Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -152,6 +156,11 @@ journal:
   at: '2026-10-25T13:02:27.057925Z'
   stage: docs
   run: 7921a4f7f04d45788ff6f9d46afe72df
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:02:48.092424Z'
+  stage: smoke-test
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -605,3 +614,4 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
     `check`: check: green (not run again: passed on tree f2793d357ebc at 2026-10-25T12:52:42Z)
     `secrets`: secrets: green (4.0 s)
     `documents`: documents ok
+27. factory: started smoke-test as self.
