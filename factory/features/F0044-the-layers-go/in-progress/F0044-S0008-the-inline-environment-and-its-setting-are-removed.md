@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241, 6401865606]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T19:17:03.256018Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -310,6 +306,12 @@ journal:
   kind: started
   at: '2026-10-25T19:17:03.256018Z'
   stage: smoke-test
+- number: 55
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T19:17:30.169696Z'
+  stage: smoke-test
+  run: 1b4e0ef91cfa4b26bf58f89a7e0c442b
 ---
 
 # The inline environment and its setting are removed
@@ -1061,3 +1063,20 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     `secrets`: secrets: green (3.8 s)
     `documents`: documents ok
 54. factory: started smoke-test as self.
+55. smoke-tester: Smoke test, round 2. I ran the one command under `## Smoke test` exactly as written, from the repository root.
+
+    Command 1 (`uv run python - <<'EOF' … EOF`), exit 0:
+
+    ```
+    Bytecode compiled 4164 files in 77ms
+    False False ('git', 'uv')
+    ['snapshots', 'containers']
+    ```
+
+    It met its `Expect:` line. The two lines are `False False ('git', 'uv')` and `['snapshots', 'containers']`. uv also printed its own line, `Bytecode compiled …`, before them. That line is not the script's output.
+
+    I read the acceptance criteria again. The smoke test contradicts none of them. It confirms part of criterion 1: `InlineEnvironment` and `STAGE_ENVIRONMENT_VARIABLE` are gone, `REQUIRED_TOOLS == ("git", "uv")`, and `snapshots` and `containers` on `Boundaries` have no default. I also checked the rest of criterion 1 by hand, which the smoke test does not cover. `agent_environment_item` and `CONTAINER_TOOLS` are no longer attributes of `factory.application.preflight`. `InstanceSettings.model_fields` has no `stage_environment` but still has `dataset`, `workspace` and `stage_image`. `vm/setup.sh` contains no `FACTORY_STAGE_ENVIRONMENT`.
+
+    I did not run `make check`. It is not a smoke test command, and the factory runs the stage's checks itself.
+
+    Findings: none. I fixed nothing and changed no file.
