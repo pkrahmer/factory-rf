@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T00:23:31.207818Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-25T00:23:31.207818Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-25T00:26:37.960388Z'
+  stage: doing
+  run: ddddd58c96254485a5a81add78e21d1f
 ---
 
 # The checkout and the state directory are settings
@@ -310,3 +312,16 @@ Expect: `1`
     `lint`: lint: green (0.6 s)
     `test`: test: green (67.4 s)
 17. factory: started doing as self.
+18. coder: Round 1: the reviewer's only finding (entry 12, finding 1) needed a test change and no code change. The tester made it in entry 16: the instance-before-checkout case is now a row of `test_a_relative_checkout_or_state_directory_is_refused_in_its_order` in `tests/domain/test_settings_paths.py`.
+
+    What I built this round: nothing. I did not touch `src/factory/domain/settings.py` or `src/factory/entry/run.py`. The code from entry 10 already reports `FACTORY_INSTANCE`'s fault before `FACTORY_CHECKOUT`'s, and the merged row passes against it.
+
+    - I ran `make check` on the committed state. It is green: `test: green (66.2 s)`, coverage 99.20 %, then `check: green`.
+    - Refactor: no diff of mine this round, so nothing to change.
+    - Main choice: leave the code as it is rather than adjust it to the merged test, because the test already passes. Rejected: any code change, since the finding asked for none.
+    - Description: no journal entry since entry 10 changed what the task means, so I did not rewrite it.
+
+    Noticed, not touched: the same as entry 10. The docs that criterion 9 names belong to the documenter. The 11 new `make duplicates` findings the reviewer listed are in files outside this diff.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
