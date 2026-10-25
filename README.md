@@ -22,7 +22,7 @@ When it works, `make check` ends with the line `check: green`. An instance runs 
 
 Beside the six console commands, `uv run python -m factory.entry.contract [<folder>]` regenerates the records contract's schemas (a story that changes a model the contract covers runs it), and `uv run python -m factory.entry.check_documents` checks these documents (they exist, say what v1.1 does in its own words, and name every stop, kill point and fault-injection path); it prints `documents ok` or one finding per line. It is no console script, and `make check` does not run it.
 
-An instance runs its stages in one of two stage environments, set by `FACTORY_STAGE_ENVIRONMENT`: `inline` (in the instance's own container, v1.1's way, the default) or `container` (throwaway containers on a ZFS dataset, v1.2's way). The operator guide says what each needs.
+An instance runs its stages in one of two stage environments, set by `FACTORY_STAGE_ENVIRONMENT`: `inline` (in the instance's own container, v1.1's way, the default) or `container` (throwaway containers on a ZFS dataset, v1.2's way). The operator guide says what each needs. An instance of v1.2 runs on a VM prepared by `vm/setup.sh`; the chapter "The machine" of `docs/operator-guide.md` takes you there.
 
 ## Where to look next
 

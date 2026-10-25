@@ -1,17 +1,13 @@
 ---
 stage: docs
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 434
 comments_read: [6394738591]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-25T07:19:49.080669Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,13 @@ journal:
   kind: started
   at: '2026-10-25T07:19:49.080669Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: question
+  at: '2026-10-25T07:22:06.192969Z'
+  stage: docs
+  run: 538377f2e6e44e1a9fb74b15ba2f37d6
+  blocked: question
 ---
 
 # The operator guide's chapter "The machine"
@@ -199,3 +202,27 @@ Expect: `documents ok`
 
     Open, and not this story's: the high-entropy values in the done acceptance reports of F0023 and F0042 that a full `make secrets` scan flags. The human took them up in entry 8.
 13. factory: started docs as vm.
+14. documenter: I wrote the chapter and the decision-log entry, and I stop with one question because the docs criterion and `vm/setup.sh` disagree.
+
+    Question: the criterion for *The rebuild after a merge* says `vm/setup.sh` "carries over ... a changed `vm/factory.service` and a changed `image/git-credential-factory`" after every merge. The code does not do that. `vm/setup.sh` lines 316-322 and 361-367 install `/usr/local/bin/git-credential-factory` and `/etc/systemd/system/factory@.service` only in the run that cloned, or when the installed file is missing. A later run that finds a different file prints `setup: ...: differs from the checkout; not installed` to standard error and leaves the file. The existing *The two passes* section says the same (S0003 chose this deliberately, so that root does not install files from a checkout `factory` can write). I took the code as right and wrote the chapter to match: after a merge that changes either file, the operator removes the installed file and runs the script again. Options:
+    (a) Keep the code; the criterion's wording is corrected. This is the option I would choose.
+    (b) The coder changes `vm/setup.sh` to install a changed file on later runs. Root would then copy a file from `factory`'s checkout into `/usr/local/bin` and `/etc/systemd/system`, which gives the `factory` user a way to run code as root. I advise against it.
+    If (b), the *The rebuild after a merge* paragraph on the script and the section *The two passes* change after the fix.
+
+    Files changed:
+    - `docs/operator-guide.md`: the chapter `## The machine` now has the eleven `###` sections in the required order. I added *What it is*, *On GCP, step by step* (12 numbered steps from the runbook's sections 1 to 3, plus the script's runs, the secrets, the build, the start and the stop), *On any Ubuntu 24.04 VM*, *What the container can and cannot see*, *The costs*, *The metadata server*, *Where the logs are* and *The rebuild after a merge*. I replaced the chapter's opening sentence, and the opening paragraph of the guide, which called the machine's image "the usual way". The top list already named "The machine" before "The machine's image".
+    - `docs/decisions.md`: I appended the section `## The factory runs on the host, and the stage image carries the tools alone` (2026-10-24, F0043). No other entry changed.
+    - `README.md`: one added sentence naming `vm/setup.sh` and pointing to the chapter.
+
+    Checks: the three smoke-test blocks give the eleven `###` lines, `8`, `1`, `1`, and `make documents` ends with `documents ok`. Every term the criterion lists for the chapter is present. I ran no `gcloud` command and did not run the chapter's examples: there is no GCP project or VM here. The commands are copied from the runbook, the criterion and `vm/setup.sh`. I ran no `make check`, because I changed only documents.
+
+    Cross-read and found current: *The stage image*, *The script* (steps, options, exit statuses, environment file, `sudoers` fallback) and *The service* against `vm/Dockerfile`, `vm/setup.sh` and `vm/factory.service`; the environment-file table matches the script. The factory-log section's `stage environment:` line matches `src/factory/application/stage_environment.py`. `docs/project-guide/README.md` needs no change: no guide file names a chapter that moved.
+
+    Open points:
+    - The criterion cites "decision 10" for the empty `anthropic-api-key`. I wrote "decision 10 of the feature F0043" and did not read the feature's `feature.md`; check that this is the right reference.
+    - The costs, the logs section and the container-limits sentence come from the plan and from `src/factory`. I took the NAT fee from the criterion and the runbook, and did not look it up.
+    - I added `shred -u` for removing the secret copies; the criterion only says "the copy removed afterwards".
+
+    Stale text noticed, not touched:
+    - `README.md` line 12 still says "An instance runs in the container: see *The container: compose, entrypoint and health check*". That is v1.1's way and F0044 removes it.
+    - `vm/Dockerfile` has a comment line with `podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> .`. The build context there is the repository root, which is correct, but the chapter uses `/srv/factory/vm/factory`, the same thing.
