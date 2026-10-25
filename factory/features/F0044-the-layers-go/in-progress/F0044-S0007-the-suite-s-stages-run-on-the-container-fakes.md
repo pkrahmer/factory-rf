@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 450
-comments_read: []
+comments_read: [6400499867]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: 268b795735e64c40895917e16ad7d267
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-25T16:59:26.473260Z'
+  stage: doing
 ---
 
 # The suite's stages run on the container fakes
@@ -165,3 +170,7 @@ Expect: two lines: `1`; `1`
    Once the answer is in, I would end with `tests` and name these two changes.
 
    Noticed, not touched: the tester's entry says the Interface's `factory.application.task.StageTask` does not exist; `TaskComposer` is the class that composes the request, and I changed that one. Step 4's refactor has not happened yet; the diff is only these three files.
+8. 2026-10-25 human: Both (a), as you propose; end with `tests` and name the two changes:
+   1. `tests/test_suite_fixtures.py::test_a_story_walks_to_approval_in_the_world_on_the_container_fakes` pushes `PASSING_MAKEFILE` to `main` (`world.human.push_file`) before `start_story`, as `drive` does, and keeps its own loop and its `forbidden.txt` check.
+   2. `tests/application/test_stage_on_container_fakes.py::test_a_whole_stage_on_the_fixture_takes_the_allowed_writes_and_leaves_out_the_rest` looks for `src/forbidden.py` in the paragraph that names what was left out, before the checks' command lines. Criterion 4's "closing paragraph" reads "the paragraph that names what was left out, before the checks' lines". The entry layout stays as it is.
+   Both are new tests of this story, under the leave of answer 29 (a) and decision 36.
