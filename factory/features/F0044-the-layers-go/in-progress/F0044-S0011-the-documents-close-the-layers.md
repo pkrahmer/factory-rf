@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 454
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T20:26:23.329882Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-25T20:26:02.703986Z'
   stage: doing
   run: 1e33581deb8c40339f02953e6e9f776d
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:26:23.329882Z'
+  stage: review
 ---
 
 # The documents close the layers
@@ -150,3 +159,4 @@ Expect: `documents ok`
 
    `check`: check: green
    `duplicates`: duplicates: 8 new, 35 known, 3 gone
+8. factory: started review as self.
