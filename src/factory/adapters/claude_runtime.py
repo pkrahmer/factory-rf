@@ -18,15 +18,12 @@ from pydantic import (
 )
 
 from factory.adapters.agent_launch import (
-    CONTAINER_OS_USER,
     ENTRY_DESCRIPTION,
     FINISH_MESSAGE,
     LOGIN_PREFIX,
     LOGIN_SCRIPT,
     LOGIN_VARIABLE,
-    RUN_FILE_MODE,
     SHELL_EXECUTABLE,
-    SUDO_EXECUTABLE,
     VERSION_TIME_LIMIT,
     CallEnd,
     Launch,
@@ -70,7 +67,6 @@ __all__ = [
     "LOGIN_SCRIPT",
     "LOGIN_VARIABLE",
     "SHELL_EXECUTABLE",
-    "SUDO_EXECUTABLE",
     "VERSION_TIME_LIMIT",
     "ClaudeCodeRuntime",
     "resume_budget",
@@ -319,7 +315,6 @@ class ClaudeCodeRuntime(AgentRuntime):
         kill_points: KillPoints | None = None,
         *,
         version_time_limit: timedelta = VERSION_TIME_LIMIT,
-        sudo_executable: str = SUDO_EXECUTABLE,
         login_file: Path | None = None,
         api_login_file: Path | None = None,
         provider_limit: ProviderLimit | None = None,
@@ -327,7 +322,6 @@ class ClaudeCodeRuntime(AgentRuntime):
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
 
-        A request with an operating-system user is started through `sudo_executable`.
         A run's calls get the key held in `api_login_file`, or else the token held in
         `login_file`, read by the call's own shell.
         A call refused by `provider_limit`, the default limit when `None`, ends `provider_limit`.
@@ -336,18 +330,12 @@ class ClaudeCodeRuntime(AgentRuntime):
         self._containers = containers
         self._executable = executable
         self._starters = Starters(
-            sudo_executable=sudo_executable,
             login_files=LoginFiles(subscription=login_file, api=api_login_file),
         )
         self._state_directory = state_directory
         self._kill_points = kill_points
         self._version_time_limit = version_time_limit
         self._provider_limit = ProviderLimit() if provider_limit is None else provider_limit
-
-    @property
-    def sudo_executable(self) -> str:
-        """The executable that starts a request as its operating-system user."""
-        return self._starters.sudo_executable
 
     @property
     def containers(self) -> ContainerRuns | None:
@@ -359,11 +347,8 @@ class ClaudeCodeRuntime(AgentRuntime):
 
         A request's `resume_session` is resumed; otherwise the run starts a new session.
         A budget stop resumes the session once within what is left of the time limit.
-        A call that cannot be started, or whose files cannot be written, is `AgentRuntimeError`,
-        and so is a request with an operating-system user on a runtime with containers.
+        A call that cannot be started, or whose files cannot be written, is `AgentRuntimeError`.
         """
-        if self._containers is not None and request.os_user is not None:
-            raise AgentRuntimeError(CONTAINER_OS_USER)
         started = time.monotonic()
         # The run's files take a fresh id even when the session is resumed, so no run's files
         # meet another's.
@@ -428,7 +413,6 @@ class ClaudeCodeRuntime(AgentRuntime):
     def _write_files(self, request: AgentRunRequest, files: _RunFiles) -> None:
         try:
             files.instructions.write_text(request.agent.instructions, encoding="utf-8")
-            files.instructions.chmod(RUN_FILE_MODE)
         except OSError as exc:
             raise self._state_error(exc) from exc
 
@@ -450,7 +434,6 @@ class ClaudeCodeRuntime(AgentRuntime):
         timed_out = read_call_end(
             end,
             time_limit=time_limit,
-            os_user=request.os_user,
             starters=self._starters,
             in_container=self._containers is not None,
         )
@@ -468,13 +451,7 @@ class ClaudeCodeRuntime(AgentRuntime):
     ) -> ProcessRequest:
         argv = self._claude_argv(arguments)
         if self._containers is None:
-            started = run_launch(
-                request,
-                argv,
-                SWITCHES,
-                sudo_executable=self._starters.sudo_executable,
-                time_limit=time_limit,
-            )
+            started = run_launch(request, argv, SWITCHES, time_limit=time_limit)
         else:
             started = container_launch(
                 self._containers,

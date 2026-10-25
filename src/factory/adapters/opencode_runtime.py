@@ -23,11 +23,8 @@ from pydantic import (
 )
 
 from factory.adapters.agent_launch import (
-    CONTAINER_OS_USER,
     ENTRY_DESCRIPTION,
     FINISH_MESSAGE,
-    RUN_FILE_MODE,
-    SUDO_EXECUTABLE,
     VERSION_TIME_LIMIT,
     CallEnd,
     Launch,
@@ -518,7 +515,6 @@ class OpencodeRuntime(AgentRuntime):
         models: Mapping[str, str] | None = None,
         settings_file: Path | None = None,
         version_time_limit: timedelta = VERSION_TIME_LIMIT,
-        sudo_executable: str = SUDO_EXECUTABLE,
         api_login_file: Path | None = None,
         provider_limit: ProviderLimit | None = None,
         containers: ContainerRuns | None = None,
@@ -527,7 +523,6 @@ class OpencodeRuntime(AgentRuntime):
 
         An agent's model alias is looked up in `models`; a model with a `/` is passed as it is.
         The shell commands the `Bash(...)` entries of `settings_file` deny are denied.
-        A request with an operating-system user is started through `sudo_executable`.
         A run's call gets the key held in `api_login_file`, read by the call's own shell.
         A call that shows `provider_limit`, the default limit when `None`, ends `provider_limit`.
         With `containers`, every call runs in a container.
@@ -539,10 +534,7 @@ class OpencodeRuntime(AgentRuntime):
         self._models = {} if models is None else dict(models)
         self._settings_file = settings_file
         self._version_time_limit = version_time_limit
-        self._starters = Starters(
-            sudo_executable=sudo_executable,
-            login_files=LoginFiles(api=api_login_file),
-        )
+        self._starters = Starters(login_files=LoginFiles(api=api_login_file))
         self._provider_limit = ProviderLimit() if provider_limit is None else provider_limit
 
     @property
@@ -556,11 +548,8 @@ class OpencodeRuntime(AgentRuntime):
         A call is stopped once the cost of its steps passes its budget, or at once when it shows
         the provider limit. A budget stop of a known session resumes it once within what is
         left of the time limit. A request the runtime cannot configure, a call that cannot be
-        started, or files that cannot be written are `AgentRuntimeError`, and so is a request
-        with an operating-system user on a runtime with containers.
+        started, or files that cannot be written are `AgentRuntimeError`.
         """
-        if self._containers is not None and request.os_user is not None:
-            raise AgentRuntimeError(CONTAINER_OS_USER)
         started = time.monotonic()
         model = _model(request.agent, self._models)
         configuration = _configuration(request, _bash_permission(self._settings_file))
@@ -594,7 +583,6 @@ class OpencodeRuntime(AgentRuntime):
     def _write_files(self, files: _RunFiles, configuration: str) -> None:
         try:
             files.config.write_text(configuration, encoding="utf-8")
-            files.config.chmod(RUN_FILE_MODE)
         except OSError as exc:
             raise state_directory_error(self._state_directory, exc) from exc
 
@@ -636,7 +624,6 @@ class OpencodeRuntime(AgentRuntime):
         timed_out = read_call_end(
             end,
             time_limit=request.time_limit,
-            os_user=request.os_user,
             starters=self._starters,
             in_container=self._containers is not None,
         )
@@ -661,13 +648,7 @@ class OpencodeRuntime(AgentRuntime):
         argv = self._opencode_argv(request, model)
         runtime_environment = {CONFIG_VARIABLE: str(files.config), **SWITCHES}
         if self._containers is None:
-            started = run_launch(
-                request,
-                argv,
-                runtime_environment,
-                sudo_executable=self._starters.sudo_executable,
-                time_limit=request.time_limit,
-            )
+            started = run_launch(request, argv, runtime_environment, time_limit=request.time_limit)
         else:
             started = container_launch(
                 self._containers,

@@ -9,8 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls, write_stand_in
-from adapters.test_claude_runtime_os_user import _request
+from adapters.claude_stand_in import Step, claude_request, read_calls, write_stand_in
 from adapters.test_claude_runtime_resume import _after, _budget_reply
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.domain.provider_limits import ProviderLimit
@@ -125,7 +124,7 @@ def test_a_call_the_limit_refused_ends_provider_limit_with_its_wait_and_session(
 ) -> None:
     runtime = _runtime(tmp_path, steps, limit)
 
-    result = runtime.run(_request(tmp_path, None))
+    result = runtime.run(claude_request(tmp_path))
 
     calls = read_calls(tmp_path / "bin")
     session = _after(calls[0].arguments, "--session-id")
@@ -164,7 +163,7 @@ def test_a_call_past_its_time_limit_ends_time_limit_though_it_named_the_limit(
     executable.write_text(f"#!{sys.executable} -B\n{SLOW_LIMIT_SCRIPT}", encoding="utf-8")
     executable.chmod(0o755)
     runtime = ClaudeCodeRuntime(str(executable), tmp_path / "state")
-    request = _request(tmp_path, None).model_copy(update={"time_limit": ROOMY_LIMIT})
+    request = claude_request(tmp_path).model_copy(update={"time_limit": ROOMY_LIMIT})
 
     started = time.monotonic()
     result = runtime.run(request)
@@ -183,7 +182,7 @@ def test_a_resume_the_limit_refused_ends_provider_limit_with_both_calls_measures
     steps = [Step(stdout=_budget_reply()), Step(stdout=_error_reply(LIMIT_RESULT))]
     runtime = _runtime(tmp_path, steps)
 
-    result = runtime.run(_request(tmp_path, None))
+    result = runtime.run(claude_request(tmp_path))
 
     first, second = read_calls(tmp_path / "bin")
     session = _after(first.arguments, "--session-id")

@@ -259,6 +259,8 @@ Date: 2026-10-16 (F0010-S0002). `CheckoutPreparer.prepare` clones when `checkout
 
 Date: 2026-10-16 (F0010-S0003; F0001 decision 7). The git wrapper ignores system and global configuration, so nothing can be set there. `git_environment()` hands the credential helper (the only route by which git reaches the token) and `core.sharedRepository` to git (`group` here, `0640` since F0014-S0006, see "The factory alone writes the checkout's `.git`") as `GIT_CONFIG_COUNT` and `GIT_CONFIG_KEY_n`/`GIT_CONFIG_VALUE_n` entries of `GitOptions.environment`, so they hold for every git call of the wrapper and for no other git. Rejected: writing the checkout's `.git/config` (the agent can read it, and a recloned checkout would lose it) and a global `~/.gitconfig` (git does not read it here). Also rejected: `urllib.parse` for the repository URL; it does not understand `git@host:owner/name`, so it needed a second code path next to the regex.
 
+The shared group went with the second user, v1.2 F0044-S0005; the credential helper and the hooks stay.
+
 ## The services read the instance's settings from `Boundaries.settings`
 
 Date: 2026-10-16 (F0010-S0003). `Boundaries` gains `settings`, filled by `build_boundaries`, so a service that needs a setting (the image identity, the agent user) reads it from the object it already holds, and no story adds a parameter or a second route for it. The field was optional, `None` by default, so a `Boundaries` built by hand in a test stayed valid. Rejected: passing `InstanceSettings` to each service next to the boundaries (every wiring site would grow a parameter per story) and reading environment variables in the services (the settings are validated once, in `read_settings`). Open: the default token path of F0010 decision 18 (`/run/secrets/hosting-token`) is not implemented; `token_file` defaults to `None` until a later story adds it.
@@ -307,6 +309,8 @@ The runtime writes a run's instructions, guard settings and hook settings with m
 
 The agent's home stays writable by the agent (L69): its login and `.claude` live there. Closed by *Every agent run and every project command starts from a fresh agent home*. The kill of a timed-out agent under `sudo` was settled later: see *The agent's own `timeout` kills a run under `sudo` at its time limit*.
 
+Replaced by the throwaway container, v1.2 F0044-S0005.
+
 ## The factory's user may become `agent` for one command only, and a missing agent user is a stop
 
 Date: 2026-10-16 (F0010-S0015; R33; WE3.1; the human, 2026-10-14). One `sudo` rule in a file of its own lets `factory` run commands as `agent` and nothing else: no `root`, no `ALL=(ALL`, no right for `agent`. A wider rule would turn the second user into a way to the first.
@@ -316,6 +320,8 @@ The sudoers file sets the umask and no pseudo-terminal because `sudo`'s defaults
 The entrypoint's `umask 002` is also what `uv` syncs `.venv` under; see *The tests set their own umask, and uv syncs under the caller's*.
 
 A missing agent user beside an existing token file is a stop (preflight item `agent-user`), decided by the human on 2026-10-14. Without it every agent would run as `factory`, who can read the token file, and no check would say so: WE3.1 and R33 would be silently off. With no token file (tests, local runs) there is nothing to protect and the item passes. Rejected: folding the check into `token-file`; the two answer different questions.
+
+Replaced by the throwaway container, v1.2 F0044-S0005.
 
 ## The preflight runs the factory's own arguments once for each image build, and finds a refused `sudo` before any claim
 
@@ -404,6 +410,8 @@ Date: 2026-10-17 (F0012-S0023). `factory.entry.check_demos` checks every folder 
 ## The agent's own `timeout` kills a run under `sudo` at its time limit
 
 Date: 2026-10-17 (F0012-S0024; the human's answer to F0010 decision 30, item 1.8). The factory's kill of a call's process group fails under `sudo`: the leader is root's `sudo`, which the factory's user may not signal, so the kill raised `PermissionError` and `claude` ran on. The call now has `timeout --signal=KILL <limit>s` inside the `sudo` call: `timeout` runs as the agent user, so the agent kills its own process tree and the factory needs no right over it. The end is read from the status: 137 or -9 after at least the limit is `time_limit` (marked `timed_out` once in `_call`, so the end reason, the measures and the `sudo:` rule need no change); the same status earlier is `died`. The outer call's limit is the limit plus `SUDO_GRACE` (30 s), so the factory's kill fires only when the inner one did not. Rejected: a `sudo` rule that lets `factory` run `kill` as `agent` (a second rule, wider than the one rule the image has) and a kill by the factory's own user through a group (the agent is not its child). Open: observed for real only at the first start.
+
+Replaced by the throwaway container, v1.2 F0044-S0005.
 
 ## The agent home belongs to the factory; the agent adds files and cannot change the installed ones
 
@@ -973,6 +981,8 @@ Date: 2026-10-20 (F0040-S0002; the feature's decisions 1 to 7). It replaces *The
 - Reasons: the user, not a filter on the output, closes the route: `agent` cannot enter the token's folder, so there is nothing to print. The seal is needed because the factory's own git writes group-writable files into `.git` between an agent run and its checks (the undo, the commit), and a command running as `agent` must find `.git` the factory's alone. The commands use the agent run's environment so that they see no more than an agent does, with no bytecode written (see the 2026-10-20 note under *The factory removes the git-ignored paths after every agent run and at the restore*) and `uv` copying.
 - Left: the agent's own login files are readable by `agent` by design, so a test can still print the agent's login into the output tail. Clearing the agent's home before each command came with F0040-S0004.
 - Rejected: a second implementation of the seal beside `run_sealed` was kept small instead of shared, because only the three git calls would be common (`run_sealed` also calls `remove_ignored` and builds a `SealedRun`).
+
+Replaced by the throwaway container, v1.2 F0044-S0005.
 
 ## A call stops reading five seconds after its own process ended
 

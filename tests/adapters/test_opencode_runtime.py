@@ -7,19 +7,17 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls
+from adapters.claude_stand_in import Step, read_calls, without_locale
 from adapters.opencode_stand_in import (
     MODELS,
     REPLY_EVENTS,
     opencode_request,
-    read_config_modes,
     stand_in_runtime,
     stdout,
     step_start,
     write_agent_settings,
     write_opencode,
 )
-from adapters.test_claude_runtime_os_user import _without_locale
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
 from factory.adapters.opencode_runtime import (
     CONFIG_VARIABLE,
@@ -200,8 +198,7 @@ def test_the_call_sees_its_configuration_file_and_only_the_request_s_environment
     config = Path(call.environment[CONFIG_VARIABLE])
     assert config.parent == tmp_path / "state"
     assert CONFIG_NAME.fullmatch(config.name)
-    assert read_config_modes(tmp_path / "bin") == [0o640]
-    assert _without_locale(call.environment) == {
+    assert without_locale(call.environment) == {
         "HOME": "/home/agent",
         "LANG": "C.UTF-8",
         CONFIG_VARIABLE: str(config),

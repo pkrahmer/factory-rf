@@ -142,7 +142,6 @@ def test_in_a_container_a_kill_status_at_the_limit_is_the_limit(
 ) -> None:
     assert (
         killed_at_limit(
-            os_user=None,
             exit_status=exit_status,
             duration=timedelta(seconds=seconds),
             time_limit=MINUTE,
@@ -169,12 +168,9 @@ def test_a_container_call_killed_at_the_limit_is_read_as_the_limit_and_no_refusa
         duration=timedelta(seconds=61),
         timed_out=False,
     )
-    starters = Starters(sudo_executable="/usr/bin/sudo", login_files=LoginFiles())
+    starters = Starters(login_files=LoginFiles())
 
-    assert (
-        read_call_end(end, time_limit=MINUTE, os_user=None, starters=starters, in_container=True)
-        is True
-    )
+    assert read_call_end(end, time_limit=MINUTE, starters=starters, in_container=True) is True
 
 
 def test_the_version_call_on_the_host_has_the_process_s_own_environment() -> None:

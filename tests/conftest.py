@@ -52,12 +52,13 @@ from git_support import (
     make_remote,
 )
 from human_clone import HumanClone
-from podman_support import IMAGE, Podman, write_podman
+from podman_support import IMAGE, Podman, PodmanPlan, write_podman
 from proof_support import World, build_world, start_story
 from run_process_recorder import Recorder
 from stage_run_support import INSTANCE
 from tmp_path_support import reopen
-from wiring_support import HOSTED_URL
+from wiring_support import HOSTED_URL, PODMAN_VERSION
+from zfs_support import DATASET, Answer, Zfs, write_zfs
 
 TESTS_UMASK = 0o022
 
@@ -182,7 +183,6 @@ def probe_settings(agent_home: Path, tmp_path: Path) -> InstanceSettings:
         state_directory=tmp_path / "state",
         agent_home=agent_home,
         pinned_agent_version="fake",
-        agent_user="agent",
     )
 
 
@@ -371,6 +371,25 @@ def recorder(monkeypatch: pytest.MonkeyPatch) -> Recorder:
 def podman(tmp_path: Path) -> Podman:
     """Return a stand-in `podman` in `tmp_path`, planned to exit 0 silently."""
     return write_podman(tmp_path / "podman-bin")
+
+
+@pytest.fixture
+def versioned_podman(tmp_path: Path) -> Podman:
+    """The stand-in `podman`, printing its version and exiting 0 for every call."""
+    folder = tmp_path / "podman-bin"
+    folder.mkdir()
+    return write_podman(folder, PodmanPlan(stdout=f"{PODMAN_VERSION}\n"))
+
+
+@pytest.fixture
+def listing_zfs(tmp_path: Path) -> Zfs:
+    """The stand-in `zfs`, answering `--version` and naming the dataset for `list`."""
+    folder = tmp_path / "zfs-bin"
+    folder.mkdir()
+    return write_zfs(
+        folder,
+        {"--version": Answer(stdout="zfs-2.2.2\n"), "list": Answer(stdout=f"{DATASET}\n")},
+    )
 
 
 @pytest.fixture

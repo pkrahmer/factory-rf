@@ -1,3 +1,187 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 448
+comments_read: [6398933817, 6399000993]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T14:31:10.456696Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:31:10.463077Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-25T14:31:30.781949Z'
+  stage: intake
+  run: ff982a42912a470eb105926db63ad70c
+  blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-25T14:33:45.355343Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:34:03.234252Z'
+  stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-25T14:34:21.473827Z'
+  stage: intake
+  run: 73d12484935f496e953f9f6a3316a62e
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:34:41.874836Z'
+  stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-25T14:39:22.036652Z'
+  stage: tests
+  run: f08c6190b2f941778b3ee35c5d627cf4
+  blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-10-25T14:40:38.664480Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:40:56.469016Z'
+  stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-25T14:48:03.008378Z'
+  stage: tests
+  run: 57db5d0a3b7340e4b442aaf8276f0da4
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:48:23.803148Z'
+  stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-25T14:52:34.961452Z'
+  stage: doing
+  run: be6fd8eba8ef41eea608bfb89c065347
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:52:55.849316Z'
+  stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-25T14:55:41.804315Z'
+  stage: tests
+  run: f697b57bf79a47b5be3bc48ebd6f1765
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:56:02.876681Z'
+  stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-25T14:59:26.847373Z'
+  stage: doing
+  run: 1b5ef15e08654600a9b51eded3fd954e
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-25T14:59:47.692136Z'
+  stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T15:02:30.197936Z'
+  stage: review
+  run: 3dd957a23cb04c19b412ea489e6c27cb
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-25T15:02:50.740807Z'
+  stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-25T15:03:19.473409Z'
+  stage: doing
+  run: 7c92051f457c42798237a84d137bbd21
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-25T15:03:40.258556Z'
+  stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-10-25T15:08:44.057657Z'
+  stage: tests
+  run: c228156fa0344f3fa52d0c552e55909c
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-10-25T15:09:04.982211Z'
+  stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-25T15:12:05.538547Z'
+  stage: doing
+  run: 8ffac6c82842419384aaef4886fb9d40
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-25T15:12:26.291532Z'
+  stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T15:14:00.387776Z'
+  stage: review
+  run: 3f9951a5183f43b58d447bd31e071af5
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-25T15:14:21.461492Z'
+  stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T15:17:46.830482Z'
+  stage: docs
+  run: 370436d5436b4120b5978a63357afa41
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-25T15:18:07.623227Z'
+  stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T15:18:36.750402Z'
+  stage: smoke-test
+  run: 49f5c13ad7184041a4c977e877c92251
+---
+
 # The second user is removed
 
 ## Description
@@ -56,8 +240,9 @@ Tests (the leave is decision 21 of `feature.md`):
 6. `git_environment()` is exactly `{"GIT_CONFIG_COUNT": "3", "GIT_CONFIG_KEY_0": "credential.helper", "GIT_CONFIG_VALUE_0": CREDENTIAL_HELPER, "GIT_CONFIG_KEY_1": "core.hooksPath", "GIT_CONFIG_VALUE_1": os.devnull, "GIT_CONFIG_KEY_2": "core.fsmonitor", "GIT_CONFIG_VALUE_2": "false"}`.
 7. The preflight's extras (rows of one parametrized test over `machine_extras`): `inline` under Claude Code gives `token-file`, `agent-environment`, `agent-run-probe`; under opencode `token-file`, `agent-environment`, `opencode`, `agent-run-probe`; `container` gives F0042-S0011's list unchanged; a probe that ends `died` fails with a detail that holds `by hand as the factory user`, and under opencode with the login `none` also `log in once as the factory user`.
 8. The project commands of a built instance (rows of one parametrized test over `build_boundaries` with `hosting` the fake): `inline` gives a `RecordingProjectCommands` whose `inner` is a `MakeProjectCommands`; `container` one whose `inner` is a `ContainerMakeCommands`.
-9. `make check` stays green.
-10. docs: `docs/operator-guide.md`: the section *The agent runs as a second user* goes, replaced by one paragraph in *The agent runtime* that a `container` instance runs every call in a throwaway container as the host's `factory` (`--userns=keep-id`) and an `inline` one as the factory's own user; its paragraphs **The agent's login token.** and **The agent's API key.** stay, moved into *The agent runtime* without their sentences on the agent user, `sudo` and `/home/agent`, while **The one `sudo` rule.**, **The preflight item `agent-user`.**, the table of checks on a running instance and **A `time_limit` under `sudo`.** go; *Configuration*: the row `FACTORY_AGENT_USER` goes; *The preflight's items*: the rows `agent-user` and `tool:sudo` go and the counts follow; every sentence that names `sudo -n -u`, `env -i`, the agent's own `timeout` or the mode `0640` of a run's files goes. `docs/project-guide/agents.md`, *The agent runtime* (the request has no `os_user`), *The `claude -p` runtime* and *The opencode runtime* (no `sudo_executable`, no call as another user, no end reason under an `os_user`), *Calls in a container* (no refusal of an `os_user`) and *The shared launch module*: no `sudo` chain, and `launch`, `killed_at_limit`, `call_refusal`, `read_call_end` and `Starters` as the Interface gives them; `docs/project-guide/stage-environment.md`: the table row `agent_runtime` and the items left out for `container` name no `sudo` and no `agent-user`; `docs/project-guide/stages.md`, the paragraph on `compose`: no `os_user`; `docs/operator-guide.md`: every sentence that names `FACTORY_AGENT_USER` or `<agent user>` goes or names the factory user (the fault order and the `container` paragraph of *Configuration*, *The agent runtime*, *The agent run's `PATH` and `HOME`*, the list of items left out for `container`, *The probe of the agent run*), and *The hosting-service token*'s paragraph **The project commands run as `agent`.** becomes one sentence that an `inline` project command runs as the factory's user and a `container` one in a check container; `docs/project-guide/processes-and-checks.md`, *Running as another user*: removed, with one line on what replaced it; `docs/project-guide/watching.md`, *Boundaries*: `git_environment`'s three pairs (`GIT_CONFIG_COUNT=3`, no `core.sharedRepository`) and `build_boundaries(settings, token, *, hosting=None)` without `which`; `docs/project-guide/README.md`, *The files*: the lines follow, and *Shared test helpers*: the lines of `sudo_support.py` and `leftovers_runtime_support.py` go. `docs/decisions.md`: the entries "The agent is started through `sudo -n -u agent -- env -i`, and a run's files are `0640`", "The factory's user may become `agent` for one command only, and a missing agent user is a stop", "The agent's own `timeout` kills a run under `sudo` at its time limit", "The project commands run as the agent user, with the git folder sealed" and "Git gets its credential helper and shared group through `GitOptions.environment`" each gain one closing line: "Replaced by the throwaway container, v1.2 F0044-S0005" (the last: "The shared group went with the second user, v1.2 F0044-S0005; the credential helper and the hooks stay"). `README.md`: none.
+9. A Claude Code call and an opencode call without a container write their run files with the mode the process's umask gives and no `chmod` (rows of one parametrized test: a umask of `0o077` and one of `0o022`, for each runtime).
+10. `make check` stays green.
+11. docs: `docs/operator-guide.md`: the section *The agent runs as a second user* goes, replaced by one paragraph in *The agent runtime* that a `container` instance runs every call in a throwaway container as the host's `factory` (`--userns=keep-id`) and an `inline` one as the factory's own user; its paragraphs **The agent's login token.** and **The agent's API key.** stay, moved into *The agent runtime* without their sentences on the agent user, `sudo` and `/home/agent`, while **The one `sudo` rule.**, **The preflight item `agent-user`.**, the table of checks on a running instance and **A `time_limit` under `sudo`.** go; *Configuration*: the row `FACTORY_AGENT_USER` goes; *The preflight's items*: the rows `agent-user` and `tool:sudo` go and the counts follow; every sentence that names `sudo -n -u`, `env -i`, the agent's own `timeout` or the mode `0640` of a run's files goes. `docs/project-guide/agents.md`, *The agent runtime* (the request has no `os_user`), *The `claude -p` runtime* and *The opencode runtime* (no `sudo_executable`, no call as another user, no end reason under an `os_user`), *Calls in a container* (no refusal of an `os_user`) and *The shared launch module*: no `sudo` chain, and `launch`, `killed_at_limit`, `call_refusal`, `read_call_end` and `Starters` as the Interface gives them; `docs/project-guide/stage-environment.md`: the table row `agent_runtime` and the items left out for `container` name no `sudo` and no `agent-user`; `docs/project-guide/stages.md`, the paragraph on `compose`: no `os_user`; `docs/operator-guide.md`: every sentence that names `FACTORY_AGENT_USER` or `<agent user>` goes or names the factory user (the fault order and the `container` paragraph of *Configuration*, *The agent runtime*, *The agent run's `PATH` and `HOME`*, the list of items left out for `container`, *The probe of the agent run*), and *The hosting-service token*'s paragraph **The project commands run as `agent`.** becomes one sentence that an `inline` project command runs as the factory's user and a `container` one in a check container; `docs/project-guide/processes-and-checks.md`, *Running as another user*: removed, with one line on what replaced it; `docs/project-guide/watching.md`, *Boundaries*: `git_environment`'s three pairs (`GIT_CONFIG_COUNT=3`, no `core.sharedRepository`) and `build_boundaries(settings, token, *, hosting=None)` without `which`; `docs/project-guide/README.md`, *The files*: the lines follow, and *Shared test helpers*: the lines of `sudo_support.py` and `leftovers_runtime_support.py` go. `docs/decisions.md`: the entries "The agent is started through `sudo -n -u agent -- env -i`, and a run's files are `0640`", "The factory's user may become `agent` for one command only, and a missing agent user is a stop", "The agent's own `timeout` kills a run under `sudo` at its time limit", "The project commands run as the agent user, with the git folder sealed" and "Git gets its credential helper and shared group through `GitOptions.environment`" each gain one closing line: "Replaced by the throwaway container, v1.2 F0044-S0005" (the last: "The shared group went with the second user, v1.2 F0044-S0005; the credential helper and the hooks stay"). `README.md`: none.
 
 ## Smoke test
 
@@ -76,3 +261,376 @@ EOF
 Expect: three lines: `[] False`; `False False`; `3 False`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as self.
+3. intake: Questions (the format check passed, so no findings from it):
+
+   1. The Interface says the runtimes no longer `chmod` the run files to `0640` and that "the files keep the mode the process's umask gives". No criterion tests that. Criterion 1 only checks that `RUN_FILE_MODE` is gone, which a coder could satisfy while keeping a `chmod`, or while setting some other mode. Two coders could read the clause two ways and both pass. Options: (a) add a criterion, for example "a Claude Code and an opencode call without a container writes its run files with the mode the process's umask gives (rows of one parametrized test, a umask of 0o077 and one of 0o022)"; (b) drop the sentence from the Interface and keep only "the `chmod` goes". I would choose (a).
+
+   2. Please confirm that nothing else needs a criterion. These all rest on the existing tests the Interface keeps, not on a new criterion:
+      - `run_launch` and `read_call_end` are listed in the Interface with no stated behaviour change.
+      - `call_refusal` "reads a refused login file only" has its failing side only through the unchanged `test_a_login_file_that_cannot_be_used_stops_the_run_naming_the_file`. Criterion 2 pins only the `sudo` line as no refusal.
+      - I would accept this if you confirm it.
+
+   The other checks, for the record:
+   - Interface: names concrete modules and signatures.
+   - Other criteria: 1 to 9 are each testable by a table of rows. Every rule has its failing side: criterion 4's host row, criterion 5's formerly refused values, and criterion 2's `sudo` line that is no longer a refusal.
+   - Smoke test: runnable, and its pytest-free `Expect:` line is checkable.
+   - Architecture: the changes sit in the right layers.
+   - Scope: within F0044 and its S0005 line. The human's leave is decision 21 and decision 34(a).
+4. 2026-10-25 human: 1. (a). Add the criterion, before the closing ones: a Claude Code call and an opencode call without a container write their run files with the mode the process's umask gives and no `chmod` (rows of one parametrized test: a umask of `0o077` and one of `0o022`, for each runtime). A new test needs no leave.
+   2. Confirmed. `run_launch` and `read_call_end` keep their behaviour, and `call_refusal`'s refused-login-file side rests on the unchanged `test_a_login_file_that_cannot_be_used_stops_the_run_naming_the_file`. No further criterion is needed.
+5. factory: started intake as self.
+6. intake: accepted
+   Interface: names concrete modules, classes and signatures (`launch`, `run_launch`, `killed_at_limit`, `call_refusal`, `read_call_end`, `build_boundaries`, `machine_extras`, `MakeProjectCommands.__init__`); the removals and the test changes are listed by name.
+   Criteria: each is testable by one parametrized test. Rules have their failing side: criterion 4 (host row, non-kill status, 29.9 s), criterion 5 (formerly refused values now accepted), criterion 2 (`sudo:` line is no refusal), and the refused login file by the unchanged test named in the answer to question 2. The run-file mode clause now has criterion 9, carried in from journal entry 4 (human, 1.(a)): I wrote it before the two closing criteria, so `make check` is now 10 and `docs:` 11. Question 2 was confirmed in entry 4: no further criterion for `run_launch`, `read_call_end` or `call_refusal`'s refused-login side.
+   Smoke test: runnable with `uv run python`, no pytest flags involved; the `Expect:` line gives three exact lines that can be compared with the output.
+   Architecture: the changes sit in their layers (adapters, domain, application, entry) and remove code without adding a new mechanism or interface.
+   Scope: within F0044's S0005 line; the test changes rest on decision 21 and decision 34(a) of `feature.md`, and nothing in the story touches the feature's "Out of scope".
+7. factory: started tests as self.
+8. tester: Where I stopped: the tests for criteria 1 to 9 are written and `make lint` is green. I have not yet made the changes to existing tests that the Interface lists under "Tests" (decision 21). Those are: moving `REPLY`, `_request` and `_without_locale` to `tests/adapters/claude_stand_in.py` and pointing its ten importers there; deleting the 14 whole modules; and the row and helper edits in about 40 other modules. They don't fit in this run's budget. Leaving half of them done would break imports across the suite, so I left them all untouched.
+
+   Criterion → test:
+   - criterion 1: tests/test_second_user_removed.py::test_the_second_user_s_names_are_gone
+   - criterion 2: tests/adapters/test_calls_as_the_factory_user.py::test_a_call_without_a_container_starts_the_runtime_itself_with_the_request_s_environment
+   - criterion 3: tests/adapters/test_calls_as_the_factory_user.py::test_launch_hands_over_the_call_its_environment_and_its_limit
+   - criterion 4: tests/adapters/test_calls_as_the_factory_user.py::test_only_a_container_call_is_read_as_killed_at_its_limit
+   - criterion 5: tests/domain/test_settings_agent_user_unread.py::test_the_agent_user_setting_changes_no_setting
+   - criterion 6: tests/entry/test_wiring_without_agent_user.py::test_git_environment_holds_the_credential_helper_and_no_hooks_alone
+   - criterion 7: tests/entry/test_wiring_without_agent_user.py::test_the_extras_name_no_agent_user_and_no_sudo (the item lists) and ::test_a_died_probe_names_the_factory_user (the died-probe details)
+   - criterion 8: tests/entry/test_wiring_without_agent_user.py::test_the_project_commands_run_without_a_user
+   - criterion 9: tests/adapters/test_calls_as_the_factory_user.py::test_the_run_files_keep_the_mode_the_umask_gives
+
+   Files created: tests/test_second_user_removed.py, tests/adapters/test_calls_as_the_factory_user.py, tests/domain/test_settings_agent_user_unread.py, tests/entry/test_wiring_without_agent_user.py. The test runner could import every module; nothing is missing yet. The new tests fail at their assertions or signatures because the old names and parameters still exist (for example `[project-command-environment]`, `[ClaudeCodeRuntime-sudo-executable]`, `[build-boundaries-parameters]`, `[make-commands-user]`: `assert not True`). The single `make test` run printed only its last lines, so I didn't see how every new test fails.
+
+   Questions:
+   1. How do the changes to existing tests get done? (a) This tests stage runs again and makes all of them in one go, starting with the move of the helpers to `claude_stand_in.py`, then the deletions, then the row edits, ending with `doing`. (b) I end with `doing` now and the coder asks for each test change as it hits it, though that would stall many times. I would choose (a).
+   2. Two readings I made, please confirm or correct:
+      - Criterion 7's died-probe details are tested through `agent_run_probe_item`, the last item `machine_extras` returns, rather than by running every item of `machine_extras`.
+      - Criterion 9's "the mode the process's umask gives" means `0o666 & ~umask` for a regular file: `0o600` under `0o077` and `0o644` under `0o022`.
+9. 2026-10-25 human: 1. (a). Run the tests stage again and make all the changes to existing tests the Interface lists, in one go: first the move of `REPLY`, `_request` and `_without_locale` to `tests/adapters/claude_stand_in.py` with its importers, then the deletions, then the row and helper edits. End with `doing`.
+   2. Both readings are right:
+      - Criterion 7's died-probe details through `agent_run_probe_item`, the last item `machine_extras` returns.
+      - Criterion 9: `0o666 & ~umask` for a regular file, so `0o600` under `0o077` and `0o644` under `0o022`.
+10. factory: started tests as self.
+11. tester: I made the changes to existing tests that the Interface lists under "Tests", following the human's answer in entry 9: the helper move first, then the deletions, then the row and helper edits. The tests for criteria 1 to 9, written in the earlier run, are unchanged.
+
+    Criterion → test:
+    - criterion 1: tests/test_second_user_removed.py::test_the_second_user_s_names_are_gone
+    - criterion 2: tests/adapters/test_calls_as_the_factory_user.py::test_a_call_without_a_container_starts_the_runtime_itself_with_the_request_s_environment
+    - criterion 3: tests/adapters/test_calls_as_the_factory_user.py::test_launch_hands_over_the_call_its_environment_and_its_limit
+    - criterion 4: tests/adapters/test_calls_as_the_factory_user.py::test_only_a_container_call_is_read_as_killed_at_its_limit
+    - criterion 5: tests/domain/test_settings_agent_user_unread.py::test_the_agent_user_setting_changes_no_setting
+    - criterion 6: tests/entry/test_wiring_without_agent_user.py::test_git_environment_holds_the_credential_helper_and_no_hooks_alone
+    - criterion 7: tests/entry/test_wiring_without_agent_user.py::test_the_extras_name_no_agent_user_and_no_sudo and ::test_a_died_probe_names_the_factory_user (through `agent_run_probe_item`, as entry 9 confirmed)
+    - criterion 8: tests/entry/test_wiring_without_agent_user.py::test_the_project_commands_run_without_a_user
+    - criterion 9: tests/adapters/test_calls_as_the_factory_user.py::test_the_run_files_keep_the_mode_the_umask_gives (`0o666 & ~umask`, as entry 9 confirmed)
+
+    Files created in the earlier run: tests/test_second_user_removed.py, tests/adapters/test_calls_as_the_factory_user.py, tests/domain/test_settings_agent_user_unread.py, tests/entry/test_wiring_without_agent_user.py. No new files in this run.
+
+    Helper move (standing leave plus decision 21): `REPLY`, `_request` without its `os_user`, and `_without_locale` went from tests/adapters/test_claude_runtime_os_user.py into tests/adapters/claude_stand_in.py, as `REPLY`, `claude_request(tmp_path)` and `without_locale`, together with the `GIVEN` that the request uses. Their importers now import them from there, and each `_request(tmp_path, None)` call became `claude_request(tmp_path)`: test_claude_runtime_api_login.py, test_claude_runtime_login.py, test_claude_runtime_no_hook.py, test_claude_runtime_provider_limit.py, test_claude_runtime_resume_session.py, test_opencode_runtime.py, test_runtimes_without_wrapper.py, tests/entry/test_wiring_api_login.py, test_wiring_login.py, test_wiring_provider_limit.py.
+
+    Deleted whole, as listed: the 12 test modules and the two helper modules `sudo_support.py` and `leftovers_runtime_support.py`. `git rm` was refused (the index lock is not writable), so I removed them from the working tree with `rm`.
+
+    Earlier test files changed, all as the Interface lists:
+    - Shared helpers that lost `os_user`: tests/confine_support.py, tests/adapters/opencode_stand_in.py, tests/adapters/container_runtime_support.py, and `_request` in tests/adapters/test_claude_runtime_container.py. `machine_extras` is now called without `every_tool` in tests/wiring_support.py, test_wiring_extras.py, test_wiring_opencode.py and test_wiring_container_extras.py.
+    - tests/adapters/: test_agent_launch.py, test_agent_launch_call_end.py, test_agent_launch_container.py, test_agent_launch_container_kill.py, test_claude_runtime_container.py and test_opencode_runtime_container.py (the os-user refusal test is deleted from both), test_claude_runtime_login.py, test_claude_runtime_api_login.py, test_opencode_runtime_launch.py, test_runtimes_without_wrapper.py (with the rename to `test_only_the_login_shell_refuses_a_call`), test_kill_at_the_limit_stays.py.
+    - tests/application/: test_agent_run_probe.py, test_agent_run_probe_factory_user.py, test_agent_run_probe_login.py, test_agent_run_probe_api_login.py, test_agent_run_probe_opencode.py, test_task.py, test_sealed_runs.py, test_nested_repositories.py.
+    - tests/domain/: test_agent_runs.py, test_settings_stage_environment.py, test_settings_url_edges.py.
+    - tests/entry/: test_wiring_boundaries.py (with the rename to `test_git_environment_gives_the_credential_helper_and_no_hooks`), test_wiring_constants.py, test_wiring_container_extras.py, test_wiring_extras.py, test_wiring_opencode.py, test_wiring_run.py, test_wiring_stage_environment.py, test_wiring_stage_environment_home.py.
+    - tests/ root: tests/conftest.py (`probe_settings`), test_test_children.py, test_time_limits.py, test_leftovers_program_removed.py.
+
+    Choices where the list left room, for the reviewer to check:
+    - test_opencode_runtime_launch.py: `_warned_by_sudo` now has the stand-in itself print the `sudo:` line on stderr, so the test still shows that a stderr line is no refusal once valid events were printed. `test_the_call_gets_the_api_file_s_key_and_the_result_names_the_login` now checks the key against the call's own arguments; the old check of the `sudo` arguments went with the user.
+    - test_agent_launch_call_end.py: the timed-out test keeps its two host rows. The refusal test loses the `sudo-refused` row and keeps the other two without `os_user`, so its refusal branch has no row left.
+    - test_agent_run_probe_opencode.py: `DIED` and `SSO_HINT` now name "the factory user", since its settings no longer carry an agent user.
+    - `ruff check --fix` removed the imports these edits left unused.
+
+    Run: `make lint` is green. The one `make test` ended with collection errors in tests/adapters/test_agent_launch_call_end.py: its module constant `Starters(login_files=LoginFiles())` fails Pydantic validation because `Starters` still requires `sudo_executable`. That is the old model, not a mistake in the test. Every other module imported; no module under test is missing. As in the earlier run, the new tests fail on their assertions and signatures because the old names still exist.
+
+    Open: the Dockerfile and VM-setup tests that still mention `FACTORY_AGENT_USER` (test_image_users.py, test_stage_image.py, test_claude_token_mount.py, test_vm_setup_text.py) are not on the story's list, so I left them untouched.
+
+    `lint`: lint: green (0.8 s)
+    `test`: ERROR tests/adapters/test_agent_launch_call_end.py - pydantic_core._pydantic_core.ValidationError: 1 validation error for Starters
+12. factory: started doing as self.
+13. coder: The second user is removed from `src`. `make test` has three failures left: two tests still hold the second user's wording and one still expects the old file mode, so two test files need changing (below). Lint, `mypy --strict` over `src` and `tests`, layers, sast, secrets and licenses are green.
+
+    Test changes for the tester:
+    1. `tests/application/test_agent_run_probe_api_login.py`: the constant `DIED` becomes `"the probe run ended died; run claude -p by hand as the factory user to see why"`. Its settings no longer carry an agent user, and criterion 7 asks for `by hand as the factory user`. This is the same change the tester already made to `DIED` in `test_agent_run_probe_opencode.py`. It fixes `test_the_probe_detail_names_the_login_its_run_was_handed[died-api-key]` and `[died-subscription]`.
+    2. `tests/adapters/test_opencode_runtime.py::test_the_call_sees_its_configuration_file_and_only_the_request_s_environment`: the line `assert read_config_modes(tmp_path / "bin") == [0o640]` goes. The Interface removes the `chmod` to `0640`, and criterion 9 (entries 4 and 9: `0o666 & ~umask`) already pins the mode. The test now fails with `assert [420] == [416]`, which is `0o644` under the suite's umask.
+
+    What I built:
+    - `src/factory/adapters/agent_launch.py`: `SUDO_EXECUTABLE`, `SUDO_PREFIX`, `TIMEOUT_EXECUTABLE`, `SUDO_GRACE`, `RUN_FILE_MODE`, `CONTAINER_OS_USER`, `sudo_prefix` and `_limit_argument` are gone. `launch`, `run_launch`, `killed_at_limit`, `call_refusal` and `read_call_end` have the Interface's signatures, and `Starters` holds `login_files` alone. `killed_at_limit` is true only `in_container`, with a status in `CONTAINER_KILL_STATUSES` and the limit reached.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: no `sudo_executable` (neither the parameter nor Claude's property), no refusal of an `os_user` in a container, and no `chmod` of the run files. `SUDO_EXECUTABLE` is out of `__all__`.
+    - `src/factory/adapters/make_commands.py`: `CommandUser`, `user`, `_run_as`, `_refusal` and `_refusal_line` are gone. `run` launches `make` directly as the factory's own user.
+    - `src/factory/domain/agent_runs.py`: `AgentRunRequest` has no `os_user`.
+    - `src/factory/domain/settings.py`: `AGENT_USER_VARIABLE`, `agent_user`, `_agent_user` and the container fault for an agent user are gone. `stage_environment_fault` and `_container_fault` lose their `agent_user` parameter.
+    - `src/factory/application/task.py`: the request carries no `os_user`.
+    - `src/factory/application/preflight.py`: `agent_user_item`, `_AGENT_USER_ITEM` and `_NO_AGENT_USER` are gone. The hints say "the factory user". `_probe_request` and `_opencode_login_hint` lost the `settings` parameter they no longer read.
+    - `src/factory/entry/wiring.py`: `build_boundaries(settings, token, *, hosting=None)`. `_inline_environment(settings)` gives `MakeProjectCommands(settings.checkout)`. `_project_commands`, `project_command_environment`, the agent-user branch of `agent_run_environment` and `_inline_items` are gone. `machine_extras(boundaries, settings, environment)`, and `git_environment` holds three pairs.
+
+    Main choice: in `machine_extras`, the inline branch now appends `agent-environment` directly, because nothing else was left in `_inline_items`. The alternative was to keep `_inline_items` as a one-item wrapper; I rejected it as an indirection with no reason left. Refactor: I read the diff and found nothing more to change beyond the two unused `settings` parameters already listed above.
+
+    Noticed, not touched:
+    - `src/factory/adapters/process.py:90`: a comment still says the agent's own `timeout` ends root's `sudo`. That code path is outside this story's Interface.
+    - `SealedProjectCommands` (`src/factory/application/sealed_runs.py`) now has no caller, as the description says, until S0006.
+    - The Dockerfile and VM-setup tests that mention `FACTORY_AGENT_USER` (tester entry 11).
+
+    The Description is unchanged: the journal did not change the task's meaning beyond criterion 9, which intake already wrote in.
+14. factory: started tests as self.
+15. tester: I made the two test changes named in the coder's entry 13, which the prompt marks as approved. They follow from the human's answers in entry 9 (criterion 7's wording, and criterion 9's `0o666 & ~umask`).
+
+    1. `tests/application/test_agent_run_probe_api_login.py`: `DIED` is now `"the probe run ended died; run claude -p by hand as the factory user to see why"`. This matches criterion 7 and the `DIED` that `test_agent_run_probe_opencode.py` already uses.
+    2. `tests/adapters/test_opencode_runtime.py::test_the_call_sees_its_configuration_file_and_only_the_request_s_environment`: I removed the line `assert read_config_modes(tmp_path / "bin") == [0o640]`, because criterion 9 now pins the mode in `tests/adapters/test_calls_as_the_factory_user.py::test_the_run_files_keep_the_mode_the_umask_gives`. `ruff check --fix` then removed the `read_config_modes` import that was no longer used. The helper itself stays in `tests/adapters/opencode_stand_in.py`.
+
+    The mapping from criteria to tests is unchanged from entry 11. This run created no files, and every test module imported.
+
+    Run: `make test` ended `test: green (67.0 s)` with total coverage at 99.53 %. `make lint` is green.
+
+    `lint`: lint: green (0.7 s)
+    `test`: test: green (70.1 s)
+16. factory: started doing as self.
+17. coder: The code from entry 13 was already committed, and the tester made the two test changes in entry 15. In this run I changed no code. `make check` passed on the committed state and ended with `test: green (67.5 s)`, total coverage 99.53 %, and `check: green`.
+
+    What I built (from entry 13, unchanged):
+    - `src/factory/adapters/agent_launch.py`: the `sudo` chain and `env -i` are gone. `launch`, `run_launch`, `killed_at_limit`, `call_refusal` and `read_call_end` have the Interface's signatures, and `Starters` holds `login_files` alone. `killed_at_limit` is true only `in_container`.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: no `sudo_executable`, no refusal of an `os_user` and no `chmod` of the run files.
+    - `src/factory/adapters/make_commands.py`: `CommandUser` and the `sudo` path are gone; `make` runs as the factory's own user.
+    - `src/factory/domain/agent_runs.py`: the request has no `os_user`. `src/factory/domain/settings.py`: `AGENT_USER_VARIABLE`, `agent_user` and the container fault for an agent user are gone.
+    - `src/factory/application/task.py`: the request carries no `os_user`. `src/factory/application/preflight.py`: `agent_user_item` is gone and the hints name the factory user.
+    - `src/factory/entry/wiring.py`: `build_boundaries(settings, token, *, hosting=None)`. The inline environment's project commands are `MakeProjectCommands(settings.checkout)`. `machine_extras` has no `which`, and `git_environment` holds three pairs.
+
+    Main choice (entry 13): in `machine_extras`, the inline branch appends `agent-environment` directly. I rejected keeping `_inline_items` as a wrapper around that one item.
+
+    Refactor: I read the diff against `main` (`git diff main -- . ':!factory' ':!tests'`) again and found nothing to change.
+
+    Noticed, not touched:
+    - `src/factory/adapters/process.py:90`: a comment still says root's `sudo` is ended by the agent's own `timeout`. `process.py` is outside this story's Interface, and its `PermissionError` branch stays.
+    - `SealedProjectCommands` (`src/factory/application/sealed_runs.py`) now has no caller until S0006, as the Description says.
+    - The Dockerfile and VM-setup tests that still mention `FACTORY_AGENT_USER`, which the tester named in entry 11.
+
+    Description: unchanged. The journal changed nothing beyond criterion 9, which intake had already written in.
+
+    `check`: check: green
+    `duplicates`: duplicates: 8 new, 34 known, 4 gone
+18. factory: started review as self.
+19. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'` (9 files under `src/`, 64 under `tests/`). I checked each of criteria 1 to 9 against its test and the Interface's rules: every criterion has a test that checks what it names. The refused sides are covered: criterion 4's host row and 29.9 s row, criterion 5's formerly refused values, and the `sudo:` line that is no longer a refusal. `call_refusal`'s refused login file rests on the unchanged test, as entry 4 confirms. `make check` was green after the coder (entry 17). Group 1 holds.
+
+    Group 2 (architecture) holds: every change stays in its layer, and nothing new is wired. Group 3 (security) holds: there are no markers, secrets or command strings.
+
+    I ran `make duplicates`. Its 8 new findings are line shifts of the two runtimes' known similar code, fakes from F0042 that were never added to the baseline, and `SealedProjectCommands`, which the Description says stays without a caller until S0006. None of them is a finding against this diff. I did not reach group 5 because group 4 fails.
+
+    Findings (group 4, quality; all in tests, at round 0):
+    1. `tests/adapters/test_calls_as_the_factory_user.py:33`: `CLAUDE_REPLY` is a second copy of `REPLY` in `tests/adapters/claude_stand_in.py:16`, which this diff moved there. Fix: import it, for example `from adapters.claude_stand_in import REPLY as CLAUDE_REPLY`, and delete the copy.
+    2. `tests/adapters/test_calls_as_the_factory_user.py:60`: `_login_file` copies `_login_file` of `tests/adapters/test_runtimes_without_wrapper.py:85`; only the file name differs. Fix: under the standing leave, move it to one shared place (for example `tests/confine_support.py`, beside `Layout`) and have both modules use it.
+    3. `tests/entry/test_wiring_without_agent_user.py:32-49`: the fixtures `podman` and `zfs` are verbatim copies of those in `tests/entry/test_wiring_container_extras.py:19-35`. Line 29's `CONTAINER_ITEMS` restates that module's list (line 15) plus `agent-run-probe`. Fix: under the standing leave, move the two fixtures and the container item list to one shared place. Use a module at the `tests/` root, or `tests/conftest.py` under names that do not clash with its existing `podman` fixture. Then have both modules use them, so that "F0042-S0011's list unchanged" is pinned by one list.
+    4. `tests/entry/test_wiring_stage_environment.py:79`: `_Which` is dead code, because this diff removed its two uses. Fix: delete the class. This is in a test module the story lists, so it falls under decision 21.
+    5. `tests/confine_support.py:25,40`: the field `Layout.sudo_bin` is dead code, because this diff deleted every test that read it. Fix: remove the field and its value. If the tester finds that decision 21 does not cover this shared helper, the tester should ask.
+    6. `tests/adapters/test_calls_as_the_factory_user.py:79-89`: `_recorded` builds its own `Recorder` and patches `claude_runtime.run_process` again, which the fixture `recorder` in `tests/conftest.py:362` already does. Fix: take the `recorder` fixture and add only the opencode patches (`run_process` and `run_streaming`) in the test module.
+
+    Earlier tests (item 6). Every change below is under the leave of decision 21 of `feature.md`, which the story's Interface names test by test. Where the standing leave also applies, I say so.
+    - tests/adapters/claude_stand_in.py: the standing leave plus decision 21 (`REPLY`, `claude_request`, `without_locale` and `GIVEN` moved in from test_claude_runtime_os_user.py)
+    - tests/adapters/test_claude_runtime_api_login.py, test_claude_runtime_no_hook.py, test_claude_runtime_provider_limit.py, test_claude_runtime_resume_session.py, test_opencode_runtime.py, tests/entry/test_wiring_api_login.py, test_wiring_login.py, test_wiring_provider_limit.py: the standing leave (imports the moved helpers) plus decision 21. test_opencode_runtime.py also lost its `0o640` assert, the change agreed in entries 13 and 15.
+    - tests/adapters/test_runtimes_without_wrapper.py: the standing leave plus decision 21 (one deletion, one rename, the `sudo-refused` row removed)
+    - tests/adapters/test_claude_runtime_login.py: decision 21 (one deletion; `_runtime` and two tests lose the user)
+    - tests/adapters/opencode_stand_in.py, tests/adapters/container_runtime_support.py, tests/confine_support.py, tests/wiring_support.py: decision 21 (the shared helpers lose `os_user` or `every_tool`)
+    - tests/adapters/test_agent_launch.py, test_agent_launch_call_end.py, test_agent_launch_container.py, test_agent_launch_container_kill.py, test_kill_at_the_limit_stays.py: decision 21. In test_agent_launch_call_end.py the four `agent` rows went, which follows the Interface's intent.
+    - tests/adapters/test_claude_runtime_container.py, test_opencode_runtime_container.py, test_opencode_runtime_launch.py: decision 21
+    - tests/application/test_agent_run_probe.py, test_agent_run_probe_api_login.py, test_agent_run_probe_factory_user.py, test_agent_run_probe_login.py, test_agent_run_probe_opencode.py, test_task.py, test_sealed_runs.py, test_nested_repositories.py: decision 21. The `DIED` constant in test_agent_run_probe_api_login.py follows entries 13 and 15.
+    - tests/conftest.py, tests/domain/test_agent_runs.py, test_settings_stage_environment.py, test_settings_url_edges.py: decision 21
+    - tests/entry/test_wiring_boundaries.py, test_wiring_constants.py, test_wiring_container_extras.py, test_wiring_extras.py, test_wiring_opencode.py, test_wiring_run.py, test_wiring_stage_environment.py, test_wiring_stage_environment_home.py: decision 21
+    - tests/test_leftovers_program_removed.py, tests/test_test_children.py, tests/test_time_limits.py: decision 21
+    - Deleted, as the Interface lists them: tests/adapters/test_claude_runtime_os_user.py, test_claude_runtime_sudo_time_limit.py, test_claude_runtime_file_modes.py, test_make_commands_user.py, test_opencode_sudo_time_limit.py, test_one_call_as_another_user.py; tests/application/test_agent_user_item.py, test_task_os_user.py; tests/domain/test_settings_agent_user.py; tests/entry/test_wiring_agent_user.py, test_wiring_project_command_user.py, test_git_repository_modes.py; tests/sudo_support.py, tests/leftovers_runtime_support.py. All under decision 21.
+
+    Open, outside the diff, so not under review: `src/factory/adapters/process.py:90` still has a comment saying the agent's own `timeout` ends root's `sudo` (the coder named this in entry 13).
+20. factory: started doing as self.
+21. coder: Round 1. The reviewer's six findings in entry 19 are all changes to tests, and the code under `src/` doesn't need any change. A coder doesn't edit tests, so I'm handing them to the tester. In this run I changed no code and ran no `make check`: nothing outside the tests changed, and the last run was green (entry 17).
+
+    These are the changes the tester should make, each exactly as entry 19 says:
+    1. `tests/adapters/test_calls_as_the_factory_user.py:33`: delete the copy `CLAUDE_REPLY` and import `REPLY` from `tests/adapters/claude_stand_in.py` instead (for example `from adapters.claude_stand_in import REPLY as CLAUDE_REPLY`).
+    2. `tests/adapters/test_calls_as_the_factory_user.py:60` and `tests/adapters/test_runtimes_without_wrapper.py:85`: move `_login_file` to one shared place under the standing leave (for example `tests/confine_support.py`, beside `Layout`), and have both modules use it. The two copies differ only in the file name, so it becomes a parameter.
+    3. `tests/entry/test_wiring_without_agent_user.py:29-49` and `tests/entry/test_wiring_container_extras.py:15-35`: move the fixtures `podman` and `zfs` and the container item list to one shared place under the standing leave. That is either a module at the `tests/` root or `tests/conftest.py`, under names that don't clash with the existing `podman` fixture. `CONTAINER_ITEMS` then builds on that one list plus `agent-run-probe`.
+    4. `tests/entry/test_wiring_stage_environment.py:79`: delete the dead class `_Which` (decision 21).
+    5. `tests/confine_support.py:25,40`: remove the dead field `Layout.sudo_bin` and its value (decision 21; if the tester finds that decision 21 doesn't cover this shared helper, the tester asks).
+    6. `tests/adapters/test_calls_as_the_factory_user.py:79-89`: `_recorded` should take the `recorder` fixture from `tests/conftest.py:362` and add only the opencode patches (`run_process` and `run_streaming`), not build its own `Recorder` and patch `claude_runtime.run_process` again.
+
+    Main choice: end with `tests` and change no code. The other option was to make no change and ask, which I rejected: every finding is a test change, and decision 21 or the standing leave in `CLAUDE.md` covers each one, so no question for the human is needed.
+
+    Noticed, not touched (as in entries 13 and 17): the comment at `src/factory/adapters/process.py:90` still says the agent's own `timeout` ends root's `sudo`, and `process.py` is outside this story's Interface. `SealedProjectCommands` has no caller until S0006. The Dockerfile and VM-setup tests still mention `FACTORY_AGENT_USER`.
+
+    Description: unchanged. The review's findings don't change what the task means.
+22. factory: started tests as self.
+23. tester: Round 1. I made the six test changes that the reviewer named in entry 19 and the coder passed on in entry 21, and no others. Each change falls under the standing leave in `CLAUDE.md` *Tests* or under decision 21. Every test keeps its name and checks the same thing.
+
+    1. `tests/adapters/test_calls_as_the_factory_user.py`: I deleted the copy `CLAUDE_REPLY`. The module now has `from adapters.claude_stand_in import REPLY as CLAUDE_REPLY`, because the module already imports opencode's `REPLY`.
+    2. I moved `_login_file` to `tests/confine_support.py` as `write_login_file(layout)`, beside `Layout`, and `test_calls_as_the_factory_user.py` now uses it. The copy in `tests/adapters/test_runtimes_without_wrapper.py` had no caller left in that module, so I deleted it rather than switching it over. Since only one caller is left, the helper keeps the file name `login` and takes no name parameter.
+    3. I moved the fixtures `podman` and `zfs` from `tests/entry/test_wiring_without_agent_user.py` and `tests/entry/test_wiring_container_extras.py` to `tests/conftest.py`. They are now `versioned_podman` and `listing_zfs`, so they don't clash with the existing `podman` fixture. Both modules take the new names, and the helper `_settings` in `test_wiring_container_extras.py` names its parameters the same way. `PODMAN_VERSION` and the container item list `CONTAINER_ITEMS` moved to `tests/wiring_support.py`. `test_wiring_container_extras.py` imports both. `test_wiring_without_agent_user.py` builds `CONTAINER_PROBED_ITEMS = [*CONTAINER_ITEMS, "agent-run-probe"]` from them, so the list is pinned in one place.
+    4. `tests/entry/test_wiring_stage_environment.py`: I deleted the dead class `_Which` (decision 21).
+    5. `tests/confine_support.py`: I removed the dead field `Layout.sudo_bin` and its value in `build_layout` (decision 21). Nothing under `tests/` reads it any more.
+    6. `tests/adapters/test_calls_as_the_factory_user.py`: `_recorded` is gone. A module fixture `both_recorded(recorder, monkeypatch)` takes the `recorder` fixture from `tests/conftest.py` and adds only the opencode patches (`run_process` and `run_streaming`). The test takes `both_recorded` in place of `monkeypatch`.
+
+    Earlier test files I changed:
+    - Under the standing leave: `tests/conftest.py`, `tests/wiring_support.py`, `tests/entry/test_wiring_container_extras.py`, `tests/adapters/test_runtimes_without_wrapper.py`.
+    - Under decision 21: `tests/confine_support.py`, `tests/entry/test_wiring_stage_environment.py`.
+    - I also changed `tests/adapters/test_calls_as_the_factory_user.py` and `tests/entry/test_wiring_without_agent_user.py`, which are this story's own tests.
+
+    The mapping from criteria to tests is the same as in entry 11. I created no files, and every test module imported.
+
+    `make test` ended with `test: green (98.4 s)`, total coverage 99.53 %. `make lint` is green.
+
+    `lint`: lint: green (1.1 s)
+    `test`: test: green (104.8 s)
+24. factory: started doing as self.
+25. coder: Round 1. All six of the reviewer's findings (entry 19) were changes to tests. The tester made them in entry 23, so I changed no code in this run. `make check` passed on the committed state and ended with `test: green (68.5 s)`, total coverage 99.53 %, and `check: green`.
+
+    What I built (from entry 13, unchanged since):
+    - `src/factory/adapters/agent_launch.py`: the `sudo` chain and `env -i` are gone. `launch`, `run_launch`, `killed_at_limit`, `call_refusal` and `read_call_end` have the Interface's signatures. `Starters` holds only `login_files`. `killed_at_limit` is true only `in_container`.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: no `sudo_executable`, no refusal of an `os_user` and no `chmod` of the run files.
+    - `src/factory/adapters/make_commands.py`: `CommandUser` and the `sudo` path are gone. `make` runs as the factory's own user.
+    - `src/factory/domain/agent_runs.py`: the request has no `os_user`.
+    - `src/factory/domain/settings.py`: `AGENT_USER_VARIABLE`, `agent_user` and the container fault for an agent user are gone.
+    - `src/factory/application/task.py` and `src/factory/application/preflight.py`: the request carries no `os_user`, `agent_user_item` is gone, and the hints name the factory user.
+    - `src/factory/entry/wiring.py`: `build_boundaries(settings, token, *, hosting=None)`. The inline environment's project commands are `MakeProjectCommands(settings.checkout)`. `machine_extras` has no `which`. `git_environment` holds three pairs.
+
+    Main choice (entry 13): in `machine_extras`, the inline branch appends `agent-environment` directly. I rejected keeping `_inline_items` as a wrapper around that one item.
+
+    Refactor: no code changed since the diff was last read in entry 17, so I found nothing to change.
+
+    Noticed, not touched:
+    - `src/factory/adapters/process.py:90`: a comment still says the agent's own `timeout` ends root's `sudo`. That module is outside the Interface.
+    - `SealedProjectCommands` has no caller until S0006.
+    - The Dockerfile and VM-setup tests still mention `FACTORY_AGENT_USER` (named by the tester in entry 11).
+
+    Description: unchanged. The review's findings did not change what the task means.
+
+    `check`: check: green
+    `duplicates`: duplicates: 8 new, 34 known, 4 gone
+26. factory: started review as self.
+27. reviewer: Review, round 1. I read the work item, the stat and `git diff main...HEAD -- . ':!factory'` (9 files under `src/`, 64 under `tests/`), and also the tester's round-1 commit on its own (9e880638..957ddc8c).
+
+    Group 1 holds. Each of criteria 1 to 9 has a test that checks what it names:
+    - 1: `tests/test_second_user_removed.py`
+    - 2, 3, 4 and 9: `tests/adapters/test_calls_as_the_factory_user.py`
+    - 5: `tests/domain/test_settings_agent_user_unread.py`
+    - 6, 7 and 8: `tests/entry/test_wiring_without_agent_user.py`
+
+    The rules the Interface states are tested on both sides:
+    - `killed_at_limit`: the host row, a status that is not a kill, and 255 at both 29.9 s and 30 s.
+    - A `sudo:` line is no refusal.
+    - The formerly refused `Bad Name` and the container with an agent user are both accepted.
+    - The refused login file rests on the unchanged test, as entry 4 confirms.
+
+    `make check` was green after the coder (entry 25).
+
+    Group 2 holds. Every change stays in its layer; the inline environment wires `MakeProjectCommands(settings.checkout)`, and nothing new is wired.
+
+    Group 3 holds. The diff adds no markers, secrets or command strings.
+
+    Group 4 holds:
+    - The source changes are removals.
+    - The docstrings now describe the remaining behaviour (`launch`, `killed_at_limit`, `call_refusal`, `Starters`, `MakeProjectCommands`).
+    - `tool_item` is still used by `MachineChecks`, so it is not dead.
+    - The six round-0 findings are fixed as entry 23 describes: `REPLY` is imported, `write_login_file` and the `versioned_podman`/`listing_zfs` fixtures are shared, `CONTAINER_ITEMS` is pinned once in `tests/wiring_support.py`, `_Which` and `Layout.sudo_bin` are gone, and `both_recorded` builds on the `recorder` fixture.
+
+    Group 5 holds. The journal gives the main choice and what was rejected (`_inline_items` dropped rather than kept as a one-item wrapper). The Description matches what was built, and criterion 11 still describes what the docs must say.
+
+    no findings
+
+    Earlier tests (item 6):
+    - tests/adapters/claude_stand_in.py: the standing leave plus decision 21 (`REPLY`, `claude_request`, `without_locale` and `GIVEN` moved in from test_claude_runtime_os_user.py).
+    - tests/adapters/test_claude_runtime_api_login.py, test_claude_runtime_no_hook.py, test_claude_runtime_provider_limit.py, test_claude_runtime_resume_session.py, test_opencode_runtime.py, tests/entry/test_wiring_api_login.py, test_wiring_login.py, test_wiring_provider_limit.py: the standing leave (they import the moved helpers) plus decision 21. test_opencode_runtime.py's `0o640` assert went as entries 13 and 15 agreed.
+    - tests/adapters/test_runtimes_without_wrapper.py: the standing leave plus decision 21 (one deletion, one rename, the `sudo-refused` row; in round 1, `_login_file` removed once it had no caller).
+    - tests/confine_support.py: decision 21 (`os_user` and `Layout.sudo_bin` go) plus the standing leave (`write_login_file` moved in).
+    - tests/conftest.py: decision 21 (`probe_settings`) plus the standing leave (`versioned_podman` and `listing_zfs` moved in from test_wiring_container_extras.py).
+    - tests/wiring_support.py: decision 21 (`machine_extras` without `every_tool`) plus the standing leave (`PODMAN_VERSION` and `CONTAINER_ITEMS` moved in).
+    - tests/entry/test_wiring_container_extras.py: decision 21 (the agent-user row, `INLINE_ITEMS`) plus the standing leave (it uses the moved fixtures and constants; each test keeps its name and checks).
+    - tests/entry/test_wiring_stage_environment.py: decision 21 (the `which` checks and `_Which` go).
+    - tests/adapters/opencode_stand_in.py, tests/adapters/container_runtime_support.py: decision 21.
+    - tests/adapters/test_agent_launch.py, test_agent_launch_call_end.py, test_agent_launch_container.py, test_agent_launch_container_kill.py, test_kill_at_the_limit_stays.py: decision 21.
+    - tests/adapters/test_claude_runtime_container.py, test_opencode_runtime_container.py, test_claude_runtime_login.py, test_opencode_runtime_launch.py: decision 21.
+    - tests/application/test_agent_run_probe.py, test_agent_run_probe_api_login.py (its `DIED` change follows entries 13 and 15), test_agent_run_probe_factory_user.py, test_agent_run_probe_login.py, test_agent_run_probe_opencode.py, test_task.py, test_sealed_runs.py, test_nested_repositories.py: decision 21.
+    - tests/domain/test_agent_runs.py, test_settings_stage_environment.py, test_settings_url_edges.py: decision 21.
+    - tests/entry/test_wiring_boundaries.py, test_wiring_constants.py, test_wiring_extras.py, test_wiring_opencode.py, test_wiring_run.py, test_wiring_stage_environment_home.py: decision 21.
+    - tests/test_leftovers_program_removed.py, tests/test_test_children.py, tests/test_time_limits.py: decision 21.
+    - Deleted, as the Interface lists them, all under decision 21:
+      - tests/adapters/: test_claude_runtime_os_user.py, test_claude_runtime_sudo_time_limit.py, test_claude_runtime_file_modes.py, test_make_commands_user.py, test_opencode_sudo_time_limit.py, test_one_call_as_another_user.py
+      - tests/application/: test_agent_user_item.py, test_task_os_user.py
+      - tests/domain/: test_settings_agent_user.py
+      - tests/entry/: test_wiring_agent_user.py, test_wiring_project_command_user.py, test_git_repository_modes.py
+      - helper modules: tests/sudo_support.py, tests/leftovers_runtime_support.py
+
+    Notes:
+    - tests/domain/test_settings_agent_user_unread.py:8: `CONTAINER` copies `CONTAINER` of tests/domain/test_settings_stage_environment.py:12. It could live in tests/settings_support.py beside `BASE`.
+    - tests/entry/test_wiring_extras.py:63 and tests/application/test_agent_run_probe_factory_user.py:23: their names still mention an agent user, and each now has a single row. The Interface keeps the names, so a later story could rename them.
+
+    Open, outside the diff and so not under review: the comment at src/factory/adapters/process.py:90 still says the agent's own `timeout` ends root's `sudo`.
+28. factory: started docs as self.
+29. documenter: Docs, round 1. I read the story, the Interface and the journal (entry 27 is the review with no findings). I wrote the documentation criterion 11 asks for and cross-read the rest. Only documents changed, so I did not run `make check` (the factory runs it after me). `make documents` prints `documents ok`. I ran no examples, because I wrote none. The new operator-guide text names the `podman run` line as it already stood.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - The section *The agent runs as a second user* is gone, with **The one `sudo` rule.**, **The preflight item `agent-user`.**, the table *Checks on a running instance* and **A `time_limit` under `sudo`.**
+      - *The agent runtime* gets one paragraph. A `container` instance runs every call in a throwaway container as the host's `factory` (`--userns=keep-id`), and an `inline` one as the factory's own user.
+      - **The agent's login token.** and **The agent's API key.** stay in *The agent runtime*, without their sentences on the agent user, `sudo`, `chown 1001:1002` and `/home/agent`.
+      - I kept the dataset-home and take paragraphs, and moved *The agent in a container* below the login paragraphs. Its sentence about refusing an operating-system user is gone.
+      - *Configuration*: the row `FACTORY_AGENT_USER` goes, as do its place in the fault order and its fault in the `container` paragraph.
+      - *The preflight's items*: the rows `agent-user` and `tool:sudo` go and the counts follow (an `inline` instance has eleven items at most, twelve at most overall). The `<agent user>` wording in *The probe of the agent run* and its `sudo`-refusal sentences are replaced by `the factory user` or removed.
+      - `agent-environment` and the `HOME` paragraph name the factory user's home.
+      - The paragraph **The project commands run as `agent`.** is one sentence: an `inline` command runs as the factory's user and a `container` one in a check container.
+    - `docs/project-guide/agents.md`:
+      - The request has no `os_user`, and the `sudo_executable` parameters, the container refusal of an `os_user` and the `0640` run files are gone.
+      - The *shared launch module* lists `launch`, `run_launch`, `killed_at_limit`, `Starters(login_files)`, `call_refusal` and `read_call_end` as the Interface gives them.
+      - The *call as another user* paragraph is replaced by one on a call on the host. It also covers the end of an opencode call in a container.
+    - `docs/project-guide/processes-and-checks.md`: *Running as another user* is replaced by one line on what replaced it. The wiring paragraph under *Sealed project commands* now says no caller builds `SealedProjectCommands` until S0006 removes `sealed_runs.py`. References to the deleted tests and `sudo` kill text are fixed.
+    - `docs/project-guide/stage-environment.md`: the table rows `agent_runtime` and `project_commands`, the items left out for `container` (no `agent-user`, no `tool:sudo`), the settings fault list, the `which` sentence and the `HOME` sentence.
+    - `docs/project-guide/stages.md`: `compose` carries no `os_user`.
+    - `docs/project-guide/watching.md`:
+      - `build_boundaries(settings, token, *, hosting=None)` and `machine_extras(boundaries, settings, environment)` lose `which`.
+      - The `inline` project commands are `MakeProjectCommands`.
+      - `git_environment` holds seven entries, `GIT_CONFIG_COUNT=3`, with no `core.sharedRepository`.
+      - The `inline` list of preflight items dropped `agent-user` and `tool:sudo`. I also dropped `confinement`, which the code no longer has.
+    - `docs/project-guide/README.md`: the lines of `sudo_support.py` and `leftovers_runtime_support.py` and the `probe_settings` fixture go. I added the `versioned_podman` and `listing_zfs` fixtures the tester moved into `tests/conftest.py`.
+    - `docs/decisions.md`: the five closing lines the criterion names, worded as it gives them.
+
+    Cross-read and found current: `README.md` (criterion: none), `docs/project-guide/git-and-hosting.md` (git's isolation text names no shared mode) and the rest of `docs/decisions.md`.
+
+    Stale text I saw and did not touch:
+    1. `docs/operator-guide.md`, the image sections (*Users and directories*, the volumes and mount paragraph, the `/home/agent` rows, *Checks on a running instance* of the hosting-service token, the pins of `sudo` in `image/Dockerfile`): they describe the long-lived image of `image/Dockerfile`, which this story does not change. They still say `agent`, uid 1001, the group `factory-work` and `.git` files `0640`. The story's docs criterion does not name them, so a later story that changes the image should rewrite them.
+    2. `FACTORY_CLAUDE_HOME` (default `/home/agent/.claude`) and the image's `FACTORY_CLAUDE_LOGIN_FILE` and `FACTORY_API_LOGIN_FILE` rows still name `/home/agent/...`. That is the image's setting and is true until the image changes.
+    3. `src/factory/adapters/process.py:90`: the comment still says the agent's own `timeout` ends root's `sudo` (the reviewer noted this too). It is a comment in code, so it is the coder's.
+    4. The review's notes: `CONTAINER` is copied in `tests/domain/test_settings_agent_user_unread.py`, and two test names still mention an agent user. Both are test matters, not mine.
+
+    No findings for the coder: the code matches the Interface everywhere I compared it with the docs (`build_boundaries`, `machine_extras`, the runtime constructors, `git_environment`).
+
+    `check`: check: green (not run again: passed on tree e0f497ac495f at 2026-10-25T15:10:44Z)
+    `secrets`: secrets: green (4.2 s)
+    `documents`: documents ok
+30. factory: started smoke-test as self.
+31. smoke-tester: Ran the one command under `## Smoke test` as written, from the repository root. I fixed nothing.
+
+    Command 1 (`uv run python - <<'EOF' … EOF`). It exited 0. uv first created `.venv` and printed its usual setup lines; those are cut below, followed by the script's output:
+
+    ```
+    Using CPython 3.12.15 interpreter at: /usr/local/bin/python3.12
+    Creating virtual environment at: .venv
+    …
+    [] False
+    False False
+    3 False
+    ```
+
+    Met its `Expect:` line: yes. The script printed the three lines it expects: `[] False`, then `False False`, then `3 False`.
+
+    Judged against the acceptance criteria:
+    - The output is consistent with criterion 1 for the names the command checks. Of `SUDO_EXECUTABLE`, `SUDO_GRACE` and `sudo_prefix`, none is an attribute of `factory.adapters.agent_launch`. `CommandUser` is gone from `make_commands`. `AgentRunRequest` has no `os_user`, and `InstanceSettings` has no `agent_user`.
+    - It is consistent with criterion 6 as far as the command looks: `GIT_CONFIG_COUNT` is `3` and there is no `core.sharedRepository`.
+    - To check that nothing contradicts the other criteria, I also ran two read-only calls outside the smoke test:
+      - `git_environment()` returns exactly the seven pairs of criterion 6 (credential helper, `core.hooksPath` = `/dev/null`, `core.fsmonitor` = `false`).
+      - `launch(["x"], {"A": "1"}, time_limit=30 s)` gives `argv=['x'] env={'A': '1'} time_limit=30 s` (criterion 3).
+      - `Starters.model_fields` is `['login_files']` (criterion 1).
+    - No criterion is contradicted. The smoke test does not reach the other criteria (2, 4, 5, 7, 8, 9); they rest on the tests and on the factory's `make check`, which I did not run in this stage.
+
+    Findings: none.
+
+    Open: nothing. The working tree shows only the work item's `.costs.jsonl` sidecar as modified. That file is the factory's; I did not write it.

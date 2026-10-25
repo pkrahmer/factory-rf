@@ -10,18 +10,14 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
-from factory.adapters.claude_runtime import SUDO_EXECUTABLE, ClaudeCodeRuntime
+from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.clock import SleepingWaiter, SystemClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.disk_space import ShutilDiskSpace
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
-from factory.adapters.make_commands import (
-    CommandUser,
-    ContainerMakeCommands,
-    MakeProjectCommands,
-)
+from factory.adapters.make_commands import ContainerMakeCommands, MakeProjectCommands
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.podman_runs import PodmanRuns
@@ -59,19 +55,16 @@ from factory.application.preflight import (
     Preflight,
     agent_environment_item,
     agent_run_probe_item,
-    agent_user_item,
     dataset_item,
     installed_models,
     opencode_item,
     stage_image_item,
     token_file_item,
-    tool_item,
     tool_version_item,
 )
 from factory.application.project_agents import ProjectAgentDefinitions
 from factory.application.project_commands import ProjectCommands, RecordingProjectCommands
 from factory.application.recovery import RecoveryHandler
-from factory.application.sealed_runs import SealedProjectCommands
 from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
 from factory.domain.agent_runs import scrub_environment
@@ -115,7 +108,6 @@ __all__ = [
     "machine_extras",
     "machine_log",
     "production_environment",
-    "project_command_environment",
     "read_environment_settings",
     "read_hosting_token",
     "repository_name",
@@ -158,23 +150,19 @@ def build_pipeline_definition_reader() -> PipelineDefinitionReader:
 def git_environment(helper: str = CREDENTIAL_HELPER) -> dict[str, str]:
     """Return the git configuration of the factory as environment entries."""
     # Git reads no system or global configuration here, so the environment carries it:
-    # the credential helper is the only route to the token. The shared mode makes what git
-    # writes in `.git` readable and not writable by the group, so the agent's git can read
-    # the repository and cannot change it; the work tree is outside this setting and stays
-    # group-writable through the umask. This git runs as the user who can read the token,
-    # so it runs no hooks; as command-line configuration this wins over the checkout's own.
+    # the credential helper is the only route to the token. This git runs as the user who
+    # can read the token, so it runs no hooks; as command-line configuration this wins over
+    # the checkout's own.
     # A child git started for a nested repository inherits these pairs, so that repository's
     # `core.fsmonitor` never runs as this user either.
     return {
-        "GIT_CONFIG_COUNT": "4",
+        "GIT_CONFIG_COUNT": "3",
         "GIT_CONFIG_KEY_0": "credential.helper",
         "GIT_CONFIG_VALUE_0": helper,
-        "GIT_CONFIG_KEY_1": "core.sharedRepository",
-        "GIT_CONFIG_VALUE_1": "0640",
-        "GIT_CONFIG_KEY_2": "core.hooksPath",
-        "GIT_CONFIG_VALUE_2": os.devnull,
-        "GIT_CONFIG_KEY_3": "core.fsmonitor",
-        "GIT_CONFIG_VALUE_3": "false",
+        "GIT_CONFIG_KEY_1": "core.hooksPath",
+        "GIT_CONFIG_VALUE_1": os.devnull,
+        "GIT_CONFIG_KEY_2": "core.fsmonitor",
+        "GIT_CONFIG_VALUE_2": "false",
     }
 
 
@@ -247,13 +235,8 @@ def build_boundaries(
     token: str,
     *,
     hosting: HostingService | None = None,
-    which: Callable[[str], str | None] = shutil.which,
 ) -> Boundaries:
-    """Return the boundaries of the instance of `settings`; `hosting` replaces PyGithub.
-
-    An inline instance's agent runtime starts the `sudo` that `which` finds, the one the
-    preflight checks. A container instance does not read it: its container is the boundary.
-    """
+    """Return the boundaries of the instance of `settings`; `hosting` replaces PyGithub."""
     if hosting is None:
         hosting = pygithub_service(repository_name(settings.repository_url), token)
     state = settings.state_directory
@@ -263,7 +246,7 @@ def build_boundaries(
     if settings.stage_environment == "container":
         environment = _container_environment(settings, git)
     else:
-        environment = _inline_environment(settings, git, log, which=which)
+        environment = _inline_environment(settings)
     return Boundaries(
         git=git,
         hosting=hosting,
@@ -308,17 +291,10 @@ class _StageEnvironmentBoundaries:
     containers: PodmanRuns | None = None
 
 
-def _inline_environment(
-    settings: InstanceSettings,
-    git: GitCli,
-    log: FactoryLog,
-    *,
-    which: Callable[[str], str | None],
-) -> _StageEnvironmentBoundaries:
-    sudo_executable = which("sudo") or SUDO_EXECUTABLE
+def _inline_environment(settings: InstanceSettings) -> _StageEnvironmentBoundaries:
     return _StageEnvironmentBoundaries(
-        agent_runtime=_agent_runtime(settings, sudo_executable=sudo_executable),
-        project_commands=_project_commands(settings, git, log, sudo_executable),
+        agent_runtime=_agent_runtime(settings),
+        project_commands=MakeProjectCommands(settings.checkout),
     )
 
 
@@ -359,29 +335,8 @@ def _container_adapters(settings: InstanceSettings) -> _ContainerAdapters:
     )
 
 
-def _project_commands(
-    settings: InstanceSettings,
-    git: GitCli,
-    log: FactoryLog,
-    sudo_executable: str,
-) -> ProjectCommands:
-    if settings.agent_user is None:
-        return MakeProjectCommands(settings.checkout)
-    # A project command runs code an agent wrote, so it runs with the agent's rights, which
-    # reach neither the hosting token nor a writable git folder.
-    user = CommandUser(
-        os_user=settings.agent_user,
-        sudo_executable=sudo_executable,
-        environment=project_command_environment(settings, production_environment()),
-    )
-    return SealedProjectCommands(MakeProjectCommands(settings.checkout, user=user), git, log)
-
-
 def _agent_runtime(
-    settings: InstanceSettings,
-    *,
-    sudo_executable: str = SUDO_EXECUTABLE,
-    containers: PodmanRuns | None = None,
+    settings: InstanceSettings, *, containers: PodmanRuns | None = None
 ) -> AgentRuntime:
     runs = settings.state_directory / RUNS_DIRECTORY_NAME
     if settings.agent_runtime == "opencode":
@@ -390,7 +345,6 @@ def _agent_runtime(
             runs,
             models=settings.opencode_models,
             settings_file=settings.agent_home / "settings.json",
-            sudo_executable=sudo_executable,
             api_login_file=settings.api_login_file,
             provider_limit=settings.provider_limit,
             containers=containers,
@@ -398,7 +352,6 @@ def _agent_runtime(
     return ClaudeCodeRuntime(
         settings.claude_executable,
         runs,
-        sudo_executable=sudo_executable,
         login_file=settings.claude_login_file,
         api_login_file=settings.api_login_file,
         provider_limit=settings.provider_limit,
@@ -426,29 +379,12 @@ def production_environment() -> dict[str, str]:
 def agent_run_environment(settings: InstanceSettings, base: Mapping[str, str]) -> dict[str, str]:
     """Return a copy of `base` with the agent run's `HOME`.
 
-    In a container that is the dataset's home; inline, the agent user's home when the agents
-    run as one, else the base's.
+    In a container that is the dataset's home; inline, the base's.
     """
     environment = dict(base)
     if settings.stage_environment == "container":
         environment.update(WORK_HOME_ENVIRONMENT)
-    elif settings.agent_user is not None:
-        # The agent home is the `.claude` folder inside the agent user's own home.
-        environment["HOME"] = str(settings.agent_home.parent)
     return environment
-
-
-def project_command_environment(
-    settings: InstanceSettings, base: Mapping[str, str]
-) -> dict[str, str]:
-    """The environment of a project command run as the agent user: no bytecode, uv copying."""
-    # Bytecode folders, and files hard-linked from uv's cache in the agent's home, would leave
-    # the checkout holding files the factory's own cleanup cannot remove or replace.
-    return {
-        **agent_run_environment(settings, base),
-        "PYTHONDONTWRITEBYTECODE": "1",
-        "UV_LINK_MODE": "copy",
-    }
 
 
 def build_handlers(
@@ -521,7 +457,6 @@ def build_preflight(
 def machine_extras(
     boundaries: Boundaries,
     settings: InstanceSettings,
-    which: Callable[[str], str | None],
     environment: Mapping[str, str],
 ) -> list[Callable[[], PreflightItem]]:
     """Return the preflight's items after the runtime's version, in the operator guide's order."""
@@ -531,25 +466,13 @@ def machine_extras(
     if settings.stage_environment == "container":
         extras.extend(_container_items(settings))
     else:
-        extras.extend(_inline_items(settings, which, environment))
+        extras.append(lambda: agent_environment_item(environment, Path.is_dir))
     if settings.agent_runtime == "opencode":
         extras.append(
             lambda: opencode_item(settings, environment, _which_on, installed_models(boundaries))
         )
     extras.append(lambda: agent_run_probe_item(boundaries, settings, environment))
     return extras
-
-
-def _inline_items(
-    settings: InstanceSettings,
-    which: Callable[[str], str | None],
-    environment: Mapping[str, str],
-) -> list[Callable[[], PreflightItem]]:
-    items: list[Callable[[], PreflightItem]] = [lambda: agent_user_item(settings, Path.exists)]
-    if settings.agent_user is not None:
-        items.append(lambda: tool_item("sudo", which))
-    items.append(lambda: agent_environment_item(environment, Path.is_dir))
-    return items
 
 
 def _container_items(settings: InstanceSettings) -> list[Callable[[], PreflightItem]]:
@@ -576,7 +499,7 @@ def build_tick(
     """Return a new tick of the instance of `settings`, its agents in the production environment."""
     instance = settings.instance
     environment = agent_run_environment(settings, production_environment())
-    extras = machine_extras(boundaries, settings, which, environment)
+    extras = machine_extras(boundaries, settings, environment)
     return Tick(
         boundaries,
         instance,

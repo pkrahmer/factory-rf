@@ -14,29 +14,19 @@ from factory.adapters.agent_launch import (
 )
 from factory.domain.errors import AgentRuntimeError
 
-STARTERS = Starters(
-    sudo_executable="/usr/bin/sudo",
-    login_files=LoginFiles(),
-)
+STARTERS = Starters(login_files=LoginFiles())
 LIMIT = timedelta(seconds=30)
 CONFINE_STDERR = "factory-confine: landlock is not available\n"
 
 
 @pytest.mark.parametrize(
-    ("os_user", "exit_status", "duration", "timed_out", "expected"),
+    ("exit_status", "duration", "timed_out", "expected"),
     [
-        pytest.param(None, -9, LIMIT, False, False, id="no-user-kill-status"),
-        pytest.param(None, None, LIMIT, True, True, id="process-timed-out"),
-        pytest.param("agent", 137, LIMIT, False, True, id="user-137-at-limit"),
-        pytest.param("agent", -9, timedelta(seconds=31), False, True, id="user-9-above-limit"),
-        pytest.param(
-            "agent", 137, timedelta(seconds=29.9), False, False, id="user-137-below-limit"
-        ),
-        pytest.param("agent", 0, LIMIT, False, False, id="user-status-0-at-limit"),
+        pytest.param(-9, LIMIT, False, False, id="no-user-kill-status"),
+        pytest.param(None, LIMIT, True, True, id="process-timed-out"),
     ],
 )
 def test_a_call_end_is_read_as_timed_out_when_its_own_timeout_killed_it_at_the_limit(
-    os_user: str | None,
     exit_status: int | None,
     duration: timedelta,
     timed_out: bool,
@@ -50,7 +40,7 @@ def test_a_call_end_is_read_as_timed_out_when_its_own_timeout_killed_it_at_the_l
         timed_out=timed_out,
     )
 
-    reading = read_call_end(end, time_limit=LIMIT, os_user=os_user, starters=STARTERS)
+    reading = read_call_end(end, time_limit=LIMIT, starters=STARTERS)
 
     assert reading is expected
 
@@ -66,21 +56,9 @@ def _refused_end(*, printed: bool, exit_status: int, duration: timedelta, stderr
 
 
 @pytest.mark.parametrize(
-    ("os_user", "end", "refusal"),
+    ("end", "refusal"),
     [
         pytest.param(
-            "agent",
-            _refused_end(
-                printed=False,
-                exit_status=1,
-                duration=timedelta(seconds=1),
-                stderr="sudo: a password is required\n",
-            ),
-            "/usr/bin/sudo refused the agent run: sudo: a password is required",
-            id="sudo-refused",
-        ),
-        pytest.param(
-            "agent",
             _refused_end(
                 printed=True, exit_status=0, duration=timedelta(seconds=1), stderr=CONFINE_STDERR
             ),
@@ -88,7 +66,6 @@ def _refused_end(*, printed: bool, exit_status: int, duration: timedelta, stderr
             id="printed-before-the-limit",
         ),
         pytest.param(
-            None,
             _refused_end(printed=False, exit_status=0, duration=timedelta(seconds=1), stderr=""),
             None,
             id="nothing-said",
@@ -96,14 +73,14 @@ def _refused_end(*, printed: bool, exit_status: int, duration: timedelta, stderr
     ],
 )
 def test_a_call_end_raises_the_refusal_read_after_its_time_limit(
-    os_user: str | None, end: CallEnd, refusal: str | None
+    end: CallEnd, refusal: str | None
 ) -> None:
     if refusal is None:
-        reading = read_call_end(end, time_limit=LIMIT, os_user=os_user, starters=STARTERS)
+        reading = read_call_end(end, time_limit=LIMIT, starters=STARTERS)
         assert reading is False
     else:
         with pytest.raises(AgentRuntimeError) as raised:
-            read_call_end(end, time_limit=LIMIT, os_user=os_user, starters=STARTERS)
+            read_call_end(end, time_limit=LIMIT, starters=STARTERS)
         assert raised.value.detail == refusal
 
 

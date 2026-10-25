@@ -3,8 +3,7 @@
 import json
 from pathlib import Path
 
-from adapters.claude_stand_in import Step, write_stand_in
-from adapters.test_claude_runtime_os_user import _request
+from adapters.claude_stand_in import Step, claude_request, write_stand_in
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.domain.provider_limits import ProviderLimit
 from factory.domain.settings import InstanceSettings
@@ -39,6 +38,6 @@ def test_the_built_runtime_recognizes_the_configured_limit_status(tmp_path: Path
     )
     boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
 
-    result = boundaries.agent_runtime.run(_request(tmp_path, None))
+    result = boundaries.agent_runtime.run(claude_request(tmp_path))
 
     assert result.end_reason == "provider_limit"

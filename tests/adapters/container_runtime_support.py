@@ -37,15 +37,12 @@ def files_in(folder: Path) -> list[Path]:
     return sorted(folder.iterdir())
 
 
-def container_request(
-    tmp_path: Path, *, time_limit: timedelta = LIMIT, os_user: str | None = None
-) -> AgentRunRequest:
+def container_request(tmp_path: Path, *, time_limit: timedelta = LIMIT) -> AgentRunRequest:
     """An opencode request whose environment is a container's, the stand-in under `bin/`."""
     return opencode_request(
         tmp_path / "work",
         environment=container_environment(tmp_path / "bin"),
         time_limit=time_limit,
-        os_user=os_user,
     )
 
 

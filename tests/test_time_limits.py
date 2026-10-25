@@ -8,7 +8,6 @@ import pytest
 from adapters import opencode_stand_in
 from adapters import test_opencode_events as opencode_events
 from adapters import test_opencode_resume_session as opencode_resume_session
-from adapters import test_opencode_sudo_time_limit as opencode_sudo_time_limit
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 
@@ -29,18 +28,6 @@ from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
         ),
         pytest.param(
             opencode_events.WAIT_SECONDS, operator.gt, ROOMY_BOUND_SECONDS, id="events-wait"
-        ),
-        pytest.param(
-            ROOMY_LIMIT.total_seconds(),
-            operator.lt,
-            opencode_sudo_time_limit.PAST_LIMIT_SECONDS,
-            id="sudo-past-limit",
-        ),
-        pytest.param(
-            opencode_sudo_time_limit.PAST_LIMIT_SECONDS,
-            operator.lt,
-            ROOMY_BOUND_SECONDS,
-            id="sudo-within-bound",
         ),
     ],
 )

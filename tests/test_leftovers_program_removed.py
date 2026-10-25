@@ -9,7 +9,6 @@ import pytest
 from factory.adapters import agent_launch, process
 from factory.adapters.agent_launch import Starters
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.adapters.make_commands import CommandUser
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.entry import wiring
 from factory.entry.wiring import build_boundaries
@@ -44,10 +43,9 @@ def test_the_leftovers_modules_are_gone(module: str) -> None:
             )
         ),
         pytest.param(
-            lambda: list(Starters.model_fields) == ["sudo_executable", "login_files"],
+            lambda: list(Starters.model_fields) == ["login_files"],
             id="starters-fields",
         ),
-        pytest.param(lambda: "leftovers" not in CommandUser.model_fields, id="command-user"),
         pytest.param(lambda: not hasattr(ClaudeCodeRuntime, "leftovers"), id="claude-property"),
         pytest.param(lambda: not hasattr(OpencodeRuntime, "leftovers"), id="opencode-property"),
         pytest.param(

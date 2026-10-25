@@ -5,10 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls, write_stand_in
+from adapters.claude_stand_in import Step, claude_request, read_calls, write_stand_in
 from adapters.test_agent_launch_login import API_LOGIN, SUBSCRIPTION, _utf_16
 from adapters.test_claude_runtime_login import BUDGET_STOP, REPLY
-from adapters.test_claude_runtime_os_user import _request, _sudo_calls, _write_sudo
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.domain.agent_runs import Login
@@ -35,15 +34,11 @@ def _runtime(
     api_login_file: Path | None,
 ) -> ClaudeCodeRuntime:
     executable = write_stand_in(tmp_path / "bin", steps)
-    sudo = _write_sudo(tmp_path / "sudo-bin")
     if api_login_file is None:
-        return ClaudeCodeRuntime(
-            str(executable), tmp_path / "state", sudo_executable=str(sudo), login_file=login_file
-        )
+        return ClaudeCodeRuntime(str(executable), tmp_path / "state", login_file=login_file)
     return ClaudeCodeRuntime(
         str(executable),
         tmp_path / "state",
-        sudo_executable=str(sudo),
         login_file=login_file,
         api_login_file=api_login_file,
     )
@@ -60,9 +55,9 @@ def test_the_api_file_s_key_wins_and_an_emptied_file_falls_back_to_the_token(
         api_login_file=api,
     )
 
-    first = runtime.run(_request(tmp_path, None))
+    first = runtime.run(claude_request(tmp_path))
     api.write_text("", encoding="utf-8")
-    second = runtime.run(_request(tmp_path, None))
+    second = runtime.run(claude_request(tmp_path))
 
     first_call, second_call = read_calls(tmp_path / "bin")
     assert first_call.environment[API_LOGIN_VARIABLE] == API_LOGIN
@@ -91,7 +86,7 @@ def test_without_an_api_file_the_login_is_the_token_s_or_none(
         api_login_file=None,
     )
 
-    result = runtime.run(_request(tmp_path, None))
+    result = runtime.run(claude_request(tmp_path))
 
     assert result.login == expected
 
@@ -105,7 +100,7 @@ def test_the_request_s_login_entries_are_dropped_for_the_files(
     if not with_key:
         api.write_text("", encoding="utf-8")
     runtime = _runtime(tmp_path, [Step(stdout=REPLY)], login_file=None, api_login_file=api)
-    request = _request(tmp_path, None)
+    request = claude_request(tmp_path)
     carrying = request.model_copy(
         update={"environment": {**request.environment, name: REQUEST_LOGIN}}
     )
@@ -118,24 +113,19 @@ def test_the_request_s_login_entries_are_dropped_for_the_files(
     assert REQUEST_LOGIN not in call.environment.values()
 
 
-@pytest.mark.parametrize(
-    "os_user", [pytest.param("agent", id="user"), pytest.param(None, id="no-user")]
-)
 def test_the_key_stands_in_no_argument_no_run_file_and_no_result(
-    tmp_path: Path, recorder: Recorder, os_user: str | None
+    tmp_path: Path, recorder: Recorder
 ) -> None:
     api, subscription = _files(tmp_path)
     runtime = _runtime(tmp_path, [Step(stdout=REPLY)], login_file=subscription, api_login_file=api)
 
-    result = runtime.run(_request(tmp_path, os_user))
+    result = runtime.run(claude_request(tmp_path))
 
     [claude_call] = read_calls(tmp_path / "bin")
     assert claude_call.environment[API_LOGIN_VARIABLE] == API_LOGIN
     assert all(API_LOGIN not in argument for argument in claude_call.arguments)
     assert claude_call.files
     assert all(API_LOGIN not in text for text in claude_call.files.values())
-    for sudo_call in _sudo_calls(tmp_path / "sudo-bin"):
-        assert all(API_LOGIN not in argument for argument in sudo_call.arguments)
     assert API_LOGIN not in result.model_dump_json()
     assert recorder.requests
     assert all(API_LOGIN not in request.model_dump_json() for request in recorder.requests)
@@ -161,7 +151,7 @@ def test_an_api_file_that_cannot_be_used_stops_the_run_naming_the_file(
     runtime = _runtime(tmp_path, [Step(stdout=REPLY)], login_file=subscription, api_login_file=api)
 
     with pytest.raises(AgentRuntimeError) as raised:
-        runtime.run(_request(tmp_path, None))
+        runtime.run(claude_request(tmp_path))
 
     assert str(raised.value) == (
         f"agent runtime failed: cannot read the agent's API login file {api}: {reason}"
@@ -175,7 +165,7 @@ def test_a_resumed_call_whose_api_file_was_emptied_gets_the_token(tmp_path: Path
     steps = [Step(stdout=BUDGET_STOP, exit_status=1, writes={str(api): ""}), Step(stdout=REPLY)]
     runtime = _runtime(tmp_path, steps, login_file=subscription, api_login_file=api)
 
-    result = runtime.run(_request(tmp_path, None))
+    result = runtime.run(claude_request(tmp_path))
 
     first, resumed = read_calls(tmp_path / "bin")
     assert "--resume" in resumed.arguments

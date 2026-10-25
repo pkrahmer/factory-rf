@@ -13,12 +13,12 @@ from factory.domain.settings import InstanceSettings
 from git_support import install_agents
 from probe_support import ENVIRONMENT, opencode_died, opencode_sso_hint
 
-DIED = opencode_died("agent")
+DIED = opencode_died("the factory user")
 API_HINT = (
     "; the agent's API key is read from /home/agent/.anthropic-api-key: "
     "check that it is valid and that its account has credit"
 )
-SSO_HINT = opencode_sso_hint("agent")
+SSO_HINT = opencode_sso_hint("the factory user")
 
 
 @pytest.fixture
@@ -30,7 +30,6 @@ def settings(agent_home: Path, tmp_path: Path) -> InstanceSettings:
         instance="factory-1",
         state_directory=tmp_path / "state",
         agent_home=agent_home,
-        agent_user="agent",
         claude_login_file=Path("/home/agent/.claude-token"),
         api_login_file=Path("/home/agent/.anthropic-api-key"),
         agent_runtime="opencode",

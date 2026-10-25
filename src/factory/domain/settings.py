@@ -55,7 +55,6 @@ CLAUDE_VERSION_VARIABLE = "FACTORY_CLAUDE_VERSION"
 CREDENTIAL_FILE_VARIABLE = "FACTORY_TOKEN_FILE"
 CLAUDE_LOGIN_FILE_VARIABLE = "FACTORY_CLAUDE_LOGIN_FILE"
 API_LOGIN_FILE_VARIABLE = "FACTORY_API_LOGIN_FILE"
-AGENT_USER_VARIABLE = "FACTORY_AGENT_USER"
 MIN_FREE_SPACE_VARIABLE = "FACTORY_MIN_FREE_GB"
 DEFAULT_MIN_FREE_GB = 5
 PROVIDER_LIMIT_STATUS_VARIABLE = "FACTORY_PROVIDER_LIMIT_STATUS"
@@ -106,7 +105,6 @@ class InstanceSettings(BaseModel):
     claude_login_file: Path | None = None
     api_login_file: Path | None = None
     pinned_agent_version: str | None = None
-    agent_user: Name | None = None
     min_free_gb: PositiveInt = DEFAULT_MIN_FREE_GB
     temporary_directory: Path | None = None
     provider_limit: ProviderLimit = ProviderLimit()
@@ -135,7 +133,6 @@ class InstanceSettings(BaseModel):
             dataset=self.dataset,
             workspace=self.workspace,
             stage_image=self.stage_image,
-            agent_user=self.agent_user,
         ) or workspace_overlap_fault(
             self.stage_environment, self.workspace, self.checkout, self.state_directory
         )
@@ -151,16 +148,15 @@ def stage_environment_fault(
     dataset: str | None,
     workspace: Path | None,
     stage_image: str | None,
-    agent_user: str | None,
 ) -> tuple[str, str] | None:
     """The variable and the fault that keep an instance from running `stage_environment`.
 
     `None` when it can run: `inline` always can; `container` needs a dataset, an absolute
-    workspace and a stage image, and runs no second user.
+    workspace and a stage image.
     """
     if stage_environment == "inline":
         return None
-    return _container_fault(dataset, workspace, stage_image, agent_user)
+    return _container_fault(dataset, workspace, stage_image)
 
 
 def workspace_overlap_fault(
@@ -185,7 +181,7 @@ def workspace_overlap_fault(
 
 
 def _container_fault(
-    dataset: str | None, workspace: Path | None, stage_image: str | None, agent_user: str | None
+    dataset: str | None, workspace: Path | None, stage_image: str | None
 ) -> tuple[str, str] | None:
     if dataset is None:
         return DATASET_VARIABLE, _MISSING_FOR_CONTAINER
@@ -195,8 +191,6 @@ def _container_fault(
         return WORKSPACE_VARIABLE, _NOT_ABSOLUTE
     if stage_image is None:
         return STAGE_IMAGE_VARIABLE, _MISSING_FOR_CONTAINER
-    if agent_user is not None:
-        return AGENT_USER_VARIABLE, "is set, but the container environment runs no second user"
     return None
 
 
@@ -209,7 +203,6 @@ def read_settings(
     checkout = _absolute_path(environ, CHECKOUT_VARIABLE, CHECKOUT_PATH)
     state_directory = _absolute_path(environ, STATE_VARIABLE, STATE_DIRECTORY)
     image = None if read_file is None else _image(environ, read_file)
-    agent_user = _agent_user(environ)
     stage_environment = _stage_environment(environ)
     dataset = _optional(environ, DATASET_VARIABLE) or None
     workspace = _optional_path(environ, WORKSPACE_VARIABLE)
@@ -220,7 +213,6 @@ def read_settings(
         dataset=dataset,
         workspace=workspace,
         stage_image=stage_image,
-        agent_user=agent_user,
     ) or workspace_overlap_fault(stage_environment, workspace, checkout, state_directory)
     if fault is not None:
         raise SettingsInvalid(*fault)
@@ -238,7 +230,6 @@ def read_settings(
         claude_login_file=_optional_path(environ, CLAUDE_LOGIN_FILE_VARIABLE),
         api_login_file=_optional_path(environ, API_LOGIN_FILE_VARIABLE),
         pinned_agent_version=_optional(environ, CLAUDE_VERSION_VARIABLE) or None,
-        agent_user=agent_user,
         min_free_gb=_min_free_gb(environ),
         provider_limit=_provider_limit(environ),
         agent_runtime=_agent_runtime(environ),
@@ -284,11 +275,6 @@ def _holds_password(url: str) -> bool:
 
 def _instance(environ: Mapping[str, str]) -> str:
     return _name(INSTANCE_VARIABLE, _required(environ, INSTANCE_VARIABLE))
-
-
-def _agent_user(environ: Mapping[str, str]) -> str | None:
-    agent_user = _optional(environ, AGENT_USER_VARIABLE)
-    return _name(AGENT_USER_VARIABLE, agent_user) if agent_user else None
 
 
 def _agent_runtime(environ: Mapping[str, str]) -> AgentRuntimeName:

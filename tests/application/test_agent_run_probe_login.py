@@ -21,7 +21,7 @@ HINT = (
     "make it with claude setup-token if it is missing, empty or expired"
 )
 FAILED_REASONS: list[EndReason] = ["died", "no_result", "time_limit", "budget"]
-USERS = [("agent", "agent"), (None, "the factory user")]
+FACTORY_USER = "the factory user"
 
 
 @pytest.fixture
@@ -47,35 +47,30 @@ def _probe_result(reason: EndReason) -> AgentRunResult:
 _ROWS = [
     pytest.param(
         reason,
-        agent_user,
         login_file,
         False,
-        _failed_detail(reason, named, login_file),
-        id=f"{reason}-{agent_user or 'no-user'}-{'login-file' if login_file else 'no-login-file'}",
+        _failed_detail(reason, FACTORY_USER, login_file),
+        id=f"{reason}-no-user-{'login-file' if login_file else 'no-login-file'}",
     )
     for reason in FAILED_REASONS
-    for agent_user, named in USERS
     for login_file in (LOGIN_FILE, None)
-] + [pytest.param("completed", "agent", LOGIN_FILE, True, "", id="completed-login-file")]
+] + [pytest.param("completed", LOGIN_FILE, True, "", id="completed-login-file")]
 
 
 @pytest.mark.usefixtures("coder")
-@pytest.mark.parametrize(("reason", "agent_user", "login_file", "passed", "detail"), _ROWS)
+@pytest.mark.parametrize(("reason", "login_file", "passed", "detail"), _ROWS)
 def test_a_probe_that_does_not_complete_names_the_login_file_when_one_is_set(
     boundaries: Boundaries,
     probe_settings: InstanceSettings,
     agent_runtime: FakeAgentRuntime,
     *,
     reason: EndReason,
-    agent_user: str | None,
     login_file: Path | None,
     passed: bool,
     detail: str,
 ) -> None:
     agent_runtime.queue(ScriptedRun(result=_probe_result(reason)))
-    probed = probe_settings.model_copy(
-        update={"agent_user": agent_user, "claude_login_file": login_file}
-    )
+    probed = probe_settings.model_copy(update={"claude_login_file": login_file})
 
     item = agent_run_probe_item(boundaries, probed, ENVIRONMENT)
 
@@ -94,7 +89,7 @@ def test_a_login_file_the_runtime_cannot_read_fails_the_probe_with_the_runtime_s
         str(tmp_path / "bin" / "claude"), tmp_path / "runtime-state", login_file=folder
     )
     claude = dataclasses.replace(boundaries, agent_runtime=runtime)
-    probed = probe_settings.model_copy(update={"agent_user": None, "claude_login_file": folder})
+    probed = probe_settings.model_copy(update={"claude_login_file": folder})
 
     item = agent_run_probe_item(claude, probed, {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path)})
 

@@ -28,11 +28,6 @@ BASE_ENVIRONMENT = {
             id="container",
         ),
         pytest.param(
-            {"agent_user": "agent", "agent_home": Path("/home/agent/.claude")},
-            "/home/agent",
-            id="inline-agent-user",
-        ),
-        pytest.param(
             {},
             "/home/factory",
             id="inline-without-agent-user",
