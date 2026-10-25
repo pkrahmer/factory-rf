@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T16:20:36.003413Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-10-25T16:20:15.651004Z'
   stage: doing
   run: 962f5ca3c1a44ba6b393c66baf89ea2d
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:20:36.003413Z'
+  stage: tests
 ---
 
 # The checkout's hygiene is removed
@@ -322,3 +331,4 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     Status: when 0edf9d3f was made, `make test` failed only in these two tests. I did not run `make check` in this run, because nothing changed.
 
     Noticed, not touched: `CheckoutPreparer` still stores `self._log` but never reads it. It stays, because the Interface keeps the parameter and the human agreed in entry 14. `make duplicates` (vulture) may list it.
+17. factory: started tests as self.
