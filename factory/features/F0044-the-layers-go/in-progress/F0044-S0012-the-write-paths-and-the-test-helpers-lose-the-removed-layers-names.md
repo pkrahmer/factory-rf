@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T21:06:42.624671Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-25T21:06:21.865171Z'
   stage: docs
   run: 6a3c6802722a4a3d96bd74837530b775
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-25T21:06:42.624671Z'
+  stage: smoke-test
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -363,3 +372,4 @@ Expect: `0`
     `check`: check: green (not run again: passed on tree 92c6af88fac5 at 2026-10-25T21:03:03Z)
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
