@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 442
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-25T09:51:38.450811Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-25T09:51:18.053861Z'
   stage: docs
   run: 81a9c89a0d504b889222647307842fdb
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:51:38.450811Z'
+  stage: smoke-test
 ---
 
 # Step 12 stops the instance between two stages before it stops the VM
@@ -177,3 +186,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
