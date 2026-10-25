@@ -6,8 +6,8 @@ from factory.application.boundaries import Boundaries
 from factory.domain.preflight import PreflightItem
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import machine_extras
-from podman_support import IMAGE, write_podman
-from zfs_support import DATASET, write_zfs
+from podman_support import IMAGE, PodmanPlan, write_podman
+from zfs_support import DATASET, Answer, write_zfs
 
 CREDENTIAL = "example-value"
 ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
@@ -36,14 +36,22 @@ def machine_item(
 def with_dataset(settings: InstanceSettings, root: Path) -> InstanceSettings:
     """The settings with a dataset, a workspace `<root>/work`, an image and stand-in tools.
 
-    The stand-in `zfs` and `podman` are written into `<root>/zfs-bin` and `<root>/podman-bin`.
+    The stand-in `zfs` and `podman` are written into `<root>/zfs-bin` and `<root>/podman-bin`:
+    `podman` prints its version, `zfs` its version and the dataset, so the preflight passes.
     """
+    workspace = root / "work"
+    workspace.mkdir(exist_ok=True)
+    zfs = write_zfs(
+        root / "zfs-bin",
+        {"--version": Answer(stdout="zfs-2.2.2\n"), "list": Answer(stdout=f"{DATASET}\n")},
+    )
+    podman = write_podman(root / "podman-bin", PodmanPlan(stdout=f"{PODMAN_VERSION}\n"))
     return settings.model_copy(
         update={
             "dataset": DATASET,
-            "workspace": root / "work",
+            "workspace": workspace,
             "stage_image": IMAGE,
-            "zfs_executable": str(write_zfs(root / "zfs-bin").path),
-            "podman_executable": str(write_podman(root / "podman-bin").path),
+            "zfs_executable": str(zfs.path),
+            "podman_executable": str(podman.path),
         }
     )

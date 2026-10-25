@@ -16,11 +16,9 @@ from factory.domain.preflight import PreflightItem
 from factory.domain.settings import InstanceSettings
 
 PINNED = "2.1.289"
-SEVEN = [
+FIVE = [
     "tool:git",
     "tool:uv",
-    "tool:make",
-    "tool:claude",
     "hosting-service",
     "agents",
     "agent-runtime-version",
@@ -28,8 +26,6 @@ SEVEN = [
 ALL_TOOLS = {
     "git": "/usr/bin/git",
     "uv": "/usr/local/bin/uv",
-    "make": "/usr/bin/make",
-    "claude": "/usr/local/bin/claude",
 }
 
 
@@ -102,34 +98,20 @@ def test_a_tool_missing_from_the_path_fails_and_says_to_add_it_to_the_image() ->
 def test_a_ready_machine_passes_every_item_in_order(ready: Boundaries, installed: Path) -> None:
     report = MachineChecks(ready, _settings(installed), DictionaryWhich(ALL_TOOLS)).run()
 
-    assert [item.name for item in report.items] == SEVEN
+    assert [item.name for item in report.items] == FIVE
     assert report.passed
-
-
-def test_the_claude_tool_item_asks_for_the_configured_executable(
-    ready: Boundaries, installed: Path
-) -> None:
-    executable = "/opt/claude/bin/claude"
-    which = DictionaryWhich({**ALL_TOOLS, executable: executable})
-    settings = _settings(installed, claude_executable=executable)
-
-    report = MachineChecks(ready, settings, which).run()
-
-    assert report.items[3].name == f"tool:{executable}"
-    assert report.items[3].passed
-    assert executable in which.asked
 
 
 def test_every_item_is_reported_whatever_the_others_found(
     ready: Boundaries, installed: Path, hosting: FakeHostingService
 ) -> None:
     hosting.fail_next("find_open_pull_request")
-    which = DictionaryWhich({"make": "/usr/bin/make", "claude": "/usr/local/bin/claude"})
+    which = DictionaryWhich({})
     boundaries = replace(ready, agent_runtime=FakeAgentRuntime(version="2.1.290"))
 
     report = MachineChecks(boundaries, _settings(installed), which).run()
 
-    assert [item.name for item in report.items] == SEVEN
+    assert [item.name for item in report.items] == FIVE
     assert [item.name for item in report.failed()] == [
         "tool:git",
         "tool:uv",
@@ -250,7 +232,7 @@ def test_the_extra_items_run_last_in_order_and_are_reported_with_the_others(
 
     report = MachineChecks(ready, _settings(installed), DictionaryWhich(ALL_TOOLS), extra).run()
 
-    assert [item.name for item in report.items] == [*SEVEN, "stamp", "probe"]
+    assert [item.name for item in report.items] == [*FIVE, "stamp", "probe"]
     assert report.failed() == [failing]
     assert not report.passed
 

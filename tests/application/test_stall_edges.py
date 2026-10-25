@@ -110,23 +110,3 @@ def test_a_stall_without_a_detail_says_only_its_reason(
     document = boundaries.work_item_reader.parse(text)
     assert document.state is not None
     assert entry_text(document, document.state.journal[-1].number) == entry
-
-
-def test_a_stall_after_the_agent_left_drops_its_commit_on_the_branch(
-    boundaries: Boundaries,
-    *,
-    human: HumanClone,
-    agent_home: Path,
-    agent_runtime: FakeAgentRuntime,
-) -> None:
-    report = run_stage(_left_branch(boundaries, human, agent_home, agent_runtime))
-
-    assert report.stall is not None
-    assert report.stall.reason == "left_branch"
-    log = boundaries.git.log(report.commit, since="origin/main")
-    assert [commit.subject for commit in log] == [
-        "work item F0001-S0001: tests stalled",
-        "work item F0001-S0001: tests starts as factory-1",
-        "write factory/features/F0001-example/in-progress/F0001-S0001-first.md",
-    ]
-    assert boundaries.git.show_file(report.commit, INSIDE) is None

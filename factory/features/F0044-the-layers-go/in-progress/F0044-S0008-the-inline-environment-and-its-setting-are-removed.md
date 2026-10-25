@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T18:18:47.762352Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,13 @@ journal:
   kind: started
   at: '2026-10-25T18:18:47.762352Z'
   stage: tests
+- number: 18
+  speaker: tester
+  kind: question
+  at: '2026-10-25T18:25:18.709278Z'
+  stage: tests
+  run: 0330b823568646c199470d80435ad60e
+  blocked: question
 ---
 
 # The inline environment and its setting are removed
@@ -356,3 +359,45 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     Files created in this run: none. The shared helper is in the existing tests/wiring_support.py. Modules the test run could not import: none.
 16. 2026-10-25 human: (a). Delete the three `*-agent-committed` rows of `tests/application/test_stage_run.py::test_a_run_adds_exactly_one_commit_of_its_own` and the three tests `tests/application/test_stall_edges.py::test_a_stall_after_the_agent_left_drops_its_commit_on_the_branch`, `tests/application/test_stalls.py::test_the_agents_own_commit_stays_below_the_one_stall_commit` and `::test_an_agent_that_left_the_branch_is_brought_back_and_its_other_branch_kept`. They check inline behaviour that leaves with the inline environment; this is the take-over of S0007's inline-only tests that the Interface already names (decisions 24 and 37). Then run this mode again and finish the rest of the list.
 17. factory: started tests as self.
+18. tester: Mode: the test change the human approved (entries 9, 13 and 16). I made the deletions from entry 16 and worked further down the list from entry 15. I stopped before the end because this run's budget was running low. `make lint` is green. I ran `make test` once at the end and it is red with 13 failures, listed under "Not done". While working I also ran pytest directly on the modules I changed (with `--no-cov`), to see each one go green.
+
+    Done (each test keeps its name and what it checks, unless noted):
+    - Entry 16, the human's (a):
+      - tests/application/test_stage_run.py::test_a_run_adds_exactly_one_commit_of_its_own loses its `commits` parametrization and the three `*-agent-committed` rows. `CommittingRuntime` became `HeadNotingRuntime`, which only notes the start head.
+      - Deleted: tests/application/test_stall_edges.py::test_a_stall_after_the_agent_left_drops_its_commit_on_the_branch, tests/application/test_stalls.py::test_the_agents_own_commit_stays_below_the_one_stall_commit and ::test_an_agent_that_left_the_branch_is_brought_back_and_its_other_branch_kept. Unused imports were removed with them.
+    - Tests that expected `make` and the runtime's executable among the required tools:
+      - tests/application/test_preflight.py: the item list is now five (`SEVEN` renamed `FIVE`), and `ALL_TOOLS` drops make and claude.
+      - test_preflight.py::test_the_claude_tool_item_asks_for_the_configured_executable is deleted. It checked the runtime's tool item, which criterion 6 removes, like test_machine_checks_runtime's deleted test.
+      - test_preflight_run.py, test_preflight_stale_main_stop.py and test_preflight_stops_commit.py now make `uv` the missing tool instead of `make`. `TOOLS` in test_preflight_run.py drops make and claude. All four modules pass.
+    - tests/entry/test_wiring_extras.py (both tests): settings wrapped in `with_dataset`. They now expect `[*CONTAINER_ITEMS, "agent-run-probe"]`. Both pass.
+    - tests/wiring_support.py::with_dataset (this story's helper) now creates `<root>/work`. Its `podman` stand-in prints `PODMAN_VERSION` and its `zfs` stand-in answers `--version` and `list` with the dataset, so the preflight's extras pass.
+    - tests/entry/test_wiring_agent_environment.py is deleted whole. It checked the item `agent-environment` that criterion 1 removes, like the Interface's deleted test_agent_environment_item.py.
+    - tests/entry/test_wiring_without_agent_user.py:
+      - test_the_extras_name_no_agent_user_and_no_sudo: rows `claude` (the container list plus `agent-run-probe`) and `opencode` (the same with `opencode` before `agent-run-probe`). The inline rows and the `stage_environment` updates are gone.
+      - test_the_project_commands_run_without_a_user: no longer parametrized; it expects `ContainerMakeCommands`. The module passes.
+
+    Not done (the 13 failures of `make test`):
+    - test_wiring_login (2), test_wiring_api_login (2), test_wiring_opencode::test_the_built_opencode_runtime_runs_with_the_instance_s_models_denies_key_and_limit (2), test_wiring_provider_limit (1).
+    - test_wiring_opencode::test_the_opencode_item_comes_after_confinement_only_under_opencode (2): it still needs `with_dataset` and the container list.
+    - test_wiring_boundaries::test_the_built_project_commands_run_in_the_checkout (GitError: `HEAD` is missing in the dataset's checkout).
+    - test_wiring_boundaries::test_the_built_agent_runtime_keeps_its_run_files_under_runs (FileExistsError).
+    - test_wiring_command_records (FileNotFoundError).
+
+    Question: the login and runtime tests read the environment that the claude or opencode stand-in recorded. Through the container environment the runtime starts `podman run ... <image> <words>`. The login is not passed as an `--env` word. The `factory-login` shell script reads it inside the container, so the stand-in `podman` (which by default exits silently) never starts the runtime's stand-in. What should these tests check now?
+    - (a) Plan the stand-in `podman` to run the words after the image (`PodmanPlan(image=IMAGE)`). The login script and the claude or opencode stand-in then run on the host. Each test keeps checking the environment the runtime's stand-in sees. This needs the container's paths (the login file's mount, the runtime executable) to be reachable on the host in the test, and may need a plan that answers `image exists` differently from `run`.
+    - (b) Check the `podman run` words instead: the login file is mounted and named to the login script, and no secret stands in the argv. That is a different check under the same name.
+    - (c) Delete them as inline-only, like entry 16.
+    I would choose (a), and fall back to (b) for any test where the paths cannot be made reachable. After the answer, one more run in this mode should finish the list above, including test_wiring_boundaries and test_wiring_command_records.
+
+    Criterion → test (unchanged from entry 11):
+    - criterion 1: tests/test_one_stage_environment.py::test_the_inline_environment_s_names_are_gone
+    - criterion 2: tests/application/test_stage_environment_of.py::test_the_environment_of_the_boundaries_is_the_container_one
+    - criterion 3: tests/domain/test_settings_one_environment.py::test_the_stage_environment_setting_is_read_by_nothing
+    - criterion 4: tests/entry/test_wiring_one_environment.py::test_build_boundaries_needs_the_dataset_the_workspace_and_the_image
+    - criterion 5: tests/entry/test_wiring_one_environment.py::test_the_agent_run_s_home_is_the_dataset_s
+    - criterion 6: tests/entry/test_wiring_one_preflight.py::test_the_preflight_checks_the_one_environment_s_items
+    - criterion 7: tests/application/test_request_working_directory.py::test_the_request_works_in_the_dataset_s_checkout
+    - criterion 8: tests/domain/test_settings_one_environment.py::test_a_workspace_refuses_a_relative_path_and_an_inner_checkout_or_state
+    - criteria 9 and 10: no test.
+
+    Files created in this run: none. Deleted: tests/entry/test_wiring_agent_environment.py. Modules the test run could not import: none.
