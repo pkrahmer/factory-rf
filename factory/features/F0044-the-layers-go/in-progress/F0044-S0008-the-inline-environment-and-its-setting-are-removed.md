@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T18:57:43.421855Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -218,6 +214,12 @@ journal:
   kind: started
   at: '2026-10-25T18:57:43.421855Z'
   stage: docs
+- number: 38
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T19:02:09.922477Z'
+  stage: docs
+  run: 903a1be77acf4d6c81d0cd8bd7369fee
 ---
 
 # The inline environment and its setting are removed
@@ -798,3 +800,35 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     - tests/test_vm_setup_text.py: the human's entry 26.
     - tests/wiring_support.py: the Interface, decision 24.
 37. factory: started docs as self.
+38. documenter: Docs, round 1. I read the story, the diff of `src/` and `vm/` against `main`, and the docs. I changed only documents, so I did not run `make check`; the factory's run after this stage decides. `make documents` is green. The code matches the Interface and the criteria, so there are no findings.
+
+    Files changed, one line each:
+    - `README.md`: the paragraph on `FACTORY_STAGE_ENVIRONMENT` now says every stage runs in throwaway containers on a ZFS dataset, and points to the operator guide's chapter "The machine".
+    - `docs/operator-guide.md`:
+      - *Configuration*: removed the `FACTORY_STAGE_ENVIRONMENT` row. `FACTORY_DATASET`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` are now "yes", with the `build_boundaries` `missing` fault and `read_settings`' relative-workspace and inside-workspace faults.
+      - *The stage environment*: rewritten for a single environment.
+      - *The agent runtime*, *The agent in a container*, *The agent run's `PATH` and `HOME`*: one environment, `HOME` is `/work/home`, no `agent-environment` item.
+      - *The service*: removed the env-file row.
+      - *The preflight's items*: five base items, up to twelve with the extras. Removed the rows `tool:make`, the runtime's tool and `agent-environment`; `opencode` has one form; dropped the `container only` qualifiers.
+      - Also removed the `inline` and `container instance` wording in *The project's make targets*, *The project commands*, the probe text, the timing line and the stall note. The example stop now shows `tool:uv`, since `tool:make` no longer occurs.
+    - `docs/project-guide/stage-environment.md`: opening paragraph, *The cycle*, *The sync time limit* and *`run_agent`* describe one environment. *The inline environment* is gone; `stage_environment_of` gives the container environment. *The settings and the wiring* has no `FACTORY_STAGE_ENVIRONMENT` row, the new `workspace_overlap_fault(workspace, checkout, state_directory)`, the three `missing` faults in order before anything is built, and `HOME` always `/work/home`. *The preflight* has one list, `REQUIRED_TOOLS`, `opencode_item(settings, agent_models)`, and no `CONTAINER_TOOLS`. The test names are updated.
+    - `docs/project-guide/watching.md`: *Boundaries* has `snapshots` and `containers` required (eight required fields, none `None`). The tick's preflight step has one list of extras, `opencode_item(settings, agent_models)`, and no runtime executable among the tools. `agent_environment_item` is removed.
+    - `docs/project-guide/processes-and-checks.md`: the string `"make"` appears in `factory.adapters.make_commands` alone, as `tests/test_make_search.py` allows. *Running as another user* has no `inline` instance.
+    - `docs/project-guide/write-guard.md`: `UndoService` has no caller since `InlineEnvironment` went; S0009 removes it.
+    - `docs/project-guide/stages.md`: the launch, take and stall passages no longer say "inline" or "undo".
+    - `docs/project-guide/costs.md`: removed the `inline` explanations of the sidecar; the take never brings the sidecar from the dataset.
+    - `docs/project-guide/agents.md`: `agent_run_environment` always sets `HOME=/work/home`; a call on the host is only the suite's. Also the wiring sentence.
+    - `docs/project-guide/git-and-hosting.md`: the settings list no longer names `FACTORY_STAGE_ENVIRONMENT`.
+    - `docs/project-guide/README.md`: removed `inline_boundaries` from the `container_support.py` line (the helper is gone); the `write-guard.md` line says nothing calls the undo; one `container instance` phrase fixed.
+    - `docs/decisions.md`: one line under "One snapshot instead of many layers" that the inline environment and its setting went with v1.2, F0044-S0008.
+
+    Cross-read and found current: `docs/project-guide/work-items.md` (its "inline code" hit is unrelated), the other chapters of `docs/operator-guide.md` (vm/setup.sh, *The machine*, the stage image, the container runtimes), and the README's console-command table.
+
+    Stale text I noticed and left alone:
+    - `docs/decisions.md` keeps older entries that name `InlineEnvironment` and `FACTORY_STAGE_ENVIRONMENT` as they then were. They are the log of what was decided, so I did not edit them.
+    - `docs/project-guide/stage-environment.md` still has "the VM's present file keeps `FACTORY_STAGE_ENVIRONMENT`" nowhere; the operator guide now says an env file that still holds it is harmless. Nothing else is stale.
+    - The reviewer's two test notes (a copied `_record_get_repo`, a repeated `CONTAINER` dict) are for the tester's standing leave and not documentation.
+
+    `check`: check: green (not run again: passed on tree c190bf5ef66c at 2026-10-25T18:54:28Z)
+    `secrets`: secrets: green (3.8 s)
+    `documents`: documents ok
