@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 431
 comments_read: [6391224129]
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T00:28:14.787675Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-25T00:28:14.787675Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T00:29:18.723347Z'
+  stage: docs
+  run: 78876474161146a7bb86d0ba65a341bf
 ---
 
 # The checkout and the state directory are settings
@@ -375,3 +377,28 @@ Expect: `1`
     - `tests/entry/test_run.py`: the standing leave to move a shared test helper. The `image_file` and `environment` fixtures moved to `tests/conftest.py` unchanged, and the local copy of `HOSTED_URL` now comes from `wiring_support`, which holds the same value. Every test keeps its name and what it checks.
     - `tests/conftest.py`: the standing leave to move a shared test helper. It only receives the two fixtures moved from `tests/entry/test_run.py`.
 21. factory: started docs as self.
+22. documenter: Round 1 docs. I read the story, the diff of `src/factory/domain/settings.py` and `src/factory/entry/run.py`, and the docs the criterion names. The code matches the Interface and the criteria, so there are no findings for the coder. I changed only documents, so I did not run `make check`; the factory's run after this stage decides. I ran no example, because I wrote none.
+
+    Files changed:
+    - `docs/operator-guide.md`, *Configuration*:
+      - Two table rows, `FACTORY_CHECKOUT` and `FACTORY_STATE`, right after `FACTORY_INSTANCE`.
+      - The sentence "first fault in the order of the table" now gives the code's order: repository, instance, checkout, state, image identity file, `FACTORY_AGENT_USER`, the stage environment's faults, then the rest.
+      - The paragraph that said the checkout and state directory are fixed now says they are settings, that the image leaves them unset, and that the VM sets them under `/srv/factory/<instance>`.
+      - The *stage environment* paragraph gains the `<path> lies inside FACTORY_WORKSPACE` fault for the checkout and the state directory.
+    - `docs/operator-guide.md`, *When the process refuses to start*: the stop and the log line go to the `FACTORY_STATE` directory, else `/state`. A relative `FACTORY_STATE` is itself the fault.
+    - `docs/operator-guide.md`, *The entrypoint*: the "factory ignores `FACTORY_STATE`" sentence now says the factory reads it too.
+    - `docs/operator-guide.md`, *The health check and the restart policy*: the `--state-directory` option of `factory-health`.
+    - `docs/project-guide/git-and-hosting.md`: one sentence on the two path settings, their defaults and their validator.
+    - `docs/project-guide/stage-environment.md`, *The settings and the wiring*: `workspace_overlap_fault` and its use by `read_settings` and the model validator.
+    - `docs/project-guide/watching.md`: where `factory-run` writes the stop of invalid settings (`named_state_directory`, the fallback, a runner's `SettingsInvalid`), and how `FACTORY_STATE` relates to `factory-health --state-directory`.
+    - `docs/decisions.md`: a new entry "The checkout and the state directory are settings", plus a "superseded in part" note on the sentence in "One instance runs one project, and the settings can name no second one".
+
+    Cross-read and found current: `README.md` (criterion says none; it does not mention the two paths) and the rest of the operator guide's mentions of `/state` and `/work/checkout`, which stay correct as the defaults.
+
+    Stale text I did not touch: none found that is unrelated to this story.
+
+    Open: the operator guide now points to "The machine" for the VM's `/srv/factory/<instance>` layout. That section (line 391) exists but I did not check that it names these two variables; S0003's environment file is the story that sets them.
+
+    `check`: check: green (not run again: passed on tree 2842623e6196 at 2026-10-25T00:25:21Z)
+    `secrets`: secrets: green (3.5 s)
+    `documents`: documents ok

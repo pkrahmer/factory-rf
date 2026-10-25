@@ -237,7 +237,7 @@ Date: 2026-10-15 (F0009-S0010). `build_handlers` builds `closed` and `merged` on
 
 ## One instance runs one project, and the settings can name no second one
 
-Date: 2026-10-16 (F0010-S0001). `InstanceSettings` holds one `repository_url`, and `read_settings` refuses a value with whitespace or a comma (R2). v1's list of repositories (`REPOS`) is gone; a test searches `src/factory` for it. One instance, one project keeps the checkout, the state and the lease of an instance unambiguous; a second project is a second instance. The checkout and the state directory are constants, never read from the environment, so no variable can point an instance at another place. A URL with a password is refused too (the human, 2026-10-14): git would keep it in the shared checkout's `.git/config`, which the agent can read, so the token belongs in the token file. A user name alone and the scp form are accepted. Rejected: a list with a separator (v1's shape, which the single-project rule removes) and stripping the password from the URL (it would hide that the operator's setup is wrong).
+Date: 2026-10-16 (F0010-S0001). `InstanceSettings` holds one `repository_url`, and `read_settings` refuses a value with whitespace or a comma (R2). v1's list of repositories (`REPOS`) is gone; a test searches `src/factory` for it. One instance, one project keeps the checkout, the state and the lease of an instance unambiguous; a second project is a second instance. The checkout and the state directory are constants, never read from the environment, so no variable can point an instance at another place (superseded in part by *The checkout and the state directory are settings*, below). A URL with a password is refused too (the human, 2026-10-14): git would keep it in the shared checkout's `.git/config`, which the agent can read, so the token belongs in the token file. A user name alone and the scp form are accepted. Rejected: a list with a separator (v1's shape, which the single-project rule removes) and stripping the password from the URL (it would hide that the operator's setup is wrong).
 
 ## The commit identity has a default and no preflight item
 
@@ -1026,3 +1026,12 @@ Date: 2026-10-24 (F0042-S0016, decision 23 of the feature F0042).
 - Why: code in the checkout (a dependency's install script, a test, a file an agent was misled into writing) runs in these containers, and F0044 removes the second user and the kernel's write guard, so the container's own fence is what stays.
 - Why the network stays: the check's `make sync` needs the package index after a change of `uv.lock` or `pyproject.toml`, the sync needs it as well, and the agent needs the model's API. Cutting it is a later step, for example an allow-list. The human chose this on 2026-10-24 over a check without network.
 - Rejected: a `network` option on `ContainerRuns` that the check does not ask for.
+
+## The checkout and the state directory are settings
+
+Date: 2026-10-24 (F0043-S0002; `planning/v1.2-plan.md`, F0043).
+
+- Decision: `FACTORY_CHECKOUT` and `FACTORY_STATE` set the factory's checkout and its state directory, each an absolute path, with `/work/checkout` and `/state` as defaults; a relative one is `SettingsInvalid`. On a `container` instance neither may be the `FACTORY_WORKSPACE` or lie inside it. `factory-run` writes the stop of invalid settings under the directory `FACTORY_STATE` names, else under `/state`.
+- Why: on the VM of v1.2 the factory is a systemd service on the host under `/srv/factory/<instance>`, where `/work/checkout` and `/state` do not exist. Every rollback of the dataset would reset a checkout inside it, and the agent's container would reach the health file and the runs in a state directory inside it. A fault on the VM must land where `factory-health --state-directory` reads it.
+- Superseded in part: the sentence "The checkout and the state directory are constants, never read from the environment" of *One instance runs one project, and the settings can name no second one*. The rest of that decision stands.
+- Rejected: a second default for the VM (the instance's environment file sets both, and a compose instance that sets neither runs as before).
