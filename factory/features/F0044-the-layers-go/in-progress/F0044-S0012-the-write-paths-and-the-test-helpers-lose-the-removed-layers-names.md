@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T21:05:40.777799Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-25T21:05:20.385171Z'
   stage: review
   run: 8c3a0f5668044c0e9dc8e3d90c6d48b9
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-25T21:05:40.777799Z'
+  stage: docs
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -327,3 +336,4 @@ Expect: `0`
     - tests/test_kernel_guard_removed.py: decision 42 (`GuardSettings` → `WritePathSettings`, row ids kept)
     - tests/test_hook_removed.py: decision 42 (`GuardSettings` → `WritePathSettings`; the guard-settings row now checks that `WritePathSettings` is present; the `GuardSettingsInvalid` row is unchanged)
     - tests/search_support.py: the standing leave for shared test helpers. `modules_matching` gains an optional `root` that defaults to `TESTS`, so the new test uses the shared helper instead of a copy. Its three earlier callers (`test_shared_test_helpers.py`, `test_docker_path_removed.py`, `test_opencode_shared_steps.py`) are unchanged and check the same thing. A judgement call for the human to see at approval: this extends the shared helper rather than only moving it there, and it is the narrowest change that avoids the copy round 0 counted as a finding.
+18. factory: started docs as self.
