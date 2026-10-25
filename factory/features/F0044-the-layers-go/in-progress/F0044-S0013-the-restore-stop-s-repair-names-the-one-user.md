@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 457
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T21:10:26.584942Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-25T21:10:26.584942Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T21:12:45.149287Z'
+  stage: tests
+  run: 1de54f9e3b1e4cdaa3b179605e93c1bc
 ---
 
 # The restore stop's repair names the one user
@@ -82,3 +84,11 @@ Expect: `documents ok`
    Architecture: the change is to documents only, which the documenter owns. `README.md` and `docs/decisions.md` stay untouched, as the criterion says.
    Scope: it stays within F0044 as acceptance story A0001 proposed it (decision 42). It does not touch the restore, the stop or the crash cap, which are in the feature's "stay as they are" list.
 4. factory: started tests as self.
+5. tester: I wrote no tests, and nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/` changed. The Interface is "None": the story changes documents only and no test reads them.
+   criterion 1 (nothing under src/, tests/, vm/, template/ or claude/ changes): no test. The entry states it, and `git status` shows no change in those paths.
+   criterion 2 (`make check` stays green): no test. The factory's checks cover it.
+   criterion 3 (docs): no test. The smoke test and `make documents` check it, as the Interface says.
+   Files created: none. Modules the test runner could not import: none. Because there are no new tests, the branch has no red tests: `make test` ended `test: green (61.2 s)` (99.55 % coverage) and `make lint` ended `lint: green (0.2 s)`. The coder has no test to make pass and only confirms criterion 1 in their own entry.
+
+   `lint`: lint: green (0.2 s)
+   `test`: test: green (61.6 s)
