@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 435
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-25T07:31:02.891950Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-25T07:31:02.891950Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T07:31:19.327397Z'
+  stage: intake
+  run: 33354200d4ea46099677878ccdb64883
 ---
 
 # The dataset's checkout knows origin/main
@@ -57,3 +59,9 @@ Expect: `1`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names the concrete module `factory.application.stage_environment` and the one line to change. I checked `_SYNC_SCRIPT` at line 36 and its fetch line at line 42; it matches the story's description of today's line. The target is exact: one `git fetch` with two refspecs, plus a comment saying why.
+   Criteria: each is testable by one test function. 1 is parametrized: origin/main, origin/<branch> and main each equal the host's commit. 2 covers a branch deleted on the host and gone from both `refs/heads/` and `refs/remotes/origin/` (the prune side). 3 covers merge-base HEAD origin/main. 4 covers both refspecs on the one fetch line and no `/work` or `/upstream`. 5 and 6 are the closing criteria. The Interface states no limit, validation or error, so no failing side is missing. The "nothing else changes" clauses (the checkout and reset, inline instances) are existing behaviour that earlier tests already pin, and the story changes no earlier test.
+   Smoke test: the `grep -c` command is runnable and does not run pytest. Its `Expect: 1` is checkable, because the refspec appears once in the file.
+   Architecture: the change is inside `factory.application`, in the existing sync script. It adds no tool, dependency or layer crossing.
+   Scope: this matches decision 18 of `feature.md`, and the story is not under the feature's "Out of scope". The sync is F0042's code, and decision 18 explicitly lets this story change it. `feature.md` says the story is built on `self` while the instance `vm` is stopped.
