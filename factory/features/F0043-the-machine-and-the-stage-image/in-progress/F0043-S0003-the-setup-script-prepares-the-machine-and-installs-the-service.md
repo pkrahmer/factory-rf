@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T00:42:08.808766Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-25T00:42:08.808766Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-25T00:49:20.506850Z'
+  stage: doing
+  run: 16eb50c357eb423fa3c326a3c8c5bbb5
 ---
 
 # The setup script prepares the machine and installs the service
@@ -201,3 +203,34 @@ Expect: `1`
    `lint`: lint: green (0.6 s)
    `test`: ERROR tests/test_vm_setup_text.py::test_the_options_land_in_their_named_variables[repository_url] - FileNotFoundError: [Errno 2] No such file or directory: '/work/checkout/vm/setup.sh'
 9. factory: started doing as self.
+10. coder: I added `vm/setup.sh` and `vm/factory.service` and wrote neither elsewhere; no module under `src/factory/` changed. The 128 tests in `tests/test_vm_setup.py`, `tests/test_vm_setup_text.py` and `tests/test_vm_service.py` pass, and `make check` is green: it ends `check: green`, coverage is 99.20 %. The first `make check` run ended at `make types` with `Error 139` (mypy segfaulted, no other output). The second run was green with nothing changed, so I take it as a one-off crash of the machine's mypy rather than of this work.
+
+    **What I built**
+    - `vm/setup.sh` (POSIX `sh`, `set -eu`) has five parts in order:
+      - the usage, with every option on its first line and one line per option with its default;
+      - the option parsing: `need_value` refuses a missing value or one beginning with `--`, and `fault` prints `setup.sh: …` and the usage to standard error and exits 2;
+      - the checks of the required options and of `--runtime`;
+      - the root check;
+      - the thirteen steps, each printing literal `setup: <step>: ` lines and a `found` line when its work is already done.
+    - Nothing is made before the root check. The staging file (`mktemp`, removed by `trap`) is made only after it.
+    - `vm/factory.service`: the template unit with exactly the keys the Interface lists.
+
+    **Main choice: a staging file instead of text held in a variable.** Every file the script writes goes through one staging file (`stage` writes it from a here-document, `unchanged` compares it with `cmp -s`). This covers the sudoers rule, the wrapper, the askpass script and the environment file, and each is written only when it differs. I rejected holding the text in `$(cat <<EOF …)` and comparing strings, for two reasons:
+    - The askpass and wrapper texts contain `case` patterns with `)` inside a command substitution, which is fragile to parse.
+    - A helper that writes and reports "changed" through its exit status would run inside an `if`, where `set -e` is off, so a failed `install` would be reported as "found".
+
+    **Other choices**
+    - `as_factory` (`runuser -u factory -- env HOME=/home/factory`): runuser keeps root's `HOME`, so git and uv would otherwise read and write `/root`.
+    - The user step ends with an extra line, `setup: user: found the subuid and subgid ranges of factory`. Without it the step's text would end on the refusal line, before its `exit 1`, and the test of criterion 9 could not see the `exit 1`.
+    - The tools step calls `$tools/bin/uv --version` unquoted, because criterion 9 wants the literal `uv --version`. That is safe only while an instance name holds no spaces.
+
+    **Refactor:** I read the diff once and found nothing to change.
+
+    **Noticed, not touched**
+    - The delegation step treats the delegation as found when `zfs allow <dataset>` prints `user factory diff,destroy,mount,rollback,snapshot`. I assumed OpenZFS lists the permissions sorted and comma-separated. If the real output differs, the step runs `zfs allow` again on every run, which does no harm.
+    - The steps `datasets` (`zfs set`, the `chown` of the mount point), `tools` (`uv sync`) and `service` (`systemctl daemon-reload`) run some commands on every run. They are idempotent and the Interface lists them without a guard.
+    - The permission check refused my one command that ran the smoke test's first two blocks, so I did not run the smoke test by hand. The suite runs the same argument and root checks for real.
+    - No skill applied.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
