@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T06:02:25.138266Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -334,6 +330,13 @@ journal:
   kind: started
   at: '2026-10-25T06:02:25.138266Z'
   stage: review
+- number: 59
+  speaker: reviewer
+  kind: question
+  at: '2026-10-25T06:04:55.319890Z'
+  stage: review
+  run: 33089e91d41d48b2a5e55081bc2065f2
+  blocked: question
 ---
 
 # The setup script prepares the machine and installs the service
@@ -970,3 +973,33 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 58. factory: started review as self.
+59. reviewer: Review, round 1, after the human's entry 49. I read the work item, the diff's stat and name-status, all of `vm/setup.sh` and `vm/factory.service`, `tests/vm_support.py` and the three test modules. I did not run `make check`. The coder's entry 57 reports it green (`check: green`, coverage 99.20 %).
+
+    Groups 1 to 3 pass for what the criteria and the human's answers settle:
+    - **Group 1:** criteria 1 to 14 each have a test that checks what the criterion says. Entry 49's `.secrets` link test is in the one refusal at `vm/setup.sh:245`, before the first `install -d`, and is pinned by the `link-test-secrets` row (`tests/test_vm_setup_text.py:581-584`).
+    - **Group 2:** nothing under `src/` changed.
+    - **Group 3:** after the `folders` step, root runs no file that `factory` owns. Root only reads from the checkout (`cmp`, `sed`). Every write under `$base` goes through `as_factory`.
+
+    One point stops the review. Fixing it changes the rule from the human's entry 37 (criterion 13: the install happens "only in the run whose checkout step ran git clone"), so I am asking you.
+
+    **Question.** `vm/setup.sh:288-291`, `:310-316` and `:355-365`: if a first run is interrupted after the clone and before the installs, every later run fails. On a fresh VM this happens whenever PyPI cannot be reached in `python3 -m venv`, `pip install uv==…` or `uv sync`; `set -e` then ends the run after line 290 has cloned.
+    - In the next run, `$checkout/.git` exists, so `cloned=no`.
+    - The `tools` step does not install the missing `/usr/local/bin/git-credential-factory`. It prints "differs from the checkout; not installed" to standard error, and its standard-output line still says the helper is "in place", which is false.
+    - The `service` step does not install the missing `factory@.service`. Then `systemctl enable factory@<instance>` fails because the unit does not exist, and the run exits 1.
+    - Every later run ends the same way. Nothing tells the operator that the only way out is to remove `/srv/factory/<instance>/factory` by hand. That goes against the Description's promise that a second run completes the rest.
+
+    Options:
+    - **(a)** Also install when the target file is missing: `if [ "$cloned" = yes ] || [ ! -e <target> ]`. This is safe in the script's own flow. The unit is installed only after the helper, in the same run, so a missing unit means `factory@` never ran and nothing has changed the checkout since the clone. The tester adds a row for the missing-target side to criterion 13's test, and the existing rows still hold.
+    - **(b)** Keep entry 37 as it is. S0004's guide tells the operator to remove `/srv/factory/<instance>/factory` and run the script again after a first run that failed after the clone. The coder only rewords the `tools` and `service` lines so they no longer say "in place" when the file was not installed.
+    - **(c)** Leave everything as it is.
+
+    I would choose (a). It keeps the safety of entry 37, because a file that is in place but differs is still left alone, and it brings back the rerun the Description promises. If you answer (a), I will add it to criterion 13 and the Interface, and the coder ends with `tests` for the new row.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`); the only earlier files it changes are `docs/operator-guide.md` and `docs/project-guide/README.md`, which are not tests.
+
+    Open, for the documenter (as entry 51 says): the round-1 sections of `docs/operator-guide.md` still lack the link refusals and the installs only in the run that made the clone (step 10 at diff line 50, and the refusals). Criterion 16 already asks for both.
+
+    Notes:
+    - `tests/vm_support.py:5`: imports the private `_uncommented` from `dockerfile_support`.
+    - `tests/test_vm_setup_text.py:491` (`chown-keeps-links`): the row passes without checking any line, because the script holds no `chown`.
+    - `tests/test_vm_setup_text.py:592`: the name `test_the_folders_step_refuses_a_link_at_state_or_repo` now also covers `/home/factory/.secrets`.
