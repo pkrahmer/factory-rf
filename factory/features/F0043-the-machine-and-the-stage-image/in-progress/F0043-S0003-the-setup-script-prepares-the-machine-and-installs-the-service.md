@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T01:01:57.332139Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-25T01:01:57.332139Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-25T01:05:13.090983Z'
+  stage: doing
+  run: 806457236a8440ff8b892f35831577d9
 ---
 
 # The setup script prepares the machine and installs the service
@@ -438,3 +440,20 @@ Expect: `1`
        - Change the script so that no `zfs allow` comes before the `datasets` step. For example, define or inline the check of the current permissions inside the `delegation` step.
        - Ask the human (R8) to change the smoke test's word to `zfs allow -u`. `## Smoke test` is the human's, so no stage may edit it without that answer.
 21. factory: started doing as self.
+22. coder: Round 2. This round fixes the smoke tester's one finding in entry 20, and nothing else. The only file changed is `vm/setup.sh`. `vm/factory.service` and the tests are unchanged.
+
+    **What I changed.** I moved the `delegated()` helper in `vm/setup.sh`. It used to sit with the other helpers, before the steps. It now sits right after the `datasets` step's line and right before the `delegation` step that calls it. A second line on its comment says why it sits there: so the script's text keeps the order of its steps. Its body is the same as before. With comment lines dropped, the first `zfs allow` in the script now falls between `zfs create` and `sudoers.d/factory-zfs`.
+
+    **Main choice and the alternative I rejected.** I moved the helper. I rejected asking the human to change the smoke test's word to `zfs allow -u`. The script can meet the smoke test as written, so there is nothing to ask. I also rejected inlining the permission check into the `delegation` step: that would need a flag variable in place of the helper's `return 1`, and it reads worse.
+
+    **Verified**
+    - I ran smoke test command 2 exactly as written. It printed `in-order 14`, `1`, `0`, `1`, `0`, which meets its `Expect:` line.
+    - `sh -n vm/setup.sh` passes.
+    - `make check` ends `check: green`, with coverage at 99.20 %.
+
+    **Refactor.** I read the diff once. It only moves the helper, and I found nothing else to change.
+
+    **Noticed, not touched.** The other helpers still sit before the first step, so `delegated` is now the only helper defined between steps. That is on purpose, as above. I did not add the same rule for the other helpers, because none of them contains one of the smoke test's step words. No skill applied.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone

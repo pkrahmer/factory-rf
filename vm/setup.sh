@@ -121,17 +121,6 @@ said() {
   fi
 }
 
-# zfs allow lists each user's permissions comma-separated, in an order of its own.
-delegated() {
-  permissions=$(zfs allow "$dataset" | sed -n 's/^[[:space:]]*user factory //p' | tr '\n' ',')
-  for permission in snapshot destroy rollback diff mount; do
-    case ",$permissions," in
-      *",$permission,"*) ;;
-      *) return 1 ;;
-    esac
-  done
-}
-
 changes=
 packages="zfsutils-linux podman uidmap slirp4netns git make python3.12-venv"
 missing=
@@ -195,6 +184,18 @@ if [ "$(stat -c '%U:%G' "$base/work")" != factory:factory ]; then
   changed "gave $base/work to factory"
 fi
 echo "setup: datasets: $(said "found $pool/factory and $dataset at $base/work with the quota $quota")"
+
+# zfs allow lists each user's permissions comma-separated, in an order of its own.
+# Defined here, after the datasets it reads, so the script's text keeps the order of its steps.
+delegated() {
+  permissions=$(zfs allow "$dataset" | sed -n 's/^[[:space:]]*user factory //p' | tr '\n' ',')
+  for permission in snapshot destroy rollback diff mount; do
+    case ",$permissions," in
+      *",$permission,"*) ;;
+      *) return 1 ;;
+    esac
+  done
+}
 
 changes=
 if ! delegated; then
