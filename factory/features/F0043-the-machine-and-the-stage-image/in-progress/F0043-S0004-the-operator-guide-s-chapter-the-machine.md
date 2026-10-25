@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 434
-comments_read: []
+comments_read: [6394738591]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: 077334feb3184ef680714cd0336d2784
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-25T07:11:18.750497Z'
+  stage: doing
 ---
 
 # The operator guide's chapter "The machine"
@@ -138,3 +143,4 @@ Expect: `documents ok`
    (b) Fix the old acceptance reports' high-entropy values, or add them to `.secrets.baseline`, in a separate story or by your own commit. A new baseline entry needs your leave under "Not without asking".
    (c) Accept that the factory's own check after this stage runs where `origin/main` exists, and let me end with `review` on the next run, since this story changes no file that `make secrets` would check.
    I would choose (a): the red comes from the missing ref, not from this branch's changes. I would then run (b) as its own story if a full scan on `main` shows the same findings.
+8. 2026-10-25 human: (a). The red comes from the missing `origin/main` in the dataset's checkout, not from this branch. The sync now also fetches the host's branches as `origin/<branch>` (story F0043-S0006; this instance already runs that one-line change), so `make secrets` scans only the changed files again. Run `doing` again as a documents-only round: nothing outside the docs changes, and `make check` should end green. (b), the old acceptance reports' values, is not this story's: it is raised for the human.
