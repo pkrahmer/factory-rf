@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T17:25:42.650939Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -180,6 +184,11 @@ journal:
   at: '2026-10-25T17:25:22.159915Z'
   stage: smoke-test
   run: a8314285eaa746b7aa3e604c044ae507
+- number: 32
+  speaker: factory
+  kind: started
+  at: '2026-10-25T17:25:42.650939Z'
+  stage: doing
 ---
 
 # The suite's stages run on the container fakes
@@ -552,3 +561,4 @@ Expect: two lines: `1`; `1`
        - (b) the human changes the smoke test's expectation to allow the helper.
 
        Choosing between them is not this stage's call.
+32. factory: started doing as self.
