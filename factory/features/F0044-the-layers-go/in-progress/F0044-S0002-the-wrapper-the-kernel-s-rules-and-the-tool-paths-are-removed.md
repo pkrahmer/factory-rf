@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 445
 comments_read: [6397809713]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T12:46:47.517958Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-25T12:46:47.517958Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-25T12:50:25.117580Z'
+  stage: tests
+  run: 9956c8fac07140a9b6e88ca349c83211
 ---
 
 # The wrapper, the kernel's rules and the tool paths are removed
@@ -335,3 +337,23 @@ Expect: two lines: `2.0 False ['protected_paths', 'root', 'write_paths']`; `0`
     - The `factory-confine` console script in `pyproject.toml` is left for the human's change 3, after the merge.
     - The journal did not change what the task means, so `## Description` is unchanged.
 15. factory: started tests as self.
+16. tester: Mode: a test change the human approved (entry 12, as the coder's entry 14 names it). I made exactly these changes. No test was renamed and every test still checks what it checked before.
+
+    Finding 3, under the human's leave in entry 12:
+    - `tests/adapters/test_claude_runtime_login.py`: I removed the `_guarded_request` helper, which existed only to add `guard` through `model_copy`. `test_the_login_stands_in_no_argument_no_run_file_and_no_result` now runs `_request(tmp_path, os_user)`. I also dropped the `GuardSettings` import, which nothing used any more.
+    - `tests/adapters/test_claude_runtime_api_login.py`: I took the `guard` update out of `test_the_key_stands_in_no_argument_no_run_file_and_no_result`, which now runs `_request(tmp_path, os_user)` directly. I dropped the `GuardSettings` import here too.
+    - `tests/adapters/test_claude_runtime_no_hook.py`: I merged the rows `unconfined-guarded` and `unconfined-unguarded` into one row, `unconfined`, which builds its request with `run_request`. I removed the `_guarded` and `_unguarded` helpers. The module docstring no longer says "with or without guard settings". `test_no_run_registers_a_hook` keeps its name and its three asserts.
+
+    Finding 2, under the standing leave in CLAUDE.md to move a shared test helper:
+    - I moved `_has(module, name)` into the new shared module `tests/module_names.py` as `has_name`. `tests/test_hook_removed.py` and `tests/test_kernel_guard_removed.py` now import it from there and no longer hold their own copies. In `test_hook_removed.py`, two `pytest.param` rows (`guard-command`, `guard-settings`) are now wrapped across lines to stay within the line limit. Their values and ids are unchanged.
+
+    Files created: `tests/module_names.py`.
+    Earlier test files changed: `tests/adapters/test_claude_runtime_login.py`, `tests/adapters/test_claude_runtime_api_login.py`, `tests/adapters/test_claude_runtime_no_hook.py`, `tests/test_hook_removed.py`, `tests/test_kernel_guard_removed.py`.
+    Modules the test run could not import: none.
+
+    Results: `make test` passed (`test: green (67.3 s)`). `make lint` passed (`lint: green (0.2 s)`). I skipped the type check as the stage says; the coder's `make check` covers it.
+
+    Rejected: dropping the parametrize from `no_hook` altogether. The answer said to fold the rows into one, so I kept a table with one row.
+
+    `lint`: lint: green (0.6 s)
+    `test`: test: green (66.4 s)

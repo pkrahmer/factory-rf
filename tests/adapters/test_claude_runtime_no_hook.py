@@ -1,4 +1,4 @@
-"""The `claude -p` runtime registers no write hook, with or without guard settings."""
+"""The `claude -p` runtime registers no write hook."""
 
 from collections.abc import Callable
 from pathlib import Path
@@ -16,19 +16,10 @@ def _unconfined(layout: Layout, claude: Path) -> ClaudeCodeRuntime:
     return ClaudeCodeRuntime(str(claude), layout.state)
 
 
-def _guarded(layout: Layout) -> AgentRunRequest:
-    return run_request(layout)
-
-
-def _unguarded(layout: Layout) -> AgentRunRequest:
-    return run_request(layout).model_copy(update={"guard": None})
-
-
 @pytest.mark.parametrize(
     ("runtime_of", "request_of"),
     [
-        pytest.param(_unconfined, _guarded, id="unconfined-guarded"),
-        pytest.param(_unconfined, _unguarded, id="unconfined-unguarded"),
+        pytest.param(_unconfined, run_request, id="unconfined"),
     ],
 )
 def test_no_run_registers_a_hook(

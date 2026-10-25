@@ -9,6 +9,7 @@ import pytest
 from factory.application.task import TaskContext
 from factory.domain.agent_runs import AgentRunRequest, GuardSettings
 from factory.domain.pipeline_definition import PipelineDefinition
+from module_names import has_name
 
 
 @pytest.mark.parametrize(
@@ -18,26 +19,22 @@ def test_the_wrapper_and_the_kernel_s_modules_are_gone(module: str) -> None:
     assert importlib.util.find_spec(module) is None
 
 
-def _has(module: str, name: str) -> bool:
-    return hasattr(importlib.import_module(module), name)
-
-
 @pytest.mark.parametrize(
     ("check", "expected"),
     [
         pytest.param(
-            lambda: _has("factory.adapters.process", "replace_process"),
+            lambda: has_name("factory.adapters.process", "replace_process"),
             False,
             id="replace-process",
         ),
         pytest.param(
-            lambda: _has("factory.domain.agent_runs", "CONFINE_COMMAND"),
+            lambda: has_name("factory.domain.agent_runs", "CONFINE_COMMAND"),
             False,
             id="confine-command",
         ),
         *(
             pytest.param(
-                lambda name=name: _has("factory.domain.pipeline_definition", name),
+                lambda name=name: has_name("factory.domain.pipeline_definition", name),
                 False,
                 id=name,
             )
