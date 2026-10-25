@@ -6,9 +6,9 @@ from pathlib import Path
 import pytest
 
 from adapters.claude_stand_in import REPLY, Step, read_calls, write_stand_in
-from confine_support import Layout, run_request
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.domain.agent_runs import AgentRunRequest
+from run_layout_support import Layout, run_request
 
 
 def _unconfined(layout: Layout, claude: Path) -> ClaudeCodeRuntime:

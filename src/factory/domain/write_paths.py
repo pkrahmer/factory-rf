@@ -4,7 +4,7 @@ import re
 from collections.abc import Sequence
 from fnmatch import fnmatchcase
 
-from factory.domain.agent_runs import GuardSettings
+from factory.domain.agent_runs import WritePathSettings
 from factory.domain.paths import (
     FEATURE_FILE_NAME,
     FEATURE_FORM_FILE,
@@ -54,13 +54,13 @@ def expand_write_paths(
     return [_expand(pattern, work_item_path, feature_path) for pattern in patterns]
 
 
-def refusal(path: str, guard: GuardSettings) -> str | None:
+def refusal(path: str, settings: WritePathSettings) -> str | None:
     """The text that refuses a write to `path`, or `None` when the write is allowed."""
     if not is_inside_checkout(path):
         return f"{path} is not a path inside the checkout."
-    if matches_any(path, guard.protected_paths):
+    if matches_any(path, settings.protected_paths):
         return f"{path} is owned by the human; a change there is a question."
-    if not matches_any(path, guard.write_paths):
+    if not matches_any(path, settings.write_paths):
         return f"{path} is outside the write paths of this stage."
     return None
 

@@ -2,7 +2,7 @@
 
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
-from factory.domain.agent_runs import GuardSettings
+from factory.domain.agent_runs import WritePathSettings
 from factory.domain.errors import PipelineDefinitionInvalid
 from factory.domain.paths import PIPELINE_DEFINITION_FILE, folder_of
 from factory.domain.pipeline_definition import PipelineDefinition, RoleDefinition
@@ -20,8 +20,8 @@ class WritePathService:
         """Read through the git, the pipeline reader and the checkout of `boundaries`."""
         self._boundaries = boundaries
 
-    def at(self, stage_start: StageStart, work_item_path: str) -> GuardSettings:
-        """The guard settings of the claimed stage, as the definition was at its commit.
+    def at(self, stage_start: StageStart, work_item_path: str) -> WritePathSettings:
+        """The write path settings of the claimed stage, as the definition was at its commit.
 
         `ValueError` when `work_item_path` is no work item path; `PipelineDefinitionInvalid`
         when the definition is absent or invalid at the commit, or the stage has no role.
@@ -38,7 +38,7 @@ class WritePathService:
             )
         except ValueError as error:
             raise PipelineDefinitionInvalid(str(error)) from error
-        return GuardSettings(
+        return WritePathSettings(
             root=self._boundaries.checkout,
             write_paths=write_paths,
             protected_paths=list(PROTECTED_PATHS),

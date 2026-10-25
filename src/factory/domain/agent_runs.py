@@ -71,7 +71,7 @@ class AgentDefinition(BaseModel):
     instructions: str
 
 
-class GuardSettings(BaseModel):
+class WritePathSettings(BaseModel):
     """Where an agent may write: the root, write paths and protected paths."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")

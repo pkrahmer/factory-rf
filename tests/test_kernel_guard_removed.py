@@ -7,7 +7,7 @@ from collections.abc import Callable
 import pytest
 
 from factory.application.task import TaskContext
-from factory.domain.agent_runs import AgentRunRequest, GuardSettings
+from factory.domain.agent_runs import AgentRunRequest, WritePathSettings
 from factory.domain.pipeline_definition import PipelineDefinition
 from module_names import has_name
 
@@ -41,7 +41,7 @@ def test_the_wrapper_and_the_kernel_s_modules_are_gone(module: str) -> None:
             for name in ("tool_path_folder", "HOME_PREFIX", "has_wildcard", "CURRENT_SEGMENT")
         ),
         pytest.param(
-            lambda: list(GuardSettings.model_fields),
+            lambda: list(WritePathSettings.model_fields),
             ["root", "write_paths", "protected_paths"],
             id="guard-settings-fields",
         ),

@@ -10,6 +10,7 @@ from typing import override
 
 import pytest
 
+from agent_run_support import COMPLETED, RecordingRun, run_request
 from container_support import (
     FIVE_MINUTES,
     GONE,
@@ -32,7 +33,6 @@ from factory.domain.errors import ContainerError, SnapshotError
 from factory.domain.git import CommitId
 from git_support import AGENT_FILE, install_agents, run_git, write_agent, write_files
 from human_clone import HumanClone
-from sealed_run_support import COMPLETED, RecordingRun, run_request
 from undo_support import BRANCH, start_stage
 
 AGENT = "tester"

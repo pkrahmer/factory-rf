@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.write_paths import WritePathService
-from factory.domain.agent_runs import GuardSettings
+from factory.domain.agent_runs import WritePathSettings
 from factory.domain.errors import WorkItemFormatError
 from factory.domain.git import ChangedPath, check_repository_path
 from factory.domain.journal import restore_state_and_journal
@@ -137,7 +137,7 @@ def restore_work_item(
     return True
 
 
-def is_refused(path: str, settings: GuardSettings, work_item_path: str) -> bool:
+def is_refused(path: str, settings: WritePathSettings, work_item_path: str) -> bool:
     """Whether the role may not leave `path` changed: a refusal, or another in-progress file."""
     if refusal(path, settings) is not None:
         return True

@@ -4,6 +4,7 @@ from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
 
+from agent_run_support import COMPLETED
 from factory.adapters.clock import ManualClock, ManualWaiter
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
@@ -11,7 +12,6 @@ from factory.application.preflight import agent_run_probe_item
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.settings import InstanceSettings
 from git_support import install_agents
-from sealed_run_support import COMPLETED
 from stage_run_support import ENVIRONMENT
 
 

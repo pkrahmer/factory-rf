@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 
-from confine_support import write_script
 from factory.adapters.agent_launch import (
     API_LOGIN_OPTION,
     API_LOGIN_VARIABLE,
@@ -21,6 +20,7 @@ from factory.adapters.agent_launch import (
 )
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.domain.agent_runs import Login
+from run_layout_support import write_script
 
 API_LOGIN = "stand-in-api-login"
 SUBSCRIPTION = "stand-in-login"

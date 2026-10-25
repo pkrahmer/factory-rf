@@ -14,8 +14,8 @@ from factory.domain.agent_runs import (
     AgentRunRequest,
     AgentRunResult,
     EndReason,
-    GuardSettings,
     TokenCounts,
+    WritePathSettings,
 )
 
 ROOT = Path("/work/project")
@@ -118,13 +118,15 @@ def test_working_directory_must_be_absolute() -> None:
 
 
 def test_guard_root_must_be_absolute_and_paths_are_kept() -> None:
-    guard = GuardSettings(root=ROOT, write_paths=["tests/", "src/"], protected_paths=["factory/"])
+    guard = WritePathSettings(
+        root=ROOT, write_paths=["tests/", "src/"], protected_paths=["factory/"]
+    )
 
     assert guard.root == ROOT
     assert guard.write_paths == ["tests/", "src/"]
     assert guard.protected_paths == ["factory/"]
     with pytest.raises(ValidationError):
-        GuardSettings(root=Path("relative"), write_paths=[], protected_paths=[])
+        WritePathSettings(root=Path("relative"), write_paths=[], protected_paths=[])
 
 
 @pytest.mark.parametrize("field", ["input", "output", "cache_read", "cache_creation"])

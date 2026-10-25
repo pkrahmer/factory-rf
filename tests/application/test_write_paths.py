@@ -8,7 +8,7 @@ from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.write_paths import WritePathService
-from factory.domain.agent_runs import GuardSettings
+from factory.domain.agent_runs import WritePathSettings
 from factory.domain.errors import PipelineDefinitionInvalid
 from factory.domain.stops import HealthStatus
 from factory.domain.write_paths import PROTECTED_PATHS
@@ -29,8 +29,8 @@ FOREIGN_PLACEHOLDER_YAML = PIPELINE_YAML.replace(
 )
 
 
-def _expected(boundaries: Boundaries, write_paths: list[str]) -> GuardSettings:
-    return GuardSettings(
+def _expected(boundaries: Boundaries, write_paths: list[str]) -> WritePathSettings:
+    return WritePathSettings(
         root=boundaries.checkout, write_paths=write_paths, protected_paths=list(PROTECTED_PATHS)
     )
 

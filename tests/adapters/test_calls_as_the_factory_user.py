@@ -11,7 +11,6 @@ import pytest
 from adapters.claude_stand_in import REPLY as CLAUDE_REPLY
 from adapters.claude_stand_in import Step, write_stand_in
 from adapters.opencode_stand_in import MODELS, REPLY, REPLY_EVENTS, write_opencode
-from confine_support import Layout, run_request, write_login_file, write_script
 from factory.adapters import claude_runtime, opencode_runtime
 from factory.adapters.agent_launch import (
     API_LOGIN_VARIABLE,
@@ -27,6 +26,7 @@ from factory.adapters.agent_launch import (
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.opencode_runtime import CONFIG_VARIABLE, OpencodeRuntime
 from factory.adapters.process import ProcessRequest, ProcessResult, Stream, run_streaming
+from run_layout_support import Layout, run_request, write_login_file, write_script
 from run_process_recorder import Recorder
 
 LIMIT = timedelta(seconds=30)

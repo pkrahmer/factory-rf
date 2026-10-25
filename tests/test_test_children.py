@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from confine_support import write_script
 from process_support import python_argv
+from run_layout_support import write_script
 
 TESTS = Path(__file__).parent
 # The braces are escaped, so this module's own text holds no shebang the pattern finds.

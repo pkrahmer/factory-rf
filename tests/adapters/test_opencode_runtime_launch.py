@@ -15,13 +15,13 @@ from adapters.opencode_stand_in import (
     write_opencode,
 )
 from adapters.test_agent_launch_login import API_LOGIN
-from confine_support import (
-    Layout,
-)
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.domain.agent_runs import AgentRunRequest
 from factory.domain.errors import AgentRuntimeError
+from run_layout_support import (
+    Layout,
+)
 
 GIVEN = {"HOME": "/home/agent", "LANG": "C.UTF-8"}
 SUDO_LINE = "sudo: a password is required"
