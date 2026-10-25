@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 451
-comments_read: []
+comments_read: [6401042995]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: e77602a1cabf45b5bd614c84636ea09d
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-25T17:49:17.708785Z'
+  stage: intake
 ---
 
 # The inline environment and its setting are removed
@@ -111,3 +116,11 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
       - `None` for a `None` workspace has no row.
       - The Interface says the model validator of `InstanceSettings` keeps calling the function, so a model built directly refuses the same combinations with a `ValidationError` reading `<variable>: <fault>`. Nothing tests that.
       Should I add one criterion with rows for these? Suggested rows: state directory inside the workspace; a relative workspace together with an inner checkout, which gives the relative fault; a `None` workspace, which gives `None`; and `InstanceSettings(...)` built directly with an inner checkout, which gives a `ValidationError`. I would choose this.
+4. 2026-10-25 human: Yes to both, as you suggest.
+   1. Add the criterion before the two closing ones: the request of a stage task and the probe's request have `working_directory == boundaries.snapshots.mount_point / "checkout"` (two rows of one parametrized test). The class that composes the stage request on `main` is `TaskComposer` in `factory.application.task`, and S0007 put the value in `factory.application.take.agent_working_directory`.
+   2. Add one criterion with these rows. The variable is `FACTORY_STATE` (`STATE_VARIABLE` in `factory.domain.settings`), and the wording is today's `f"{path} lies inside FACTORY_WORKSPACE"`:
+      - a state directory inside the workspace gives `("FACTORY_STATE", "<state directory> lies inside FACTORY_WORKSPACE")`;
+      - a relative workspace together with an inner checkout gives the relative-workspace fault (it is checked first);
+      - a checkout and a state directory both inside the workspace give the checkout's fault (checkout before state directory);
+      - a `None` workspace gives `None`;
+      - `InstanceSettings(...)` built directly with an inner checkout raises a `ValidationError` whose text holds `FACTORY_CHECKOUT: <checkout> lies inside FACTORY_WORKSPACE`.
