@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T19:36:19.683476Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-25T19:36:19.683476Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-25T19:38:58.956132Z'
+  stage: doing
+  run: d30e698c807f4e9eb7ed083d90ded5c1
 ---
 
 # The undo is removed
@@ -277,3 +279,30 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
     `lint`: lint: green (0.2 s)
     `test`: test: green (75.7 s)
 14. factory: started doing as self.
+15. coder: Round 1, after the tester's changes. I changed no code. `make check` is green on the committed state.
+
+    What was built: the code is as it was in round 0 (entry 7), and the reviewer found nothing in it.
+    - `src/factory/application/undo.py` is deleted.
+    - `src/factory/application/take.py` now holds `is_refused`, `read_baseline`, `restore_work_item` and `_is_in_an_in_progress_folder`, moved word for word from the undo module.
+    - In `src/factory/domain/decisions.py`, `agent_entry` takes `left_out=` and closes the entry with `_LEFT_OUT_PARAGRAPH`.
+    - In `src/factory/application/stage.py`, `AfterAgent` passes `left_out=`.
+    - The docstring of `src/factory/application/write_paths.py` names the take alone.
+
+    Both of the reviewer's findings in entry 9 were in test files. The tester made both changes in entry 13:
+    - `tests/application/test_take_rule.py` now imports `MOUNTED` from `take_support`.
+    - `tests/application/test_stall_environment.py` now uses `source_search.imported_modules`.
+
+    So this round had nothing left for the coder.
+
+    Main choice, unchanged from round 0: the three functions are module-level functions in `take.py`, as the Interface asks. I rejected making them methods of `TakeService`.
+
+    Refactor: I changed nothing. The `src` diff is the verbatim move from round 0, and that was already reviewed.
+
+    Noticed, not touched (open for the human, as in entries 7, 9, 11 and 13): the accepted entry at `security/duplicates-baseline.txt:21` still names `undo.py`. Because of that, `make duplicates` reports `take.py: unused variable 'restored_work_item'` as new. That file is outside my write paths.
+
+    The journal changed nothing in what the task means, so I did not rewrite the Description.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 9 new, 34 known, 4 gone
