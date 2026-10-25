@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 457
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T21:13:05.490976Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-25T21:12:45.149287Z'
   stage: tests
   run: 1de54f9e3b1e4cdaa3b179605e93c1bc
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T21:13:05.490976Z'
+  stage: doing
 ---
 
 # The restore stop's repair names the one user
@@ -92,3 +101,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.2 s)
    `test`: test: green (61.6 s)
+6. factory: started doing as self.
