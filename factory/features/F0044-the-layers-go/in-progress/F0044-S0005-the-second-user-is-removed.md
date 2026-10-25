@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T14:59:47.692136Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-25T14:59:47.692136Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T15:02:30.197936Z'
+  stage: review
+  run: 3dd957a23cb04c19b412ea489e6c27cb
 ---
 
 # The second user is removed
@@ -347,3 +349,32 @@ Expect: three lines: `[] False`; `False False`; `3 False`
     `check`: check: green
     `duplicates`: duplicates: 8 new, 34 known, 4 gone
 18. factory: started review as self.
+19. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'` (9 files under `src/`, 64 under `tests/`). I checked each of criteria 1 to 9 against its test and the Interface's rules: every criterion has a test that checks what it names. The refused sides are covered: criterion 4's host row and 29.9 s row, criterion 5's formerly refused values, and the `sudo:` line that is no longer a refusal. `call_refusal`'s refused login file rests on the unchanged test, as entry 4 confirms. `make check` was green after the coder (entry 17). Group 1 holds.
+
+    Group 2 (architecture) holds: every change stays in its layer, and nothing new is wired. Group 3 (security) holds: there are no markers, secrets or command strings.
+
+    I ran `make duplicates`. Its 8 new findings are line shifts of the two runtimes' known similar code, fakes from F0042 that were never added to the baseline, and `SealedProjectCommands`, which the Description says stays without a caller until S0006. None of them is a finding against this diff. I did not reach group 5 because group 4 fails.
+
+    Findings (group 4, quality; all in tests, at round 0):
+    1. `tests/adapters/test_calls_as_the_factory_user.py:33`: `CLAUDE_REPLY` is a second copy of `REPLY` in `tests/adapters/claude_stand_in.py:16`, which this diff moved there. Fix: import it, for example `from adapters.claude_stand_in import REPLY as CLAUDE_REPLY`, and delete the copy.
+    2. `tests/adapters/test_calls_as_the_factory_user.py:60`: `_login_file` copies `_login_file` of `tests/adapters/test_runtimes_without_wrapper.py:85`; only the file name differs. Fix: under the standing leave, move it to one shared place (for example `tests/confine_support.py`, beside `Layout`) and have both modules use it.
+    3. `tests/entry/test_wiring_without_agent_user.py:32-49`: the fixtures `podman` and `zfs` are verbatim copies of those in `tests/entry/test_wiring_container_extras.py:19-35`. Line 29's `CONTAINER_ITEMS` restates that module's list (line 15) plus `agent-run-probe`. Fix: under the standing leave, move the two fixtures and the container item list to one shared place. Use a module at the `tests/` root, or `tests/conftest.py` under names that do not clash with its existing `podman` fixture. Then have both modules use them, so that "F0042-S0011's list unchanged" is pinned by one list.
+    4. `tests/entry/test_wiring_stage_environment.py:79`: `_Which` is dead code, because this diff removed its two uses. Fix: delete the class. This is in a test module the story lists, so it falls under decision 21.
+    5. `tests/confine_support.py:25,40`: the field `Layout.sudo_bin` is dead code, because this diff deleted every test that read it. Fix: remove the field and its value. If the tester finds that decision 21 does not cover this shared helper, the tester should ask.
+    6. `tests/adapters/test_calls_as_the_factory_user.py:79-89`: `_recorded` builds its own `Recorder` and patches `claude_runtime.run_process` again, which the fixture `recorder` in `tests/conftest.py:362` already does. Fix: take the `recorder` fixture and add only the opencode patches (`run_process` and `run_streaming`) in the test module.
+
+    Earlier tests (item 6). Every change below is under the leave of decision 21 of `feature.md`, which the story's Interface names test by test. Where the standing leave also applies, I say so.
+    - tests/adapters/claude_stand_in.py: the standing leave plus decision 21 (`REPLY`, `claude_request`, `without_locale` and `GIVEN` moved in from test_claude_runtime_os_user.py)
+    - tests/adapters/test_claude_runtime_api_login.py, test_claude_runtime_no_hook.py, test_claude_runtime_provider_limit.py, test_claude_runtime_resume_session.py, test_opencode_runtime.py, tests/entry/test_wiring_api_login.py, test_wiring_login.py, test_wiring_provider_limit.py: the standing leave (imports the moved helpers) plus decision 21. test_opencode_runtime.py also lost its `0o640` assert, the change agreed in entries 13 and 15.
+    - tests/adapters/test_runtimes_without_wrapper.py: the standing leave plus decision 21 (one deletion, one rename, the `sudo-refused` row removed)
+    - tests/adapters/test_claude_runtime_login.py: decision 21 (one deletion; `_runtime` and two tests lose the user)
+    - tests/adapters/opencode_stand_in.py, tests/adapters/container_runtime_support.py, tests/confine_support.py, tests/wiring_support.py: decision 21 (the shared helpers lose `os_user` or `every_tool`)
+    - tests/adapters/test_agent_launch.py, test_agent_launch_call_end.py, test_agent_launch_container.py, test_agent_launch_container_kill.py, test_kill_at_the_limit_stays.py: decision 21. In test_agent_launch_call_end.py the four `agent` rows went, which follows the Interface's intent.
+    - tests/adapters/test_claude_runtime_container.py, test_opencode_runtime_container.py, test_opencode_runtime_launch.py: decision 21
+    - tests/application/test_agent_run_probe.py, test_agent_run_probe_api_login.py, test_agent_run_probe_factory_user.py, test_agent_run_probe_login.py, test_agent_run_probe_opencode.py, test_task.py, test_sealed_runs.py, test_nested_repositories.py: decision 21. The `DIED` constant in test_agent_run_probe_api_login.py follows entries 13 and 15.
+    - tests/conftest.py, tests/domain/test_agent_runs.py, test_settings_stage_environment.py, test_settings_url_edges.py: decision 21
+    - tests/entry/test_wiring_boundaries.py, test_wiring_constants.py, test_wiring_container_extras.py, test_wiring_extras.py, test_wiring_opencode.py, test_wiring_run.py, test_wiring_stage_environment.py, test_wiring_stage_environment_home.py: decision 21
+    - tests/test_leftovers_program_removed.py, tests/test_test_children.py, tests/test_time_limits.py: decision 21
+    - Deleted, as the Interface lists them: tests/adapters/test_claude_runtime_os_user.py, test_claude_runtime_sudo_time_limit.py, test_claude_runtime_file_modes.py, test_make_commands_user.py, test_opencode_sudo_time_limit.py, test_one_call_as_another_user.py; tests/application/test_agent_user_item.py, test_task_os_user.py; tests/domain/test_settings_agent_user.py; tests/entry/test_wiring_agent_user.py, test_wiring_project_command_user.py, test_git_repository_modes.py; tests/sudo_support.py, tests/leftovers_runtime_support.py. All under decision 21.
+
+    Open, outside the diff, so not under review: `src/factory/adapters/process.py:90` still has a comment saying the agent's own `timeout` ends root's `sudo` (the coder named this in entry 13).
