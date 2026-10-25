@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T12:18:35.017339Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-10-25T12:18:35.017339Z'
   stage: review
+- number: 34
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T12:20:19.821905Z'
+  stage: review
+  run: 769589dafd9a42d29ed4d6dc11c2e7c7
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -674,3 +676,61 @@ Expect: `7`
     `check`: check: green
     `duplicates`: duplicates: 14 new, 35 known, 3 gone
 33. factory: started review as self.
+34. reviewer: no findings
+
+    Round 2. Since my round-1 review (entry 26), only `tests/confine_support.py` has changed (commit 4484d05d). It now lacks `CONFINE`, `LINE`, the orphan comment and the docstring's mention of the stand-in confine executable, so that finding is resolved. I re-read the whole diff against the work item:
+    - Group 1 holds. Every criterion has a test that checks it:
+      - Criteria 1–4: `tests/adapters/test_runtimes_without_wrapper.py`. Criterion 4 covers both sides of the `sudo:` rule, and its `sudo-refused` row expects the stand-in's own path.
+      - Criterion 5: the `test_a_run_in_a_container_mounts_*` tests of both container modules.
+      - Criterion 6: `tests/entry/test_wiring_container_extras.py`, with the rows `inline-no-agent-user`, `inline-agent-user` and `inline-opencode`, plus both container rows.
+      - Criterion 7: `tests/test_wrapper_out_of_the_call_path.py`.
+      - Criterion 8: `tests/test_shipped_agents_r14.py`.
+      - The factory's `make check` after the coder was green (entry 32).
+    - Group 2 holds: no layer crossing, no new tool call.
+    - Group 3 holds: no new silencing marker and no strings built into commands.
+    - Group 4 holds. Under `src/`, the removals are complete, and the helpers still in use (`_request_of`, `SHELL_EXECUTABLE`, `_which_on`, `_path_fault`) are still read. The docstrings of `call_refusal`, `Starters`, `build_boundaries` and both runtimes' `__init__` match the code. `production_environment`'s comment no longer names the wrapper.
+    - Group 5 holds:
+      - The journal gives the main choice (remove outright) and what was rejected (an always-`None` keyword).
+      - The Description matches what was built.
+      - Criterion 10 still describes what the documenter must write.
+    - Not a finding: the `Layout` fields `temporary_root` and `confine_bin` in `tests/confine_support.py` remain, as in entry 26, for S0002.
+
+    Notes:
+    - `tests/adapters/test_runtimes_without_wrapper.py::test_no_constructor_takes_the_wrapper_or_its_folders`: every row repeats `assert not hasattr(ClaudeCodeRuntime, "confine_executable")`. It would read better as its own row.
+    - `tests/adapters/test_runtimes_without_wrapper.py`: `_claude_end`, `_opencode_end` and `_sudo_refused` repeat the same try/except that turns a run into `(detail, end_reason)`. One helper taking the runtime would cover all three.
+    - `tests/adapters/test_runtimes_without_wrapper.py:14`: it imports the private helpers `_sudo_calls` and `_write_sudo` from `tests/adapters/test_claude_runtime_os_user.py`. They belong in a shared support module.
+
+    Earlier tests (item 6):
+    - `tests/adapters/container_runtime_support.py`: none needed (adds `run_folders` only).
+    - `tests/adapters/test_agent_launch.py`: decision 17, as the Interface lists it.
+    - `tests/adapters/test_agent_launch_call_end.py`: decision 17.
+    - `tests/adapters/test_agent_launch_container.py`: decision 17.
+    - `tests/adapters/test_agent_launch_leftovers.py`: decision 17.
+    - `tests/adapters/test_claude_runtime_confinement.py` (deleted): decision 17.
+    - `tests/adapters/test_claude_runtime_confinement_root.py` (deleted): decision 17.
+    - `tests/adapters/test_claude_runtime_container.py`: decision 17.
+    - `tests/adapters/test_claude_runtime_leftovers.py`: decision 17.
+    - `tests/adapters/test_claude_runtime_no_hook.py`: decision 17.
+    - `tests/adapters/test_opencode_confinement.py` (deleted): decision 17.
+    - `tests/adapters/test_opencode_runtime_container.py`: decision 17.
+    - `tests/adapters/test_opencode_runtime_folders.py` (deleted): decision 17.
+    - `tests/adapters/test_opencode_runtime_launch.py`: decision 17.
+    - `tests/adapters/test_opencode_runtime_leftovers.py`: decision 17.
+    - `tests/application/test_agent_run_probe.py`: decision 17.
+    - `tests/application/test_confinement_item.py` (deleted): decision 17.
+    - `tests/confine_support.py`: decision 17 (the stand-in wrapper's parts, `CONFINE` and `LINE` included, go once no test reads them).
+    - `tests/entry/test_wiring_api_login.py`: decision 17.
+    - `tests/entry/test_wiring_boundaries.py`: decision 17.
+    - `tests/entry/test_wiring_confinement.py` (deleted): decision 17.
+    - `tests/entry/test_wiring_container_extras.py`: decision 17 for the `inline` rows; the new row `inline-opencode` only adds a test.
+    - `tests/entry/test_wiring_extras.py`: decision 17.
+    - `tests/entry/test_wiring_extras_path.py` (deleted): decision 17.
+    - `tests/entry/test_wiring_login.py`: decision 17.
+    - `tests/entry/test_wiring_opencode.py`: decision 17.
+    - `tests/entry/test_wiring_provider_limit.py`: decision 17.
+    - `tests/entry/test_wiring_stage_environment.py`: decision 17.
+    - `tests/leftovers_runtime_support.py`: decision 17.
+    - `tests/shipped_agents.py`: the standing leave to move a shared test constant (`WRITE_PATHS_RULE`, moved from `tests/test_claude_agent_refusal.py`).
+    - `tests/test_claude_agent_refusal.py`: decision 17, and it now uses the moved constant.
+    - `tests/test_hook_removed.py`: decision 17.
+    - `tests/test_time_limits.py`: decision 17.
