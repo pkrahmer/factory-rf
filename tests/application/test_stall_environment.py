@@ -15,7 +15,6 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.opening import WorkItemOpening
-from factory.application.sealed_runs import SealedRun
 from factory.application.stage import AfterAgent, AgentAftermath, LaunchedStage, StageFinisher
 from factory.application.stage_environment import StageEnvironment
 from factory.application.stalls import StallContext, StallResult, StallService
@@ -72,7 +71,7 @@ class TakingEnvironment(StageEnvironment):
         request: AgentRunRequest,
         *,
         run: Callable[[AgentRunRequest], AgentRunResult] | None = None,
-    ) -> SealedRun:
+    ) -> AgentRunResult:
         raise AssertionError("a stall runs no agent")
 
     @override

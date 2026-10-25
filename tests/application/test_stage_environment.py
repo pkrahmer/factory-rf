@@ -1,25 +1,28 @@
-"""The inline environment: nothing prepared, the agent sealed in the checkout, the undo as take."""
+"""The inline environment: nothing prepared, the agent run in the checkout, the undo as take."""
 
 import re
+import stat
 from collections.abc import Callable
-from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
-from application.test_nested_repositories import NestingRuntime
-from application.test_sealed_runs import OPEN_FILE, OPEN_FOLDER, ModeRecordingRuntime
-from application.test_sealed_runs_runner import Runner
+from container_support import container_dataset, container_environment
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
-from factory.application.stage_environment import InlineEnvironment, stage_environment_of
+from factory.application.stage_environment import (
+    InlineEnvironment,
+    StageEnvironment,
+    stage_environment_of,
+)
 from factory.application.take import TakeReport
+from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.errors import WorkItemFormatError
-from git_support import run_git, write_files
+from git_support import write_files
 from human_clone import HumanClone
-from sealed_run_support import COMPLETED, leave, run_request
+from sealed_run_support import COMPLETED, run_request
 from stage_run_support import INSIDE
 from take_support import AGENT_TEXT
 from undo_support import (
@@ -34,13 +37,9 @@ from undo_support import (
 from work_item_support import checkout_text
 
 NEW_DOC = "docs/new.md"
-SEALED_MODES = (0o2755, 0o644)
-
-
-def _open_git_folder(checkout: Path) -> None:
-    folder = checkout / ".git"
-    folder.chmod(OPEN_FOLDER)
-    (folder / "config").chmod(OPEN_FILE)
+OTHER_RESULT = AgentRunResult(
+    end_reason="completed", decision="doing", entry="queued", duration=timedelta(seconds=7)
+)
 
 
 def test_prepare_does_nothing_and_reads_nothing(
@@ -58,49 +57,110 @@ def test_prepare_does_nothing_and_reads_nothing(
     assert agent_runtime.requests() == []
 
 
+class RecordingRun:
+    """A run of the test: records each request and returns the completed result."""
+
+    def __init__(self) -> None:
+        """Start with no request."""
+        self.requests: list[AgentRunRequest] = []
+
+    def run(self, request: AgentRunRequest) -> AgentRunResult:
+        """Record `request`."""
+        self.requests.append(request)
+        return COMPLETED
+
+
 @pytest.mark.parametrize("given", [False, True], ids=["runtime", "given-run"])
 def test_run_agent_is_the_sealed_run_through_the_runtime_or_the_given_run(
     boundaries: Boundaries, agent_runtime: FakeAgentRuntime, *, given: bool
 ) -> None:
-    _open_git_folder(boundaries.checkout)
     request = run_request(boundaries.checkout)
     if given:
-        runner = Runner(boundaries.checkout, leave)
-        sealed = InlineEnvironment(boundaries).run_agent(request, run=runner.run)
-        assert runner.requests == [request]
-        assert runner.modes == [SEALED_MODES]
+        recorder = RecordingRun()
+        result = InlineEnvironment(boundaries).run_agent(request, run=recorder.run)
+        assert recorder.requests == [request]
         assert agent_runtime.requests() == []
     else:
         agent_runtime.queue(ScriptedRun(writes={INSIDE: AGENT_TEXT}, result=COMPLETED))
-        runtime = ModeRecordingRuntime(agent_runtime, boundaries.checkout)
-        recording = replace(boundaries, agent_runtime=runtime)
-        sealed = InlineEnvironment(recording).run_agent(request)
-        assert runtime.modes == [SEALED_MODES]
+        result = InlineEnvironment(boundaries).run_agent(request)
         assert agent_runtime.requests() == [request]
         assert checkout_text(boundaries, INSIDE) == AGENT_TEXT
 
-    assert sealed.result == COMPLETED
-    assert sealed.nested_repositories == []
+    assert result == COMPLETED
 
 
-def test_run_agent_removes_a_nested_repository_and_names_it(
+def _inline(boundaries: Boundaries, _tmp_path: Path) -> tuple[StageEnvironment, Path]:
+    return InlineEnvironment(boundaries), boundaries.checkout
+
+
+def _container(boundaries: Boundaries, tmp_path: Path) -> tuple[StageEnvironment, Path]:
+    dataset = container_dataset(boundaries, tmp_path)
+    return container_environment(dataset), dataset.boundaries.checkout
+
+
+Environment = Callable[[Boundaries, Path], tuple[StageEnvironment, Path]]
+
+
+def _queued_result(
+    environment: StageEnvironment, checkout: Path, runtime: FakeAgentRuntime
+) -> None:
+    runtime.queue(ScriptedRun(result=OTHER_RESULT))
+
+    assert environment.run_agent(run_request(checkout)) == OTHER_RESULT
+
+
+def _given_run(environment: StageEnvironment, checkout: Path, runtime: FakeAgentRuntime) -> None:
+    recorder = RecordingRun()
+    request = run_request(checkout)
+
+    assert environment.run_agent(request, run=recorder.run) == COMPLETED
+    assert recorder.requests == [request]
+    assert runtime.requests() == []
+
+
+@pytest.mark.parametrize(
+    "environment_of",
+    [pytest.param(_inline, id="inline"), pytest.param(_container, id="container")],
+)
+@pytest.mark.parametrize(
+    "case",
+    [pytest.param(_queued_result, id="queued"), pytest.param(_given_run, id="given-run")],
+)
+def test_run_agent_returns_the_runs_result(
+    boundaries: Boundaries,
+    agent_runtime: FakeAgentRuntime,
+    tmp_path: Path,
+    *,
+    environment_of: Environment,
+    case: Callable[[StageEnvironment, Path, FakeAgentRuntime], None],
+) -> None:
+    environment, checkout = environment_of(boundaries, tmp_path)
+
+    case(environment, checkout, agent_runtime)
+
+
+def test_the_inline_run_leaves_a_nested_repository_ignored_files_and_the_git_folders_mode(
     boundaries: Boundaries, agent_runtime: FakeAgentRuntime
 ) -> None:
-    def nest(checkout: Path) -> None:
-        notes = checkout / "notes"
-        notes.mkdir()
-        run_git(notes, "init", "-q")
-
-    agent_runtime.queue(ScriptedRun(result=COMPLETED))
-    nesting = replace(
-        boundaries, agent_runtime=NestingRuntime(agent_runtime, boundaries.checkout, nest)
+    checkout = boundaries.checkout
+    write_files(checkout, {".gitignore": ".venv/\n"})
+    folder = checkout / ".git"
+    folder.chmod(0o2775)
+    agent_runtime.queue(
+        ScriptedRun(
+            writes={"sub/.git/HEAD": "ref: refs/heads/main\n", ".venv/x": "kept\n"},
+            result=COMPLETED,
+        )
     )
 
-    sealed = InlineEnvironment(nesting).run_agent(run_request(boundaries.checkout))
+    result = InlineEnvironment(boundaries).run_agent(run_request(checkout))
 
-    assert sealed.result == COMPLETED
-    assert sealed.nested_repositories == ["notes/.git"]
-    assert not (boundaries.checkout / "notes" / ".git").exists()
+    assert result == COMPLETED
+    assert (checkout / "sub" / ".git" / "HEAD").read_text(encoding="utf-8") == (
+        "ref: refs/heads/main\n"
+    )
+    assert (checkout / ".venv" / "x").read_text(encoding="utf-8") == "kept\n"
+    assert stat.S_IMODE(folder.stat().st_mode) == 0o2775
 
 
 def _as_started(boundaries: Boundaries, start: StageStart) -> StageStart:

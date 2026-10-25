@@ -51,7 +51,7 @@ def test_a_schema_starts_with_the_dialect_and_the_contract_version(
 
     assert keys[:2] == ["$schema", "x-records-contract"]
     assert parsed["$schema"] == "https://json-schema.org/draft/2020-12/schema"
-    assert parsed["x-records-contract"] == "2.0"
+    assert parsed["x-records-contract"] == "3.0"
     assert rest == entry.model.model_json_schema(mode=entry.mode)
     assert text.endswith("}\n")
 

@@ -1,4 +1,4 @@
-"""The request and the completed result that the tests of sealed agent runs share."""
+"""The request and the completed result that the tests of agent runs share."""
 
 from datetime import timedelta
 from decimal import Decimal
@@ -27,8 +27,3 @@ def run_request(checkout: Path) -> AgentRunRequest:
         time_limit=timedelta(minutes=5),
         working_directory=checkout,
     )
-
-
-def leave(checkout: Path) -> None:
-    """Change nothing in `checkout`: the step of a run that leaves its git folder alone."""
-    del checkout

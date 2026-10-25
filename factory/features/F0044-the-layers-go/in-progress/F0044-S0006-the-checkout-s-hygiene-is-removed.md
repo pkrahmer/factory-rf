@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T16:07:43.249124Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-10-25T16:07:43.249124Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-25T16:14:22.786274Z'
+  stage: tests
+  run: 189dd4e546554fe883a68e0ad1f73fb7
 ---
 
 # The checkout's hygiene is removed
@@ -185,3 +187,48 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
    Everything else checked out. Criteria 1-7 and 9 are testable as written against the Interface. The edits to existing tests that the Interface lists are clear. One example: in `tests/application/test_tick.py::test_the_restore_discards_changes_and_names_them_in_one_line`, the assertion that `ignored.log` is gone becomes an assertion that it stays with its text. After your answer I will write all the tests and make the listed edits in one run.
 9. 2026-10-25 human: (a). Criterion 8 means the run-wide umask the tests set. Its test names one exemption: the fixture `umask_of` of `tests/adapters/test_calls_as_the_factory_user.py` (F0044-S0005), which sets a umask for one test and puts the previous one back. That file stays as it is.
 10. factory: started tests as self.
+11. tester: I wrote the tests for criteria 1–9 and made the test changes the Interface lists. Criterion 8 follows the human's answer (a): its test exempts one fixture, `umask_of` in `tests/adapters/test_calls_as_the_factory_user.py`, and that file is unchanged. I made no other interpretation of the criteria.
+
+    Criterion → test:
+    - criterion 1: `tests/test_checkout_hygiene_removed.py::test_the_names_of_the_checkouts_hygiene_are_gone` (rows: sealed-runs-module, git-operations, git-twenty-one, git-cli-operations, repository-unsealed, stall-reason, launched-stage-field, stall-texts)
+    - criterion 2: `tests/application/test_checkout_preparer_seal.py::test_the_preparer_clones_only_a_missing_checkout_and_checks_none` (rows: missing-is-cloned, group-writable-git-is-kept, nested-repository-is-left, docstring)
+    - criterion 3: `tests/application/test_tick_restore_ignored.py::test_the_restore_discards_an_untracked_file_and_keeps_an_ignored_one`
+    - criterion 4: `tests/application/test_stage_environment.py::test_run_agent_returns_the_runs_result` (rows: queued and given-run, each on inline and container) and `tests/application/test_stage_environment.py::test_the_inline_run_leaves_a_nested_repository_ignored_files_and_the_git_folders_mode` (`.git` at `0o2775`, with `sub/.git/HEAD` and `.venv/x`)
+    - criterion 5: `tests/application/test_stage_nested_repository.py::test_a_nested_repository_left_by_the_agent_does_not_stall_the_stage`
+    - criterion 6: `tests/application/test_dispatcher_counts_every_error.py::test_a_handlers_git_error_named_seal_is_counted_as_any_error`
+    - criterion 7: `tests/domain/test_contract_version_3.py::test_the_records_contract_is_at_version_3_without_nested_repository` (rows: version, one per schema, no-nested-repository)
+    - criterion 8: `tests/test_tests_run_under_the_starting_umask.py::test_no_module_under_tests_calls_os_umask_but_the_one_fixture_that_restores_it`
+    - criterion 9: `tests/application/test_probe_nested_repository.py::test_a_probe_run_that_leaves_a_nested_repository_passes`
+    - criteria 10 and 11 (`make check`, docs): no tests; they belong to the later stages.
+
+    Files created: `tests/test_checkout_hygiene_removed.py`, `tests/test_tests_run_under_the_starting_umask.py`, `tests/application/test_tick_restore_ignored.py`, `tests/application/test_stage_nested_repository.py`, `tests/application/test_dispatcher_counts_every_error.py`, `tests/application/test_probe_nested_repository.py`, `tests/domain/test_contract_version_3.py`.
+
+    Earlier test files changed under the Interface's list (decision 22 of `feature.md`):
+    - Deleted the eleven listed modules.
+    - `tests/adapters/test_git_cli_seal.py`: only the broken-git-folder test and its fixtures `headless` and `repository_above` and helper `_head_or_none` remain.
+    - `tests/application/test_checkout_preparer_seal.py`: the two renamed tests; the config's mode stays `0o664`. The two deleted tests went with `_closed`, `_group_writable`, `_link_elsewhere`, `UNSEALED` and the `group_umask` use.
+    - `tests/application/test_sealed_runs_runner.py`: `Runner` and its test are gone; the probe test stays.
+    - `tests/sealed_run_support.py`: lost `leave`; its docstring now says "agent runs".
+    - `tests/application/test_git_interface.py` and `tests/application/test_interfaces.py`: twenty-one operations.
+    - `tests/application/test_stage_environment.py`: the given run is a `RecordingRun` of the test's own; the nested-repository test is deleted.
+    - `tests/application/test_container_environment.py`: both tests read the result itself; one line of the module docstring changed.
+    - `tests/application/test_stage_environment_calls.py` and `tests/application/test_stall_environment.py`: the stand-ins return `AgentRunResult`; the preflight-import test is deleted.
+    - `tests/domain/test_stall_texts.py`: the `nested_repository` row is gone.
+    - `tests/domain/test_contract.py`, `tests/domain/test_contract_provider_limit.py` and `tests/domain/test_contract_version_2.py`: read `3.0`.
+    - `tests/application/test_tick.py`: `ignored.log` stays with its text.
+    - `tests/application/test_tick_docstrings.py`: the new `PREPARE` text.
+    - `tests/test_home_reset_removed.py`: the `sealed-project-commands-parameters` row and its import are gone.
+    - `tests/conftest.py`: `pytest_configure`, `TESTS_UMASK`, `group_umask` and the `os` import are gone.
+
+    Red run: `make lint` is green. In the one `make test` run, the failures come from code not yet changed:
+    - The probe still reports the nested-repository fault.
+    - The seal raises `RepositoryUnsealed` on a group-writable `.git`, and `run_agent` still returns a `SealedRun`.
+    - The schemas and `RECORDS_CONTRACT` are still `2.0`, and the removed names still exist.
+    - The preparer's docstring is still the old one.
+
+    Unlisted tests also fail under the old seal: `tests/application/test_scheduler.py::test_an_existing_clone_is_kept_without_calling_git`, two tests in `tests/application/test_repository_waiter.py`, and the launch/take tests in `tests/application/test_stage_environment_calls.py`. The cause is that the tests now run under pytest's starting umask, so a clone's `.git` is group-writable. They should pass once the seal is removed. The new dispatcher test passes today, as the criterion expects: it guards behaviour that must not change.
+
+    No test module failed to import; every module the run could not import is one this story deletes, and nothing imports them any more. I skipped the type check, as this stage says.
+
+    `lint`: lint: green (0.7 s)
+    `test`: FAILED tests/application/test_repository_waiter.py::test_a_failing_clone_or_fetch_is_one_stop_naming_the_git_error[_deleted_after_clone-cannot fetch: git fetch --prune origin failed] - assert False

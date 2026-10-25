@@ -1,18 +1,15 @@
 """The stage protocol calls its environment: prepare after the claim, the run, the take after."""
 
-import ast
 from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
-import factory.application.preflight
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.opening import WorkItemOpening
-from factory.application.sealed_runs import SealedRun
 from factory.application.stage import AfterAgent, AgentAftermath, LaunchedStage, StageLauncher
 from factory.application.stage_environment import StageEnvironment
 from factory.application.take import TakeReport
@@ -77,11 +74,11 @@ class RecordingEnvironment(StageEnvironment):
         request: AgentRunRequest,
         *,
         run: Callable[[AgentRunRequest], AgentRunResult] | None = None,
-    ) -> SealedRun:
+    ) -> AgentRunResult:
         self.calls.append("run_agent")
         self.requests.append(request)
         assert run is not None
-        return SealedRun(result=run(request), nested_repositories=[])
+        return run(request)
 
     def take(self, stage_start: StageStart, work_item_path: str) -> TakeReport:
         self.calls.append("take")
@@ -227,16 +224,3 @@ def test_a_stage_built_without_an_environment_runs_the_inline_one(
     assert state is not None
     [record] = [record for record in state.journal if record.speaker == "tester"]
     assert f"{UNDONE_PARAGRAPH}{OUTSIDE}." in entry_text(document, record.number)
-
-
-def test_the_preflight_does_not_import_the_sealed_run() -> None:
-    path = Path(factory.application.preflight.__file__)
-    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-    imported = [
-        alias.name
-        for node in ast.walk(tree)
-        if isinstance(node, ast.ImportFrom)
-        for alias in node.names
-    ]
-
-    assert "run_sealed" not in imported

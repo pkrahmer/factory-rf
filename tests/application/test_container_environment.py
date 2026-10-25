@@ -1,4 +1,4 @@
-"""The container environment: the sync container prepares the dataset; the agent runs unsealed."""
+"""The container environment: the sync container prepares the dataset; the agent runs there."""
 
 import stat
 import time
@@ -300,16 +300,15 @@ def test_run_agent_runs_unsealed_through_the_runtime_or_the_given_run(
 
     if given:
         recorder = RecordingRun()
-        sealed = container_environment(dataset).run_agent(request, run=recorder.run)
+        result = container_environment(dataset).run_agent(request, run=recorder.run)
         assert recorder.requests == [request]
         assert agent_runtime.requests() == []
     else:
         agent_runtime.queue(ScriptedRun(result=COMPLETED))
-        sealed = container_environment(dataset).run_agent(request)
+        result = container_environment(dataset).run_agent(request)
         assert agent_runtime.requests() == [request]
 
-    assert sealed.result == COMPLETED
-    assert sealed.nested_repositories == []
+    assert result == COMPLETED
     assert _git_modes(checkout) == modes
 
 
@@ -330,9 +329,9 @@ def test_run_agent_leaves_nested_repositories_ignored_files_and_the_home(
         write_files(agent_home, {home_file.name: "the agent's\n"})
         return agent_runtime.run(request)
 
-    sealed = container_environment(dataset).run_agent(run_request(checkout), run=run)
+    result = container_environment(dataset).run_agent(run_request(checkout), run=run)
 
-    assert sealed.nested_repositories == []
+    assert result == COMPLETED
     assert (checkout / "notes" / ".git" / "HEAD").is_file()
     assert (checkout / "build" / "out.txt").read_text(encoding="utf-8") == "built\n"
     assert home_file.read_text(encoding="utf-8") == "the agent's\n"
