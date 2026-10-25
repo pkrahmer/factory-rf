@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241, 6401865606]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T19:05:38.629617Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -246,6 +250,11 @@ journal:
   kind: send_back
   at: '2026-10-25T19:05:18.227352Z'
   stage: approval
+- number: 44
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:05:38.629617Z'
+  stage: doing
 ---
 
 # The inline environment and its setting are removed
@@ -877,3 +886,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
 41. 2026-10-25 human: Sent back with one finding, for the tester: `tests/application/test_stage_environment_of.py::test_the_environment_of_the_boundaries_is_the_container_one` reads `environment._snapshots` and `environment._containers` behind two `# noqa: SLF001` markers. `CLAUDE.md` allows no silencing marker outside `src/factory/adapters/process.py`. Check criterion 2 ("on its snapshots and containers") through behaviour instead, without a marker: for example, `prepare` on the returned environment rolls back the boundaries' `FakeSnapshots` (its recorded calls) and `run_agent` launches through the boundaries' `FakeContainerRuns` (one recorded launch). The test keeps its name. Nothing else changes.
 42. 2026-10-25 human: closed the pull request.
 43. factory: sent back to doing, round 2.
+44. factory: started doing as self.
