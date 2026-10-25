@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: smoke-test
+  started_at: '2026-10-25T19:42:08.589264Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-25T19:41:48.011002Z'
   stage: docs
   run: 43b423d21b2c4e99a62cd1909c4a2a2f
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:42:08.589264Z'
+  stage: smoke-test
 ---
 
 # The undo is removed
@@ -388,3 +397,4 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
     `check`: check: green (not run again: passed on tree ac01754e0479 at 2026-10-25T19:37:48Z)
     `secrets`: secrets: green (2.6 s)
     `documents`: documents ok
+20. factory: started smoke-test as self.
