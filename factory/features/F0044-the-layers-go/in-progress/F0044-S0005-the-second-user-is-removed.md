@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 448
 comments_read: [6398933817, 6399000993]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T15:12:26.291532Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-10-25T15:12:05.538547Z'
   stage: doing
   run: 8ffac6c82842419384aaef4886fb9d40
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-25T15:12:26.291532Z'
+  stage: review
 ---
 
 # The second user is removed
@@ -473,3 +482,4 @@ Expect: three lines: `[] False`; `False False`; `3 False`
 
     `check`: check: green
     `duplicates`: duplicates: 8 new, 34 known, 4 gone
+26. factory: started review as self.
