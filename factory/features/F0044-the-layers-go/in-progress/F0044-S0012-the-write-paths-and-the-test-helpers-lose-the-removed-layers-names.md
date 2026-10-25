@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 456
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T20:49:05.732280Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-25T20:49:05.732280Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T20:49:25.382137Z'
+  stage: intake
+  run: 1885233b036e46639b4264ebd2851dc2
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -89,3 +91,9 @@ Expect: `0`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules and signatures (`factory.domain.agent_runs.WritePathSettings`, `factory.domain.write_paths.refusal(path, settings)`, `take.is_refused`, `WritePathService.at`) and lists the renamed test helpers, every importer and every test that changes. I checked `tests/confine_support.py` itself: `Layout` has the fields `checkout`, `home`, `state`, `temporary_root`, `stand_in` and `shell_bin`, so dropping `temporary_root` leaves the five fields criterion 4 names. The Interface states no behaviour (conversion, format, ordering or default) that lacks a criterion.
+   Criteria: each can be tested by one test function. Criteria 1 and 2 are parametrized rows. Criterion 2 has its failing side: a planted `src/factory` file that contains `GuardSettings` must be found. Criterion 3 covers the passing path and both refusals, so the rule's unchanged behaviour has both sides. Criterion 4 has the field list, the absence of `temporary_root`, and the absent `tmp` folder. Criteria 5 (`make check`) and 6 (`docs:`) are last. The leave for the tests that change is decision 42 of `feature.md`.
+   Smoke test: three runnable commands with no pytest call, so the `-q` rule does not apply. Each `Expect:` can be checked against the output: `True False ['path', 'settings']`, six present/gone lines, and `0`.
+   Architecture: a rename within `factory.domain` and `factory.application`, with no new layer, interface or dependency. The docs and test helpers are within the write paths of the documenter and the tester. `docs/decisions.md` keeps its history.
+   Scope: within F0044's goal of removing the removed layers' names. The refusal rule is unchanged, which matches "Out of scope" in `feature.md`. The three test modules named after removed layers keep their names. Decision 42 of `feature.md` adds this story and gives the leave.
