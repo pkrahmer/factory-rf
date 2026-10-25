@@ -6,7 +6,7 @@ from factory.application.boundaries import Boundaries
 from factory.domain.preflight import PreflightItem
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import machine_extras
-from podman_support import IMAGE, PodmanPlan, write_podman
+from podman_support import IMAGE, Podman, PodmanPlan, write_podman
 from zfs_support import DATASET, Answer, write_zfs
 
 CREDENTIAL = "example-value"
@@ -55,3 +55,22 @@ def with_dataset(settings: InstanceSettings, root: Path) -> InstanceSettings:
             "podman_executable": str(podman.path),
         }
     )
+
+
+def dataset_podman(root: Path, plan: PodmanPlan) -> Podman:
+    """The stand-in `podman` that `with_dataset(settings, root)` wrote, planned as `plan`."""
+    folder = root / "podman-bin"
+    podman = Podman(path=folder / "podman", folder=folder)
+    podman.plan(plan)
+    return podman
+
+
+def run_words(podman: Podman) -> list[str]:
+    """The words of the one `podman run` call the stand-in saw."""
+    [call] = [call for call in podman.calls() if call.arguments[:1] == ["run"]]
+    return call.arguments
+
+
+def after_image(words: list[str]) -> list[str]:
+    """The words of a `podman run` call that follow the image: the container's command."""
+    return words[words.index(IMAGE) + 1 :]

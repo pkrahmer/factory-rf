@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T18:34:04.135175Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -124,6 +120,12 @@ journal:
   kind: started
   at: '2026-10-25T18:34:04.135175Z'
   stage: tests
+- number: 21
+  speaker: tester
+  kind: result
+  at: '2026-10-25T18:39:20.210376Z'
+  stage: tests
+  run: fe39a864fdf14e0c84da983f0ad74afb
 ---
 
 # The inline environment and its setting are removed
@@ -419,3 +421,45 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
 
     Also, as the Interface says (the pre-check's edit 4): `tests/entry/test_wiring_boundaries.py::test_the_built_project_commands_run_in_the_checkout` is deleted, because criterion 4 covers the container project commands. Then finish the list in this run, with `test_wiring_boundaries::test_the_built_agent_runtime_keeps_its_run_files_under_runs` and `test_wiring_command_records`.
 20. factory: started tests as self.
+21. tester: Mode: the test change the human approved (entry 19, option (b) for every login and runtime wiring test, plus the deletion from the pre-check's edit 4). I finished the rest of the list from entry 18. `make lint` is green. I ran `make test` once at the end and it is green ("test: green (64.8 s)", coverage 99.56 %). While working I also ran pytest directly, with `--no-cov`, on the modules I changed. I skipped the type check, as the stage says. Running mypy by hand on the changed files only gave import-untyped noise from outside the Makefile's configuration, so the coder's `make check` is the real type check.
+
+    Done (each test keeps its name):
+    - tests/wiring_support.py (this story's helper) gains three helpers:
+      - `dataset_podman(root, plan)`: re-plans the stand-in `podman` that `with_dataset` wrote.
+      - `run_words(podman)`: the words of the one `podman run` call.
+      - `after_image(words)`: the container's command, the words after the image.
+    - Each test now plans the stand-in `podman` to print the runtime's reply, so the runtime reads that reply as the container's output.
+    - tests/entry/test_wiring_login.py::test_the_built_runtime_hands_the_login_file_s_token_to_claude: parametrized on `configured` only. It checks three things in the `podman run` words:
+      - the container's command starts with `login_argv(LoginFiles(subscription=...))`, or with no login words when no file is set;
+      - the login file is mounted `<file>:<file>:ro` only when it is set;
+      - the token appears in no word.
+    - tests/entry/test_wiring_api_login.py::test_the_built_runtime_hands_the_api_login_file_s_key_to_claude: the same checks for the API login file and its key.
+    - tests/entry/test_wiring_provider_limit.py::test_the_built_runtime_recognizes_the_configured_limit_status: `podman` prints the 429 error reply, and the test still expects `provider_limit`. The claude stand-in is gone.
+    - tests/entry/test_wiring_opencode.py::test_the_built_opencode_runtime_runs_with_the_instance_s_models_denies_key_and_limit (both rows). It checks:
+      - `--model anthropic/claude-sonnet-5-5` in the container's command;
+      - an `OPENCODE_CONFIG=<path>` `--env` word whose path lies under `state/runs` and is mounted read-only;
+      - the API login words and the read-only mount of the API login file;
+      - the key appears in no word;
+      - the end reason, `completed` or `provider_limit`, comes from the reply `podman` prints.
+      - Rejected: checking the denied `git push*` rule inside the configuration. The runtime deletes that file after the run, and the stand-in `podman` (tests/podman_support.py, written by F0042) does not record file contents. Changing it would be a change to another story's helper, which needs the human's leave. The rule's content stays covered by tests/adapters/test_opencode_runtime_container.py.
+    - tests/entry/test_wiring_opencode.py::test_the_opencode_item_comes_after_confinement_only_under_opencode: the settings are wrapped in `with_dataset`. The rows now expect `[*CONTAINER_ITEMS, "opencode"]` and `CONTAINER_ITEMS`, each followed by `agent-run-probe`.
+    - tests/entry/test_wiring_boundaries.py:
+      - test_the_built_project_commands_run_in_the_checkout is deleted, as entry 19 and the Interface say (criterion 4 covers the container project commands).
+      - test_the_built_agent_runtime_keeps_its_run_files_under_runs now checks that the `--append-system-prompt-file` path in the container's command lies under `state/runs` and is mounted read-only. The working folder is made with `exist_ok`, because `with_dataset` already makes `<tmp>/work`.
+    - tests/entry/test_wiring_command_records.py::test_the_built_project_commands_record_a_run_in_the_state_directory: the test makes `<workspace>/checkout`, which the dataset's base would hold and the stand-in `zfs` does not make. It plans `podman` to print `lint: green (0 s)`, and still expects the record `("lint", HEAD, "passed")`.
+
+    Criterion → test (unchanged from entry 11):
+    - criterion 1: tests/test_one_stage_environment.py::test_the_inline_environment_s_names_are_gone
+    - criterion 2: tests/application/test_stage_environment_of.py::test_the_environment_of_the_boundaries_is_the_container_one
+    - criterion 3: tests/domain/test_settings_one_environment.py::test_the_stage_environment_setting_is_read_by_nothing
+    - criterion 4: tests/entry/test_wiring_one_environment.py::test_build_boundaries_needs_the_dataset_the_workspace_and_the_image
+    - criterion 5: tests/entry/test_wiring_one_environment.py::test_the_agent_run_s_home_is_the_dataset_s
+    - criterion 6: tests/entry/test_wiring_one_preflight.py::test_the_preflight_checks_the_one_environment_s_items
+    - criterion 7: tests/application/test_request_working_directory.py::test_the_request_works_in_the_dataset_s_checkout
+    - criterion 8: tests/domain/test_settings_one_environment.py::test_a_workspace_refuses_a_relative_path_and_an_inner_checkout_or_state
+    - criteria 9 and 10: no test.
+
+    Files created in this run: none. Changed: tests/wiring_support.py, tests/entry/test_wiring_login.py, test_wiring_api_login.py, test_wiring_provider_limit.py, test_wiring_opencode.py, test_wiring_boundaries.py, test_wiring_command_records.py. Modules the test run could not import: none.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (63.6 s)

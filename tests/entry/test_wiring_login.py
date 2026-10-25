@@ -5,12 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, claude_request, read_calls, write_stand_in
-from factory.adapters.claude_runtime import LOGIN_VARIABLE
+from adapters.claude_stand_in import claude_request
+from factory.adapters.agent_launch import LoginFiles, login_argv
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
-from wiring_support import CREDENTIAL, with_dataset
+from podman_support import PodmanPlan
+from wiring_support import CREDENTIAL, after_image, dataset_podman, run_words, with_dataset
 
 LOGIN = "stand-in-login"
 REPLY = json.dumps(
@@ -29,15 +30,15 @@ REPLY = json.dumps(
 
 
 @pytest.mark.parametrize(
-    ("configured", "expected"),
-    [pytest.param(True, LOGIN, id="login-file"), pytest.param(False, None, id="no-login-file")],
+    "configured",
+    [pytest.param(True, id="login-file"), pytest.param(False, id="no-login-file")],
 )
 def test_the_built_runtime_hands_the_login_file_s_token_to_claude(
-    tmp_path: Path, *, configured: bool, expected: str | None
+    tmp_path: Path, *, configured: bool
 ) -> None:
     login = tmp_path / "claude-login"
     login.write_text(f"{LOGIN}\n", encoding="utf-8")
-    executable = write_stand_in(tmp_path / "bin", [Step(stdout=REPLY)])
+    executable = "/usr/local/bin/claude"
     root = tmp_path.resolve()
     settings = with_dataset(
         InstanceSettings(
@@ -46,14 +47,20 @@ def test_the_built_runtime_hands_the_login_file_s_token_to_claude(
             checkout=root / "checkout",
             state_directory=root / "state",
             agent_home=root / "agents-home",
-            claude_executable=str(executable),
+            claude_executable=executable,
             claude_login_file=login if configured else None,
         ),
         tmp_path,
     )
+    podman = dataset_podman(tmp_path, PodmanPlan(stdout=REPLY))
     boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
 
     boundaries.agent_runtime.run(claude_request(tmp_path))
 
-    [call] = read_calls(tmp_path / "bin")
-    assert call.environment.get(LOGIN_VARIABLE) == expected
+    words = run_words(podman)
+    command = after_image(words)
+    start = command.index(executable)
+    files = LoginFiles(subscription=login if configured else None)
+    assert command[:start] == login_argv(files)
+    assert (f"{login}:{login}:ro" in words) is configured
+    assert not any(LOGIN in word for word in words)
