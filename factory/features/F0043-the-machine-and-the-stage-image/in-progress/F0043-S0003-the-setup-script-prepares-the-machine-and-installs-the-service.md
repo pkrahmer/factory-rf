@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032, 6394093790, 6394217771]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T06:10:56.762678Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -364,6 +368,11 @@ journal:
   at: '2026-10-25T06:10:35.581642Z'
   stage: doing
   run: 902945432ddd4ccf95b0cbc2530415c7
+- number: 65
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:10:56.762678Z'
+  stage: tests
 ---
 
 # The setup script prepares the machine and installs the service
@@ -1064,3 +1073,4 @@ Expect: `1`
     Ending with `tests`, as entry 60 asks. Finding 1 is for the tester: add the missing-target rows for `tools` and `service` (`[ ! -e /usr/local/bin/git-credential-factory ]` and `[ ! -e /etc/systemd/system/factory@.service ]`, or-ed with the clone variable in each step's install `if`) to `tests/test_vm_setup_text.py::test_the_checkout_files_are_installed_only_in_the_run_that_cloned`.
 
     Noticed but not touched: the reviewer's notes in entry 62. `tests/vm_support.py:5` imports the private `_uncommented`. The `chown-keeps-links` row passes without checking any line, because the script holds no `chown`. The name `test_the_folders_step_refuses_a_link_at_state_or_repo` now also covers `.secrets`. These are tests, which I do not change. The Description already holds entry 60's change, which the reviewer wrote in entry 62, so I did not rewrite it.
+65. factory: started tests as self.
