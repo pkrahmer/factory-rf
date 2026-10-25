@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T16:41:23.128752Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-10-25T16:41:23.128752Z'
   stage: smoke-test
+- number: 34
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T16:41:50.799636Z'
+  stage: smoke-test
+  run: a1ed1fb749984ab2aa752235d11e27a7
 ---
 
 # The checkout's hygiene is removed
@@ -660,3 +662,24 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     `secrets`: secrets: green (3.8 s)
     `documents`: documents ok
 33. factory: started smoke-test as self.
+34. smoke-tester: Smoke test, round 1: I ran both commands under `## Smoke test` from the repository root, in order and exactly as written. I fixed nothing.
+
+    Command 1: `uv run python -c 'import factory.application.sealed_runs' 2>/dev/null && echo present || echo gone`
+    ```
+    gone
+    ```
+    Met its expectation (`gone`).
+
+    Command 2: `uv run python - <<'EOF' … EOF` (the Git abstract methods, `errors.RepositoryUnsealed`, `StallReason`, `RECORDS_CONTRACT`)
+    ```
+    Bytecode compiled 4164 files in 96ms
+    21 []
+    False False 3.0
+    ```
+    Met its expectation (`21 []`; `False False 3.0`). The first line comes from uv itself, on stderr, when it compiles the environment's bytecode; the script did not print it. The script printed exactly the two expected lines, so together with command 1 the smoke test gives the three expected lines.
+
+    Against the acceptance criteria: nothing in the output contradicts a criterion. It confirms criterion 1 in part: `sealed_runs` is gone, `Git` has exactly 21 abstract methods and none of `seal`, `check_seal`, `remove_ignored`, `discard`, there is no `RepositoryUnsealed`, and there is no `nested_repository` stall reason. It also confirms part of criterion 7: `RECORDS_CONTRACT` is `3.0`. As an extra read-only check outside the smoke test, all five committed schemas under `src/factory/contract/` hold `"x-records-contract": "3.0"`, and none names `nested_repository`. The other criteria (the preparer, the restore, `run_agent`, the stage, the dispatcher, umask, the probe, `make check`, docs) are not reached by these commands and are left to the tests and the factory's checks. I did not run `make check`, since this stage does not ask for it.
+
+    Findings: none.
+
+    Open: nothing.
