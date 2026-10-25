@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T18:46:35.378878Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -153,6 +157,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T18:46:17.400981Z'
+  stage: review
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-25T18:46:35.378878Z'
   stage: review
 ---
 
@@ -585,3 +594,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     - tests/test_vm_setup_text.py: none (finding 5).
     - tests/wiring_support.py: Interface, decision 24.
 26. 2026-10-25 human: (a). The leave is given for findings 1 to 8 as they were made, under the human's standing order of 2026-10-25: every change a removed name forces, for a clean removal of the inline environment, has the leave. That covers the two deletions (`test_preflight.py::test_the_claude_tool_item_asks_for_the_configured_executable` and `tests/entry/test_wiring_agent_environment.py`), the `make` → `uv` and `TOOLS` changes of the three preflight modules, `test_wiring_without_agent_user.py`'s two tests, the `FACTORY_STAGE_ENVIRONMENT` row of F0043's `tests/test_vm_setup_text.py` (vm/setup.sh stops writing it in this story, the pre-check's edit 3), `test_settings_agent_user_unread.py`'s `CONTAINER`, `conftest.py`'s `local_settings`, and `container_support.py`'s `CONTAINER`. Run the review again.
+27. factory: started review as self.
