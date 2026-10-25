@@ -1,6 +1,6 @@
 # Operator guide
 
-The guide for the person who runs the factory this repository implements: how to install and configure an instance, which stops it can reach and what to do about each. The machine's image is the usual way to run an instance (see "The machine's image").
+The guide for the person who runs the factory this repository implements: how to install and configure an instance, which stops it can reach and what to do about each. The machine of v1.2, a VM that runs the instance's stages in containers on a ZFS dataset, is described in "The machine"; v1.1's image is described in "The machine's image".
 
 - "Install"
 - "Configuration"
@@ -392,7 +392,32 @@ The image makes `/home/agent/.config/opencode`, owned by `factory` and read-only
 
 ## The machine
 
-The machine of v1.2 runs every stage in containers on a dataset. This chapter describes it as its stories build it.
+The machine of v1.2 runs every stage in containers on a dataset. This chapter takes a fresh Ubuntu 24.04 VM to a running `container` instance, and says what the machine is, what it costs and where to look when it misbehaves.
+
+### What it is
+
+One host, one dataset, one throwaway container for each step of a stage.
+
+- **The host** is a Linux VM. The factory runs on it as a systemd service, `factory@<instance>`, under the user `factory`. The hosting token is on the host and nowhere else: the host alone fetches and pushes.
+- **The dataset** is the ZFS dataset `<pool>/factory/<instance>`, mounted at `/srv/factory/<instance>/work` on the host and at `/work` in every container. It holds the checkout and the agent's home. Its one snapshot is the base, `@base`, moved forward at every stage's start.
+- **The container** is the stage image (see *The stage image*), started for one step, with `--rm`, `--userns=keep-id` and `--timeout` set to the step's time limit. It mounts the dataset and is thrown away.
+
+There is one user, `factory`, and no second one. `factory` has no `sudo` right but the four `zfs` commands of the optional `--sudoers` fallback (see *The script*). The steps that need root (the script, `systemctl`, the install of the secrets) run from your own account with `sudo`.
+
+In v1.2 one repository URL serves both the factory's own code and the project. `--repository-url` is the clone of `/srv/factory/<instance>/factory` and the value of `FACTORY_REPOSITORY_URL`, so an instance builds the repository it runs from.
+
+The layout of `/srv/factory/<instance>`:
+
+| Path | Holds |
+|---|---|
+| `work` | the dataset's mount point |
+| `repo` | the factory's own clone of the project, where it fetches, claims and pushes |
+| `state` | the factory log, `health.json` and the records |
+| `factory` | the factory's code, cloned at `--ref`, with its `.venv` |
+| `tools` | a virtual environment holding `uv` |
+| `factory.env` | the service's environment file |
+| `image-id` | the identity of the stage image |
+| `askpass` | the script git asks for the hosting token |
 
 ### The stage image
 
@@ -515,6 +540,181 @@ The environment file holds these variables, which *Configuration* explains:
 | `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION`, `FACTORY_OPENCODE_MODELS` | the pins of `vm/Dockerfile` |
 | `PATH` | `/srv/factory/<instance>/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin` (`/usr/sbin` holds `zfs`) |
 | `XDG_RUNTIME_DIR` | `/run/user/<uid of factory>`, where rootless Podman finds its runtime folder |
+
+### On GCP, step by step
+
+This is the machine of the decisions of 2026-10-24: instance `vm`, an `e2-standard-2` in `europe-west3`, no inbound port, no service account, a budget alert of $120 a month. Steps 1 to 5 run on your own computer with `gcloud` signed in; replace `<project-id>` and `<account-id>`. Never paste a token or key into a chat or an agent's prompt; make each secret file by hand.
+
+1. Create the project and the budget first, so that the alert exists before any cost does:
+
+   ```bash
+   gcloud auth login
+   gcloud projects create <project-id> --name="factory"
+   gcloud config set project <project-id>
+   gcloud billing accounts list
+   gcloud billing projects link <project-id> --billing-account=<account-id>
+   gcloud services enable compute.googleapis.com iap.googleapis.com
+   gcloud billing budgets create --billing-account=<account-id> --display-name="factory" \
+     --budget-amount=120USD --threshold-rule=percent=0.5 --threshold-rule=percent=0.9 --threshold-rule=percent=1.0
+   ```
+
+2. Give the VM its way out: a router and Cloud NAT. The VM gets no external address, so apt, npm, GitHub and the Anthropic API are reached through NAT.
+
+   ```bash
+   gcloud compute routers create factory-router --network=default --region=europe-west3
+   gcloud compute routers nats create factory-nat --router=factory-router --region=europe-west3 \
+     --auto-allocate-nat-external-ips --nat-all-subnet-ip-ranges
+   ```
+
+3. Open SSH for IAP's range only. Nothing else is open to the internet.
+
+   ```bash
+   gcloud compute firewall-rules create allow-iap-ssh --network=default --direction=INGRESS \
+     --allow=tcp:22 --source-ranges=35.235.240.0/20
+   ```
+
+4. Create the data disk. It holds the ZFS pool and survives the VM (`auto-delete=no` in the next step).
+
+   ```bash
+   gcloud compute disks create factory-data --size=50GB --type=pd-balanced --zone=europe-west3-a
+   ```
+
+5. Create the VM from Ubuntu 24.04, with no service account and no external address, and the disk attached under the device name `factory-data`:
+
+   ```bash
+   gcloud compute instances create factory-vm --zone=europe-west3-a --machine-type=e2-standard-2 \
+     --image-family=ubuntu-2404-lts-amd64 --image-project=ubuntu-os-cloud --boot-disk-size=20GB \
+     --no-service-account --no-scopes --no-address \
+     --disk=name=factory-data,device-name=factory-data,mode=rw,auto-delete=no
+   ```
+
+6. Copy the script to the VM through the tunnel, and open a shell there. Copy it from a checkout of the ref you will run.
+
+   ```bash
+   gcloud compute scp --zone=europe-west3-a --tunnel-through-iap vm/setup.sh factory-vm:
+   gcloud compute ssh factory-vm --zone=europe-west3-a --tunnel-through-iap
+   ```
+
+   The script is `vm/setup.sh`.
+
+7. On the VM, run the script as root, the first time. The disk is `/dev/disk/by-id/google-factory-data` (`ls -l /dev/disk/by-id/ | grep google` shows it). `--ref` is the tag or branch to run.
+
+   ```bash
+   sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
+     --repository-url https://github.com/pkrahmer/factory-rf.git --ref <the tag or branch to run>
+   ```
+
+   It installs the packages and makes the pool, the user `factory`, the datasets, the delegation and the folders. Then it stops with `setup: checkout: waiting for /home/factory/.secrets/hosting-token` and exit status 0: the private repository needs the token (see *The script*, "The two passes"). On a VM that the prototype of `planning/overnight/gcp-runbook-2026-10-24.md` already prepared, the script finds those steps done and reports `found`.
+
+8. Place the three secrets by hand, from your own account on the VM, one file each: `hosting-token` (the GitHub token), `claude-token` (the output of `claude setup-token`) and `anthropic-api-key`. Make each file in your home folder with an editor, install it, and remove the copy:
+
+   ```bash
+   sudo install -m 0600 -o factory -g factory hosting-token /home/factory/.secrets/hosting-token
+   sudo install -m 0600 -o factory -g factory claude-token /home/factory/.secrets/claude-token
+   sudo install -m 0600 -o factory -g factory anthropic-api-key /home/factory/.secrets/anthropic-api-key
+   shred -u hosting-token claude-token anthropic-api-key
+   ```
+
+   All three files must exist. An empty `anthropic-api-key` means no key: podman refuses to mount a missing file, and every agent run would stop with exit status 125 (decision 10 of the feature F0043). With the `claude` runtime the key file stays empty.
+
+9. Run the script a second time with the same arguments. It clones the factory, installs the tools, writes the environment file and installs and enables the unit.
+
+   ```bash
+   sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
+     --repository-url https://github.com/pkrahmer/factory-rf.git --ref <the tag or branch to run>
+   ```
+
+10. Build the stage image as `factory`, from the checkout the script made. `<ref>` labels the image; any text will do.
+
+    ```bash
+    sudo -iu factory
+    cd /srv/factory/vm/factory
+    podman build -f vm/Dockerfile -t factory-stage:vm --build-arg FACTORY_IMAGE=<ref> /srv/factory/vm/factory
+    exit
+    ```
+
+11. Start the instance and look at it:
+
+    ```bash
+    sudo systemctl start factory@vm
+    sudo -iu factory
+    set -a; . /srv/factory/vm/factory.env; set +a
+    /srv/factory/vm/factory/.venv/bin/factory-watch
+    /srv/factory/vm/factory/.venv/bin/factory-health --state-directory /srv/factory/vm/state
+    ```
+
+    `factory-watch` shows the board and what the next tick would do. `factory-health` prints `healthy` or one line per stop in force. The console scripts live in the factory's virtual environment, which the environment file's `PATH` does not name, so the full path is needed. The environment file is loaded so that `factory-watch` reads the instance's settings.
+
+12. When the machine is not used, stop it: `gcloud compute instances stop factory-vm --zone=europe-west3-a`. A stopped VM costs only its disks and NAT (see *The costs*). Start it again with `gcloud compute instances start`; the service is enabled and comes up with it.
+
+### On any Ubuntu 24.04 VM
+
+A Hyper-V VM at home or a VM on TrueNAS SCALE does as well as GCP. Take the steps of *On GCP, step by step* from step 6 on, without `gcloud`: copy `vm/setup.sh` to the VM, run it as root with `--device` naming a spare disk (or a file such as `/var/lib/factory-pool.img`), place the three secrets, run the script again, build the image, start the service.
+
+The script needs:
+
+- a Linux kernel with the ZFS module (Ubuntu 24.04's ships it signed; the script installs `zfsutils-linux`);
+- a spare block device for the pool;
+- rootless Podman, with a `factory:` range in `/etc/subuid` and `/etc/subgid` (Ubuntu's `useradd` adds one);
+- outbound network for apt, npm, GitHub and the Anthropic API.
+
+`podman machine`, WSL 2 and the workplace's Podman Desktop are not hosts for it: they give no kernel with ZFS and no rootless Podman on a real Linux host (question 7 of `planning/v1.2-plan.md`). Run the instance on a Linux VM instead.
+
+### What the container can and cannot see
+
+A stage container sees:
+
+- the dataset at `/work`: the checkout and the agent's home (`HOME=/work/home`). It may write anywhere there; the take copies only what the role may write, and the next stage starts from the base again;
+- read-only mounts: in the sync container the host repository's `.git` at `/upstream` (the sync fetches from it, because the container has no credentials), and in the agent's container the login file and the instructions file at their paths. A rootless container cannot write a read-only mount;
+- the network: the Anthropic API, npm and GitHub through NAT.
+
+It does not see the hosting token (only the host reads it, and the host alone pushes), the host's files outside its mounts, the next stage, or anything of the metadata server worth having (see *The metadata server*). Every container runs with `--cap-drop=all`, `--security-opt=no-new-privileges`, `--pids-limit=4096`, `--memory=4g` and `--userns=keep-id` (the files it writes belong to `factory` on the host), and with `--timeout` set to the step's time limit.
+
+### The costs
+
+The numbers are the plan's (`planning/v1.2-plan.md`), in US dollars, for `europe-west3`:
+
+| Item | Cost |
+|---|---|
+| VM `e2-standard-2` (2 vCPU, 8 GB) | about $50 to $55 a month; `e2-standard-4` about $100 |
+| Data disk, 50 GB `pd-balanced` | about $5 a month |
+| Cloud NAT | about $1 a month plus traffic |
+
+The budget alert is $120 a month, with thresholds at 50 %, 90 % and 100 %; it warns and stops nothing. A stopped VM costs its disks (the boot disk and the data disk), not the machine.
+
+### The metadata server
+
+Every GCP VM reaches a metadata server at `169.254.169.254`, and so does every container on it, through the VM's network. A request needs the header `Metadata-Flavor: Google`. The VM is created with `--no-service-account --no-scopes`, so the server gives instance metadata (name, zone, network) and no access token. The factory needs no Google API, so a container that reads it gets nothing it can use. Outside GCP there is no such server.
+
+### Where the logs are
+
+- `sudo journalctl -u factory@vm`: what `factory-run` prints, and the unit's own starts and exits. The `systemctl` commands are in *The service*.
+- `/srv/factory/vm/state/factory.log`: the factory log (see "The factory log and the health status file"). After every stage it holds a line `stage environment: reset <s> s, sync <s> s, advance <s> s, take <s> s`. The plan's measure "the start of a stage to the agent's first step" (target under 20 s with a warm base, the reset under 2 s) is `reset` plus `sync` plus `advance`; `take` is the copy back.
+- `health.json` in the state directory, through `factory-health --state-directory /srv/factory/vm/state`.
+- `sudo -iu factory podman ps`: a stage container that is running now. Containers run with `--rm`, so a finished one leaves nothing to look at.
+
+### The rebuild after a merge
+
+The instance runs the factory's code from `/srv/factory/vm/factory` and the stage image built from it. After a merge to the ref it runs, bring both up to date. As `factory` (`sudo -iu factory`):
+
+```bash
+git -C /srv/factory/vm/factory pull --ff-only          # for a tagged ref: git fetch --tags, then git checkout <tag>
+cd /srv/factory/vm/factory
+/srv/factory/vm/tools/bin/uv sync --frozen --no-dev
+podman build -f vm/Dockerfile -t factory-stage:vm --build-arg FACTORY_IMAGE=<ref> /srv/factory/vm/factory
+cat /proc/sys/kernel/random/uuid > /srv/factory/vm/image-id
+exit
+```
+
+The new uuid in `image-id` is what tells the settings the image is new; the label is not its identity. Then, from your own account, with the arguments of the first run:
+
+```bash
+sudo sh /srv/factory/vm/factory/vm/setup.sh --device /dev/disk/by-id/google-factory-data \
+  --repository-url https://github.com/pkrahmer/factory-rf.git --ref <the same ref>
+sudo systemctl restart factory@vm
+```
+
+`vm/setup.sh` is idempotent, so run it after every merge: it carries a changed pin of `vm/Dockerfile` into the environment file, updates `uv` and the factory's virtual environment, and reports the rest found. It does not replace an installed `/etc/systemd/system/factory@.service` or `/usr/local/bin/git-credential-factory` that differs from the checkout: it prints that the file differs and leaves it. When a merge changed `vm/factory.service` or `image/git-credential-factory`, remove the installed file and run the script again (see *The two passes*).
 
 ## The machine's image
 

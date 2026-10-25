@@ -1,3 +1,121 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 434
+comments_read: [6394738591, 6394846270]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T06:48:13.935214Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:48:13.940918Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T06:48:30.650010Z'
+  stage: intake
+  run: 8b2f6c251d904cdc93ca1669de54d7b8
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:48:50.696492Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T06:52:15.693944Z'
+  stage: tests
+  run: dcb88821a34b44729da009829a096ce7
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:52:37.054408Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-25T06:57:36.409465Z'
+  stage: doing
+  run: 077334feb3184ef680714cd0336d2784
+  blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-25T07:11:18.750497Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:11:38.002296Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-25T07:18:42.979596Z'
+  stage: doing
+  run: d5a0811606124bcc9787b648950a679a
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:19:03.339648Z'
+  stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T07:19:28.651031Z'
+  stage: review
+  run: 8b0d0641d4dc4df492cc85d0501e54bc
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:19:49.080669Z'
+  stage: docs
+- number: 14
+  speaker: documenter
+  kind: question
+  at: '2026-10-25T07:22:06.192969Z'
+  stage: docs
+  run: 538377f2e6e44e1a9fb74b15ba2f37d6
+  blocked: question
+- number: 15
+  speaker: human
+  kind: comment
+  at: '2026-10-25T07:24:25.731661Z'
+  stage: docs
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:24:43.578484Z'
+  stage: docs
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T07:25:05.360372Z'
+  stage: docs
+  run: b6e0bf1c86b243a7a1e701defa175dd7
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:25:25.532213Z'
+  stage: smoke-test
+- number: 19
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T07:26:18.106938Z'
+  stage: smoke-test
+  run: 83cc8d6045ff48e8ad03412bdbaafe78
+---
+
 # The operator guide's chapter "The machine"
 
 ## Description
@@ -47,3 +165,170 @@ make documents 2>&1 | tail -n 1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as vm.
+3. intake: accepted
+   Interface: "None" is right for a documents-only story. It names the files the documenter changes (`docs/operator-guide.md`, `docs/decisions.md`, `README.md`, and `docs/project-guide/README.md` only if needed), and all of them are within the documenter's write paths. The Interface states no behaviour, so no rule is missing a criterion.
+   Criteria: the criteria are checkable by the smoke test and `make documents`, as the story says, not by tests. Criterion 1 (nothing outside the docs changes) and criterion 2 (`make check` stays green) are testable. Criterion 3 is a docs criterion with concrete, checkable bullets: the exact list and order of `###` sections, the named strings and their order of first occurrence, the numbered list of at least ten items, the decision-log section title and the words it names, and one `vm/setup.sh` sentence in `README.md`. This is a documents story, so there is no failing side to cover.
+   Smoke test: all three blocks are runnable. The first prints the eleven `###` lines. The second counts eight present words, then prints 1 for the decision title and 1 for `vm/setup.sh` in `README.md`, which matches `8`, `1`, `1`. The third is `make documents | tail -n 1` and expects `documents ok`. None runs pytest, so the `-q` rule does not apply. Every `Expect:` line is checkable against the output.
+   Architecture: no layer is touched. The files are the human-facing docs that `CLAUDE.md` assigns to the documenter. Nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes.
+   Scope: it matches the feature's Scope bullet for the operator guide's chapter and the decision-log entry, and it is the last story in the feature's build order. It touches nothing in "Out of scope": no GCP calls, no change to `image/`, and no code for the stage environment.
+4. factory: started tests as vm.
+5. tester: No tests written: this is a documents-only story. Its Interface says nothing changes in any test, and it says no test reads the documents.
+   criterion 1: no test. Nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` was changed by this stage; `git status --short` is empty.
+   criterion 2: no new test; `make check` covers it (the coder runs it at `doing`, the factory at `docs`).
+   criterion 3 (docs): no test, as the criterion says. The smoke test and `make documents` check it.
+   Files created: none. Modules the test run could not import: none, because no new tests exist. I did not run `make test`: there are no new red tests to confirm, and the factory runs it after this stage. `make lint`: green.
+   Open: nothing.
+
+   `lint`: lint: green (0.2 s)
+   `test`: test: green (186.4 s)
+6. factory: started doing as vm.
+7. coder: I built nothing, and I stopped before handing on because `make check` is red. This is a documents-only story: nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changed in this stage, and `git status --short` is empty (criterion 1). Compared with `main`, the branch changes only this work item's `.md` and `.costs.jsonl`.
+
+   What is red: `make check` stops at `make secrets` (`make: *** [Makefile:61: secrets] Error 1`). detect-secrets flags "Hex High Entropy String" in finished acceptance reports that this branch does not touch:
+   - `factory/features/F0023-a-known-result-is-not-checked-again/done/F0023-A0001-acceptance.md:84`
+   - `factory/features/F0023-a-known-result-is-not-checked-again/done/F0023-A0002-acceptance.md:99` (four times)
+   - `factory/features/F0042-the-stage-environment-behind-one-interface/done/F0042-A0002-acceptance.md:62`
+   - `factory/features/F0042-the-stage-environment-behind-one-interface/done/F0042-A0002-acceptance.md:68`
+
+   The likely cause: this checkout has no remote and no `origin/main` ref (`git branch -a` shows only `main` and the work-item branch; `git diff origin/main` fails with "unknown revision"). So `make secrets` cannot limit itself to the files changed against `origin/main`, and it appears to scan every tracked file instead. These findings are outside this work item and I did not touch them.
+
+   Every other target of `make check`, run one by one in the foreground, is green: `lint: green (0.1 s)`, `types: green (0.2 s)`, `layers: green (0.1 s)`, `sast: green (1.9 s)`, `licenses: green (0.1 s)`, `test: green (187.3 s)`.
+
+   Refactor step: there is no diff, so nothing to refactor. The journal did not change the meaning of the task, so `## Description` stays as it is.
+
+   Question: how should this go forward? The options I see:
+   (a) Provide `origin/main` in the stage's checkout (a remote, or the ref fetched into the dataset), so `make secrets` scans only the changed files, then run `doing` again.
+   (b) Fix the old acceptance reports' high-entropy values, or add them to `.secrets.baseline`, in a separate story or by your own commit. A new baseline entry needs your leave under "Not without asking".
+   (c) Accept that the factory's own check after this stage runs where `origin/main` exists, and let me end with `review` on the next run, since this story changes no file that `make secrets` would check.
+   I would choose (a): the red comes from the missing ref, not from this branch's changes. I would then run (b) as its own story if a full scan on `main` shows the same findings.
+8. 2026-10-25 human: (a). The red comes from the missing `origin/main` in the dataset's checkout, not from this branch. The sync now also fetches the host's branches as `origin/<branch>` (story F0043-S0006; this instance already runs that one-line change), so `make secrets` scans only the changed files again. Run `doing` again as a documents-only round: nothing outside the docs changes, and `make check` should end green. (b), the old acceptance reports' values, is not this story's: it is raised for the human.
+9. factory: started doing as vm.
+10. coder: I built nothing. This is a documents-only story: the documenter writes the chapter and the decision-log entry. Nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changed in this stage, and `git status --short` is empty (criterion 1).
+
+    `make check` is now green and ends with `check: green` (`test: green (193.3 s)`, total coverage 99.20 %) (criterion 2). As the human's answer in entry 8 said, the checkout now has `origin/main` (`git branch -a` lists `remotes/origin/main`), so `make secrets` scans only the changed files again. Last round it went red on the done acceptance reports of F0023 and F0042; this round it no longer does.
+
+    Main choice: I kept to the human's answer and handed the story on with no change. The alternative I rejected was touching the old acceptance reports or `.secrets.baseline`: the human said that is not this story's work (option (b)).
+
+    Refactor step: there is no diff, so there was nothing to refactor. The journal did not change the meaning of the task, so `## Description` stays as it is.
+
+    Noticed, not touched: the high-entropy values in `F0023-A0001-acceptance.md`, `F0023-A0002-acceptance.md` and `F0042-A0002-acceptance.md` are still there. A full scan on `main` will flag them again; the human has taken that up.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
+11. factory: started review as vm.
+12. reviewer: no findings
+
+    What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty (0 lines). The branch changes only this work item's `.md` and its new `.costs.jsonl` sidecar, both under `factory/`.
+    1. Acceptance criteria: criterion 1 holds, because nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes. The tester (entry 5) and the coder (entry 10) each end with an entry that says so. Criterion 2: the journal records that the factory's `make check` after the coder ended `check: green` (entry 10). Criterion 3 is the docs criterion: the documenter writes it next, and the smoke test and `make documents` check it. The Interface states no rule, so there is no failing side to test.
+    2 to 4. Architecture, security, quality: no code, so nothing to judge. `duplicates: 11 new` in entry 10 is not from this branch, since nothing under `src/factory` changed.
+    5. Work item hygiene: the journal gives the main decision (hand on with no change, after the human's answer in entry 8) and what was rejected (touching the old acceptance reports or `.secrets.baseline`). The `## Description` matches what was built so far: nothing. The documenter's chapter and decision-log entry still lie ahead. The docs criterion still says what the reader must know.
+    6. Earlier tests: the diff changes no test file.
+
+    Open, and not this story's: the high-entropy values in the done acceptance reports of F0023 and F0042 that a full `make secrets` scan flags. The human took them up in entry 8.
+13. factory: started docs as vm.
+14. documenter: I wrote the chapter and the decision-log entry, and I stop with one question because the docs criterion and `vm/setup.sh` disagree.
+
+    Question: the criterion for *The rebuild after a merge* says `vm/setup.sh` "carries over ... a changed `vm/factory.service` and a changed `image/git-credential-factory`" after every merge. The code does not do that. `vm/setup.sh` lines 316-322 and 361-367 install `/usr/local/bin/git-credential-factory` and `/etc/systemd/system/factory@.service` only in the run that cloned, or when the installed file is missing. A later run that finds a different file prints `setup: ...: differs from the checkout; not installed` to standard error and leaves the file. The existing *The two passes* section says the same (S0003 chose this deliberately, so that root does not install files from a checkout `factory` can write). I took the code as right and wrote the chapter to match: after a merge that changes either file, the operator removes the installed file and runs the script again. Options:
+    (a) Keep the code; the criterion's wording is corrected. This is the option I would choose.
+    (b) The coder changes `vm/setup.sh` to install a changed file on later runs. Root would then copy a file from `factory`'s checkout into `/usr/local/bin` and `/etc/systemd/system`, which gives the `factory` user a way to run code as root. I advise against it.
+    If (b), the *The rebuild after a merge* paragraph on the script and the section *The two passes* change after the fix.
+
+    Files changed:
+    - `docs/operator-guide.md`: the chapter `## The machine` now has the eleven `###` sections in the required order. I added *What it is*, *On GCP, step by step* (12 numbered steps from the runbook's sections 1 to 3, plus the script's runs, the secrets, the build, the start and the stop), *On any Ubuntu 24.04 VM*, *What the container can and cannot see*, *The costs*, *The metadata server*, *Where the logs are* and *The rebuild after a merge*. I replaced the chapter's opening sentence, and the opening paragraph of the guide, which called the machine's image "the usual way". The top list already named "The machine" before "The machine's image".
+    - `docs/decisions.md`: I appended the section `## The factory runs on the host, and the stage image carries the tools alone` (2026-10-24, F0043). No other entry changed.
+    - `README.md`: one added sentence naming `vm/setup.sh` and pointing to the chapter.
+
+    Checks: the three smoke-test blocks give the eleven `###` lines, `8`, `1`, `1`, and `make documents` ends with `documents ok`. Every term the criterion lists for the chapter is present. I ran no `gcloud` command and did not run the chapter's examples: there is no GCP project or VM here. The commands are copied from the runbook, the criterion and `vm/setup.sh`. I ran no `make check`, because I changed only documents.
+
+    Cross-read and found current: *The stage image*, *The script* (steps, options, exit statuses, environment file, `sudoers` fallback) and *The service* against `vm/Dockerfile`, `vm/setup.sh` and `vm/factory.service`; the environment-file table matches the script. The factory-log section's `stage environment:` line matches `src/factory/application/stage_environment.py`. `docs/project-guide/README.md` needs no change: no guide file names a chapter that moved.
+
+    Open points:
+    - The criterion cites "decision 10" for the empty `anthropic-api-key`. I wrote "decision 10 of the feature F0043" and did not read the feature's `feature.md`; check that this is the right reference.
+    - The costs, the logs section and the container-limits sentence come from the plan and from `src/factory`. I took the NAT fee from the criterion and the runbook, and did not look it up.
+    - I added `shred -u` for removing the secret copies; the criterion only says "the copy removed afterwards".
+
+    Stale text noticed, not touched:
+    - `README.md` line 12 still says "An instance runs in the container: see *The container: compose, entrypoint and health check*". That is v1.1's way and F0044 removes it.
+    - `vm/Dockerfile` has a comment line with `podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> .`. The build context there is the repository root, which is correct, but the chapter uses `/srv/factory/vm/factory`, the same thing.
+15. 2026-10-25 human: (a). The code is right: S0003 decided that root installs the unit and the credential helper only in the run that cloned or when the file is missing, so that root never installs a file from a checkout `factory` can write. Read the criterion's *The rebuild after a merge* as: after a merge that changes `vm/factory.service` or `image/git-credential-factory`, the operator removes the installed file and runs the script again, as you wrote. Keep the chapter as it is. Decision 10 of F0043's `feature.md` is the right reference for the empty `anthropic-api-key`; `shred -u` for the secret copies is fine. Then end with `smoke-test`.
+16. factory: started docs as vm.
+17. documenter: Round 0 resumed after the human's answer (entry 15): option (a), the code is right, and the chapter stays as written. I made no new edit this run. The documents from the earlier docs run are in the working tree and committed. I did not run `make check`, because only documents changed.
+
+    Files changed (in the branch, by the earlier docs run):
+    - `docs/operator-guide.md`: the chapter `## The machine` has the eleven `###` sections in the required order. It holds the new sections *What it is*, *On GCP, step by step* (12 numbered steps), *On any Ubuntu 24.04 VM*, *What the container can and cannot see*, *The costs*, *The metadata server*, *Where the logs are* and *The rebuild after a merge*. The guide's opening paragraph no longer calls the machine's image "the usual way". After a merge that changes `vm/factory.service` or `image/git-credential-factory`, the rebuild section tells the operator to remove the installed file and run the script again. This follows `vm/setup.sh` and the human's reading of the criterion.
+    - `docs/decisions.md`: the new section `## The factory runs on the host, and the stage image carries the tools alone` (2026-10-24, F0043). No other entry changed.
+    - `README.md`: one sentence naming `vm/setup.sh` and pointing to the chapter.
+
+    Checks re-run now:
+    - The `###` listing of the chapter gives eleven lines.
+    - `make documents` ends with `documents ok`.
+    - The earlier run checked the other two smoke-test blocks: `8`, `1`, `1`.
+    - I ran no `gcloud` command and did not run the chapter's examples: there is no GCP project or VM here. The commands come from the runbook, the criterion and `vm/setup.sh`.
+
+    Confirmed by the human: "decision 10 of the feature F0043" is the right reference for the empty `anthropic-api-key`, and `shred -u` for the secret copies is fine.
+
+    Cross-read and found current: *The stage image*, *The script* and *The service* against `vm/Dockerfile`, `vm/setup.sh` and `vm/factory.service`. The `stage environment:` line described in *Where the logs are* matches `src/factory/application/stage_environment.py`. `docs/project-guide/README.md` needs no change: no guide file names a chapter that moved.
+
+    Open, taken from the plan and the runbook without a lookup: the cost figures, including the Cloud NAT fee. Check them against current GCP prices before relying on them.
+
+    Stale text noticed, not mine to fix:
+    - `README.md` line 12 still says "An instance runs in the container: see *The container: compose, entrypoint and health check*". That is v1.1's way, and F0044 removes it.
+    - The comment in `vm/Dockerfile` has `podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> .`. It is correct: the build context is the repository root, which the chapter writes as `/srv/factory/vm/factory`.
+    - The high-entropy values in the done acceptance reports of F0023 and F0042 will be flagged again by a full `make secrets` scan. The human has taken them up.
+
+    `check`: check: green (not run again: passed on tree 97d9666fa5e7 at 2026-10-25T07:15:18Z)
+    `secrets`: secrets: green (1.9 s)
+    `documents`: documents ok
+18. factory: started smoke-test as vm.
+19. smoke-tester: I ran the three smoke-test commands exactly as written, from the repository root. All three met their `Expect:` lines and I found nothing to report. I fixed nothing.
+
+    Command 1:
+    ```bash
+    awk '/^## The machine$/{on=1; next} /^## /{on=0} on && /^### /' docs/operator-guide.md
+    ```
+    ```
+    ### What it is
+    ### The stage image
+    ### The script
+    ### The service
+    ### On GCP, step by step
+    ### On any Ubuntu 24.04 VM
+    ### What the container can and cannot see
+    ### The costs
+    ### The metadata server
+    ### Where the logs are
+    ### The rebuild after a merge
+    ```
+    Met: eleven lines, in the expected order.
+
+    Command 2 (the eight-word count, the decision-log heading, `vm/setup.sh` in `README.md`):
+    ```
+    8
+    1
+    1
+    ```
+    Met: `8`, `1`, `1`.
+
+    Command 3:
+    ```bash
+    make documents 2>&1 | tail -n 1
+    ```
+    ```
+    documents ok
+    ```
+    Met.
+
+    Reading the acceptance criteria against the branch, nothing contradicts them:
+    - Criterion 1: `git diff --name-only origin/main...HEAD` lists only `README.md`, `docs/decisions.md`, `docs/operator-guide.md` and the work item with its `.costs.jsonl`. Nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changed.
+    - Placement: `## The machine` (line 393) comes right before `## The machine's image` (line 719). The list at the top of the guide names "The machine" right before "The machine's image".
+    - *On GCP, step by step*: 12 numbered items. The 13 required names appear in the required order of first occurrence. `gcloud billing budgets create` is in step 1, alongside the budget amount.
+    - Each of the 19 words the chapter must name appears at least once.
+    - *The costs* has the table with rows for the VM, the disk and NAT, using the plan's numbers. It also gives the $120 alert with thresholds at 50 %, 90 % and 100 %, and says a stopped VM costs its disks. *The metadata server* names `169.254.169.254`, `--no-service-account --no-scopes` (instance metadata, no token) and `Metadata-Flavor: Google`.
+    - *The rebuild after a merge*: `pull --ff-only`, `uv sync --frozen --no-dev`, `podman build`, `image-id`, `vm/setup.sh` and `systemctl restart factory@vm` appear in that order. The criterion's literal `git pull` does not appear. The section uses the form the criterion itself prescribes, `git -C /srv/factory/vm/factory pull --ff-only`, so I count it as met.
+    - The section says `vm/setup.sh` leaves a changed installed `factory@.service` or `git-credential-factory` in place, and the operator removes the installed file and runs the script again. That differs from the criterion's wording "carries over". It matches `vm/setup.sh` (lines 321 and 366) and the human's answer to the documenter's question in the journal (entry 14 and the human's answer after it). I don't count it as a contradiction.
+    - `docs/decisions.md`: only additions (12 lines). The new section is dated 2026-10-24 and names every required term (`2026-10-24`, `planning/v1.2-plan.md`, `F0043`, `systemd`, `factory@`, `zfs allow`, `sudoers`, `/etc/factory/claude`, `FACTORY_IMAGE_ID_FILE`, `F0044`).
+
+    Open: nothing.
