@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-25T10:40:39.251939Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T10:40:39.245992Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T10:40:39.251939Z'
+  stage: intake
+---
+
 # No agent call starts through the write guard's wrapper
 
 ## Description
@@ -88,3 +115,6 @@ grep -L 'the kernel refuses every other write' claude/agents/*.md | wc -l
 Expect: `7`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as vm.
