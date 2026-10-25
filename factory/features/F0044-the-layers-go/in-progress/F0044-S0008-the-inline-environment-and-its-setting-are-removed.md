@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 451
-comments_read: [6401042995, 6401126933]
+comments_read: [6401042995, 6401126933, 6401361580]
 handed_over: null
 claim: null
 journal:
@@ -93,6 +93,11 @@ journal:
   stage: tests
   run: 0a06a1c175d14e588a7e95c08d7b3e1e
   blocked: question
+- number: 16
+  speaker: human
+  kind: comment
+  at: '2026-10-25T18:18:29.799664Z'
+  stage: tests
 ---
 
 # The inline environment and its setting are removed
@@ -340,3 +345,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     - criteria 9 and 10: no test.
 
     Files created in this run: none. The shared helper is in the existing tests/wiring_support.py. Modules the test run could not import: none.
+16. 2026-10-25 human: (a). Delete the three `*-agent-committed` rows of `tests/application/test_stage_run.py::test_a_run_adds_exactly_one_commit_of_its_own` and the three tests `tests/application/test_stall_edges.py::test_a_stall_after_the_agent_left_drops_its_commit_on_the_branch`, `tests/application/test_stalls.py::test_the_agents_own_commit_stays_below_the_one_stall_commit` and `::test_an_agent_that_left_the_branch_is_brought_back_and_its_other_branch_kept`. They check inline behaviour that leaves with the inline environment; this is the take-over of S0007's inline-only tests that the Interface already names (decisions 24 and 37). Then run this mode again and finish the rest of the list.
