@@ -414,9 +414,105 @@ Build it on the VM as the user `factory`, from a checkout:
 podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> <the checkout>
 ```
 
-`--build-arg FACTORY_IMAGE=<ref>` sets the label `factory.image`; it defaults to `unlabelled`. The label is not the identity of the image. The settings read the identity from the file `FACTORY_IMAGE_ID_FILE` names, and you renew that file after every build. How `vm/setup.sh` makes the file is not described here yet. Nothing in `make check` builds the image.
+`--build-arg FACTORY_IMAGE=<ref>` sets the label `factory.image`; it defaults to `unlabelled`. The label is not the identity of the image. The settings read the identity from the file `FACTORY_IMAGE_ID_FILE` names, and you renew that file after every build. `vm/setup.sh` makes the file with a fresh uuid when it is missing or empty (see *The script*). Nothing in `make check` builds the image.
 
 To update a pin, follow *Update the pins* under "The machine's image" and change the same lines in `vm/Dockerfile`. Until F0044 removes `image/`, `tests/test_stage_image.py` holds the two Dockerfiles to the same pins (the base image, the three versions, the seven Debian packages and the opencode model ids), so a pin changed in one file alone fails it.
+
+### The script
+
+`vm/setup.sh` makes the machine from a fresh Ubuntu 24.04 with a spare disk and installs the service. It is POSIX `sh`, runs as root and does only what is missing, so a second run changes nothing.
+
+```bash
+sudo sh vm/setup.sh --device /dev/sdb --repository-url https://github.com/<owner>/<repo>.git
+```
+
+| Option | Default | Meaning |
+|---|---|---|
+| `--device <path>` | required | The disk, or a file such as `/var/lib/factory-pool.img`, the pool is made on. The script does not test it: a pool that exists is found whatever `--device` names. |
+| `--repository-url <url>` | required | The repository the factory works on and runs from. |
+| `--instance <name>` | `vm` | The instance's name; its folder is `/srv/factory/<instance>`. |
+| `--pool <name>` | `tank` | The ZFS pool. |
+| `--quota <size>` | `30G` | The quota of the instance's dataset. |
+| `--ref <git ref>` | `main` | The factory's git ref to check out. |
+| `--image <tag>` | `factory-stage:<instance>` | The stage image. |
+| `--runtime claude\|opencode` | `claude` | The agent runtime. |
+| `--sudoers` | off | Reach `zfs` through `sudo` (see below). |
+| `--help` | | Print the usage to standard output and exit 0. |
+
+A missing required option, an option without its value, an unknown word or a runtime other than the two prints `setup.sh: <what is wrong>` and the usage to standard error and exits 2. When the user is not root it prints `setup.sh: run as root` and exits 2. Nothing is made or changed before either exit.
+
+#### The steps
+
+Each step prints one line, `setup: <step>: `, followed by what it changed (joined with `; `) or, when nothing needed doing, what it found, which says `found`. The steps run in this order:
+
+1. `packages`: `apt-get update`, then `apt-get install -y --no-install-recommends` of the missing ones among `zfsutils-linux podman uidmap slirp4netns git make python3.12-venv`.
+2. `pool`: `zpool create -o ashift=12 -O compression=lz4 -O atime=off <pool> <device>`, unless `<pool>` exists.
+3. `user`: the user `factory` with a home and `/bin/bash`, unless it exists. `/etc/subuid` and `/etc/subgid` must each hold a `factory:` line; the script does not make one. Without it, it prints `setup: user: no subuid and subgid range for factory; add one with usermod --add-subuids and --add-subgids` to standard error and exits 1. Add the ranges and run the script again.
+4. `linger`: `loginctl enable-linger factory`, so rootless Podman and the user's runtime folder outlive a login.
+5. `datasets`: `<pool>/factory` and `<pool>/factory/<instance>`, both with `compression=lz4` and `atime=off`, the second mounted at `/srv/factory/<instance>/work`, with the quota, and the mount point owned by `factory`.
+6. `delegation`: `zfs allow -u factory snapshot,destroy,rollback,diff,mount` on the instance's dataset, unless all five are already delegated.
+7. `sudoers`: only with `--sudoers`, see below. Without it the line says `not asked` and neither file is touched.
+8. `folders`: `/srv/factory/<instance>` with `state` and `repo`, owned by `factory` (mode `0755`), and `/home/factory/.secrets` (mode `0700`). If `state`, `repo` or `/home/factory/.secrets` is a link, the script prints `setup: folders: ...` to standard error and exits 1 before it makes anything in the step: remove the link and run it again. The script sets the secrets folder's owner and mode and never touches a file in it: the secrets you placed stay as they are on every run.
+9. `image-id`: `/srv/factory/<instance>/image-id`, a fresh uuid (mode `0644`) when the file is missing or empty. A rebuilt image needs a new id; renew the file yourself (see *The stage image*).
+10. `checkout`: the factory at `--ref`, cloned as `factory` into `/srv/factory/<instance>/factory`, unless it holds a `.git`.
+11. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `image/` (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
+12. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`).
+13. `service`: the unit `vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
+
+The script ends with `setup: done: build the stage image and start factory@<instance>; see the operator guide, "The machine"`.
+
+#### The two passes
+
+The checkout of the private repository needs the hosting token. When `/home/factory/.secrets/hosting-token` is not there at step 10, the script prints `setup: checkout: waiting for /home/factory/.secrets/hosting-token; place the secrets and run this script again` and exits 0. Place the token, and the login file for your runtime (`claude-token` or `anthropic-api-key`), in `/home/factory/.secrets`, readable by `factory`, and run the same command again: steps 1 to 9 report `found` and the rest completes.
+
+The token is written into no file. Git asks the askpass script (`/srv/factory/<instance>/askpass`) for it, and only that script reads the token file; the clone sets `core.askPass` on its own command line, not in any git configuration.
+
+The unit and the credential helper come from the checkout, and root installs them only in the run that made the clone (whose content is the remote's at `--ref`, before the service ever ran) or when the installed file is missing. So a first run that stopped after the clone is completed by the next. A later run that finds the installed file in place but different from the checkout installs nothing and prints `setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed` or `setup: service: /etc/systemd/system/factory@.service differs from the checkout; not installed` to standard error. To take the checkout's version, remove the installed file and run the script again.
+
+#### The environment file
+
+Every run rewrites `factory.env` from the arguments and from the pins in the checkout's `vm/Dockerfile` (the Claude Code and opencode versions and the opencode model ids), and writes it only when its text differs. A change therefore goes into the script's arguments (or the Dockerfile), never into the file: an edit by hand is lost at the next run.
+
+#### The `sudoers` fallback
+
+The delegation of step 6 is the way for the factory to reach `zfs`. When it does not suffice on your machine, run the script with `--sudoers`. Step 7 then writes `/etc/sudoers.d/factory-zfs` (mode `0440`), which lets `factory` run exactly `zfs snapshot`, `zfs destroy`, `zfs rollback -r` and `zfs diff -FH`, each on `<dataset>@base` alone, as root without a password, and checks it with `visudo -cf`. If `visudo` refuses it, the script removes the file, prints the refusal to standard error and exits 1. It also writes `/usr/local/bin/zfs-factory` (mode `0755`), a wrapper that runs those four commands through `sudo -n /usr/sbin/zfs` and every other command as itself, and the environment file then holds `FACTORY_ZFS=/usr/local/bin/zfs-factory`.
+
+The rule names `diff -FH` because the factory runs `zfs diff` with those flags and `sudoers` matches the whole argument list; a rule for `diff -H` would not match.
+
+### The service
+
+The unit `vm/factory.service` is a systemd template, installed as `factory@.service`; the text after the `@` is the instance. For the default instance it is `factory@vm`. The unit runs as `factory`, with `/srv/factory/%i` as its working directory, reads `/srv/factory/%i/factory.env` and starts `/srv/factory/%i/factory/.venv/bin/factory-run`. `Restart=always` with `RestartSec=15` restarts it fifteen seconds after any exit, in place of Compose's restart policy.
+
+```bash
+sudo systemctl start factory@vm      # also stop, restart, status
+sudo journalctl -u factory@vm        # the process's output
+sudo -u factory /srv/factory/vm/factory/.venv/bin/factory-health --state-directory /srv/factory/vm/state
+```
+
+Nothing runs a health check by itself: ask `factory-health` as `factory`. Build the stage image before the first start (see *The stage image*).
+
+The environment file holds these variables, which *Configuration* explains:
+
+| Variable | Value |
+|---|---|
+| `FACTORY_INSTANCE` | `--instance` |
+| `FACTORY_REPOSITORY_URL` | `--repository-url` |
+| `FACTORY_AGENT_RUNTIME` | `--runtime` |
+| `FACTORY_STAGE_ENVIRONMENT` | `container` |
+| `FACTORY_DATASET` | `<pool>/factory/<instance>` |
+| `FACTORY_WORKSPACE` | `/srv/factory/<instance>/work` |
+| `FACTORY_STAGE_IMAGE` | `--image` |
+| `FACTORY_ZFS` | `zfs`, or `/usr/local/bin/zfs-factory` with `--sudoers` |
+| `FACTORY_CHECKOUT` | `/srv/factory/<instance>/repo` |
+| `FACTORY_STATE` | `/srv/factory/<instance>/state` |
+| `FACTORY_IMAGE_ID_FILE` | `/srv/factory/<instance>/image-id` |
+| `FACTORY_CLAUDE_HOME` | `/srv/factory/<instance>/factory/claude` |
+| `FACTORY_TOKEN_FILE` | `/home/factory/.secrets/hosting-token` |
+| `FACTORY_CLAUDE_LOGIN_FILE` | `/home/factory/.secrets/claude-token` |
+| `FACTORY_API_LOGIN_FILE` | `/home/factory/.secrets/anthropic-api-key` |
+| `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION`, `FACTORY_OPENCODE_MODELS` | the pins of `vm/Dockerfile` |
+| `PATH` | `/srv/factory/<instance>/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin` (`/usr/sbin` holds `zfs`) |
+| `XDG_RUNTIME_DIR` | `/run/user/<uid of factory>`, where rootless Podman finds its runtime folder |
 
 ## The machine's image
 
