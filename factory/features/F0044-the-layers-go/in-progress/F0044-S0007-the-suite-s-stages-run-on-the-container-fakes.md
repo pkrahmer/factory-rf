@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 450
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T16:45:06.317881Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-25T16:45:06.317881Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T16:45:29.744802Z'
+  stage: intake
+  run: dd80478fad82462fbe470d924f9dc08b
 ---
 
 # The suite's stages run on the container fakes
@@ -78,3 +80,9 @@ Expect: two lines: `1`; `1`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete places (`factory.application.task.StageTask`, `factory.application.preflight._probe_request`) with the rule for the working directory (dataset checkout when snapshots are set, host checkout otherwise). It also names the exact test files, helpers and fixtures to change, and the pre-check's list (decision 36 of `feature.md`) is in it.
+   Criteria: each is testable by one test or one parametrized test. Criterion 1 is the fixture, 2 the remote's `Makefile` and its silent `sync`, 3 the working directory on both sides (snapshots set and `None`), 4 a whole stage, 5 a died run, 6 the world. 7 and 8 are the closing criteria. The Interface's only behaviour comment, "a real runtime ignores the working directory", changes nothing observable. Every rule has both sides: the working directory has two rows, and the stage with a forbidden path has the kept `tests/test_new.py` and the left-out `src/forbidden.py`.
+   Smoke test: both commands are runnable. pytest's `addopts` already sets `-q` and the command passes none, so the `N passed in` summary line the first `Expect:` greps for is printed. The second command's two counts are checkable.
+   Architecture: the change is in tests, fixtures and the request's working directory, in `application`. It uses the F0042 fakes and adds no interface, no layer break, and no new dependency.
+   Scope: it matches S0007 in `feature.md`. The inline environment stays until S0008, and the leaves are those of decision 23, answer 29 (a) and decision 36. Nothing is in "Out of scope".
