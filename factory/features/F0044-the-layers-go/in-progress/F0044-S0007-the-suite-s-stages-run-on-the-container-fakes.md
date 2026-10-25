@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 450
 comments_read: [6400499867]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T17:00:25.513950Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,13 @@ journal:
   kind: started
   at: '2026-10-25T17:00:25.513950Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: question
+  at: '2026-10-25T17:02:32.230901Z'
+  stage: tests
+  run: 940819d58b8f439d8ae1d7f4901b0b51
+  blocked: question
 ---
 
 # The suite's stages run on the container fakes
@@ -205,3 +208,22 @@ Expect: two lines: `1`; `1`
 
     Still open: step 4's refactor of my diff happens when the work item comes back to doing, together with the `make check` run that needs the two changed tests green.
 11. factory: started tests as self.
+12. tester: I made both changes the human approved in entry 8, and one of the two tests is still red, for a reason the approved change does not cover.
+
+    Changes made, exactly as approved:
+    1. `tests/test_suite_fixtures.py::test_a_story_walks_to_approval_in_the_world_on_the_container_fakes` now pushes `PASSING_MAKEFILE` to `main` with `world.human.push_file` before `start_story`. `PASSING_MAKEFILE` is added to the import from `proof_support`. The test's own loop and its `forbidden.txt` check are unchanged. The push is never empty, because the remote's `Makefile` holds only `SYNC_TARGET`.
+    2. `tests/application/test_stage_on_container_fakes.py::test_a_whole_stage_on_the_fixture_takes_the_allowed_writes_and_leaves_out_the_rest` now looks for `src/forbidden.py` in the paragraph before the checks' command lines (`split("\n\n")[-2]`). Before, it looked in the last paragraph. The checks' lines form a single paragraph.
+
+    `make test` (one run): every test passes except
+    `FAILED tests/test_suite_fixtures.py::test_a_story_walks_to_approval_in_the_world_on_the_container_fakes - AssertionError: assert ['intake', 't...ke-test', ...] == ['intake', 't... 'smoke-test']`
+    I ran that one test alone with `--tb=short` to see the full message:
+    `tests/test_suite_fixtures.py:78`
+    `E   AssertionError: ... Left contains one more item: 'approval'`
+    With the Makefile in place, the walk now reaches the end. The state's `stage` becomes `approval` one tick before `handed_over` is `approval`, so the loop records `approval` as a stage it walked and queues one more run for it. The fault is in the test's loop, not in the code. `make lint`: green.
+
+    Question: how should the loop treat the tick where the stage is already `approval` but the handover has not happened yet?
+    (a) The loop does not record `approval` in `walked`: `if stage not in walked and stage != "approval":`. The expected list stays `intake … smoke-test`, and the test still waits for `handed_over == "approval"`.
+    (b) The expected list gains `"approval"` at the end.
+    I would choose (a). The criterion names the stages walked to approval, and approval is where the walk ends, not a stage the agent runs. I tried (a) on that single test and it passed. I then restored the file, so the working tree holds only the two approved changes.
+
+    Files changed: tests/test_suite_fixtures.py, tests/application/test_stage_on_container_fakes.py.

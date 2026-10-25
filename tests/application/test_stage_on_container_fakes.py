@@ -110,7 +110,7 @@ def test_a_whole_stage_on_the_fixture_takes_the_allowed_writes_and_leaves_out_th
     document = pushed(boundaries, remote)
     assert document.state is not None
     [record] = [record for record in document.state.journal if record.speaker == "tester"]
-    assert FORBIDDEN in entry_text(document, record.number).split("\n\n")[-1]
+    assert FORBIDDEN in entry_text(document, record.number).split("\n\n")[-2]
     texts = [line.split(" ", 1)[1] for line in timing_lines(boundaries)]
     assert len([text for text in texts if text.startswith(RESET_PREFIX)]) == 1
     assert git.status().changes == []

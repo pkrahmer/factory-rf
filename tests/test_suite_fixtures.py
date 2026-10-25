@@ -11,6 +11,7 @@ from factory.application.stage_environment import ContainerEnvironment, stage_en
 from factory.domain.identifiers import branch_name
 from git_support import PIPELINE_YAML, clone
 from proof_support import (
+    PASSING_MAKEFILE,
     PASSING_TEST,
     SOURCE,
     World,
@@ -52,6 +53,7 @@ def test_the_remotes_makefile_has_a_silent_sync_that_succeeds(remote: Path, tmp_
 
 
 def test_a_story_walks_to_approval_in_the_world_on_the_container_fakes(world: World) -> None:
+    world.human.push_file("main", "Makefile", PASSING_MAKEFILE)
     work_item = start_story(world)
     definition = world.boundaries.pipeline_reader.parse(PIPELINE_YAML)
     git = world.boundaries.git
