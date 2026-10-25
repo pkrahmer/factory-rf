@@ -1,3 +1,104 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 433
+comments_read: [6394400610]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T06:27:15.690887Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:27:15.696525Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T06:27:33.487862Z'
+  stage: intake
+  run: fa0d8f8981e5443bb3252a73adf48d7f
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:27:53.690221Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: question
+  at: '2026-10-25T06:28:54.214123Z'
+  stage: tests
+  run: e8eccf1d056a40708edc411da4f7c746
+  blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-10-25T06:31:15.286602Z'
+  stage: tests
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:31:33.339256Z'
+  stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-25T06:35:12.911081Z'
+  stage: tests
+  run: d35ccc0bdbb543b09cfe49333769dd4b
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:35:33.562367Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-25T06:38:42.495463Z'
+  stage: doing
+  run: 522abd557b2c408488e9ab86f6392bc2
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:39:02.953281Z'
+  stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T06:39:58.954452Z'
+  stage: review
+  run: 4cbcbe5680cb438dba3f692ed3e9d809
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:40:20.465992Z'
+  stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T06:40:42.751853Z'
+  stage: docs
+  run: 886c4507728840aa90af2b8b18b3f852
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:41:03.281666Z'
+  stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T06:41:27.290687Z'
+  stage: smoke-test
+  run: 4b8f421420b24c3391292a9dec7a853b
+---
+
 # The setup script writes as factory from its own standard input
 
 ## Description
@@ -31,3 +132,134 @@ grep -c '/dev/stdin' vm/setup.sh; sh -n vm/setup.sh && echo syntax-ok
 Expect: two lines, `0` and `syntax-ok`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as self.
+3. intake: accepted
+   Interface: names `vm/setup.sh` and one concrete helper (`write_as_factory <mode> <target>` beside `as_factory`) with the exact `sh -c 'cat > "$2" && chmod "$1" "$2"'` command, its standard-input sources, and the test module and support file. It states no rule beyond what criteria 1 to 3 test.
+   Criteria: each is testable by one test function or one parametrized test. 1 covers the absence of `/dev/stdin`/`install` with stdin. 2 has one row for each of the three writes (mode and target) plus the helper's `as_factory` line. 3 covers content, mode and rewrite on the helper's pass side, and 4 pins the existing test. The helper has no refusal path, so no failing side is needed. "Write only when the text differs, as today" is kept unchanged by the Interface's "nothing else changes". I did not add a criterion for it.
+   Smoke test: `grep -c '/dev/stdin' vm/setup.sh; sh -n vm/setup.sh && echo syntax-ok` runs as written. The grep prints 0 (its non-zero status is ignored because of the `;`), then `syntax-ok`. The Expect line is checkable. It runs no pytest, so the `-q` rule does not apply.
+   Architecture: `vm/*` is in the coder's write paths, which feature.md change 1 added. Tests go under `tests/` with `tests/vm_support.py`, and the docs criterion names the operator guide's setup-script chapter. No layer is touched.
+   Scope: it is inside F0043 as decision 17 and the Stories list (S0005, before S0004). It changes nothing from the Out of scope list, and no earlier test changes.
+4. factory: started tests as self.
+5. tester: I stopped before writing any test. Criterion 4 conflicts with the Interface.
+
+   What I found: `tests/test_vm_setup_text.py::test_the_files_under_the_instance_folder_are_written_as_factory` (rows `image-id`, `askpass`, `factory-env`) finds a step's write lines through `_writes`. A line counts as a write only if it redirects (`>` or `>>`) into the file or holds one of `WRITE_FORMS` (`install `, `cp `, `mv `, `tee `). It then requires at least one such line, and every one of them must run as factory. The Interface's write line is `write_as_factory 0644 "$base/image-id"`, and lines like it for `$askpass` and `$env_file`. Those lines hold no redirect into the target and none of those forms. So the existing test finds no write line, and the three rows fail.
+
+   I checked this rather than reading it off the code. I rewrote the script's text in memory as the Interface describes: a helper `write_as_factory() { as_factory sh -c 'cat > "$2" && chmod "$1" "$2"' sh "$1" "$2"; }` and the three calls. I then ran the test's own `_written_as_factory` on it. It returned `False False False` (script in `$TMPDIR`, not kept).
+
+   The question: how should criterion 4 be met?
+   - (a) You allow a change to that earlier test. `_writes` would also count a line that calls a function whose body writes through `as_factory` (for example a function whose body holds `cat >`). Every row keeps its name and its check that the write runs as factory. Criterion 4 would then read "passes, with `_writes` also counting a call of the write helper". This is the option I would choose: it keeps the guard against a write as root and fits the new helper.
+   - (b) The coder's call lines keep a word the old test knows. For example, a helper named so that `tee ` appears, or a comment-free `install`. That breaks criterion 1 or bends the code to fit a test, so I would not choose it.
+   - (c) Drop criterion 4 and let the new criterion 2 carry the "written as factory" check for these three files. The old test's three rows would then still need to change or be removed, so this also needs your leave.
+
+   Nothing else is open. Once this is answered, my plan is:
+   - criterion 1: one test that the uncommented text holds no `/dev/stdin` and no line with both `install` and `stdin`.
+   - criterion 2: one parametrized test with rows image-id/askpass/factory-env. Each row checks the step's call of the helper with its mode and target. The helper is found as the script's function whose body calls `as_factory` with `cat >`, and its line must run through `as_factory`.
+   - criterion 3: rows one and two. The test runs the helper's function text with `as_factory() { "$@"; }` through `sh` in `tmp_path` and checks the content and the mode 0640.
+
+   To find the helper's function text I would move `FUNCTION` from `tests/test_vm_setup_text.py` to `tests/vm_support.py`, under the standing leave.
+
+   No files created.
+6. 2026-10-25 human: (a). The leave: in `tests/test_vm_setup_text.py`, `_writes` also counts a line that calls the script's write helper (the function whose body writes with `cat >` through `as_factory`); `test_the_files_under_the_instance_folder_are_written_as_factory` keeps its name, its four rows and its check that every write line runs as `factory`. Read criterion 4 as "passes, with `_writes` also counting a call of the write helper", and name the change in your entry. Moving `FUNCTION` to `tests/vm_support.py` is under the standing leave, as you say. Your plan for criteria 1 to 3 is right.
+7. factory: started tests as self.
+8. tester: I wrote the tests for criteria 1 to 4 under the human's answer (a) in entry 6. Criteria 5 and 6 are not tests: `make check` and the docs belong to the later stages.
+
+   - criterion 1: tests/test_vm_setup_writes.py::test_no_write_reads_dev_stdin_by_name
+   - criterion 2: tests/test_vm_setup_writes.py::test_each_file_is_written_through_the_helper_with_its_mode, with rows image-id (0644, `$base/image-id`), askpass (0755, `$askpass`) and factory-env (0644, `$env_file`). Each row checks that the step's text has a line calling the helper with that mode and target, and that a line of the helper's body starts with `as_factory` and holds `cat >`.
+   - criterion 3: tests/test_vm_setup_writes.py::test_the_helper_writes_its_standard_input_with_the_mode, with rows first (`one`) and again (`one` then `two`). The test takes the helper's function text from the script and puts a pass-through `as_factory() { "$@"; }` in front of it, so it runs as the test's own user with no `runuser`. It pipes the text in with `printf '%s\n'` and runs it with `sh` on `tmp_path/target` with mode 0640. It checks the content (the last text plus a newline) and the mode 0640.
+   - criterion 4: tests/test_vm_setup_text.py::test_the_files_under_the_instance_folder_are_written_as_factory. It keeps its name, its four rows and its check that every write line runs as factory.
+
+   The helper is found as the script's one function whose body holds `cat >` and calls `as_factory` (`write_helpers` in tests/vm_support.py). The `helper` fixture requires exactly one such function. The `stage` function also holds `cat >` but does not call `as_factory`, so it is not counted.
+
+   Earlier test files I changed:
+   - tests/test_vm_setup_text.py, under the human's leave in entry 6. `_writes` now also counts a line that calls the write helper. `_as_factory` also counts a call of the write helper as running as factory. That second change is needed because the helper's body calls `as_factory`, not `runuser` directly, so the old check would not have seen a helper call as a write as factory. Every row still requires at least one write line, and every write line must run as factory. The shared helper-call regex is now `_calls`. `FUNCTION` now comes from vm_support.
+   - tests/vm_support.py, under the standing leave. `FUNCTION` moved there from tests/test_vm_setup_text.py. I added `write_helpers(code)` and `function_text(code, name)`, which both test modules use.
+
+   I checked criterion 4 without running pytest: I rewrote the script's text in memory as the Interface describes and ran the old test's `_written_as_factory` on it. It returned True for all three files, and that text held no `/dev/stdin`. On today's script `write_helpers` finds nothing, so the old test behaves exactly as before.
+
+   Files created: tests/test_vm_setup_writes.py.
+
+   `make test` fails for the right reason. No module failed to import, because the code under test is the shell script. The criterion 2 and 3 tests error in the `helper` fixture, since the script has no write helper yet. The criterion 1 test fails because the script still holds `/dev/stdin`. `make lint` is green. I ran no type check, as this stage says.
+
+   `lint`: lint: green (0.6 s)
+   `test`: ERROR tests/test_vm_setup_writes.py::test_the_helper_writes_its_standard_input_with_the_mode[again] - AssertionError: []
+9. factory: started doing as self.
+10. coder: Built: in `vm/setup.sh`, a helper `write_as_factory <mode> <target>`, defined once right after `as_factory`. It runs `as_factory sh -c 'cat > "$2" && chmod "$1" "$2"' sh "$1" "$2"`, so the text comes from the helper's own standard input. The three writes now call it:
+    - `image-id`: `write_as_factory 0644 "$base/image-id" < /proc/sys/kernel/random/uuid`
+    - askpass: `cat "$staged" | write_as_factory 0755 "$askpass"`
+    - `factory.env`: `cat "$staged" | write_as_factory 0644 "$env_file"`
+
+    Nothing else in the script changed. The `[ ! -s ... ]` and `unchanged` guards stay, so a write still happens only when the text differs. The modes stay the same. No test was touched.
+
+    Main choice: I followed the Interface's `sh -c` command as written. It passes mode and target as positional arguments, not built into the command string, so no path is ever quoted into shell code. The alternative I rejected was `as_factory tee "$target" >/dev/null` followed by a separate `as_factory chmod`. That takes two `runuser` calls per write, and `tee` would make the old `_writes` test count the lines through its `WRITE_FORMS` rather than the helper.
+
+    I wrote the helper's comment without the literal `/dev/stdin`, because the smoke test's `grep -c '/dev/stdin'` counts comment lines too. It now prints `0`, and `sh -n` prints `syntax-ok`. `make check` is green (`check: green`).
+
+    Refactor: I read the diff and nothing needed changing.
+
+    Noticed, not touched: the comment above `as_factory` still says "The text comes through a pipe, since factory may not open root's staging file". That is still true, so I left it. The tester's change to `tests/test_vm_setup_text.py` under the human's answer (a), entry 6, is in entry 8; the coder made no test change.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
+11. factory: started review as self.
+12. reviewer: no findings
+
+    What I checked:
+    - Criterion 1: `tests/test_vm_setup_writes.py::test_no_write_reads_dev_stdin_by_name` reads the script with its comments removed. It checks that no `/dev/stdin` remains and that no line holds both `install` and `stdin`. `vm/setup.sh` has neither: the helper's comment does not use the literal path.
+    - Criterion 2: `test_each_file_is_written_through_the_helper_with_its_mode` has one row per file: image-id is `0644 $base/image-id`, askpass is `0755 $askpass`, factory-env is `0644 $env_file`. Each row checks that its step calls the helper, and that a line of the helper's body starts with `as_factory` and holds `cat >`. The script matches this at `vm/setup.sh:116-117`, `:269`, `:288` and `:355`.
+    - Criterion 3: `test_the_helper_writes_its_standard_input_with_the_mode` has two rows, first and again. It runs the helper's own text from the script with a pass-through `as_factory`, so it needs no `runuser`. It writes into `tmp_path` and checks that the file holds exactly the last text plus a newline and has mode 0640.
+    - Criterion 4: in `tests/test_vm_setup_text.py`, `test_the_files_under_the_instance_folder_are_written_as_factory` keeps its name, its four rows, and its check that at least one write line exists and every write line runs as factory.
+    - The Interface states no limit and no refusal, so no failing side is missing a test.
+    - `make check` was green after the coder (entry 10).
+    - Architecture: no change under `src/`.
+    - Security: the `sh -c` command takes the mode and the target as positional arguments, so no path is quoted into shell code. No marker that silences a check was added.
+    - The rest of the script: the `[ ! -s ]` and `unchanged` guards are kept, so a file is still written only when its text differs. The modes are the same as before, and nothing else in the script changed.
+    - Quality: the new comment says why. `write_helpers` and `function_text` are new in `tests/vm_support.py`; I found no existing helper they copy. `FUNCTION` was moved there, not copied.
+    - Work item: the coder's entry 10 names the main choice and the alternative it rejected (`tee` plus a separate `chmod`). The Description matches what was built. The docs criterion is still accurate.
+    - Criterion 4 and the Interface still say the earlier test stays "unchanged". The human's answer in entry 6 says to read criterion 4 as "passes, with `_writes` also counting a call of the write helper". I left that wording as it is: the human chose to settle it by how the criterion is read, not by rewriting it.
+
+    Earlier tests:
+    - `tests/test_vm_setup_text.py`: changed under the human's leave in entry 6.
+      - `_writes` now also counts a line that calls the write helper.
+      - `_as_factory` now also counts such a call as running as factory. The helper's body calls `as_factory`, not `runuser`, so without this change the check the leave keeps could not pass. The test keeps its name and its rows.
+      - The shared regex was pulled out into `_calls`.
+      - `FUNCTION` is now imported from `vm_support`, under the standing leave to move a shared test helper.
+    - `tests/vm_support.py`: under the standing leave to move a shared test helper. `FUNCTION` was moved here from `tests/test_vm_setup_text.py`. The other change only adds two helpers that both modules use.
+13. factory: started docs as self.
+14. documenter: Files changed:
+    - `docs/operator-guide.md`: in the setup script chapter, after the list of steps, one sentence. The script writes `image-id`, the askpass script and `factory.env` under `/srv/factory/<instance>` as `factory`, with `cat` from its own standard input, because a process started by `runuser` may not reopen root's `/dev/stdin`. This is what the docs criterion asks for.
+
+    I changed no file outside `docs/`, so I did not run `make check`. The factory's check after this stage decides. I ran the story's smoke test: `grep -c '/dev/stdin' vm/setup.sh` prints `0` and `sh -n vm/setup.sh` prints `syntax-ok`.
+
+    Cross-read and found current against the diff (`vm/setup.sh` and the tests):
+    - The steps list in the operator guide's setup chapter: the modes `0644` for `image-id` and `factory.env` match the script. The askpass script's `0755` is not stated there, and I left that as it was.
+    - The "two passes" text on the askpass script: it still holds.
+    - `docs/decisions.md` and `README.md`: the criterion says none. A grep of `docs` and `README.md` for `/dev/stdin` found no stale mention outside `docs/runs/`, which is the human's.
+
+    Findings: none. The code matches the Interface and criteria 1 to 3 (the helper `write_as_factory` and its three calls). Criterion 4 reads as the human's answer in entry 6 sets it. The Interface still says the earlier test stays "unchanged" while `tests/test_vm_setup_text.py` was changed under that leave. I left that wording alone, as the reviewer did, because the human chose it.
+
+    Stale text I saw and did not touch: none.
+
+    `check`: check: green (not run again: passed on tree 97d9666fa5e7 at 2026-10-25T06:37:22Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
+15. factory: started smoke-test as self.
+16. smoke-tester: I ran the smoke test once, from the repository root, exactly as written. It met its `Expect:` line. I fixed nothing.
+
+    Command: `grep -c '/dev/stdin' vm/setup.sh; sh -n vm/setup.sh && echo syntax-ok`
+    ```
+    0
+    syntax-ok
+    ```
+    Expect: two lines, `0` and `syntax-ok`. Met.
+
+    Checking the criteria against the script: nothing the smoke test showed contradicts any criterion. I also read `vm/setup.sh` with grep, and it agrees:
+    - Criterion 1: no line holds `/dev/stdin`. No `install` reads from standard input. The `install` calls left in the script copy named files or make folders.
+    - Criterion 2: the helper `write_as_factory` is defined at `vm/setup.sh:116`. Its body at `:117` runs `as_factory sh -c 'cat > "$2" && chmod "$1" "$2"' sh "$1" "$2"`. The three writes call it:
+      - `:269`: `0644 "$base/image-id"`, reading from `/proc/sys/kernel/random/uuid`
+      - `:288`: `0755 "$askpass"`
+      - `:355`: `0644 "$env_file"`
+    - Criteria 3 to 6: the smoke test does not check these, and nothing it showed contradicts them. Entry 10 records `make check` as green, and entry 14 records the docs sentence.
+
+    Findings: none.

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from vm_support import STEPS, setup_code, step_texts
+from vm_support import FUNCTION, STEPS, setup_code, step_texts, write_helpers
 
 ORDERED_COMMANDS = (
     "apt-get install -y --no-install-recommends",
@@ -430,7 +430,6 @@ def test_the_image_defaults_to_one_named_after_the_instance(code: str) -> None:
     assert "image=factory-stage:$instance" in code
 
 
-FUNCTION = re.compile(r"(?ms)^(\w+)\(\)\s*\{(.*?)^\}")
 WRITE_FORMS = ("install ", "cp ", "mv ", "tee ")
 
 
@@ -439,28 +438,34 @@ def _under_base(code: str) -> list[str]:
     return [rf"\$\{{?{name}(?!\w)" for name in ("base", *variables)]
 
 
-def _writes(line: str, path: str) -> bool:
+def _calls(line: str, names: list[str]) -> bool:
+    return any(re.search(rf"(?<![\w-]){name}(?![\w-])", line) for name in names)
+
+
+def _writes(line: str, path: str, helpers: list[str]) -> bool:
     if not re.search(path, line):
         return False
     redirect = re.search(rf">>?[\s\"']*(?:{path})", line)
-    return redirect is not None or any(form in line for form in WRITE_FORMS)
+    return (
+        redirect is not None or any(form in line for form in WRITE_FORMS) or _calls(line, helpers)
+    )
 
 
 def _as_factory(code: str, line: str) -> bool:
     helpers = [name for name, body in FUNCTION.findall(code) if "runuser -u factory" in body]
-    return "runuser -u factory" in line or any(
-        re.search(rf"(?<![\w-]){helper}(?![\w-])", line) for helper in helpers
-    )
+    helpers += write_helpers(code)
+    return "runuser -u factory" in line or _calls(line, helpers)
 
 
 def _written_as_factory(script: Script, step: str, name: str) -> bool:
     file = rf"\$\{{?base\}}?/{re.escape(name)}"
     variables = re.findall(rf"(?m)^\s*(\w+)=\"?{file}\"?\s*$", script.code)
     paths = [rf"{file}(?![\w.-])", *(rf"\$\{{?{found}(?!\w)" for found in variables)]
+    helpers = write_helpers(script.code)
     writes = [
         line
         for line in script.steps[step].splitlines()
-        if any(_writes(line, path) for path in paths)
+        if any(_writes(line, path, helpers) for path in paths)
     ]
     return writes != [] and all(_as_factory(script.code, line) for line in writes)
 

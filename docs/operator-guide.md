@@ -459,6 +459,8 @@ Each step prints one line, `setup: <step>: `, followed by what it changed (joine
 12. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`).
 13. `service`: the unit `vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
 
+The script writes the files under `/srv/factory/<instance>` (`image-id`, the askpass script and `factory.env`) as `factory`, with `cat` from its own standard input, because a process started by `runuser` may not reopen root's `/dev/stdin`.
+
 The script ends with `setup: done: build the stage image and start factory@<instance>; see the operator guide, "The machine"`.
 
 #### The two passes
