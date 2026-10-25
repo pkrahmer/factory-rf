@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-25T07:57:13.653586Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-25T07:57:13.653586Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-25T08:04:18.167500Z'
+  stage: doing
+  run: 3ec274c9c75f4668aa8dcda6fa05c6cf
 ---
 
 # The dataset's checkout knows origin/main
@@ -206,3 +208,19 @@ Expect: `1`
     `lint`: lint: green (0.2 s)
     `test`: test: green (194.3 s)
 14. factory: started doing as vm.
+15. coder: No code changed this round. The two review findings in entry 9 were about copied test helpers. The tester moved them in entry 13: `container_environment` and `GONE` now live in `tests/container_support.py`, and the `dataset` fixture is in `tests/conftest.py`. The code needs nothing more for those findings.
+
+    Built (unchanged since entry 7): in `src/factory/application/stage_environment.py`, `_SYNC_SCRIPT` still has one fetch line that carries both refspecs, `'+refs/heads/*:refs/heads/*'` and `'+refs/heads/*:refs/remotes/origin/*'`. The comment above the script says why the second refspec is there: the project's commands read `origin/main`.
+
+    Main choice (from entry 7): the line was too long for ruff, so I split the source line with a backslash-newline inside the triple-quoted string. Python drops that break, so the script still has the fetch on one line. I rejected a shell line continuation, because it would split the fetch across two script lines and fail the criterion 4 test. I also rejected a `# noqa: E501` marker.
+
+    Refactor: nothing to change. The diff in `src` is still the one fetch line and its comment.
+
+    The journal did not change what the task means, so I left the Description as it is.
+
+    Noticed, not touched: nothing.
+
+    `check`: check: green (test: green (195.1 s), coverage 99.20 %)
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 36 known, 2 gone
