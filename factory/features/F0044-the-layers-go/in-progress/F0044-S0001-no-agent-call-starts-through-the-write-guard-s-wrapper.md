@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 444
-comments_read: [6396634457]
+comments_read: [6396634457, 6396851392]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: 2128ada11bbb4cfc8817a6f371bfacce
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-10-25T11:43:13.780440Z'
+  stage: tests
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -235,3 +240,10 @@ Expect: `7`
    - I ran `make test` twice by mistake: once to list the failures, once for the tail. The stage asks for one run.
 
    Not done: no type check (skipped as this stage says).
+9. 2026-10-25 human: (a). Paste this line into the Interface, under the `claude/agents/*.md` bullet, as the exact text of decision 4 of `feature.md` (the dashes around the list of files are em dashes, U+2014):
+
+   ```
+   R14. The pipeline's own files — `factory/pipeline.yml`, `factory/story-form.md`, every feature's `feature.md`, `backlog/`, `done/` and `.claude/` — change only with the human's commit or on their explicit instruction. You write only within your write paths in the pipeline definition (`{work_item}` there is your own work item, outside its front matter and journal), nothing else: after the stage the factory takes only the changed paths your role may write and leaves every other change out, whatever tool or command made it, so a write elsewhere is lost. When the work needs a path outside your write paths, end with `question` and name it. Make temporary files with `mktemp` or `tempfile`; they are lost with the stage.
+   ```
+
+   Then write criterion 8's test and set `_WRITE_PATHS_RULE` and `_OLD_ENDING` in `tests/test_claude_agent_refusal.py` as you planned.
