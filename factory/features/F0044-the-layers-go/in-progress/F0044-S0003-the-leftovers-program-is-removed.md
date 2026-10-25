@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: docs
+  started_at: '2026-10-25T13:40:02.254844Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-10-25T13:39:41.067464Z'
   stage: review
   run: c80d01e8419945938362ac387f8262ee
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:40:02.254844Z'
+  stage: docs
 ---
 
 # The leftovers program is removed
@@ -453,3 +462,4 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     - tests/leftovers_support.py: Interface leave (decision 19).
     - tests/test_process_search.py: Interface leave (decision 19).
     - tests/test_wrapper_search.py: Interface leave (decision 19).
+28. factory: started docs as self.
