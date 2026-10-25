@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-25T08:21:47.201874Z'
   stage: acceptance
   run: 04e77f4f767945a9aac08bb3c345e1ae
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-25T08:23:07.275725Z'
+  stage: done
 stories: [F0043-S0001, F0043-S0002, F0043-S0003, F0043-S0004, F0043-S0005, F0043-S0006]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The machine and the stage image
@@ -202,3 +207,4 @@ Human interventions: 9 questions answered (7 questions, 2 round caps), 4.6 h wai
    6 Decisions: feature decisions 1–18. S0005, S0006 and decision 17's test leave were given by Claude for the human. The human's answers in S0002, S0003 (entries 4, 26, 37, 49, 60) and S0004 (entries 8, 15) are listed in the report. Open for the human: how the rebuild gets a trusted setup.sh, the red make secrets on main, Node 18, the unwalked GCP path, and the agent's first step, which nothing times. Every changed earlier test has a leave named.
    7 Slow checks: nothing beyond make check. make check is green (194.4 s, 99.20 %, 7849 tests); the slowest tests are 11.5 s time-limit tests outside this feature. Disk is unchanged against the start record.
    8 Cost: $29.77 in 79 runs. S0003 took $17.02 and 33 runs, one privilege-path finding per round, and needed 5 of the 9 human answers. Its second round cap waited from 01:42 to 05:50, most of the 4.6 h.
+3. factory: done (pull request merged); cost: 1 runs, 9.8 min, 40 turns, 138821 tokens in (3028084 more from cache), 29280 out, $2.30
