@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 446
 comments_read: [6398081877, 6398161155]
 handed_over: null
-claim:
-  instance: self
-  stage: smoke-test
-  started_at: '2026-10-25T13:42:30.707971Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-10-25T13:42:30.707971Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T13:43:01.987053Z'
+  stage: smoke-test
+  run: f221c013f2fd49e385527fde795abf21
 ---
 
 # The leftovers program is removed
@@ -506,3 +508,28 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
     `secrets`: secrets: green (3.6 s)
     `documents`: documents ok
 30. factory: started smoke-test as self.
+31. smoke-tester: Smoke test run from the repository root. I ran both commands of `## Smoke test` in order, exactly as written, and fixed nothing.
+
+    Command 1 (`for module in factory.entry.leftovers factory.domain.leftovers; do uv run python -c "import $module" 2>/dev/null && echo "$module present" || echo "$module gone"; done`):
+
+    ```
+    factory.entry.leftovers gone
+    factory.domain.leftovers gone
+    ```
+
+    Command 2 (`uv run python -c 'from factory.adapters import process, agent_launch; from factory.entry import wiring; print([...])'`):
+
+    ```
+    Bytecode compiled 4164 files in 92ms
+    []
+    ```
+
+    Expect: the three lines `factory.entry.leftovers gone`, `factory.domain.leftovers gone` and `[]`. **Met.** The extra line `Bytecode compiled 4164 files in 92ms` is uv's own message on stderr, printed while it set up the environment. It is not output of the program under test, so I do not count it as a finding.
+
+    Check against `## Acceptance criteria`: the smoke test contradicts none of them.
+    - It confirms criterion 1: both modules are gone.
+    - It confirms part of criterion 2: `own_identity`, `signal_every_other`, `leftovers_launch` and `leftovers_command` are not attributes.
+    - Beyond the commands, I checked by hand that `src/factory/entry/leftovers.py` and `src/factory/domain/leftovers.py` no longer exist. A search of `src/factory` finds neither `factory.entry.leftovers` nor `cannot end the agent's processes` (criterion 5).
+    - The smoke test does not exercise criteria 3, 4 and 6 (`make check`). The tests and the factory's checks cover those.
+
+    Findings: none.
