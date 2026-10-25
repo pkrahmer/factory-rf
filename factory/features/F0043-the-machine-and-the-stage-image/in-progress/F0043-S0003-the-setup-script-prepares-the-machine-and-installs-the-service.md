@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-25T00:32:56.420497Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T00:32:56.414525Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T00:32:56.420497Z'
+  stage: intake
+---
+
 # The setup script prepares the machine and installs the service
 
 ## Description
@@ -65,3 +92,6 @@ uv run pytest tests/test_vm_setup.py tests/test_vm_setup_text.py tests/test_vm_s
 Expect: `1`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as self.
