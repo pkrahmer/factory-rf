@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221, 6400068325]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T16:30:22.461374Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -142,6 +146,11 @@ journal:
   at: '2026-10-25T16:30:01.867501Z'
   stage: doing
   run: 5771daea11634d538f7c9953849799c8
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:30:22.461374Z'
+  stage: tests
 ---
 
 # The checkout's hygiene is removed
@@ -473,3 +482,4 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
     What the journal changed: nothing new in this round. The Description is outside my write paths.
 
     Noticed, not touched: as before, `CheckoutPreparer` stores `self._log` but never reads it. It stays, as entry 14 decided.
+25. factory: started tests as self.
