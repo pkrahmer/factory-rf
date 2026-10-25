@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-25T16:04:40.090155Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T16:04:22.002047Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:04:40.090155Z'
   stage: intake
 ---
 
@@ -125,3 +134,4 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
    2. Add a row to criterion 2: `CheckoutPreparer.prepare`'s docstring equals "Clone when the checkout holds no `.git`; keep any checkout that does."
    3. Add a row to criterion 1: no post text built for a stall mentions a nested repository.
    New tests and rows need no leave beyond decisions 22 and 35(a).
+5. factory: started intake as self.
