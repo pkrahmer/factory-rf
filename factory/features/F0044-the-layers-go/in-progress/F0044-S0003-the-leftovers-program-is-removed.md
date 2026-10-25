@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 446
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T13:06:33.920839Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-25T13:06:33.920839Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T13:06:56.716175Z'
+  stage: intake
+  run: 7c7b7ef848924647ad7575fbfc3f35fc
 ---
 
 # The leftovers program is removed
@@ -85,3 +87,9 @@ Expect: three lines: `factory.entry.leftovers gone`; `factory.domain.leftovers g
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete modules, removed names and the new `Starters` signature. Test changes are listed by test with the leave (decision 19, extended by 32a). Nothing is vague.
+   Criteria: 1 to 5 each fit one parametrized or single test. 1 covers the two modules and 2 covers every removed name, field and parameter. 3 covers the single-call behaviour for both runtimes and the make class, resumed run included. 4 covers both sides of `killed_at_limit` (30 s and 29.9 s, with and without `in_container`) and the timed-out kill. 5 covers the source strings. The Interface states no rule with a failing side that needs its own criterion, because the story removes code. 6 and 7 are the closing criteria.
+   Smoke test: both commands are runnable `uv run python -c` lines with no pytest, so there is no `-q` issue. The `Expect:` line gives three exact output lines that can be compared.
+   Architecture: the removals touch domain, adapters and entry in the direction of the layers. `process_table` and the session kill stay (decision 7). No new interface or dependency.
+   Scope: inside F0044 S0003 in `feature.md`. Nothing from "Out of scope" is touched. The docs and `CLAUDE.md` changes 4 and 6 fall outside the story, as decision 32 says.
