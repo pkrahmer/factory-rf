@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-25T19:57:00.196674Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T19:57:00.190824Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:57:00.196674Z'
+  stage: intake
+---
+
 # The Docker path and the host's process table are removed
 
 ## Description
@@ -44,3 +71,6 @@ ls image/Dockerfile image/compose.yml image/entrypoint.sh 2>/dev/null | wc -l; t
 Expect: three lines: `0`; `helper-moved`; `gone`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as self.
