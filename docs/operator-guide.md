@@ -695,7 +695,15 @@ Every GCP VM reaches a metadata server at `169.254.169.254`, and so does every c
 
 ### The rebuild after a merge
 
-The instance runs the factory's code from `/srv/factory/vm/factory` and the stage image built from it. After a merge to the ref it runs, bring both up to date. As `factory` (`sudo -iu factory`):
+The instance runs the factory's code from `/srv/factory/vm/factory` and the stage image built from it. After a merge to the ref it runs, stop the instance between two stages, bring both up to date, and start it again.
+
+Stop it first. An agent run lasts up to its role's `time_limit`, so a running instance may be in the middle of a stage. A stop during a stage ends the factory after systemd's stop timeout of 90 seconds, and the restart counts that stage as a crash (see "If the factory dies while a stage runs"). So wait until no work item is held by `vm`: on the VM as `factory`, run `factory-watch` as in step 11 of *On GCP, step by step*, and look at the board. Then, on the VM from your own account, stop the instance:
+
+```bash
+sudo systemctl stop factory@vm
+```
+
+Then bring the checkout and the image up to date. On the VM as `factory` (`sudo -iu factory`):
 
 ```bash
 git -C /srv/factory/vm/factory pull --ff-only          # for a tagged ref: git fetch --tags, then git checkout <tag>
@@ -708,12 +716,21 @@ exit
 
 The new uuid in `image-id` is what tells the settings the image is new; the label is not its identity. Then run the setup script from a copy of your own, as root: copy `vm/setup.sh` from your checkout of the ref the instance runs, as in step 6 of *On GCP, step by step*, and run it from your own account with the arguments of the first run. Root runs nothing from `/srv/factory/vm/factory`, because `factory` can write that checkout.
 
+On your own computer, in your checkout, copy the script to the VM and open a shell there:
+
 ```bash
 gcloud compute scp --zone=europe-west3-a --tunnel-through-iap vm/setup.sh factory-vm:
 gcloud compute ssh factory-vm --zone=europe-west3-a --tunnel-through-iap
+```
+
+On a VM outside GCP, copy `vm/setup.sh` from your own checkout by your own means, such as `scp`, as *On any Ubuntu 24.04 VM* does.
+
+On the VM from your own account, run the script and start the instance again:
+
+```bash
 sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
   --repository-url https://github.com/pkrahmer/factory-rf.git --ref <the same ref>
-sudo systemctl restart factory@vm
+sudo systemctl start factory@vm
 ```
 
 `vm/setup.sh` is idempotent, so run it after every merge: it carries a changed pin of `vm/Dockerfile` into the environment file, updates `uv` and the factory's virtual environment, and reports the rest found. It does not replace an installed `/etc/systemd/system/factory@.service` or `/usr/local/bin/git-credential-factory` that differs from the checkout: it prints that the file differs and leaves it. When a merge changed `vm/factory.service` or `image/git-credential-factory`, remove the installed file and run the script again (see *The two passes*).

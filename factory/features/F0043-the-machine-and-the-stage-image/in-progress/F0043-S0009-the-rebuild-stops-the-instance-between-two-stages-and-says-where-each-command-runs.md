@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 440
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T09:11:36.023948Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:11:36.029572Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T09:11:56.176217Z'
+  stage: intake
+  run: fa6954e0c78047aeaa40af2225adbe35
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:12:16.149174Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-25T09:19:00.152277Z'
+  stage: tests
+  run: 23725e0771f24bcea3930865491ef1ce
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:19:20.760407Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-25T09:23:01.134721Z'
+  stage: doing
+  run: 6cdf127887944da1abe8ceece68d0c16
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:23:21.633230Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T09:23:49.819169Z'
+  stage: review
+  run: 9861bcef779e49ecbcd91ed95615d349
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:24:10.207706Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T09:24:46.197738Z'
+  stage: docs
+  run: 16838a3b7c9d40c9b4a368041ee8cfad
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T09:25:06.612501Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T09:25:36.716612Z'
+  stage: smoke-test
+  run: c9b94a7303344eeb9e02b1c7cb08a49f
+---
+
 # The rebuild after a merge stops the instance between two stages and says where each command runs
 
 <!-- proposed by feature acceptance of 2026-10-25; refine before starting -->
@@ -49,3 +133,119 @@ make documents 2>&1 | tail -n 1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as vm.
+3. intake: accepted
+   Interface: "None" is stated and correct for a documents-only story. It names the only changed file and section: `docs/operator-guide.md`, `### The rebuild after a merge`. I found that heading at line 696 and *On GCP, step by step* at line 544. *On any Ubuntu 24.04 VM* is at line 650, and `factory-watch` is used around line 642. There is no code signature to pin, and none is needed.
+   Criteria: each can be checked by one smoke command or by `make documents`. Criterion 1 (nothing outside the docs changes) and criterion 2 (`make check` stays green) are checkable. The docs criterion gives each rule its own bullet:
+   - wait for `factory-watch`, then stop, with the stop-timeout reason;
+   - the order: stop before `pull --ff-only`, start at the end, no `restart`;
+   - where each block runs, with no block mixing `gcloud` and `sudo`;
+   - the sentence for a VM outside GCP;
+   - what stays.
+   The failing side of the order rule (a `restart` present, or the pull before the stop) is covered by the second smoke test. The failing side of the mixed-block rule is covered by the third.
+   Smoke test: the commands are runnable awk and grep pipelines over the guide, and `make documents`. The pytest `-q` rule does not apply, because no command runs pytest. Each `Expect:` line is checkable against the output: counts of at least 1, `0`/`1`, `0`, and `documents ok`.
+   Architecture: this is documentation only, so the layers are untouched. The documenter's write path covers `docs/*`.
+   Scope: the story stays inside F0043's operator-guide work. It touches no code, `vm/` or `factory/`. It leaves the `TimeoutStopSec` change open for the human, as the feature's Out of scope requires.
+4. factory: started tests as vm.
+5. tester: No tests written. This story changes the documents only, and its Interface says no test reads them.
+   - criterion 1 (nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes): no test. I changed nothing under `tests/` or anywhere else, and `git status` shows a clean working tree.
+   - criterion 2 (`make check` stays green): no test. The existing suite covers it.
+   - criterion 3 (docs, `### The rebuild after a merge` in `docs/operator-guide.md`): no test. The work item says the smoke test and `make documents` check it, and that no test does.
+   Files created: none. Modules the test runner could not import: none.
+   `make test` passed (`test: green`, coverage 99.20 %) and `make lint` passed. There are no red tests on purpose this time. The coder writes no code; the documenter makes the change. Nothing is open from the tests stage.
+
+   `lint`: lint: green (0.2 s)
+   `test`: test: green (194.6 s)
+6. factory: started doing as vm.
+7. coder: No code written. This story only changes the documents, and its Interface says nothing changes under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/`.
+   - Criterion 1: nothing under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/` changes. I changed nothing anywhere, and `git status --short` is empty.
+   - Criterion 2: `make check` is green (`check: green`, coverage 99.20 %).
+   - Criterion 3 (docs): left to the documenter. The documenter rewrites `### The rebuild after a merge` in `docs/operator-guide.md`, and the smoke test and `make documents` check it.
+   Main choice: I left the guide untouched instead of rewriting the section here. The docs criterion belongs to the documenter, and `CLAUDE.md` says the coder does not write `docs/`.
+   Refactor: there is no diff, so there was nothing to refactor.
+   The journal did not change the meaning of the task, so the Description stays as it is.
+   Noticed but not touched: whether `vm/factory.service` should set a `TimeoutStopSec` beyond the lease, so that a stop lets a stage finish. That stays open for the human, as the Description says.
+
+   `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
+   `duplicates`: duplicates: 11 new, 36 known, 2 gone
+8. factory: started review as vm.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. `git diff --name-status main...HEAD` lists only the work item's `.md` (M) and its `.costs.jsonl` sidecar (A).
+   - Criterion 1: the diff is empty, so nothing changed under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/`. The tester's entry (5) and the coder's entry (7) each say so.
+   - Criterion 2: entry 7 records the factory's `make check` as `check: green`. The `duplicates` record of 11 new findings cannot come from this story, because the story changes no code.
+   - Criterion 3 (docs): this is the documenter's work, next. I checked that what the criterion refers to exists in `docs/operator-guide.md`:
+     - `### The rebuild after a merge` is at line 696.
+     - Step 11 of *On GCP, step by step* runs `factory-watch` (lines 636-646).
+     - *On any Ubuntu 24.04 VM* is at line 650.
+     - The sentence "Root runs nothing from `/srv/factory/vm/factory`, ..." is at line 709. The paragraph on a differing unit or helper ends the section.
+     - The current section does have the gaps the Description names: `systemctl restart` after the pull, and one block that holds both the `gcloud` and the `sudo` commands.
+   - Interface: "None". It states no rule or limit, so there is no failing side to test.
+   - Hygiene: the Description matches what has been built so far (nothing yet, the documenter writes next). The docs criterion says what the reader must know after this story. The `TimeoutStopSec` question is left open for the human, as the Description says.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as vm.
+11. documenter: Files changed: `docs/operator-guide.md`, section `### The rebuild after a merge` only. Why: the docs criterion.
+    - The section now has the order wait, stop, update as `factory`, copy and run `setup.sh`, start.
+    - Before the pull it tells the operator to wait until `factory-watch` (as in step 11) shows no work item held by `vm`. Then it tells them to run `sudo systemctl stop factory@vm`. One sentence gives the reason: a stop during a stage ends the factory after systemd's 90-second stop timeout, and the restart counts the stage as a crash.
+    - Every block is introduced by where it runs: the VM from the operator's own account (stop), the VM as `factory` (pull, `uv sync`, `podman build`, `image-id`), the operator's own computer (the two `gcloud compute` commands), and the VM from the operator's own account (`sudo sh setup.sh`, `systemctl start`). The `gcloud` commands and the `sudo` commands are in separate blocks.
+    - One sentence covers a VM outside GCP: copy `vm/setup.sh` from your own checkout by your own means, such as `scp`, as *On any Ubuntu 24.04 VM* does.
+    - The section ends with `sudo systemctl start factory@vm` and holds no `restart`.
+    - Kept unchanged: the commands as `factory`, the copy from the operator's own checkout, the sentence "Root runs nothing from `/srv/factory/vm/factory`, ...", and the paragraph on a differing unit or helper.
+
+    Checks I ran:
+    - All five smoke commands give the expected output: 1 and 1, then 0 and 1, then 0, then at least 1 for `factory-watch`, then `documents ok`.
+    - I changed only a document, so I did not run `make check`. The factory's checks decide.
+
+    Cross-read and found current: the quoted text "If the factory dies while a stage runs" (line 1856, the `crash_cap` text it relies on); steps 6 and 11 of *On GCP, step by step*; *On any Ubuntu 24.04 VM*. I checked these against the diff, which changes no code.
+
+    No findings for the coder.
+
+    Stale text noticed, not touched: none. Still open for the human, as the Description says: a `TimeoutStopSec` beyond the lease in `vm/factory.service`, so that a stop lets a stage finish (F0043-A0002, check 6). The guide now works around it by telling the operator to stop only when no work item is held.
+
+    `check`: check: green (not run again: passed on tree 63d480b4dec3 at 2026-10-25T08:00:52Z)
+    `secrets`: secrets: green (1.0 s)
+    `documents`: documents ok
+12. factory: started smoke-test as vm.
+13. smoke-tester: No findings. I ran the five commands under `## Smoke test` from the repository root, in order, exactly as written. Each one met its `Expect:` line.
+
+    1. The section's counts of `sudo systemctl stop factory@vm` and `sudo systemctl start factory@vm`. Expect: two lines, each a number of at least `1`. **Met.**
+    ```
+    1
+    1
+    ```
+
+    2. The count of `systemctl restart factory@vm`, then whether the first stop-or-pull line is the stop. Expect: `0`, `1`. **Met.**
+    ```
+    0
+    1
+    ```
+
+    3. The number of code blocks that hold both a `gcloud` command and a `sudo` command. Expect: `0`. **Met.**
+    ```
+    0
+    ```
+
+    4. The count of `factory-watch` in the section. Expect: a number of at least `1`. **Met.**
+    ```
+    1
+    ```
+
+    5. `make documents 2>&1 | tail -n 1`. Expect: `documents ok`. **Met.**
+    ```
+    documents ok
+    ```
+
+    Checked against the acceptance criteria by reading `### The rebuild after a merge` and the branch diff:
+    - Criterion 1: `git diff --stat main...HEAD` lists only `docs/operator-guide.md` and the work item's `.md` and `.costs.jsonl`. Nothing changed under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/`.
+    - Criterion 2: I did not run `make check` again. The factory's recorded result is `check: green`, and this branch changes no file that `make check` reads apart from the document.
+    - Criterion 3, wait and stop: before the pull, the section says to wait for `factory-watch` (as in step 11) until no work item is held by `vm`, then to run `sudo systemctl stop factory@vm`. It gives the reason in one sentence: the 90-second stop timeout, and the restart counting the stage as a crash.
+    - Criterion 3, order: the stop comes before `pull --ff-only`. The section ends the rebuild with `sudo systemctl start factory@vm` and holds no `restart`.
+    - Criterion 3, where each block runs: each of the four blocks is introduced by where it runs. The stop runs on the VM from your own account. The pull, `uv sync`, `podman build` and `image-id` run on the VM as `factory`. The two `gcloud compute` commands run on your own computer. `sudo sh setup.sh` and `systemctl start` run on the VM from your own account.
+    - Criterion 3, outside GCP: one sentence covers a VM outside GCP (`scp`, as *On any Ubuntu 24.04 VM* does).
+    - Criterion 3, what stays: the copy from your own checkout, the sentence "Root runs nothing from `/srv/factory/vm/factory`, …" and the paragraph on a differing unit or helper are all still there.
+    - Criterion 3, no other section: the two diff hunks of the guide (at lines 695 and 708) both lie inside this section, which starts at line 696. `make documents` ends with `documents ok`.
+
+    Still open for the human, as the Description says: a `TimeoutStopSec` beyond the lease in `vm/factory.service` (F0043-A0002, check 6).
