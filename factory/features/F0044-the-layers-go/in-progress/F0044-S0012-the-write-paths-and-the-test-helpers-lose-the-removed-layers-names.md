@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: self
+  stage: intake
+  started_at: '2026-10-25T20:49:05.732280Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-25T20:49:05.725322Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-25T20:49:05.732280Z'
+  stage: intake
+---
+
 # The write paths and the test helpers lose the removed layers' names
 
 <!-- proposed by feature acceptance of 2026-10-25; refine before starting -->
@@ -59,3 +86,6 @@ grep -rl "GuardSettings" src/factory --include=*.py | wc -l
 Expect: `0`
 
 ## Journal
+
+1. 2026-10-25 human: created.
+2. factory: started intake as self.
