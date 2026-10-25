@@ -1,7 +1,6 @@
 """The write paths and the shared test helpers carry no name of a removed layer."""
 
 import inspect
-import re
 from collections.abc import Callable
 from dataclasses import fields
 from pathlib import Path
@@ -11,22 +10,14 @@ import pytest
 from factory.domain import agent_runs, write_paths
 from module_names import has_name
 from run_layout_support import Layout, build_layout
+from search_support import TESTS, modules_matching
+from source_search import SRC
 
-SOURCE = Path(__file__).parents[1] / "src" / "factory"
-TESTS = Path(__file__).parent
+THIS = Path(__file__).name
 
 
 def _import_of(module: str) -> str:
     return rf"^\s*(?:from|import)\s+{module}\b"
-
-
-def _files_holding(root: Path, pattern: str) -> list[str]:
-    found = re.compile(pattern, re.MULTILINE)
-    return sorted(
-        path.relative_to(root).as_posix()
-        for path in root.rglob("*.py")
-        if found.search(path.read_text(encoding="utf-8"))
-    )
 
 
 def _planted(tmp_path: Path) -> Path:
@@ -73,7 +64,7 @@ def test_the_write_paths_carry_their_new_names(
 @pytest.mark.parametrize(
     ("root_of", "pattern", "expected"),
     [
-        pytest.param(lambda _: SOURCE, r"GuardSettings", [], id="source-guard-settings"),
+        pytest.param(lambda _: SRC, r"GuardSettings", [], id="source-guard-settings"),
         pytest.param(lambda _: TESTS, _import_of("confine_support"), [], id="tests-confine"),
         pytest.param(lambda _: TESTS, _import_of("sealed_run_support"), [], id="tests-sealed"),
         pytest.param(_planted, r"GuardSettings", ["planted.py"], id="planted-is-found"),
@@ -82,7 +73,7 @@ def test_the_write_paths_carry_their_new_names(
 def test_no_file_holds_a_removed_layer_s_name(
     root_of: Callable[[Path], Path], pattern: str, expected: list[str], tmp_path: Path
 ) -> None:
-    assert _files_holding(root_of(tmp_path), pattern) == expected
+    assert modules_matching(pattern, THIS, root_of(tmp_path)) == expected
 
 
 @pytest.mark.parametrize(

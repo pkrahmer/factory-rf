@@ -7,15 +7,15 @@ from pathlib import Path
 TESTS = Path(__file__).parent
 
 
-def modules_matching(pattern: str, leave_out: str) -> list[str]:
-    """The sorted paths, relative to `tests`, of the modules that match `pattern`.
+def modules_matching(pattern: str, leave_out: str, root: Path = TESTS) -> list[str]:
+    """The sorted paths, relative to `root`, of the modules under it that match `pattern`.
 
     The module named `leave_out` is not searched, so that a test's own source does not count.
     """
     found = re.compile(pattern, re.MULTILINE | re.DOTALL)
     return sorted(
-        path.relative_to(TESTS).as_posix()
-        for path in TESTS.rglob("*.py")
+        path.relative_to(root).as_posix()
+        for path in root.rglob("*.py")
         if path.name != leave_out and found.search(path.read_text(encoding="utf-8"))
     )
 

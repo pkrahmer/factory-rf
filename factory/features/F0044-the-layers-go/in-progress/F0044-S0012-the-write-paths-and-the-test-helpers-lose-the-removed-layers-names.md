@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 456
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T20:58:33.443307Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-25T20:58:33.443307Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-25T21:01:11.506938Z'
+  stage: tests
+  run: 1c353b0afaa0463799d49f91da7fab35
 ---
 
 # The write paths and the test helpers lose the removed layers' names
@@ -233,3 +235,21 @@ Expect: `0`
 
     The journal did not change the meaning of the task, so `## Description` is as it was. I noticed nothing else and touched nothing else.
 12. factory: started tests as self.
+13. tester: Round 1, test change: the reviewer's finding 1 (entry 9), which the coder passed on in entry 11. No human answer was needed. The change folds a copy of a shared helper back into that helper, which falls under the standing leave in `CLAUDE.md`. Every earlier caller keeps its name and its checks.
+
+    What I changed:
+    - `tests/search_support.py`: `modules_matching(pattern, leave_out, root: Path = TESTS)` now takes an optional `root`. Paths are given relative to `root`, and the docstring says so. Its three earlier callers (`tests/test_shared_test_helpers.py`, `tests/test_docker_path_removed.py`, `tests/test_opencode_shared_steps.py`) pass no root, so they search `tests` exactly as before. I did not edit those three files.
+    - `tests/test_removed_layer_names.py`: removed the copied `_files_holding` and the rebuilt `SOURCE`. It now imports `SRC` from `source_search` and `TESTS` and `modules_matching` from `search_support`. All four rows of `test_no_file_holds_a_removed_layer_s_name` go through `modules_matching(pattern, THIS, root_of(tmp_path))`, the planted `tmp_path` row included. So criterion 2's "same search function" still holds, and its failing side is still the `planted-is-found` row.
+    - The `re.DOTALL` question from entry 11: the patterns of criterion 2 (`GuardSettings`, and `^\s*(?:from|import)\s+<module>\b`) contain no `.`, so `DOTALL` changes nothing for them. `leave_out=THIS` keeps the test's own source out of the search, and none of its rows would match it anyway.
+
+    Criterion → test (unchanged):
+    - criterion 1: tests/test_removed_layer_names.py::test_the_write_paths_carry_their_new_names
+    - criterion 2: tests/test_removed_layer_names.py::test_no_file_holds_a_removed_layer_s_name
+    - criterion 3: tests/test_removed_layer_names.py::test_the_rule_of_the_write_paths_is_unchanged
+    - criterion 4: tests/test_removed_layer_names.py::test_the_run_layout_has_no_temporary_root
+    - criteria 5 and 6: no test (criterion 5 is `make check`, criterion 6 is the documenter's)
+
+    No files created. I changed one earlier test file, `tests/search_support.py`, under the standing leave for shared test helpers. Every module imported fine, since the code already exists. `make test` is green with 99.55 % coverage, and `make lint` is green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (60.7 s)
