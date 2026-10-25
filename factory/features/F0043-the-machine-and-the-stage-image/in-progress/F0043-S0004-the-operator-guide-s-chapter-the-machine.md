@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 434
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-25T06:52:37.054408Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-25T06:52:15.693944Z'
   stage: tests
   run: dcb88821a34b44729da009829a096ce7
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-25T06:52:37.054408Z'
+  stage: doing
 ---
 
 # The operator guide's chapter "The machine"
@@ -106,3 +115,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.2 s)
    `test`: test: green (186.4 s)
+6. factory: started doing as vm.
