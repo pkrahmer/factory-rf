@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 444
 comments_read: [6396634457, 6396851392, 6397231720]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T12:04:58.022339Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-10-25T12:04:36.992185Z'
   stage: tests
   run: 44da8501db4846b6be6865fc0dbc77c7
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-25T12:04:58.022339Z'
+  stage: doing
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -494,3 +503,4 @@ Expect: `7`
 
     `lint`: lint: green (0.7 s)
     `test`: test: green (71.1 s)
+23. factory: started doing as self.
