@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 451
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T17:47:39.266053Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-25T17:47:39.266053Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-25T17:48:01.235070Z'
+  stage: intake
+  run: e77602a1cabf45b5bd614c84636ea09d
+  blocked: question
 ---
 
 # The inline environment and its setting are removed
@@ -98,3 +101,13 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: Questions (the format check passed; no finding from it). The Interface, the smoke test, the architecture and the scope are in order. Two Interface behaviours have no criterion, so two testers could read them differently and both pass:
+
+   1. The Interface says `factory.application.task.StageTask` and `factory.application.preflight._probe_request` take `working_directory` as `boundaries.snapshots.mount_point / "checkout"`. The Interface's test list names `test_task.py` and "the probe tests", but no acceptance criterion states the value. Should I add a criterion before the two closing ones? Suggested: "the request of a stage task and the probe's request have `working_directory == boundaries.snapshots.mount_point / "checkout"`" (two rows of one parametrized test). I would choose this.
+
+   2. The `workspace_overlap_fault` rules lack their failing sides and their order:
+      - Criterion 3 covers a relative workspace and a checkout inside the workspace. It has no row for a state directory inside the workspace (`<state directory> lies inside FACTORY_WORKSPACE`, naming `FACTORY_STATE_DIRECTORY`; please confirm the variable name and the exact wording).
+      - The order is stated in the Interface (relative first, then checkout, then state directory) but has no row.
+      - `None` for a `None` workspace has no row.
+      - The Interface says the model validator of `InstanceSettings` keeps calling the function, so a model built directly refuses the same combinations with a `ValidationError` reading `<variable>: <fault>`. Nothing tests that.
+      Should I add one criterion with rows for these? Suggested rows: state directory inside the workspace; a relative workspace together with an inner checkout, which gives the relative fault; a `None` workspace, which gives `None`; and `InstanceSettings(...)` built directly with an inner checkout, which gives a `ValidationError`. I would choose this.
