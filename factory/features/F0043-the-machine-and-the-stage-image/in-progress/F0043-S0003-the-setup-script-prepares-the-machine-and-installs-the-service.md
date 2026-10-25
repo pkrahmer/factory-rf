@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 432
 comments_read: [6391472234, 6391767380, 6391935032]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T01:27:18.515302Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -213,6 +217,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-25T01:27:00.500401Z'
+  stage: review
+- number: 38
+  speaker: factory
+  kind: started
+  at: '2026-10-25T01:27:18.515302Z'
   stage: review
 ---
 
@@ -676,3 +685,4 @@ Expect: `1`
 37. 2026-10-25 human: 1: (b). The `service` and `tools` steps install the unit and the credential helper from `$checkout` only in the run that made the clone (its content is then the remote's at `--ref`, before the service ever ran); a later run that finds the installed file different prints `setup: <step>: <path> differs from the checkout; not installed` and leaves it. The tester adds the row for it. The guide (S0004) will say that a changed unit or helper after the first run is installed by the operator by hand.
     2: (a). The `folders` step refuses with `exit 1` and a `setup: folders: ` line on standard error when `$base/state` or `$base/repo` is a link (`[ -L ]`), before any `install -d`; the tester adds the row.
     Nothing else changes. The coder makes both changes and ends with `tests` for the new rows, as you say.
+38. factory: started review as self.
