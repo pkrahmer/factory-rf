@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 452
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: docs
-  started_at: '2026-10-25T19:40:24.845400Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-25T19:40:24.845400Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-25T19:41:48.011002Z'
+  stage: docs
+  run: 43b423d21b2c4e99a62cd1909c4a2a2f
 ---
 
 # The undo is removed
@@ -363,3 +365,26 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
     Notes:
     - tests/application/test_take_rule.py:47: `before` is computed for every row but read only by the `left` rows. Splitting the three `outcome` arms into their own small helpers would make the test easier to read.
 18. factory: started docs as self.
+19. documenter: Docs round. I read the story, the code diff and the documents that name the undo. The code agrees with the Interface and the criteria, so there are no findings for the coder. I changed only documents, so I did not run `make check`; the factory's checks follow this stage. I did not run the smoke test, because it exercises the code and I changed no code.
+
+    Files changed, and why:
+    - `docs/project-guide/write-guard.md`: new title ("The write paths and the take's rule"). *The undo* is replaced by *The take's rule*. It covers what is left out (the write-path refusal and the in-progress rule, both read at the stage-start commit), the work item's restore, the sidecar rewritten after the take, and the limits. The text that described `UndoService` and `UndoReport` is gone.
+    - `docs/project-guide/README.md`: the file's line in *The files* (title, sections, `factory.application.take`) and the `undo_support.py` line in *Shared test helpers* (no `undo_stage`, no undo).
+    - `docs/project-guide/stage-environment.md`: *The take* and the line on who calls the take no longer name a module that is gone or compare the take with the undo. They say `is_refused`, `read_baseline` and `restore_work_item` live in `factory.application.take`.
+    - `docs/project-guide/stages.md`: the take in place of the undo in *Starting a stage*, *Opening a work item*, *StallService.stall*, *After the agent run* and the stage-start commit paragraph. It now says `agent_entry(..., left_out=)` and the new closing sentence.
+    - `docs/project-guide/costs.md`: the entry's paragraph is about left-out changes, not undone ones.
+    - `docs/project-guide/git-and-hosting.md`: the undo is no longer among the users of `changed_paths`, `revert_paths` and `reset_to`. The take's restore of a broken work item uses `revert_paths`. I added a `changed_paths` row naming its two callers, the preflight and the make-based commands, which I found with grep.
+    - `docs/operator-guide.md`: *What a stage run shows* now states the closing sentence `The factory left out changes outside the write paths: <paths>.` (it was not stated there before). *A project's own skills* says the take leaves a nested `.claude/` write out, not that an undo removes it. The take paragraph says the dataset's rollback discards the rest.
+    - `docs/decisions.md`: the closing line "The take keeps this rule; the undo went with v1.2 F0044-S0009." on the two entries the criterion names. The "One snapshot instead of many layers" line now ends "Since F0044-S0009 it is `The factory left out changes outside the write paths: ...`."
+
+    Cross-read and found current: `README.md` (no mention of the undo; the criterion says none), `docs/project-guide/agents.md` and `work-items.md` (`restore_state_and_journal` is described as the factory's own, not tied to a module that is gone).
+
+    Stale text I noticed and did not touch:
+    - `docs/decisions.md` has other entries that describe the undo as it was (for example "The Claude Code hook is removed; the kernel and the undo are the write guard", the F0019 and F0027 entries, and the line on `UndoService` in the F0042 entry). They are dated history and the criterion lists no change to them.
+    - `docs/project-guide/README.md:158` says "nothing is undone" in a test description. It is correct as written.
+    - `docs/operator-playbook.md:64` is the human's file, outside my write paths.
+    - `security/duplicates-baseline.txt:21` still names `undo.py`, so `make duplicates` reports `take.py: unused variable 'restored_work_item'` as new. This is already open from earlier entries, and it is the human's file.
+
+    `check`: check: green (not run again: passed on tree ac01754e0479 at 2026-10-25T19:37:48Z)
+    `secrets`: secrets: green (2.6 s)
+    `documents`: documents ok
