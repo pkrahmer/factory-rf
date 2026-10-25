@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 437
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-25T08:36:42.074574Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-25T08:36:42.074574Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-25T08:37:06.144957Z'
+  stage: smoke-test
+  run: 7a01bb7e8720486eaf097f82416a32bf
 ---
 
 # The chapter "The machine" names all three secrets in every place
@@ -176,3 +178,37 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.0 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test: I ran the three commands from the repository root in order, exactly as written. All three met their `Expect:` line. No findings.
+
+    Command 1 (the two old phrases in chapter `## The machine`):
+    ```
+    0
+    0
+    ```
+    Met: two lines, `0` and `0`.
+
+    Command 2 (`anthropic-api-key` in "The two passes", the pytest command in *The stage image*):
+    ```
+    1
+    1
+    ```
+    Met: two lines, each at least `1`.
+
+    Command 3 (`make documents 2>&1 | tail -n 1`):
+    ```
+    documents ok
+    ```
+    Met.
+
+    Criteria read again against `git diff main...HEAD`:
+    - Criterion 1 holds. The diff changes only `docs/operator-guide.md` and the work item with its `.costs.jsonl` sidecar. Nothing changed under `src/`, `tests/`, `vm/`, `image/`, `template/` or `claude/`, and the tester's and coder's entries (5, 7) both say so.
+    - Criterion 2: I did not run `make check` myself, because the stage does not call for it. The factory's last result was green (entry 7).
+    - Criterion 3, all three docs bullets hold:
+      - "The two passes" names all three files. It says all three must exist whatever the runtime, and that the key file stays empty with `claude`. The old phrase is gone.
+      - Step 8 now gives the two facts separately. First, all three files must exist, because the factory mounts every login file the environment file names and podman refuses to mount a missing one (exit 125). Second, as its own sentence: "An empty `anthropic-api-key` means no key."
+      - *The stage image* names the seven packages. They match `vm/Dockerfile:12`: `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs`, `npm`. It says `sudo` is pinned in `image/Dockerfile` alone and names `uv run pytest tests/test_stage_image.py tests/test_image.py`.
+      - The diff has three hunks, all inside `## The machine`, so no other section changed. `make documents` printed `documents ok`.
+
+    Seen, not a finding: *The stage image* still points to *Update the pins*, but now only "for the shared ones". The criterion does not forbid that reference.
+
+    Open: nothing.
