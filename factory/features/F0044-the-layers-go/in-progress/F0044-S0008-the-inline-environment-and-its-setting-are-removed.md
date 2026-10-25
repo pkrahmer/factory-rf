@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241, 6401865606]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T19:05:38.629617Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -255,6 +251,12 @@ journal:
   kind: started
   at: '2026-10-25T19:05:38.629617Z'
   stage: doing
+- number: 45
+  speaker: coder
+  kind: result
+  at: '2026-10-25T19:06:20.592642Z'
+  stage: doing
+  run: f89c0da5ff7d44b589e8692d5bc3b4c0
 ---
 
 # The inline environment and its setting are removed
@@ -887,3 +889,14 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
 42. 2026-10-25 human: closed the pull request.
 43. factory: sent back to doing, round 2.
 44. factory: started doing as self.
+45. coder: Round 2. Entry 41 has one finding, and the human addressed it to the tester. It needs only a test change, so I changed no code and did not run `make check`.
+
+    The test change, as the human gave it: in `tests/application/test_stage_environment_of.py::test_the_environment_of_the_boundaries_is_the_container_one`, remove the two reads of `environment._snapshots` and `environment._containers` and their `# noqa: SLF001` markers (lines 11–12). Check criterion 2 through behaviour instead:
+    - `prepare` on the returned environment rolls back the boundaries' `FakeSnapshots`, which shows in its recorded calls.
+    - `run_agent` launches through the boundaries' `FakeContainerRuns`, which records one launch.
+
+    The test keeps its name, and nothing else changes.
+
+    Built: nothing in this run. The source from entries 13/23 stands.
+    Main choice: hand the change to the tester under R9, not touch the test myself. The rejected alternative was adding public accessors on `ContainerEnvironment` so the test could read them. That would add code only to serve a test, and the human asked for a check through behaviour.
+    Noticed, not touched: nothing new.
