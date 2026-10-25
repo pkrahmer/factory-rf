@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604, 6399939221]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: doing
+  started_at: '2026-10-25T16:14:44.454755Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-10-25T16:14:22.786274Z'
   stage: tests
   run: 189dd4e546554fe883a68e0ad1f73fb7
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:14:44.454755Z'
+  stage: doing
 ---
 
 # The checkout's hygiene is removed
@@ -232,3 +241,4 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
 
     `lint`: lint: green (0.7 s)
     `test`: FAILED tests/application/test_repository_waiter.py::test_a_failing_clone_or_fetch_is_one_stop_naming_the_git_error[_deleted_after_clone-cannot fetch: git fetch --prune origin failed] - assert False
+12. factory: started doing as self.
