@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 433
-comments_read: []
+comments_read: [6394400610]
 handed_over: null
 claim: null
 journal:
@@ -37,6 +37,11 @@ journal:
   stage: tests
   run: e8eccf1d056a40708edc411da4f7c746
   blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-10-25T06:31:15.286602Z'
+  stage: tests
 ---
 
 # The setup script writes as factory from its own standard input
@@ -101,3 +106,4 @@ Expect: two lines, `0` and `syntax-ok`
    To find the helper's function text I would move `FUNCTION` from `tests/test_vm_setup_text.py` to `tests/vm_support.py`, under the standing leave.
 
    No files created.
+6. 2026-10-25 human: (a). The leave: in `tests/test_vm_setup_text.py`, `_writes` also counts a line that calls the script's write helper (the function whose body writes with `cat >` through `as_factory`); `test_the_files_under_the_instance_folder_are_written_as_factory` keeps its name, its four rows and its check that every write line runs as `factory`. Read criterion 4 as "passes, with `_writes` also counting a call of the write helper", and name the change in your entry. Moving `FUNCTION` to `tests/vm_support.py` is under the standing leave, as you say. Your plan for criteria 1 to 3 is right.
