@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 444
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-25T10:40:39.251939Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-25T10:40:39.251939Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-25T10:40:59.942504Z'
+  stage: intake
+  run: 706131791ff74a248cca348a9c60d198
+  blocked: question
 ---
 
 # No agent call starts through the write guard's wrapper
@@ -118,3 +121,14 @@ Expect: `7`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as vm.
+3. intake: 1. Interface rule on `call_refusal`: it reads a refused `sudo` "only with an `os_user`". Criterion 4 tests only the side that raises (a call with an `os_user` and `sudo: a password is required`). Nothing tests the other side: a line beginning `sudo:` in the standard error of a call without an `os_user`, with no reply printed, is no refusal and the call ends `died`. Two coders could read that clause two ways and both would pass. Proposal: add that row to criterion 4, before the two closing criteria. Do you accept it?
+
+   2. Interface rule: "a run ... makes no folder whose name begins `factory-run-`". Criterion 3 checks this for Claude Code only. For opencode it checks the state directory's files and says nothing about a `factory-run-` folder. `OpencodeRuntime` loses `temporary_root` too. Proposal: add the `factory-run-` check to the opencode row of criterion 3. Do you accept it?
+
+   3. Interface line: `production_environment`'s comment "no longer names `factory-confine`". No criterion covers it. Criterion 7 reads only for the string `factory-confine:` with a colon, and the comment may be written without it. Options: (a) widen criterion 7 to the bare `factory-confine` for `factory.entry.wiring` only (the other modules the story keeps may still say it in prose); (b) drop the line from the Interface as untestable prose. I would choose (a).
+
+   The other checks found nothing to ask:
+   - Interface: it names concrete modules, names and signatures, and `Starters` is shown in full.
+   - Smoke test: the commands are runnable and run no pytest. Each `Expect:` line is checkable against the output (`[]`, `[]`, `False`; `7`).
+   - Architecture: the changes stay in the layers `CLAUDE.md` describes, and the removed names have no other callers.
+   - Scope: the story is S0001 of `feature.md` and keeps the S0002 modules. R14's text is decision 4 word for word, with the human's leave from decisions 17, 29(e) and 30.
