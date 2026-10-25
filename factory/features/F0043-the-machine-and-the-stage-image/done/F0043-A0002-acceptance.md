@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-25T09:04:49.643533Z'
   stage: acceptance
   run: 796e070984fc4d2e838f8cbfe853019f
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-25T09:11:16.384219Z'
+  stage: done
 stories: [F0043-S0001, F0043-S0002, F0043-S0003, F0043-S0004, F0043-S0005, F0043-S0006, F0043-S0007, F0043-S0008]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The machine and the stage image
@@ -196,3 +201,4 @@ Human interventions: 9 questions answered (7 questions and 2 round caps), and th
    6 Decisions: feature decisions 1–18 as in A0001. S0008's "how" (option a, the operator's copy) was settled by starting the story, not by an answer. Still open: make secrets on main, Node 18, the GCP walk, the untimed first step. New and open: stop between stages (a, my choice), TimeoutStopSec beyond the lease (b), or the claim released on SIGTERM (c). No earlier test was changed without a leave.
    7 Slow checks: nothing beyond make check, which is green (194.5 s, 99.20 %, 7849 tests). The slowest tests are 11.5 s time-limit tests outside the feature; the feature's slowest is 0.1 s. Disk use is unchanged (1.1 GB), and free space fell 0.1 GB, which the runs and caches explain.
    8 Cost: $31.47 in 91 runs. S0003 is 54 % of the cost and drew 5 of the 9 human answers, and its round cap wait is most of the 4.6 h. S0007 ($0.81) and S0008 ($0.89) each took one round with no question.
+3. factory: done (pull request merged); cost: 1 runs, 9.1 min, 37 turns, 103736 tokens in (2806100 more from cache), 28427 out, $1.96
