@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 432
 comments_read: [6391472234]
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T00:49:41.586225Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-25T00:49:41.586225Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T00:52:03.955794Z'
+  stage: review
+  run: df9cd6c06431424fb5cc6200515c840f
 ---
 
 # The setup script prepares the machine and installs the service
@@ -244,3 +246,19 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
 11. factory: started review as self.
+12. reviewer: Review, round 0. I read the work item, `vm/setup.sh`, `vm/factory.service`, `tests/vm_support.py`, `tests/test_vm_setup.py`, `tests/test_vm_setup_text.py` and `tests/test_vm_service.py`. I did not run `make check`.
+
+    Groups 1 to 3 pass:
+    - **Group 1:** every criterion from 1 to 11 has a test that checks what the criterion says. The Interface's refusals are tested on their failing side: the argument faults, `--runtime vim`, the root check, the missing sub-id range, the failed `visudo -cf` and the missing token. The coder's entry 10 reports `make check` green.
+    - **Group 2:** nothing under `src/` changed, and `vm/` sits outside the layers.
+    - **Group 3:** the script holds no secrets, and the token is read only by the askpass script.
+
+    The review stops at group 4, on the script's rerun reports:
+
+    1. `vm/setup.sh:170`: the delegation guard never matches, so every rerun runs `zfs allow` again and reports "delegated" instead of "found". The Interface says a second run changes nothing and reports "found". The guard greps for `user factory diff,destroy,mount,rollback,snapshot`, which is the order of neither the Interface nor the alphabet. OpenZFS lists permissions sorted by name, which is `destroy,diff,mount,rollback,snapshot`, and that also matches the coder's own stated assumption ("sorted") in entry 10. Fix: match the sorted list, or check each of the five permissions on the `user factory` line on its own.
+    2. `vm/setup.sh:144,159-168,276-277,326-332`: steps print several lines each, and some lines say neither "found" nor what changed. The Interface asks for "each one line on standard output", and the Description says "every step prints one line of what it did or found done".
+       - `user` prints two lines, `datasets` up to three, `tools` four, and `folders`, `checkout` and `service` two each.
+       - `setup: datasets: … has the quota …` (line 168) and `setup: tools: synced …` (line 277) print on every run, so a clean rerun still reports something other than "found" for those steps.
+       - Fix: gather each step's outcome and print one `setup: <step>: ` line at the step's end, which says "found" when nothing was done. For `user`, run the sub-id check before that line so the step's text still ends after its `exit 1` (criterion 9).
+
+    Earlier tests: none. Every test file in the diff is new (status `A`).
