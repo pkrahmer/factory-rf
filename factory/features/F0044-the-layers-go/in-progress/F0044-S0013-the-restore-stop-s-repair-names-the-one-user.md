@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 457
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: review
-  started_at: '2026-10-25T21:14:51.138621Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-25T21:14:51.138621Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-25T21:15:11.840248Z'
+  stage: review
+  run: 06db5bdd20e143e9a06b130b2824b591
 ---
 
 # The restore stop's repair names the one user
@@ -127,3 +129,12 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 92c6af88fac5 at 2026-10-25T21:03:03Z)
    `duplicates`: duplicates: 8 new, 35 known, 3 gone
 8. factory: started review as self.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only this work item and its `.costs.jsonl` sidecar.
+   - Acceptance criteria: criterion 1 (nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/` changes) holds, because the diff touches none of those paths. The tester's entry (5) and the coder's entry (7) both say so. Criterion 2 holds: the coder's entry records `check: green`, a passed result on tree 92c6af88fac5 that the factory reused. Criterion 3 (docs) is the documenter's next step, checked by the smoke test and `make documents`. The Interface is "None" and states no rule or limit, so there is no failing side to test.
+   - Architecture and security: no code changed, so these do not apply. No silencing markers and no baseline entries.
+   - Quality: nothing to judge. `make duplicates` reports 8 new findings, but the diff changes nothing under `src/factory`, so they are not this story's.
+   - Work item hygiene: the coder's entry gives the main choice (leave the documents to the documenter) and what it rejected (editing the operator-guide paragraph itself). The Description still matches what the story is: it changes documents only and nothing was built. The docs criterion still says what the reader must know: the paragraph without `chmod`, `g+w` or a group, without "agent run left", and with the removal repair through `sudo -iu factory` or as root. It also says the next tick clears the stop, states the crash cap only if the code still records a crash, and has the `watching.md` step **Restore** checked for the same claims.
+
+   Earlier tests: none. `git diff --name-status main...HEAD` lists no test file.
