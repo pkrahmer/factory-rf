@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 453
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T19:57:00.196674Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-25T19:57:00.196674Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T19:57:21.087779Z'
+  stage: intake
+  run: 94a37b3b8e254dd3bf75ad298c490e50
 ---
 
 # The Docker path and the host's process table are removed
@@ -74,3 +76,9 @@ Expect: three lines: `0`; `helper-moved`; `gone`
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   Interface: names concrete paths and signatures: the five removed `image/` files, the helper's move to `vm/git-credential-factory`, `vm/setup.sh`'s `tools` step, `factory.domain.sessions` removed whole, and `factory.adapters.process._kill_session(process)` with `os.killpg(process.pid, signal.SIGKILL)`. The tests to delete, move and change are listed by name, and decision 26 of `feature.md` gives the leave. Two things have no test: the one-line comment change in `vm/Dockerfile` and the docstring wording "process group". Neither is behaviour, so I left them for the reviewer to check in the diff.
+   Criteria: each is testable by a parametrized test. Criterion 1 covers the files, 2 the helper's three behaviours plus `git credential fill`, 3 the script's text and `sh -n`, and 4 the removed names. Criterion 5 covers both sides of the kill: the grandchild in the child's group is ended, one with its own group or session is not, an already-gone group is no error, and a child that ends by itself keeps its exit status. It also covers the stop and the raise of the `run_streaming` callback and both `run_process` and `run_streaming`. Criterion 6 is a text scan of `tests/`, 7 is `make check`, and 8 is the docs.
+   Smoke test: one runnable command line, and its `Expect:` line gives three checkable lines (`0`, `helper-moved`, `gone`). It runs no pytest, so the `-q` rule does not apply.
+   Architecture: the removal fits the layers. The process kill stays in the one process wrapper in `adapters`, `domain.sessions` goes, and nothing new is added. `vm/` is within the coder's write paths.
+   Scope: it matches S0010 in `feature.md` and decisions 7, 12 and 40, and nothing is in "Out of scope". `image/secrets/` and `.gitignore` are untouched, and `pipeline.yml`, `pyproject.toml` and the demo README are left to the human's changes 10 and 11.
