@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 435
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-25T07:48:53.339772Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-25T07:48:33.060683Z'
   stage: review
   run: 845813b550fc4982bc7af8cffbf121f5
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:48:53.339772Z'
+  stage: doing
 ---
 
 # The dataset's checkout knows origin/main
@@ -139,3 +148,4 @@ Expect: `1`
    2. `tests/application/test_container_sync_origin.py:26-29` fixture `dataset` (and the constant `GONE` at line 23): this is a second copy of the `dataset` fixture and of `GONE` in `tests/application/test_container_environment.py:38,42-45`. Fix: under the standing leave, the tester moves the fixture to `tests/conftest.py` and `GONE` to `tests/container_support.py`, and changes `test_container_environment.py` to use them from there, every earlier test keeping its name and what it checks.
 
    Earlier tests: none. The only test file in the diff is `tests/application/test_container_sync_origin.py`, which is new (status `A`). No test file that `main` already holds was changed, renamed or deleted.
+10. factory: started doing as vm.
