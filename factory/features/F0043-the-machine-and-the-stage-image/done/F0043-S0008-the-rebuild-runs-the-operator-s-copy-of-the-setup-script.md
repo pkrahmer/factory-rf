@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-25T08:52:37.062459Z'
   stage: smoke-test
   run: 50159b15c069485e9ba4ed0d519a266c
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-25T08:54:58.528728Z'
+  stage: approval
 ---
 
 # The rebuild after a merge runs the operator's own copy of the setup script
@@ -210,3 +215,4 @@ Expect: `documents ok`
     Something I checked: the awk in commands 1 and 2 ends the section at the first line that starts with `#`. The section's code block has no such line, so the commands read the whole section.
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 5.5 min, 35 turns, 104824 tokens in (488951 more from cache), 9316 out, $0.89
