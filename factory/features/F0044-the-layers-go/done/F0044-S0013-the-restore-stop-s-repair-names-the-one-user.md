@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-25T21:16:54.374138Z'
   stage: smoke-test
   run: ec9a90f21745480db14fa5d005e96111
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-25T21:18:13.733927Z'
+  stage: approval
 ---
 
 # The restore stop's repair names the one user
@@ -217,3 +222,4 @@ Expect: `documents ok`
     - `docs/project-guide/watching.md`, step **Restore**, makes neither old claim.
 
     Nothing contradicts a criterion. Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 4.1 min, 30 turns, 101836 tokens in (408047 more from cache), 6904 out, $0.79
