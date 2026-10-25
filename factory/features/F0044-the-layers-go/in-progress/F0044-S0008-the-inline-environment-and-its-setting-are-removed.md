@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933, 6401361580, 6401523245, 6401668241, 6401865606]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T19:06:41.296158Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -257,6 +261,11 @@ journal:
   at: '2026-10-25T19:06:20.592642Z'
   stage: doing
   run: f89c0da5ff7d44b589e8692d5bc3b4c0
+- number: 46
+  speaker: factory
+  kind: started
+  at: '2026-10-25T19:06:41.296158Z'
+  stage: tests
 ---
 
 # The inline environment and its setting are removed
@@ -900,3 +909,4 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
     Built: nothing in this run. The source from entries 13/23 stands.
     Main choice: hand the change to the tester under R9, not touch the test myself. The rejected alternative was adding public accessors on `ContainerEnvironment` so the test could read them. That would add code only to serve a test, and the human asked for a check through behaviour.
     Noticed, not touched: nothing new.
+46. factory: started tests as self.
