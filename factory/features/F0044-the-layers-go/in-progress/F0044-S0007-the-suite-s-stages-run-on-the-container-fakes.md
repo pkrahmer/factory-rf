@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 450
 comments_read: [6400499867, 6400543008, 6400918653]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T17:39:14.214151Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -206,6 +202,12 @@ journal:
   kind: started
   at: '2026-10-25T17:39:14.214151Z'
   stage: doing
+- number: 36
+  speaker: coder
+  kind: result
+  at: '2026-10-25T17:40:52.316828Z'
+  stage: doing
+  run: 3bdeeaf9af3140c3b62885a15bc714dc
 ---
 
 # The suite's stages run on the container fakes
@@ -594,3 +596,19 @@ Expect: two lines: `1`; `1`
     - Smoke command 2 becomes `grep -c '"Makefile"' tests/git_support.py; grep -c 'fake_dataset(tmp_path)' tests/conftest.py; grep -c 'FakeSnapshots(' tests/container_support.py`, with `Expect: three lines: 1; 1; 1`.
     The human does not push to the work-item branch, so the reviewer makes these two text edits to the work item (the reviewer may correct the work item's text, F0034). End with `review`.
 35. factory: started doing as self.
+36. coder: Round 2. I followed the human's answer (b) in entry 34. The smoke tester's finding is closed by changing the work item, not the code or the tests, so this run changed nothing. The code is still as committed: `agent_working_directory` in `src/factory/application/take.py`, called by `src/factory/application/task.py` and `src/factory/application/preflight.py`.
+
+    Main choice (from the earlier run): one helper beside `MOUNTED_CHECKOUT` sets the request's `working_directory`. I rejected writing the condition separately in the task and in the probe, which would leave two copies of one rule.
+
+    Checked in this run:
+    - The new smoke command 2 (`grep -c '"Makefile"' tests/git_support.py; grep -c 'fake_dataset(tmp_path)' tests/conftest.py; grep -c 'FakeSnapshots(' tests/container_support.py`) prints `1`, `1`, `1`.
+    - `make check`: test: green (66.3 s), coverage 99.55 %, check: green.
+
+    Refactor: the source diff has not changed since entry 17, so there is nothing to change.
+
+    What the journal changed: entry 34 rewords the Interface's conftest line ("gives the fakes of `fake_dataset` (...)") and replaces smoke command 2 with the one above, `Expect: three lines: 1; 1; 1`. The work item is outside my write paths. As the human said, the reviewer makes these two text edits.
+
+    Noticed, not touched: the reviewer's notes in entry 27, a shared constant for `"stage environment: reset"` and the walk loop in `tests/test_suite_fixtures.py` that repeats `drive`. Both are in tests.
+
+    `check`: check: green (not run again: passed on tree 4426094bb51c at 2026-10-25T17:18:35Z)
+    `duplicates`: duplicates: 7 new, 34 known, 4 gone
