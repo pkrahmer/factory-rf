@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 447
 comments_read: [6398446445]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: review
+  started_at: '2026-10-25T13:59:18.652992Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-25T13:58:58.030953Z'
   stage: doing
   run: 3364d4f93fba431d923e3a9ffe42db78
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-25T13:59:18.652992Z'
+  stage: review
 ---
 
 # The fresh home is removed
@@ -224,3 +233,4 @@ Expect: six lines: `gone`, `gone`, `gone`, `gone`, `gone`, `False False True`
 
     `check`: check: green
     `duplicates`: duplicates: 7 new, 34 known, 4 gone
+11. factory: started review as self.
