@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 434
 comments_read: [6394738591]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-25T07:19:03.339648Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-25T07:18:42.979596Z'
   stage: doing
   run: d5a0811606124bcc9787b648950a679a
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-25T07:19:03.339648Z'
+  stage: review
 ---
 
 # The operator guide's chapter "The machine"
@@ -168,3 +177,4 @@ Expect: `documents ok`
 
     `check`: check: green
     `duplicates`: duplicates: 11 new, 36 known, 2 gone
+11. factory: started review as vm.
