@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 452
 comments_read: []
 handed_over: null
-claim:
-  instance: self
-  stage: intake
-  started_at: '2026-10-25T19:20:42.386125Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-25T19:20:42.386125Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-25T19:20:58.643658Z'
+  stage: intake
+  run: 50c871994ace4cfaa19bc8ca70fdb33d
 ---
 
 # The undo is removed
@@ -83,3 +85,13 @@ Expect: two lines: `gone`; `The factory left out changes outside the write paths
 
 1. 2026-10-25 human: created.
 2. factory: started intake as self.
+3. intake: accepted
+   - Interface: concrete. It names the removed module, the three functions that move into `factory.application.take` (with `_is_in_an_in_progress_folder`), the `agent_entry` signature with `left_out`, the constant, and the `AfterAgent` call site. `read_baseline(...)` and `restore_work_item(...)` give their signatures as "those in `undo` today", which is exact enough because the move is unchanged. The test changes are listed by file and test name, and each cites the leave of decision 25 (with decision 38 for the F0042 test).
+   - Criteria: each is testable by one parametrized or single test.
+     - 1 covers the module's absence, the three attributes on `take`, and no `undid`, `UndoService` or `UndoReport` under `src`.
+     - 2 covers the sorted and joined paths, the empty list adding no paragraph, and the blank text giving `None`.
+     - 3 is the whole stage on `boundaries`: the entry sentence, no `.costs.jsonl` named, and the result commit's content.
+     - 4 covers the refusal rule on both sides: three paths left out and `.claudex` taken under `["*"]`, `src/b.py` left out and `tests/test_x.py` taken under `["tests/*"]`, and the work item restore.
+   - Smoke test: two runnable `uv run python -c` commands with no pytest, so the `-q` rule does not apply. The `Expect:` line gives the two exact output lines.
+   - Architecture: the three functions move within `application` (undo into take). The `agent_entry` change is in `domain`, and the `AfterAgent` call stays in `application`. No layer rule is crossed.
+   - Scope: this is S0009 of F0044, and `feature.md` lists it ("`factory.application.undo`; the entry's closing sentence"). Decisions 11, 25 and 38 cover the rename and the test leave. Nothing is in "Out of scope". The docs criterion stays within the documenter's `docs/*` paths.
