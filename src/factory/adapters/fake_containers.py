@@ -6,13 +6,13 @@ from pathlib import Path
 
 from factory.adapters.process import ProcessRequest, run_process
 from factory.application.containers import ContainerRuns
-from factory.domain.agent_home import beneath_or_at
 from factory.domain.containers import (
     WORK,
     ContainerCall,
     ContainerLaunch,
     ContainerResult,
     Mount,
+    beneath_or_at,
     check_container_call,
 )
 from factory.domain.errors import ContainerError

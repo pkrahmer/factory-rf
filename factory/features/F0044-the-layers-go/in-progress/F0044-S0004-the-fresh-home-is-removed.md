@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 447
 comments_read: [6398446445]
 handed_over: null
-claim:
-  instance: self
-  stage: doing
-  started_at: '2026-10-25T13:54:32.716948Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-25T13:54:32.716948Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-25T13:58:58.030953Z'
+  stage: doing
+  run: 3364d4f93fba431d923e3a9ffe42db78
 ---
 
 # The fresh home is removed
@@ -194,3 +196,31 @@ Expect: six lines: `gone`, `gone`, `gone`, `gone`, `gone`, `False False True`
    `lint`: lint: green (0.7 s)
    `test`: FAILED tests/test_home_reset_removed.py::test_the_names_of_the_home_reset_are_gone[sealed-project-commands-parameters] - assert False
 9. factory: started doing as self.
+10. coder: I removed the home reset and everything that existed only for it. `make check` is green: lint, types, layers, sast, secrets, licenses, and test (74.7 s).
+
+    Built:
+    - **Deleted:** `src/factory/entry/fresh_home.py`, `src/factory/adapters/agent_home.py`, `src/factory/adapters/home_files.py`, `src/factory/domain/agent_home.py`, `src/factory/application/agent_home.py`.
+    - `src/factory/domain/containers.py`: `beneath_or_at` moved here unchanged. It sits above `check_container_call`, which uses it.
+    - `src/factory/adapters/fake_containers.py`: now imports `beneath_or_at` from `factory.domain.containers`.
+    - `src/factory/application/boundaries.py`: the field `agent_home` and its import are gone.
+    - `src/factory/application/sealed_runs.py`:
+      - `run_sealed` resets no home.
+      - `SealedProjectCommands.__init__` now takes only `(inner, git, log)`, and `_reset_home` is gone.
+      - Imports that are now unused are gone.
+      - The docstrings no longer mention the reset.
+    - `src/factory/domain/settings.py`: `OPENCODE_FOLDERS_VARIABLE`, `InstanceSettings.opencode_folders`, `_opencode_folders`, `_opencode_folder` and the import of `inside_home` are gone. `agent_home` and `FACTORY_CLAUDE_HOME` stay.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: `LOGIN_STATE_FILE` is gone from both.
+    - `src/factory/entry/wiring.py`:
+      - Gone: `FRESH_HOME_MODULE`, `UV_CACHE_FOLDER`, `fresh_home_command` and `agent_home_of`, also from `__all__`.
+      - Gone: the imports of `SudoAgentHome`, `kept_paths` and the `claude_runtime`/`opencode_runtime` modules.
+      - `_StageEnvironmentBoundaries` loses `agent_home`, and `_project_commands` loses its keyword `agent_home`.
+      - For an agent user, `_project_commands` now builds `SealedProjectCommands(MakeProjectCommands(..., user=user), git, log)`.
+
+    Main choice: I took everything out, as the Interface says, and left no inert placeholder. I rejected keeping `SealedProjectCommands`'s `home` parameter as an optional no-op for compatibility, because criterion 2 requires exactly the parameters `inner`, `git` and `log`, and nothing passes a home any more. `beneath_or_at` went into `containers.py` as a plain module-level function, unchanged. I did not put it into a shared path-helpers module, because no other module needs it.
+
+    Refactor pass: I read the diff and found nothing more to change; the change is removals only. The only step left was ruff format dropping a trailing blank line in `sealed_runs.py`.
+
+    Noticed, not touched: `make duplicates` reports `7 new, 34 known, 4 gone`. Two of the new findings are claude_runtime/opencode_runtime similar-code pairs; together with the gone pair they are the same lines moved after `LOGIN_STATE_FILE` was removed. The other two similar-code pairs (fake_containers/podman_runs, podman_runs/zfs_snapshots) and the three vulture dead-code findings (`FakeContainerRuns`, its `calls`, `FakeSnapshots`) are in files I did not change or only changed an import in. The baseline is not mine to update. The docs for criterion 8 are the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 34 known, 4 gone

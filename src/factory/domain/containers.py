@@ -6,7 +6,6 @@ from typing import Annotated, Self
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
 
-from factory.domain.agent_home import beneath_or_at
 from factory.domain.agent_runs import AbsolutePath
 
 WORK = "/work"
@@ -33,6 +32,11 @@ class Mount(BaseModel):
     source: AbsolutePath
     target: ContainerPath
     read_only: bool = False
+
+
+def beneath_or_at(relative: str, above: str) -> bool:
+    """Whether the `/`-separated path `relative` is `above` itself or lies under it."""
+    return relative == above or relative.startswith(f"{above}/")
 
 
 def check_container_call(command: Sequence[str], mounts: Sequence[Mount]) -> None:

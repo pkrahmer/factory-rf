@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from factory.application.agent_home import AgentHome
 from factory.application.agent_runtime import AgentDefinitionReader, AgentRuntime
 from factory.application.containers import ContainerRuns
 from factory.application.files import (
@@ -50,8 +49,6 @@ class Boundaries:
     stop_records: RecordLog[StopRecord]
     waiter: Waiter
     result_records: RecordLog[ResultRecord]
-    # `None` when the agents run as no second user: then no agent home is reset before a run.
-    agent_home: AgentHome | None = None
     # Both `None` while the stages run inline; with both set they run in containers on the dataset.
     snapshots: Snapshots | None = None
     containers: ContainerRuns | None = None

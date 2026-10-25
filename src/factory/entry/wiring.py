@@ -9,9 +9,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from factory.adapters import claude_runtime, opencode_runtime
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
-from factory.adapters.agent_home import SudoAgentHome
 from factory.adapters.claude_runtime import SUDO_EXECUTABLE, ClaudeCodeRuntime
 from factory.adapters.clock import SleepingWaiter, SystemClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
@@ -76,7 +74,6 @@ from factory.application.recovery import RecoveryHandler
 from factory.application.sealed_runs import SealedProjectCommands
 from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
-from factory.domain.agent_home import kept_paths
 from factory.domain.agent_runs import scrub_environment
 from factory.domain.command_records import CommandRecord
 from factory.domain.containers import WORK_HOME
@@ -101,11 +98,8 @@ from factory.domain.stops import StopRecord
 
 __all__ = [
     "CREDENTIAL_HELPER",
-    "FRESH_HOME_MODULE",
-    "UV_CACHE_FOLDER",
     "WORK_HOME_ENVIRONMENT",
     "agent_environment",
-    "agent_home_of",
     "agent_run_environment",
     "boundaries_from_environment",
     "build_bill_service",
@@ -114,7 +108,6 @@ __all__ = [
     "build_preflight",
     "build_tick",
     "build_work_item_reader",
-    "fresh_home_command",
     "git_environment",
     "git_options",
     "handler_factory",
@@ -133,9 +126,6 @@ _SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
 
 CREDENTIAL_HELPER = "/usr/local/bin/git-credential-factory"
 
-FRESH_HOME_MODULE = "factory.entry.fresh_home"
-# uv's package cache, which every run and command of the agent's user writes and reads.
-UV_CACHE_FOLDER = ".cache/uv"
 # A container's agent run keeps its home on the dataset, beside the checkout.
 WORK_HOME_ENVIRONMENT = {"HOME": WORK_HOME}
 
@@ -303,7 +293,6 @@ def build_boundaries(
         stop_records=JsonLinesRecordLog(state / _STOP_RECORDS_PATH, StopRecord),
         waiter=SleepingWaiter(),
         result_records=JsonLinesRecordLog(state / _RESULT_RECORDS_PATH, ResultRecord),
-        agent_home=environment.agent_home,
         snapshots=environment.snapshots,
         containers=environment.containers,
     )
@@ -315,7 +304,6 @@ class _StageEnvironmentBoundaries:
 
     agent_runtime: AgentRuntime
     project_commands: ProjectCommands
-    agent_home: SudoAgentHome | None = None
     snapshots: ZfsSnapshots | None = None
     containers: PodmanRuns | None = None
 
@@ -328,13 +316,9 @@ def _inline_environment(
     which: Callable[[str], str | None],
 ) -> _StageEnvironmentBoundaries:
     sudo_executable = which("sudo") or SUDO_EXECUTABLE
-    agent_home = agent_home_of(settings, sudo_executable)
     return _StageEnvironmentBoundaries(
         agent_runtime=_agent_runtime(settings, sudo_executable=sudo_executable),
-        project_commands=_project_commands(
-            settings, git, log, sudo_executable, agent_home=agent_home
-        ),
-        agent_home=agent_home,
+        project_commands=_project_commands(settings, git, log, sudo_executable),
     )
 
 
@@ -375,42 +359,11 @@ def _container_adapters(settings: InstanceSettings) -> _ContainerAdapters:
     )
 
 
-def fresh_home_command() -> list[str]:
-    """The words that start the fresh-home program with this interpreter, isolated."""
-    # `-I` ignores PYTHONDONTWRITEBYTECODE; `-B` keeps the agent's user from writing
-    # bytecode beside the factory's source, which the checkout's restore cannot remove.
-    return [sys.executable, "-I", "-B", "-m", FRESH_HOME_MODULE]
-
-
-def agent_home_of(settings: InstanceSettings, sudo_executable: str) -> SudoAgentHome | None:
-    """The agent's home of the instance, or `None` when its agents run as no second user."""
-    if settings.agent_user is None:
-        return None
-    # The agent home is the `.claude` folder inside the agent user's own home.
-    home = settings.agent_home.parent
-    # Both runtimes' logins, whichever runs: the operator may switch without a reset between.
-    kept = kept_paths(
-        home,
-        login_files=[settings.claude_login_file, settings.api_login_file],
-        state_files=[claude_runtime.LOGIN_STATE_FILE, opencode_runtime.LOGIN_STATE_FILE],
-        folders=[UV_CACHE_FOLDER, *settings.opencode_folders],
-    )
-    return SudoAgentHome(
-        home,
-        kept,
-        os_user=settings.agent_user,
-        sudo_executable=sudo_executable,
-        program=fresh_home_command(),
-    )
-
-
 def _project_commands(
     settings: InstanceSettings,
     git: GitCli,
     log: FactoryLog,
     sudo_executable: str,
-    *,
-    agent_home: SudoAgentHome | None,
 ) -> ProjectCommands:
     if settings.agent_user is None:
         return MakeProjectCommands(settings.checkout)
@@ -421,9 +374,7 @@ def _project_commands(
         sudo_executable=sudo_executable,
         environment=project_command_environment(settings, production_environment()),
     )
-    return SealedProjectCommands(
-        MakeProjectCommands(settings.checkout, user=user), git, log, agent_home
-    )
+    return SealedProjectCommands(MakeProjectCommands(settings.checkout, user=user), git, log)
 
 
 def _agent_runtime(
