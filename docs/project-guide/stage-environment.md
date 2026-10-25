@@ -184,7 +184,7 @@ No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` 
 `InlineEnvironment(boundaries)` is v1.1's way, the agent in the factory's own checkout:
 
 - `prepare` does nothing and reads nothing: the claim has left the checkout on the branch at the stage-start commit. Its arguments are accepted and ignored.
-- `run_agent` is `run_sealed(boundaries, request, run=run)`: the checkout's git folder is sealed around the run, the agent home is reset, the nested repositories and the ignored paths are removed (see `watching.md`, *Boundaries*).
+- `run_agent` is `run_sealed(boundaries, request, run=run)`: the checkout's git folder is sealed around the run, the nested repositories and the ignored paths are removed (see `watching.md`, *Boundaries*).
 - `take` is `UndoService(boundaries).undo(stage_start, work_item_path)` (see *The undo*, `write-guard.md`) turned into a report: `left` is the undo's `reverted` and `deleted` paths, joined, sorted, each once; `restored_work_item` is the undo's.
 
 `InlineEnvironment` is the only module that calls `run_sealed` and `UndoService` for a stage. `StallService` reaches the undo only through this environment: its stall takes like `AfterAgent` does.
@@ -333,7 +333,6 @@ One function, `stage_environment_fault` (`factory.domain.settings`), holds that 
 | `snapshots`, `containers` | `None` | `ZfsSnapshots(dataset, workspace, executable=zfs_executable)` and `PodmanRuns(podman_executable, stage_image, workspace)` |
 | `agent_runtime` | as today: `sudo` when there is an agent user | the runtime of `FACTORY_AGENT_RUNTIME` given `containers` |
 | `project_commands` | `RecordingProjectCommands` around `SealedProjectCommands` | `RecordingProjectCommands` around `ContainerMakeCommands(snapshots, containers, git, checkout=settings.checkout)`, no `SealedProjectCommands` |
-| `agent_home` | the fresh-home reset, when there is an agent user | `None` |
 
 The argument `which` is read for `inline` only; a `container` build asks `which` for nothing. It runs no tool: `zfs` and `podman` start only when a stage uses them. `RecordingProjectCommands.inner` is the implementation it records, which the wiring's tests read.
 

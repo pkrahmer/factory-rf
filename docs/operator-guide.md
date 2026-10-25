@@ -78,7 +78,6 @@ One factory instance runs one project and is told what it needs through environm
 | `FACTORY_OPENCODE` | no | The opencode executable, used when the runtime is `opencode`. Default `opencode`. |
 | `FACTORY_OPENCODE_VERSION` | no, but the preflight fails without it under opencode | The version of opencode the image pins (`1.19.3`). The image sets it; a blank value is read as not pinned. |
 | `FACTORY_OPENCODE_MODELS` | no | Comma-separated `<alias>=<provider>/<model>` entries that map the agent files' aliases (`opus`, `sonnet`, `haiku`) to opencode's model ids; spaces around each part are stripped. The provider is the part before the first `/`, so `openrouter/anthropic/claude-opus-5-5` is one model. Unset or blank gives none (the image sets the three Anthropic ids). An entry without `=`, with an empty alias or with a model that has no `/` or an empty side, and an alias named twice, are refused with `FACTORY_OPENCODE_MODELS` as the variable. |
-| `FACTORY_OPENCODE_FOLDERS` | no | Comma-separated folders, relative to the agent user's home `/home/agent` (not to `FACTORY_CLAUDE_HOME`), that an opencode run may write besides opencode's three; for the state of an operator's own build. A named folder is kept between runs (the fresh home leaves it alone), and a run can write it. Unset or blank gives none. An entry that is empty, absolute, or has an empty, `.` or `..` segment is refused with `FACTORY_OPENCODE_FOLDERS` as the variable. |
 | `FACTORY_STAGE_ENVIRONMENT` | no | Where a stage runs: `inline` (the default, the factory's own container with the second user) or `container` (the ZFS dataset and Podman containers). Unset or blank gives `inline`; surrounding spaces are stripped; anything else (`Container`, `podman`) is refused with `FACTORY_STAGE_ENVIRONMENT` as the variable and `holds <value>, which is neither inline nor container`. See "The stage environment". |
 | `FACTORY_DATASET` | for `container` | The ZFS dataset the stages run on (`tank/factory/vm`). Missing or blank under `container` is refused with `FACTORY_DATASET` as the variable and `missing for the container environment`. Read and kept, but unused, under `inline`. |
 | `FACTORY_WORKSPACE` | for `container` | The dataset's mount point on the host, an absolute path (`/srv/factory/vm/work`). Missing or blank under `container` is refused with `missing for the container environment`; a relative path with `is not an absolute path`. Not checked under `inline`. |
@@ -203,38 +202,15 @@ The last line is the only rule: `factory` may become `agent`, for any command, w
 
 The files of a run are `instructions-<session>.md` alone. An opencode run writes `opencode-<run>.json`, its per-run configuration, in place of the instructions file (see "Running on opencode"). They are in `/state/runs`. The runtime sets each to mode `0640` before it starts the agent, whatever the factory's umask. The agent reads them through the group `factory-work`, and it cannot rewrite them: the files are not writable by the group, and the directory is not writable by the agent either. So a run cannot widen its own write paths.
 
-The agent's home, `/home/agent`, is writable by the agent during a run, and the `claude` login in `~/.claude` (which concerns Claude Code) stays the agent's own. The files the factory installs there are protected: `/home/agent/.claude` belongs to `factory`, group `factory-work`, mode `3775`, and the entrypoint installs `agents/` as `0755` with each file `0644` and `settings.json` as `0644`. The agent can add files of its own to that folder, and the sticky bit stops it from renaming or removing the factory's. The entrypoint also remakes `skills/` and `commands/` there, empty, at every start: they belong to the user the entrypoint runs as and are read-only to the agent (mode `2755` in the image, the home's setgid bit inherited; the home's sticky bit keeps the agent from renaming them). Claude Code loads the user skills and commands of its home, so without this one run could plant a skill that every later run loads. So one run cannot widen the tools, budget or permissions of later runs. A run can still write files of its own there, such as a user `CLAUDE.md` or a `.claude.json`, but the next run does not read them: the factory clears them first (see "The home is cleared before every run"). `/home/agent/.claude` is the mount point of the volume `claude-home`, so the agent cannot rename the folder either. A `claude-home` volume made by an earlier image keeps its old owner and mode, so the protection holds on a new volume. On such a volume a `skills/` or `commands/` folder that an agent run made without group write cannot be removed by the entrypoint, which stops under `set -e`; the instance restarts and `docker logs` shows `rm: cannot remove ...`. Remove both folders as root through the volume, then start the instance again: `docker run --rm -u root -v factory-<instance>_claude-home:/h alpine rm -rf /h/skills /h/commands` (for example `factory-self_claude-home`).
+The agent's home, `/home/agent`, is writable by the agent during a run, and the `claude` login in `~/.claude` (which concerns Claude Code) stays the agent's own. The files the factory installs there are protected: `/home/agent/.claude` belongs to `factory`, group `factory-work`, mode `3775`, and the entrypoint installs `agents/` as `0755` with each file `0644` and `settings.json` as `0644`. The agent can add files of its own to that folder, and the sticky bit stops it from renaming or removing the factory's. The entrypoint also remakes `skills/` and `commands/` there, empty, at every start: they belong to the user the entrypoint runs as and are read-only to the agent (mode `2755` in the image, the home's setgid bit inherited; the home's sticky bit keeps the agent from renaming them). Claude Code loads the user skills and commands of its home, so without this one run could plant a skill that every later run loads. So one run cannot widen the tools, budget or permissions of later runs. A run can still write files of its own there, such as a user `CLAUDE.md` or a `.claude.json`, but the next stage does not read them: the rollback of the dataset clears them. `/home/agent/.claude` is the mount point of the volume `claude-home`, so the agent cannot rename the folder either. A `claude-home` volume made by an earlier image keeps its old owner and mode, so the protection holds on a new volume. On such a volume a `skills/` or `commands/` folder that an agent run made without group write cannot be removed by the entrypoint, which stops under `set -e`; the instance restarts and `docker logs` shows `rm: cannot remove ...`. Remove both folders as root through the volume, then start the instance again: `docker run --rm -u root -v factory-<instance>_claude-home:/h alpine rm -rf /h/skills /h/commands` (for example `factory-self_claude-home`).
 
-#### The home is cleared before every run
-
-Before every agent run and every project command the factory runs, from `/` and after it has sealed the checkout's git folder:
-
-```
-sudo -n -u agent -- timeout --signal=KILL 60s env -i /opt/factory/.venv/bin/python -I -B -m factory.entry.fresh_home --home /home/agent --keep ...
-```
-
-The program removes every file and folder `agent` made in `/home/agent`: the transcripts of earlier runs in `~/.claude/projects/`, `.claude.json`, opencode's sessions, the caches in `~/.cache` other than uv's and in `~/.semgrep`, and any `CLAUDE.md`, `rules/` or other file a run planted. So no run reads what an earlier one did, and no run finds a file an earlier one planted. It never touches a file the factory or another user owns (the agent files, `settings.json`, `skills/`, `commands/`, `.config/opencode`, the mounted login files).
-
-It keeps, for the runs that follow:
-
-- the two mounted login files, `FACTORY_CLAUDE_LOGIN_FILE` and `FACTORY_API_LOGIN_FILE`;
-- `~/.claude/.credentials.json` and `~/.local/share/opencode/auth.json`, the login an operator made by hand (see "The agent's login token" and "Running on opencode");
-- the folders of `FACTORY_OPENCODE_FOLDERS`;
-- uv's package cache, `~/.cache/uv`. Runs and project commands write it and every later one reads it, so it is a small channel from one run to the next check. The human accepted it.
-
-A run that is resumed after a provider limit or its budget keeps its session: the home is cleared once per stage run, not at each resume. The preflight's agent-run probe is cleared the same way.
-
-The last run's transcript stays until the next agent run or project command starts, for you to read. After a run that moves the work item forward that is the stage's own checks right after it; after a run that asks, stalls or fails, it is the next run.
-
-When the program fails, nothing starts in that home. An agent run stops with `agent runtime failed: cannot reset the agent's home /home/agent: <line>` (at the preflight's agent-run probe, `preflight_failed`). A project command stops with `project command <command> failed: cannot reset the agent's home /home/agent: <line>`: an error that is counted at a stage, `preflight_failed` at the preflight's `lint` on `main`. `<line>` is the program's own `factory-fresh-home: <path>: <reason>` line, the last line of `sudo`'s message (for example `sudo: a password is required`), `exit status <n>`, or `no end within 60 s` when the program ran past its limit. Without `FACTORY_AGENT_USER` nothing is cleared, as nothing runs as a second user.
-
-**First reset after the upgrade.** It removes what the volume `claude-home` gathered so far (on `self`, about 222 MB of transcripts). Copy them out before the rebuild if you want them.
+On a `container` instance the agent's home is the dataset's `home/`, and the dataset's rollback clears it before every stage.
 
 A `sudo` that refuses is a misconfiguration, not a stall: when the call ends without a usable reply (a call that reached its time limit counts as one, even when it printed a reply first, so a `sudo:` line then stops the run too) and `sudo` printed a line that starts `sudo:` to standard error, the run stops with an error that holds that line (`sudo: a password is required`: the rule is missing or wrong). A `sudo:` line before a good reply, for example `sudo: unable to resolve host x`, is ignored. A run that dies for another reason is still a stall.
 
 The take keeps the write paths. On a `container` instance it copies out of the dataset only the changed paths the role may write, and the dataset's rollback undoes the rest; on an `inline` instance the undo after the run reverts every change outside the write paths, whatever tool or command made it. A write elsewhere is lost, not refused: temporary files go through `mktemp` or `tempfile`, and they are lost with the stage. No kernel rule stands behind this.
 
-The agent's home is cleared before every run (see "The home is cleared before every run"), and the agent's files under `~/.claude` that the factory installs keep their file permissions.
+The agent's files under `~/.claude` that the factory installs keep their file permissions.
 
 **The agent's login token.** The agent runs under its own login, not yours as `factory`. The login is a token, made once for all instances and the Podman machine:
 
@@ -250,7 +226,7 @@ An empty file means no token, and the agent then needs the manual login:
 docker exec -it -u agent <container> claude
 ```
 
-That login is kept in the volume `claude-home` (`/home/agent/.claude/.credentials.json`), which the fresh home keeps, and survives `docker compose down` and `up`. Since F0044-S0001 the runtime no longer sets `CLAUDE_CONFIG_DIR`, so `claude` keeps its `.claude.json` in the home's root, and the fresh home clears that file with the rest of the home's files (see "The home is cleared before every run").
+That login is kept in the volume `claude-home` (`/home/agent/.claude/.credentials.json`), and survives `docker compose down` and `up`. Since F0044-S0001 the runtime no longer sets `CLAUDE_CONFIG_DIR`, so `claude` keeps its `.claude.json` in the home's root.
 
 **The agent's API key.** An instance can run its agents on an Anthropic API key instead of the subscription, for example at a workplace that has a key and no subscription. This repository's own build stays on the subscription.
 
@@ -281,9 +257,7 @@ Which login is in force: the cost record of each run has the field `login`, whic
 | The probe needs no login | start a new instance (a new `claude-home` volume) with the token file in place and read the health status | the preflight item `agent-run-probe` passes, with no login made by hand |
 | The agent cannot rewrite its settings | `docker exec -u agent <container> sh -c 'echo x >> /home/agent/.claude/settings.json'` | refused (`Permission denied`) |
 | The factory's restore after an agent-made directory | after the line above, `docker exec <container> sh -c 'cd /work/checkout && git clean -fd && git status --short'` | the directory is gone, no error |
-| The home is fresh | after a run that ended with a question (no checks follow it): `docker exec <container> ls -A /home/agent/.claude`; after a forward move and its checks: the same command | after the question: only the factory's files, the kept login and what that one run made; after the checks: only the factory's files and the kept login |
 | A project command runs as `agent` | `docker exec <container> ps -o user,args -C make` while a stage's check runs | every line after the header shows `agent`, and none shows `factory` |
-| The home is reset | `docker exec <container> tail -n 50 /state/factory.log` after the first stage run after a rebuild | no `cannot reset the agent's home`, and the run passes |
 | The shared `.venv` stays writable | `docker exec <container> find /work/checkout/.venv -maxdepth 3 ! -perm -g+w` after a check that synced it | nothing printed |
 | A check at its limit leaves no process | `docker exec <container> ps -o user,pid,args -U agent` after a check that reached its time limit | only the header (the user's `timeout` ended its group) |
 | A refused `sudo` | `docker exec <container> sudo -n -u root id` | `sudo: a password is required`; the rule allows only `agent` |
@@ -348,7 +322,7 @@ An instance runs its agents on Claude Code unless the operator sets `FACTORY_AGE
 **The login.** An opencode run logs in in one of two ways:
 
 - An API key in the file `FACTORY_API_LOGIN_FILE` names (see "The agent's API key"). Every run is then paid through the API. The subscription token is not used.
-- The login an operator's own build of opencode keeps in the agent's home (single sign-on). Make it once, as the agent user: `docker exec -it -u agent <container> <executable> <the build's login command>`, as `claude setup-token` is for Claude Code. The container loses it when it is recreated, unless you mount its folder with a compose override file. If that folder lies outside opencode's three (below), name it in `FACTORY_OPENCODE_FOLDERS`, relative to `/home/agent`, for example `FACTORY_OPENCODE_FOLDERS=.config/sso-opencode,.local/share/sso`; otherwise a run cannot refresh the login.
+- The login an operator's own build of opencode keeps in the agent's home (single sign-on). Make it once, as the agent user: `docker exec -it -u agent <container> <executable> <the build's login command>`, as `claude setup-token` is for Claude Code. The container loses it when it is recreated, unless you mount its folder with a compose override file.
 
 The preflight asks for neither: the probe of the agent run shows whether a run can log in.
 
@@ -360,9 +334,9 @@ The preflight asks for neither: the probe of the agent run shows whether a run c
 
 **The item `opencode`.** See "The preflight's items" for its two faults and what to do about each.
 
-**What opencode keeps in the agent's home.** Sessions, logs and caches in `.local/share/opencode`, `.local/state/opencode` and `.cache/opencode`, for the length of one run: the fresh home removes them before the next run, and nothing but `.local/share/opencode/auth.json` (a login made by hand) and the folders of `FACTORY_OPENCODE_FOLDERS` survives. A run may write these three, plus the folders of `FACTORY_OPENCODE_FOLDERS`, and nothing else under `.config`: the configuration there is what the next run reads, and an agent that could write it could loosen its own permissions.
+**What opencode keeps in the agent's home.** Sessions, logs and caches in `.local/share/opencode`, `.local/state/opencode` and `.cache/opencode`, for the length of one stage on a `container` instance (the dataset's rollback clears them). The configuration in `.config/opencode` is what the next run reads, and an agent that could write it could loosen its own permissions.
 
-The image makes `/home/agent/.config/opencode`, owned by `factory` and read-only to the agent. opencode 1.19.3 makes that folder on its first run and dies (`EACCES ... mkdir`, the probe ends `died`) when it cannot; every recreated container has a fresh home, so without the folder each new container would stop. With the folder in place opencode starts and leaves it empty (its write of a default `opencode.jsonc` fails, and opencode ignores that). You need not name `.config/opencode` in `FACTORY_OPENCODE_FOLDERS`, and the folder's owner refuses the write anyway. `/home/agent/.config` stays the agent's, so folders such as `.config/sso-opencode` still work.
+The image makes `/home/agent/.config/opencode`, owned by `factory` and read-only to the agent. opencode 1.19.3 makes that folder on its first run and dies (`EACCES ... mkdir`, the probe ends `died`) when it cannot; every recreated container has a fresh home, so without the folder each new container would stop. With the folder in place opencode starts and leaves it empty (its write of a default `opencode.jsonc` fails, and opencode ignores that). The folder's owner refuses the agent's write.
 
 **What differs from Claude Code.**
 

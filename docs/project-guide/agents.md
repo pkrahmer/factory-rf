@@ -91,39 +91,9 @@ Measures of a resumed run: `turns`, `cost_usd` and each of the four token counts
 
 Tests use a stand-in executable (`tests/adapters/claude_stand_in.py`: `write_stand_in(directory, steps)` and `read_calls(directory)`) written into `tmp_path`; the real `claude` is never run.
 
-### The fresh home
+### The agent's home
 
-`python -I -m factory.entry.fresh_home --home <folder> [--keep <path>]...` clears an agent's home of what the agent made. The home keeps everything every run left there: the transcripts of earlier runs, opencode's sessions, caches, and any file Claude Code reads on every later run (a user `CLAUDE.md`, a `rules/` folder). The program runs as the user whose files it removes and decides by ownership. It is built in three layers: the rule in `factory.domain.agent_home`, the walk in `factory.adapters.home_files` (`clear_home`, `own_entry`) and the command line in `factory.entry.fresh_home`. The program itself starts nothing and has no default home, so no call can clear a home it was not named; `SudoAgentHome` starts it (below).
-
-**Arguments and status.** Exactly `--home <folder>` followed by any number of `--keep <path>`; each `--keep` is relative to the home.
-
-| Status | When | Standard error |
-| --- | --- | --- |
-| 0 | the walk is done | nothing |
-| 1 | the walk is done and some entry could not be removed | one line `factory-fresh-home: <relative>: <reason>` per fault |
-| 2 | the arguments are refused; nothing is removed | the usage line `factory-fresh-home: usage: fresh_home --home <folder> [--keep <path>]...`, or `--home <folder> is not an absolute folder other than /` (relative, resolving to `/`, or not an existing folder), or `--keep <path> is not a path inside the home` |
-
-**The rule.** `inside_home(relative)` is false for `""`, an absolute path and any path with an empty, `.` or `..` segment; `factory.domain.settings` uses it for `FACTORY_OPENCODE_FOLDERS` too. `kept_paths(...)` builds the list of kept paths, relative to the home: the login files that lie inside it, then the state files, then the folders, without repeats; a state file or folder that is not `inside_home` raises `ValueError`. For each entry of a folder, in name order, `fate(relative, owned=, folder=, kept=)` says:
-
-- `keep` when the entry is a kept path or lies beneath one;
-- otherwise `descend` when it is a real folder (a link to a folder is not one), also when a kept path lies beneath it;
-- otherwise `remove` when it belongs to the program's user, and `keep` when it belongs to another user (the factory's agents, `settings.json`, `skills/`, `commands/`, the mounted login files).
-
-After the walk of a folder, `removed_when_empty` decides whether the folder is removed: only when the user owns it and no kept path lies beneath it. A folder with a kept path or another user's entry in it stays.
-
-**The walk.** `clear_home` never follows a link: a link is judged and removed as itself, and what it points to stays. An owned folder gets the owner's read, write and search bits before it is walked, so a folder the agent closed to itself is still cleared. The mode of an entry that is not the user's is never changed. The home itself is never removed. An `OSError` at an entry is recorded as `<relative>: <strerror>` and the walk goes on; the faults come back in the order met. `own_entry` compares the owner of the entry itself (`lstat`) with the process's effective user.
-
-**Who starts it, and when.** `AgentHome` (`factory.application.agent_home`, an abstract base class) has one operation, `reset()`, which raises `AgentRuntimeError` when the home cannot be cleared. `SudoAgentHome(home, kept, *, os_user, sudo_executable, program)` (`factory.adapters.agent_home`) is its implementation. `reset` builds the call with `launch([*program, "--home", <home>, "--keep", <path>, ...], {}, os_user=..., sudo_executable=..., time_limit=FRESH_HOME_TIME_LIMIT)`, so it is `sudo -n -u <agent> -- timeout --signal=KILL 60s env -i <python> -I -B -m factory.entry.fresh_home --home /home/agent --keep ...`, with an empty environment, and starts it with `run_process` from `/`, with the time limit plus `SUDO_GRACE`. `-B` is there because `-I` ignores `PYTHONDONTWRITEBYTECODE`, and bytecode the agent's user wrote beside the factory's source is a file the checkout's restore cannot remove. `FRESH_HOME_TIME_LIMIT` (60 seconds) is read at each call.
-
-- `run_sealed` calls `boundaries.agent_home.reset()` after `git.seal()` and before the run, once per stage run: a resume after a provider limit or the budget happens inside the one `run`, so it keeps its session. The preflight's probe goes through `run_sealed` and is reset too. A reset that raises propagates before the run; nothing ran, so the seal is not checked.
-- `SealedProjectCommands` resets the home after the seal and before each command (`processes-and-checks.md`, *Sealed project commands*).
-- Without `settings.agent_user` there is no `AgentHome` (`Boundaries.agent_home` is `None`) and nothing is reset.
-
-**Faults of `reset`.** All are `AgentRuntimeError("cannot reset the agent's home <home>: <reason>")`. A call that reached its limit (the factory's kill, or `killed_at_limit` for the exit status and duration) has the reason `no end within <seconds> s` (60 by default). Any other non-zero status has the first standard-error line that starts with `FRESH_HOME_PREFIX`, else the last non-blank line, else `exit status <n>`. A program that cannot be started (`OSError`) has its `strerror`.
-
-**What is kept.** `agent_home_of(settings, sudo_executable)` (`factory.entry.wiring`) builds the `SudoAgentHome`, or `None` without an agent user. Its `home` is `settings.agent_home.parent` and its `kept` is `kept_paths(...)` over the login files (`FACTORY_CLAUDE_LOGIN_FILE`, `FACTORY_API_LOGIN_FILE`; one outside the home drops out), the state files `claude_runtime.LOGIN_STATE_FILE` (`.claude/.credentials.json`) and `opencode_runtime.LOGIN_STATE_FILE` (`.local/share/opencode/auth.json`), and the folders `UV_CACHE_FOLDER` (`.cache/uv`) and `FACTORY_OPENCODE_FOLDERS`, whichever runtime the instance uses. The kept uv cache is the one thing a run leaves that a later run or check reads (the feature's decision 9: accepted). `fresh_home_command()` is `[sys.executable, "-I", "-B", "-m", FRESH_HOME_MODULE]`.
-
-Tests: `tests/adapters/test_sudo_agent_home.py` (a stand-in `sudo`), `tests/application/test_agent_home_resets.py`, `tests/entry/test_wiring_agent_home.py`; no test resets a real home. `tests/domain/test_agent_home.py`, `tests/adapters/test_home_files.py`, `tests/entry/test_fresh_home.py`. Every home is a folder under `tmp_path`; the tests cannot `chown`, so an entry of another user is an `owned` that answers false. No test runs the program on a real home. `factory.entry.fresh_home` imports its adapter directly, as `factory.entry.confine` does, and is in the expected set of `tests/entry/test_wiring.py`.
+The agent's home is the dataset's `home/` (`HOME=/work/home` in every container). The rollback to the base gives every stage a fresh one, so the factory resets nothing; a run resumed after a provider limit finds its session in the same `home/`.
 
 ### The opencode runtime
 
@@ -168,7 +138,7 @@ entry:
 
 **The provider limit.** The callback stops the call at once, as `provider_limit`, on an `error` event whose `error.data.statusCode` is the limit's status or whose `error.data.message` holds the limit (`limit_in_text`), and on a line of standard error that holds it. It reads no limit from a `text` or `tool_use` event or from any other field, so an agent that writes "428", or a tool whose output holds it, stops nothing. An `error` event that is no limit does not stop the call; the call ends by the rules below. The result keeps the measures of the events read, the session, and a `limit_wait` of `named_wait` of the message or line (`None` when it names none). A limit is never resumed here: waiting it out and continuing the session is the application layer's (S0007). A time limit that ended the call wins over a recorded stop.
 
-**opencode's folders.** opencode writes its sessions, logs and caches to `.local/share/opencode`, `.local/state/opencode` and `.cache/opencode` in the agent's home. The runtime names no folder for them: no rules file allows or refuses a write since F0044-S0001, and the fresh home keeps what `FACTORY_OPENCODE_FOLDERS` (relative to `/home/agent`) names, for an operator's build that keeps a single sign-on login in a folder of its own (`agent_home_of` in `factory.entry.wiring`). The image makes `.config/opencode` itself (owned by `factory`, mode `0755`, so read-only to the agent): opencode's own configuration there is what the next run reads, and an agent that could write it could change its own tools and permissions.
+**opencode's folders.** opencode writes its sessions, logs and caches to `.local/share/opencode`, `.local/state/opencode` and `.cache/opencode` in the agent's home. The runtime names no folder for them: no rules file allows or refuses a write since F0044-S0001, and the dataset's rollback clears them with the rest of the home. The image makes `.config/opencode` itself (owned by `factory`, mode `0755`, so read-only to the agent): opencode's own configuration there is what the next run reads, and an agent that could write it could change its own tools and permissions.
 
 Tests use `tests/adapters/opencode_stand_in.py` in `tmp_path`; the real `opencode` is never run.
 

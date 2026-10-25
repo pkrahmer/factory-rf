@@ -84,8 +84,6 @@ SWITCHES = {
     "PYTHONDONTWRITEBYTECODE": "1",
 }
 BUDGET_SUBTYPE = "error_max_budget_usd"
-# Where Claude Code keeps a login made by hand in the agent's home.
-LOGIN_STATE_FILE = ".claude/.credentials.json"
 _PATH_KEYS = ("file_path", "notebook_path")
 
 

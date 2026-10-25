@@ -72,8 +72,6 @@ from factory.domain.provider_limits import ProviderLimit, limit_in_text, named_w
 
 CONFIG_VARIABLE = "OPENCODE_CONFIG"
 AGENT_PREFIX = "factory-"
-# Where opencode keeps a login made by hand in the agent's home.
-LOGIN_STATE_FILE = ".local/share/opencode/auth.json"
 SWITCHES = {"PYTHONDONTWRITEBYTECODE": "1"}
 OPENCODE_TOOLS = (
     "bash",

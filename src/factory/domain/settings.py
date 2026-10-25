@@ -16,7 +16,6 @@ from pydantic import (
     model_validator,
 )
 
-from factory.domain.agent_home import inside_home
 from factory.domain.errors import SettingsInvalid
 from factory.domain.git import DEFAULT_GIT_IDENTITY, GitIdentity
 from factory.domain.identifiers import Name
@@ -67,7 +66,6 @@ AGENT_RUNTIME_VARIABLE = "FACTORY_AGENT_RUNTIME"
 OPENCODE_EXECUTABLE_VARIABLE = "FACTORY_OPENCODE"
 OPENCODE_VERSION_VARIABLE = "FACTORY_OPENCODE_VERSION"
 OPENCODE_MODELS_VARIABLE = "FACTORY_OPENCODE_MODELS"
-OPENCODE_FOLDERS_VARIABLE = "FACTORY_OPENCODE_FOLDERS"
 STAGE_ENVIRONMENT_VARIABLE = "FACTORY_STAGE_ENVIRONMENT"
 DATASET_VARIABLE = "FACTORY_DATASET"
 WORKSPACE_VARIABLE = "FACTORY_WORKSPACE"
@@ -116,7 +114,6 @@ class InstanceSettings(BaseModel):
     opencode_executable: str = _OPENCODE_EXECUTABLE_DEFAULT
     pinned_opencode_version: str | None = None
     opencode_models: dict[str, str] = {}
-    opencode_folders: list[str] = []
     stage_environment: StageEnvironmentName = "inline"
     dataset: str | None = None
     workspace: Path | None = None
@@ -249,7 +246,6 @@ def read_settings(
         or _OPENCODE_EXECUTABLE_DEFAULT,
         pinned_opencode_version=_optional(environ, OPENCODE_VERSION_VARIABLE) or None,
         opencode_models=_opencode_models(environ),
-        opencode_folders=_opencode_folders(environ),
         stage_environment=stage_environment,
         dataset=dataset,
         workspace=workspace,
@@ -341,22 +337,6 @@ def _opencode_model(entry: str) -> tuple[str, str]:
             OPENCODE_MODELS_VARIABLE, f"holds {entry}, which is not <alias>=<provider>/<model>"
         )
     return alias, model
-
-
-def _opencode_folders(environ: Mapping[str, str]) -> list[str]:
-    value = _optional(environ, OPENCODE_FOLDERS_VARIABLE)
-    if not value:
-        return []
-    return [_opencode_folder(entry.strip()) for entry in value.split(",")]
-
-
-def _opencode_folder(entry: str) -> str:
-    if not inside_home(entry):
-        raise SettingsInvalid(
-            OPENCODE_FOLDERS_VARIABLE,
-            f"holds {entry}, which is not a folder inside the agent's home",
-        )
-    return entry
 
 
 def _min_free_gb(environ: Mapping[str, str]) -> int:

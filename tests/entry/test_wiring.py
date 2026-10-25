@@ -20,5 +20,4 @@ def test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer() -> None:
     assert "factory.entry.check_story" in entry
     assert importers == {
         "factory.entry.wiring",
-        "factory.entry.fresh_home",
     }
