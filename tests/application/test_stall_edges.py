@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from container_support import inline_boundaries
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.agent_runtime import AgentRuntime
@@ -120,7 +119,6 @@ def test_a_stall_after_the_agent_left_drops_its_commit_on_the_branch(
     agent_home: Path,
     agent_runtime: FakeAgentRuntime,
 ) -> None:
-    boundaries = inline_boundaries(boundaries)
     report = run_stage(_left_branch(boundaries, human, agent_home, agent_runtime))
 
     assert report.stall is not None

@@ -1,4 +1,4 @@
-"""The settings name the stage environment, and a container environment its dataset and image."""
+"""The settings read the dataset, the workspace and the stage image of the container environment."""
 
 from pathlib import Path
 
@@ -10,7 +10,6 @@ from factory.domain.settings import InstanceSettings, read_settings
 from settings_support import BASE
 
 CONTAINER = {
-    "FACTORY_STAGE_ENVIRONMENT": "container",
     "FACTORY_DATASET": "tank/factory/vm",
     "FACTORY_WORKSPACE": "/srv/factory/vm/work",
     "FACTORY_STAGE_IMAGE": "factory-stage:1",
@@ -22,19 +21,9 @@ _UNSET = object()
 @pytest.mark.parametrize(
     ("extra", "expected"),
     [
-        pytest.param({}, {"stage_environment": "inline"}, id="unset"),
-        pytest.param(
-            {"FACTORY_STAGE_ENVIRONMENT": ""}, {"stage_environment": "inline"}, id="empty"
-        ),
-        pytest.param(
-            {"FACTORY_STAGE_ENVIRONMENT": "  inline "},
-            {"stage_environment": "inline"},
-            id="inline-padded",
-        ),
         pytest.param(
             CONTAINER,
             {
-                "stage_environment": "container",
                 "dataset": "tank/factory/vm",
                 "workspace": WORKSPACE,
                 "stage_image": "factory-stage:1",
@@ -88,71 +77,20 @@ def test_read_settings_reads_the_stage_environment_and_its_values(
     ("extra", "expected"),
     [
         pytest.param(
-            {"FACTORY_STAGE_ENVIRONMENT": "Container"},
-            ("FACTORY_STAGE_ENVIRONMENT", "holds Container, which is neither inline nor container"),
-            id="unknown-environment",
-        ),
-        pytest.param(
-            {"FACTORY_STAGE_ENVIRONMENT": "container"},
-            ("FACTORY_DATASET", "missing for the container environment"),
-            id="no-dataset",
-        ),
-        pytest.param(
-            {**CONTAINER, "FACTORY_DATASET": "  "},
-            ("FACTORY_DATASET", "missing for the container environment"),
-            id="blank-dataset",
-        ),
-        pytest.param(
-            {"FACTORY_STAGE_ENVIRONMENT": "container", "FACTORY_DATASET": "tank/factory/vm"},
-            ("FACTORY_WORKSPACE", "missing for the container environment"),
-            id="no-workspace",
-        ),
-        pytest.param(
-            {
-                "FACTORY_STAGE_ENVIRONMENT": "container",
-                "FACTORY_DATASET": "tank/factory/vm",
-                "FACTORY_WORKSPACE": "  ",
-            },
-            ("FACTORY_WORKSPACE", "missing for the container environment"),
-            id="blank-workspace",
-        ),
-        pytest.param(
             {**CONTAINER, "FACTORY_WORKSPACE": "srv/work"},
             ("FACTORY_WORKSPACE", "is not an absolute path"),
             id="relative-workspace",
         ),
         pytest.param(
-            {
-                "FACTORY_STAGE_ENVIRONMENT": "container",
-                "FACTORY_DATASET": "tank/factory/vm",
-                "FACTORY_WORKSPACE": "srv/work",
-            },
+            {"FACTORY_DATASET": "tank/factory/vm", "FACTORY_WORKSPACE": "srv/work"},
             ("FACTORY_WORKSPACE", "is not an absolute path"),
             id="relative-workspace-before-no-image",
         ),
+        pytest.param({}, {"dataset": None, "workspace": None, "stage_image": None}, id="none"),
         pytest.param(
-            {
-                "FACTORY_STAGE_ENVIRONMENT": "container",
-                "FACTORY_DATASET": "tank/factory/vm",
-                "FACTORY_WORKSPACE": "/srv/factory/vm/work",
-            },
-            ("FACTORY_STAGE_IMAGE", "missing for the container environment"),
-            id="no-image",
-        ),
-        pytest.param(
-            {**CONTAINER, "FACTORY_STAGE_IMAGE": "  "},
-            ("FACTORY_STAGE_IMAGE", "missing for the container environment"),
-            id="blank-image",
-        ),
-        pytest.param(
-            {"FACTORY_STAGE_ENVIRONMENT": "inline"},
-            {"stage_environment": "inline", "dataset": None},
-            id="inline-none",
-        ),
-        pytest.param(
-            {"FACTORY_STAGE_ENVIRONMENT": "inline", "FACTORY_WORKSPACE": "srv/work"},
-            {"stage_environment": "inline", "workspace": Path("srv/work")},
-            id="inline-relative-workspace",
+            {**CONTAINER, "FACTORY_DATASET": "  ", "FACTORY_STAGE_IMAGE": "  "},
+            {"dataset": None, "stage_image": None},
+            id="blank-values",
         ),
     ],
 )
@@ -172,7 +110,6 @@ def test_read_settings_runs_a_container_only_with_its_values_and_inline_with_any
 _DIRECT_CONTAINER: dict[str, object] = {
     "repository_url": "/srv/project.git",
     "instance": "factory-1",
-    "stage_environment": "container",
     "dataset": "tank/factory/vm",
     "workspace": WORKSPACE,
     "stage_image": "factory-stage:1",
@@ -183,20 +120,9 @@ _DIRECT_CONTAINER: dict[str, object] = {
     ("changes", "accepted"),
     [
         pytest.param({}, True, id="container"),
-        pytest.param({"dataset": _UNSET}, False, id="no-dataset"),
-        pytest.param({"workspace": _UNSET}, False, id="no-workspace"),
-        pytest.param({"stage_image": _UNSET}, False, id="no-image"),
         pytest.param({"workspace": Path("srv/work")}, False, id="relative-workspace"),
-        pytest.param({"stage_environment": "podman"}, False, id="unknown-environment"),
         pytest.param(
-            {
-                "stage_environment": "inline",
-                "dataset": _UNSET,
-                "workspace": _UNSET,
-                "stage_image": _UNSET,
-            },
-            True,
-            id="inline",
+            {"dataset": _UNSET, "workspace": _UNSET, "stage_image": _UNSET}, True, id="none"
         ),
     ],
 )

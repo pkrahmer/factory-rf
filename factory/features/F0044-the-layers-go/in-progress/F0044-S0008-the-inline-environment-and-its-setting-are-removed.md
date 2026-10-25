@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 451
 comments_read: [6401042995, 6401126933]
 handed_over: null
-claim:
-  instance: self
-  stage: tests
-  started_at: '2026-10-25T18:05:02.341179Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,13 @@ journal:
   kind: started
   at: '2026-10-25T18:05:02.341179Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: question
+  at: '2026-10-25T18:17:13.311598Z'
+  stage: tests
+  run: 0a06a1c175d14e588a7e95c08d7b3e1e
+  blocked: question
 ---
 
 # The inline environment and its setting are removed
@@ -284,3 +287,56 @@ Expect: two lines: `False False ('git', 'uv')`; `['snapshots', 'containers']`
 
     Noticed, not touched: the Interface names `tests/entry/test_watch_main.py` and others that I did not see fail on this run. The tester should still check each entry on the list. The undo module stays in place, unused, for S0009.
 14. factory: started tests as self.
+15. tester: Mode: the test change the human approved (entries 9 and 13). I adapted part of the Interface's test list against the coder's code, then stopped because this run's budget was running out. The rest of the list is still to do. Six tests also need the human's word on what they should check now. `make lint` is green. I ran `make test` twice: the second run was a slip in a piped command, and I did not read its output. It is red, with 57 failures in the 17 modules listed under "Not done" below.
+
+    Done (each test keeps its name and what it checks, unless noted):
+    - tests/container_support.py: `CONTAINER` drops `stage_environment`, and `inline_boundaries` is removed. Its callers are adapted:
+      - tests/application/test_stage_on_container_fakes.py: the `no-snapshots` row of `test_the_request_works_in_the_datasets_checkout_when_the_boundaries_hold_snapshots` is gone.
+      - tests/application/test_stage_environment_calls.py: `test_after_the_agent_the_environment_takes_and_its_report_closes_the_entry` now reads the agent's file from the dataset's checkout.
+      - The calls in test_stage_run, test_stall_edges and test_stalls are dropped (see the question).
+    - New shared helper `with_dataset(settings, root)` in tests/wiring_support.py. It adds a dataset, `<root>/work`, the image, and the stand-in `zfs` and `podman` (tests/zfs_support.py, tests/podman_support.py).
+      - The `local_settings` fixture uses it.
+      - The settings of test_wiring_boundaries, test_wiring_run, test_wiring_preflight, test_wiring_api_login, test_wiring_login, test_wiring_provider_limit, test_run, test_run_health_file and test_run_waiter are wrapped in it.
+    - The `hosted_environment` fixture (tests/conftest.py) gains FACTORY_DATASET, FACTORY_WORKSPACE under tmp_path, FACTORY_STAGE_IMAGE, FACTORY_ZFS and FACTORY_PODMAN (the stand-ins).
+    - tests/domain/test_settings_stage_environment.py: the rows of FACTORY_STAGE_ENVIRONMENT, of `inline` and of the `missing for the container environment` faults are gone. Rows added: missing and blank values are read as `None`.
+    - tests/domain/test_settings_paths.py: drops FACTORY_STAGE_ENVIRONMENT. Its `inline` row is now the refusal `FACTORY_CHECKOUT: /work/checkout lies inside FACTORY_WORKSPACE`.
+    - tests/domain/test_settings_agent_user_unread.py: drops FACTORY_STAGE_ENVIRONMENT.
+    - tests/entry/test_wiring_stage_environment.py: `test_an_inline_instance_has_no_snapshots_and_no_containers` is deleted (the `missing` refusals cover it), and the fixture drops `stage_environment`.
+    - Inline rows removed from test_machine_checks_container, test_opencode_item_container and test_wiring_container_extras.
+    - tests/application/test_opencode_item.py (all three tests) calls `opencode_item(settings, models)`. The PATH rows are gone.
+    - tests/test_make_search.py now expects `{"factory.adapters.make_commands"}`.
+    - tests/test_vm_setup_text.py loses the FACTORY_STAGE_ENVIRONMENT row.
+
+    Now passing: test_watch_main, test_watch_settings, test_run_health_file, test_run_waiter, test_run, test_agent_run_probe_environment, test_preflight_run_environment, and most of the wiring tests.
+
+    Not done (57 failures from `make test`):
+    - The tool lists still expect `tool:make` or the runtime's executable: test_preflight (4), test_preflight_run (6), test_preflight_stale_main_stop (6), test_preflight_stops_commit (7), test_wiring_extras (3).
+    - These still expect the inline extras or `MakeProjectCommands`: test_wiring_agent_environment (2), test_wiring_without_agent_user (3).
+    - These now call the runtime through the `podman` stand-in, so the stand-in has to reply as the runtime and record the login: test_wiring_api_login (2), test_wiring_login (2), test_wiring_provider_limit (1), test_wiring_opencode (4), test_wiring_run (1), test_wiring_boundaries (2: project commands run in the dataset's checkout, and the run files under `runs`), test_wiring_command_records (1).
+    - Not yet re-checked: test_wiring_handlers, test_wiring_environment, test_wiring_human_handlers and test_wiring_acceptance passed in this run. I did not go through test_task's working-directory test or the other probe tests one by one.
+
+    Question: six tests check what an agent does in the host's own checkout. In the container environment the agent cannot do that: it works in the dataset, and only files are taken from it. The tests are:
+    - tests/application/test_stage_run.py::test_a_run_adds_exactly_one_commit_of_its_own, the 3 rows `*-agent-committed`
+    - tests/application/test_stall_edges.py::test_a_stall_after_the_agent_left_drops_its_commit_on_the_branch
+    - tests/application/test_stalls.py::test_the_agents_own_commit_stays_below_the_one_stall_commit
+    - tests/application/test_stalls.py::test_an_agent_that_left_the_branch_is_brought_back_and_its_other_branch_kept
+
+    Options:
+    - (a) Delete them, and the `agent-committed` rows, as inline behaviour that left with the inline environment, like the tests decision 24 already deletes.
+    - (b) Rewrite them so the stand-in runtime commits, or switches branch, in the dataset's checkout. Each then checks what the container environment does with that: a different check under the same name.
+    - (c) Keep them as they are, red.
+
+    I would choose (a). Afterwards a further tests run in this mode should finish the list above.
+
+    Criterion → test (unchanged from entry 11):
+    - criterion 1: tests/test_one_stage_environment.py::test_the_inline_environment_s_names_are_gone
+    - criterion 2: tests/application/test_stage_environment_of.py::test_the_environment_of_the_boundaries_is_the_container_one
+    - criterion 3: tests/domain/test_settings_one_environment.py::test_the_stage_environment_setting_is_read_by_nothing
+    - criterion 4: tests/entry/test_wiring_one_environment.py::test_build_boundaries_needs_the_dataset_the_workspace_and_the_image
+    - criterion 5: tests/entry/test_wiring_one_environment.py::test_the_agent_run_s_home_is_the_dataset_s
+    - criterion 6: tests/entry/test_wiring_one_preflight.py::test_the_preflight_checks_the_one_environment_s_items
+    - criterion 7: tests/application/test_request_working_directory.py::test_the_request_works_in_the_dataset_s_checkout
+    - criterion 8: tests/domain/test_settings_one_environment.py::test_a_workspace_refuses_a_relative_path_and_an_inner_checkout_or_state
+    - criteria 9 and 10: no test.
+
+    Files created in this run: none. The shared helper is in the existing tests/wiring_support.py. Modules the test run could not import: none.

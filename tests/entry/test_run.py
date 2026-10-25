@@ -37,7 +37,7 @@ from factory.entry.wiring import handler_factory, health_store, read_environment
 from git_support import PIPELINE_YAML, install_agents, run_git
 from human_clone import HumanClone
 from stage_run_support import INSTANCE
-from wiring_support import ENVIRONMENT, HOSTED_URL
+from wiring_support import ENVIRONMENT, HOSTED_URL, with_dataset
 
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 STORY = """\
@@ -132,14 +132,17 @@ def settings(tmp_path: Path, remote: Path, agent_home: Path, token_file: Path) -
     """Return settings on `remote` whose checkout, state and agent home lie in `tmp_path`."""
     state = tmp_path / "instance-state"
     state.mkdir()
-    return InstanceSettings(
-        repository_url=str(remote),
-        instance=INSTANCE,
-        checkout=tmp_path / "instance-checkout",
-        state_directory=state,
-        agent_home=agent_home,
-        claude_executable=str(tmp_path / "no-claude"),
-        token_file=token_file,
+    return with_dataset(
+        InstanceSettings(
+            repository_url=str(remote),
+            instance=INSTANCE,
+            checkout=tmp_path / "instance-checkout",
+            state_directory=state,
+            agent_home=agent_home,
+            claude_executable=str(tmp_path / "no-claude"),
+            token_file=token_file,
+        ),
+        tmp_path,
     )
 
 

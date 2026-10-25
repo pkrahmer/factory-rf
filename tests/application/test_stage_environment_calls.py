@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from container_support import inline_boundaries
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
@@ -32,7 +31,6 @@ from stage_run_support import (
     pushed_state,
 )
 from take_support import AGENT_TEXT
-from work_item_support import checkout_text
 
 OUTSIDE = "src/b.py"
 UNDONE_PARAGRAPH = "The factory undid changes outside the write paths: "
@@ -182,7 +180,6 @@ def test_after_the_agent_the_environment_takes_and_its_report_closes_the_entry(
     left: list[str],
     paragraph: str | None,
 ) -> None:
-    boundaries = inline_boundaries(boundaries)
     taken = TakeReport(left=left, restored_work_item=False)
     environment = RecordingEnvironment(remote, taken=taken)
     agent_runtime.queue(ScriptedRun(writes={OUTSIDE: AGENT_TEXT}, result=completed()))
@@ -196,8 +193,9 @@ def test_after_the_agent_the_environment_takes_and_its_report_closes_the_entry(
     assert environment.takes == [(launched.started.stage_start, PATH)]
     assert environment.calls == ["prepare", "run_agent", "take"]
     assert processed.take == taken
-    # Nothing but the stand-in's take ran: the inline undo would have reverted the file.
-    assert checkout_text(boundaries, OUTSIDE) == AGENT_TEXT
+    # Nothing but the stand-in's take ran: the agent's file stays in the dataset's checkout.
+    written = boundaries.snapshots.mount_point / "checkout" / OUTSIDE
+    assert written.read_text(encoding="utf-8") == AGENT_TEXT
     if paragraph is None:
         assert UNDONE_PARAGRAPH not in processed.entry.text
     else:

@@ -38,7 +38,7 @@ from factory.entry.wiring import (
     repository_name,
 )
 from git_support import clone, install_agents, write_executable
-from wiring_support import CREDENTIAL
+from wiring_support import CREDENTIAL, with_dataset
 
 GITHUB_URL = "https://github.com/owner/project.git"
 LOCAL_URL = "/srv/project.git"
@@ -61,12 +61,15 @@ REPLY = json.dumps(
 def settings(tmp_path: Path) -> InstanceSettings:
     """Settings whose checkout, state directory and agent home lie in `tmp_path`; none exists."""
     root = tmp_path.resolve()
-    return InstanceSettings(
-        repository_url=LOCAL_URL,
-        instance="factory-1",
-        checkout=root / "checkout",
-        state_directory=root / "state",
-        agent_home=root / "agents-home",
+    return with_dataset(
+        InstanceSettings(
+            repository_url=LOCAL_URL,
+            instance="factory-1",
+            checkout=root / "checkout",
+            state_directory=root / "state",
+            agent_home=root / "agents-home",
+        ),
+        tmp_path,
     )
 
 

@@ -10,7 +10,7 @@ from factory.adapters.claude_runtime import LOGIN_VARIABLE
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
-from wiring_support import CREDENTIAL
+from wiring_support import CREDENTIAL, with_dataset
 
 LOGIN = "stand-in-login"
 REPLY = json.dumps(
@@ -39,14 +39,17 @@ def test_the_built_runtime_hands_the_login_file_s_token_to_claude(
     login.write_text(f"{LOGIN}\n", encoding="utf-8")
     executable = write_stand_in(tmp_path / "bin", [Step(stdout=REPLY)])
     root = tmp_path.resolve()
-    settings = InstanceSettings(
-        repository_url="/srv/project.git",
-        instance="factory-1",
-        checkout=root / "checkout",
-        state_directory=root / "state",
-        agent_home=root / "agents-home",
-        claude_executable=str(executable),
-        claude_login_file=login if configured else None,
+    settings = with_dataset(
+        InstanceSettings(
+            repository_url="/srv/project.git",
+            instance="factory-1",
+            checkout=root / "checkout",
+            state_directory=root / "state",
+            agent_home=root / "agents-home",
+            claude_executable=str(executable),
+            claude_login_file=login if configured else None,
+        ),
+        tmp_path,
     )
     boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
 

@@ -8,7 +8,7 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.domain.provider_limits import ProviderLimit
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
-from wiring_support import CREDENTIAL
+from wiring_support import CREDENTIAL, with_dataset
 
 ERROR_REPLY = json.dumps(
     {
@@ -27,14 +27,17 @@ ERROR_REPLY = json.dumps(
 def test_the_built_runtime_recognizes_the_configured_limit_status(tmp_path: Path) -> None:
     executable = write_stand_in(tmp_path / "bin", [Step(stdout=ERROR_REPLY)])
     root = tmp_path.resolve()
-    settings = InstanceSettings(
-        repository_url="/srv/project.git",
-        instance="factory-1",
-        checkout=root / "checkout",
-        state_directory=root / "state",
-        agent_home=root / "agents-home",
-        claude_executable=str(executable),
-        provider_limit=ProviderLimit(status=429),
+    settings = with_dataset(
+        InstanceSettings(
+            repository_url="/srv/project.git",
+            instance="factory-1",
+            checkout=root / "checkout",
+            state_directory=root / "state",
+            agent_home=root / "agents-home",
+            claude_executable=str(executable),
+            provider_limit=ProviderLimit(status=429),
+        ),
+        tmp_path,
     )
     boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
 

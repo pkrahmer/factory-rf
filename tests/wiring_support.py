@@ -1,9 +1,13 @@
 """Constants and helpers the wiring and preflight tests share."""
 
+from pathlib import Path
+
 from factory.application.boundaries import Boundaries
 from factory.domain.preflight import PreflightItem
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import machine_extras
+from podman_support import IMAGE, write_podman
+from zfs_support import DATASET, write_zfs
 
 CREDENTIAL = "example-value"
 ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
@@ -27,3 +31,19 @@ def machine_item(
         if item.name == name:
             return item
     raise AssertionError(name)
+
+
+def with_dataset(settings: InstanceSettings, root: Path) -> InstanceSettings:
+    """The settings with a dataset, a workspace `<root>/work`, an image and stand-in tools.
+
+    The stand-in `zfs` and `podman` are written into `<root>/zfs-bin` and `<root>/podman-bin`.
+    """
+    return settings.model_copy(
+        update={
+            "dataset": DATASET,
+            "workspace": root / "work",
+            "stage_image": IMAGE,
+            "zfs_executable": str(write_zfs(root / "zfs-bin").path),
+            "podman_executable": str(write_podman(root / "podman-bin").path),
+        }
+    )

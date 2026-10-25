@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from container_support import inline_boundaries
 from definition_support import pipeline_definition
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
@@ -310,7 +309,6 @@ def test_the_agents_own_commit_stays_below_the_one_stall_commit(
     agent_runtime: FakeAgentRuntime,
     remote: Path,
 ) -> None:
-    boundaries = inline_boundaries(boundaries)
     started = started_stage(
         boundaries, human=human, agent_home=agent_home, agent_runtime=agent_runtime
     )
@@ -426,7 +424,6 @@ def test_an_agent_that_left_the_branch_is_brought_back_and_its_other_branch_kept
     remote: Path,
     hosting: FakeHostingService,
 ) -> None:
-    boundaries = inline_boundaries(boundaries)
     install_agents(agent_home, ["tester"])
     open_work_item(boundaries, human, WorkItemState(stage="tests", journal=[CREATED]))
     runtime = SwitchingRuntime(

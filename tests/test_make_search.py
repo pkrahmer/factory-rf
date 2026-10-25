@@ -30,7 +30,7 @@ def _identifiers(tree: ast.Module) -> set[str]:
 def test_only_the_make_class_names_make() -> None:
     naming = {name for name, tree in modules().items() if "make" in string_literals(tree)}
 
-    assert naming == {"factory.adapters.make_commands", "factory.application.preflight"}
+    assert naming == {"factory.adapters.make_commands"}
 
 
 def test_no_identifier_in_the_check_modules_names_a_layer() -> None:

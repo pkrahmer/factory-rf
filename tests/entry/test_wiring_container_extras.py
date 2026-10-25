@@ -11,8 +11,6 @@ from podman_support import IMAGE, Podman, PodmanPlan
 from wiring_support import CONTAINER_ITEMS, PODMAN_VERSION, machine_item
 from zfs_support import DATASET, Zfs
 
-INLINE_ITEMS = ["token-file", "agent-environment"]
-
 
 @pytest.fixture
 def environment(tmp_path: Path) -> dict[str, str]:
@@ -48,21 +46,11 @@ def _settings(
 @pytest.mark.parametrize(
     ("fields", "names"),
     [
-        pytest.param(
-            {"stage_environment": "container"},
-            [*CONTAINER_ITEMS, "agent-run-probe"],
-            id="container",
-        ),
-        pytest.param(
-            {"stage_environment": "container", "agent_runtime": "opencode"},
-            [*CONTAINER_ITEMS, "opencode", "agent-run-probe"],
-            id="container-opencode",
-        ),
-        pytest.param({}, [*INLINE_ITEMS, "agent-run-probe"], id="inline-no-agent-user"),
+        pytest.param({}, [*CONTAINER_ITEMS, "agent-run-probe"], id="container"),
         pytest.param(
             {"agent_runtime": "opencode"},
-            [*INLINE_ITEMS, "opencode", "agent-run-probe"],
-            id="inline-opencode",
+            [*CONTAINER_ITEMS, "opencode", "agent-run-probe"],
+            id="container-opencode",
         ),
     ],
 )
@@ -93,9 +81,7 @@ def test_the_container_items_run_the_podman_and_zfs_the_settings_name(
     listing_zfs: Zfs,
     environment: dict[str, str],
 ) -> None:
-    settings = _settings(
-        tmp_path, agent_home, versioned_podman, listing_zfs, {"stage_environment": "container"}
-    )
+    settings = _settings(tmp_path, agent_home, versioned_podman, listing_zfs, {})
 
     podman_item = machine_item(boundaries, settings, environment, "podman")
     versioned_podman.plan(PodmanPlan(exit_status=1))

@@ -11,7 +11,7 @@ from factory.adapters.agent_launch import API_LOGIN_VARIABLE
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
-from wiring_support import CREDENTIAL
+from wiring_support import CREDENTIAL, with_dataset
 
 
 @pytest.mark.parametrize(
@@ -28,14 +28,17 @@ def test_the_built_runtime_hands_the_api_login_file_s_key_to_claude(
     api_login.write_text(f"{API_LOGIN}\n", encoding="utf-8")
     executable = write_stand_in(tmp_path / "bin", [Step(stdout=REPLY)])
     root = tmp_path.resolve()
-    settings = InstanceSettings(
-        repository_url="/srv/project.git",
-        instance="factory-1",
-        checkout=root / "checkout",
-        state_directory=root / "state",
-        agent_home=root / "agents-home",
-        claude_executable=str(executable),
-        api_login_file=api_login if configured else None,
+    settings = with_dataset(
+        InstanceSettings(
+            repository_url="/srv/project.git",
+            instance="factory-1",
+            checkout=root / "checkout",
+            state_directory=root / "state",
+            agent_home=root / "agents-home",
+            claude_executable=str(executable),
+            api_login_file=api_login if configured else None,
+        ),
+        tmp_path,
     )
     boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
 

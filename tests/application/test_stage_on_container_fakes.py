@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from container_support import inline_boundaries, timing_lines
+from container_support import timing_lines
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
@@ -72,7 +72,6 @@ RequestOf = Callable[[Boundaries, InstanceSettings, FakeAgentRuntime], Path]
 
 
 @pytest.mark.parametrize("request_of", [_stage_request, _probe_request], ids=["stage", "probe"])
-@pytest.mark.parametrize("with_snapshots", [True, False], ids=["snapshots", "no-snapshots"])
 def test_the_request_works_in_the_datasets_checkout_when_the_boundaries_hold_snapshots(
     boundaries: Boundaries,
     probe_settings: InstanceSettings,
@@ -81,13 +80,12 @@ def test_the_request_works_in_the_datasets_checkout_when_the_boundaries_hold_sna
     agent_home: Path,
     tmp_path: Path,
     request_of: RequestOf,
-    with_snapshots: bool,
 ) -> None:
     install_agents(agent_home, ["intake", "coder", "reviewer"])
-    used = boundaries if with_snapshots else inline_boundaries(boundaries)
-    expected = tmp_path / "workspace" / "checkout" if with_snapshots else boundaries.checkout
 
-    assert request_of(used, probe_settings, agent_runtime) == expected
+    assert (
+        request_of(boundaries, probe_settings, agent_runtime) == tmp_path / "workspace" / "checkout"
+    )
 
 
 def test_a_whole_stage_on_the_fixture_takes_the_allowed_writes_and_leaves_out_the_rest(

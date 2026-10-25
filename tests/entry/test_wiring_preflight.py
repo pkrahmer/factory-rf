@@ -11,7 +11,7 @@ from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_preflight, build_tick
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
-from wiring_support import every_tool
+from wiring_support import every_tool, with_dataset
 
 IMAGE = "build-7"
 
@@ -23,15 +23,18 @@ def _no_git(name: str) -> str | None:
 @pytest.fixture
 def settings(tmp_path: Path, remote: Path, agent_home: Path) -> InstanceSettings:
     """Return settings of a ready machine whose checkout and state lie in `tmp_path`."""
-    return InstanceSettings(
-        repository_url=str(remote),
-        instance="factory-1",
-        image=IMAGE,
-        checkout=tmp_path / "instance-checkout",
-        state_directory=tmp_path / "state",
-        agent_home=agent_home,
-        claude_executable=str(tmp_path / "no-claude"),
-        pinned_agent_version="fake",
+    return with_dataset(
+        InstanceSettings(
+            repository_url=str(remote),
+            instance="factory-1",
+            image=IMAGE,
+            checkout=tmp_path / "instance-checkout",
+            state_directory=tmp_path / "state",
+            agent_home=agent_home,
+            claude_executable=str(tmp_path / "no-claude"),
+            pinned_agent_version="fake",
+        ),
+        tmp_path,
     )
 
 

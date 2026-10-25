@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from container_support import inline_boundaries
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.agent_runtime import AgentRuntime
 from factory.application.boundaries import Boundaries
@@ -77,7 +76,6 @@ def test_a_run_adds_exactly_one_commit_of_its_own(
     statuses: dict[str, int],
     commits: bool,
 ) -> None:
-    boundaries = inline_boundaries(boundaries)
     open_story(boundaries, human, agent_home, makefile=stage_makefile(statuses))
     agent_runtime.queue(ScriptedRun(result=completed(decision)))
     runtime = CommittingRuntime(agent_runtime, boundaries.git, commits=commits)

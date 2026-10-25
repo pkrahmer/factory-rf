@@ -56,7 +56,7 @@ from proof_support import World, build_world, start_story
 from run_process_recorder import Recorder
 from stage_run_support import INSTANCE
 from tmp_path_support import reopen
-from wiring_support import HOSTED_URL, PODMAN_VERSION
+from wiring_support import HOSTED_URL, PODMAN_VERSION, with_dataset
 from zfs_support import DATASET, Answer, Zfs, write_zfs
 
 
@@ -147,14 +147,17 @@ def agent_home(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def local_settings(tmp_path: Path) -> InstanceSettings:
-    """Settings whose checkout, state directory and agent home lie in `tmp_path`."""
+    """Settings whose checkout, state directory, agent home and dataset lie in `tmp_path`."""
     root = tmp_path.resolve()
-    return InstanceSettings(
-        repository_url="/srv/project.git",
-        instance="factory-1",
-        checkout=root / "checkout",
-        state_directory=root / "state",
-        agent_home=root / "agents-home",
+    return with_dataset(
+        InstanceSettings(
+            repository_url="/srv/project.git",
+            instance="factory-1",
+            checkout=root / "checkout",
+            state_directory=root / "state",
+            agent_home=root / "agents-home",
+        ),
+        root,
     )
 
 
@@ -201,7 +204,10 @@ def environment(image_file: Path) -> dict[str, str]:
 
 @pytest.fixture
 def hosted_environment(tmp_path: Path) -> dict[str, str]:
-    """Return a valid environment whose token and image identity files lie in `tmp_path`."""
+    """Return a valid environment whose token and image identity files lie in `tmp_path`.
+
+    Its dataset's workspace lies in `tmp_path`, its `zfs` and `podman` are the stand-ins.
+    """
     token = tmp_path / "hosting-token"
     token.write_text("example-value\n", encoding="utf-8")
     image = tmp_path / "image-id"
@@ -211,6 +217,11 @@ def hosted_environment(tmp_path: Path) -> dict[str, str]:
         "FACTORY_INSTANCE": "factory-1",
         "FACTORY_IMAGE_ID_FILE": str(image),
         "FACTORY_TOKEN_FILE": str(token),
+        "FACTORY_DATASET": DATASET,
+        "FACTORY_WORKSPACE": str(tmp_path / "workspace"),
+        "FACTORY_STAGE_IMAGE": IMAGE,
+        "FACTORY_ZFS": str(write_zfs(tmp_path / "zfs-bin").path),
+        "FACTORY_PODMAN": str(write_podman(tmp_path / "podman-bin").path),
     }
 
 
