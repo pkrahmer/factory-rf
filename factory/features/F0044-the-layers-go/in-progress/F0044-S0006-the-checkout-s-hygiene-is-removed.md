@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 449
 comments_read: [6399896604]
 handed_over: null
-claim: null
+claim:
+  instance: self
+  stage: tests
+  started_at: '2026-10-25T16:05:22.900305Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-25T16:05:02.326307Z'
   stage: intake
   run: 363cf665ed8c4d6399f729f331025633
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-25T16:05:22.900305Z'
+  stage: tests
 ---
 
 # The checkout's hygiene is removed
@@ -144,3 +153,4 @@ Expect: three lines: `gone`; `21 []`; `False False 3.0`
    - Smoke test: the python and import commands are runnable, and the `Expect:` line gives three lines that can be compared. It runs no pytest, so the `-q` rule does not apply.
    - Architecture: the removals follow the layers. The domain loses the error and the stall reason, the application loses `sealed_runs`, the Git operations and the preparer logic, and the adapter loses `GitCli`'s matching methods. No layer gains an import.
    - Scope: inside S0006 of `feature.md`. The tests listed are covered by the leave of decision 22 as corrected by 35(a), and the new criteria need no leave beyond decisions 22 and 35(a), per the human. `left_branch` stays, as decision 14 and the "What stays" list say.
+7. factory: started tests as self.
