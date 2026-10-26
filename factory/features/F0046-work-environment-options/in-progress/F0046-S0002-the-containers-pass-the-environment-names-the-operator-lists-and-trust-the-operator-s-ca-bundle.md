@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 460
-comments_read: []
+comments_read: [6418348227]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: db594303457849ce9eb2a82c2238888e
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-26T14:21:09.837031Z'
+  stage: intake
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -99,3 +104,7 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    4. Criterion 2: the refusal of a name that starts with `FACTORY_` is tested only with `FACTORY_TOKEN_FILE`. Both sides are covered by `FACTORYX`. This is fine and needs no change.
 
    Format check passed. The smoke tests are runnable. Neither runs pytest. Both `Expect:` lines can be checked against the output. The architecture and scope fit the feature's S0002 entry. Questions 1 and 2 must be answered before this can be accepted.
+4. 2026-10-26 human: 1. Yes, add that row to criterion 4: the bundle's variable wins over a listed name of the same name.
+   2. The constants win, not the extra: the factory's own `PATH` and `HOME` in a container must not come from the host. The Interface becomes `{**extra, **SYNC_ENVIRONMENT}` and `{**extra, **CHECK_ENVIRONMENT}`; add to criterion 6 a row where `FACTORY_CONTAINER_ENV=PATH` with a host value leaves the sync and check containers' `PATH` as the constant gives it.
+   3. Accepted as it is.
+   4. Fine, no change.
