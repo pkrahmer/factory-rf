@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-26T14:21:27.621805Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T14:21:09.837031Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-26T14:21:27.621805Z'
   stage: intake
 ---
 
@@ -108,3 +117,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    2. The constants win, not the extra: the factory's own `PATH` and `HOME` in a container must not come from the host. The Interface becomes `{**extra, **SYNC_ENVIRONMENT}` and `{**extra, **CHECK_ENVIRONMENT}`; add to criterion 6 a row where `FACTORY_CONTAINER_ENV=PATH` with a host value leaves the sync and check containers' `PATH` as the constant gives it.
    3. Accepted as it is.
    4. Fine, no change.
+5. factory: started intake as vm.
