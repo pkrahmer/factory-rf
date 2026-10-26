@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T23:03:22.092138Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-26T23:03:01.328631Z'
   stage: tests
   run: 7019af26f9dd48f997a1c0b7c764978b
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-26T23:03:22.092138Z'
+  stage: doing
 ---
 
 # The process result no longer says that its output was abandoned
@@ -114,3 +123,4 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/adapters/test_process_result_fields.py::test_no_module_holds_the_name_of_the_removed_field - AssertionError: assert ['adapters/process.py'] == []
+6. factory: started doing as vm.
