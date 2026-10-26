@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-26T20:55:48.350898Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -152,6 +156,11 @@ journal:
   at: '2026-10-26T20:55:25.947664Z'
   stage: docs
   run: eac25f834c784322b9eab46bad0c3396
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-26T20:55:48.350898Z'
+  stage: smoke-test
 ---
 
 # The setup script says how to install a changed unit
@@ -371,3 +380,4 @@ Expect: three lines: `syntax-ok`; `2`; `0`
     `check`: check: green (not run again: passed on tree 8573e01b9f0b at 2026-10-26T20:50:34Z)
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
+27. factory: started smoke-test as vm.
