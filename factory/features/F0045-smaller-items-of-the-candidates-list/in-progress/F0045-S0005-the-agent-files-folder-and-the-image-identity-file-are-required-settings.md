@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 470
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T22:05:49.339775Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-26T22:05:27.700588Z'
   stage: tests
   run: 8a102ca455d64488ba5393d29bb3c4ac
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:05:49.339775Z'
+  stage: doing
 ---
 
 # The agent files' folder and the image identity file are required settings
@@ -136,3 +145,4 @@ Expect: three lines: `FACTORY_CLAUDE_HOME: missing`; `FACTORY_IMAGE_ID_FILE: mis
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/entry/test_run_required_paths.py::test_a_missing_path_setting_is_the_stop_of_invalid_settings[agent-home] - assert 0 == 2
+6. factory: started doing as vm.
