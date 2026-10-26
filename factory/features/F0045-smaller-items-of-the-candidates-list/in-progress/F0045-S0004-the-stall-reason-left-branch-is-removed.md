@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 469
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T21:05:18.116694Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-26T21:05:18.116694Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-26T21:05:41.566210Z'
+  stage: intake
+  run: e94f0bb8ed354aa0901be07d0cd93116
 ---
 
 # The stall reason left_branch is removed
@@ -77,3 +79,9 @@ Expect: two lines: `False 4.0`; `0`
 
 1. 2026-10-26 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: concrete. It names `StallReason` in `factory.domain.journal`, the sentence entry in `factory.domain.post_texts`, `AfterAgent` in `factory.application.stage`, `RECORDS_CONTRACT = "4.0"` and the regeneration command. I checked it against `src` on this branch. `journal.py:53` and `post_texts.py:33` hold `left_branch`. The branch check is at `stage.py:238-239`, and it is the only `.status(` call in that module; the other calls are in `stalls.py`, `claims.py` and `tick.py`. The Interface keeps the stall service's use of `status`, so those calls stay. It lists each earlier test it changes by name and decision 24 of `feature.md` gives the human's leave. It states no behaviour that lacks a criterion.
+   - Criteria: each is testable by one test function. 1 covers both sides of the removed value in rows: the value is gone, the sentence is gone, and every remaining value still has a sentence. 2 gives rows for `died`, `time_limit` and a completed run that decides `doing` with no stall. 3 is an `ast` check for no `status` call. 4 is the existing row that the Interface changes to `died`. 5 covers the version and the five schemas, and checks that none holds `left_branch`. 6 is a source search. 7 and 8 are the closing criteria. No new rule is introduced, so there is no failing side to test.
+   - Smoke test: runnable. It uses `uv run python -` and a `grep -l ... | wc -l`, and neither runs pytest, so the `-q` rule does not apply. The `Expect:` line gives the exact output (`False 4.0`, then `0`), which can be checked.
+   - Architecture: the changes sit in the layers they belong to (domain for the reason, sentence and contract; application for `AfterAgent`). The contract schemas are regenerated through `factory.entry.contract`, as `CLAUDE.md` requires. The stall service, `Git.status` and the restore stay as they are.
+   - Scope: this matches S0004 in `feature.md` and decision 13, and nothing in its "Out of scope" is touched. The test changes are covered by the human's leave in decision 24.
