@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-26T20:07:58.969066Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -186,6 +190,11 @@ journal:
   at: '2026-10-26T20:07:37.452207Z'
   stage: docs
   run: 96c63047c4794767ae41dd81e10ac0f7
+- number: 33
+  speaker: factory
+  kind: started
+  at: '2026-10-26T20:07:58.969066Z'
+  stage: smoke-test
 ---
 
 # The reset drops the page cache after the rollback
@@ -555,3 +564,4 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
     `check`: check: green (not run again: passed on tree 1df2351925fe at 2026-10-26T20:01:53Z)
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
+33. factory: started smoke-test as vm.
