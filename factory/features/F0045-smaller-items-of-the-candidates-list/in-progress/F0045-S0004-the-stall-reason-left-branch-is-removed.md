@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-26T21:48:05.513463Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-10-26T21:48:05.513463Z'
   stage: smoke-test
+- number: 28
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T21:48:42.019255Z'
+  stage: smoke-test
+  run: 956b06d72d5f4e9297fb0772fbe762b4
 ---
 
 # The stall reason left_branch is removed
@@ -517,3 +519,27 @@ Expect: two lines: `False 4.0`; `0`
     `secrets`: secrets: green (2.2 s)
     `documents`: documents ok
 27. factory: started smoke-test as vm.
+28. smoke-tester: Smoke test, round 2: I ran the commands under `## Smoke test` from the repository root, in order and as written. There are no findings.
+
+    Command 1 and command 2 (the `uv run python -` heredoc, then `grep -l 'left_branch' src/factory/contract/*.schema.json | wc -l`):
+
+    ```
+    Bytecode compiled 4164 files in 57ms
+    False 4.0
+    0
+    ```
+
+    Met `Expect:` (two lines: `False 4.0`; `0`). The first line is uv's own stderr note before the script runs, not output of the script, so the two expected lines are exactly what the commands printed.
+
+    Then I read `## Acceptance criteria` again and checked them against the tree. The smoke test contradicts none of them:
+    - Criteria 1 and 5: `left_branch` is not in `StallReason`, `RECORDS_CONTRACT` is `4.0`, and no committed schema holds `left_branch`. The smoke test shows this directly.
+    - Criterion 3: `src/factory/application/stage.py` has no `.status()` call (grep).
+    - Criterion 6: grep finds neither `left_branch` nor "the agent left the work item" in `src/factory`.
+    - Criterion 8 (docs):
+      - `docs/decisions.md:721` has the required line.
+      - `docs/operator-guide.md:1328`, *The version*, says `4.0` and why it rose.
+      - Neither the operator guide nor the project guide names the reason any more.
+      - `docs/project-guide/stages.md`, `## After the agent run`, lists four steps, numbered 1 to 4 (Result, Take and restore, The entry, The form again), with no *Branch* step.
+    - Criteria 2, 4 and 7 are tests and `make check`. This command does not exercise them, and I did not run `make check` here, since the factory runs the stage's checks.
+
+    Open: nothing.
