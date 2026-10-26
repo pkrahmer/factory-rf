@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-26T21:46:52.467032Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -142,6 +146,11 @@ journal:
   at: '2026-10-26T21:46:31.808116Z'
   stage: review
   run: 36313dba11174b8fbae8854f4aff58f9
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-26T21:46:52.467032Z'
+  stage: docs
 ---
 
 # The stall reason left_branch is removed
@@ -473,3 +482,4 @@ Expect: two lines: `False 4.0`; `0`
 
     Notes:
     - `tests/domain/test_stall_reason_removed.py:28-33`: the `_has_its_sentence` rows partly overlap `tests/domain/test_stall_texts.py::test_each_stall_cause_is_its_sentence_alone_or_with_the_detail`. They are kept because criterion 1 asks for them.
+25. factory: started docs as vm.
