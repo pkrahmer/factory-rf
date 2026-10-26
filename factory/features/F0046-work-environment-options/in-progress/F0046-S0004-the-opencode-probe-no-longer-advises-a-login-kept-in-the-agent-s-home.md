@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-26T17:41:49.256162Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-26T17:41:28.691805Z'
   stage: doing
   run: 547f8308b10d487d84c2c4a32ce48bcd
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:41:49.256162Z'
+  stage: review
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -315,3 +324,4 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
+23. factory: started review as vm.
