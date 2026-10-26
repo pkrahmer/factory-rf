@@ -1050,11 +1050,12 @@ Replaced by the throwaway container, v1.2 F0044-S0005.
 
 Date: 2026-10-20 (F0040-S0005; the feature's decision 17). `run_process` read until both pipes closed and, after its kill, read again without a limit. A process that left the killed group and kept a pipe open held the call until it ended by itself: on 2026-10-20 a `sudo` call killed by its inner `timeout` at 3 seconds returned at 12 seconds. Under `sudo` no kill reaches such a process (the agent's `timeout` kills its own group, and the factory's kill leaves out what it may not signal), and once the project commands run as `agent` (S0002) that holds every check.
 
-- Decision: `factory.adapters.process` notices the child's end while it reads and reads on for at most `PIPE_DRAIN` (5 seconds). Then it stops reading, closes the pipes and returns the child's own exit status, what it read and `output_abandoned=True`. After its kill at the time limit, `run_process` reads for at most the same 5 seconds. A call whose pipes close in time is unchanged, and no caller changed.
+- Decision: `factory.adapters.process` notices the child's end while it reads and reads on for at most `PIPE_DRAIN` (5 seconds). Then it stops reading, closes the pipes and returns the child's own exit status, what it read. After its kill at the time limit, `run_process` reads for at most the same 5 seconds. A call whose pipes close in time is unchanged, and no caller changed.
 - Reasons: the human chose it (answer B, against the pre-check's recommendation to leave it as a known limit). The rule is the module's, for every call: one rule is simpler than a switch, and no caller needs the old wait. A call under `sudo` now ends at most 5 seconds after its inner kill, and one that ended on its own keeps its real result. The end is detected with `os.waitid(..., WNOWAIT)` and not `poll()`, which would reap the child: a limit during the drain would then signal a process group id that an unrelated process could hold.
 - Left: the holder is not killed by this module; the leftovers program after the call ends it. A line it writes after the drain is lost.
 - Rejected: leaving it as a known limit; keeping `communicate()` with a timeout loop (it cannot notice the child's end while a pipe stays open).
 - The `sudo` chain and the leftovers program this entry names went with F0044-S0005 and F0044-S0003; the rule stays in `factory.adapters.process`, for every call.
+- The field `output_abandoned`, which no caller read, went with v1.2 F0045-S0007; the drain stays.
 
 ## Every agent run and every project command starts from a fresh agent home
 

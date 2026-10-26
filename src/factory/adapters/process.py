@@ -44,7 +44,6 @@ class ProcessResult(BaseModel):
     timed_out: bool
     duration: timedelta
     stopped: bool = False
-    output_abandoned: bool = False
 
 
 def _decode(output: bytes | None) -> str:
@@ -200,7 +199,7 @@ def run_process(request: ProcessRequest) -> ProcessResult:
     """Run `request.argv` without a shell and kill its process group at the time limit.
 
     Once the child has ended, or its process group was killed, the output is read for at most
-    `PIPE_DRAIN`; a pipe still open then is closed and the result says `output_abandoned`.
+    `PIPE_DRAIN`; a pipe still open then is closed and the call returns what it read.
     A failure to start the program, such as `FileNotFoundError`, is raised to the caller.
     """
     start = time.monotonic()
@@ -211,11 +210,9 @@ def run_process(request: ProcessRequest) -> ProcessResult:
         try:
             outcome = _read_to_exit(reader, process, deadline)
             timed_out = outcome == "timed_out"
-            abandoned = outcome == "abandoned"
             if timed_out:
                 _kill_session(process)
-                after_kill = _read_bounded(reader, process, None, ended_at=time.monotonic())
-                abandoned = after_kill == "abandoned"
+                _read_bounded(reader, process, None, ended_at=time.monotonic())
         finally:
             reader.close()
     return ProcessResult(
@@ -224,7 +221,6 @@ def run_process(request: ProcessRequest) -> ProcessResult:
         stderr=_decode(reader.read_bytes["stderr"]),
         timed_out=timed_out,
         duration=timedelta(seconds=time.monotonic() - start),
-        output_abandoned=abandoned,
     )
 
 
@@ -234,8 +230,8 @@ def run_streaming(request: ProcessRequest, on_line: Callable[[Stream, str], bool
     `on_line` returning True kills the process group at once and passes no further line; so
     does the time limit, and neither reads on after the kill. An exception from `on_line`
     kills the process group and propagates. Once the child has ended, the output is read for at
-    most `PIPE_DRAIN`, as `run_process` does; a last line without a line feed is then not
-    passed.
+    most `PIPE_DRAIN`, as `run_process` does: a pipe still open then is closed, the call
+    returns, and a last line without a line feed is not passed.
     """
     start = time.monotonic()
     deadline = _deadline(start, request.time_limit)
@@ -260,5 +256,4 @@ def run_streaming(request: ProcessRequest, on_line: Callable[[Stream, str], bool
         timed_out=timed_out,
         stopped=stopped,
         duration=timedelta(seconds=time.monotonic() - start),
-        output_abandoned=outcome == "abandoned",
     )

@@ -1,7 +1,9 @@
 """Fixtures shared by the whole test suite."""
 
+import contextlib
 import os
 import shlex
+import signal
 from collections.abc import Iterator
 from dataclasses import replace
 from datetime import UTC, datetime
@@ -414,3 +416,13 @@ def runs(podman: Podman) -> PodmanRuns:
 def dataset(boundaries: Boundaries, tmp_path: Path) -> Dataset:
     """An empty dataset with an empty base, its fakes set in the boundaries."""
     return container_dataset(boundaries, tmp_path)
+
+
+@pytest.fixture
+def holder_file(tmp_path: Path) -> Iterator[Path]:
+    """A holder's pid file; a holder still running after the test is killed."""
+    path = tmp_path / "holder.pid"
+    yield path
+    if path.exists() and path.read_text(encoding="utf-8"):
+        with contextlib.suppress(ProcessLookupError):
+            os.kill(int(path.read_text(encoding="utf-8")), signal.SIGKILL)
