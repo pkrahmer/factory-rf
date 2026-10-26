@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-26T19:02:27.940419Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-26T19:02:27.940419Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T19:02:57.553803Z'
+  stage: smoke-test
+  run: 48f2e899ef7546928517c5c4fbd6a03b
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -356,3 +358,34 @@ Expect: two lines: `7`; `1`
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
 20. factory: started smoke-test as vm.
+21. smoke-tester: Smoke test, round 1. I ran both commands from the repository root exactly as written and fixed nothing. Both met their `Expect:` line. No findings.
+
+    Command 1 (parse the template, print the smoke test's `next`):
+    ```
+    Bytecode compiled 4164 files in 70ms
+    ['approval', 'doing', 'docs']
+    ```
+    Met: the output is `['approval', 'doing', 'docs']`. The first line is uv's own output while it syncs, and not part of the script's output. Exit status was 0.
+
+    Command 2 (count the agents with the new R12 line; count `end with `docs`` in the smoke tester):
+    ```
+    7
+    1
+    ```
+    Met: two lines, `7` and `1`.
+
+    Criteria re-read against what I saw (read only, nothing run beyond the smoke test):
+    - Criterion 1: in `template/factory/pipeline.yml:19-26` the smoke test reads `next: [approval, doing, docs], round_cap: 3`. Every other stage's `next` is as the criterion lists. Not contradicted.
+    - Criterion 2: the R12 line in `claude/agents/smoke-tester.md:39` reads as the Interface says. Command 2 shows it is in all seven agents.
+    - Criterion 3: step 5 at `claude/agents/smoke-tester.md:55` ends with `docs`. It appears once, as command 2 shows.
+    - Criterion 4: step 1 of `claude/agents/documenter.md:61` ends with the Interface's sentence, including `end with `smoke-test``.
+    - Criterion 5: not exercised by the smoke test. Its test is listed in entries 13 and 17.
+    - Criterion 6: not run by this stage. The factory's gate showed it green (entry 19).
+    - Criterion 7: everything the criterion names is present:
+      - `docs/operator-guide.md:1171`: the smoke test's line and the rework-round sentence.
+      - `docs/operator-guide.md:1274`: the smoke tester's two ways out.
+      - `docs/project-guide/agents.md:287`: the template's `next` and R12's new rework.
+      - `docs/decisions.md:1186`: the new entry under the exact title.
+      - `README.md`: unchanged, as the criterion says.
+
+    Nothing the smoke test showed contradicts any criterion. Open: nothing.
