@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T18:45:58.746753Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-26T18:45:58.746753Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T18:46:41.478816Z'
+  stage: review
+  run: 81e3468c81754dbc838d1b128210d9be
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -172,3 +174,15 @@ Expect: two lines: `7`; `1`
    `check`: check: green
    `duplicates`: Bytecode compiled 4164 files in 55ms
 8. factory: started review as vm.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (the seven `claude/agents/*.md`, `template/factory/pipeline.yml`, two new test files) against the work item.
+
+   What passes:
+   - Group 1, acceptance criteria: each of criteria 1 to 5 has a test named after it that checks what it says. Criterion 2 checks the new R12 line once and the old line absent. Criterion 3 has six rows of one parametrized test. Criterion 5 covers both sides of the cap (round 2 → 3 moves, round 3 → blocked `round_cap`), `doing`, `approval` and `review` refused. The coder's `make check` was green (entry 7).
+   - The Interface's texts match the diff word for word. The template line is right and its round cap is unchanged. The second Interface rule (every agent names its stage's decisions) stays pinned by `tests/test_claude_agent_texts.py::test_body_names_every_decision_of_its_stage_in_inline_code`.
+   - Group 2, architecture: no `src/` module changed. Group 3, security: nothing applies.
+   - Group 5, hygiene: the Description, the coder's entry and the docs criterion match what was built.
+
+   Findings (group 4, quality; round 0):
+   1. `tests/domain/test_decide_docs_slip.py:13-19` (`TEMPLATE` and the `template` fixture) and `tests/test_claude_agent_texts_docs_slip.py:12,51-52` (`TEMPLATE` and `_template()`) are two copies of one helper: build the path to `template/factory/pipeline.yml`, then parse it with `RuamelPipelineDefinitionReader`. The same steps are already inline in `tests/test_claude_agent_texts.py:145-146` (`_decisions`). Fix: the tester puts one shared helper or fixture for the template's definition in one shared place (`tests/conftest.py`, or beside `ROOT` in `tests/shipped_agents.py`), and both new files use it. Under the standing leave the tester may also change `_decisions` in `tests/test_claude_agent_texts.py` to use it and name that file in its entry.
+
+   Earlier tests: none. The diff only adds test files (`A tests/domain/test_decide_docs_slip.py`, `A tests/test_claude_agent_texts_docs_slip.py`) and changes no test that `main` holds.
