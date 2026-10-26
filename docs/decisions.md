@@ -256,6 +256,8 @@ Date: 2026-10-16 (F0010-S0001; questionnaire 1, Q18; F0001 decision 10). `GIT_US
 
 Date: 2026-10-16 (F0010-S0001; the human, 2026-10-14). The settings hold the identity of the image the instance runs on, read from `/opt/factory/image-id` (or the file named by `FACTORY_IMAGE_ID_FILE`). A build argument alone would be the same after a rebuild with the same argument and could keep an old preflight stamp valid (ST4.3); a generated file changes with every build. The reader is a parameter of `read_settings`, so `factory.domain` does no I/O, and without a reader the identity is `None`. A missing, unreadable or blank file is refused. `FACTORY_IMAGE` is never the identity. Open: a `FACTORY_IMAGE_ID_FILE` that is set but blank falls back to the default path.
 
+Since v1.2 F0045-S0005 `FACTORY_IMAGE_ID_FILE` is required and absolute; the default `/opt/factory/image-id` and the open point on a blank value went.
+
 ## A checkout whose clone was killed half-way is not recognised
 
 Update (F0014-S0006): the factory now removes and clones again a checkout whose `.git` fails the seal check (see "The factory alone writes the checkout's `.git`"); a folder with no `.git` is still refused.

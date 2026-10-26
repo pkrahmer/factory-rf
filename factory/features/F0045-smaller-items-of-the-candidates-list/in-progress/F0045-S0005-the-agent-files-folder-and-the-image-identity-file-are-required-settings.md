@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 470
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-26T22:13:18.552799Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-26T22:13:18.552799Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T22:14:01.205521Z'
+  stage: docs
+  run: 8dd84647a14e425e94f62c32c2e1abb4
 ---
 
 # The agent files' folder and the image identity file are required settings
@@ -214,3 +216,34 @@ Expect: three lines: `FACTORY_CLAUDE_HOME: missing`; `FACTORY_IMAGE_ID_FILE: mis
    - tests/entry/test_watch_settings.py: decision 25 (the fixture `valid_environment` gains the variable).
    - tests/entry/test_wiring_boundaries.py: decision 25 (one environment gains the variable).
 10. factory: started docs as vm.
+11. documenter: Documented that `FACTORY_CLAUDE_HOME` and `FACTORY_IMAGE_ID_FILE` are now required, absolute settings. The code matches the Interface and the criteria, so there are no findings for the coder. I changed only documents, so I did not run `make check` (the factory's checks decide). I did not run the smoke test.
+
+    Files changed:
+    - `docs/operator-guide.md`, `## Configuration`:
+      - The `FACTORY_IMAGE_ID_FILE` row now says required for `factory-run` and `factory-watch`, absolute, with no default. It names `/srv/factory/<instance>/image-id`, which `vm/setup.sh` writes, and the refusals `missing` and `is not an absolute path`.
+      - The `FACTORY_CLAUDE_HOME` row now says required and absolute, with no default and no `HOME` fallback. It names `/srv/factory/<instance>/factory/claude` and the same two refusals.
+      - Neither row names `/opt/factory/image-id` or `/home/agent/.claude` any more.
+    - `docs/operator-guide.md`, `## Looking at the remote: factory-watch`: it needs the same two path settings, so run it with the service's environment file, which `vm/setup.sh` writes.
+    - `docs/project-guide/watching.md`, the `InstanceSettings` fields paragraph: states the two required settings and what `read_settings` refuses. It also says the `agent_home` field still has its default (`AGENT_HOME_DEFAULT`) until S0006. The criterion said the settings have no defaults, but the model keeps the field default in this story, so I wrote it that way.
+    - `docs/decisions.md`, the entry "The image identity is read from a file the image build generates": added the closing line the criterion gave. I left its earlier "Open:" sentence in place; the new line closes it.
+
+    Cross-read and found current:
+    - `docs/operator-guide.md`:
+      - the settings paragraph under the table, which says a required variable that is missing, empty or blank is refused;
+      - the image identity paragraph;
+      - the image build and cost-record paragraphs;
+      - the `vm/setup.sh` environment file table;
+      - the preflight `agents` item and its paragraph on which variables to check;
+      - `## The agent files`.
+    - `vm/setup.sh` writes both variables (lines 369–370), as the guide says.
+    - `README.md`: no mention, and the criterion says none.
+
+    Stale text I saw and did not touch (history, not this story's):
+    - `docs/decisions.md` line 285, about F0010-S0006, says the build writes the uuid to `/opt/factory/image-id`. That is the build's own path in v1.1's image, so I did not change it.
+    - `docs/decisions.md` line 440 and line 532 name `/home/agent/.claude` and `/home/agent/.claude-token` as v1.1 image paths.
+    - `docs/decisions.md` line 1146 says the operator renews `FACTORY_IMAGE_ID_FILE`, which is still true.
+    - `docs/operator-guide.md` line 96 says a missing file "cannot be read" is refused; it does not mention the new refusal of an unset variable. It is still true, and the table row now covers the new case.
+
+    `check`: check: green (not run again: passed on tree a55791824ecf at 2026-10-26T22:09:07Z)
+    `secrets`: secrets: green (2.1 s)
+    `documents`: documents ok
