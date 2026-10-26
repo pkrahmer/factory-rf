@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T19:58:33.323878Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-10-26T19:58:33.323878Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-10-26T20:04:40.756631Z'
+  stage: doing
+  run: 69145a3500c04db7bf7d03aeecc1d968
 ---
 
 # The reset drops the page cache after the rollback
@@ -465,3 +467,20 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
     `lint`: lint: green (0.3 s)
     `test`: test: green (165.3 s)
 27. factory: started doing as vm.
+28. coder: Round 1. The reviewer's findings in entry 22 were criteria 10 and 11. Each needed only its test. The tester wrote both in entry 26, in `tests/test_vm_setup_caches.py`: `test_the_caches_step_stages_exactly_each_file_s_text` and `test_the_caches_step_prints_one_line_on_standard_output_as_its_last`. They pass against the step `caches` as it already stands, so I changed no code in this run. The working tree was clean before I ran `make check`, and it ended `test: green (165.0 s)`, total coverage 99.56 %, `check: green`.
+
+    What I built (from entry 13, unchanged since):
+    - `src/factory/adapters/zfs_snapshots.py`: `DROP_CACHES_COMMAND`, and a required keyword-only `drop_caches` (an empty tuple raises `ValueError`). `reset()` runs the drop only after a rollback that succeeded. The drop's faults come from the same `_execute(argv)` as the `zfs` commands' faults.
+    - `src/factory/entry/wiring.py`: `_container_adapters` passes `drop_caches=DROP_CACHES_COMMAND`.
+    - `vm/setup.sh`: the step `caches`, between `sudoers` and `folders`, on every run.
+
+    Main decision: the drop and the `zfs` commands share one runner, so their faults are formed the same way. I rejected a separate runner for the drop, because it would be a second copy of the fault handling.
+
+    Refactor pass: nothing to change. The diff is the same as in entry 20, where I found nothing either.
+
+    The journal did not change what the task means. The Description already holds criteria 10 and 11, so I did not rewrite it.
+
+    Noticed but not touched: the steps `sudoers` and `caches` still write a `sudoers` file in the same way: stage, `cmp`, `cp`, `chmod 0440`, `visudo -cf`, and remove on refusal. A shared shell function for that would be a new story.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
