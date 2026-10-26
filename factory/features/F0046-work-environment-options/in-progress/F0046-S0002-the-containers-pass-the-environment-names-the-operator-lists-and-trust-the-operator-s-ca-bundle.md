@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T14:48:57.518523Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-10-26T14:48:36.680277Z'
   stage: doing
   run: 975890c0fc7f4e0682737ff87825b4d0
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-26T14:48:57.518523Z'
+  stage: tests
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -275,3 +284,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     ```
 
     Still open for when the work item comes back: a full `make check` and the refactor pass over my diff. Neither has been done, because the check cannot be green until the test is changed.
+17. factory: started tests as vm.
