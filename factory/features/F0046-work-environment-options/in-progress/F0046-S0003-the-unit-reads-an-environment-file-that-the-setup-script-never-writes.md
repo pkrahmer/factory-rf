@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T16:13:09.419357Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-26T16:13:09.419357Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-26T16:19:07.947314Z'
+  stage: doing
+  run: 555e7553bafe43bbbac82ac0d0cf3eb7
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -190,3 +192,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: FAILED tests/test_vm_local_environment.py::test_the_closing_text_names_the_instance_s_local_file_after_done[other] - AssertionError: setup: done: build the stage image and start factory@other; see ...
 12. factory: started doing as vm.
+13. coder: I added one line to each of two files. `vm/factory.service` now has `EnvironmentFile=-/srv/factory/%i/factory.local.env` right after `EnvironmentFile=/srv/factory/%i/factory.env` in `[Service]`. `vm/setup.sh` now has a final `printf 'setup: local: %s/factory.local.env is yours: the script never writes it; the unit reads it after factory.env\n' "$base"` after the `setup: done:` line. No other line changed, and nothing under `src/`.
+
+    Main choice: the closing line prints `$base`, which the script already sets to `/srv/factory/$instance` and which is the instance folder the Interface names. I rejected spelling out `/srv/factory/$instance` again: it would repeat the path, and the criterion 4 test sets `base` to `tmp_path` to stand in for the folder. The line uses `printf` with a quoted format string, like the `setup: done:` line above it. It has no `>`, `rm`, `cp`, `install`, `tee`, `touch` or `stage`, so the command-word rows stay green.
+
+    Refactor: I read the two-line diff and nothing needed changing.
+
+    `make check`: green (`check: green`). The smoke test's `grep -c 'factory.local.env' vm/setup.sh` counts 1.
+
+    The journal did not change the meaning of the task. Entries 6 and 9 settle how the tests read criteria 3 and 4 and the change to `tests/test_vm_service.py`, so `## Description` is unchanged.
+
+    Noticed but not touched: nothing.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone

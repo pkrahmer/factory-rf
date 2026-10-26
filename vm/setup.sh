@@ -373,3 +373,4 @@ fi
 echo "setup: service: $(said "found /etc/systemd/system/factory@.service in place and factory@$instance enabled")"
 
 printf 'setup: done: build the stage image and start factory@%s; see the operator guide, "The machine"\n' "$instance"
+printf 'setup: local: %s/factory.local.env is yours: the script never writes it; the unit reads it after factory.env\n' "$base"

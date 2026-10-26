@@ -10,6 +10,7 @@ User=factory
 Group=factory
 WorkingDirectory=/srv/factory/%i
 EnvironmentFile=/srv/factory/%i/factory.env
+EnvironmentFile=-/srv/factory/%i/factory.local.env
 ExecStart=/srv/factory/%i/factory/.venv/bin/factory-run
 Restart=always
 RestartSec=15
