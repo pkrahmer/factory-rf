@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-26T16:19:29.023978Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-10-26T16:19:07.947314Z'
   stage: doing
   run: 555e7553bafe43bbbac82ac0d0cf3eb7
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-26T16:19:29.023978Z'
+  stage: review
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -206,3 +215,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
+14. factory: started review as vm.
