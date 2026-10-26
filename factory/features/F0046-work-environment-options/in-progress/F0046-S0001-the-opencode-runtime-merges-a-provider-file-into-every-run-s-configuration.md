@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775, 6417568826]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-26T14:13:06.288697Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-10-26T14:13:06.288697Z'
   stage: smoke-test
+- number: 34
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T14:13:32.088994Z'
+  stage: smoke-test
+  run: 03656e3edd7a44d98478e57efb6129f2
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -569,3 +571,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
 33. factory: started smoke-test as vm.
+34. smoke-tester: Ran both commands under `## Smoke test` from the repository root, as written and in order. Both exited 0 and both matched their `Expect:` line. I changed nothing and the working tree is clean.
+
+    Command 1 (`provider_configuration` of a valid file, sorted keys):
+    ```
+    Bytecode compiled 4164 files in 54ms
+    ['provider', 'small_model']
+    ```
+    Met `Expect: ['provider', 'small_model']`. The first line is uv's own bytecode note, not output of the program.
+
+    Command 2 (`read_provider` with `small_model` `corp/x`, a model key not in `models`):
+    ```
+    Bytecode compiled 4164 files in 58ms
+    refused
+    ```
+    Met `Expect: refused`.
+
+    Checked against the acceptance criteria: I also printed the whole configuration from command 1's input (this is not part of the smoke test):
+    ```
+    {'provider': {'corp': {'npm': '@ai-sdk/openai-compatible', 'options': {'baseURL': 'https://example.invalid/v1', 'apiKey': '{env:ANTHROPIC_API_KEY}'}, 'models': {'m': {}}}}, 'small_model': 'corp/m'}
+    ```
+    This matches criterion 4: a model with no name, limits or prices is `{}`, the `npm` package and `apiKey` `{env:<NAME>}` are right, and no key is null. Command 2 matches criterion 3, which says `corp/missing` is refused. Nothing in the smoke test contradicts any criterion. The smoke test does not reach the runtime merge, the settings or the wiring (criteria 1, 2 and 5 to 8). The tests stage covers those, and the factory's `make check` gate covers criterion 11.
+
+    Findings: none.
