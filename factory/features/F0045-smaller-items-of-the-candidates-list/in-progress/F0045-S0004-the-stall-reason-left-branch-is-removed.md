@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T21:17:15.304181Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -54,6 +58,11 @@ journal:
   stage: doing
   run: 10b2f27bb8154b0c9d0a6421da90697a
   reason: check_red
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-26T21:17:15.304181Z'
+  stage: doing
 ---
 
 # The stall reason left_branch is removed
@@ -169,3 +178,4 @@ Expect: two lines: `False 4.0`; `0`
    lint: green (0.2 s)
    Bytecode compiled 4164 files in 76ms
    make: *** [Makefile:38: types] Error 139
+9. factory: started doing as vm.
