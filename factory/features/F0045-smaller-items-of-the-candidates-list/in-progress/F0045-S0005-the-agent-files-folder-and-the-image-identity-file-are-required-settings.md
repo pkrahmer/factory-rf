@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 470
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T22:12:15.058196Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-26T22:12:15.058196Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T22:12:57.735272Z'
+  stage: review
+  run: 83e599e72dde45ae9b256bc257ad7c83
 ---
 
 # The agent files' folder and the image identity file are required settings
@@ -174,3 +176,31 @@ Expect: three lines: `FACTORY_CLAUDE_HOME: missing`; `FACTORY_IMAGE_ID_FILE: mis
    `check`: check: green
    `duplicates`: duplicates: 0 new, 43 known, 0 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   Read the diff of `src/factory/domain/settings.py` and the 11 test files against criteria 1 to 7 and the Interface.
+   - Code: `_agent_home` and `_image` both go through `_required_absolute_path`. It builds on `_required`, so unset, empty and blank all give `missing`, and a relative path gives `is not an absolute path`.
+   - `_image` checks the variable before it calls `read_file`, and without a reader the variable is never read.
+   - `IMAGE_ID_FILE` and `_HOME_VARIABLE` are gone. `AGENT_HOME_DEFAULT` stays only as the default of the `InstanceSettings.agent_home` field, which the Description leaves to S0006.
+   - `read_settings` has one caller under `src` (`entry/wiring.py:200`, with a reader), so `factory-run` and `factory-watch` both get the new rules. `entry.run` is unchanged.
+
+   Criteria and their tests:
+   - Criteria 1 to 4: `tests/domain/test_settings_required_paths.py`, one parametrized test each. The rows match the criteria, the refused and accepted sides included: the 9 agent-home rows, the recording reader asked `[]` on every refusal and exactly one path on success, the three rows without a reader, and the three "gone" rows.
+   - Criterion 5: `tests/entry/test_run_required_paths.py`, with rows for both missing variables (status 2, the log line, the runner not run) and the row with both set (status 0, the runner run once).
+   - Criterion 6: the coder's `make check` was green (journal 7).
+   - Criterion 7: for the documenter.
+
+   The Interface states no other limit. The architecture holds: the rule is in the domain and the reader is injected. No suppression markers and no secrets. The Description, the Interface and the docs criterion match what was built.
+
+   Rejected as a finding: the near-duplicate `is_absolute` check in `_required_absolute_path` next to `_optional_absolute_path`. Reusing the optional helper would mean narrowing a `Path | None` that is never `None`, and `make duplicates` reports 0 new.
+
+   Earlier tests changed (status M):
+   - tests/settings_support.py: decision 25 of `feature.md` (named in the Interface).
+   - tests/conftest.py: decision 25 (`hosted_environment` is named in the Interface; `environment` falls under its "every other earlier test" rule). Both fixtures only gain `FACTORY_CLAUDE_HOME`.
+   - tests/domain/test_settings.py: decision 25 (named in the Interface; the changes match it, and every name is kept).
+   - tests/domain/test_settings_boundaries.py: decision 25 (named in the Interface; only the fallback rows went, and the name is kept).
+   - tests/domain/test_settings_url_edges.py: decision 25 (named in the Interface; the two image rows changed as stated).
+   - tests/application/test_boundaries_settings.py: decision 25 (its environment gains the variable through the shared `BASE`, the assertions unchanged).
+   - tests/domain/test_default_git_identity.py: the standing leave to move a shared test helper (its local copy of `BASE` is replaced by `settings_support.BASE`), and decision 25.
+   - tests/entry/test_watch_settings.py: decision 25 (the fixture `valid_environment` gains the variable).
+   - tests/entry/test_wiring_boundaries.py: decision 25 (one environment gains the variable).
