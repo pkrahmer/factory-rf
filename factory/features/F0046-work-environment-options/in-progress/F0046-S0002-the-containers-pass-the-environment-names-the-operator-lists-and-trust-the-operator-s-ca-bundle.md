@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T14:26:06.902604Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T14:25:49.020811Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-26T14:26:06.902604Z'
   stage: tests
 ---
 
@@ -163,3 +172,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 9. 2026-10-26 human: (a): the same two keywords on all four classes, `extra_environment: Mapping[str, str] = {}` and `ca_bundle: Path | None = None`, on `ClaudeCodeRuntime`, `OpencodeRuntime`, `ContainerEnvironment` and `ContainerMakeCommands`; `build_boundaries` computes the extras once and hands both to all four. Read the Interface with those names.
 
    The side note is right: the first smoke test is corrected by this answer to `InstanceSettings(repository_url='https://github.com/o/n', instance='vm', container_env=('HTTPS_PROXY', 'MISSING'), ca_bundle=Path('/etc/ca.pem'))`; its `Expect:` stays. Run it in that form.
+10. factory: started tests as vm.
