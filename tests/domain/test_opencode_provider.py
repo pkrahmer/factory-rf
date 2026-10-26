@@ -1,0 +1,122 @@
+"""The opencode provider file: its rules and the configuration keys it gives."""
+
+import json
+
+import pytest
+
+from factory.domain.opencode_provider import (
+    OpencodeModel,
+    OpencodeProvider,
+    provider_configuration,
+    read_provider,
+)
+from opencode_provider_support import CONFIGURATION, PROVIDER
+
+MINIMAL: dict[str, object] = {
+    "id": "corp",
+    "base_url": "https://example.invalid/v1",
+    "api_key_env": "PROXY_KEY",
+    "models": {"m": {}},
+    "small_model": "corp/m",
+}
+
+
+def _text(**changes: object) -> str:
+    return json.dumps({**MINIMAL, **changes})
+
+
+def _model(**fields: object) -> str:
+    return _text(models={"m": fields})
+
+
+@pytest.mark.parametrize(
+    ("text", "accepted"),
+    [
+        pytest.param(json.dumps(PROVIDER), True, id="complete"),
+        pytest.param(_text(), True, id="minimal"),
+        pytest.param(_text(id="Corp", small_model="Corp/m"), False, id="id-upper"),
+        pytest.param(_text(id="1corp", small_model="1corp/m"), False, id="id-digit-first"),
+        pytest.param(_text(id="corp-1", small_model="corp-1/m"), True, id="id-dash-digit"),
+        pytest.param(_text(models={}), False, id="models-empty"),
+        pytest.param(_text(models={"m": {}, " ": {}}), False, id="model-key-blank"),
+        pytest.param(_text(base_url="ftp://x"), False, id="base-url-ftp"),
+        pytest.param(_text(base_url="https://"), False, id="base-url-no-host"),
+        pytest.param(_text(base_url="example.invalid"), False, id="base-url-no-scheme"),
+        pytest.param(_text(base_url="https://example.invalid/v1/"), True, id="base-url-slash"),
+        pytest.param(_text(base_url="http://example.invalid"), True, id="base-url-http"),
+        pytest.param(_text(api_key_env="lower"), False, id="key-env-lower"),
+        pytest.param(_text(api_key_env="1KEY"), False, id="key-env-digit-first"),
+        pytest.param(_text(small_model="other/m"), False, id="small-other-provider"),
+        pytest.param(_text(small_model="corp"), False, id="small-no-model"),
+        pytest.param(_text(small_model="corp/missing"), False, id="small-missing-model"),
+        pytest.param(_model(input_cost=1.0), False, id="input-cost-alone"),
+        pytest.param(_model(output_cost=1.0), False, id="output-cost-alone"),
+        pytest.param(_model(context=10), False, id="context-alone"),
+        pytest.param(_model(output=10), False, id="output-alone"),
+        pytest.param(_model(input_cost=-0.01, output_cost=1.0), False, id="cost-negative"),
+        pytest.param(_model(input_cost=0, output_cost=0), True, id="cost-zero"),
+        pytest.param(_model(context=0, output=1), False, id="context-zero"),
+        pytest.param(_model(context=1, output=1), True, id="context-one"),
+        pytest.param(_text(extra=1), False, id="unknown-top-key"),
+        pytest.param(_model(extra=1), False, id="unknown-model-key"),
+        pytest.param("[]", False, id="not-an-object"),
+    ],
+)
+def test_the_provider_file_is_accepted_only_when_it_keeps_every_rule(
+    text: str, *, accepted: bool
+) -> None:
+    if accepted:
+        provider = read_provider(text)
+        assert isinstance(provider, OpencodeProvider)
+    else:
+        with pytest.raises(ValueError, match=r"."):
+            read_provider(text)
+
+
+def test_a_complete_provider_gives_the_provider_and_the_small_model() -> None:
+    assert provider_configuration(read_provider(json.dumps(PROVIDER))) == CONFIGURATION
+
+
+@pytest.mark.parametrize(
+    ("model", "base_url", "entry"),
+    [
+        pytest.param(OpencodeModel(), "https://example.invalid/v1", {}, id="none"),
+        pytest.param(
+            OpencodeModel(name="M"), "https://example.invalid/v1", {"name": "M"}, id="name-only"
+        ),
+        pytest.param(
+            OpencodeModel(context=1000, output=100),
+            "https://example.invalid/v1",
+            {"limit": {"context": 1000, "output": 100}},
+            id="limits-only",
+        ),
+        pytest.param(
+            OpencodeModel(input_cost=3.0, output_cost=15.0),
+            "https://example.invalid/v1",
+            {"cost": {"input": 3.0, "output": 15.0}},
+            id="prices-only",
+        ),
+        pytest.param(OpencodeModel(), "https://example.invalid/v1/", {}, id="trailing-slash"),
+    ],
+)
+def test_each_model_holds_only_the_groups_it_was_given(
+    model: OpencodeModel, base_url: str, entry: dict[str, object]
+) -> None:
+    provider = OpencodeProvider(
+        id="corp",
+        base_url=base_url,
+        api_key_env="PROXY_KEY",
+        models={"m": model},
+        small_model="corp/m",
+    )
+
+    assert provider_configuration(provider) == {
+        "provider": {
+            "corp": {
+                "npm": "@ai-sdk/openai-compatible",
+                "options": {"baseURL": base_url, "apiKey": "{env:PROXY_KEY}"},
+                "models": {"m": entry},
+            }
+        },
+        "small_model": "corp/m",
+    }

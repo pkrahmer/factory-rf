@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T12:39:05.646518Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-26T12:39:05.646518Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-26T12:57:02.605529Z'
+  stage: tests
+  run: 83bd351a2d2c43639cf4aff8d439d537
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -169,3 +171,33 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the model and rules are in domain, the file read and the merge are in the adapter, and the wiring is in entry. This matches the four layers in CLAUDE.md.
    - Scope: the story is S0001 of F0046. The proxy and CA bundle (S0002) and the environment file (S0003) are left out, and nothing in Out of scope is touched.
 7. factory: started tests as vm.
+8. tester: I wrote the tests for criteria 1 to 8. Criteria 9 and 10 are the check and the docs, so they get no test.
+
+   - criterion 1: tests/adapters/test_opencode_runtime_provider.py::test_without_a_provider_file_the_configuration_is_as_before (one row leaves out `provider_file`, the other passes `None`; the expected text is `json.dumps` of the keys the existing tests use)
+   - criterion 2: tests/domain/test_settings_opencode_provider.py::test_the_provider_file_setting_is_read_as_an_optional_path (unset, blank, absolute), ::test_a_relative_provider_file_setting_is_refused_naming_it, ::test_the_settings_model_takes_only_an_absolute_provider_file (absolute accepted, relative is a `ValidationError`)
+   - criterion 3: tests/domain/test_opencode_provider.py::test_the_provider_file_is_accepted_only_when_it_keeps_every_rule (one parametrized test, one row per side the criterion names, plus a complete file and a minimal one; in each `id` row `small_model` follows the id, so only the id rule is under test)
+   - criterion 4: tests/domain/test_opencode_provider.py::test_a_complete_provider_gives_the_provider_and_the_small_model and ::test_each_model_holds_only_the_groups_it_was_given (rows: none, name only, limits only, prices only, trailing slash kept; each compares the whole dict exactly, so a null key fails)
+   - criterion 5: tests/adapters/test_opencode_runtime_provider.py::test_a_provider_file_adds_its_keys_beside_the_existing_ones
+   - criterion 6: tests/adapters/test_opencode_runtime_provider.py::test_a_provider_file_that_cannot_be_used_fails_before_anything_starts (rows: missing, directory, invalid `{}`)
+   - criterion 7: tests/adapters/test_opencode_runtime_provider.py::test_a_model_of_the_provider_file_is_passed_as_it_is (rows: `corp/m`, and the alias `opus` mapped to `corp/m`)
+   - criterion 8: tests/entry/test_wiring_opencode_provider.py::test_the_built_opencode_runtime_merges_the_provider_file and ::test_the_provider_file_changes_nothing_on_a_claude_code_instance (with and without the file, the runtime is `ClaudeCodeRuntime`)
+
+   How the wiring test reads the configuration: the stand-in podman runs the container's words (`PodmanPlan(image=IMAGE)`). The configured `opencode` is a small script that copies `runs/opencode-*.json` into `tmp_path/capture` before it replies, because the runtime deletes the file after the run. I did this because podman's process does not get `OPENCODE_CONFIG`, so the existing stand-in cannot record the file.
+
+   Files created:
+   - tests/opencode_provider_support.py (the complete provider file, the configuration it gives, `write_provider`)
+   - tests/domain/test_opencode_provider.py
+   - tests/domain/test_settings_opencode_provider.py
+   - tests/adapters/test_opencode_runtime_provider.py
+   - tests/entry/test_wiring_opencode_provider.py
+
+   I changed no earlier test file.
+
+   Modules the test run could not import: `factory.domain.opencode_provider` (it does not exist yet) and `OPENCODE_PROVIDER_FILE_VARIABLE` from `factory.domain.settings`. Both domain test modules fail with ImportError at collection. The adapter tests fail with `TypeError: OpencodeRuntime.__init__() got an unexpected keyword argument 'provider_file'`.
+
+   My one `make test` printed only its last five lines. I did not see how the wiring tests ended. Some tests may already pass, because they pin behaviour that does not change: the adapter row that leaves out `provider_file`, and possibly the two Claude Code wiring rows.
+
+   `make lint` is green after `ruff --fix` sorted one import block. I skipped the type check, as this stage says to.
+
+   `lint`: lint: green (0.2 s)
+   `test`: ERROR tests/domain/test_settings_opencode_provider.py - ImportError while importing test module '/work/checkout/tests/domain/test_settings_opencode_provider.py'.
