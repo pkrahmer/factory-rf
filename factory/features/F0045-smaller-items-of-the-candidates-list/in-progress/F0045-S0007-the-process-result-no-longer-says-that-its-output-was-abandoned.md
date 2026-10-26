@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T23:03:22.092138Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-26T23:03:22.092138Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-26T23:09:31.810606Z'
+  stage: doing
+  run: 92f4d80dab344316912deb17ce06d932
 ---
 
 # The process result no longer says that its output was abandoned
@@ -124,3 +126,21 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/adapters/test_process_result_fields.py::test_no_module_holds_the_name_of_the_removed_field - AssertionError: assert ['adapters/process.py'] == []
 6. factory: started doing as vm.
+7. coder: Removed `output_abandoned` from `ProcessResult` in src/factory/adapters/process.py. The drain behaviour is unchanged.
+
+   - `ProcessResult` loses the field. `run_process` and `run_streaming` no longer set it.
+   - In `run_process`, the bounded read after the kill at the time limit is now a plain statement, `_read_bounded(reader, process, None, ended_at=...)`. Its outcome is no longer kept, but the read itself stays, so the output that arrives after the kill is still read for at most `PIPE_DRAIN`.
+   - Docstrings: `run_process` now says a pipe still open after `PIPE_DRAIN` is closed and the call returns what it read. `run_streaming` says the same, followed by the existing rule about a last line without a line feed. Neither names a field.
+
+   Main choice: I kept the private `_ReadOutcome` value `"abandoned"`. `_read_bounded` still has to tell the drain's end apart from the pipes closing, because `_read_to_exit` waits for the child's exit only on `"closed"`. I rejected merging it into `"closed"`: then the code would call `process.wait` on a child whose pipes are still held, which changes the control flow for no gain. The source test looks only for the string `output_abandoned`, so the private value does not trip it.
+
+   Refactor: I read the diff once. Nothing needed changing.
+
+   `make check`: green (test: green (158.9 s), check: green).
+
+   Noticed but not touched:
+   - docs/project-guide/processes-and-checks.md still names `output_abandoned` at lines 58, 65, 83 and 85. Updating it is the documenter's job under criterion 5.
+   - The dead-code line for the field in security/duplicates-baseline.txt is the human's change 4, due after the merge.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 42 known, 1 gone
