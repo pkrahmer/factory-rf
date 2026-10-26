@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T15:06:48.074712Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -135,6 +131,12 @@ journal:
   kind: started
   at: '2026-10-26T15:06:48.074712Z'
   stage: doing
+- number: 23
+  speaker: coder
+  kind: result
+  at: '2026-10-26T15:13:19.101482Z'
+  stage: doing
+  run: 0da104ca15444e1aa4609d325e42db01
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -359,3 +361,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (157.1 s)
 22. factory: started doing as vm.
+23. coder: The code was already committed from entry 13. I made no code change in this run. `make check` is green: `check: green`, `test: green (161.4 s)`, coverage 99.56 %. Both smoke tests give their `Expect:` output; I ran the first in the corrected form from entry 9.
+
+    What I built (paths):
+    - `src/factory/domain/settings.py`: `CONTAINER_ENV_VARIABLE`, `CA_BUNDLE_VARIABLE`, `RESERVED_CONTAINER_NAMES`, `RESERVED_CONTAINER_PREFIX`; the fields `container_env` and `ca_bundle`, with `ca_bundle` checked by the existing absolute-path validator; `_container_env` and `_check_container_name`, which split the list and refuse bad names.
+    - `src/factory/domain/containers.py`: `CA_BUNDLE_NAMES`, `extra_environment`, and two helpers, `read_only_at_own_path` and `bundle_mounts`. `container_launch` in `src/factory/adapters/agent_launch.py` now builds its mounts with `read_only_at_own_path`, so it and the bundle mount use one helper.
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: the keywords `extra_environment` and `ca_bundle`. The runtime part becomes `{**extra, **SWITCHES}` (opencode's own part for opencode), so the runtime's names win. The bundle joins `files`, and `without_login` still runs afterwards.
+    - `src/factory/application/stage_environment.py`: `ContainerEnvironment` takes the same keywords. The sync gets `{**extra, **SYNC_ENVIRONMENT}` and the bundle mount, and `stage_environment_of` passes both from the boundaries.
+    - `src/factory/adapters/make_commands.py`: `ContainerMakeCommands` gives the check `{**extra, **CHECK_ENVIRONMENT}` and the bundle mount.
+    - `src/factory/application/boundaries.py`: a new field, `container_extra_environment`, defaulting to `{}`.
+    - `src/factory/entry/wiring.py`: `build_boundaries` computes `extra_environment(settings, os.environ)` once and hands it, with `settings.ca_bundle`, to the runtime, `ContainerMakeCommands` and `Boundaries`.
+
+    Main choice: `stage_environment_of(boundaries)` builds the container environment, so the extras computed in wiring travel there on `Boundaries.container_extra_environment`. The bundle comes from `boundaries.settings.ca_bundle`. I rejected computing `extra_environment(settings, os.environ)` inside `stage_environment_of`: that would read the host's environment in the application layer and compute the extras a second time.
+
+    Refactor pass: I read the full diff against `main` and found nothing to rename, simplify or remove.
+
+    Description: entry 9 named the four classes' constructor keywords and corrected the first smoke test, which now passes `repository_url` and `instance`. I updated the Interface's keyword sentence and that smoke test to match. Entries 14 and 19 only changed test setup and `pyproject.toml`, so their meaning needed no change.
+
+    Noticed, not touched:
+    - The Interface names `tests/adapters/test_make_commands_extra.py`, but the tester put the check-container rows in `tests/application/test_container_environment_extra.py` instead (entry 11).
+    - In entry 21 the tester reported a one-off segmentation fault in `make test` (Error 139) without saying which test caused it. It did not happen in my run.
+
+    The factory left out changes outside the write paths: factory/features/F0046-work-environment-options/in-progress/F0046-S0002-the-containers-pass-the-environment-names-the-operator-lists-and-trust-the-operator-s-ca-bundle.md.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
