@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T18:39:44.829088Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-26T18:39:23.392862Z'
   stage: tests
   run: cee8c926e26041eabab92fd0dad1c867
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-26T18:39:44.829088Z'
+  stage: doing
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -134,3 +143,4 @@ Expect: two lines: `7`; `1`
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/domain/test_decide_docs_slip.py::test_the_smoke_test_sends_a_slip_in_a_document_to_docs_as_a_rework[docs-past-the-cap] - ValueError: decision 'docs' is not allowed at stage 'smoke-test'
+6. factory: started doing as vm.
