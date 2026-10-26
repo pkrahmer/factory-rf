@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 1
@@ -164,6 +164,11 @@ journal:
   at: '2026-10-26T21:48:42.019255Z'
   stage: smoke-test
   run: 956b06d72d5f4e9297fb0772fbe762b4
+- number: 29
+  speaker: factory
+  kind: done
+  at: '2026-10-26T21:51:04.385907Z'
+  stage: approval
 ---
 
 # The stall reason left_branch is removed
@@ -543,3 +548,4 @@ Expect: two lines: `False 4.0`; `0`
     - Criteria 2, 4 and 7 are tests and `make check`. This command does not exercise them, and I did not run `make check` here, since the factory runs the stage's checks.
 
     Open: nothing.
+29. factory: done (pull request merged); cost: 13 runs, 24.6 min, 96 turns, 343555 tokens in (2230437 more from cache), 35647 out, $3.61
