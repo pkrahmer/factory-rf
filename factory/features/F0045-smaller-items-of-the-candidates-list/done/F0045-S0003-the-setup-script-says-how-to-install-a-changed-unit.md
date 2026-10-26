@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -163,6 +163,11 @@ journal:
   at: '2026-10-26T20:56:13.250356Z'
   stage: smoke-test
   run: a9abc4f5cbc84ff7b34d16a94afa33e3
+- number: 29
+  speaker: factory
+  kind: done
+  at: '2026-10-26T20:58:36.737190Z'
+  stage: approval
 ---
 
 # The setup script says how to install a changed unit
@@ -410,3 +415,4 @@ Expect: three lines: `syntax-ok`; `2`; `0`
     I did not re-run `make check` (criterion 4) or the tests named in criteria 1 to 3. The smoke test does not include them, and the factory runs the checks itself.
 
     Findings: none.
+29. factory: done (pull request merged); cost: 13 runs, 24.5 min, 82 turns, 244553 tokens in (1447133 more from cache), 25623 out, $2.46
