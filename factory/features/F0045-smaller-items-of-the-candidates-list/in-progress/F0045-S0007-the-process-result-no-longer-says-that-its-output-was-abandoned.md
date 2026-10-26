@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T23:23:47.683910Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-26T23:23:47.683910Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T23:24:15.025141Z'
+  stage: review
+  run: 31ad72126d454534a3761aed05d86e59
 ---
 
 # The process result no longer says that its output was abandoned
@@ -270,3 +272,17 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 1 gone
 16. factory: started review as vm.
+17. reviewer: no findings
+
+    The finding from round 0 (entry 9) is resolved. The duplicated `holder_file` fixture now lives once, in tests/conftest.py:421-428, and both test modules use it from there. I checked the rest of the story against the diff, not against the journal:
+    - Criterion 1: `test_the_result_has_no_output_abandoned_field` checks that the field list is exactly the six fields, in order. It also checks that building the model through a variable typed `type[BaseModel]` with `output_abandoned=True` raises `ValidationError`.
+    - Criterion 2: `test_the_call_reads_for_the_drain_after_the_child_ended` has three rows: run_process-held, run_streaming-held and run_process-closed (exit status 3, both lines). `PIPE_DRAIN` is set to 1 s with monkeypatch. The held rows must take at least the drain, and every row must finish within `ROOMY_BOUND_SECONDS`.
+    - Criterion 3: `test_no_module_holds_the_name_of_the_removed_field` searches `src/factory` through `modules_matching` with `root=SRC` and leaves no file out.
+    - The coder's `make check` was green (entry 15). `duplicates` reports 0 new and 1 gone, which is the field's baseline line, the human's change 4.
+    - src/factory/adapters/process.py: the field is gone. After the kill, `run_process` still does the bounded read, now as a plain statement. The private `_ReadOutcome` value `"abandoned"` stays, because `_read_to_exit` still uses it to tell the drain's end apart from closed pipes. Both docstrings say that the pipe is closed and the call returns, and neither names a field, as the Interface requires.
+    - Architecture and security: nothing found. The change stays inside the one process module, adds no marker, and touches no contract model. `ProcessResult` is not in `CONTRACT`, so no schema needed regenerating.
+    - Description, Interface and criteria all match what was built. The docs criterion still names what the documenter must change: docs/project-guide/processes-and-checks.md and docs/decisions.md still mention `output_abandoned`.
+
+    Earlier tests:
+    - tests/adapters/test_process_drain.py: changed under the human's leave, decision 27 of feature.md, which the Interface names. The seven named tests lost their `output_abandoned` assertion and, where only that assertion used it, the `abandoned` parametrize column. Every test keeps its name, its row ids and its other assertions. The file also lost its copy of the `holder_file` fixture, under the standing leave in `CLAUDE.md` to move a shared test helper.
+    - tests/conftest.py: changed under the standing leave to move a shared test helper. It only gains the moved `holder_file` fixture and the `contextlib` and `signal` imports the fixture needs; every existing fixture is unchanged.
