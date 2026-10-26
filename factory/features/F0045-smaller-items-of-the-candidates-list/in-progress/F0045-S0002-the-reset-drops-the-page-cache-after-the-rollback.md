@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 467
-comments_read: [6424960438, 6425166909]
+comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
 claim: null
 journal:
@@ -82,6 +82,11 @@ journal:
   stage: doing
   run: 937f33f43732483b866c0f5255ac6ba4
   blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-10-26T19:33:42.377699Z'
+  stage: doing
 ---
 
 # The reset drops the page cache after the rollback
@@ -283,3 +288,5 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
     Not done yet: the refactor pass and a green `make check`. Both wait on these answers.
 
     While building, a Python heredoc of mine broke on the script's `EOF`, and its remaining lines ran in the shell. Every command failed: `stage`, `unchanged` and `visudo` were missing, and `install` and `cp` had no file to copy. I checked afterwards that neither `/usr/local/bin/factory-drop-caches` nor `/etc/sudoers.d/factory-drop-caches` exists.
+14. 2026-10-26 human: 1. (a): the tester changes row `install-helper` to look for one line that holds both `install -m 0755` and the helper's path.
+    2. (a): a shared fixture in `tests/conftest.py` writes a `sudo` stand-in that exits 0 and puts it first on `PATH` through `monkeypatch`; the four earlier tests you name and the new wiring test use it. The leave of decision 22 widens to exactly that: those four tests gain the fixture, each keeps its name and its assertions. No setting names the command.
