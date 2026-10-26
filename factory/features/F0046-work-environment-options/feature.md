@@ -13,7 +13,8 @@ The factory is built for public use: github.com, the Anthropic API, the public p
 
 ## Out of scope
 
-- A `base_url` for the hosting client (GitHub Enterprise): an instance on github.com needs none, and a host that blocks it is a later feature.
+- A `base_url` for the hosting client: the work's GitHub Enterprise is on github.com, whose API is the client's default (the human, 2026-10-26).
+- The factory's code from a repository other than the one it works on: a later feature (`planning/v1.2-candidates.md`). Until then an instance at work runs on an imported copy of this repository, not a fork.
 - Reading a secret store from the factory: the operator places the secrets by hand (the machine chapter, step 8).
 - Any change to the Claude Code runtime, the pipeline definition or the records contract.
 - A proxy or an allow-list of the agent's network.
