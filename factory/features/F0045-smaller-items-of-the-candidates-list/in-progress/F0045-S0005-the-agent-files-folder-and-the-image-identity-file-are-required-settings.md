@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 470
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T22:05:49.339775Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-26T22:05:49.339775Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-26T22:11:54.377715Z'
+  stage: doing
+  run: eb6f0bdbf6fa41c0ba5ee2c896c43c2a
 ---
 
 # The agent files' folder and the image identity file are required settings
@@ -146,3 +148,19 @@ Expect: three lines: `FACTORY_CLAUDE_HOME: missing`; `FACTORY_IMAGE_ID_FILE: mis
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/entry/test_run_required_paths.py::test_a_missing_path_setting_is_the_stop_of_invalid_settings[agent-home] - assert 0 == 2
 6. factory: started doing as vm.
+7. coder: Made `FACTORY_CLAUDE_HOME` required, and `FACTORY_IMAGE_ID_FILE` required when a reader is given. Both must also be absolute paths. `make check` is green and the smoke test prints the three expected lines.
+
+   - What I built: everything is in `src/factory/domain/settings.py`.
+     - The constant `IMAGE_ID_FILE` (`/opt/factory/image-id`) is gone, and so is `_HOME_VARIABLE`. Nothing reads `HOME` any more.
+     - There is one new private helper, `_required_absolute_path(environ, variable)`. It reuses the existing `_required`, which raises `missing` for an unset, empty or blank value. It raises `is not an absolute path` for a relative one.
+     - `_agent_home` and `_image` both call this helper. `_image` calls it before `read_file`, so a refused variable means the reader is never asked. Without a reader, `_image` is not called and the variable is not read, as before.
+     - `factory.entry.run` is unchanged. A refused variable takes the existing path for invalid settings.
+   - Main choice: one shared helper for the "required and absolute" rule, built on `_required`. I rejected the alternative of making `_optional_absolute_path` check for a missing value too: it would need a flag or a second return branch, and its optional callers would get a slightly different contract.
+   - Refactor: I read the diff and changed nothing more. The `is_absolute` check in the new helper is two lines that are similar to `_optional_absolute_path`. Reusing that function would mean narrowing a `Path | None` that can never be `None`, so I left it as it is.
+   - Noticed, not touched:
+     - `AGENT_HOME_DEFAULT` (`/home/agent/.claude`) stays as the default of the `InstanceSettings.agent_home` field. The story leaves that to S0006.
+     - The docs criterion (operator guide, `watching.md`, `decisions.md`) is the documenter's.
+   - Journal: no entry changed the meaning of the task, so the Description is unchanged.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 43 known, 0 gone
