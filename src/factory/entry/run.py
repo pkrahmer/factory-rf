@@ -10,6 +10,7 @@ from types import FrameType
 
 from factory.application.disk_records import DiskRecorder
 from factory.application.hosting import HostingService
+from factory.application.idle_shutdown import IdleShutdown
 from factory.application.machine import Clock
 from factory.application.scheduler import CheckoutPreparer, RepositoryWaiter, Scheduler
 from factory.application.stops import StopService
@@ -22,6 +23,7 @@ from factory.entry.wiring import (
     build_tick,
     health_file,
     health_store,
+    idle_shutdown_of,
     machine_log,
     read_environment_settings,
     read_hosting_token,
@@ -51,11 +53,17 @@ def activity(outcome: TickOutcome) -> bool:
     )
 
 
-def activity_tick(tick: Tick) -> Callable[[], bool]:
-    """Return the scheduler's tick: run `tick`, the same on every call, and tell its activity."""
+def activity_tick(tick: Tick, idle: IdleShutdown | None = None) -> Callable[[], bool]:
+    """Return the scheduler's tick: run `tick`, the same on every call, and tell its activity.
+
+    Each outcome goes to `idle` first when it is given.
+    """
 
     def run() -> bool:
-        return activity(tick.run())
+        outcome = tick.run()
+        if idle is not None:
+            idle.observe(outcome)
+        return activity(outcome)
 
     return run
 
@@ -108,7 +116,7 @@ def run_instance(
     waiter = RepositoryWaiter(preparer, boundaries, StopService(boundaries))
     Scheduler(
         prepare=waiter.prepare,
-        tick=activity_tick(tick),
+        tick=activity_tick(tick, idle_shutdown_of(settings, boundaries)),
         sleep=sleep,
         should_stop=should_stop,
         log=boundaries.log,

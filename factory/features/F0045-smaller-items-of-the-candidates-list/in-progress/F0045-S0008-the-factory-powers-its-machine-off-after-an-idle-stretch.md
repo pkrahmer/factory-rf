@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T23:43:46.410772Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-26T23:43:46.410772Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-26T23:51:07.392883Z'
+  stage: doing
+  run: 3d18427de9cd4aa9b7f7c278c0565a68
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -295,3 +297,24 @@ Expect: `-n /usr/bin/systemctl poweroff`
     `lint`: lint: green (0.2 s)
     `test`: ERROR tests/entry/test_wiring_idle_shutdown.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_idle_shutdown.py'.
 12. factory: started doing as vm.
+13. coder: I built the idle shutdown to the Interface. `make check` is green: 99.57 % coverage, `check: green`.
+
+    What I built:
+    - `src/factory/domain/settings.py`: `IDLE_SHUTDOWN_VARIABLE` and `InstanceSettings.idle_shutdown_minutes: NonNegativeInt = 0`. A new reader, `_idle_shutdown_minutes`, gives `0` when the variable is unset or blank, takes ASCII digits with `0` allowed, and refuses anything else with `is not a whole number of minutes`.
+    - `src/factory/domain/errors.py`: `PowerOffError(BoundaryError)`, whose text is `power off failed: <detail>`.
+    - `src/factory/application/machine.py`: the `PowerOff` interface.
+    - `src/factory/application/idle_shutdown.py` (new): `IdleShutdown`. An outcome counts as idle only when it has no stop, an `idle` event and the dispatch `handled`; any other outcome starts a new stretch.
+      - At the limit it writes the line `idle shutdown: idle for <n> minutes, powering the machine off`, calls `power_off` once and starts a new stretch.
+      - A `PowerOffError` becomes the line `idle shutdown: <error>; the factory runs on` and is not raised.
+    - `src/factory/adapters/power_off.py` (new): `SystemctlPowerOff`, which runs `[sudo, -n, /usr/bin/systemctl, poweroff]` through `factory.adapters.process`. Standard error is merged into the output so that `failure_detail` sees the last line of either stream. A timeout gives `no_end_detail`, and an `OSError` gives `cannot start <sudo>: …`.
+    - `src/factory/entry/wiring.py`: `idle_shutdown_of`, added to `__all__`.
+    - `src/factory/entry/run.py`: `activity_tick(tick, idle=None)` hands each outcome to `idle.observe` before it returns `activity(outcome)`. `run_instance` passes it `idle_shutdown_of(settings, boundaries)`.
+
+    Main choice: the settings reader is a separate small helper rather than a change to `_whole_number`. `_whole_number` refuses `0` and has a fault text of its own (`… of at least 1`), which its existing variables rely on. I rejected adding a `minimum` parameter to it: that would change a helper other settings share, just to save four lines.
+
+    The shared skill steps did not apply; I set none aside. The refactor pass changed only two docstrings, which I shortened to stay under the line limit. The work item's Description was left alone: journal 9 settled how the tests read it and changed nothing in its meaning.
+
+    Noticed but not touched: `make duplicates` reports 2 new findings. Both are the `ProcessRequest(argv=…, cwd=…, env=None, time_limit=…, merge_stderr=True)` block in `power_off.py`, which is similar to `zfs_snapshots._execute` and `podman_runs._query`. Each wrapper raises its own error type. A shared "run or raise" helper would mean restructuring the zfs and podman wrappers, which is beyond this story.
+
+    `check`: check: green
+    `duplicates`: duplicates: 2 new, 42 known, 0 gone

@@ -7,6 +7,7 @@ import sys
 import tempfile
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from datetime import timedelta
 from pathlib import Path
 
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
@@ -21,6 +22,7 @@ from factory.adapters.make_commands import ContainerMakeCommands
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.podman_runs import PodmanRuns
+from factory.adapters.power_off import SystemctlPowerOff
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.adapters.pygithub_hosting import pygithub_service
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
@@ -49,6 +51,7 @@ from factory.application.handlers.reject import RejectHandler
 from factory.application.handlers.run import RunHandler
 from factory.application.handlers.run_gate import RunGate
 from factory.application.hosting import HostingService
+from factory.application.idle_shutdown import IdleShutdown
 from factory.application.machine import Clock, FactoryLog, HealthStatusStore
 from factory.application.preflight import (
     MachineChecks,
@@ -106,6 +109,7 @@ __all__ = [
     "git_options",
     "handler_factory",
     "health_store",
+    "idle_shutdown_of",
     "machine_extras",
     "machine_log",
     "production_environment",
@@ -484,4 +488,16 @@ def build_tick(
         instance,
         handler_factory(boundaries, instance, environment),
         preflight=build_preflight(boundaries, settings, which, extras),
+    )
+
+
+def idle_shutdown_of(settings: InstanceSettings, boundaries: Boundaries) -> IdleShutdown | None:
+    """Return the idle shutdown `settings` ask for, on `boundaries`; `None` when it is off."""
+    if settings.idle_shutdown_minutes == 0:
+        return None
+    return IdleShutdown(
+        timedelta(minutes=settings.idle_shutdown_minutes),
+        boundaries.clock,
+        SystemctlPowerOff(),
+        boundaries.log,
     )
