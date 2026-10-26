@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 470
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-26T22:14:21.682763Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-26T22:14:21.682763Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T22:14:40.586448Z'
+  stage: smoke-test
+  run: 264cef0704944804b34afebb338707c8
 ---
 
 # The agent files' folder and the image identity file are required settings
@@ -257,3 +259,23 @@ Expect: three lines: `FACTORY_CLAUDE_HOME: missing`; `FACTORY_IMAGE_ID_FILE: mis
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test passed: the one command printed the three expected lines, so there are no findings.
+
+    I ran the single command under `## Smoke test` from the repository root, exactly as written.
+
+    Command 1 (`uv run python -` with the heredoc that calls `read_settings` three times):
+    ```
+    Bytecode compiled 4164 files in 60ms
+    FACTORY_CLAUDE_HOME: missing
+    FACTORY_IMAGE_ID_FILE: missing
+    /srv/agents build-7
+    ```
+    Met its `Expect:` line. The three lines are exactly `FACTORY_CLAUDE_HOME: missing`, `FACTORY_IMAGE_ID_FILE: missing` and `/srv/agents build-7`. The first line of output is uv compiling bytecode, not the program's output.
+
+    Checked against the acceptance criteria:
+    - The first case sets `HOME=/home/x` but no `FACTORY_CLAUDE_HOME`. It is still refused as `missing`, so nothing falls back to `HOME` (criteria 1 and 4).
+    - The second case passes a reader but no `FACTORY_IMAGE_ID_FILE`. It is refused as `missing` (criterion 2).
+    - The third case gives `agent_home` from the variable and the image identity from the reader (criteria 1 and 2).
+    - The output contradicts no criterion. Criteria 3, 5, 6 and 7 are not covered by the smoke test: the tests cover 3 and 5 (journal 5 and 9), the factory's checks cover 6, and the documenter covered 7.
+
+    Findings: none.
