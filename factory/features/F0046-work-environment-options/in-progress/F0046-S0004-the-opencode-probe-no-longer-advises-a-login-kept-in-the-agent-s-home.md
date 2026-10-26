@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 463
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T16:59:26.507762Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-26T16:59:06.130427Z'
   stage: intake
   run: 922e6423ecfd46308d2238b8da5c8254
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-26T16:59:26.507762Z'
+  stage: tests
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -74,3 +83,4 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
    - Smoke test: runnable. The grep is expected to print 0 for both files. The pytest command passes no `-q` and `pyproject.toml` `addopts` already sets `-q`, so `tail -n 1` gives the `... passed in <s>s` line the Expect line names.
    - Architecture: the change stays in the application layer, in two private helpers. It adds no new tool and no new dependency.
    - Scope: it is within F0046 (S0004 is listed in feature.md). It touches only opencode texts, and the Claude Code texts are left alone as the Description says. Nothing in "Out of scope" is touched.
+4. factory: started tests as vm.
