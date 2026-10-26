@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 461
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T15:58:59.323803Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,13 @@ journal:
   kind: started
   at: '2026-10-26T15:58:59.323803Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: question
+  at: '2026-10-26T15:59:47.489230Z'
+  stage: tests
+  run: 30d92d476e554ddc807b61fb6ec0b861
+  blocked: question
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -85,3 +88,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: only `vm/` files change, which the coder's write paths allow. The layers are untouched.
    Scope: it matches the feature's S0003 and decision 8 (read after `factory.env`, optional with `-`). Nothing falls under "Out of scope".
 4. factory: started tests as vm.
+5. tester: Question on criteria 3 and 4 before I write any test. As written, they can't be run in a test, and I'd have to choose the method myself.
+
+   Both ask for "a run of the script that ends in `setup: done:`", done "in a temporary folder through `run_setup`". But `vm/setup.sh` hard-codes the instance folder as `base=/srv/factory/$instance`. It also refuses to run unless `id -u` says root, and its thirteen steps call apt-get, dpkg-query, zpool, zfs, useradd, loginctl, runuser, systemctl, visudo, install, git and uv. It writes under `/etc/sudoers.d`, `/etc/systemd/system` and `/home/factory`. `run_setup` only sets the working directory and `PATH`, so the run never reaches the steps unless it is root on a real machine. Even then, the file under test sits in `/srv/factory/<instance>`, outside `tmp_path`. No existing test runs the script past its root check (`tests/test_vm_setup.py`).
+
+   Options:
+   A. Run only the script's closing lines. Take the code from the `setup: done:` printf to the end of `setup_code()` and run it with `sh` in `tmp_path` with `instance=vm` and `instance=other`. This is how `tests/test_vm_setup_writes.py` already runs `function_text` pieces. Criterion 3 then checks that the `setup: local:` line follows the `setup: done:` line on stdout and names `/srv/factory/<instance>/factory.local.env`. For criterion 4, the tail runs with a `factory.local.env` in `tmp_path` (it stays byte-identical) and without one (none appears). Criterion 2's static rows remain the real check that no step touches the file.
+   B. Run the full script on a copy. A stand-in on `PATH` replaces each of the commands above, and `/srv/factory`, `/etc` and `/home/factory` are rewritten into `tmp_path`. This is a faithful run, but it means many stand-ins and a rewritten script. It is brittle, and the tests would pin the internals of every step.
+   C. Reword criteria 3 and 4 as static checks: the closing line's text in `setup_code()`, plus criterion 2. Drop the "run" wording.
+
+   I'd choose A: it runs the real closing text and stays inside `tmp_path`. In its criterion 4 the instance folder is `tmp_path` standing in for `/srv/factory/<instance>`.
+
+   Criteria 1 and 2 are clear, and I'll write them with the others once this is answered. No files were created in this stage.
