@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 459
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T11:46:23.882644Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-26T11:46:23.882644Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-26T11:46:43.571075Z'
+  stage: intake
+  run: cf99657d94064b7c9561084db41cf111
+  blocked: question
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -118,3 +121,14 @@ Expect: `refused`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-26 human: created.
 2. factory: started intake as vm.
+3. intake: Intake found gaps. The format check passed. Questions:
+
+   1. The Interface says of `base_url`: "a trailing `/` is kept as it is". No criterion tests this. Criterion 3 lists only `https://example.invalid/v1` and `http://example.invalid` as accepted, and criterion 4 uses a `base_url` without a trailing slash. Two coders could strip the slash or keep it, and both would pass. Proposal: add a criterion, or extend criterion 4, so that `https://example.invalid/v1/` gives `"baseURL": "https://example.invalid/v1/"` in `provider_configuration`, and `read_provider` accepts it.
+
+   2. The Interface says `provider_configuration` gives `"name"` for a model with a name, `"limit"` for one with `context` and `output`, and `"cost"` for one with prices. Criterion 4 tests only all three together, or none. A coder could add the groups wrongly when only one is present (for example `limit` emitted with null values, or `name` emitted as null) and still pass. Proposal: add a parametrized row per group alone (name only → `{"name": ..}`, limits only → `{"limit": ..}`, prices only → `{"cost": ..}`).
+
+   3. The pair rules say "given together or not at all". Criterion 3 tests only `input_cost` without `output_cost` and `context` without `output`. The reverse sides (`output_cost` without `input_cost`, `output` without `context`) have no row. Proposal: add both rows.
+
+   Everything else passes. The Interface names concrete modules and signatures. The architecture fits: domain model, adapter option, and wiring in entry. The scope is within the feature's S0001 and its Out of scope. The smoke test commands run with `uv run python` and use no pytest, so there is no `-q` problem. Each `Expect:` line is checkable.
+
+   I would choose to add all three, as written in the proposals.
