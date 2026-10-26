@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T14:54:56.883002Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T14:54:39.059706Z'
+  stage: tests
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-26T14:54:56.883002Z'
   stage: tests
 ---
 
@@ -313,3 +322,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The files I changed: `tests/entry/test_wiring_container_extra.py`.
 19. 2026-10-26 human: (a), with `write_agent_settings` from `tests/adapters/opencode_stand_in.py`. A wider leave for this one test, so it needs no further round: any other setup the opencode row needs, taken from the helpers the existing opencode tests already use, you may add without asking; the code stays, and the claude row stays as it is.
+20. factory: started tests as vm.
