@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T13:14:20.935502Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-26T13:14:20.935502Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-26T13:14:41.258954Z'
+  stage: doing
+  run: 050490246e1d44b5b7c3200c9422bbb9
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -258,3 +260,12 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     2. (b): the wiring test calls `opencode_request(tmp_path / "work", model="corp/m")`, so the provider's own model runs through the wiring. The rule that an unknown alias is an error stays.
     Both are the tester's changes: the tests stage runs again for them; the code stays as built.
 12. factory: started doing as vm.
+13. coder: The human's answer (entry 11) calls for two test changes and leaves the code as built, so I changed no code this round and hand back to the tester.
+
+    The two changes:
+    1. In `tests/domain/test_opencode_provider.py` (lines 18, 47, 48) and `tests/opencode_provider_support.py` (line 9), write the `api_key_env` values through constants (for example `KEY_ENV = "PROXY_KEY"`, and likewise for `"lower"` and `"1KEY"`). Then detect-secrets' keyword detector no longer matches, and `make secrets` is green with no pragma and no baseline entry.
+    2. In `tests/entry/test_wiring_opencode_provider.py::test_the_built_opencode_runtime_merges_the_provider_file`, call `opencode_request(tmp_path / "work", model="corp/m")`, so the provider's own model runs through the wiring.
+
+    Built, unchanged since the last round and committed in 0bb1b395: `src/factory/domain/opencode_provider.py`, `src/factory/domain/settings.py`, `src/factory/adapters/opencode_runtime.py`, `src/factory/entry/wiring.py`. Main choice (from entry 10): the runtime reads and validates the provider file at the start of every run, not once in `__init__`. I rejected the `__init__` read because a bad file would then make `build_boundaries` fail.
+
+    Still open: the refactor step, and a green `make check` once the tests are changed. Both fall to the next doing round. Noticed, not touched: nothing.
