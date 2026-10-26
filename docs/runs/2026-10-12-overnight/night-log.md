@@ -1249,3 +1249,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 19:04 UTC: F0045-S0001 at approval, PR #466: six checks met (write paths; earlier tests: the template helper moved into shipped_agents.py at the reviewer's finding, no assertion changed; check green; reviewer no findings, entry 19; both Expect met; no markers). 10 runs, $2.48, no question. Merged.
 - 19:06 UTC: F0045-S0001 archived; vm rebuilt (the new agent texts). Started F0045-S0002 (the reset drops the page cache). 92 % weekly.
 - 19:09 UTC: F0045-S0002 intake question on #467: 1 yes (text: >&2, exit 1); 2 yes (compare before writing, found/wrote); 3 covered; 4 yes (same time-limit detail).
+- 19:18 UTC: F0045-S0002 tester question on #467: 1 (a) the detail follows failure_detail; 2 and 3 agreed.
