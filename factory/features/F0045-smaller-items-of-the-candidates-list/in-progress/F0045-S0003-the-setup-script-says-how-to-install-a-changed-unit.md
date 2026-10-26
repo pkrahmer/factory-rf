@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-26T20:55:48.350898Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -161,6 +157,12 @@ journal:
   kind: started
   at: '2026-10-26T20:55:48.350898Z'
   stage: smoke-test
+- number: 28
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T20:56:13.250356Z'
+  stage: smoke-test
+  run: a9abc4f5cbc84ff7b34d16a94afa33e3
 ---
 
 # The setup script says how to install a changed unit
@@ -381,3 +383,30 @@ Expect: three lines: `syntax-ok`; `2`; `0`
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
 27. factory: started smoke-test as vm.
+28. smoke-tester: Smoke test run from the repository root as written. All three commands are in one `bash` block that has a single `Expect:` line, so I judged them together against that line.
+
+    1. `sh -n vm/setup.sh && echo syntax-ok`
+    ```text
+    syntax-ok
+    ```
+    2. `grep -c 'differs from the checkout; not installed; install it from your own copy of vm/' vm/setup.sh`
+    ```text
+    2
+    ```
+    3. `grep -c 'remove the installed file and run the script again' docs/operator-guide.md`
+    ```text
+    0
+    ```
+    (grep's exit status here is 1, because a count of 0 means nothing matched. The expectation calls for no matches, so this is not an error.)
+
+    Expect: three lines, `syntax-ok`, `2`, `0`. **Met.**
+
+    Check against the acceptance criteria: the smoke test contradicts none of them. I also checked the following without changing anything:
+    - `vm/setup.sh:348` (tools) and `vm/setup.sh:392` (service) hold the two Interface lines word for word, each sent to `>&2`, and no other line holds `differs from the checkout`.
+    - In `docs/operator-guide.md`, *The two passes* quotes both lines, gives the reason (root installs nothing from a checkout `factory` can write; the operator's own copy is the trusted text) and gives both `sudo install` commands.
+    - *The rebuild after a merge* copies all three files with the `gcloud compute scp` command from the Interface. Its last paragraph says to install a changed `vm/factory.service` or `vm/git-credential-factory` from the operator's own copy before running the script.
+    - `docs/decisions.md:1149` has the closing line the docs criterion asks for.
+
+    I did not re-run `make check` (criterion 4) or the tests named in criteria 1 to 3. The smoke test does not include them, and the factory runs the checks itself.
+
+    Findings: none.
