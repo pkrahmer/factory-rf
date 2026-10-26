@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T23:09:52.193951Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-26T23:09:52.193951Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T23:10:36.311482Z'
+  stage: review
+  run: 79f426aa01494da8b617162166852fe9
 ---
 
 # The process result no longer says that its output was abandoned
@@ -154,3 +156,16 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
    `check`: check: green
    `duplicates`: duplicates: 0 new, 42 known, 1 gone
 8. factory: started review as vm.
+9. reviewer: 1. tests/adapters/test_process_result_fields.py:37-44 (`holder_file`): the fixture is a second copy of `holder_file` in tests/adapters/test_process_drain.py:71-78. Only the docstring wording differs; the body is the same (pid file under `tmp_path`, SIGKILL of a holder still running, `ProcessLookupError` suppressed). Fix: under the standing leave to move a shared test helper, the tester moves the fixture to tests/conftest.py and has both modules use it from there. Every test in test_process_drain.py keeps its name and what it checks.
+
+   The rest of the review found no other gaps:
+   - Criterion 1 is pinned by `test_the_result_has_no_output_abandoned_field`. It checks the field order and the `ValidationError` through a variable typed `type[BaseModel]`.
+   - Criterion 2 is pinned by `test_the_call_reads_for_the_drain_after_the_child_ended`. Its three rows are run_process held, run_streaming held, and closed with exit status 3. `PIPE_DRAIN` is set to 1 s with monkeypatch, and each row is bounded by at least the drain and by `ROOMY_BOUND_SECONDS`.
+   - Criterion 3 is pinned by `test_no_module_holds_the_name_of_the_removed_field`.
+   - The coder's `make check` was green (journal entry 7).
+   - src/factory/adapters/process.py drops the field and keeps the bounded read after the kill, now as a plain statement. The private `_ReadOutcome` value `"abandoned"` stays, and `_read_to_exit` still uses it to tell the drain's end apart from closed pipes.
+   - The docstrings match the Interface. The architecture and security checks found nothing.
+   - No other module under src or tests names the field.
+
+   Earlier tests:
+   - tests/adapters/test_process_drain.py: changed under the human's leave, decision 27 of feature.md. The seven named tests lost their `output_abandoned` assertion and kept their names. Two lost the `abandoned` parametrize column, which fed only that assertion; their row ids and other values are unchanged. `test_drain_is_five_seconds_and_output_is_not_abandoned_by_default` also lost the `ProcessResult` construction, which existed only for the removed assertion. All of this is within the leave.
