@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T22:48:59.284501Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-26T22:48:59.284501Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T22:49:34.490320Z'
+  stage: review
+  run: 5095da23abbc4426a0222bf3b6c941c8
 ---
 
 # The settings model refuses what the reading refuses
@@ -298,3 +300,46 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 16. factory: started review as vm.
+17. reviewer: Round 1 review. I read `git diff main...HEAD -- . ':!factory'` against the work item: `src/factory/domain/settings.py`, the new `tests/domain/test_settings_model_rules.py`, `tests/settings_support.py` and 20 earlier test modules.
+
+    no findings
+
+    - Group 1 (acceptance criteria) passes:
+      - Criteria 1 to 4 each have one parametrized test, and its rows match the criterion exactly.
+      - Criterion 1: missing, relative and absolute `agent_home`, built through `type[BaseModel]`.
+      - Criterion 2: the accepted lists are kept in order. The refused names are reserved (`HOME`, `ANTHROPIC_API_KEY`), prefixed (`FACTORY_X`), not names (`1A`, `A-B`) or repeated (`A,A`), each with its text.
+      - Criterion 3: the reading's `SettingsInvalid`, its variable and its exact fault text.
+      - Criterion 4: the constant and the `/home/agent` string.
+      - The factory's `make check` after the coder was green (entry 15).
+    - Group 2 (architecture) passes. The rule is written once, in the pure domain function `container_env_fault`, which returns the fault text. The model's validator wraps it in `ValueError`; `read_settings` raises `SettingsInvalid(FACTORY_CONTAINER_ENV, …)` before the model is built. This follows the existing `workspace_overlap_fault`. The order of the checks and the skipping of blank parts are unchanged from the old `_container_env`.
+    - Group 3 (security) passes: no markers added and no new baseline entry.
+    - Group 4 (quality) passes:
+      - `agent_home` now goes through `_absolute`.
+      - `AGENT_HOME_DEFAULT` and the old `_check_container_name` are gone, and nothing dead is left.
+      - The new comment says why, and `container_env_fault` has its docstring.
+    - Group 5 (work item hygiene) passes. The journal gives the main choice and the option the coder rejected. The Description matches what was built. On the docs criterion: tester entry 13 names all three constants for the *Shared test helpers* line (`AGENT_HOME`, `NOT_A_NAME`, `SET_BY_FACTORY`), while criterion 6 still says "the constant the tester added". I don't count that as a finding, because entry 13 tells the documenter.
+    - Round 0 finding 1 (the copied constants) is settled. `NOT_A_NAME` and `SET_BY_FACTORY` now live once in `tests/settings_support.py`, and both modules import them from there.
+
+    Earlier tests changed (status M):
+    - `tests/settings_support.py`: the story's leave (decision 26) for the shared `AGENT_HOME`, and `BASE` keeps the same value. Plus the standing leave to move a shared test helper for `NOT_A_NAME` and `SET_BY_FACTORY`.
+    - `tests/domain/test_settings_container_env.py`: the standing leave to move a shared test helper (its private `_NOT_A_NAME` and `_SET_BY_FACTORY` are now imported from `settings_support`, with the same texts and names), and decision 26 (adds `agent_home`).
+    - `tests/conftest.py` (`disk_settings`): decision 26, adds `agent_home`.
+    - `tests/application/test_tick_stop_records.py`: decision 26. Its `agent_home` is the existing `tmp_path` fixture, where the test reads its agent files.
+    - These modules only add `agent_home=AGENT_HOME` to their settings, under decision 26:
+      - `tests/adapters/test_agent_launch_extra.py`
+      - `tests/application/test_checkout_preparer_seal.py`
+      - `tests/application/test_container_environment_extra.py`
+      - `tests/application/test_cost_image.py`
+      - `tests/application/test_opencode_item.py`
+      - `tests/application/test_opencode_item_container.py`
+      - `tests/application/test_patient_runs.py`
+      - `tests/application/test_repository_waiter.py`
+      - `tests/application/test_scheduler.py`
+      - `tests/application/test_tick_disk.py`
+      - `tests/domain/test_container_extra_environment.py`
+      - `tests/domain/test_settings.py`
+      - `tests/domain/test_settings_min_free.py`
+      - `tests/domain/test_settings_one_environment.py`
+      - `tests/domain/test_settings_opencode_provider.py`
+      - `tests/domain/test_settings_paths.py` (`REQUIRED`)
+      - `tests/domain/test_settings_stage_environment.py`
