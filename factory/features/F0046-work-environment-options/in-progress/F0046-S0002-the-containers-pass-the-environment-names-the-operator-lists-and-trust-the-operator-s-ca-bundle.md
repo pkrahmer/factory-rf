@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T15:41:50.333289Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -223,6 +219,12 @@ journal:
   kind: started
   at: '2026-10-26T15:41:50.333289Z'
   stage: doing
+- number: 39
+  speaker: coder
+  kind: result
+  at: '2026-10-26T15:47:58.307546Z'
+  stage: doing
+  run: 4d872bd7849245ab9194e28755cf658c
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -615,3 +617,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (161.0 s)
 38. factory: started doing as vm.
+39. coder: Round 2, after the tester's criterion 9 row (entry 37). I made no code change: the working tree was clean, and `_container_env` in `src/factory/domain/settings.py` already strips each part, so the new row `spaces-around-names` passes against the committed code.
+
+    `make check`: my first run stopped in `make types` with a segmentation fault (`make: *** [Makefile:38: types] Error 139`). The output had no mypy error, only the crash. I ran it again, unchanged, and it was green: `check: green`, `test: green (161.4 s)`, coverage 99.56 %. This is the second Error 139 crash in this story, after the one the tester saw in `make test` in entry 21. Both look like crashes of the interpreter or tool on this machine, not failures in the code.
+
+    What I built (paths, unchanged since entries 27 and 31): `src/factory/domain/settings.py`, `src/factory/domain/containers.py`, `src/factory/adapters/agent_launch.py`, `src/factory/adapters/claude_runtime.py`, `src/factory/adapters/opencode_runtime.py`, `src/factory/adapters/make_commands.py`, `src/factory/application/stage_environment.py`, `src/factory/application/boundaries.py`, `src/factory/entry/wiring.py`.
+
+    Main choice (unchanged): in all three containers the operator's extras sit beneath the factory's own names: `{**extras, **run_environment(...)}` for the agent, and `{**extra, **SYNC_ENVIRONMENT}` and `{**extra, **CHECK_ENVIRONMENT}` for the sync and check containers. The extras reach `stage_environment_of` on `Boundaries.container_extra_environment`. I rejected the Interface's literal "runtime part" placement, because with it a listed `PATH` would replace the request's own. I also rejected computing the extras again inside `stage_environment_of`, because that would read the host's environment in the application layer.
+
+    Refactor pass: there is no new diff this round, so nothing to change.
+
+    What the journal changed in the Description, which I could not rewrite because the work item is outside my write paths:
+    - The Interface's `agent_launch` sentence should say the extras go beneath `run_environment`'s result, not into its runtime part.
+    - Entry 9's constructor keywords (`extra_environment`, `ca_bundle`) are missing.
+    - The first smoke test should have `repository_url` and `instance` added, as entry 9 says.
+
+    Noticed, not touched:
+    - The Interface names `tests/adapters/test_make_commands_extra.py`, but the check rows are in `tests/application/test_container_environment_extra.py`.
+    - The reviewer's notes from entry 33 are open. They are tester work under the standing leave: `_recording` and `_calls` copied in `tests/entry/test_wiring_container_extra.py`; `CA_NAMES` repeating `CA_BUNDLE_NAMES`; and the import of `REPLY` from a test module in `tests/container_extra_support.py`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
