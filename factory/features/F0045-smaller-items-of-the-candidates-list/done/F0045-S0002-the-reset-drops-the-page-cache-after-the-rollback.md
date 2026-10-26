@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -197,6 +197,11 @@ journal:
   at: '2026-10-26T20:08:24.116963Z'
   stage: smoke-test
   run: 81616d34d63144f380dbdb73c9fc2789
+- number: 35
+  speaker: factory
+  kind: done
+  at: '2026-10-26T20:09:13.602347Z'
+  stage: approval
 ---
 
 # The reset drops the page cache after the rollback
@@ -600,3 +605,4 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
     I also looked at the step `caches` in `vm/setup.sh` (lines 255–274) and at the docs the `docs:` criterion names: `docs/operator-guide.md` step 8 and the page-cache paragraphs, the `docs/decisions.md` entry "The reset drops the page cache after the rollback", and the diff touching `docs/project-guide/stage-environment.md`. I saw nothing there that the smoke test contradicts. I did not run `make check`; the factory's checks cover criterion 12.
 
     Findings: none.
+35. factory: done (pull request merged); cost: 15 runs, 35.0 min, 137 turns, 500376 tokens in (3658207 more from cache), 69288 out, $5.57
