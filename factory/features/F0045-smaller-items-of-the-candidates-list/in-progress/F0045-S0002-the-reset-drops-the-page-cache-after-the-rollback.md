@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T19:10:30.477630Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-26T19:10:09.936118Z'
   stage: intake
   run: 38f29d502f9e4719b5399469d70af190
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:10:30.477630Z'
+  stage: tests
 ---
 
 # The reset drops the page cache after the rollback
@@ -155,3 +164,4 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
    - Smoke test: runnable. There is no pytest, and the `Expect:` line lists four checkable lines.
    - Architecture: the adapter holds the command, the wiring is the one place that builds `ZfsSnapshots`, and the script is the machine's side. The layers hold.
    - Scope: decisions 15 and 16 of `feature.md` (no content check). The leave for the earlier tests is decision 22.
+7. factory: started tests as vm.
