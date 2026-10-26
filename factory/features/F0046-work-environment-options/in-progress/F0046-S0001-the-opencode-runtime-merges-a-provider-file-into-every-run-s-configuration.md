@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775, 6417568826]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T13:56:18.262154Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-10-26T13:56:18.262154Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-10-26T13:56:37.786572Z'
+  stage: doing
+  run: f58b5bc916bb4a81ad913af03f67c151
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -401,3 +403,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The Description, the Interface and the docs criterion still match what was built.
 23. factory: started doing as vm.
+24. coder: The reviewer's entry 22 added criteria 9 and 10. Each needs only its test, so I changed no code this round and am handing the work item to the tester.
+
+    - **Criterion 9:** add two refused rows to `tests/domain/test_opencode_provider.py::test_the_provider_file_is_accepted_only_when_it_keeps_every_rule`. One is `output` of `0` with `context=1`; the other is `output_cost` of `-0.01` with `input_cost=1.0`. Each row gives its pair, so only the bound is under test. The rows `context-one` and `cost-zero` already cover the accepted sides.
+    - **Criterion 10:** in the same test, every refused row except `not-an-object` matches on the name of the field at fault: `id`, `models`, `base_url`, `api_key_env`, `small_model`, `input_cost`, `output_cost`, `context`, `output`, or the unknown key. Today these rows only check `match=r"."`. The reviewer found that the messages as built already hold those names (for example `models.m.context: ...`), so nothing under `src/` should need to change.
+
+    Built, unchanged since 0bb1b395:
+    - `src/factory/domain/opencode_provider.py`
+    - `src/factory/domain/settings.py`
+    - `src/factory/adapters/opencode_runtime.py`
+    - `src/factory/entry/wiring.py`
+
+    Main choice (from entry 10): the provider file is read and validated at the start of every run. I rejected reading it once in `__init__`, because a bad file would then make `build_boundaries` fail.
+
+    The journal changes nothing in the task's meaning. The new criteria are already in the Description's list. Noticed, not touched: nothing.
