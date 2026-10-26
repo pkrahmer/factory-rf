@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-26T15:48:20.341244Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -225,6 +229,11 @@ journal:
   at: '2026-10-26T15:47:58.307546Z'
   stage: doing
   run: 4d872bd7849245ab9194e28755cf658c
+- number: 40
+  speaker: factory
+  kind: started
+  at: '2026-10-26T15:48:20.341244Z'
+  stage: review
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -638,3 +647,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
+40. factory: started review as vm.
