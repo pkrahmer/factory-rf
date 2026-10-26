@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 460
-comments_read: [6418348227, 6418462516]
+comments_read: [6418348227, 6418462516, 6418969803]
 handed_over: null
 claim: null
 journal:
@@ -82,6 +82,11 @@ journal:
   stage: doing
   run: cc543d01425d4651bae6e41d0db5e8b5
   blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-10-26T14:47:54.472451Z'
+  stage: doing
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -243,3 +248,5 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Main choice: `stage_environment_of(boundaries)` is what the stages and the criterion 7 test call. It builds the container environment from the boundaries, so the extras computed once in wiring have to travel there. I put them on `Boundaries` as `container_extra_environment`, and took the bundle from `boundaries.settings.ca_bundle`. I rejected computing `extra_environment(settings, os.environ)` inside `stage_environment_of`: that reads the host environment in the application layer and computes the extras a second time.
 
     Noticed, not touched: the tester's note in entry 11 that `tests/adapters/test_make_commands_extra.py` was folded into `tests/application/test_container_environment_extra.py`. The refactor pass is not done yet, because `make check` is not green. My own read of the diff found nothing to change so far.
+14. 2026-10-26 human: 1. (a): the tester adds `opencode_models={"sonnet": "anthropic/claude-sonnet"}` to that test's `InstanceSettings`; the claude row stays.
+    2. (a): `main` now holds `"src/factory/adapters/make_commands.py" = ["PLR0913"]` in `pyproject.toml` (the human's change); it reaches this branch through the merge of `origin/main` at the next stage. No noqa in the source.
