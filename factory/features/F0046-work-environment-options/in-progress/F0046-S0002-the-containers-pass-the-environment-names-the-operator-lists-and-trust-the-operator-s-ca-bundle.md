@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T14:48:12.590472Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T14:47:54.472451Z'
+  stage: doing
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-26T14:48:12.590472Z'
   stage: doing
 ---
 
@@ -250,3 +259,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Noticed, not touched: the tester's note in entry 11 that `tests/adapters/test_make_commands_extra.py` was folded into `tests/application/test_container_environment_extra.py`. The refactor pass is not done yet, because `make check` is not green. My own read of the diff found nothing to change so far.
 14. 2026-10-26 human: 1. (a): the tester adds `opencode_models={"sonnet": "anthropic/claude-sonnet"}` to that test's `InstanceSettings`; the claude row stays.
     2. (a): `main` now holds `"src/factory/adapters/make_commands.py" = ["PLR0913"]` in `pyproject.toml` (the human's change); it reaches this branch through the merge of `origin/main` at the next stage. No noqa in the source.
+15. factory: started doing as vm.
