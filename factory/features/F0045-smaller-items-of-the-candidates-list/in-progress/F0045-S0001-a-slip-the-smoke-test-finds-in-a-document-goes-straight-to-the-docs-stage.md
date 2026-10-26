@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T18:39:44.829088Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-26T18:39:44.829088Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-26T18:45:37.879731Z'
+  stage: doing
+  run: 67248bcef93b4a84991f9cd37b9c26cf
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -144,3 +146,19 @@ Expect: two lines: `7`; `1`
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/domain/test_decide_docs_slip.py::test_the_smoke_test_sends_a_slip_in_a_document_to_docs_as_a_rework[docs-past-the-cap] - ValueError: decision 'docs' is not allowed at stage 'smoke-test'
 6. factory: started doing as vm.
+7. coder: Text and configuration changes only. No module under `src/factory/` changed. `make check` is green and the new tests pass.
+
+   What I built:
+   - `template/factory/pipeline.yml`: the smoke test's line now reads `next: [approval, doing, docs]`. The round cap stays at 3.
+   - `claude/agents/*.md` (all seven): in the R12 line, `smoke-test → doing,` became `smoke-test → doing, smoke-test → docs,`. Nothing else in the line changed.
+   - `claude/agents/smoke-tester.md`, `## Stage`: the old step 5 is replaced by the Interface's steps 5 (`docs` for slips in a document) and 6 (`doing` for any other findings), word for word. No steps followed the old step 5, so none needed renumbering.
+   - `claude/agents/documenter.md`, `## Stage`: the Interface's sentence is added at the end of step 1, word for word.
+
+   Main choice: I made exact-text replacements of the Interface's wording, each asserted to match once. The R12 replacement was asserted in each of the seven agents. I rejected rewording the surrounding steps, for example folding the documenter's sentence into the "round greater than 0" sentence. The Interface and the tests pin the text word for word, and the description says nothing else changes.
+
+   Refactor: I read the diff and nothing needed changing.
+
+   Noticed, not touched: the documenter's step 3 still says the factory runs `make check` after it. That remains true on a `docs` round from the smoke test, so I left it.
+
+   `check`: check: green
+   `duplicates`: Bytecode compiled 4164 files in 55ms
