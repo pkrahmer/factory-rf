@@ -1,9 +1,13 @@
-"""The environment with the two required settings, shared by the tests that read settings."""
+"""The environment with the three required settings, shared by the tests that read settings."""
 
 from collections.abc import Callable
 from pathlib import Path
 
-BASE = {"FACTORY_REPOSITORY_URL": "/srv/project.git", "FACTORY_INSTANCE": "factory-1"}
+BASE = {
+    "FACTORY_REPOSITORY_URL": "/srv/project.git",
+    "FACTORY_INSTANCE": "factory-1",
+    "FACTORY_CLAUDE_HOME": "/srv/factory/factory-1/factory/claude",
+}
 
 
 def raising(error: OSError) -> Callable[[Path], str]:

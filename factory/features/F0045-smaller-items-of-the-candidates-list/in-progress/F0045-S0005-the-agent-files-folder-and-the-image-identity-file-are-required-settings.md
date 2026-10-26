@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 470
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-26T21:52:58.336386Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-26T21:52:58.342285Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-26T21:53:29.391611Z'
+  stage: intake
+  run: a81b79acc40b428c83597fb4dff35450
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-26T21:53:49.612515Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-26T22:05:27.700588Z'
+  stage: tests
+  run: 8a102ca455d64488ba5393d29bb3c4ac
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:05:49.339775Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-26T22:11:54.377715Z'
+  stage: doing
+  run: eb6f0bdbf6fa41c0ba5ee2c896c43c2a
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:12:15.058196Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T22:12:57.735272Z'
+  stage: review
+  run: 83e599e72dde45ae9b256bc257ad7c83
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:13:18.552799Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T22:14:01.205521Z'
+  stage: docs
+  run: 8dd84647a14e425e94f62c32c2e1abb4
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:14:21.682763Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T22:14:40.586448Z'
+  stage: smoke-test
+  run: 264cef0704944804b34afebb338707c8
+---
+
 # The agent files' folder and the image identity file are required settings
 
 ## Description
@@ -52,3 +136,146 @@ EOF
 Expect: three lines: `FACTORY_CLAUDE_HOME: missing`; `FACTORY_IMAGE_ID_FILE: missing`; `/srv/agents build-7`
 
 ## Journal
+
+1. 2026-10-26 human: created.
+2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: concrete. It names `factory.domain.settings`, `read_settings(environ, read_file=None)`, the exact `SettingsInvalid(variable, fault)` texts, and the removal of `IMAGE_ID_FILE`. `AGENT_HOME_VARIABLE`, `IMAGE_ID_FILE_VARIABLE` and `_NOT_ABSOLUTE` already exist in `src/factory/domain/settings.py`. The tests to change are named, and decision 25 of `feature.md` gives the leave for them.
+   - Criteria: each is one parametrized test with explicit rows. Every rule has both sides. Missing, empty and blank are covered, as is a relative path against an absolute one. For the image file, the reader is asked nothing on a refusal and asked exactly one path on success. Without a reader the variable is not read. The old defaults are gone (criterion 4). `main` returns 2 with the log line, and returns 0 when both settings are set (criterion 5). `make check` and `docs:` are last.
+   - Smoke test: runnable with `uv run python -`. The three `Expect:` lines are checkable. With no `FACTORY_CLAUDE_HOME`, the first case prints `FACTORY_CLAUDE_HOME: missing`. With the home set, a reader and no image file, the second prints `FACTORY_IMAGE_ID_FILE: missing`. With both set, the third prints `/srv/agents build-7`. It runs no pytest, so the `-q` rule does not apply.
+   - Architecture: the rules live in `domain.settings`, which does no I/O, because the reader is injected. `entry.run` only reports the stop, so the layers hold.
+   - Scope: this is S0005 of F0045 (decision 14). `InstanceSettings.agent_home` is left to S0006, as the story says. Nothing in "Out of scope" is touched. The leave for the earlier tests is decision 25.
+4. factory: started tests as vm.
+5. tester: Wrote the tests for criteria 1 to 5. I also changed the earlier tests the Interface names, under the leave of decision 25 of `feature.md`. Every earlier test kept its name.
+
+   - criterion 1: tests/domain/test_settings_required_paths.py::test_the_agent_files_folder_is_a_required_absolute_path (9 rows: unset, empty and blank, each with and without HOME, raise `missing`; `srv/agents` raises `is not an absolute path`; `/srv/agents` is accepted with and without HOME)
+   - criterion 2: tests/domain/test_settings_required_paths.py::test_with_a_reader_the_image_identity_file_is_a_required_absolute_path (the reader records each path; a refusal leaves it asked nothing, the success asks exactly `[Path("/srv/factory/vm/image-id")]`)
+   - criterion 3: tests/domain/test_settings_required_paths.py::test_without_a_reader_the_image_identity_file_is_not_read
+   - criterion 4: tests/domain/test_settings_required_paths.py::test_the_old_defaults_of_the_two_paths_are_gone (rows: no `IMAGE_ID_FILE` attribute; no string literal under src/factory contains `/opt/factory/image-id`, searched with `tests/source_search.py`; `agent_home` is not `/home/ann/.claude`)
+   - criterion 5: tests/entry/test_run_required_paths.py::test_a_missing_path_setting_is_the_stop_of_invalid_settings (it uses the conftest `environment` fixture, with the state directory under tmp_path)
+   - criteria 6 and 7: not tests (make check; docs).
+
+   Files created: tests/domain/test_settings_required_paths.py, tests/entry/test_run_required_paths.py.
+
+   Earlier test files changed under the leave:
+   - tests/settings_support.py: `BASE` gains `FACTORY_CLAUDE_HOME=/srv/factory/factory-1/factory/claude`; the docstring says three required settings.
+   - tests/domain/test_settings.py: changed as the Interface names.
+     - The two-required-variables test also checks `agent_home`.
+     - The missing/blank test gains `FACTORY_CLAUDE_HOME`.
+     - The image-file test loses its default row.
+     - The refused-image-file and image-label tests set `FACTORY_IMAGE_ID_FILE` to `OTHER_IMAGE_PATH`, and their readers answer for it.
+     - `DEFAULT_IMAGE_PATH` is removed.
+   - tests/domain/test_settings_boundaries.py: the HOME and `/home/agent/.claude` fallback rows are removed.
+   - tests/domain/test_settings_url_edges.py: the rows `image-unreadable` and `image-empty` now use `/srv/factory/factory-1/image-id`.
+   - tests/conftest.py: the fixtures `environment` (which now also takes the `agent_home` fixture) and `hosted_environment` gain `FACTORY_CLAUDE_HOME=<tmp_path>/agent-home`. Neither creates the folder, as before, when the default path did not exist either.
+   - tests/application/test_boundaries_settings.py and tests/domain/test_default_git_identity.py: both use `BASE` from settings_support instead of their own copy of the two-variable dict.
+   - tests/entry/test_watch_settings.py: the fixture `valid_environment` sets `FACTORY_CLAUDE_HOME`.
+   - tests/entry/test_wiring_boundaries.py::test_git_options_carry_the_settings_identity_and_the_git_environment: its environment gains `FACTORY_CLAUDE_HOME`.
+   - Settings modules that build CONTAINER environments: no change needed, because they all build on `BASE`.
+   - Other environments (test_run_state_variable, test_wiring_run, test_run): no change needed, because they come from the conftest fixtures.
+
+   The test run: every module imported, so there was no collection error. The new tests fail for the right reason: DID NOT RAISE SettingsInvalid, `IMAGE_ID_FILE` still present, the old path still in src, and `main` returning 0 without FACTORY_CLAUDE_HOME. The criterion-5 row without FACTORY_IMAGE_ID_FILE already passes: today's default `/opt/factory/image-id` does not exist on this machine, so the read is refused under that variable anyway. Through a pipe mistake I ran `make test` twice instead of once; both runs were the same suite with no changes in between. `make lint` is green.
+
+   Open: none.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/entry/test_run_required_paths.py::test_a_missing_path_setting_is_the_stop_of_invalid_settings[agent-home] - assert 0 == 2
+6. factory: started doing as vm.
+7. coder: Made `FACTORY_CLAUDE_HOME` required, and `FACTORY_IMAGE_ID_FILE` required when a reader is given. Both must also be absolute paths. `make check` is green and the smoke test prints the three expected lines.
+
+   - What I built: everything is in `src/factory/domain/settings.py`.
+     - The constant `IMAGE_ID_FILE` (`/opt/factory/image-id`) is gone, and so is `_HOME_VARIABLE`. Nothing reads `HOME` any more.
+     - There is one new private helper, `_required_absolute_path(environ, variable)`. It reuses the existing `_required`, which raises `missing` for an unset, empty or blank value. It raises `is not an absolute path` for a relative one.
+     - `_agent_home` and `_image` both call this helper. `_image` calls it before `read_file`, so a refused variable means the reader is never asked. Without a reader, `_image` is not called and the variable is not read, as before.
+     - `factory.entry.run` is unchanged. A refused variable takes the existing path for invalid settings.
+   - Main choice: one shared helper for the "required and absolute" rule, built on `_required`. I rejected the alternative of making `_optional_absolute_path` check for a missing value too: it would need a flag or a second return branch, and its optional callers would get a slightly different contract.
+   - Refactor: I read the diff and changed nothing more. The `is_absolute` check in the new helper is two lines that are similar to `_optional_absolute_path`. Reusing that function would mean narrowing a `Path | None` that can never be `None`, so I left it as it is.
+   - Noticed, not touched:
+     - `AGENT_HOME_DEFAULT` (`/home/agent/.claude`) stays as the default of the `InstanceSettings.agent_home` field. The story leaves that to S0006.
+     - The docs criterion (operator guide, `watching.md`, `decisions.md`) is the documenter's.
+   - Journal: no entry changed the meaning of the task, so the Description is unchanged.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 43 known, 0 gone
+8. factory: started review as vm.
+9. reviewer: no findings
+
+   Read the diff of `src/factory/domain/settings.py` and the 11 test files against criteria 1 to 7 and the Interface.
+   - Code: `_agent_home` and `_image` both go through `_required_absolute_path`. It builds on `_required`, so unset, empty and blank all give `missing`, and a relative path gives `is not an absolute path`.
+   - `_image` checks the variable before it calls `read_file`, and without a reader the variable is never read.
+   - `IMAGE_ID_FILE` and `_HOME_VARIABLE` are gone. `AGENT_HOME_DEFAULT` stays only as the default of the `InstanceSettings.agent_home` field, which the Description leaves to S0006.
+   - `read_settings` has one caller under `src` (`entry/wiring.py:200`, with a reader), so `factory-run` and `factory-watch` both get the new rules. `entry.run` is unchanged.
+
+   Criteria and their tests:
+   - Criteria 1 to 4: `tests/domain/test_settings_required_paths.py`, one parametrized test each. The rows match the criteria, the refused and accepted sides included: the 9 agent-home rows, the recording reader asked `[]` on every refusal and exactly one path on success, the three rows without a reader, and the three "gone" rows.
+   - Criterion 5: `tests/entry/test_run_required_paths.py`, with rows for both missing variables (status 2, the log line, the runner not run) and the row with both set (status 0, the runner run once).
+   - Criterion 6: the coder's `make check` was green (journal 7).
+   - Criterion 7: for the documenter.
+
+   The Interface states no other limit. The architecture holds: the rule is in the domain and the reader is injected. No suppression markers and no secrets. The Description, the Interface and the docs criterion match what was built.
+
+   Rejected as a finding: the near-duplicate `is_absolute` check in `_required_absolute_path` next to `_optional_absolute_path`. Reusing the optional helper would mean narrowing a `Path | None` that is never `None`, and `make duplicates` reports 0 new.
+
+   Earlier tests changed (status M):
+   - tests/settings_support.py: decision 25 of `feature.md` (named in the Interface).
+   - tests/conftest.py: decision 25 (`hosted_environment` is named in the Interface; `environment` falls under its "every other earlier test" rule). Both fixtures only gain `FACTORY_CLAUDE_HOME`.
+   - tests/domain/test_settings.py: decision 25 (named in the Interface; the changes match it, and every name is kept).
+   - tests/domain/test_settings_boundaries.py: decision 25 (named in the Interface; only the fallback rows went, and the name is kept).
+   - tests/domain/test_settings_url_edges.py: decision 25 (named in the Interface; the two image rows changed as stated).
+   - tests/application/test_boundaries_settings.py: decision 25 (its environment gains the variable through the shared `BASE`, the assertions unchanged).
+   - tests/domain/test_default_git_identity.py: the standing leave to move a shared test helper (its local copy of `BASE` is replaced by `settings_support.BASE`), and decision 25.
+   - tests/entry/test_watch_settings.py: decision 25 (the fixture `valid_environment` gains the variable).
+   - tests/entry/test_wiring_boundaries.py: decision 25 (one environment gains the variable).
+10. factory: started docs as vm.
+11. documenter: Documented that `FACTORY_CLAUDE_HOME` and `FACTORY_IMAGE_ID_FILE` are now required, absolute settings. The code matches the Interface and the criteria, so there are no findings for the coder. I changed only documents, so I did not run `make check` (the factory's checks decide). I did not run the smoke test.
+
+    Files changed:
+    - `docs/operator-guide.md`, `## Configuration`:
+      - The `FACTORY_IMAGE_ID_FILE` row now says required for `factory-run` and `factory-watch`, absolute, with no default. It names `/srv/factory/<instance>/image-id`, which `vm/setup.sh` writes, and the refusals `missing` and `is not an absolute path`.
+      - The `FACTORY_CLAUDE_HOME` row now says required and absolute, with no default and no `HOME` fallback. It names `/srv/factory/<instance>/factory/claude` and the same two refusals.
+      - Neither row names `/opt/factory/image-id` or `/home/agent/.claude` any more.
+    - `docs/operator-guide.md`, `## Looking at the remote: factory-watch`: it needs the same two path settings, so run it with the service's environment file, which `vm/setup.sh` writes.
+    - `docs/project-guide/watching.md`, the `InstanceSettings` fields paragraph: states the two required settings and what `read_settings` refuses. It also says the `agent_home` field still has its default (`AGENT_HOME_DEFAULT`) until S0006. The criterion said the settings have no defaults, but the model keeps the field default in this story, so I wrote it that way.
+    - `docs/decisions.md`, the entry "The image identity is read from a file the image build generates": added the closing line the criterion gave. I left its earlier "Open:" sentence in place; the new line closes it.
+
+    Cross-read and found current:
+    - `docs/operator-guide.md`:
+      - the settings paragraph under the table, which says a required variable that is missing, empty or blank is refused;
+      - the image identity paragraph;
+      - the image build and cost-record paragraphs;
+      - the `vm/setup.sh` environment file table;
+      - the preflight `agents` item and its paragraph on which variables to check;
+      - `## The agent files`.
+    - `vm/setup.sh` writes both variables (lines 369–370), as the guide says.
+    - `README.md`: no mention, and the criterion says none.
+
+    Stale text I saw and did not touch (history, not this story's):
+    - `docs/decisions.md` line 285, about F0010-S0006, says the build writes the uuid to `/opt/factory/image-id`. That is the build's own path in v1.1's image, so I did not change it.
+    - `docs/decisions.md` line 440 and line 532 name `/home/agent/.claude` and `/home/agent/.claude-token` as v1.1 image paths.
+    - `docs/decisions.md` line 1146 says the operator renews `FACTORY_IMAGE_ID_FILE`, which is still true.
+    - `docs/operator-guide.md` line 96 says a missing file "cannot be read" is refused; it does not mention the new refusal of an unset variable. It is still true, and the table row now covers the new case.
+
+    `check`: check: green (not run again: passed on tree a55791824ecf at 2026-10-26T22:09:07Z)
+    `secrets`: secrets: green (2.1 s)
+    `documents`: documents ok
+12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test passed: the one command printed the three expected lines, so there are no findings.
+
+    I ran the single command under `## Smoke test` from the repository root, exactly as written.
+
+    Command 1 (`uv run python -` with the heredoc that calls `read_settings` three times):
+    ```
+    Bytecode compiled 4164 files in 60ms
+    FACTORY_CLAUDE_HOME: missing
+    FACTORY_IMAGE_ID_FILE: missing
+    /srv/agents build-7
+    ```
+    Met its `Expect:` line. The three lines are exactly `FACTORY_CLAUDE_HOME: missing`, `FACTORY_IMAGE_ID_FILE: missing` and `/srv/agents build-7`. The first line of output is uv compiling bytecode, not the program's output.
+
+    Checked against the acceptance criteria:
+    - The first case sets `HOME=/home/x` but no `FACTORY_CLAUDE_HOME`. It is still refused as `missing`, so nothing falls back to `HOME` (criteria 1 and 4).
+    - The second case passes a reader but no `FACTORY_IMAGE_ID_FILE`. It is refused as `missing` (criterion 2).
+    - The third case gives `agent_home` from the variable and the image identity from the reader (criteria 1 and 2).
+    - The output contradicts no criterion. Criteria 3, 5, 6 and 7 are not covered by the smoke test: the tests cover 3 and 5 (journal 5 and 9), the factory's checks cover 6, and the documenter covered 7.
+
+    Findings: none.

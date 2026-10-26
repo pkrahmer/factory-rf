@@ -45,7 +45,6 @@ CHECKOUT_VARIABLE = "FACTORY_CHECKOUT"
 STATE_VARIABLE = "FACTORY_STATE"
 GIT_USER_NAME_VARIABLE = "GIT_USER_NAME"
 GIT_USER_EMAIL_VARIABLE = "GIT_USER_EMAIL"
-IMAGE_ID_FILE = Path("/opt/factory/image-id")
 IMAGE_ID_FILE_VARIABLE = "FACTORY_IMAGE_ID_FILE"
 AGENT_HOME_DEFAULT = Path("/home/agent/.claude")
 AGENT_HOME_VARIABLE = "FACTORY_CLAUDE_HOME"
@@ -80,7 +79,6 @@ RESERVED_CONTAINER_NAMES = frozenset(
 )
 RESERVED_CONTAINER_PREFIX = "FACTORY_"
 RUNS_DIRECTORY_NAME = "runs"
-_HOME_VARIABLE = "HOME"
 _CLAUDE_EXECUTABLE_DEFAULT = "claude"
 _OPENCODE_EXECUTABLE_DEFAULT = "opencode"
 _PODMAN_EXECUTABLE_DEFAULT = "podman"
@@ -403,16 +401,19 @@ def named_state_directory(environ: Mapping[str, str]) -> Path | None:
 
 
 def _agent_home(environ: Mapping[str, str]) -> Path:
-    agent_home = _optional_path(environ, AGENT_HOME_VARIABLE)
-    if agent_home is not None:
-        return agent_home
-    home = _optional_path(environ, _HOME_VARIABLE)
-    return AGENT_HOME_DEFAULT if home is None else home / ".claude"
+    return _required_absolute_path(environ, AGENT_HOME_VARIABLE)
 
 
 def _image(environ: Mapping[str, str], read_file: Callable[[Path], str]) -> str:
-    path = Path(environ.get(IMAGE_ID_FILE_VARIABLE) or IMAGE_ID_FILE)
+    path = _required_absolute_path(environ, IMAGE_ID_FILE_VARIABLE)
     return read_setting_file(IMAGE_ID_FILE_VARIABLE, path, read_file)
+
+
+def _required_absolute_path(environ: Mapping[str, str], variable: str) -> Path:
+    path = Path(_required(environ, variable).strip())
+    if not path.is_absolute():
+        raise SettingsInvalid(variable, _NOT_ABSOLUTE)
+    return path
 
 
 def read_setting_file(variable: str, path: Path, read_file: Callable[[Path], str]) -> str:

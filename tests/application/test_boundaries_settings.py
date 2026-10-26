@@ -4,12 +4,11 @@ import dataclasses
 
 from factory.application.boundaries import Boundaries
 from factory.domain.settings import read_settings
+from settings_support import BASE
 
 
 def test_boundaries_hold_the_settings_they_are_given(boundaries: Boundaries) -> None:
-    settings = read_settings(
-        {"FACTORY_REPOSITORY_URL": "/srv/project.git", "FACTORY_INSTANCE": "factory-1"}
-    )
+    settings = read_settings(BASE)
 
     replaced = dataclasses.replace(boundaries, settings=settings)
 

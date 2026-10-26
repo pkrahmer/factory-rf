@@ -188,11 +188,12 @@ def image_file(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def environment(image_file: Path) -> dict[str, str]:
-    """Return a valid environment whose image identity file lies in `tmp_path`."""
+def environment(image_file: Path, agent_home: Path) -> dict[str, str]:
+    """Return a valid environment whose image identity file and agent home lie in `tmp_path`."""
     return {
         "FACTORY_REPOSITORY_URL": HOSTED_URL,
         "FACTORY_INSTANCE": INSTANCE,
+        "FACTORY_CLAUDE_HOME": str(agent_home),
         "FACTORY_IMAGE_ID_FILE": str(image_file),
     }
 
@@ -228,6 +229,7 @@ def hosted_environment(tmp_path: Path) -> dict[str, str]:
     return {
         "FACTORY_REPOSITORY_URL": HOSTED_URL,
         "FACTORY_INSTANCE": "factory-1",
+        "FACTORY_CLAUDE_HOME": str(tmp_path / "agent-home"),
         "FACTORY_IMAGE_ID_FILE": str(image),
         "FACTORY_TOKEN_FILE": str(token),
         "FACTORY_DATASET": DATASET,

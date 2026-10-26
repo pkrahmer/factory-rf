@@ -13,12 +13,6 @@ from settings_support import BASE
     [
         ({"FACTORY_CLAUDE_HOME": "/srv/agents"}, Path("/srv/agents")),
         ({"FACTORY_CLAUDE_HOME": "/srv/agents", "HOME": "/home/ann"}, Path("/srv/agents")),
-        ({"HOME": "/home/ann"}, Path("/home/ann/.claude")),
-        ({"FACTORY_CLAUDE_HOME": "", "HOME": "/home/ann"}, Path("/home/ann/.claude")),
-        ({"FACTORY_CLAUDE_HOME": "  ", "HOME": "/home/ann"}, Path("/home/ann/.claude")),
-        ({}, Path("/home/agent/.claude")),
-        ({"FACTORY_CLAUDE_HOME": "", "HOME": ""}, Path("/home/agent/.claude")),
-        ({"FACTORY_CLAUDE_HOME": "  ", "HOME": "  "}, Path("/home/agent/.claude")),
     ],
 )
 def test_agent_home_comes_from_its_variable_then_home_then_the_default(
