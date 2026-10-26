@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 459
-comments_read: []
+comments_read: [6416165613]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: cf99657d94064b7c9561084db41cf111
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-26T12:38:06.947848Z'
+  stage: intake
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -132,3 +137,7 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Everything else passes. The Interface names concrete modules and signatures. The architecture fits: domain model, adapter option, and wiring in entry. The scope is within the feature's S0001 and its Out of scope. The smoke test commands run with `uv run python` and use no pytest, so there is no `-q` problem. Each `Expect:` line is checkable.
 
    I would choose to add all three, as written in the proposals.
+4. 2026-10-26 human: Add all three, as proposed:
+   1. `https://example.invalid/v1/` is accepted by `read_provider` and gives `"baseURL": "https://example.invalid/v1/"`, with the slash kept.
+   2. One parametrized row per group alone: name only gives `{"name": ..}`, limits only give `{"limit": ..}`, prices only give `{"cost": ..}`; no key is ever null.
+   3. The reverse rows: `output_cost` without `input_cost` and `output` without `context` are refused.
