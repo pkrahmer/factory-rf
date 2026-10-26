@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-26T16:34:26.440830Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-10-26T16:34:26.440830Z'
   stage: docs
+- number: 25
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T16:35:08.587779Z'
+  stage: docs
+  run: 1d159c354fec42a4bf50c2a2d7a8ced7
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -356,3 +358,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/test_vm_setup_writes.py`: changed under the standing leave to move a shared test helper. The `code` fixture moved out and the unused `setup_code` import is gone; every test keeps its name and what it checks.
     - `tests/conftest.py`: changed under the standing leave to move a shared test helper. It gains the moved `code` fixture and its `setup_code` import, and nothing else.
 24. factory: started docs as vm.
+25. documenter: Documentation for the second environment file. No findings: the code matches the Interface. The unit has the two `EnvironmentFile=` lines in order, and the closing `setup: local:` line prints `$base`.
+
+    Files changed:
+    - `docs/operator-guide.md`, *The environment file*: new paragraph on `factory.local.env`. It covers its use, the order (read after `factory.env`, so its values win), that it is optional, that the script never writes it, and that the instance needs a restart after a change.
+    - `docs/operator-guide.md`, layout table of `/srv/factory/<instance>`: new row `factory.local.env`. The `factory.env` row now says the script writes it.
+    - `docs/operator-guide.md`, *The service*: the unit's description now says it reads `factory.local.env` after `factory.env`, if the file exists.
+    - `docs/operator-guide.md`, three places (`FACTORY_CONTAINER_ENV`, *Your own build* for opencode, the opencode provider file): these told the operator to put values in `factory.env`, where the next script run would erase them. They now say `factory.local.env`. This was stale as of this story, so I fixed it.
+    - `docs/decisions.md`: new entry *The operator's own environment file*. It is written from the story's Description, because I don't read `feature.md`, so feature decision 8 isn't quoted. The human may want to check the wording against it.
+
+    I did not run `make check`, as only documents changed. I did not run the `setup.sh` closing line myself; the tests do (tests/test_vm_local_environment.py).
+
+    Cross-read and found current: README.md, docs/project-guide/ (the docs criterion says none), and the rest of docs/operator-guide.md against the two-line diff of `vm/factory.service` and `vm/setup.sh`.
+
+    Stale text noticed and left alone: the *Left to later stories of F0046: ... the file for the operator's settings* line in the S0002 decision entry is now done. It is the earlier story's text, so I left it. I added no changelog line elsewhere.
+
+    `check`: check: green (not run again: passed on tree 400bdf6a144b at 2026-10-26T16:30:20Z)
+    `secrets`: secrets: green (1.9 s)
+    `documents`: documents ok

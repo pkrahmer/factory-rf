@@ -207,7 +207,7 @@ Every container (the sync, the agent and each check) has the same fence. It has 
 
 A container's environment is closed: the factory's own environment reaches none of them. Two settings open it for what a company network needs.
 
-- `FACTORY_CONTAINER_ENV` lists names, for example `HTTPS_PROXY,NO_PROXY,UV_INDEX_URL,NPM_CONFIG_REGISTRY` (the proxy, the hosts that bypass it, a package mirror for `uv` and for `npm`). Each name that the factory's environment holds is passed, with its value, into the agent, sync and check containers. Put the variables where `factory.env` is (see "The environment file") and list their names in `FACTORY_CONTAINER_ENV`; the factory reads its environment when it starts, so restart the service after a change.
+- `FACTORY_CONTAINER_ENV` lists names, for example `HTTPS_PROXY,NO_PROXY,UV_INDEX_URL,NPM_CONFIG_REGISTRY` (the proxy, the hosts that bypass it, a package mirror for `uv` and for `npm`). Each name that the factory's environment holds is passed, with its value, into the agent, sync and check containers. Put the variables in `factory.local.env` (see "The environment file") and list their names in `FACTORY_CONTAINER_ENV`; the factory reads its environment when it starts, so restart the service after a change.
 - `FACTORY_CA_BUNDLE` is the PEM file with the company's CA certificate. It is mounted read-only into the same containers at its own path, and `NODE_EXTRA_CA_CERTS`, `SSL_CERT_FILE` and `REQUESTS_CA_BUNDLE` name it. If a listed name is one of those three, the bundle's value wins.
 
 The bundle must hold the public certificates beside the company's own: `SSL_CERT_FILE` replaces Python's own list of authorities instead of adding to it, so a file with the company's certificate alone breaks every connection to a public host.
@@ -270,7 +270,7 @@ A login that an operator's own build keeps in the agent's home does not work on 
 
 The preflight does not read the key: the probe of the agent run shows whether a run can log in.
 
-**Your own build.** Choose an opencode build with `FACTORY_OPENCODE` (its path), `FACTORY_OPENCODE_VERSION` (what `--version` prints) and `FACTORY_OPENCODE_MODELS`: add them to `factory.env` (see "The service"), install the build on the VM and restart the instance. The values `factory.env` carries are the stage image's `opencode-ai`, its pin in `vm/Dockerfile` and the three Anthropic ids.
+**Your own build.** Choose an opencode build with `FACTORY_OPENCODE` (its path), `FACTORY_OPENCODE_VERSION` (what `--version` prints) and `FACTORY_OPENCODE_MODELS`: add them to `factory.local.env` (see "The environment file"), install the build on the VM and restart the instance. The values `factory.env` carries are the stage image's `opencode-ai`, its pin in `vm/Dockerfile` and the three Anthropic ids.
 
 **The models.** The agent files name `opus`, `sonnet` and `haiku`. `FACTORY_OPENCODE_MODELS` maps each to a `<provider>/<model>` id of opencode; `vm/Dockerfile` pins `opus=anthropic/claude-opus-5-5,sonnet=anthropic/claude-sonnet-5-5,haiku=anthropic/claude-haiku-5-5`. Check that an id exists with `opencode models anthropic`. A model written with a `/` in an agent file is used as it is.
 
@@ -288,7 +288,7 @@ The preflight does not read the key: the probe of the agent run shows whether a 
 
 ### A company's provider
 
-An operator behind a company proxy that speaks the OpenAI protocol points opencode at it with a provider file. Set `FACTORY_OPENCODE_PROVIDER_FILE` to the file's absolute path in `factory.env` (see "The service") and restart the instance. The file holds one provider and the small model; the runtime merges them into the configuration of every run, beside `autoupdate`, `share`, `snapshot` and the agent, and changes none of those keys. With the setting unset the configuration is as it was.
+An operator behind a company proxy that speaks the OpenAI protocol points opencode at it with a provider file. Set `FACTORY_OPENCODE_PROVIDER_FILE` to the file's absolute path in `factory.local.env` (see "The environment file") and restart the instance. The file holds one provider and the small model; the runtime merges them into the configuration of every run, beside `autoupdate`, `share`, `snapshot` and the agent, and changes none of those keys. With the setting unset the configuration is as it was.
 
 An example, with made-up names:
 
@@ -342,7 +342,8 @@ The layout of `/srv/factory/<instance>`:
 | `state` | the factory log, `health.json` and the records |
 | `factory` | the factory's code, cloned at `--ref`, with its `.venv` |
 | `tools` | a virtual environment holding `uv` |
-| `factory.env` | the service's environment file |
+| `factory.env` | the service's environment file, written by the script |
+| `factory.local.env` | your own environment file, optional; the script never writes it |
 | `image-id` | the identity of the stage image |
 | `askpass` | the script git asks for the hosting token |
 
@@ -442,6 +443,8 @@ The unit and the credential helper come from the checkout, and root installs the
 
 Every run rewrites `factory.env` from the arguments and from the pins in the checkout's `vm/Dockerfile` (the Claude Code and opencode versions and the opencode model ids), and writes it only when its text differs. A change therefore goes into the script's arguments (or the Dockerfile), never into the file: an edit by hand is lost at the next run.
 
+For values the script does not know (a model map for a company's proxy, the path of a provider file, the names of the proxy variables), make a second file, `/srv/factory/<instance>/factory.local.env`, in the same `NAME=value` form. The unit reads it after `factory.env`, so a value in it wins over the same name there. It is optional: without it the unit starts as before. The script never creates, changes or removes it, and says so in its last line (`setup: local: ...`). Restart the instance after a change: the factory reads its environment when it starts.
+
 #### The `sudoers` fallback
 
 The delegation of step 6 is the way for the factory to reach `zfs`. When it does not suffice on your machine, run the script with `--sudoers`. Step 7 then writes `/etc/sudoers.d/factory-zfs` (mode `0440`), which lets `factory` run exactly `zfs snapshot`, `zfs destroy`, `zfs rollback -r` and `zfs diff -FH`, each on `<dataset>@base` alone, as root without a password, and checks it with `visudo -cf`. If `visudo` refuses it, the script removes the file, prints the refusal to standard error and exits 1. It also writes `/usr/local/bin/zfs-factory` (mode `0755`), a wrapper that runs those four commands through `sudo -n /usr/sbin/zfs` and every other command as itself, and the environment file then holds `FACTORY_ZFS=/usr/local/bin/zfs-factory`.
@@ -450,7 +453,7 @@ The rule names `diff -FH` because the factory runs `zfs diff` with those flags a
 
 ### The service
 
-The unit `vm/factory.service` is a systemd template, installed as `factory@.service`; the text after the `@` is the instance. For the default instance it is `factory@vm`. The unit runs as `factory`, with `/srv/factory/%i` as its working directory, reads `/srv/factory/%i/factory.env` and starts `/srv/factory/%i/factory/.venv/bin/factory-run`. `Restart=always` with `RestartSec=15` restarts it fifteen seconds after any exit.
+The unit `vm/factory.service` is a systemd template, installed as `factory@.service`; the text after the `@` is the instance. For the default instance it is `factory@vm`. The unit runs as `factory`, with `/srv/factory/%i` as its working directory, reads `/srv/factory/%i/factory.env` and then, if it exists, `/srv/factory/%i/factory.local.env` (see *The environment file*), and starts `/srv/factory/%i/factory/.venv/bin/factory-run`. `Restart=always` with `RestartSec=15` restarts it fifteen seconds after any exit.
 
 ```bash
 sudo systemctl start factory@vm      # also stop, restart, status
