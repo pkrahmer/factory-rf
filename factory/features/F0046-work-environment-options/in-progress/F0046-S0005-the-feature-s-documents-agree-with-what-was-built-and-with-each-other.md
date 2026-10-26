@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-26T17:47:17.615192Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-26T17:47:17.609681Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:47:17.615192Z'
+  stage: intake
+---
+
 # The feature's documents agree with what was built and with each other
 
 <!-- proposed by feature acceptance of 2026-10-26; refine before starting -->
@@ -40,3 +67,6 @@ make documents 2>&1 | tail -n 1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-26 human: created.
+2. factory: started intake as vm.
