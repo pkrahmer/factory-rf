@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 464
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T17:51:14.578109Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-26T17:50:53.351295Z'
   stage: tests
   run: 77802b4c12054a19b8fb9170f8c61046
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:51:14.578109Z'
+  stage: doing
 ---
 
 # The feature's documents agree with what was built and with each other
@@ -99,3 +108,4 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.2 s)
    `test`: test: green (157.2 s)
+6. factory: started doing as vm.
