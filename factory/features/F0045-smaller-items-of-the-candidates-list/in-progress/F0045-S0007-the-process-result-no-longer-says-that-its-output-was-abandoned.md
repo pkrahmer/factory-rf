@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-26T23:24:35.316991Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-26T23:24:15.025141Z'
   stage: review
   run: 31ad72126d454534a3761aed05d86e59
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-26T23:24:35.316991Z'
+  stage: docs
 ---
 
 # The process result no longer says that its output was abandoned
@@ -286,3 +295,4 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
     Earlier tests:
     - tests/adapters/test_process_drain.py: changed under the human's leave, decision 27 of feature.md, which the Interface names. The seven named tests lost their `output_abandoned` assertion and, where only that assertion used it, the `abandoned` parametrize column. Every test keeps its name, its row ids and its other assertions. The file also lost its copy of the `holder_file` fixture, under the standing leave in `CLAUDE.md` to move a shared test helper.
     - tests/conftest.py: changed under the standing leave to move a shared test helper. It only gains the moved `holder_file` fixture and the `contextlib` and `signal` imports the fixture needs; every existing fixture is unchanged.
+18. factory: started docs as vm.
