@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T21:25:35.854574Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -87,6 +91,11 @@ journal:
   at: '2026-10-26T21:25:15.255118Z'
   stage: doing
   run: b7b9c189bde44bb293cf2cedda2a5628
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-26T21:25:35.854574Z'
+  stage: tests
 ---
 
 # The stall reason left_branch is removed
@@ -273,3 +282,4 @@ Expect: two lines: `False 4.0`; `0`
     Rejected: changing the tests myself (R9), or asking the human. The leave in `CLAUDE.md` covers this move, so no question is needed.
 
     Noticed, not touched: the comment at `src/factory/application/stalls.py:112` belongs to the restore, which the story keeps. The docs criterion belongs to the documenter. No journal entry changed the meaning of the task.
+15. factory: started tests as vm.
