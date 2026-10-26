@@ -1267,3 +1267,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 22:55 UTC: F0045-S0006 archived; vm rebuilt. Started F0045-S0007 (output_abandoned goes). 94 % weekly.
 - 23:27 UTC: F0045-S0007 at approval, PR #472: six checks met (write paths; earlier tests under decision 27, a fixture moved into conftest.py at the reviewer's finding; check green; reviewer no findings, entry 17; Expect met; no markers). 10 runs, $2.10. Merged and archived. The human's change 4: the output_abandoned line removed from security/duplicates-baseline.txt (the field is gone from src/).
 - 23:28 UTC: vm rebuilt. Started F0045-S0008 (the idle shutdown, off by default). 94 % weekly.
+- 23:30 UTC: F0045-S0008 intake question on #473 (six untested rules): all six added; details follow failure_detail and no_end_detail as for zfs.
