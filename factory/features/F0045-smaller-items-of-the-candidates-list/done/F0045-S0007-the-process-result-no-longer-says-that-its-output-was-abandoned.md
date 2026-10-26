@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-26T23:25:45.851789Z'
   stage: smoke-test
   run: cfeb5c5ff011413baf8da23d8cc31da0
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-26T23:27:05.600470Z'
+  stage: approval
 ---
 
 # The process result no longer says that its output was abandoned
@@ -347,3 +352,4 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
     - Criterion 5 (docs): I ran a quick `grep` over `docs`, `README.md`, `src` and `tests`. The closing line of the decision entry is in place at docs/decisions.md:1058, worded as the criterion gives it. Outside the tests, the field's name appears only in that new line and in `docs/runs/`, which belongs to the human.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 15.7 min, 62 turns, 209181 tokens in (1166345 more from cache), 21960 out, $2.10
