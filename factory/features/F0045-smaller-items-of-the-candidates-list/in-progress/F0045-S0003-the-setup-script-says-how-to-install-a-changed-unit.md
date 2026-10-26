@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 468
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T20:11:58.261426Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-26T20:11:58.261426Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-26T20:12:19.282629Z'
+  stage: intake
+  run: 0bf65c96bfeb4c08a3be8b80931dd8ad
 ---
 
 # The setup script says how to install a changed unit
@@ -67,3 +69,9 @@ Expect: three lines: `syntax-ok`; `2`; `0`
 
 1. 2026-10-26 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: only `vm/setup.sh` changes, and the two lines at 348 (`tools`) and 392 (`service`) are given as exact text with their `>&2`. The install conditions are stated unchanged, and the guide commands are concrete (`gcloud compute scp`, `sudo install -m 0644|0755`).
+   Criteria: 1 is one parametrized test, one row per step. It also checks that no other line holds `differs from the checkout`, which covers the old wording going. 2 is the existing test, unchanged, so the pass side of the install rule is covered. 3 is `sh -n`. 4 and 5 are the closing criteria. The failing side of the rule (a differing file is not installed) is the one the existing test pins, and the story adds no new rule. The docs criterion is a document check, not a tested behaviour.
+   Smoke test: all three commands run. `sh -n` gives `syntax-ok`. The `grep -c` on the setup script gives 2 once the lines change (currently 0). The `grep -c` on the guide currently gives 2 (lines 443 and 703), and the docs criterion removes both, giving 0. The `Expect:` line is checkable. The command does not run pytest, so the `-q` addopts rule does not apply.
+   Architecture: no `src/factory` change. `vm/setup.sh` is the coder's write path, and the guide and decision log are the documenter's.
+   Scope: it matches the S0003 line of `feature.md` and decision 17. Decision 23 says no earlier test changes. Nothing in Out of scope is touched.
