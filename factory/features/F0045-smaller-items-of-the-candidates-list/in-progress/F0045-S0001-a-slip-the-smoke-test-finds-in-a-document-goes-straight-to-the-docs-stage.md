@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T18:33:03.252271Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-26T18:33:03.252271Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-26T18:39:23.392862Z'
+  stage: tests
+  run: cee8c926e26041eabab92fd0dad1c867
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -110,3 +112,25 @@ Expect: two lines: `7`; `1`
    - Architecture: the change is only in `template/`, `claude/agents/` and tests, inside the coder's and tester's write paths. No layer or interface is touched.
    - Scope: this is S0001 of F0045, as decision 6 and the human's change 1 describe. `factory/pipeline.yml` already has `docs` in the smoke test's `next`. No earlier test changes, per decision 21.
 4. factory: started tests as vm.
+5. tester: Tests written from the acceptance criteria. They are red on purpose: the template, the R12 line and the agents' steps have not changed yet.
+
+   - criterion 1: tests/test_claude_agent_texts_docs_slip.py::test_the_template_lets_the_smoke_test_hand_a_slip_to_docs_and_keeps_every_other_next
+   - criterion 2: tests/test_claude_agent_texts_docs_slip.py::test_every_shipped_agent_names_the_smoke_test_to_docs_rework (one row per shipped agent from `SHIPPED_NAMES`)
+   - criterion 3: tests/test_claude_agent_texts_docs_slip.py::test_the_smoke_tester_ends_with_docs_only_for_slips_in_a_document (rows: slip-step, other-findings-step, slip-step-first, docs-once, approval-once, old-step-gone; all read from the `## Stage` section)
+   - criterion 4: tests/test_claude_agent_texts_docs_slip.py::test_the_documenter_fixes_the_slips_of_the_smoke_test_and_hands_back_to_it (the one `1. ` line of `## Stage` ends with the sentence and holds `end with `smoke-test``)
+   - criterion 5: tests/domain/test_decide_docs_slip.py::test_the_smoke_test_sends_a_slip_in_a_document_to_docs_as_a_rework (rows: docs at round 0 → docs round 1; docs at round 2 → docs round 3; docs at round 3 → stays at smoke-test, blocked round_cap, round 4, question `round_cap_question(4, 3)`; doing at round 0 → doing round 1; approval at round 2 → approval round 2; review → ValueError)
+   - criteria 6 and 7: `make check` and docs, nothing to test.
+
+   Files created: tests/test_claude_agent_texts_docs_slip.py, tests/domain/test_decide_docs_slip.py. No earlier test changed.
+
+   Both files read the template through `RuamelPipelineDefinitionReader`. The text tests read the agents through `tests/shipped_agents.py` and `section_text`. In criterion 1 the expected `next` of the other stages includes `done: []`, which is what `main` holds.
+
+   No module failed to import. `make test` shows these failures:
+   - the template test, the 7 R12 rows and 5 of the 6 smoke-tester rows: the texts and the template are not changed yet. The `approval-once` row already passes.
+   - the documenter test.
+   - the three `docs` rows of the decision test, each with `ValueError: decision 'docs' is not allowed at stage 'smoke-test'`, because the template's smoke test does not list `docs` yet.
+
+   `make lint` is green.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/domain/test_decide_docs_slip.py::test_the_smoke_test_sends_a_slip_in_a_document_to_docs_as_a_rework[docs-past-the-cap] - ValueError: decision 'docs' is not allowed at stage 'smoke-test'
