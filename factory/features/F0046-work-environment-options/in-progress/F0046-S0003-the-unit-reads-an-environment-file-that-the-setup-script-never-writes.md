@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T16:21:10.026802Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-26T16:21:10.026802Z'
   stage: tests
+- number: 19
+  speaker: tester
+  kind: result
+  at: '2026-10-26T16:27:00.549413Z'
+  stage: tests
+  run: 170b208233c74581a4150cd4ab314d43
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -262,3 +264,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed but not touched: nothing.
 18. factory: started tests as vm.
+19. tester: I moved the shared test fixture that the coder's entry 17 names (the reviewer's finding in entry 15), under the standing leave in `CLAUDE.md` to move a shared test helper. That was the only change.
+
+    The `code` fixture ("Return the setup script's text without its comment lines.", which returns `setup_code()`) is now in `tests/conftest.py`, which imports `setup_code` from `vm_support`. I removed its three identical copies from these earlier test files:
+    - `tests/test_vm_local_environment.py`: the fixture is gone, and so is the `setup_code` import it no longer uses.
+    - `tests/test_vm_setup_text.py`: the fixture is gone. The module still uses `setup_code` elsewhere, so that import stays.
+    - `tests/test_vm_setup_writes.py`: the fixture is gone, and so is the `setup_code` import it no longer uses.
+
+    Every test keeps its name and checks the same thing. No other test changed.
+
+    Mapping (unchanged since entry 11; criteria 3 and 4 run the script's closing text with `sh` in `tmp_path`, as entry 6 says):
+    criterion 1: tests/test_vm_local_environment.py::test_the_unit_reads_the_local_file_after_the_environment_file_and_nothing_else
+    criterion 2: tests/test_vm_local_environment.py::test_the_script_names_the_local_file_only_in_its_closing_line and tests/test_vm_local_environment.py::test_no_command_of_the_script_mentions_the_local_file (rows rm, cp, install, tee, touch, redirection, stage)
+    criterion 3: tests/test_vm_local_environment.py::test_the_closing_text_names_the_instance_s_local_file_after_done (rows vm, other)
+    criterion 4: tests/test_vm_local_environment.py::test_the_closing_text_leaves_the_local_file_as_it_found_it (rows present, absent)
+
+    Files: no new files this round. Changed: `tests/conftest.py`, plus the three earlier test files above under the standing leave.
+
+    `make test` (one run): green. The code from entry 13 was already in place, and the move changes no test's result. `make lint`: green. Every module imported; nothing under `src/` is involved.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (156.8 s)

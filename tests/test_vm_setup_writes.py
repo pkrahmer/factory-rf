@@ -7,15 +7,9 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.process import ProcessRequest, run_process
-from vm_support import SYSTEM_PATH, function_text, setup_code, step_texts, write_helpers
+from vm_support import SYSTEM_PATH, function_text, step_texts, write_helpers
 
 AS_ITSELF = 'as_factory() {\n  "$@"\n}\n'
-
-
-@pytest.fixture
-def code() -> str:
-    """Return the setup script's text without its comment lines."""
-    return setup_code()
 
 
 @pytest.fixture

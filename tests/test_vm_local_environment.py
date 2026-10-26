@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
-from vm_support import SERVICE, SYSTEM_PATH, setup_code
+from vm_support import SERVICE, SYSTEM_PATH
 
 LOCAL = "factory.local.env"
 UNIT = """\
@@ -30,12 +30,6 @@ RestartSec=15
 [Install]
 WantedBy=multi-user.target
 """
-
-
-@pytest.fixture
-def code() -> str:
-    """Return the setup script's text without its comment lines."""
-    return setup_code()
 
 
 def _closing_text(code: str) -> str:
