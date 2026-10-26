@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775, 6417568826]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T13:56:58.546174Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -142,6 +146,11 @@ journal:
   at: '2026-10-26T13:56:37.786572Z'
   stage: doing
   run: f58b5bc916bb4a81ad913af03f67c151
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-26T13:56:58.546174Z'
+  stage: tests
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -417,3 +426,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Main choice (from entry 10): the provider file is read and validated at the start of every run. I rejected reading it once in `__init__`, because a bad file would then make `build_boundaries` fail.
 
     The journal changes nothing in the task's meaning. The new criteria are already in the Description's list. Noticed, not touched: nothing.
+25. factory: started tests as vm.
