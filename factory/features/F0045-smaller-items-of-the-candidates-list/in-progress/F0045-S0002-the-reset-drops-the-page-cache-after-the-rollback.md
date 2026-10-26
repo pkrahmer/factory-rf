@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T19:50:57.054904Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-10-26T19:50:36.537581Z'
   stage: review
   run: 50370ccfa4254dd494d31742342eb0b6
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:50:57.054904Z'
+  stage: doing
 ---
 
 # The reset drops the page cache after the rollback
@@ -401,3 +410,4 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
     - tests/entry/test_wiring_command_records.py: the human's answer in journal entry 14: gains only `usefixtures("sudo_stand_in")` (and `import pytest`).
     - tests/entry/test_wiring_container_extra.py: the human's answer in journal entry 14: gains only `sudo_stand_in` in its `usefixtures`.
     - tests/entry/test_wiring_stage_environment.py: the human's answer in journal entry 14: gains only `usefixtures("sudo_stand_in")`.
+23. factory: started doing as vm.
