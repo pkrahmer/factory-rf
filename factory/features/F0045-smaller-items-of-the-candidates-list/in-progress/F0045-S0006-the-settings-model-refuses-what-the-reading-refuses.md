@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T22:34:42.311546Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-26T22:34:42.311546Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T22:35:30.120336Z'
+  stage: review
+  run: 8c396af07c3e4a18b516180cfdbe12f6
 ---
 
 # The settings model refuses what the reading refuses
@@ -168,3 +170,38 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
    `check`: check: green
    `duplicates`: duplicates: 0 new, 43 known, 0 gone
 8. factory: started review as vm.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (`src/factory/domain/settings.py`, the new `tests/domain/test_settings_model_rules.py`, `tests/settings_support.py` and 20 earlier test modules) against the work item.
+
+   Group 1 (acceptance criteria) passes:
+   - Criteria 1 to 4 each have one parametrized test whose rows match the criterion. Both sides are covered: missing, relative and absolute `agent_home`; accepted, reserved, prefixed, malformed and repeated container names; and the reading's `SettingsInvalid` with its variable and text. The factory's `make check` after the coder was green (journal entry 7).
+
+   Groups 2 to 4 (`src/`) also pass:
+   - The rule is written once, in `container_env_fault`, and both callers use it: the model's validator wraps the fault in `ValueError`, and `read_settings` raises `SettingsInvalid` before the model is built. This follows the existing `workspace_overlap_fault` pattern.
+   - `agent_home` joins `_absolute`. `AGENT_HOME_DEFAULT` and the `/home/agent` string are gone from `src/`. `InstanceSettings` is built in only one place under `src/` (`read_settings`), and that call passes `agent_home`.
+   - The new comment and docstring say why, not what.
+
+   Findings:
+   1. `tests/domain/test_settings_model_rules.py:17-18`: `_SET_BY_FACTORY` and `_NOT_A_NAME` are second copies of the same constants in `tests/domain/test_settings_container_env.py:17-18`. This is round 0, so it sends the item back. Fix: the tester moves both constants to `tests/settings_support.py` under the standing leave to move a shared test helper, and both modules import them from there. Every earlier test keeps its name and its assertions.
+
+   Earlier tests changed (status M):
+   - `tests/settings_support.py`: the story's leave (Interface, decision 26 of `feature.md`) to place one shared constant there. `AGENT_HOME` was added and `BASE` keeps the same value.
+   - `tests/conftest.py` (`disk_settings`): the story's leave (decision 26), adds `agent_home=AGENT_HOME`.
+   - `tests/adapters/test_agent_launch_extra.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/application/test_checkout_preparer_seal.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/application/test_container_environment_extra.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/application/test_cost_image.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/application/test_opencode_item.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/application/test_opencode_item_container.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/application/test_patient_runs.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/application/test_repository_waiter.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/application/test_scheduler.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/application/test_tick_disk.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/application/test_tick_stop_records.py`: the story's leave (decision 26). Its `agent_home` is a path under `tmp_path`, from the existing `agent_home` fixture, where the test reads its agent files.
+   - `tests/domain/test_container_extra_environment.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/domain/test_settings.py`: the story's leave (decision 26), adds `agent_home` (and reformats).
+   - `tests/domain/test_settings_container_env.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/domain/test_settings_min_free.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/domain/test_settings_one_environment.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/domain/test_settings_opencode_provider.py`: the story's leave (decision 26), adds `agent_home`.
+   - `tests/domain/test_settings_paths.py` (`REQUIRED`): the story's leave (decision 26), adds `agent_home`.
+   - `tests/domain/test_settings_stage_environment.py` (`_DIRECT_CONTAINER`): the story's leave (decision 26), adds `agent_home`.
