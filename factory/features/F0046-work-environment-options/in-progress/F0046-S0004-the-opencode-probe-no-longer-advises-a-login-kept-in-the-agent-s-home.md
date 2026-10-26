@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 463
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T17:08:38.042232Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,13 @@ journal:
   kind: started
   at: '2026-10-26T17:08:38.042232Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-26T17:11:57.947692Z'
+  stage: doing
+  run: 26022dd8414b4f7697a3377437e380f4
+  blocked: question
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -115,3 +118,15 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/application/test_agent_run_probe_opencode.py::test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint[none] - AssertionError: assert 'the probe ru...IN_FILE names' == 't...
 6. factory: started doing as vm.
+7. coder: Implemented the two texts in `src/factory/application/preflight.py` and left them in the working tree. `_opencode_login_hint("none")` now returns `"; the agent runs get no API key: put a key in the file FACTORY_API_LOGIN_FILE names"` (the name comes from `API_LOGIN_FILE_VARIABLE`). `_login_detail` with `none` returns `"the agent runs get no login from a file"` under opencode, and keeps today's text under claude. A comment cites the rollback that clears the agent's home. Main choice: one runtime branch inside `_login_detail`. I rejected a separate opencode helper (like `_opencode_login_hint`) for a single line.
+
+   I stopped before the refactor step, because `make check` is red on one test written by another story:
+   `tests/entry/test_wiring_without_agent_user.py::test_a_died_probe_names_the_factory_user[opencode-no-login]`
+   `E AssertionError: assert 'log in once as the factory user' in 'the probe run ended ...`
+   At lines 99-102, its `said` list for the `opencode-no-login` row expects `"log in once as the factory user"` in the failed opencode probe's detail. The Interface and criterion 1 require that advice to go. The human's leave (feature.md decision 10, as the intake and tester entries name it) covers `tests/probe_support.py`, `test_agent_run_probe_opencode.py` and `test_agent_run_probe_factory_user.py`, not this module. Every other test passes.
+
+   Question: may the tester change that row?
+   (a) Drop `"log in once as the factory user"` from the row's `said` list. The row keeps `"by hand as the factory user"`, which the detail still holds. This is the one I would choose.
+   (b) Replace it with `"put a key in the file FACTORY_API_LOGIN_FILE names"`.
+   (c) Something else.
+   With leave for (a) or (b), the next round ends `tests` and names that change.
