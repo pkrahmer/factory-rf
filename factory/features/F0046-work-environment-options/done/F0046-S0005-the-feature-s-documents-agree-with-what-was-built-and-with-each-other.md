@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-26T17:56:33.116328Z'
   stage: smoke-test
   run: acb7034809ae494881d4671aebaecc44
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-26T17:58:57.171004Z'
+  stage: approval
 ---
 
 # The feature's documents agree with what was built and with each other
@@ -218,3 +223,4 @@ Expect: `documents ok`
       - No other section of the two documents changed.
 
     Not a finding, only a matter of style: the new clause in *Behind a proxy* is missing a comma before "and list their names". The CA-on-host question stays with the human, as the Description says.
+14. factory: done (pull request merged); cost: 6 runs, 4.4 min, 26 turns, 90033 tokens in (339263 more from cache), 6686 out, $0.74
