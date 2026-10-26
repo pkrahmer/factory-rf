@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-26T22:19:14.869672Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-26T22:19:14.863330Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:19:14.869672Z'
+  stage: intake
+---
+
 # The settings model refuses what the reading refuses
 
 ## Description
@@ -42,3 +69,6 @@ EOF
 Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
 
 ## Journal
+
+1. 2026-10-26 human: created.
+2. factory: started intake as vm.
