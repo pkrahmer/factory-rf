@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T16:07:03.726101Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-10-26T16:07:03.726101Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-26T16:12:48.673679Z'
+  stage: tests
+  run: bf16b26f17e2417cad7ad5902260a376
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -157,3 +159,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `make lint`: green. No module failed to import, since nothing under `src/` is involved.
 9. 2026-10-26 human: A: in `tests/test_vm_service.py`, the `service` row leaves `EnvironmentFile` out of its expected keys and skips `EnvironmentFile` in `[Service]`, as it does for `Description` in `[Unit]`; the new test pins both lines and their order. That earlier test may change only that way.
 10. factory: started tests as vm.
+11. tester: I made the change to `tests/test_vm_service.py` that the human approved in entry 9, and only that change. In `test_each_section_holds_exactly_its_keys`, the `service` row no longer expects `("EnvironmentFile", "/srv/factory/%i/factory.env")`. In `[Service]` the test now skips every `EnvironmentFile` key, the same way it already skips `Description` in `[Unit]`. The test keeps its name and still checks every other key of every section. The reason for the change: `configparser` keeps only the last of the two `EnvironmentFile=` lines. The new unit test pins both lines and their order.
+
+    Mapping (unchanged from entry 8; criteria 3 and 4 run the script's closing text with `sh` in `tmp_path`, as entry 6 says):
+    criterion 1: tests/test_vm_local_environment.py::test_the_unit_reads_the_local_file_after_the_environment_file_and_nothing_else
+    criterion 2: tests/test_vm_local_environment.py::test_the_script_names_the_local_file_only_in_its_closing_line and tests/test_vm_local_environment.py::test_no_command_of_the_script_mentions_the_local_file (rows rm, cp, install, tee, touch, redirection, stage)
+    criterion 3: tests/test_vm_local_environment.py::test_the_closing_text_names_the_instance_s_local_file_after_done (rows vm, other)
+    criterion 4: tests/test_vm_local_environment.py::test_the_closing_text_leaves_the_local_file_as_it_found_it (rows present, absent)
+
+    Files: `tests/test_vm_local_environment.py` was created in the previous run and is already committed. `tests/test_vm_service.py` is the earlier test file I changed, under the human's leave in entry 9.
+
+    `make test` (one run) is red as intended, with 4 failures, each an assertion on a wrong result:
+    - the unit test (only one `EnvironmentFile=` line)
+    - the closing-line test (no line names `factory.local.env`)
+    - both closing-text rows (no `setup: local:` line)
+
+    `tests/test_vm_service.py` did not fail; it passes against today's unit. The criterion 2 command rows and the criterion 4 rows already pass, because nothing touches the file yet; they guard against a later change.
+
+    `make lint` is green. Every module the tests use imported; nothing under `src/` is involved.
+
+    `lint`: lint: green (0.2 s)
+    `test`: FAILED tests/test_vm_local_environment.py::test_the_closing_text_names_the_instance_s_local_file_after_done[other] - AssertionError: setup: done: build the stage image and start factory@other; see ...
