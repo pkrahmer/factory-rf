@@ -525,9 +525,7 @@ def _clone_variables(checkout: str) -> list[str]:
 def _install_conditions(script: Script, step: str, path: str) -> list[str] | None:
     lines = script.steps[step].splitlines()
     installs = [
-        i
-        for i, line in enumerate(lines)
-        if re.search(r"(?<![\w-])install\s", line) and path in line
+        i for i, line in enumerate(lines) if re.search(r"^\s*install\s", line) and path in line
     ]
     conditions = [_enclosing_if(lines, i) for i in installs]
     if installs == [] or None in conditions:

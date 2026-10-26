@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T20:27:20.074710Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-26T20:27:20.074710Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-10-26T20:32:59.566013Z'
+  stage: tests
+  run: 58f7e459a9b943c1883329ce3c2c1d78
 ---
 
 # The setup script says how to install a changed unit
@@ -160,3 +162,20 @@ Expect: three lines: `syntax-ok`; `2`; `0`
 
     What the journal changed: criterion 2's test is no longer left entirely unchanged. With the human's leave, its helper is narrowed as above. The rule it checks stays the same, and the Description's meaning stays the same, so I did not rewrite `## Description`.
 11. factory: started tests as vm.
+12. tester: I made only the test change the human approved in entry 8, which the coder named in entry 10.
+
+    Changed: `tests/test_vm_setup_text.py`, the helper `_install_conditions`. Its line filter was `re.search(r"(?<![\w-])install\s", line)` and is now `re.search(r"^\s*install\s", line)`. A line now counts as an install of the target only when its command is `install` after the indentation. An `echo` that mentions "install it from your own copy of …" together with the path no longer counts. `test_the_checkout_files_are_installed_only_in_the_run_that_cloned` keeps its name and checks the same rule (criterion 2). `ruff format` then put the list comprehension on one line.
+
+    Criterion mapping (unchanged since entry 5):
+    criterion 1: tests/test_vm_setup_install_hint.py::test_a_differing_installed_file_names_the_operators_own_copy (rows `tools`, `service`)
+    criterion 2: tests/test_vm_setup_text.py::test_the_checkout_files_are_installed_only_in_the_run_that_cloned (its helper narrowed as above, with the human's leave)
+    criterion 3: tests/test_vm_setup_install_hint.py::test_the_setup_script_parses
+    criteria 4 and 5: `make check` and docs; no test.
+
+    Files created: none. Earlier test file changed: tests/test_vm_setup_text.py, with the human's leave in entry 8.
+    Modules not importable: none.
+
+    `make test`: all four rows of the earlier test pass against the current script, whose `install` commands start their lines. The only failures are the two rows of the criterion 1 test (`assert 0 == 1`), because `vm/setup.sh` still prints the old lines. `make lint` is green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: FAILED tests/test_vm_setup_install_hint.py::test_a_differing_installed_file_names_the_operators_own_copy[service] - assert 0 == 1
