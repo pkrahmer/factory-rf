@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-26T20:54:52.328161Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,12 @@ journal:
   kind: started
   at: '2026-10-26T20:54:52.328161Z'
   stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T20:55:25.947664Z'
+  stage: docs
+  run: eac25f834c784322b9eab46bad0c3396
 ---
 
 # The setup script says how to install a changed unit
@@ -353,3 +355,19 @@ Expect: three lines: `syntax-ok`; `2`; `0`
     Earlier tests:
     - `tests/test_vm_setup_text.py`: changed under the human's leave in journal entry 8. Only the `_install_conditions` filter changed, from `(?<![\w-])install\s` to `^\s*install\s`, and `ruff format` joined the comprehension onto one line. The test keeps its name and its rule, so the change stays within the leave.
 25. factory: started docs as vm.
+26. documenter: Documented the new "install from your own copy" way out. I changed only documents, so I did not run `make check`; the factory's checks follow.
+
+    Files changed:
+    - `docs/operator-guide.md`, *The two passes*: the paragraph on a later run now quotes the two new lines exactly as `vm/setup.sh` prints them. It says why (root installs nothing from the checkout `factory` can write; the operator's own copy is the trusted text). It gives the `gcloud compute scp` of the three files, the two `sudo install` commands (0644 for the unit, 0755 for the helper) and the run of the script that follows, which does `systemctl daemon-reload`. The advice to remove the installed file is gone.
+    - `docs/operator-guide.md`, *The rebuild after a merge*: the copy to the VM now names `vm/setup.sh`, `vm/factory.service` and `vm/git-credential-factory`, both for GCP and for a VM outside GCP. The last paragraph says that when a merge changed the unit or the helper, the operator installs it with the commands of *The two passes* before running the script. The advice to remove the installed file is gone here too.
+    - `docs/decisions.md`: the closing line from criterion 5 is added to "The factory runs on the host, and the stage image carries the tools alone".
+
+    Not run: I did not run the new commands. They need the VM and `gcloud`, which this stage does not have. They follow the Interface and the guide's own step 6 (zone `europe-west3-a`, VM `factory-vm`). The quoted lines match `vm/setup.sh` lines 348 and 392. Smoke test greps: `grep -c 'remove the installed file and run the script again' docs/operator-guide.md` gives 0, and the setup script pattern gives 2 (per the coder).
+
+    Cross-read and found current: the rest of `docs/operator-guide.md` around these two sections, `docs/project-guide/` and `README.md` (nothing in them touches the changed script lines). The diff has no code contradiction: the script lines equal the Interface and the install conditions are unchanged.
+
+    Stale text seen, not mine to fix: the story's `## Description` still says "No earlier test changes" in the Interface, "unchanged" in criterion 2 and "one test" in criterion 3, although the human's leave in entry 8 and entry 20 changed that. The reviewer listed these corrections in entry 24; the work item's text is outside my write paths.
+
+    `check`: check: green (not run again: passed on tree 8573e01b9f0b at 2026-10-26T20:50:34Z)
+    `secrets`: secrets: green (1.9 s)
+    `documents`: documents ok
