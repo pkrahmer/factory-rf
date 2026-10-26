@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 464
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T17:54:40.575070Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-26T17:54:40.575070Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T17:54:54.979242Z'
+  stage: review
+  run: eabe8578bbe8432e9cba17d016768d25
 ---
 
 # The feature's documents agree with what was built and with each other
@@ -130,3 +132,13 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 6c9e3830fbbb at 2026-10-26T17:38:40Z)
    `duplicates`: duplicates: 0 new, 43 known, 0 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   Scope: `git diff main...HEAD -- . ':!factory'` is empty. Only the work item and its `.costs.jsonl` sidecar changed under `factory/`.
+   Criterion 1: holds. Nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/` changed. The tester's entry (5) and the coder's entry (7) both say so.
+   Criterion 2: the journal records `make check` as green after the coder (entry 7: check green, coverage 99.56 %).
+   Criterion 3 (docs): this is the documenter's work, coming next. No test reads the documents, as the criterion requires. The smoke test and `make documents` will check it. The two "Left to later stories of F0046" lines are still in `docs/decisions.md`, as the coder noted. That is expected before the docs stage, not a finding.
+   Interface: "None". There are no rules or limits that need a test for the failing side.
+   Architecture, security, quality: nothing to review, since no code or tests changed.
+   Work item hygiene: the coder's entry gives the main decision (hand forward with an empty diff) and what was rejected (writing the documents in the coder stage). The Description still matches the story: nothing was built yet, and the four gaps are still the docs stage's work. The docs criterion still says what the documenter must write.
+   Earlier tests: none changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the work item's two files).
