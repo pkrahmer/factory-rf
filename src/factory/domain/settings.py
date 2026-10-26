@@ -65,6 +65,7 @@ AGENT_RUNTIME_VARIABLE = "FACTORY_AGENT_RUNTIME"
 OPENCODE_EXECUTABLE_VARIABLE = "FACTORY_OPENCODE"
 OPENCODE_VERSION_VARIABLE = "FACTORY_OPENCODE_VERSION"
 OPENCODE_MODELS_VARIABLE = "FACTORY_OPENCODE_MODELS"
+OPENCODE_PROVIDER_FILE_VARIABLE = "FACTORY_OPENCODE_PROVIDER_FILE"
 DATASET_VARIABLE = "FACTORY_DATASET"
 WORKSPACE_VARIABLE = "FACTORY_WORKSPACE"
 STAGE_IMAGE_VARIABLE = "FACTORY_STAGE_IMAGE"
@@ -108,16 +109,17 @@ class InstanceSettings(BaseModel):
     opencode_executable: str = _OPENCODE_EXECUTABLE_DEFAULT
     pinned_opencode_version: str | None = None
     opencode_models: dict[str, str] = {}
+    opencode_provider_file: Path | None = None
     dataset: str | None = None
     workspace: Path | None = None
     stage_image: str | None = None
     podman_executable: str = _PODMAN_EXECUTABLE_DEFAULT
     zfs_executable: str = _ZFS_EXECUTABLE_DEFAULT
 
-    @field_validator("checkout", "state_directory")
+    @field_validator("checkout", "state_directory", "opencode_provider_file")
     @classmethod
-    def _absolute(cls, path: Path) -> Path:
-        if not path.is_absolute():
+    def _absolute(cls, path: Path | None) -> Path | None:
+        if path is not None and not path.is_absolute():
             raise ValueError(_NOT_ABSOLUTE)
         return path
 
@@ -187,6 +189,7 @@ def read_settings(
         or _OPENCODE_EXECUTABLE_DEFAULT,
         pinned_opencode_version=_optional(environ, OPENCODE_VERSION_VARIABLE) or None,
         opencode_models=_opencode_models(environ),
+        opencode_provider_file=_optional_absolute_path(environ, OPENCODE_PROVIDER_FILE_VARIABLE),
         dataset=dataset,
         workspace=workspace,
         stage_image=stage_image,
@@ -347,10 +350,13 @@ def _optional_path(environ: Mapping[str, str], variable: str) -> Path | None:
 
 
 def _absolute_path(environ: Mapping[str, str], variable: str, default: Path) -> Path:
+    path = _optional_absolute_path(environ, variable)
+    return default if path is None else path
+
+
+def _optional_absolute_path(environ: Mapping[str, str], variable: str) -> Path | None:
     path = _optional_path(environ, variable)
-    if path is None:
-        return default
-    if not path.is_absolute():
+    if path is not None and not path.is_absolute():
         raise SettingsInvalid(variable, _NOT_ABSOLUTE)
     return path
 

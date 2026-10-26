@@ -65,6 +65,7 @@ from factory.domain.agent_runs import (
 )
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoints
+from factory.domain.opencode_provider import provider_configuration, read_provider
 from factory.domain.provider_limits import ProviderLimit, limit_in_text, named_wait
 
 CONFIG_VARIABLE = "OPENCODE_CONFIG"
@@ -294,7 +295,21 @@ def _bash_permission(settings_file: Path | None) -> dict[str, str]:
     return permission
 
 
-def _configuration(request: AgentRunRequest, bash: dict[str, str]) -> str:
+def _provider_keys(provider_file: Path | None) -> dict[str, object]:
+    if provider_file is None:
+        return {}
+    try:
+        provider = read_provider(provider_file.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise AgentRuntimeError(
+            f"cannot use the opencode provider file {provider_file}: {exc}"
+        ) from exc
+    return provider_configuration(provider)
+
+
+def _configuration(
+    request: AgentRunRequest, bash: dict[str, str], provider_keys: Mapping[str, object]
+) -> str:
     agent = request.agent
     prompt = f"{agent.instructions}\n\n{result_instructions(request.allowed_decisions)}"
     configuration = {
@@ -309,6 +324,7 @@ def _configuration(request: AgentRunRequest, bash: dict[str, str]) -> str:
                 "permission": {"edit": "allow", "bash": bash},
             }
         },
+        **provider_keys,
     }
     return json.dumps(configuration)
 
@@ -518,6 +534,7 @@ class OpencodeRuntime(AgentRuntime):
         api_login_file: Path | None = None,
         provider_limit: ProviderLimit | None = None,
         containers: ContainerRuns | None = None,
+        provider_file: Path | None = None,
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
 
@@ -526,6 +543,7 @@ class OpencodeRuntime(AgentRuntime):
         A run's call gets the key held in `api_login_file`, read by the call's own shell.
         A call that shows `provider_limit`, the default limit when `None`, ends `provider_limit`.
         With `containers`, every call runs in a container.
+        The provider and small model of `provider_file` join every run's configuration.
         """
         self._containers = containers
         self._executable = executable
@@ -536,6 +554,7 @@ class OpencodeRuntime(AgentRuntime):
         self._version_time_limit = version_time_limit
         self._starters = Starters(login_files=LoginFiles(api=api_login_file))
         self._provider_limit = ProviderLimit() if provider_limit is None else provider_limit
+        self._provider_file = provider_file
 
     @property
     def containers(self) -> ContainerRuns | None:
@@ -552,7 +571,9 @@ class OpencodeRuntime(AgentRuntime):
         """
         started = time.monotonic()
         model = _model(request.agent, self._models)
-        configuration = _configuration(request, _bash_permission(self._settings_file))
+        configuration = _configuration(
+            request, _bash_permission(self._settings_file), _provider_keys(self._provider_file)
+        )
         files = _RunFiles.of(self._state_directory, str(uuid.uuid4()))
         try:
             self._write_files(files, configuration)

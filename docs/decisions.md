@@ -1145,3 +1145,17 @@ Date: 2026-10-24 (F0043; the design and the human's answers are `planning/v1.2-p
 - Rejected: the factory in a container with the podman socket (one more container and a socket that is nearly root, with no gain); the factory as root on the VM (a container escape would be root); a stage container that pushes with a token (the agent runs in that container).
 - Open: F0044 removes the Docker path (`image/`, the compose instance and the long-lived container's layers), and with it the chapters of the operator guide that describe them.
 - Done: F0044-S0010 removed the Docker path (`image/`, the compose instance and the long-lived container's layers) and the chapters of the operator guide that described them; the credential helper moved to `vm/git-credential-factory`.
+
+## A company's provider for opencode
+
+Date: 2026-10-26 (F0046-S0001).
+
+- Decision: `FACTORY_OPENCODE_PROVIDER_FILE` names a JSON file with one OpenAI-compatible provider (`@ai-sdk/openai-compatible`, base URL, the name of the key's environment variable, its models with optional limits and prices) and the `small_model`. The opencode runtime merges it into the configuration of every run, beside the existing keys and changing none. The agents use it through `FACTORY_OPENCODE_MODELS` (`opus=<id>/<model>`).
+- Why a file and not settings: a provider has too many parts for one variable, and the file is validated into a model that refuses unknown keys, so a typo is a fault and not a silent default.
+- Why the key is not in the file: it stays in `FACTORY_API_LOGIN_FILE`, which the run's login shell exports as `ANTHROPIC_API_KEY`; the file names that variable and the runtime writes `{env:<NAME>}`. Nothing the file holds is a secret, and a name that is not an environment variable name is refused.
+- Why `small_model` is required and must be one of the models: opencode otherwise takes it from a service of its own, which a company proxy does not offer.
+- Why the file is read at every run: a fault is then an `AgentRuntimeError` of that run, before any file is written, and the operator can fix the file without a restart. Reading it in `__init__` would make `build_boundaries` fail on a bad file.
+- Why only the API login works: the agent's home is on the dataset and is rolled back before every stage, so a login that an operator's build keeps in the home does not survive to the next run.
+- Consequence: a model without prices is costed at 0, so the factory's budget stop does not fire for it.
+- Rejected: the key in the file; several providers in one file; reading the file once at start.
+- Left to later stories of F0046: the proxy and the CA bundle of the containers, and the file for the operator's settings.

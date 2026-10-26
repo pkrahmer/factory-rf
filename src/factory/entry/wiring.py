@@ -323,6 +323,7 @@ def _agent_runtime(settings: InstanceSettings, containers: PodmanRuns) -> AgentR
             api_login_file=settings.api_login_file,
             provider_limit=settings.provider_limit,
             containers=containers,
+            provider_file=settings.opencode_provider_file,
         )
     return ClaudeCodeRuntime(
         settings.claude_executable,

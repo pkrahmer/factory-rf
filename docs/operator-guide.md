@@ -76,6 +76,7 @@ One factory instance runs one project and is told what it needs through environm
 | `FACTORY_OPENCODE` | no | The opencode executable, used when the runtime is `opencode`. Default `opencode`. |
 | `FACTORY_OPENCODE_VERSION` | no, but the preflight fails without it under opencode | The version of opencode the stage image pins (`1.19.3`). `factory.env` sets it from the pins of `vm/Dockerfile`; a blank value is read as not pinned. |
 | `FACTORY_OPENCODE_MODELS` | no | Comma-separated `<alias>=<provider>/<model>` entries that map the agent files' aliases (`opus`, `sonnet`, `haiku`) to opencode's model ids; spaces around each part are stripped. The provider is the part before the first `/`, so `openrouter/anthropic/claude-opus-5-5` is one model. Unset or blank gives none (`factory.env` sets the three Anthropic ids from `vm/Dockerfile`). An entry without `=`, with an empty alias or with a model that has no `/` or an empty side, and an alias named twice, are refused with `FACTORY_OPENCODE_MODELS` as the variable. |
+| `FACTORY_OPENCODE_PROVIDER_FILE` | no | The absolute path of a JSON file that describes a company's own OpenAI-compatible provider and the small model; the opencode runtime merges it into the configuration of every run. Unset or blank gives none, and the configuration is as without the setting. A relative path is refused with `FACTORY_OPENCODE_PROVIDER_FILE` as the variable and `is not an absolute path`. The file is read at the start of every run, so a fault in it (or a missing file) ends that run with `cannot use the opencode provider file <path>: <reason>` and a new file applies from the next run, without a restart. See "A company's provider". |
 | `FACTORY_DATASET` | yes | The ZFS dataset the stages run on (`tank/factory/vm`). Missing or blank is refused when the instance's boundaries are built, with `FACTORY_DATASET` as the variable and `missing`; `read_settings` itself raises no fault for it. |
 | `FACTORY_WORKSPACE` | yes | The dataset's mount point on the host, an absolute path (`/srv/factory/vm/work`). A relative path is refused by `read_settings` with `FACTORY_WORKSPACE` as the variable and `is not an absolute path`; a missing or blank one when the boundaries are built, with `missing`. |
 | `FACTORY_STAGE_IMAGE` | yes | The image the stage containers run (`factory-stage:1`). Missing or blank is refused when the boundaries are built, with `FACTORY_STAGE_IMAGE` as the variable and `missing`. |
@@ -248,12 +249,11 @@ opencode has no budget flag, so the factory keeps the budget of an opencode run 
 
 An instance runs its agents on Claude Code unless the operator sets `FACTORY_AGENT_RUNTIME=opencode` (`--runtime opencode` of `vm/setup.sh`). The stage image holds both runtimes: `opencode-ai` is installed from npm at the version `OPENCODE_VERSION` of `vm/Dockerfile`, and the environment file sets `FACTORY_OPENCODE_VERSION` to it.
 
-**The login.** An opencode run logs in in one of two ways:
+**The login.** An opencode run logs in with the API key in the file `FACTORY_API_LOGIN_FILE` names (see "The agent's API key"). Every run is then paid through the API. The subscription token is not used.
 
-- An API key in the file `FACTORY_API_LOGIN_FILE` names (see "The agent's API key"). Every run is then paid through the API. The subscription token is not used.
-- The login an operator's own build of opencode keeps in the agent's home (single sign-on). Make it once, as the factory user on the VM: `<executable> <the build's login command>`, as `claude setup-token` is for Claude Code.
+A login that an operator's own build keeps in the agent's home does not work on the machine: the home is `home/` on the dataset, and the rollback to the base clears it before every stage, so nothing made by a login command survives to the next run. Put the key in the API login file, whatever the build.
 
-The preflight asks for neither: the probe of the agent run shows whether a run can log in.
+The preflight does not read the key: the probe of the agent run shows whether a run can log in.
 
 **Your own build.** Choose an opencode build with `FACTORY_OPENCODE` (its path), `FACTORY_OPENCODE_VERSION` (what `--version` prints) and `FACTORY_OPENCODE_MODELS`: add them to `factory.env` (see "The service"), install the build on the VM and restart the instance. The values `factory.env` carries are the stage image's `opencode-ai`, its pin in `vm/Dockerfile` and the three Anthropic ids.
 
@@ -270,6 +270,37 @@ The preflight asks for neither: the probe of the agent run shows whether a run c
 - The denied commands of `settings.json` become `deny` permissions in the run's own configuration file.
 - No structured reply. The agent ends its message with a `<factory-result>` block; a reply without a valid block ends the run `no_result`.
 - The budget is the factory's own (see "An opencode run's budget").
+
+### A company's provider
+
+An operator behind a company proxy that speaks the OpenAI protocol points opencode at it with a provider file. Set `FACTORY_OPENCODE_PROVIDER_FILE` to the file's absolute path in `factory.env` (see "The service") and restart the instance. The file holds one provider and the small model; the runtime merges them into the configuration of every run, beside `autoupdate`, `share`, `snapshot` and the agent, and changes none of those keys. With the setting unset the configuration is as it was.
+
+An example, with made-up names:
+
+```json
+{
+  "id": "corp",
+  "base_url": "https://llm.example.invalid/v1",
+  "api_key_env": "ANTHROPIC_API_KEY",
+  "models": {
+    "big": {"name": "Corp Big", "context": 200000, "output": 8192, "input_cost": 3.0, "output_cost": 15.0},
+    "small": {}
+  },
+  "small_model": "corp/small"
+}
+```
+
+- `id`: the provider's id in model names: lower-case letters, digits and `-`, starting with a letter.
+- `base_url`: `http://` or `https://` and a host. A trailing `/` is kept as written.
+- `api_key_env`: the name of the environment variable that holds the key (capitals, digits and `_`, not starting with a digit). The key itself is never in the file: the runtime writes `{env:<name>}` into the configuration. The key stays in the file `FACTORY_API_LOGIN_FILE` names (see "The agent's API key"), which the run's login shell exports as `ANTHROPIC_API_KEY`, so the name to give is `ANTHROPIC_API_KEY`.
+- `models`: at least one model, by the name the proxy knows. Each may have `name`, `context` and `output` (token limits, whole numbers of at least 1, given together) and `input_cost` and `output_cost` (dollars per million tokens, at least 0, given together). A model with none is `{}`.
+- `small_model`: `<id>/<model>`, one of `models`. opencode otherwise takes its small model from a service of its own, which a proxy does not offer.
+
+Any other key is refused. A fault ends the run with `cannot use the opencode provider file <path>: <reason>`, the reason naming the first field at fault, and no run file is written and nothing starts.
+
+To use the provider, map the aliases to it in `FACTORY_OPENCODE_MODELS`, for example `opus=corp/big,sonnet=corp/big,haiku=corp/small`.
+
+A model without prices is costed at 0, so the factory's own budget stop (see "An opencode run's budget") never fires for it. Give `input_cost` and `output_cost` when the budget is to count.
 
 ## The machine
 
@@ -510,7 +541,7 @@ This is the machine of the decisions of 2026-10-24: instance `vm`, an `e2-standa
    shred -u hosting-token claude-token anthropic-api-key
    ```
 
-   All three files must exist, because the factory mounts every login file the environment file names and podman refuses to mount a missing one; every agent run would stop with exit status 125 (decision 10 of the feature F0043). An empty `anthropic-api-key` means no key. With the `claude` runtime the key file stays empty.
+   All three files must exist, because the factory mounts every login file the environment file names and podman refuses to mount a missing one; every agent run would stop with exit status 125 (decision 10 of the feature F0043). This holds whatever the runtime is. Under `claude` the file `anthropic-api-key` may be empty (an empty file means no key); under `opencode` the file `claude-token` may be empty, since opencode does not read it, and `anthropic-api-key` holds the key.
 
 9. Run the script a second time with the same arguments. It clones the factory, installs the tools, writes the environment file and installs and enables the unit.
 
