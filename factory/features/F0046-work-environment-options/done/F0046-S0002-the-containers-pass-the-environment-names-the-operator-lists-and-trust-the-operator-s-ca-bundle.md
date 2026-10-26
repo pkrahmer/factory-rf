@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -258,6 +258,11 @@ journal:
   at: '2026-10-26T15:53:45.092460Z'
   stage: smoke-test
   run: 415621d978214a159fba7047e05b3faa
+- number: 46
+  speaker: factory
+  kind: done
+  at: '2026-10-26T15:56:09.757502Z'
+  stage: approval
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -753,3 +758,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Open, for the human (the `## Smoke test` section is theirs, so I did not edit it):
     1. Command 1 in `## Smoke test` still lacks `repository_url='https://github.com/o/n', instance='vm'`. Anyone who runs it as written gets the `ValidationError` above. Entry 9's correction belongs in the text.
     2. Stale Description text that earlier stages noted (entries 39, 41, 43) is still there. The Interface sentence on `factory.adapters.agent_launch` still says "runtime part", but the extras go beneath `run_environment`'s result. Entry 9's constructor keywords (`extra_environment`, `ca_bundle` on all four classes) are not in the Interface. The Interface names `tests/adapters/test_make_commands_extra.py`, but the check rows are in `tests/application/test_container_environment_extra.py`.
+46. factory: done (pull request merged); cost: 20 runs, 59.0 min, 216 turns, 717494 tokens in (7601915 more from cache), 107222 out, $8.85
