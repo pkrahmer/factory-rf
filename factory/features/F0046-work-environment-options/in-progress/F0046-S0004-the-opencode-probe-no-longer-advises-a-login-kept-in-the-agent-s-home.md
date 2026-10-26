@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-26T16:58:40.433993Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-26T16:58:40.428332Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-26T16:58:40.433993Z'
+  stage: intake
+---
+
 # The opencode probe no longer advises a login kept in the agent's home
 
 <!-- proposed by feature acceptance of 2026-10-26; refine before starting -->
@@ -36,3 +63,6 @@ uv run pytest tests/application/test_agent_run_probe_opencode.py tests/applicati
 Expect: a line that ends with `passed in <seconds>s` and names no `failed`
 
 ## Journal
+
+1. 2026-10-26 human: created.
+2. factory: started intake as vm.
