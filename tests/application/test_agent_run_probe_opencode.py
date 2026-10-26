@@ -8,10 +8,10 @@ import pytest
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
-from factory.domain.agent_runs import AgentRunResult, EndReason, Login
+from factory.domain.agent_runs import AgentRunResult, Login
 from factory.domain.settings import InstanceSettings
 from git_support import install_agents
-from probe_support import ENVIRONMENT, opencode_died, opencode_sso_hint
+from probe_support import ENVIRONMENT, opencode_died, opencode_sso_hint, probe_result
 
 DIED = opencode_died("the factory user")
 API_HINT = (
@@ -64,45 +64,16 @@ def test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint(
     assert item.name == "agent-run-probe"
     assert not item.passed
     assert item.detail == detail
-    assert "own login" not in item.detail
 
 
-@pytest.mark.parametrize(
-    ("reason", "passed", "detail"),
-    [
-        pytest.param(
-            "completed",
-            True,
-            "the agent runs log in with the API key from /home/agent/.anthropic-api-key",
-            id="completed",
-        ),
-        pytest.param("died", False, DIED + API_HINT, id="died"),
-    ],
-)
 def test_a_probe_under_opencode_with_the_api_key_names_the_api_login_file(
-    boundaries: Boundaries,
-    settings: InstanceSettings,
-    agent_runtime: FakeAgentRuntime,
-    *,
-    reason: EndReason,
-    passed: bool,
-    detail: str,
+    boundaries: Boundaries, settings: InstanceSettings, agent_runtime: FakeAgentRuntime
 ) -> None:
-    duration = timedelta(seconds=5)
-    result = (
-        AgentRunResult(
-            end_reason=reason,
-            duration=duration,
-            decision="question",
-            entry="probe",
-            login="api_key",
-        )
-        if reason == "completed"
-        else AgentRunResult(end_reason=reason, duration=duration, login="api_key")
-    )
-    agent_runtime.queue(ScriptedRun(result=result))
+    agent_runtime.queue(ScriptedRun(result=probe_result("completed", "api_key")))
 
     item = agent_run_probe_item(boundaries, settings, ENVIRONMENT)
 
-    assert item.passed == passed
-    assert item.detail == detail
+    assert item.passed
+    assert (
+        item.detail == "the agent runs log in with the API key from /home/agent/.anthropic-api-key"
+    )

@@ -1,13 +1,23 @@
-"""The agent environment, the completed run and the opencode texts shared by the probe tests."""
+"""The agent environment, the probe run results and the opencode texts shared by the probe tests."""
 
 from datetime import timedelta
 
-from factory.domain.agent_runs import AgentRunResult
+from factory.domain.agent_runs import AgentRunResult, EndReason, Login
 
 ENVIRONMENT = {"PATH": "/opt/factory/bin:/usr/bin", "HOME": "/home/agent", "LANG": "C.UTF-8"}
 COMPLETED = AgentRunResult(
     end_reason="completed", decision="question", entry="probe", duration=timedelta(seconds=5)
 )
+
+
+def probe_result(reason: EndReason, login: Login | None) -> AgentRunResult:
+    """Return the probe run's result that ended for `reason`, handed `login`."""
+    duration = timedelta(seconds=5)
+    if reason == "completed":
+        return AgentRunResult(
+            end_reason=reason, duration=duration, decision="question", entry="probe", login=login
+        )
+    return AgentRunResult(end_reason=reason, duration=duration, login=login)
 
 
 def opencode_died(user: str) -> str:

@@ -1,6 +1,5 @@
 """The probe of the agent run names the login its run was handed."""
 
-from datetime import timedelta
 from pathlib import Path
 
 import pytest
@@ -9,10 +8,10 @@ from application.test_agent_run_probe_login import HINT, LOGIN_FILE
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
-from factory.domain.agent_runs import AgentRunResult, EndReason, Login
+from factory.domain.agent_runs import EndReason, Login
 from factory.domain.settings import AgentRuntimeName, InstanceSettings
 from git_support import install_agents
-from probe_support import ENVIRONMENT, opencode_died, opencode_sso_hint
+from probe_support import ENVIRONMENT, opencode_died, opencode_sso_hint, probe_result
 
 API_LOGIN_FILE = Path("/home/agent/.anthropic-api-key")
 API_HINT = (
@@ -40,15 +39,6 @@ def settings(agent_home: Path, tmp_path: Path) -> InstanceSettings:
 def coder(agent_home: Path) -> None:
     """Install the agent `coder`, among others, into the test's agent home."""
     install_agents(agent_home, ["intake", "coder", "reviewer"])
-
-
-def _probe_result(reason: EndReason, login: Login | None) -> AgentRunResult:
-    duration = timedelta(seconds=5)
-    if reason == "completed":
-        return AgentRunResult(
-            end_reason=reason, duration=duration, decision="question", entry="probe", login=login
-        )
-    return AgentRunResult(end_reason=reason, duration=duration, login=login)
 
 
 @pytest.mark.usefixtures("coder")
@@ -91,7 +81,7 @@ def test_the_probe_detail_names_the_login_its_run_was_handed(
     passed: bool,
     detail: str,
 ) -> None:
-    agent_runtime.queue(ScriptedRun(result=_probe_result(reason, login)))
+    agent_runtime.queue(ScriptedRun(result=probe_result(reason, login)))
 
     item = agent_run_probe_item(boundaries, settings, ENVIRONMENT)
 
@@ -131,7 +121,7 @@ def test_a_died_probe_hints_only_at_a_login_its_runtime_can_use(
     login: Login,
     detail: str,
 ) -> None:
-    agent_runtime.queue(ScriptedRun(result=_probe_result("died", login)))
+    agent_runtime.queue(ScriptedRun(result=probe_result("died", login)))
 
     item = agent_run_probe_item(boundaries, _on_runtime(settings, runtime), ENVIRONMENT)
 
@@ -160,7 +150,7 @@ def test_a_completed_probe_without_a_login_file_names_the_agents_home_only_under
     runtime: AgentRuntimeName,
     detail: str,
 ) -> None:
-    agent_runtime.queue(ScriptedRun(result=_probe_result("completed", "none")))
+    agent_runtime.queue(ScriptedRun(result=probe_result("completed", "none")))
 
     item = agent_run_probe_item(boundaries, _on_runtime(settings, runtime), ENVIRONMENT)
 

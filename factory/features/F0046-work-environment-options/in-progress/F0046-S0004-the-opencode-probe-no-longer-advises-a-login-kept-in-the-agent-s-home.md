@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T17:29:21.291816Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-26T17:29:21.291816Z'
   stage: tests
+- number: 20
+  speaker: tester
+  kind: result
+  at: '2026-10-26T17:35:13.725571Z'
+  stage: tests
+  run: 213532faad404c65a56feb12aa4a4cb9
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -260,3 +262,25 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
 
     Noticed but not touched: `docs/operator-guide.md` still quotes the old opencode hint. That is criterion 5, for the documenter.
 19. factory: started tests as vm.
+20. tester: I made the three test changes that the coder's entry 18 asked for after the reviewer's findings in entry 16.
+
+    1. Moved the helper under the standing leave in CLAUDE.md. `_probe_result` now lives in tests/probe_support.py as the public `probe_result(reason, login)`, with a docstring. It still builds the same completed-or-died `AgentRunResult`. tests/application/test_agent_run_probe_api_login.py now imports it, and I removed its now-unused `timedelta` and `AgentRunResult` imports. tests/application/test_agent_run_probe_opencode.py uses it instead of building the result inline. The probe_support module docstring now mentions the probe run results. `_probe_result(reason)` in tests/application/test_agent_run_probe_login.py is a different helper with no login parameter, and I left it alone.
+    2. Dropped the `died` row from tests/application/test_agent_run_probe_opencode.py::test_a_probe_under_opencode_with_the_api_key_names_the_api_login_file. Only `completed` was left, so I removed the parametrization: the test now asserts `item.passed` and the detail `"the agent runs log in with the API key from /home/agent/.anthropic-api-key"`. I also removed the import of `EndReason`, which nothing used any more.
+    3. Removed `assert "own login" not in item.detail` from tests/application/test_agent_run_probe_opencode.py::test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint. That test is now back to its earlier checks.
+
+    Every earlier test keeps its name and checks the same thing.
+
+    Criterion mapping:
+    - criterion 1: tests/application/test_agent_run_probe_api_login.py::test_a_died_probe_hints_only_at_a_login_its_runtime_can_use
+    - criterion 2: tests/application/test_agent_run_probe_api_login.py::test_a_completed_probe_without_a_login_file_names_the_agents_home_only_under_claude
+    - criterion 3: the completed side is tests/application/test_agent_run_probe_opencode.py::test_a_probe_under_opencode_with_the_api_key_names_the_api_login_file. The died side is tests/application/test_agent_run_probe_opencode.py::test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint[api-key].
+    - criteria 4 and 5 (`make check`, docs): no test.
+
+    Files created: none. Earlier test files changed:
+    - tests/probe_support.py and tests/application/test_agent_run_probe_api_login.py, under the standing leave to move a shared helper.
+    - tests/application/test_agent_run_probe_opencode.py: the helper is used under that leave, and the row and the line this story had added are removed, as the review findings asked.
+
+    Every module imported. I ran `make test` once: test: green (157.7 s). `make lint` is green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (157.1 s)
