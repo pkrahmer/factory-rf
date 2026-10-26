@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-26T18:32:18.662234Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-26T18:32:18.656094Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-26T18:32:18.662234Z'
+  stage: intake
+---
+
 # A slip the smoke test finds in a document goes straight to the docs stage
 
 ## Description
@@ -62,3 +89,6 @@ grep -l 'smoke-test → doing, smoke-test → docs, and' claude/agents/*.md | wc
 Expect: two lines: `7`; `1`
 
 ## Journal
+
+1. 2026-10-26 human: created.
+2. factory: started intake as vm.
