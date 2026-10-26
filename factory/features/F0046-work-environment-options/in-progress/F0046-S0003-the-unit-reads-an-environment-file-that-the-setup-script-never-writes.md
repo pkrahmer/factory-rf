@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T16:21:10.026802Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-10-26T16:20:49.516538Z'
   stage: doing
   run: 9236d5de31dd4534964c595ddf6c1d67
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-26T16:21:10.026802Z'
+  stage: tests
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -252,3 +261,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The journal didn't change the meaning of the task, so `## Description` stays as it is.
 
     Noticed but not touched: nothing.
+18. factory: started tests as vm.
