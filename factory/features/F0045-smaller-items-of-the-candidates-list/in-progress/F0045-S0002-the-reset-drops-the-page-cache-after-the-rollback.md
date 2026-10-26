@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-26T19:09:42.712601Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T19:09:24.930116Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:09:42.712601Z'
   stage: intake
 ---
 
@@ -135,3 +144,4 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
    2. Yes, a text criterion: the step compares each file with its wanted text before writing (helper and sudoers file alike), and its `setup: caches: ` line reports `found` or `wrote` as the other steps do.
    3. Agreed, covered.
    4. Yes: the time-limit row asserts the same detail text the `zfs` time-limit test asserts.
+5. factory: started intake as vm.
