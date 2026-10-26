@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-26T23:24:35.316991Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-26T23:24:35.316991Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T23:25:00.631771Z'
+  stage: docs
+  run: 8e533d4f2fe74ceb8abc75660628bd3b
 ---
 
 # The process result no longer says that its output was abandoned
@@ -296,3 +298,16 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
     - tests/adapters/test_process_drain.py: changed under the human's leave, decision 27 of feature.md, which the Interface names. The seven named tests lost their `output_abandoned` assertion and, where only that assertion used it, the `abandoned` parametrize column. Every test keeps its name, its row ids and its other assertions. The file also lost its copy of the `holder_file` fixture, under the standing leave in `CLAUDE.md` to move a shared test helper.
     - tests/conftest.py: changed under the standing leave to move a shared test helper. It only gains the moved `holder_file` fixture and the `contextlib` and `signal` imports the fixture needs; every existing fixture is unchanged.
 18. factory: started docs as vm.
+19. documenter: Documentation for the removal of `output_abandoned`. I found no findings for the coder: the code matches the Interface (`ProcessResult` has six fields, and the docstrings of `run_process` and `run_streaming` name no field).
+
+    Files changed:
+    - docs/project-guide/processes-and-checks.md, `## Starting a process`: the paragraph on `ProcessResult` now lists the six fields and no longer describes `output_abandoned`. In the streaming bullet I removed the clause "`output_abandoned` is `False` after a kill, a stop or an exception". In *Reading after the child's end* I removed the field from the result of a drain that ran out and from the sentence on the read after the kill. The drain, `PIPE_DRAIN`, the 0.05 s steps and the kill rules are described as before.
+    - docs/decisions.md, "A call stops reading five seconds after its own process ended": I added the closing line the docs criterion gives. I also removed "`output_abandoned=True`" from that entry's Decision bullet, because it described a field that no longer exists. The criterion did not ask for this edit, so the human may revert it.
+
+    Cross-read and found current: README.md and docs/operator-guide.md (no mention of the field, no operator-visible change, as criterion 5 says). `grep` finds `output_abandoned` in `docs/` only in the new closing line of the decision. I ran no examples, because I wrote none. I did not run `make check`, because I changed only documents.
+
+    Stale text I did not touch: `security/duplicates-baseline.txt` still carries the dead-code line for the field. That is the human's change 4 after the merge. I did not search `docs/runs/`, which belongs to the human.
+
+    `check`: check: green (not run again: passed on tree 1c4117838158 at 2026-10-26T23:20:42Z)
+    `secrets`: secrets: green (1.2 s)
+    `documents`: documents ok
