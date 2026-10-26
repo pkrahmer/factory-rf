@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-26T16:49:54.268423Z'
   stage: acceptance
   run: 5438b5c51c25433e884e7bc7428011ac
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-26T16:51:16.458066Z'
+  stage: done
 stories: [F0046-S0001, F0046-S0002, F0046-S0003]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The factory can be configured for a corporate environment
@@ -229,3 +234,4 @@ Three of the nine questions across the feature were test fixes that a shared ope
    8. Cost: $16.45 over 47 runs. S0002 alone took $8.85 and 20 runs: its Interface named no constructor keywords and placed the agent's extras where a listed `PATH` overrides the request's. Its reviewers also added two criteria, and one opencode test row needed setup step by step. The human answered 9 questions (3, 4 and 2 per story) and the stories waited 1.6 h; S0002 needed the human most.
 
    Both proposed stories pass `factory-check-story`. `make check` was green as I found it, and `make secrets` is green over the report and the stories. I could not remove the temporary folder `/tmp/tmp.jj2uKqzc4n` (the call was denied); it goes with the stage.
+3. factory: done (pull request merged); cost: 1 runs, 12.0 min, 59 turns, 185622 tokens in (6999411 more from cache), 52179 out, $3.93
