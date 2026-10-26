@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T19:00:08.285087Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-10-26T19:00:08.285087Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T19:00:42.373057Z'
+  stage: review
+  run: f376d1ffe3654e2baf5ef78e28f6734f
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -288,3 +290,27 @@ Expect: two lines: `7`; `1`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 16. factory: started review as vm.
+17. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item. I read the diff myself and did not rely on the entries.
+
+    no findings
+
+    What I checked:
+    - Group 1, acceptance criteria:
+      - Criteria 1 to 5 each have a test that checks what the criterion says:
+        - 1: `tests/test_claude_agent_texts_docs_slip.py::test_the_template_lets_the_smoke_test_hand_a_slip_to_docs_and_keeps_every_other_next`
+        - 2: `::test_every_shipped_agent_names_the_smoke_test_to_docs_rework`, one row per shipped agent. It checks the new line appears exactly once and the old line is gone.
+        - 3: `::test_the_smoke_tester_ends_with_docs_only_for_slips_in_a_document`, six rows of one parametrized test. The `old-step-gone` row works because the old text starts with a capital `Findings:` and the new step 6 reads "other findings:".
+        - 4: `::test_the_documenter_fixes_the_slips_of_the_smoke_test_and_hands_back_to_it`
+        - 5: `tests/domain/test_decide_docs_slip.py::test_the_smoke_test_sends_a_slip_in_a_document_to_docs_as_a_rework`. It tests both sides of the cap: round 2 → 3 moves, round 3 → blocked `round_cap`. It also covers `doing`, `approval` as rule 6, and `review` refused with `ValueError`.
+      - The second Interface rule (every agent names its stage's decisions) stays pinned by `tests/test_claude_agent_texts.py`.
+      - The coder's `make check` was green (entry 15) and `duplicates` reported 0 new.
+    - The texts match the Interface word for word in all seven `claude/agents/*.md`, in smoke-tester steps 5 and 6, and in the documenter's step 1. The template line is `next: [approval, doing, docs]` with `round_cap: 3`. No copy of the old R12 line is left outside `factory/`.
+    - Group 2, architecture: no module under `src/` changed.
+    - Group 3, security: no secrets, no markers that silence a check.
+    - Group 4, quality: round 0's finding on the copied helper is fixed. `template_definition()` and `TEMPLATE_PIPELINE` in `tests/shipped_agents.py` are now the one shared place, and both new files and `_decisions` use them.
+    - Group 5, hygiene: the Description, the Interface and the docs criterion match what was built. The journal names the main choice and what was rejected (a fixture in `conftest.py`, entry 13).
+    - Noticed, not under review: `tests/git_support.py:44` still holds `next: [approval, doing]` for the smoke test. It is another story's fixture, and the story leaves earlier tests unchanged (decision 21).
+
+    Earlier tests:
+    - `tests/test_claude_agent_texts.py`: changed under the standing leave to move a shared test helper. `_decisions` now calls the shared `template_definition()` instead of the inline read and parse. No test name changed and every test checks the same thing.
+    - `tests/shipped_agents.py`: changed under the same standing leave. It is the shared place, and the only change is the added `TEMPLATE_PIPELINE` and `template_definition()`.
