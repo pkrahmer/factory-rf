@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T13:14:20.935502Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T13:13:59.746205Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-26T13:14:20.935502Z'
   stage: doing
 ---
 
@@ -248,3 +257,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 11. 2026-10-26 human: 1. (a): the tester writes the key names through a constant (`KEY_ENV = "PROXY_KEY"` and the like) so the keyword detector does not match, and checks that `make secrets` passes. No pragma, no baseline entry.
     2. (b): the wiring test calls `opencode_request(tmp_path / "work", model="corp/m")`, so the provider's own model runs through the wiring. The rule that an unknown alias is an error stays.
     Both are the tester's changes: the tests stage runs again for them; the code stays as built.
+12. factory: started doing as vm.
