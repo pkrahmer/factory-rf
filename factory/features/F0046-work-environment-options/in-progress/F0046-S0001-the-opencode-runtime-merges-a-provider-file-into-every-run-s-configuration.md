@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 459
-comments_read: [6416165613]
+comments_read: [6416165613, 6416662775]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: 926db96799044f4890b3cabc59d425b5
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-10-26T13:13:59.746205Z'
+  stage: doing
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -240,3 +245,6 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
        I would choose (b), because it also runs the provider's own model through the wiring. Either one is a one-line change.
 
     Noticed, not touched: nothing else.
+11. 2026-10-26 human: 1. (a): the tester writes the key names through a constant (`KEY_ENV = "PROXY_KEY"` and the like) so the keyword detector does not match, and checks that `make secrets` passes. No pragma, no baseline entry.
+    2. (b): the wiring test calls `opencode_request(tmp_path / "work", model="corp/m")`, so the provider's own model runs through the wiring. The rule that an unknown alias is an error stays.
+    Both are the tester's changes: the tests stage runs again for them; the code stays as built.
