@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775, 6417568826]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-26T14:11:09.339501Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-10-26T14:11:09.339501Z'
   stage: docs
+- number: 32
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T14:12:45.286961Z'
+  stage: docs
+  run: 4678213400e14c9886e57f3352ae388a
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -536,3 +538,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     1. `tests/domain/test_settings_opencode_provider.py`: the refused side of reading the setting (`p.json`) is the separate function `test_a_relative_provider_file_setting_is_refused_naming_it`. It is not a row of `test_the_provider_file_setting_is_read_as_an_optional_path`. This is a quality point on a test file the diff adds, so it is a note in round 1.
 31. factory: started docs as vm.
+32. documenter: No findings. The code matches the Interface and the criteria. I changed only documents, so I did not run `make check`; the factory's checks follow this stage. I ran `make documents` (`documents ok`) and the operator guide's example file through `read_provider` and `provider_configuration`: it validates and gives `['provider', 'small_model']`.
+
+    Files changed:
+    - `docs/operator-guide.md`
+      - The configuration table has a row for `FACTORY_OPENCODE_PROVIDER_FILE`: an absolute path, unset or blank gives none, a relative path is refused, and the file is read at every run.
+      - A new subsection, *A company's provider*, sits before "The machine". It has the example file (made-up `example.invalid` names), what each field means, the `{env:...}` key rule, `api_key_env: ANTHROPIC_API_KEY` with the key staying in `FACTORY_API_LOGIN_FILE`, the small model, the error text, the `FACTORY_OPENCODE_MODELS` mapping, and the note that a model without prices is costed at 0, so the budget stop does not fire.
+      - *Running on opencode*, "The login": I removed the claim that a login kept in the agent's home works. On the machine the home is on the dataset and is rolled back before every stage, so only the API login file works. I also reworded "The preflight asks for neither" to "does not read the key".
+      - Step 8 of "On GCP": the sentence that all three secret files must exist is now exact for opencode. `claude-token` may be empty under opencode, and `anthropic-api-key` may be empty under claude.
+    - `docs/project-guide/agents.md`, *The opencode runtime*: the new `provider_file` keyword, the wiring argument, the two merged keys, a paragraph on the provider file (the module, the per-run read before any file is written, the `AgentRuntimeError` text, add-only merge, `<id>/<key>` passes unchanged), and a pointer to the decision.
+    - `docs/decisions.md`: a new entry, *A company's provider for opencode*. I wrote it from the story's Description and journal, because I may not read `feature.md`, so I could not check it against the feature's decisions 1 to 5 and 9. The human should check it against them.
+    - `README.md`: none, as the criterion says.
+
+    Cross-read and found current (no change needed): `README.md`; the rest of `docs/operator-guide.md` (settings table, "An opencode run's budget", the preflight's `opencode` item); `docs/project-guide/README.md`.
+
+    Stale text I saw and did not touch:
+    1. `docs/operator-guide.md`, "The probe of the agent run": the hint text quoted for an opencode probe whose login was `none` still says "log in once as the factory user with the opencode build's own login". That wording comes from the code's message in the preflight, so it is a code change, outside this story. After this story's correction it advises something that cannot work on the machine.
+    2. `docs/operator-guide.md`, step 8 and "The script" (the "place all three files" sentence): I did not rewrite them. They are still true, since the files must exist.
+
+    `check`: check: green (not run again: passed on tree a2c6429027ca at 2026-10-26T14:06:56Z)
+    `secrets`: secrets: green (2.1 s)
+    `documents`: documents ok
