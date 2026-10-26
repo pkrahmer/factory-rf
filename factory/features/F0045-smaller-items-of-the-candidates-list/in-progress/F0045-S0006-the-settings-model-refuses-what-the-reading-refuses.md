@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T22:35:50.581917Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-26T22:35:30.120336Z'
   stage: review
   run: 8c396af07c3e4a18b516180cfdbe12f6
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:35:50.581917Z'
+  stage: doing
 ---
 
 # The settings model refuses what the reading refuses
@@ -205,3 +214,4 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
    - `tests/domain/test_settings_opencode_provider.py`: the story's leave (decision 26), adds `agent_home`.
    - `tests/domain/test_settings_paths.py` (`REQUIRED`): the story's leave (decision 26), adds `agent_home`.
    - `tests/domain/test_settings_stage_environment.py` (`_DIRECT_CONTAINER`): the story's leave (decision 26), adds `agent_home`.
+10. factory: started doing as vm.
