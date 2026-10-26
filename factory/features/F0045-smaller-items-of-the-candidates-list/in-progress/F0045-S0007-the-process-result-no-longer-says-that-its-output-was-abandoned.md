@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T23:17:38.225983Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-26T23:17:38.225983Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-26T23:23:26.732309Z'
+  stage: doing
+  run: ef30c906b5b04111a3c6aa839ece961a
 ---
 
 # The process result no longer says that its output was abandoned
@@ -240,3 +242,21 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
     `lint`: lint: green (0.2 s)
     `test`: test: green (153.7 s)
 14. factory: started doing as vm.
+15. coder: Round 1 had one finding, the duplicated `holder_file` fixture. The tester has resolved it (entry 13): the fixture now lives once in tests/conftest.py, and tests/adapters/test_process_result_fields.py and tests/adapters/test_process_drain.py both use it from there. That finding was in the tests only, so I changed no code this round. The working tree is clean.
+
+    What I built stays as in entry 7: src/factory/adapters/process.py. `ProcessResult` has no `output_abandoned` field, and `run_process` and `run_streaming` no longer set it. The bounded read after the kill stays, as a plain statement. The docstrings say that a pipe still open after `PIPE_DRAIN` is closed and the call returns what it read.
+
+    Main choice (unchanged from entry 7): I kept the private `_ReadOutcome` value `"abandoned"`, because `_read_to_exit` waits for the child's exit only when the outcome is `"closed"`. I rejected merging the two values into `"closed"`. That would call `process.wait` while the pipes are still held, which changes the control flow.
+
+    Refactor: there is no new diff to review this round, so nothing to change.
+
+    The journal did not change what the task means, so the Description stays as it is.
+
+    Noticed, not touched:
+    - docs/project-guide/processes-and-checks.md still names `output_abandoned`. That is the documenter's work under criterion 5.
+    - The line for the field in security/duplicates-baseline.txt is the human's change 4, due after the merge.
+
+    `check`: test: green (158.4 s), check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 1 gone
