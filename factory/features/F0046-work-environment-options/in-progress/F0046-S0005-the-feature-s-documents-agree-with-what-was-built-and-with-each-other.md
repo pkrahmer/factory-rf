@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 464
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-26T17:56:07.675889Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-26T17:56:07.675889Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T17:56:33.116328Z'
+  stage: smoke-test
+  run: acb7034809ae494881d4671aebaecc44
 ---
 
 # The feature's documents agree with what was built and with each other
@@ -183,3 +185,36 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test run from the repository root as written. All three commands met their `Expect:` lines, and nothing contradicts a criterion. No findings.
+
+    Command 1: `grep -c 'Left to later stories of F0046' docs/decisions.md`
+    ```
+    0
+    ```
+    Met `Expect: 0`. grep exited with status 1 because nothing matched, which is the expected outcome.
+
+    Command 2: the two `awk … | grep -c -F 'agent-run-probe'` lines
+    ```
+    1
+    1
+    ```
+    Met `Expect: two lines, each a number of at least 1`.
+
+    Command 3: `make documents 2>&1 | tail -n 1`
+    ```
+    documents ok
+    ```
+    Met `Expect: documents ok`.
+
+    Acceptance criteria, checked against `git diff main...HEAD`:
+    - Criterion 1 holds. The only changed files are `docs/decisions.md`, `docs/operator-guide.md` and the work item with its `.costs.jsonl` sidecar. Nothing changed under `src/`, `tests/`, `vm/`, `template/` or `claude/`, and the tester (entry 5) and the coder (entry 7) each said so.
+    - Criterion 2: the journal records `make check` green on tree 6c9e3830fbbb. After that only documents changed. I did not run it again in this stage.
+    - Criterion 3:
+      - `docs/decisions.md` has no `Left to later stories of F0046` line.
+      - *A company's provider for opencode* has the bullet on the default (byte-identical configuration with `FACTORY_OPENCODE_PROVIDER_FILE` unset). It also has the bullet on how the provider is shown to work (no test runs the real opencode; the preflight's `agent-run-probe` shows it on the machine).
+      - In the operator guide, *A company's provider* has one sentence naming `agent-run-probe` (accepts the provider file and reaches the proxy) that refers to "The probe of the agent run".
+      - *The environment file* has the sentence that every name in `factory.local.env` is in the factory process's own environment because the unit sets it for the service, and that `FACTORY_CONTAINER_ENV` chooses which names the containers also get.
+      - *Behind a proxy* points to that sentence.
+      - No other section of the two documents changed.
+
+    Not a finding, only a matter of style: the new clause in *Behind a proxy* is missing a comma before "and list their names". The CA-on-host question stays with the human, as the Description says.
