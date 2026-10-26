@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T19:09:42.712601Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-26T19:09:42.712601Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-26T19:10:09.936118Z'
+  stage: intake
+  run: 38f29d502f9e4719b5399469d70af190
 ---
 
 # The reset drops the page cache after the rollback
@@ -97,14 +99,16 @@ Tests (the tester writes and changes them; the leave is decision 22 of `feature.
 ## Acceptance criteria
 
 1. The reset drops after the rollback (one test, a stand-in `zfs` and a stand-in drop under `tmp_path` that append their words to one shared file): `reset()` of `ZfsSnapshots("tank/factory/vm", <mount>, drop_caches=(<drop stand-in>,), executable=<zfs stand-in>)` leaves exactly two lines in the file, `rollback -r tank/factory/vm@base` from the `zfs` stand-in first, then the drop stand-in's line.
-2. The faults (rows of one parametrized test): a rollback that exits 1 raises `SnapshotError` whose `command` holds `rollback -r`, and the drop stand-in was not called; a drop that prints `sudo: a password is required` and exits 1 raises `SnapshotError` whose `command` is the drop's words joined by one space and whose `detail` holds `sudo: a password is required` and the exit status `1`; a drop whose program does not exist raises `SnapshotError` whose `command` is that path; a drop that sleeps 60 seconds under a `time_limit` of one second raises `SnapshotError` within `ROOMY_BOUND_SECONDS` of `tests/time_limits.py`.
+2. The faults (rows of one parametrized test): a rollback that exits 1 raises `SnapshotError` whose `command` holds `rollback -r`, and the drop stand-in was not called; a drop that prints `sudo: a password is required` and exits 1 raises `SnapshotError` whose `command` is the drop's words joined by one space and whose `detail` holds `sudo: a password is required` and the exit status `1`; a drop whose program does not exist raises `SnapshotError` whose `command` is that path; a drop that sleeps 60 seconds under a `time_limit` of one second raises `SnapshotError` within `ROOMY_BOUND_SECONDS` of `tests/time_limits.py`, whose `detail` equals `no_end_detail(<the time_limit>)` of `factory.adapters.printed_output`, the text the `zfs` commands' time-limit fault holds.
 3. Only the reset drops (rows of one parametrized test over `advance()`, `changed_paths()`, `version()` and `dataset_exists()`, the `zfs` stand-in answering each with success): the drop stand-in was called zero times.
 4. The command must name a program (rows of one parametrized test): `drop_caches=()` raises `ValueError`; `drop_caches=("x",)` is accepted.
 5. The wiring (one test over `build_boundaries` with the settings read from the fixture `hosted_environment`, its stand-in `zfs`, and a stand-in `sudo` first on `PATH` that records its words): `DROP_CACHES_COMMAND == ("sudo", "-n", "/usr/local/bin/factory-drop-caches")`; building the boundaries calls no `sudo`; `boundaries.snapshots.reset()` calls the stand-in `sudo` once, with the words `-n /usr/local/bin/factory-drop-caches`; and (read with `ast`) `ZfsSnapshots` is constructed in no module under `src/factory` but `factory.entry.wiring`, and there only with the keyword `drop_caches=DROP_CACHES_COMMAND`.
 6. The script's step (rows of one parametrized test over the script's text with its comment lines dropped, the steps cut as `tests/vm_support.py` cuts them): the first `setup: sudoers: `, the first `setup: caches: ` and the first `setup: folders: ` come in that order; the step `caches` holds the helper's three lines in their order, `install -m 0755`, `/usr/local/bin/factory-drop-caches`, `/etc/sudoers.d/factory-drop-caches`, `chmod 0440`, `visudo -cf` and `rm -f /etc/sudoers.d/factory-drop-caches`, and does not hold `$sudoers` (the step runs on every run); the rule `factory ALL=(root) NOPASSWD: /usr/local/bin/factory-drop-caches` appears exactly once in the script, inside the step `caches`; `/proc/sys/vm/drop_caches` appears on no line outside that step.
 7. The script stays valid (one test): `sh -n vm/setup.sh` exits 0.
-8. `make check` stays green.
-9. docs: `docs/operator-guide.md`, `## The machine`, `### The script`: the step `caches` in the numbered list of steps (the two files, written on every run, the `visudo` refusal), the numbers after it following, and one paragraph on the page cache after a rollback (a page written through `mmap` survives `zfs rollback` in the page cache; the factory drops the clean cache after every reset through the helper; the drop is machine-wide, so the next sync reads from the disk). `docs/project-guide/stage-environment.md`, `## The ZFS adapter`: the constructor with `drop_caches`, the row of `reset()` in *The commands* (the rollback, then the drop), the drop's faults in *Faults*, the drop stand-in in *The stand-in*; and the row of `snapshots` in the wiring table with `drop_caches=DROP_CACHES_COMMAND`. `docs/decisions.md`: a new entry "The reset drops the page cache after the rollback" (F0045-S0002; the cause found on `vm` on 2026-10-25 and 2026-10-26; decisions 15 and 16 of `feature.md` with their rejected options). `README.md`: none.
+8. The refused check of the step (one test over the step `caches` of the script's text, comment lines dropped): the step holds `setup: caches: visudo -cf refused /etc/sudoers.d/factory-drop-caches; removed it` with `>&2` on its line, and `exit 1` follows it inside the step.
+9. Writes only when the text differs (rows of one parametrized test over the step `caches`, one row for the helper and one for the `sudoers` file): the step compares the installed file with its wanted text before writing it (a `cmp`, `diff` or `grep -x` test on that file's path precedes its `install` or write), and its `setup: caches: ` output has a `found` form and a `wrote` form for that file, as the other steps' lines have.
+10. `make check` stays green.
+11. docs: `docs/operator-guide.md`, `## The machine`, `### The script`: the step `caches` in the numbered list of steps (the two files, written on every run, the `visudo` refusal), the numbers after it following, and one paragraph on the page cache after a rollback (a page written through `mmap` survives `zfs rollback` in the page cache; the factory drops the clean cache after every reset through the helper; the drop is machine-wide, so the next sync reads from the disk). `docs/project-guide/stage-environment.md`, `## The ZFS adapter`: the constructor with `drop_caches`, the row of `reset()` in *The commands* (the rollback, then the drop), the drop's faults in *Faults*, the drop stand-in in *The stand-in*; and the row of `snapshots` in the wiring table with `drop_caches=DROP_CACHES_COMMAND`. `docs/decisions.md`: a new entry "The reset drops the page cache after the rollback" (F0045-S0002; the cause found on `vm` on 2026-10-25 and 2026-10-26; decisions 15 and 16 of `feature.md` with their rejected options). `README.md`: none.
 
 ## Smoke test
 
@@ -145,3 +149,9 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
    3. Agreed, covered.
    4. Yes: the time-limit row asserts the same detail text the `zfs` time-limit test asserts.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: concrete. It names `factory.adapters.zfs_snapshots` with `DROP_CACHES_COMMAND` and the keyword-only `drop_caches` (an empty tuple raises `ValueError`). It names `factory.entry.wiring._container_adapters` and the script step `caches` with the exact text of both files.
+   - Criteria: the human's answers in journal entry 4 are carried in. Criterion 2's time-limit row now asserts `detail == no_end_detail(<time_limit>)` (answer 4; `no_end_detail` is what `ZfsSnapshots` uses for the `zfs` time-limit fault). New criterion 8 covers the refused `visudo` branch: the message, `>&2` and `exit 1` (answer 1). New criterion 9 covers write-only-when-different and the found/wrote report for both files (answer 2). `make check` and `docs:` are now 10 and 11. Every other rule has its passing and failing side: the rollback and drop faults, the empty and one-word command, and the four methods that do not drop.
+   - Smoke test: runnable. There is no pytest, and the `Expect:` line lists four checkable lines.
+   - Architecture: the adapter holds the command, the wiring is the one place that builds `ZfsSnapshots`, and the script is the machine's side. The layers hold.
+   - Scope: decisions 15 and 16 of `feature.md` (no content check). The leave for the earlier tests is decision 22.
