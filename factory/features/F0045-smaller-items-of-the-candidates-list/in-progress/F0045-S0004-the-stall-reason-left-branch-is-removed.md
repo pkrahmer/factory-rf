@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T21:17:15.304181Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -63,6 +59,12 @@ journal:
   kind: started
   at: '2026-10-26T21:17:15.304181Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-26T21:23:04.531828Z'
+  stage: doing
+  run: 096af63ddca94f7fb5edc06539a6ee14
 ---
 
 # The stall reason left_branch is removed
@@ -179,3 +181,26 @@ Expect: two lines: `False 4.0`; `0`
    Bytecode compiled 4164 files in 76ms
    make: *** [Makefile:38: types] Error 139
 9. factory: started doing as vm.
+10. coder: I re-ran the stage after the stall in entry 8. The work from entry 7 is already committed on the branch and I changed nothing. `make check` is green this time: `check: green`, `test: green (156.8 s)`, coverage 99.56 %.
+
+       Why the stall happened: the red check was `make types`, which died with `make: *** [Makefile:38: types] Error 139`. Exit 139 is a segfault in the mypy process, not a type error. This time, on the same tree, `types` passed. I take the earlier failure as a crash of the tool on the machine, not a fault in the diff. If it happens again, the mypy run inside the check container is the place to look. Nothing in this story touches it.
+
+       What is built (unchanged from entry 7), in `src/factory/`:
+       - `domain/journal.py`: `"left_branch"` is gone from `StallReason`.
+       - `domain/post_texts.py`: its stall sentence is gone.
+       - `application/stage.py`: `AfterAgent._early_stall` no longer has the branch comparison through `git.status()`.
+       - `domain/contract.py`: `RECORDS_CONTRACT = "4.0"`.
+       - `contract/*.schema.json`: regenerated with `uv run python -m factory.entry.contract`.
+
+       Main choice (unchanged): I removed the check outright. I rejected keeping a softer `status`-based warning, because the check cannot fire on the dataset and criterion 3 forbids the call. I also left `_early_stall` as a method rather than moving it to module level, since that move is a restructuring beyond this story.
+
+       Refactor pass: I read the diff again and found nothing to change.
+
+       Noticed, not touched:
+       - The comment at `src/factory/application/stalls.py:112` belongs to the stall service's restore, which this story keeps.
+       - The docs criterion is the documenter's.
+
+       No journal entry changed the meaning of the task.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
