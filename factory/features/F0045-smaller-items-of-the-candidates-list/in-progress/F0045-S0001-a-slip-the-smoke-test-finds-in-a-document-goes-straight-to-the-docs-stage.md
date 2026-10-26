@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T18:47:38.410867Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-26T18:47:17.167378Z'
   stage: doing
   run: 148f3ff82d1944609f5625bcd878a36f
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-26T18:47:38.410867Z'
+  stage: tests
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -210,3 +219,4 @@ Expect: two lines: `7`; `1`
     Description: no journal entry changed the meaning of the task, so the Description is unchanged.
 
     Noticed, not touched: nothing new.
+12. factory: started tests as vm.
