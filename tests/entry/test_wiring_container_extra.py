@@ -58,7 +58,7 @@ def _request(tmp_path: Path) -> AgentRunRequest:
     )
 
 
-@pytest.mark.usefixtures("checkout")
+@pytest.mark.usefixtures("checkout", "sudo_stand_in")
 @pytest.mark.parametrize("runtime", ["claude", "opencode"])
 def test_every_container_of_a_stage_carries_both_settings_and_no_hosting_token(
     tmp_path: Path,

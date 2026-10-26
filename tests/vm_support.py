@@ -18,6 +18,7 @@ STEPS = (
     "datasets",
     "delegation",
     "sudoers",
+    "caches",
     "folders",
     "image-id",
     "checkout",

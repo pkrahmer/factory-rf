@@ -62,7 +62,7 @@ Tests: `tests/domain/test_containers.py`, `tests/domain/test_errors_environment.
 
 ## The ZFS adapter
 
-`ZfsSnapshots(dataset, mount_point, *, executable="zfs", time_limit=SNAPSHOT_TIME_LIMIT)` (`factory.adapters.zfs_snapshots`) implements `Snapshots` for a ZFS dataset such as `tank/factory/vm`, mounted at `mount_point` (returned as given). Its base is the one snapshot `<dataset>@base` (`BASE_SNAPSHOT`). `SNAPSHOT_TIME_LIMIT` is ten minutes. The adapter runs the one executable it is given, so an operator can pass a wrapper script (a `sudo` call, for instance) in place of `zfs`.
+`ZfsSnapshots(dataset, mount_point, *, drop_caches, executable="zfs", time_limit=SNAPSHOT_TIME_LIMIT)` (`factory.adapters.zfs_snapshots`) implements `Snapshots` for a ZFS dataset such as `tank/factory/vm`, mounted at `mount_point` (returned as given). Its base is the one snapshot `<dataset>@base` (`BASE_SNAPSHOT`). `SNAPSHOT_TIME_LIMIT` is ten minutes. The adapter runs the one executable it is given, so an operator can pass a wrapper script (a `sudo` call, for instance) in place of `zfs`. `drop_caches` is required: the command, program first, that `reset()` runs after the rollback; an empty tuple raises `ValueError`. `DROP_CACHES_COMMAND` is `("sudo", "-n", "/usr/local/bin/factory-drop-caches")`, and only `factory.entry.wiring` constructs the adapter (with `drop_caches=DROP_CACHES_COMMAND`). The reason is in *The reset drops the page cache after the rollback* of `docs/decisions.md`.
 
 ### The commands
 
@@ -70,7 +70,7 @@ Every command runs through `run_process` (`factory.adapters.process`; `tests/tes
 
 | Member | Runs | When |
 | --- | --- | --- |
-| `reset()` | `zfs rollback -r <dataset>@base` | always; `-r` removes any later snapshot |
+| `reset()` | `zfs rollback -r <dataset>@base`, then `drop_caches` | always; `-r` removes any later snapshot; the drop runs only after a rollback that exited 0, under the same time limit |
 | `advance()` | `zfs list -H -o name -t snapshot <dataset>@base`, then `zfs destroy <dataset>@base`, then `zfs snapshot <dataset>@base` | `destroy` only when `list` exits 0; exit 1 means there is no base yet and `destroy` is skipped |
 | `changed_paths()` | `zfs diff -FH <dataset>@base` | always |
 | `version()` | `zfs --version` | the preflight |
@@ -89,7 +89,7 @@ Each non-blank line is tab-separated: `<change> <kind> <path>`, or for `R` `<cha
 
 ### Faults
 
-Every fault is `SnapshotError(command, detail)`. `command` is the words run joined by a space, executable first (`zfs rollback -r tank/factory/vm@base`). `detail` is:
+Every fault is `SnapshotError(command, detail)`. `command` is the words run joined by a space, executable first (`zfs rollback -r tank/factory/vm@base`; for the drop, `sudo -n /usr/local/bin/factory-drop-caches`). The drop's faults are formed as the `zfs` commands' are, by the same runner (`_execute`): a rollback that fails raises its own fault and the drop is not run. `detail` is:
 
 - the last non-blank line of the output, or `exit status <n>` when there is none, for a command that failed. Failed means an exit status other than 0, except for the two `list` commands, where only a status other than 0 or 1 fails;
 - `no end within <n> s` when the time limit was reached, `n` the limit's seconds rounded up;
@@ -102,7 +102,7 @@ Every fault is `SnapshotError(command, detail)`. `command` is the words run join
 
 ### The stand-in
 
-No test runs a real `zfs`; it runs only on the VM. `tests/zfs_support.py` writes a stand-in `zfs` into `tmp_path`. It records its arguments, environment and working directory, then answers by a plan keyed on its first argument (`rollback`, `list`, `destroy`, `snapshot`, `diff`, `--version`): planned output and exit status, or a sleep past a short limit. The limit itself cannot be seen from the stand-in, so tests of the default limit and its rounding replace the module's `run_process` with the `Recorder` of `tests/run_process_recorder.py`. The tests are `tests/adapters/test_zfs_snapshots.py` and `tests/adapters/test_zfs_snapshots_diff.py`.
+No test runs a real `zfs`; it runs only on the VM. `tests/zfs_support.py` writes a stand-in `zfs` into `tmp_path`. `snapshots_on` also passes a drop stand-in that succeeds (`Drop` and `write_drop`), and `tests/adapters/test_zfs_snapshots_drop_caches.py` uses stand-ins that append their words to one shared file, so a test reads the order of rollback and drop. The `zfs` stand-in records its arguments, environment and working directory, then answers by a plan keyed on its first argument (`rollback`, `list`, `destroy`, `snapshot`, `diff`, `--version`): planned output and exit status, or a sleep past a short limit. The limit itself cannot be seen from the stand-in, so tests of the default limit and its rounding replace the module's `run_process` with the `Recorder` of `tests/run_process_recorder.py`. The tests are `tests/adapters/test_zfs_snapshots.py` and `tests/adapters/test_zfs_snapshots_diff.py`.
 
 ## The podman adapter
 
@@ -322,7 +322,7 @@ One function, `workspace_overlap_fault(workspace, checkout, state_directory)` (`
 
 | Boundary | Built as |
 |---|---|
-| `snapshots`, `containers` | `ZfsSnapshots(dataset, workspace, executable=zfs_executable)` and `PodmanRuns(podman_executable, stage_image, workspace)` |
+| `snapshots`, `containers` | `ZfsSnapshots(dataset, workspace, drop_caches=DROP_CACHES_COMMAND, executable=zfs_executable)` and `PodmanRuns(podman_executable, stage_image, workspace)` |
 | `agent_runtime` | the runtime of `FACTORY_AGENT_RUNTIME` given `containers` |
 | `project_commands` | `RecordingProjectCommands` around `ContainerMakeCommands(snapshots, containers, git, checkout=settings.checkout, extra_environment=extra, ca_bundle=settings.ca_bundle)` |
 

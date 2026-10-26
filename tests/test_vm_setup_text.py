@@ -18,6 +18,7 @@ ORDERED_COMMANDS = (
     "zfs set quota=",
     "zfs allow -u factory snapshot,destroy,rollback,diff,mount",
     "/etc/sudoers.d/factory-zfs",
+    "/etc/sudoers.d/factory-drop-caches",
     "/home/factory/.secrets",
     "image-id",
     "/proc/sys/kernel/random/uuid",

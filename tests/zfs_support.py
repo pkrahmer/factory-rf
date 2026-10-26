@@ -1,6 +1,7 @@
 """A stand-in `zfs` that records each call and answers by a plan keyed on its first argument."""
 
 import json
+import shlex
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from run_layout_support import read_records, write_script
 
 CALLS = "zfs-calls.jsonl"
 PLAN = "zfs-plan.json"
+DROP_CALLS = "drop-calls.txt"
 DATASET = "tank/factory/vm"
 MOUNT_POINT = Path("/srv/factory/vm/work")
 
@@ -93,6 +95,49 @@ def write_zfs(folder: Path, plan: dict[str, Answer] | None = None) -> Zfs:
     return Zfs(path=path, folder=folder)
 
 
+@dataclass(frozen=True)
+class Drop:
+    """The stand-in cache drop: a `sh` script that appends its own path to `record` per call."""
+
+    path: Path
+    record: Path
+
+    def calls(self) -> list[str]:
+        """The lines it appended, in order; none when it was never called."""
+        if not self.record.exists():
+            return []
+        return self.record.read_text(encoding="utf-8").splitlines()
+
+
+def write_drop(
+    folder: Path,
+    *,
+    record: Path | None = None,
+    printed: str = "",
+    exit_status: int = 0,
+    sleep_seconds: int = 0,
+) -> Drop:
+    """Write a stand-in drop into `folder` that prints `printed`, sleeps and exits as given."""
+    folder.mkdir(parents=True, exist_ok=True)
+    record = folder / DROP_CALLS if record is None else record
+    path = folder / "factory-drop-caches"
+    lines = [
+        "#!/bin/sh",
+        f"printf '%s\\n' \"$0\" >> {shlex.quote(str(record))}",
+        f"printf '%s' {shlex.quote(printed)} >&2",
+    ]
+    if sleep_seconds:
+        # exec, so the time limit's kill reaches the sleep itself.
+        lines.append(f"exec sleep {sleep_seconds}")
+    lines.append(f"exit {exit_status}")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    path.chmod(0o755)
+    return Drop(path=path, record=record)
+
+
 def snapshots_on(zfs: Zfs) -> ZfsSnapshots:
-    """The adapter of the test's dataset and mount point, run on the stand-in."""
-    return ZfsSnapshots(DATASET, MOUNT_POINT, executable=str(zfs.path))
+    """The adapter of the test's dataset and mount point on the stand-in; its drop succeeds."""
+    drop = write_drop(zfs.folder)
+    return ZfsSnapshots(
+        DATASET, MOUNT_POINT, drop_caches=(str(drop.path),), executable=str(zfs.path)
+    )

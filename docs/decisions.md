@@ -1191,3 +1191,13 @@ Date: 2026-10-26 (F0045-S0001).
 - Why: the coder may not write `docs/`, so a slip went smoke test, `doing`, review, docs, smoke test: four extra runs each in F0038-S0007 and S0009 (F0038-A0001, note 8).
 - Why no code: `factory.domain.decisions.decide` already counts every `next` entry after the first as a rework against `round_cap`.
 - Rejected: the coder passes a docs-only finding on with `review` and the reviewer with `docs` (the long way, shortened by nothing); a factory rule that reads the findings' paths (a new mechanism for a judgement an agent already makes). A reviewer marking the finding is not possible: none runs after the smoke test.
+
+## The reset drops the page cache after the rollback
+
+Date: 2026-10-26 (F0045-S0002; the cause was found and reproduced on `vm` on 2026-10-25 and 2026-10-26).
+
+- Decision: `ZfsSnapshots.reset()` runs `sudo -n /usr/local/bin/factory-drop-caches` right after a rollback that exited 0, and a fault of that command is a `SnapshotError`. The wiring gives every `ZfsSnapshots` the command (`DROP_CACHES_COMMAND`); no setting names it. `vm/setup.sh` has the step `caches`, which writes the helper (`sync`, then `echo 1 > /proc/sys/vm/drop_caches`) and the one `sudoers` rule for it on every run, with or without `--sudoers` (decision 15 of F0045).
+- Cause: a page a stage wrote through `mmap` survives `zfs rollback` in the page cache. The file then has the snapshot's size and the newer page's content, git's stat cache calls it clean, the sync does not repair it, and the fault reached `@base`. Dropping the clean cache after the rollback clears it.
+- Why in the factory and the script: `vm` had the drop in a hand-made wrapper (`FACTORY_ZFS=/usr/local/bin/zfs-fresh`); a setting can be left out, the code cannot.
+- Accepted: the drop is machine-wide, so the next sync reads from the disk.
+- Rejected: the sync checks the content against git's stat cache (decision 16 of F0045; it would read every file on every stage and treat the symptom); keeping the wrapper behind `FACTORY_ZFS` (an operator's setting that can be missing).

@@ -12,6 +12,7 @@ from factory.domain.git import ChangedPath, ChangeKind
 
 BASE_SNAPSHOT = "base"
 SNAPSHOT_TIME_LIMIT = timedelta(minutes=10)
+DROP_CACHES_COMMAND = ("sudo", "-n", "/usr/local/bin/factory-drop-caches")
 
 _ROOT = Path("/")
 _DIRECTORY_KIND = "/"
@@ -41,11 +42,19 @@ class ZfsSnapshots(Snapshots):
         dataset: str,
         mount_point: Path,
         *,
+        drop_caches: tuple[str, ...],
         executable: str = "zfs",
         time_limit: timedelta = SNAPSHOT_TIME_LIMIT,
     ) -> None:
-        """Work on `dataset`, mounted at `mount_point`, through `executable`."""
+        """Work on `dataset`, mounted at `mount_point`, through `executable`.
+
+        `drop_caches` is the command, program first, that drops the clean page cache after
+        every rollback; an empty one raises `ValueError`.
+        """
+        if not drop_caches:
+            raise ValueError("drop_caches must name a program")
         self._dataset = dataset
+        self._drop_caches = drop_caches
         self._mount_point = mount_point
         self._executable = executable
         self._time_limit = time_limit
@@ -60,8 +69,13 @@ class ZfsSnapshots(Snapshots):
         return f"{self._dataset}@{BASE_SNAPSHOT}"
 
     def reset(self) -> None:
-        """Roll the dataset back to `@base`, removing every later snapshot."""
+        """Roll the dataset back to `@base`, removing every later snapshot, then drop the cache.
+
+        A page written through `mmap` survives the rollback in the page cache, so the files
+        would read the stage's pages until the clean cache is dropped.
+        """
         self._run(["rollback", "-r", self._base])
+        self._execute(list(self._drop_caches))
 
     def advance(self) -> None:
         """Destroy `@base` when it exists and take it anew."""
@@ -133,8 +147,12 @@ class ZfsSnapshots(Snapshots):
         return " ".join([self._executable, *arguments])
 
     def _run(self, arguments: list[str], *, accepted: tuple[int, ...] = (0,)) -> ProcessResult:
+        return self._execute([self._executable, *arguments], accepted=accepted)
+
+    def _execute(self, argv: list[str], *, accepted: tuple[int, ...] = (0,)) -> ProcessResult:
+        command = " ".join(argv)
         request = ProcessRequest(
-            argv=[self._executable, *arguments],
+            argv=argv,
             cwd=_ROOT,
             env=None,
             time_limit=self._time_limit,
@@ -143,13 +161,11 @@ class ZfsSnapshots(Snapshots):
         try:
             result = run_process(request)
         except OSError as error:
-            raise SnapshotError(self._command(arguments), str(error)) from error
+            raise SnapshotError(command, str(error)) from error
         if result.timed_out:
-            raise SnapshotError(self._command(arguments), no_end_detail(self._time_limit))
+            raise SnapshotError(command, no_end_detail(self._time_limit))
         if result.exit_status not in accepted:
-            raise SnapshotError(
-                self._command(arguments), failure_detail(result.stdout, result.exit_status)
-            )
+            raise SnapshotError(command, failure_detail(result.stdout, result.exit_status))
         return result
 
 
