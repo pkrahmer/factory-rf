@@ -8,7 +8,8 @@ The items, numbered:
 
 1. **The six items of `planning/v1.2-candidates.md`, section "Smaller items noted on 2026-10-21"**: for each, decide from F0044's stories whether it falls with F0044 (then no story; say which F0044 story removes it, in a numbered decision) or stays (then a story, or part of one). The plan's F0045 section lists them.
 2. **The three items of the section "For F0045, beside the six items above"** of the same file: the idle shutdown, an option off by default (as written there: its setting, what idle means, the wrapper, the one right `vm/setup.sh` gives only when it is used, the operator guide's text; decide the open point "a story waiting for the human counts as idle" as proposed there, as a numbered decision); the removal of the stall reason `left_branch` with the records contract's next major (after F0044's 3.0, so 4.0; say so); the two settings defaults that name v1.1's image, `FACTORY_CLAUDE_HOME` and `FACTORY_IMAGE_ID_FILE` (make them required or give them the VM's paths: decide, with the reason, as a numbered decision).
-3. **Not in F0045:** the v1.3 candidate "the agents' project commands run through the factory" and anything the plan's "Not in v1.2" names.
+3. **Found on 2026-10-26 (sections "The cause of the zero bytes found" and "From F0046-S0002's review" of `planning/v1.2-candidates.md`)**: (a) the stale-page fault: the stage environment's reset drops the page cache after `zfs rollback` itself (or an equally solid way), and `vm/setup.sh` installs what that needs; today `vm` works around it with `/usr/local/bin/zfs-fresh` and `/etc/sudoers.d/factory-drop-caches` (shown in `planning/overnight/gcp-trial-checklist-2026-10-26.md`); (b) `vm/setup.sh` replaces an installed `factory@.service` that differs from the checkout (today it says "differs from the checkout; not installed" and the operator installs it by hand), or the operator guide's *The rebuild after a merge* says exactly what to do; (c) the three test duplications S0002's reviewer noted belong to the tests' tidy-up of item 2; (d) `InstanceSettings` checks the `container_env` names in its model validator too, not only in `read_settings` (F0046-A0001's notes).
+4. **Not in F0045:** the v1.3 candidate "the agents' project commands run through the factory" and anything the plan's "Not in v1.2" names.
 
 Every story names the earlier tests it changes, by exact name where they exist today and by module and row where F0044 writes them; `feature.md` gives each story's leave as a numbered decision marked "the human's leave, to be given before the story starts".
 
@@ -51,21 +52,7 @@ Only the folder `C:/Dev/Projects/factory-rf/planning/overnight/stories/F0045-sma
 
 ## Check each story
 
-`factory-check-story` takes only a path `factory/features/<dir>/<backlog|in-progress|done>/<file>.md`, and the suite and the check do not run on Windows. So check in a throwaway container, on a copy:
-
-1. Copy the repository (with robocopy and absolute `/XD` paths: `C:\Dev\Projects\factory-rf\.git`, `...\image\secrets`, `...\.venv`, `...\mutants`; then check that `image/secrets` is absent in the copy) into `C:/Users/pasca/AppData/Local/Temp/f45draft/repo`, leaving out `./.git`, `./image/secrets`, `./.venv` and `./mutants`. Convert the copy's text files to LF line endings.
-2. Inside that copy, place your drafts under `factory/features/F0045-smaller-items-of-the-candidates-list/backlog/`.
-3. Run the check in a throwaway container of the image:
-
-   ```bash
-   MSYS_NO_PATHCONV=1 docker run --rm --network none --entrypoint /bin/sh \
-     -v C:/Users/pasca/AppData/Local/Temp/f45draft/repo:/src -w /src factory-self-factory -c 'factory-check-story factory/features/F0045-smaller-items-of-the-candidates-list/backlog/<file>.md'
-   ```
-
-   Every line must end in `: ok`. Fix the draft in `planning/` and check again.
-4. Run each smoke test against today's code the same way: before the story it must print what the code prints today (say so), and its `Expect:` must be what it prints after the removal.
-
-Never run anything in the running instance `factory-self-factory-1`. You may look inside it read-only with `MSYS_NO_PATHCONV=1 docker exec factory-self-factory-1 <command>`; change nothing there.
+The old check image is gone. Do not run containers or the suite. Check each story by reading it against `factory/story-form.md` and `claude/agents/intake.md`; the human runs `factory-check-story` afterwards on the VM. Say in the reply which smoke tests you could not run.
 
 ## Not
 
