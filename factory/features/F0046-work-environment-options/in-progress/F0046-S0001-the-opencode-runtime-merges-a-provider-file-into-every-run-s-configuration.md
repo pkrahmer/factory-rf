@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775, 6417568826]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T13:48:00.830661Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T13:47:42.667974Z'
+  stage: doing
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-26T13:48:00.830661Z'
   stage: doing
 ---
 
@@ -337,3 +346,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: nothing else.
 18. 2026-10-26 human: Neither of the three as you put them: `main` now holds a line filter in `.secrets.baseline` (lines that name `api_key_env` are not scanned; the human's choice). It reaches this branch through the merge of `origin/main` at the next stage. No change to the journal, `src/` or `tests/`; end the next doing round with `review` once `make check` is green.
+19. factory: started doing as vm.
