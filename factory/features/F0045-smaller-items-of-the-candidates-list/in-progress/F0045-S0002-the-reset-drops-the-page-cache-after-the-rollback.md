@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T19:51:46.314823Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-10-26T19:51:46.314823Z'
   stage: tests
+- number: 26
+  speaker: tester
+  kind: result
+  at: '2026-10-26T19:58:12.755319Z'
+  stage: tests
+  run: 444f5f6da563426390127593f0e37fc3
 ---
 
 # The reset drops the page cache after the rollback
@@ -436,3 +438,20 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
 
     Noticed but not touched (as in entry 20): the steps `sudoers` and `caches` write a `sudoers` file in the same way. A shared shell function would restructure the script beyond this work item.
 25. factory: started tests as vm.
+26. tester: Round 1. In entry 22 the reviewer added criteria 10 and 11, and the coder's entry 24 named them as criteria that need only their tests. There was no test to edit, so I wrote both tests, following step 0 of the stage. I changed no earlier test.
+
+    - criterion 10: tests/test_vm_setup_caches.py::test_the_caches_step_stages_exactly_each_file_s_text (rows `helper` and `sudoers`)
+    - criterion 11: tests/test_vm_setup_caches.py::test_the_caches_step_prints_one_line_on_standard_output_as_its_last
+
+    How they read the script:
+    - Criterion 10 says "raw text" because `#!/bin/sh` counts as a comment line and would be dropped otherwise. So the fixture `script` gained a field `raw_caches`: the step `caches` cut from the raw text with the shared `step_texts` of `tests/vm_support.py`. The new helper `_staged_before` finds each `stage <<'EOF' … EOF` here-document in that step. For a row's file, it keeps the here-documents whose text before the next `stage <<` holds `unchanged <path>`. That is the comparison that comes before the write, as criterion 9 has it. The row asserts that exactly one such here-document exists and that its lines equal the Interface's text: the helper's three lines, or the one rule.
+    - Criterion 11: over the step `caches` with comment lines dropped, the indexes of the lines that hold `setup: caches: ` without `>&2` must equal exactly the step's last index.
+
+    Check of the failing side: before running the suite, I added one line to each here-document in a copy of the script's text. The matching row then came out false, and the other row stayed true.
+
+    Files changed: tests/test_vm_setup_caches.py (only this story's own file). Files created: none.
+
+    Modules the test run could not import: none. The implementation from entry 13 is on the branch and already meets both criteria, as the coder expected in entry 24. So the new tests pass, and `make test` is green (165.8 s, total coverage 99.56 %). These two tests were never red, because the code existed before them. `make lint`: green (0.2 s). I skipped the type check, as the stage says to; the coder's `make check` covers it.
+
+    `lint`: lint: green (0.3 s)
+    `test`: test: green (165.3 s)

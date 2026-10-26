@@ -13,22 +13,25 @@ SUDOERS = "/etc/sudoers.d/factory-drop-caches"
 HELPER_LINES = ("#!/bin/sh", "sync", "echo 1 > /proc/sys/vm/drop_caches")
 RULE = f"factory ALL=(root) NOPASSWD: {HELPER}"
 REFUSED = f"setup: caches: visudo -cf refused {SUDOERS}; removed it"
+STAGED = re.compile(r"(?ms)^\s*stage <<'EOF'\n(.*?)^EOF\n(.*?)(?=^\s*stage <<|\Z)")
 COMPARISONS = re.compile(r"(?<![\w-])(?:cmp|diff|grep\s+(?:-\w*x\w*\s+|.*\s-\w*x))")
 
 
 @dataclass(frozen=True)
 class Script:
-    """The setup script's raw text, its text without comment lines and the step `caches`."""
+    """The setup script's raw text, its text without comment lines and the step `caches` of each."""
 
     raw: str
     code: str
     caches: str
+    raw_caches: str
 
 
 @pytest.fixture
 def script(code: str) -> Script:
     """Return the setup script's texts and its step `caches`."""
-    return Script(SETUP.read_text(encoding="utf-8"), code, step_texts(code)["caches"])
+    raw = SETUP.read_text(encoding="utf-8")
+    return Script(raw, code, step_texts(code)["caches"], step_texts(raw)["caches"])
 
 
 def _in_order(text: str, words: list[str]) -> bool:
@@ -131,3 +134,34 @@ def test_the_caches_step_writes_a_file_only_when_its_text_differs(
     assert compared[0] < written[0]
     assert f"wrote {path}" in script.caches
     assert any("found" in line and path in line for line in lines)
+
+
+def _staged_before(script: Script, path: str) -> list[list[str]]:
+    # Each here-document the step stages, with the text that follows it up to the next one.
+    return [
+        staged.splitlines()
+        for staged, after in STAGED.findall(script.raw_caches)
+        if re.search(rf"(?<![\w-])unchanged\s+[\"']?{re.escape(path)}(?![\w/.-])", after)
+    ]
+
+
+@pytest.mark.parametrize(
+    ("path", "lines"),
+    [
+        pytest.param(HELPER, list(HELPER_LINES), id="helper"),
+        pytest.param(SUDOERS, [RULE], id="sudoers"),
+    ],
+)
+def test_the_caches_step_stages_exactly_each_file_s_text(
+    script: Script, path: str, lines: list[str]
+) -> None:
+    assert _staged_before(script, path) == [lines]
+
+
+def test_the_caches_step_prints_one_line_on_standard_output_as_its_last(script: Script) -> None:
+    lines = script.caches.splitlines()
+    printed = [
+        index for index, line in enumerate(lines) if "setup: caches: " in line and ">&2" not in line
+    ]
+
+    assert printed == [len(lines) - 1]
