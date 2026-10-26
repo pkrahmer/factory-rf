@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-26T12:38:24.727799Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T12:38:06.947848Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-26T12:38:24.727799Z'
   stage: intake
 ---
 
@@ -141,3 +150,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    1. `https://example.invalid/v1/` is accepted by `read_provider` and gives `"baseURL": "https://example.invalid/v1/"`, with the slash kept.
    2. One parametrized row per group alone: name only gives `{"name": ..}`, limits only give `{"limit": ..}`, prices only give `{"cost": ..}`; no key is ever null.
    3. The reverse rows: `output_cost` without `input_cost` and `output` without `context` are refused.
+5. factory: started intake as vm.
