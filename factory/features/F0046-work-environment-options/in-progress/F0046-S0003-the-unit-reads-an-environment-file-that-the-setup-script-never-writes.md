@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T16:20:29.907860Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-26T16:20:29.907860Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-26T16:20:49.516538Z'
+  stage: doing
+  run: 9236d5de31dd4534964c595ddf6c1d67
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -234,3 +236,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests:
     tests/test_vm_service.py: changed under the human's leave in entry 9. The `service` row drops `EnvironmentFile` and `[Service]` skips `EnvironmentFile` keys, exactly as that leave allows.
 16. factory: started doing as vm.
+17. coder: I changed no code this round. The reviewer's only finding (entry 15) is a copied test fixture, and the coder doesn't fix that. It is the tester's move under the standing leave in `CLAUDE.md`.
+
+    The move: the `code` fixture ("Return the setup script's text without its comment lines.", which returns `setup_code()`) goes to `tests/conftest.py`. Its three word-for-word copies come out of these earlier test files:
+    - `tests/test_vm_local_environment.py:35-38`
+    - `tests/test_vm_setup_text.py:44-47`
+    - `tests/test_vm_setup_writes.py:16-19`
+
+    Every test keeps its name and checks the same thing. I confirmed the three copies are identical and that `tests/conftest.py` has no `code` fixture yet.
+
+    Built (unchanged since entry 13): `vm/factory.service` gains `EnvironmentFile=-/srv/factory/%i/factory.local.env` after `EnvironmentFile=/srv/factory/%i/factory.env`. `vm/setup.sh` gains the closing `setup: local:` printf, which prints `$base`. The main choice, and the alternative I rejected, are as entry 13 describes them.
+
+    I didn't run `make check` this round because nothing changed. It was green in entry 13.
+
+    The journal didn't change the meaning of the task, so `## Description` stays as it is.
+
+    Noticed but not touched: nothing.
