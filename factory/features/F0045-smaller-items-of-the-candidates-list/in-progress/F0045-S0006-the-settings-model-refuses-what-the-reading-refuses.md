@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-26T22:34:42.311546Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-26T22:34:21.909308Z'
   stage: doing
   run: 7e8eb281067247f2a7f9945acdd52e9d
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:34:42.311546Z'
+  stage: review
 ---
 
 # The settings model refuses what the reading refuses
@@ -158,3 +167,4 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 43 known, 0 gone
+8. factory: started review as vm.
