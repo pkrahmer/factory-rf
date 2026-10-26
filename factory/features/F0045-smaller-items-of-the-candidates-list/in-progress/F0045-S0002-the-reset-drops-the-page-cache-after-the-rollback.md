@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 467
-comments_read: []
+comments_read: [6424960438]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: cfc5a10b4ae348729679b2a2426bb404
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-26T19:09:24.930116Z'
+  stage: intake
 ---
 
 # The reset drops the page cache after the rollback
@@ -126,3 +131,7 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
    - Scope: this is decision 15 of `feature.md`, with no content check, as decision 16 says.
    - Test leaves: decision 22 gives the leave for the earlier tests the Interface names.
    - Smoke test: the commands run and no pytest is involved. The `Expect:` line lists four checkable lines.
+4. 2026-10-26 human: 1. Yes, a text criterion: the step's refused branch prints that message with `>&2` and ends `exit 1`. No stand-in `visudo` run.
+   2. Yes, a text criterion: the step compares each file with its wanted text before writing (helper and sudoers file alike), and its `setup: caches: ` line reports `found` or `wrote` as the other steps do.
+   3. Agreed, covered.
+   4. Yes: the time-limit row asserts the same detail text the `zfs` time-limit test asserts.
