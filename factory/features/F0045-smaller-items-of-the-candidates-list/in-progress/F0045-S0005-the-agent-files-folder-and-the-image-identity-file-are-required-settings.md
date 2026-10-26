@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 470
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-26T22:14:21.682763Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-26T22:14:01.205521Z'
   stage: docs
   run: 8dd84647a14e425e94f62c32c2e1abb4
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:14:21.682763Z'
+  stage: smoke-test
 ---
 
 # The agent files' folder and the image identity file are required settings
@@ -247,3 +256,4 @@ Expect: three lines: `FACTORY_CLAUDE_HOME: missing`; `FACTORY_IMAGE_ID_FILE: mis
     `check`: check: green (not run again: passed on tree a55791824ecf at 2026-10-26T22:09:07Z)
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
