@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-26T17:43:02.035632Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,12 @@ journal:
   kind: started
   at: '2026-10-26T17:43:02.035632Z'
   stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T17:43:41.771095Z'
+  stage: docs
+  run: c3fd71bc36874d5bac5e0111ecb0d0f1
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -360,3 +362,26 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
     - `tests/application/test_agent_run_probe_factory_user.py`: the human's leave in feature.md decision 10.
     - `tests/entry/test_wiring_without_agent_user.py`: the human's answer in journal entry 8. Only the `opencode-no-login` row's `said` entry changed.
 25. factory: started docs as vm.
+26. documenter: Docs round for the two new opencode probe texts. I changed one file, docs/operator-guide.md, in *The probe of the agent run*, and found no findings.
+
+    Changed:
+    - docs/operator-guide.md, the opencode failed-probe paragraph: it now quotes the new hint, `; the agent runs get no API key: put a key in the file FACTORY_API_LOGIN_FILE names`. It also says why no login kept in the agent's home is advised: the rollback clears it. It points to *Running on opencode*, which S0001 already corrected.
+    - docs/operator-guide.md, the completed-probe paragraph: the `none` detail is now given per runtime. Claude Code keeps `the agent runs get no login from a file; the runtime uses the login kept in its home`. Opencode gets `the agent runs get no login from a file`. I added that a provider whose key comes through `FACTORY_CONTAINER_ENV` passes this way.
+
+    I checked the first smoke-test command: `grep -c "opencode build's own login"` on docs/operator-guide.md now gives 0. I did not run the second (pytest) or `make check`, since I changed only a document and the factory's checks run after me. I wrote no runnable examples.
+
+    I compared the diff of src/factory/application/preflight.py with the Interface. `_opencode_login_hint` and `_login_detail` match it, and I found no contradiction between code and docs.
+
+    Cross-read and found current:
+    - README.md
+    - docs/project-guide/ (README.md, agents.md, watching.md)
+    - *Running on opencode* in docs/operator-guide.md, which already carries S0001's rule that only the API login works
+    - The agent-home passages in docs/operator-guide.md
+
+    Per criterion 5, docs/decisions.md needed no change.
+
+    Stale text I saw and did not touch: nothing unrelated to this story.
+
+    `check`: check: green (not run again: passed on tree 6c9e3830fbbb at 2026-10-26T17:38:40Z)
+    `secrets`: secrets: green (1.1 s)
+    `documents`: documents ok
