@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T14:26:06.902604Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-10-26T14:26:06.902604Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-26T14:39:39.626247Z'
+  stage: tests
+  run: 9b9dc4d01b3b4bbc9cfbde06166bd4e3
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -173,3 +175,35 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    The side note is right: the first smoke test is corrected by this answer to `InstanceSettings(repository_url='https://github.com/o/n', instance='vm', container_env=('HTTPS_PROXY', 'MISSING'), ca_bundle=Path('/etc/ca.pem'))`; its `Expect:` stays. Run it in that form.
 10. factory: started tests as vm.
+11. tester: I wrote the tests for criteria 1 to 7, using the keyword names from the human's answer in entry 9 (`extra_environment: Mapping[str, str] = {}`, `ca_bundle: Path | None = None` on `ClaudeCodeRuntime`, `OpencodeRuntime`, `ContainerEnvironment` and `ContainerMakeCommands`). The tests for criteria 2 to 4 are the ones the previous run left in the tree; I did not change them.
+
+    - criterion 1: tests/application/test_container_environment_extra.py::test_with_neither_setting_the_containers_are_those_of_today (rows: agent, sync, check; each compared with `SWITCHES`, `SYNC_ENVIRONMENT` or `CHECK_ENVIRONMENT`, the extras computed by `extra_environment` from settings that set neither)
+    - criterion 2: tests/domain/test_settings_container_env.py::test_the_container_env_setting_is_read_as_a_list_of_names
+    - criterion 3: tests/domain/test_settings_container_env.py::test_the_ca_bundle_setting_is_read_as_an_absolute_path and ::test_the_settings_model_refuses_a_relative_ca_bundle
+    - criterion 4: tests/domain/test_container_extra_environment.py::test_the_extra_environment_holds_the_listed_names_and_the_bundle
+    - criterion 5: tests/adapters/test_agent_launch_extra.py::test_the_agent_s_container_holds_the_listed_names_and_the_bundle (claude and opencode × names and bundle)
+    - criterion 6: tests/application/test_container_environment_extra.py::test_the_sync_and_check_containers_hold_the_extras_and_the_bundle (sync and check × listed name, bundle, and `PATH` staying the constant)
+    - criterion 7: tests/entry/test_wiring_container_extra.py::test_every_container_of_a_stage_carries_both_settings_and_no_hosting_token (claude and opencode)
+
+    Choices the coder should know about:
+    - **Where the words come from.** Criteria 5 and 6 speak of `--env` words and a `:ro` mount, so the tests read real podman words. The new shared helper `WordsRuns` in tests/container_extra_support.py records what `PodmanRuns.launch` would build for each call. Agent launches then run through `FakeContainerRuns` as usual. Sync and check runs execute nothing and pass.
+    - **Criterion 6 test file.** The check rows sit beside the sync rows in one parametrized test, because they are the sides of one rule. So the Interface's `tests/adapters/test_make_commands_extra.py` was not created.
+    - **Criterion 7 mechanism.** `build_boundaries` builds `PodmanRuns`, not `FakeContainerRuns`, so "the `FakeContainerRuns` calls of one stage" cannot be taken literally. The test reads the calls of a recording stand-in `podman` (as tests/entry/test_wiring_stage_environment.py does) for one sync through `stage_environment_of(boundaries).prepare`, one agent run and one `make check` through the project commands. This means `stage_environment_of` must give a container environment that carries both settings.
+
+    Files created this run:
+    - tests/container_extra_support.py
+    - tests/adapters/test_agent_launch_extra.py
+    - tests/application/test_container_environment_extra.py
+    - tests/entry/test_wiring_container_extra.py
+
+    Files from the previous run: tests/domain/test_settings_container_env.py and tests/domain/test_container_extra_environment.py.
+
+    `make test` result:
+    - Four modules could not be imported: `CA_BUNDLE_VARIABLE` is missing from `factory.domain.settings` (test_settings_container_env), and `extra_environment` is missing from `factory.domain.containers` (test_container_extra_environment, test_agent_launch_extra, test_container_environment_extra).
+    - Both rows of the criterion 7 test fail. I did not read their failure output. The likely cause is that `InstanceSettings` does not yet accept `container_env` and `ca_bundle`.
+    - I ran `make test` twice, not once: a slip; the second run gave the same result.
+
+    `make lint` is green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: ERROR tests/domain/test_settings_container_env.py - ImportError while importing test module '/work/checkout/tests/domain/test_settings_container_env.py'.
