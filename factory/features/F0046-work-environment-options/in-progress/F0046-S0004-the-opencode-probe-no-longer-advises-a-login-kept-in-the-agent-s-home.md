@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T17:14:36.855236Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T17:14:19.018988Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:14:36.855236Z'
   stage: doing
 ---
 
@@ -136,3 +145,4 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
    (c) Something else.
    With leave for (a) or (b), the next round ends `tests` and names that change.
 8. 2026-10-26 human: (b): in `tests/entry/test_wiring_without_agent_user.py`, the `opencode-no-login` row's `said` list replaces `"log in once as the factory user"` with `"put a key in the file FACTORY_API_LOGIN_FILE names"`, so the row still pins the advice; `"by hand as the factory user"` stays. That earlier test may change only that way.
+9. factory: started doing as vm.
