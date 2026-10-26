@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 472
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T22:55:43.647154Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-26T22:55:43.647154Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-26T22:56:06.563941Z'
+  stage: intake
+  run: 6d069c2ca73140bd8926ab77c11a4c74
 ---
 
 # The process result no longer says that its output was abandoned
@@ -69,3 +71,9 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
 
 1. 2026-10-26 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: `factory.adapters.process.ProcessResult` is given with its full field list. The module, `PIPE_DRAIN`, `run_process` and `run_streaming` exist as named. `output_abandoned` occurs in 4 places in `src/factory/adapters/process.py` and 7 in `tests/adapters/test_process_drain.py`. That matches the seven tests decision 27 names, and the human's leave covers them. The docstring statement has no test of its own, because wording is not testable. The drain behaviour it describes is covered by criterion 2.
+   Criteria: all four testable by one test function each. 1 checks the field order and the `ValidationError` on the removed field. 2 has rows for the passing side (output within the drain, exit status 3) and for the drain side (a holder that outlives the child, through `run_process` and through `run_streaming`). The bounds are given: at least the drain, within `ROOMY_BOUND_SECONDS`. 3 is a source search. The kill and `timed_out` paths are kept by the seven existing tests, which keep their other assertions.
+   Smoke test: one command with two printed lines. It runs no pytest, so the `-q` rule does not apply. `Expect:` gives exact output that can be compared.
+   Architecture: the change stays inside the adapters layer in `factory.adapters.process`, the one module that starts processes, and adds no layer crossing. Docs go to the paths the docs criterion names.
+   Scope: this is S0007 of F0045, matching the feature's scope line and decision 5. The baseline line is the human's change 4 and the story leaves it alone. Nothing in the feature's "Out of scope" is touched.
