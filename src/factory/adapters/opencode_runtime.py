@@ -534,6 +534,8 @@ class OpencodeRuntime(AgentRuntime):
         api_login_file: Path | None = None,
         provider_limit: ProviderLimit | None = None,
         containers: ContainerRuns | None = None,
+        extra_environment: Mapping[str, str] = {},
+        ca_bundle: Path | None = None,
         provider_file: Path | None = None,
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
@@ -542,10 +544,13 @@ class OpencodeRuntime(AgentRuntime):
         The shell commands the `Bash(...)` entries of `settings_file` deny are denied.
         A run's call gets the key held in `api_login_file`, read by the call's own shell.
         A call that shows `provider_limit`, the default limit when `None`, ends `provider_limit`.
-        With `containers`, every call runs in a container.
+        With `containers`, every call runs in a container, with `extra_environment` and with
+        `ca_bundle` mounted read-only at its own path.
         The provider and small model of `provider_file` join every run's configuration.
         """
         self._containers = containers
+        self._extra_environment = dict(extra_environment)
+        self._bundle_files = [] if ca_bundle is None else [ca_bundle]
         self._executable = executable
         self._state_directory = state_directory
         self._kill_points = kill_points
@@ -674,8 +679,9 @@ class OpencodeRuntime(AgentRuntime):
             started = container_launch(
                 self._containers,
                 argv,
-                run_environment(request, runtime_environment),
-                files=[*login_paths(self._starters.login_files), files.config],
+                # The factory's own names, PATH among them, never come from the host.
+                {**self._extra_environment, **run_environment(request, runtime_environment)},
+                files=[*login_paths(self._starters.login_files), files.config, *self._bundle_files],
                 time_limit=request.time_limit,
             )
         return _request_of(started, request.working_directory)

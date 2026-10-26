@@ -1159,3 +1159,15 @@ Date: 2026-10-26 (F0046-S0001).
 - Consequence: a model without prices is costed at 0, so the factory's budget stop does not fire for it.
 - Rejected: the key in the file; several providers in one file; reading the file once at start.
 - Left to later stories of F0046: the proxy and the CA bundle of the containers, and the file for the operator's settings.
+
+## The containers' environment stays closed except for the operator's list
+
+Date: 2026-10-26 (F0046-S0002).
+
+- Decision: `FACTORY_CONTAINER_ENV` lists names of the factory's own environment that the agent, sync and check containers also get, and `FACTORY_CA_BUNDLE` names a PEM file mounted read-only into the same containers at its own path and named by `NODE_EXTRA_CA_CERTS`, `SSL_CERT_FILE` and `REQUESTS_CA_BUNDLE`. `extra_environment` (`factory.domain.containers`) builds the extras once in `build_boundaries`, the only place that reads `os.environ`, and hands them to the runtimes, the container environment and the check commands.
+- Why a list of names and not a pass-through: the closed environment keeps the hosting token and the factory's other values out of code an agent wrote. The operator names each variable they accept to expose; a name the environment lacks is skipped.
+- Why the extras sit beneath the factory's own names: a listed `PATH` must not replace the container's `PATH`, which the stage image depends on. `HOME`, the two login names, `OPENCODE_CONFIG`, `GIT_ASKPASS` and `FACTORY_*` are refused when the settings are read, so the hosting token cannot be listed. The bundle's three variables win over a listed name of the same name.
+- Why a file mounted at its own path: tools read the bundle from a path, and the path is then the same on the host and in the container.
+- Consequence: `SSL_CERT_FILE` replaces Python's list of authorities, so the bundle must hold the public certificates beside the company's.
+- Rejected: passing the whole environment; a fixed list of proxy names (mirrors and other names differ by company); computing the extras in the application layer (it would read the host's environment).
+- Left to later stories of F0046: the file for the operator's settings.

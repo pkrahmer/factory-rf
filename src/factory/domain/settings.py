@@ -71,6 +71,14 @@ WORKSPACE_VARIABLE = "FACTORY_WORKSPACE"
 STAGE_IMAGE_VARIABLE = "FACTORY_STAGE_IMAGE"
 PODMAN_EXECUTABLE_VARIABLE = "FACTORY_PODMAN"
 ZFS_EXECUTABLE_VARIABLE = "FACTORY_ZFS"
+CONTAINER_ENV_VARIABLE = "FACTORY_CONTAINER_ENV"
+CA_BUNDLE_VARIABLE = "FACTORY_CA_BUNDLE"
+# The names the factory gives a container itself: the home, the logins, opencode's
+# configuration, git's credential prompt, and every name of its own.
+RESERVED_CONTAINER_NAMES = frozenset(
+    {"HOME", "ANTHROPIC_API_KEY", "CLAUDE_CODE_OAUTH_TOKEN", "OPENCODE_CONFIG", "GIT_ASKPASS"}
+)
+RESERVED_CONTAINER_PREFIX = "FACTORY_"
 RUNS_DIRECTORY_NAME = "runs"
 _HOME_VARIABLE = "HOME"
 _CLAUDE_EXECUTABLE_DEFAULT = "claude"
@@ -83,6 +91,7 @@ AgentRuntimeName = Literal["claude", "opencode"]
 _AGENT_RUNTIMES: tuple[AgentRuntimeName, ...] = ("claude", "opencode")
 
 _NAME = TypeAdapter(Name)
+_VARIABLE_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
 
 class InstanceSettings(BaseModel):
@@ -115,8 +124,10 @@ class InstanceSettings(BaseModel):
     stage_image: str | None = None
     podman_executable: str = _PODMAN_EXECUTABLE_DEFAULT
     zfs_executable: str = _ZFS_EXECUTABLE_DEFAULT
+    container_env: tuple[str, ...] = ()
+    ca_bundle: Path | None = None
 
-    @field_validator("checkout", "state_directory", "opencode_provider_file")
+    @field_validator("checkout", "state_directory", "opencode_provider_file", "ca_bundle")
     @classmethod
     def _absolute(cls, path: Path | None) -> Path | None:
         if path is not None and not path.is_absolute():
@@ -196,6 +207,8 @@ def read_settings(
         podman_executable=_optional(environ, PODMAN_EXECUTABLE_VARIABLE)
         or _PODMAN_EXECUTABLE_DEFAULT,
         zfs_executable=_optional(environ, ZFS_EXECUTABLE_VARIABLE) or _ZFS_EXECUTABLE_DEFAULT,
+        container_env=_container_env(environ),
+        ca_bundle=_optional_absolute_path(environ, CA_BUNDLE_VARIABLE),
     )
 
 
@@ -263,6 +276,28 @@ def _opencode_model(entry: str) -> tuple[str, str]:
             OPENCODE_MODELS_VARIABLE, f"holds {entry}, which is not <alias>=<provider>/<model>"
         )
     return alias, model
+
+
+def _container_env(environ: Mapping[str, str]) -> tuple[str, ...]:
+    names: list[str] = []
+    for part in _optional(environ, CONTAINER_ENV_VARIABLE).split(","):
+        name = part.strip()
+        if not name:
+            continue
+        _check_container_name(name)
+        if name in names:
+            raise SettingsInvalid(CONTAINER_ENV_VARIABLE, f"names {name} twice")
+        names.append(name)
+    return tuple(names)
+
+
+def _check_container_name(name: str) -> None:
+    if not _VARIABLE_NAME.fullmatch(name):
+        raise SettingsInvalid(CONTAINER_ENV_VARIABLE, f"holds {name}, which is not a variable name")
+    if name in RESERVED_CONTAINER_NAMES or name.startswith(RESERVED_CONTAINER_PREFIX):
+        raise SettingsInvalid(
+            CONTAINER_ENV_VARIABLE, f"holds {name}, which the factory sets itself"
+        )
 
 
 def _min_free_gb(environ: Mapping[str, str]) -> int:

@@ -22,7 +22,7 @@ from factory.domain.checks import (
     status_of,
     target_times,
 )
-from factory.domain.containers import WORK_CHECKOUT
+from factory.domain.containers import WORK_CHECKOUT, bundle_mounts
 from factory.domain.errors import ContainerError, ProjectCommandError, SnapshotError
 from factory.domain.kill_points import KillPoints
 
@@ -93,10 +93,24 @@ class ContainerMakeCommands(ProjectCommands):
     """Runs `make sync && make <command>` in a check container on the base with the taken files."""
 
     def __init__(
-        self, snapshots: Snapshots, containers: ContainerRuns, git: Git, *, checkout: Path
+        self,
+        snapshots: Snapshots,
+        containers: ContainerRuns,
+        git: Git,
+        *,
+        checkout: Path,
+        extra_environment: Mapping[str, str] = {},
+        ca_bundle: Path | None = None,
     ) -> None:
-        """Reset the dataset of `snapshots`, copy in what differs from `HEAD` in `checkout`."""
+        """Reset the dataset of `snapshots`, copy in what differs from `HEAD` in `checkout`.
+
+        The check's container gets `extra_environment` below its own and `ca_bundle` mounted
+        read-only at its own path.
+        """
         self._snapshots = snapshots
+        # The check's own names win: its `PATH` and home never come from the host.
+        self._environment = {**extra_environment, **CHECK_ENVIRONMENT}
+        self._mounts = bundle_mounts(ca_bundle)
         self._containers = containers
         self._git = git
         self._checkout = checkout
@@ -121,8 +135,8 @@ class ContainerMakeCommands(ProjectCommands):
         try:
             result = self._containers.run(
                 [SHELL_EXECUTABLE, "-c", _CHECK_SCRIPT, _CHECK_SCRIPT_NAME, "make", command],
-                mounts=[],
-                environment=CHECK_ENVIRONMENT,
+                mounts=self._mounts,
+                environment=self._environment,
                 time_limit=time_limit,
                 working_directory=WORK_CHECKOUT,
             )

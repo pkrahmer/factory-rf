@@ -1,6 +1,7 @@
 """The interfaces that wiring hands to the services, held together in one place."""
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from factory.application.agent_runtime import AgentDefinitionReader, AgentRuntime
@@ -51,3 +52,5 @@ class Boundaries:
     result_records: RecordLog[ResultRecord]
     snapshots: Snapshots
     containers: ContainerRuns
+    # What the operator adds to every container's environment, read once from the host.
+    container_extra_environment: Mapping[str, str] = field(default_factory=dict)

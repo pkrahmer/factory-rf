@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, JsonValue
 
 from factory.application.containers import ContainerRuns
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, Login
-from factory.domain.containers import WORK_CHECKOUT, Mount
+from factory.domain.containers import WORK_CHECKOUT, read_only_at_own_path
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoint, KillPoints
 
@@ -201,7 +201,7 @@ def container_launch(
     time_limit: timedelta,
 ) -> Launch:
     """`argv` with `environment` in a container; `files` mounted read-only at their own paths."""
-    mounts = [Mount(source=file, target=str(file), read_only=True) for file in dict.fromkeys(files)]
+    mounts = [read_only_at_own_path(file) for file in dict.fromkeys(files)]
     started = containers.launch(
         argv,
         mounts=mounts,

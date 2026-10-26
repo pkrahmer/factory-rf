@@ -68,7 +68,7 @@ from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
 from factory.domain.agent_runs import scrub_environment
 from factory.domain.command_records import CommandRecord
-from factory.domain.containers import WORK_HOME
+from factory.domain.containers import WORK_HOME, extra_environment
 from factory.domain.disk import DiskRecord
 from factory.domain.errors import SettingsInvalid
 from factory.domain.events import EventKind
@@ -251,12 +251,20 @@ def build_boundaries(
     clock = SystemClock()
     git = GitCli(settings.checkout, git_options(settings))
     log = machine_log(state, clock)
+    extra = extra_environment(settings, os.environ)
     return Boundaries(
         git=git,
         hosting=hosting,
-        agent_runtime=_agent_runtime(settings, containers),
+        agent_runtime=_agent_runtime(settings, containers, extra),
         project_commands=RecordingProjectCommands(
-            ContainerMakeCommands(snapshots, containers, git, checkout=settings.checkout),
+            ContainerMakeCommands(
+                snapshots,
+                containers,
+                git,
+                checkout=settings.checkout,
+                extra_environment=extra,
+                ca_bundle=settings.ca_bundle,
+            ),
             git,
             JsonLinesRecordLog(state / _COMMAND_RECORDS_PATH, CommandRecord),
             clock,
@@ -282,6 +290,7 @@ def build_boundaries(
         result_records=JsonLinesRecordLog(state / _RESULT_RECORDS_PATH, ResultRecord),
         snapshots=snapshots,
         containers=containers,
+        container_extra_environment=extra,
     )
 
 
@@ -312,7 +321,9 @@ def _container_adapters(settings: InstanceSettings) -> _ContainerAdapters:
     )
 
 
-def _agent_runtime(settings: InstanceSettings, containers: PodmanRuns) -> AgentRuntime:
+def _agent_runtime(
+    settings: InstanceSettings, containers: PodmanRuns, extra: Mapping[str, str]
+) -> AgentRuntime:
     runs = settings.state_directory / RUNS_DIRECTORY_NAME
     if settings.agent_runtime == "opencode":
         return OpencodeRuntime(
@@ -324,6 +335,8 @@ def _agent_runtime(settings: InstanceSettings, containers: PodmanRuns) -> AgentR
             provider_limit=settings.provider_limit,
             containers=containers,
             provider_file=settings.opencode_provider_file,
+            extra_environment=extra,
+            ca_bundle=settings.ca_bundle,
         )
     return ClaudeCodeRuntime(
         settings.claude_executable,
@@ -332,6 +345,8 @@ def _agent_runtime(settings: InstanceSettings, containers: PodmanRuns) -> AgentR
         api_login_file=settings.api_login_file,
         provider_limit=settings.provider_limit,
         containers=containers,
+        extra_environment=extra,
+        ca_bundle=settings.ca_bundle,
     )
 
 
