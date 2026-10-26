@@ -1230,3 +1230,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 14:20 UTC: F0046-S0002 intake question on #460: 1 yes (bundle wins over a listed name); 2 the constants win over the extras (PATH/HOME never from the host), with a criterion-6 row; 3 accepted; 4 no change.
 - 14:25 UTC: F0046-S0002 tester question on #460 (constructor keywords unnamed): answered (a), `extra_environment` and `ca_bundle` on all four classes; smoke test 1 corrected by the answer (repository_url and instance added).
 - 14:47 UTC: F0046-S0002 coder question on #460: 1 (a) the tester adds opencode_models to the wiring test; 2 (a) the human's change on main, pyproject.toml gains the per-file ignore PLR0913 for make_commands.py, as for the two runtimes.
+- 14:54 UTC: F0046-S0002 tester question on #460 (the opencode row needs the agent settings file): answered (a), with a leave for any further setup of that row from the existing opencode test helpers.
