@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-26T20:06:25.122050Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -175,6 +179,11 @@ journal:
   at: '2026-10-26T20:06:02.865760Z'
   stage: review
   run: c1ca5b684155402ba9af2decc3a945a5
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-10-26T20:06:25.122050Z'
+  stage: docs
 ---
 
 # The reset drops the page cache after the rollback
@@ -528,3 +537,4 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
 
     Notes:
     - tests/adapters/test_zfs_snapshots_drop_caches.py `_shell_zfs`: it writes the same kind of `sh` stand-in, one that appends `"$*"` to a record file, as the `sudo_stand_in` fixture in `tests/conftest.py`. One shared writer of `sh` recorders in `tests/` could serve both, and `write_drop` in `tests/zfs_support.py` as well.
+31. factory: started docs as vm.
