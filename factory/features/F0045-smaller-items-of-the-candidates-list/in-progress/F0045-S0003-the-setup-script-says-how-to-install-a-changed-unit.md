@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T20:41:23.231453Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-26T20:41:02.634142Z'
   stage: doing
   run: ad259a439b974c009d5a46cbc8829ba6
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-26T20:41:23.231453Z'
+  stage: tests
 ---
 
 # The setup script says how to install a changed unit
@@ -252,3 +261,4 @@ Expect: three lines: `syntax-ok`; `2`; `0`
     Noticed but not touched: the docs part of criterion 5 is still open (`docs/operator-guide.md`, *The two passes* and *The rebuild after a merge*, and the closing line in `docs/decisions.md`). That is the documenter's work.
 
     The factory left out changes outside the write paths: factory/features/F0045-smaller-items-of-the-candidates-list/in-progress/F0045-S0003-the-setup-script-says-how-to-install-a-changed-unit.md.
+19. factory: started tests as vm.
