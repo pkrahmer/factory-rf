@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T22:27:58.927108Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-26T22:27:38.545407Z'
   stage: tests
   run: dddd9034c9e145e8b33be684574e4b98
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:27:58.927108Z'
+  stage: doing
 ---
 
 # The settings model refuses what the reading refuses
@@ -136,3 +145,4 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/domain/test_settings_model_rules.py::test_the_old_agent_home_default_is_gone[string] - AssertionError: assert [PosixPath('/...settings.py')] == []
+6. factory: started doing as vm.
