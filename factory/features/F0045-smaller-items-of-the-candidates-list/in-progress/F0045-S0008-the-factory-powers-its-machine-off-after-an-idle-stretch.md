@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T23:35:59.382194Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T23:35:41.618750Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-26T23:35:59.382194Z'
   stage: tests
 ---
 
@@ -238,3 +247,4 @@ Expect: `-n /usr/bin/systemctl poweroff`
 9. 2026-10-26 human: 1. (a): the row asserts the detail `sudo: a password is required`, as `failure_detail` gives it; no exit status there.
    2. Yes, exactly that reading.
    3. Yes, add it through behaviour as you describe; the stand-in `sudo` may come from the shared fixture of F0045-S0002 in `tests/conftest.py` if it fits, with recording added there.
+10. factory: started tests as vm.
