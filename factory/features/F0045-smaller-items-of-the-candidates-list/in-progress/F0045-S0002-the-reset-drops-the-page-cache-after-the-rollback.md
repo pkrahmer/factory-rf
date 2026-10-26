@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T19:26:17.344951Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,13 @@ journal:
   kind: started
   at: '2026-10-26T19:26:17.344951Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: question
+  at: '2026-10-26T19:31:19.619125Z'
+  stage: doing
+  run: 937f33f43732483b866c0f5255ac6ba4
+  blocked: question
 ---
 
 # The reset drops the page cache after the rollback
@@ -252,3 +255,31 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
     `lint`: lint: green (0.2 s)
     `test`: ERROR tests/test_vm_setup_text.py::test_the_folders_step_refuses_a_link_at_state_or_repo[exit-1] - AssertionError: no 'setup: caches: ' text
 12. factory: started doing as vm.
+13. coder: I stopped with the implementation written and `make check` red. The cause is two problems in the tests, and I cannot fix either without changing a test (R9).
+
+    What I built, left in the working tree:
+    - `src/factory/adapters/zfs_snapshots.py`: `DROP_CACHES_COMMAND`, and a required keyword-only `drop_caches` (an empty tuple raises `ValueError`). `reset()` runs the drop after the rollback succeeds. I split `_run` into `_run(arguments)`, which puts `zfs` in front, and `_execute(argv)`, which names the command by its words joined with spaces. So the drop has the same faults as the `zfs` commands: `failure_detail`, `no_end_detail`, and the `OSError` text. I rejected a separate drop runner because it would be a second copy of the fault handling.
+    - `src/factory/entry/wiring.py`: `_container_adapters` now passes `drop_caches=DROP_CACHES_COMMAND`.
+    - `vm/setup.sh`: a new step `caches` between `sudoers` and `folders`, on every run. It stages each file and writes it only when `unchanged` (which uses `cmp -s`) reports a difference: the helper with `install -m 0755`, and the `sudoers` file with `cp`, `chmod 0440` and `visudo -cf`. A refused check runs `rm -f`, prints the message with `>&2` and runs `exit 1`. The step's output line has `wrote` and `found` forms, like the step `sudoers`.
+
+    Every new test passes except one row. Four earlier tests fail.
+
+    Question 1: two of the tester's checks cannot both pass. Row `install-helper` of `tests/test_vm_setup_caches.py::test_the_caches_step_writes_the_helper_and_its_rule` asks that the first `install -m 0755` in the step come before the first `/usr/local/bin/factory-drop-caches`. But row `helper` of `test_the_caches_step_writes_a_file_only_when_its_text_differs` (criterion 9) asks for a comparison line that holds that path, before the `install` line. That comparison line is itself the first mention of the path (offset 86, against 129 for `install -m 0755`). So no script that meets criterion 9 passes `install-helper`. Options:
+    - (a) The tester changes `install-helper` to look for one line that holds both `install -m 0755` and the helper's path.
+    - (b) The tester changes it to look only for the presence of both strings in the step.
+    - (c) I write the script so that `install -m 0755` appears earlier, for example through a variable. That would be contrived.
+    I would choose (a).
+
+    Question 2: earlier wiring tests now call the real `sudo`. Every `reset()` built through the wiring now runs `sudo -n /usr/local/bin/factory-drop-caches`. This machine has no `sudo`, so four earlier tests fail with `SnapshotError: snapshot command sudo -n /usr/local/bin/factory-drop-caches failed: [Errno 2] No such file or directory: 'sudo'`:
+    - `tests/entry/test_wiring_container_extra.py::test_every_container_of_a_stage_carries_both_settings_and_no_hosting_token[claude]` and `[opencode]`
+    - `tests/entry/test_wiring_stage_environment.py::test_a_container_instance_gets_the_dataset_s_adapters_and_asks_for_no_tool` (the failure is reached from `tests/entry/test_wiring_stage_environment.py:101` through `src/factory/adapters/zfs_snapshots.py:78`)
+    - `tests/entry/test_wiring_command_records.py::test_the_built_project_commands_record_a_run_in_the_state_directory` (it fails as `ProjectCommandError ... snap...`)
+
+    The Interface lists no test change for these. Under decision 22, I see two ways the tester could give them a stand-in `sudo`:
+    - (a) A shared fixture in `tests/conftest.py`, beside `hosted_environment`, that writes a `sudo` stand-in which exits 0 and puts it first on `PATH` through `monkeypatch`. These tests would use it, and so would the new wiring test, which has its own copy now.
+    - (b) Each test sets up its own stand-in.
+    I would choose (a). The production code stays as the Interface says: no setting names the command.
+
+    Not done yet: the refactor pass and a green `make check`. Both wait on these answers.
+
+    While building, a Python heredoc of mine broke on the script's `EOF`, and its remaining lines ran in the shell. Every command failed: `stage`, `unchanged` and `visudo` were missing, and `install` and `cp` had no file to copy. I checked afterwards that neither `/usr/local/bin/factory-drop-caches` nor `/etc/sudoers.d/factory-drop-caches` exists.

@@ -247,6 +247,33 @@ else
 fi
 
 changes=
+# A page written through mmap survives zfs rollback in the page cache; the factory drops
+# the clean cache after every reset through this helper, whichever way it reaches zfs.
+stage <<'EOF'
+#!/bin/sh
+sync
+echo 1 > /proc/sys/vm/drop_caches
+EOF
+if ! unchanged /usr/local/bin/factory-drop-caches; then
+  install -m 0755 "$staged" /usr/local/bin/factory-drop-caches
+  changed "wrote /usr/local/bin/factory-drop-caches"
+fi
+stage <<'EOF'
+factory ALL=(root) NOPASSWD: /usr/local/bin/factory-drop-caches
+EOF
+if ! unchanged /etc/sudoers.d/factory-drop-caches; then
+  cp "$staged" /etc/sudoers.d/factory-drop-caches
+  chmod 0440 /etc/sudoers.d/factory-drop-caches
+  if ! visudo -cf /etc/sudoers.d/factory-drop-caches >/dev/null; then
+    rm -f /etc/sudoers.d/factory-drop-caches
+    echo "setup: caches: visudo -cf refused /etc/sudoers.d/factory-drop-caches; removed it" >&2
+    exit 1
+  fi
+  changed "wrote /etc/sudoers.d/factory-drop-caches"
+fi
+echo "setup: caches: $(said "found /usr/local/bin/factory-drop-caches and /etc/sudoers.d/factory-drop-caches unchanged")"
+
+changes=
 # install -d as root on a link factory planted there would reach the link's target.
 if [ -L "$base/state" ] || [ -L "$base/repo" ] || [ -L /home/factory/.secrets ]; then
   echo "setup: folders: $base/state, $base/repo or /home/factory/.secrets is a link; remove it and run this script again" >&2

@@ -25,7 +25,7 @@ from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.adapters.pygithub_hosting import pygithub_service
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
-from factory.adapters.zfs_snapshots import ZfsSnapshots
+from factory.adapters.zfs_snapshots import DROP_CACHES_COMMAND, ZfsSnapshots
 from factory.application.acceptance import (
     AcceptanceClosed,
     AcceptanceDueHandler,
@@ -315,7 +315,10 @@ def _container_adapters(settings: InstanceSettings) -> _ContainerAdapters:
         dataset=settings.dataset,
         image=settings.stage_image,
         snapshots=ZfsSnapshots(
-            settings.dataset, settings.workspace, executable=settings.zfs_executable
+            settings.dataset,
+            settings.workspace,
+            drop_caches=DROP_CACHES_COMMAND,
+            executable=settings.zfs_executable,
         ),
         containers=PodmanRuns(settings.podman_executable, settings.stage_image, settings.workspace),
     )
