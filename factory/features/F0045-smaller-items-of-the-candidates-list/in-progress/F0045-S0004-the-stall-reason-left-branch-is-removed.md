@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T21:06:01.875283Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-26T21:05:41.566210Z'
   stage: intake
   run: e94f0bb8ed354aa0901be07d0cd93116
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-26T21:06:01.875283Z'
+  stage: tests
 ---
 
 # The stall reason left_branch is removed
@@ -85,3 +94,4 @@ Expect: two lines: `False 4.0`; `0`
    - Smoke test: runnable. It uses `uv run python -` and a `grep -l ... | wc -l`, and neither runs pytest, so the `-q` rule does not apply. The `Expect:` line gives the exact output (`False 4.0`, then `0`), which can be checked.
    - Architecture: the changes sit in the layers they belong to (domain for the reason, sentence and contract; application for `AfterAgent`). The contract schemas are regenerated through `factory.entry.contract`, as `CLAUDE.md` requires. The stall service, `Git.status` and the restore stay as they are.
    - Scope: this matches S0004 in `feature.md` and decision 13, and nothing in its "Out of scope" is touched. The test changes are covered by the human's leave in decision 24.
+4. factory: started tests as vm.
