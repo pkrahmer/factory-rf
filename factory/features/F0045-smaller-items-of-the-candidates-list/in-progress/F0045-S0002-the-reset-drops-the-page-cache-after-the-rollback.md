@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T19:34:42.171913Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-10-26T19:34:21.035985Z'
   stage: doing
   run: d3fcf2979a3e4bfaaac2d4926e52ced9
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:34:42.171913Z'
+  stage: tests
 ---
 
 # The reset drops the page cache after the rollback
@@ -315,3 +324,4 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
     The production code stays as the Interface says: no setting names the drop command.
 
     The Description is unchanged. Entry 14 settles how the tests are written but does not change what the task means.
+17. factory: started tests as vm.
