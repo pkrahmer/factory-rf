@@ -1,16 +1,20 @@
 """The data of a container run: its mounts, the words that start it, its result and its call."""
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from datetime import timedelta
+from pathlib import Path
 from typing import Annotated, Self
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
 
 from factory.domain.agent_runs import AbsolutePath
+from factory.domain.settings import InstanceSettings
 
 WORK = "/work"
 WORK_CHECKOUT = "/work/checkout"
 WORK_HOME = "/work/home"
+# Node, OpenSSL and Python's requests each read the CA bundle from one of these.
+CA_BUNDLE_NAMES = ("NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE")
 
 
 def _must_be_container_path(target: str) -> str:
@@ -32,6 +36,27 @@ class Mount(BaseModel):
     source: AbsolutePath
     target: ContainerPath
     read_only: bool = False
+
+
+def read_only_at_own_path(path: Path) -> Mount:
+    """The mount of the host file `path`, read-only, at the same path in the container."""
+    return Mount(source=path, target=str(path), read_only=True)
+
+
+def bundle_mounts(ca_bundle: Path | None) -> list[Mount]:
+    """The mount of the operator's CA bundle, or none without one."""
+    return [] if ca_bundle is None else [read_only_at_own_path(ca_bundle)]
+
+
+def extra_environment(settings: InstanceSettings, source: Mapping[str, str]) -> dict[str, str]:
+    """The environment the operator adds to every container: the listed names, then the bundle.
+
+    A listed name that `source` lacks is left out; the bundle's names win over listed ones.
+    """
+    extra = {name: source[name] for name in settings.container_env if name in source}
+    if settings.ca_bundle is not None:
+        extra.update(dict.fromkeys(CA_BUNDLE_NAMES, str(settings.ca_bundle)))
+    return extra
 
 
 def beneath_or_at(relative: str, above: str) -> bool:

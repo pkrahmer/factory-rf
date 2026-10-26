@@ -3,6 +3,7 @@
 import json
 import time
 import uuid
+from collections.abc import Mapping
 from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -319,15 +320,20 @@ class ClaudeCodeRuntime(AgentRuntime):
         api_login_file: Path | None = None,
         provider_limit: ProviderLimit | None = None,
         containers: ContainerRuns | None = None,
+        extra_environment: Mapping[str, str] = {},
+        ca_bundle: Path | None = None,
     ) -> None:
         """Call `executable`, keep a run's files in `state_directory`, reach `kill_points`.
 
         A run's calls get the key held in `api_login_file`, or else the token held in
         `login_file`, read by the call's own shell.
         A call refused by `provider_limit`, the default limit when `None`, ends `provider_limit`.
-        With `containers`, every call runs in a container.
+        With `containers`, every call runs in a container, with `extra_environment` and with
+        `ca_bundle` mounted read-only at its own path.
         """
         self._containers = containers
+        self._extra_environment = dict(extra_environment)
+        self._bundle_files = [] if ca_bundle is None else [ca_bundle]
         self._executable = executable
         self._starters = Starters(
             login_files=LoginFiles(subscription=login_file, api=api_login_file),
@@ -456,8 +462,12 @@ class ClaudeCodeRuntime(AgentRuntime):
             started = container_launch(
                 self._containers,
                 argv,
-                run_environment(request, SWITCHES),
-                files=[*login_paths(self._starters.login_files), files.instructions],
+                run_environment(request, {**self._extra_environment, **SWITCHES}),
+                files=[
+                    *login_paths(self._starters.login_files),
+                    files.instructions,
+                    *self._bundle_files,
+                ],
                 time_limit=time_limit,
             )
         return _request_of(started, request.working_directory)

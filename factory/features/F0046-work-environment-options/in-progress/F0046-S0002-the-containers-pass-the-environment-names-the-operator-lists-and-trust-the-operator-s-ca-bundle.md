@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T14:40:00.613826Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,13 @@ journal:
   kind: started
   at: '2026-10-26T14:40:00.613826Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: question
+  at: '2026-10-26T14:45:32.948689Z'
+  stage: doing
+  run: cc543d01425d4651bae6e41d0db5e8b5
+  blocked: question
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -217,3 +220,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: ERROR tests/domain/test_settings_container_env.py - ImportError while importing test module '/work/checkout/tests/domain/test_settings_container_env.py'.
 12. factory: started doing as vm.
+13. coder: I stopped with the code in place, but `make check` is red for two reasons I may not fix myself. Every other target is green: types, layers, sast, secrets, licenses. Every test passes except one row.
+
+    Question 1, a wrong test: in `tests/entry/test_wiring_container_extra.py::test_every_container_of_a_stage_carries_both_settings_and_no_hosting_token[opencode]`, the request's agent has `model="sonnet"`. The settings have no `opencode_models`, so `OpencodeRuntime` refuses the run before any container is launched:
+    ```
+    tests/entry/test_wiring_container_extra.py:95: in test_every_container_of_a_stage_carries_both_settings_and_no_hosting_token
+    src/factory/adapters/opencode_runtime.py:252: in _model
+    E   factory.domain.errors.AgentRuntimeError: agent runtime failed: the opencode runtime has no model for sonnet: set FACTORY_OPENCODE_MODELS
+    ```
+    Options: (a) the tester adds `opencode_models={"sonnet": "anthropic/claude-sonnet"}` to that test's `InstanceSettings`; (b) the request's model becomes a `provider/model` value, which opencode passes through as it is. I would choose (a): it keeps the claude row unchanged.
+
+    Question 2, a lint rule: `ContainerMakeCommands.__init__` now takes six arguments, as the tests pin it (`snapshots, containers, git, checkout=, extra_environment=, ca_bundle=`), and ruff's PLR0913 (max 5) refuses it at `src/factory/adapters/make_commands.py:95`. The two runtimes are exempt only through your per-file ignores in `pyproject.toml`, marked "no noqa in the source". Options: (a) you add `"src/factory/adapters/make_commands.py" = ["PLR0913"]` to `pyproject.toml`, the same way, or allow me to add it; (b) a `# noqa: PLR0913` on the constructor; (c) the extras and the bundle become one DTO argument, which changes the Interface and the tests. I would choose (a).
+
+    What I built:
+    - `src/factory/domain/settings.py`: `CONTAINER_ENV_VARIABLE`, `CA_BUNDLE_VARIABLE`, `RESERVED_CONTAINER_NAMES` and the prefix `FACTORY_`; the fields `container_env` and `ca_bundle` (the latter in the absolute-path validator); and `_container_env`, which parses and refuses names.
+    - `src/factory/domain/containers.py`: `CA_BUNDLE_NAMES`, `extra_environment`, and `read_only_at_own_path` and `bundle_mounts`. `container_launch` in `src/factory/adapters/agent_launch.py` now uses `read_only_at_own_path` instead of its inline `Mount`.
+    - `src/factory/adapters/claude_runtime.py` and `opencode_runtime.py`: the keywords `extra_environment` and `ca_bundle`. In a container, the runtime part becomes `{**extra, **SWITCHES}` (or opencode's own part), so the runtime's names win, and the bundle joins `files`.
+    - `src/factory/application/stage_environment.py`: `ContainerEnvironment` takes the same keywords; the sync gets `{**extra, **SYNC_ENVIRONMENT}` and the bundle mount. `src/factory/adapters/make_commands.py`: the check gets `{**extra, **CHECK_ENVIRONMENT}` and the bundle mount.
+    - `src/factory/application/boundaries.py`: a new field, `container_extra_environment`, defaulting to `{}`.
+    - `src/factory/entry/wiring.py`: `build_boundaries` computes `extra_environment(settings, os.environ)` once and hands it, with the bundle, to the runtime, `ContainerMakeCommands` and `Boundaries`.
+
+    Main choice: `stage_environment_of(boundaries)` is what the stages and the criterion 7 test call. It builds the container environment from the boundaries, so the extras computed once in wiring have to travel there. I put them on `Boundaries` as `container_extra_environment`, and took the bundle from `boundaries.settings.ca_bundle`. I rejected computing `extra_environment(settings, os.environ)` inside `stage_environment_of`: that reads the host environment in the application layer and computes the extras a second time.
+
+    Noticed, not touched: the tester's note in entry 11 that `tests/adapters/test_make_commands_extra.py` was folded into `tests/application/test_container_environment_extra.py`. The refactor pass is not done yet, because `make check` is not green. My own read of the diff found nothing to change so far.

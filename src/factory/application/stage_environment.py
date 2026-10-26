@@ -2,8 +2,9 @@
 
 import math
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import override
 
 from factory.application.boundaries import Boundaries
@@ -13,7 +14,14 @@ from factory.application.snapshots import Snapshots
 from factory.application.take import TakeReport, TakeService
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.checks import last_line
-from factory.domain.containers import WORK, WORK_CHECKOUT, WORK_HOME, ContainerResult, Mount
+from factory.domain.containers import (
+    WORK,
+    WORK_CHECKOUT,
+    WORK_HOME,
+    ContainerResult,
+    Mount,
+    bundle_mounts,
+)
 from factory.domain.errors import ContainerError
 from factory.domain.git import CommitId
 
@@ -84,10 +92,23 @@ class ContainerEnvironment(StageEnvironment):
     """v1.2's way: the agent on the dataset in throwaway containers; the take after."""
 
     def __init__(
-        self, boundaries: Boundaries, snapshots: Snapshots, containers: ContainerRuns
+        self,
+        boundaries: Boundaries,
+        snapshots: Snapshots,
+        containers: ContainerRuns,
+        *,
+        extra_environment: Mapping[str, str] = {},
+        ca_bundle: Path | None = None,
     ) -> None:
-        """Prepare the dataset of `snapshots` through `containers`; take into the checkout."""
+        """Prepare the dataset of `snapshots` through `containers`; take into the checkout.
+
+        The sync's container gets `extra_environment` below its own and `ca_bundle` mounted
+        read-only at its own path.
+        """
         self._boundaries = boundaries
+        # The sync's own names win: its `PATH` and home never come from the host.
+        self._sync_environment = {**extra_environment, **SYNC_ENVIRONMENT}
+        self._bundle_mounts = bundle_mounts(ca_bundle)
         self._snapshots = snapshots
         self._containers = containers
         self._reset = timedelta(0)
@@ -162,8 +183,9 @@ class ContainerEnvironment(StageEnvironment):
             mounts=[
                 Mount(source=self._boundaries.checkout / ".git", target=UPSTREAM, read_only=True),
                 Mount(source=settings.agent_home, target=AGENT_FILES, read_only=True),
+                *self._bundle_mounts,
             ],
-            environment=SYNC_ENVIRONMENT,
+            environment=self._sync_environment,
             time_limit=time_limit,
             working_directory=WORK,
         )
@@ -187,5 +209,11 @@ def _seconds(duration: timedelta) -> str:
 
 
 def stage_environment_of(boundaries: Boundaries) -> StageEnvironment:
-    """The container environment on the boundaries' snapshots and containers."""
-    return ContainerEnvironment(boundaries, boundaries.snapshots, boundaries.containers)
+    """The container environment on the boundaries' snapshots and containers, with their extras."""
+    return ContainerEnvironment(
+        boundaries,
+        boundaries.snapshots,
+        boundaries.containers,
+        extra_environment=boundaries.container_extra_environment,
+        ca_bundle=boundaries.settings.ca_bundle,
+    )
