@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T13:21:37.883929Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-10-26T13:21:16.901694Z'
   stage: tests
   run: beb2c07c41624933a3333cb677c39a5d
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-26T13:21:37.883929Z'
+  stage: doing
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -301,3 +310,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (161.4 s)
+16. factory: started doing as vm.
