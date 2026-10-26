@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T15:19:47.000080Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -159,6 +163,11 @@ journal:
   at: '2026-10-26T15:19:26.120745Z'
   stage: doing
   run: 671880fd00de4950a9fbcb25599744e3
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-26T15:19:47.000080Z'
+  stage: tests
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -448,3 +457,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Refactor pass: the diff for this round is the two lines and their comment. Nothing needed changing.
 
     Noticed, not touched: as before, the Interface names `tests/adapters/test_make_commands_extra.py`, but the check rows are in `tests/application/test_container_environment_extra.py`.
+28. factory: started tests as vm.
