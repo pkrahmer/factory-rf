@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 464
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-26T17:55:16.233713Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-26T17:55:16.233713Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T17:55:46.162821Z'
+  stage: docs
+  run: 7cedf73f96444e629849628928a36575
 ---
 
 # The feature's documents agree with what was built and with each other
@@ -152,3 +154,22 @@ Expect: `documents ok`
    Work item hygiene: the coder's entry gives the main decision (hand forward with an empty diff) and what was rejected (writing the documents in the coder stage). The Description still matches the story: nothing was built yet, and the four gaps are still the docs stage's work. The docs criterion still says what the documenter must write.
    Earlier tests: none changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the work item's two files).
 10. factory: started docs as vm.
+11. documenter: Changed two files, both documents. `make documents` ends with `documents ok`. Nothing else changed. I did not run `make check`, because only documents changed.
+
+    - `docs/decisions.md`, *A company's provider for opencode*: replaced the "Left to later stories of F0046" line with two bullets. The first is the default: with `FACTORY_OPENCODE_PROVIDER_FILE` unset, the run's configuration file is byte-identical to the one written before the setting existed. The second is how the provider is shown to work: no test runs the real opencode, and the preflight's `agent-run-probe` shows on the machine whether the pinned opencode accepts the provider block.
+    - `docs/decisions.md`, *The containers' environment stays closed except for the operator's list*: deleted the "Left to later stories of F0046" line. S0003 has since built the file for the operator's settings, and its entry follows. No line now contains that phrase.
+    - `docs/operator-guide.md`, *A company's provider*: added one sentence naming `agent-run-probe` as the place where the operator sees whether the pinned opencode accepts the provider file and reaches the proxy. It refers to "The probe of the agent run" for when the probe runs.
+    - `docs/operator-guide.md`, *The environment file*: added one sentence. Every name in `factory.local.env` is in the factory process's own environment, because the unit sets it for the whole service, and `FACTORY_CONTAINER_ENV` then chooses which of these names the containers also get.
+    - `docs/operator-guide.md`, *Behind a proxy*: added a clause to the sentence about `factory.local.env`, pointing to the sentence above.
+
+    Cross-read and found current: *The probe of the agent run* and the preflight table row for `agent-run-probe`, which already cover opencode. The other bullets of both decision entries. I did not run the smoke-test greps myself, but the first (`Left to later stories of F0046`) matches nothing, and both edits sit in the sections the other two greps read.
+
+    Not touched: the CA-on-host question (whether the factory's own hosting client and git need the company's CA) stays with the human. The new sentences state only what reaches the process.
+
+    Stale text unrelated to this story: none noticed. Skills set aside: none.
+
+    No findings.
+
+    `check`: check: green (not run again: passed on tree 6c9e3830fbbb at 2026-10-26T17:38:40Z)
+    `secrets`: secrets: green (1.7 s)
+    `documents`: documents ok

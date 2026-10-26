@@ -1158,7 +1158,8 @@ Date: 2026-10-26 (F0046-S0001).
 - Why only the API login works: the agent's home is on the dataset and is rolled back before every stage, so a login that an operator's build keeps in the home does not survive to the next run.
 - Consequence: a model without prices is costed at 0, so the factory's budget stop does not fire for it.
 - Rejected: the key in the file; several providers in one file; reading the file once at start.
-- Left to later stories of F0046: the proxy and the CA bundle of the containers, and the file for the operator's settings.
+- Why the option is off by default: with `FACTORY_OPENCODE_PROVIDER_FILE` unset, the run's configuration file is byte-identical to the one written before the setting existed, so an instance that does not use a company's provider changes in nothing.
+- How the provider is shown to work: no test runs the real opencode, so no test shows that the pinned opencode accepts the provider block. The preflight's `agent-run-probe` shows it on the machine: it makes one `opencode run` call as a stage makes it, with the provider merged in.
 
 ## The containers' environment stays closed except for the operator's list
 
@@ -1170,7 +1171,6 @@ Date: 2026-10-26 (F0046-S0002).
 - Why a file mounted at its own path: tools read the bundle from a path, and the path is then the same on the host and in the container.
 - Consequence: `SSL_CERT_FILE` replaces Python's list of authorities, so the bundle must hold the public certificates beside the company's.
 - Rejected: passing the whole environment; a fixed list of proxy names (mirrors and other names differ by company); computing the extras in the application layer (it would read the host's environment).
-- Left to later stories of F0046: the file for the operator's settings.
 
 ## The operator's own environment file
 
