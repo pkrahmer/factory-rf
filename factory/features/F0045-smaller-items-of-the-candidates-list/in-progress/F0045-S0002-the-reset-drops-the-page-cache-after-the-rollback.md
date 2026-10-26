@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T19:51:46.314823Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -142,6 +146,11 @@ journal:
   at: '2026-10-26T19:51:25.696310Z'
   stage: doing
   run: 2549d01c1b5e4baa931124bc9241b18b
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:51:46.314823Z'
+  stage: tests
 ---
 
 # The reset drops the page cache after the rollback
@@ -426,3 +435,4 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
     The meaning of the task is unchanged. The reviewer added criteria 10 and 11, and `make check` and `docs:` are now 12 and 13. The Description already holds these criteria, so I did not rewrite it.
 
     Noticed but not touched (as in entry 20): the steps `sudoers` and `caches` write a `sudoers` file in the same way. A shared shell function would restructure the script beyond this work item.
+25. factory: started tests as vm.
