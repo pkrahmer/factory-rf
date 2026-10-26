@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-26T20:39:33.914096Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-26T20:39:13.050548Z'
   stage: doing
   run: e246600b711c4e7dad481ec974836947
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-26T20:39:33.914096Z'
+  stage: review
 ---
 
 # The setup script says how to install a changed unit
@@ -203,3 +212,4 @@ Expect: three lines: `syntax-ok`; `2`; `0`
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
+15. factory: started review as vm.
