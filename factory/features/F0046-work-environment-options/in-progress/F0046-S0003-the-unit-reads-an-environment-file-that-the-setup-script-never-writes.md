@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T16:07:03.726101Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T16:06:45.613841Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-26T16:07:03.726101Z'
   stage: tests
 ---
 
@@ -147,3 +156,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `make lint`: green. No module failed to import, since nothing under `src/` is involved.
 9. 2026-10-26 human: A: in `tests/test_vm_service.py`, the `service` row leaves `EnvironmentFile` out of its expected keys and skips `EnvironmentFile` in `[Service]`, as it does for `Description` in `[Unit]`; the new test pins both lines and their order. That earlier test may change only that way.
+10. factory: started tests as vm.
