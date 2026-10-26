@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T15:35:38.085543Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -203,6 +207,11 @@ journal:
   at: '2026-10-26T15:35:17.615584Z'
   stage: doing
   run: a1ab9cdcd03e424da0ca7ead03524a77
+- number: 36
+  speaker: factory
+  kind: started
+  at: '2026-10-26T15:35:38.085543Z'
+  stage: tests
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -575,3 +584,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
       - That same file imports `REPLY` from a test module.
     - The Interface sentence on `agent_launch` still says "runtime part". It should say the extras go beneath `run_environment`'s result.
     - Entry 9's keyword names and its corrected smoke test are still missing from the work item, which is outside my write paths.
+36. factory: started tests as vm.
