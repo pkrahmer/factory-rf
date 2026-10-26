@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 464
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T17:47:59.795382Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-26T17:47:59.795382Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-26T17:50:53.351295Z'
+  stage: tests
+  run: 77802b4c12054a19b8fb9170f8c61046
 ---
 
 # The feature's documents agree with what was built and with each other
@@ -88,3 +90,12 @@ Expect: `documents ok`
    Architecture: the story touches documents only and leaves the layers alone. The documenter's write paths (README.md and docs/*) cover both files.
    Scope: it fits F0046. feature.md lists S0005 as "from A0001". Its Out of scope items (a base_url, a secret store, any company value) are not touched, and the CA-on-host question is left to the human.
 4. factory: started tests as vm.
+5. tester: No tests written. The story's Interface is "None", and its criteria rule out any test change.
+   criterion 1: no test. Criterion 1 is the reason: this stage changed nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/`, and `git status --short` shows the working tree clean.
+   criterion 2: no new test. `make check` covers it, and the factory runs it after later stages.
+   criterion 3 (docs): no test, as the criterion requires. The smoke test and `make documents` check the two documents.
+   Files created: none. Modules the test run could not import: none, because no test was added. I did not run `make test` this stage: no test changed, so there are no red tests to confirm. `make lint`: green.
+   Open: nothing for the coder in code. The work is the documenter's, in `docs/decisions.md` and `docs/operator-guide.md`.
+
+   `lint`: lint: green (0.2 s)
+   `test`: test: green (157.2 s)
