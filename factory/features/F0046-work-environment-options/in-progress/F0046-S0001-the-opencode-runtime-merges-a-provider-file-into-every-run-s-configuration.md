@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 459
-comments_read: [6416165613, 6416662775]
+comments_read: [6416165613, 6416662775, 6417568826]
 handed_over: null
 claim: null
 journal:
@@ -104,6 +104,11 @@ journal:
   stage: doing
   run: b688f39c285a49b1a91f3bef4718cbc9
   blocked: question
+- number: 18
+  speaker: human
+  kind: comment
+  at: '2026-10-26T13:47:42.667974Z'
+  stage: doing
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -331,3 +336,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     I would choose (a). Once the line is reworded, `make check` should be green with no code change, and the next doing round can end with `review`.
 
     Noticed, not touched: nothing else.
+18. 2026-10-26 human: Neither of the three as you put them: `main` now holds a line filter in `.secrets.baseline` (lines that name `api_key_env` are not scanned; the human's choice). It reaches this branch through the merge of `origin/main` at the next stage. No change to the journal, `src/` or `tests/`; end the next doing round with `review` once `make check` is green.
