@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T19:49:00.078221Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-10-26T19:49:00.078221Z'
   stage: review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T19:50:36.537581Z'
+  stage: review
+  run: 50370ccfa4254dd494d31742342eb0b6
 ---
 
 # The reset drops the page cache after the rollback
@@ -194,8 +196,10 @@ Tests (the tester writes and changes them; the leave is decision 22 of `feature.
 7. The script stays valid (one test): `sh -n vm/setup.sh` exits 0.
 8. The refused check of the step (one test over the step `caches` of the script's text, comment lines dropped): the step holds `setup: caches: visudo -cf refused /etc/sudoers.d/factory-drop-caches; removed it` with `>&2` on its line, and `exit 1` follows it inside the step.
 9. Writes only when the text differs (rows of one parametrized test over the step `caches`, one row for the helper and one for the `sudoers` file): the step compares the installed file with its wanted text before writing it (a `cmp`, `diff` or `grep -x` test on that file's path precedes its `install` or write), and its `setup: caches: ` output has a `found` form and a `wrote` form for that file, as the other steps' lines have.
-10. `make check` stays green.
-11. docs: `docs/operator-guide.md`, `## The machine`, `### The script`: the step `caches` in the numbered list of steps (the two files, written on every run, the `visudo` refusal), the numbers after it following, and one paragraph on the page cache after a rollback (a page written through `mmap` survives `zfs rollback` in the page cache; the factory drops the clean cache after every reset through the helper; the drop is machine-wide, so the next sync reads from the disk). `docs/project-guide/stage-environment.md`, `## The ZFS adapter`: the constructor with `drop_caches`, the row of `reset()` in *The commands* (the rollback, then the drop), the drop's faults in *Faults*, the drop stand-in in *The stand-in*; and the row of `snapshots` in the wiring table with `drop_caches=DROP_CACHES_COMMAND`. `docs/decisions.md`: a new entry "The reset drops the page cache after the rollback" (F0045-S0002; the cause found on `vm` on 2026-10-25 and 2026-10-26; decisions 15 and 16 of `feature.md` with their rejected options). `README.md`: none.
+10. The staged texts are exact (rows of one parametrized test over the step `caches` of the script's raw text, one row for the helper and one for the `sudoers` file): the here-document the step stages before it compares and writes that file holds exactly that file's text as the Interface gives it, line for line and nothing more (the helper's three lines; the one rule); a here-document with one line added fails the row.
+11. One line on standard output (one test over the step `caches`, comment lines dropped): exactly one line of the step prints `setup: caches: ` without `>&2`, and it is the step's last line.
+12. `make check` stays green.
+13. docs: `docs/operator-guide.md`, `## The machine`, `### The script`: the step `caches` in the numbered list of steps (the two files, written on every run, the `visudo` refusal), the numbers after it following, and one paragraph on the page cache after a rollback (a page written through `mmap` survives `zfs rollback` in the page cache; the factory drops the clean cache after every reset through the helper; the drop is machine-wide, so the next sync reads from the disk). `docs/project-guide/stage-environment.md`, `## The ZFS adapter`: the constructor with `drop_caches`, the row of `reset()` in *The commands* (the rollback, then the drop), the drop's faults in *Faults*, the drop stand-in in *The stand-in*; and the row of `snapshots` in the wiring table with `drop_caches=DROP_CACHES_COMMAND`. `docs/decisions.md`: a new entry "The reset drops the page cache after the rollback" (F0045-S0002; the cause found on `vm` on 2026-10-25 and 2026-10-26; decisions 15 and 16 of `feature.md` with their rejected options). `README.md`: none.
 
 ## Smoke test
 
@@ -381,3 +385,19 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 21. factory: started review as vm.
+22. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (`src/factory/adapters/zfs_snapshots.py`, `src/factory/entry/wiring.py`, `vm/setup.sh` and the tests) against the work item. Criteria 1 to 9 each have a passing test that checks what the criterion says, and the coder's `make check` was green (entry 20). The gaps below are in group 1, so I stopped there. Both gaps sit where the story is missing a criterion. Pinning each needs only a test over the script's text and no change under `src/`, so I added the criteria myself.
+
+    1. criterion 10 added: it needs its test. Location: `vm/setup.sh`, step `caches`, the two `stage <<'EOF'` here-documents. Problem: the Interface says the helper holds "exactly these three lines" and the `sudoers` file "exactly one rule". But `tests/test_vm_setup_caches.py` only checks that the lines are present: row `helper-lines` looks for the three lines in the raw text, and row `one-rule-in-the-step` counts the rule once in the whole script. A here-document with an extra line would pass both rows, for example a second `NOPASSWD` rule or another command in a helper that runs as root. Fix: a parametrized test with one row per file, asserting that each staged here-document equals the Interface's text line for line.
+    2. criterion 11 added: it needs its test. Location: `vm/setup.sh`, step `caches`. Problem: the Interface's rule "one line on standard output beginning `setup: caches: `" has no test for its failing side. The step order checks only read the first and the last `setup: caches: ` marker, so a step that printed a second line to standard output would pass. Fix: one test asserting that exactly one line of the step prints `setup: caches: ` without `>&2`, and that it is the step's last line.
+
+    The closing criteria are now 12 (`make check`) and 13 (docs).
+
+    Earlier tests (changed test files that `main` already holds):
+    - tests/zfs_support.py: the Interface's leave (decision 22 of `feature.md`): `snapshots_on` passes a drop that succeeds; `Drop` and `write_drop` are added.
+    - tests/adapters/test_zfs_snapshots.py: the Interface's leave (decision 22): the three named tests gain `drop_caches`, and the ten-minute test reads the rollback's request.
+    - tests/vm_support.py: the Interface's leave (decision 22): `STEPS` gains `caches` after `sudoers`.
+    - tests/test_vm_setup_text.py: the Interface's leave (decision 22): `ORDERED_COMMANDS` gains `/etc/sudoers.d/factory-drop-caches`.
+    - tests/conftest.py: the human's answer in journal entry 14: the shared `sudo_stand_in` fixture.
+    - tests/entry/test_wiring_command_records.py: the human's answer in journal entry 14: gains only `usefixtures("sudo_stand_in")` (and `import pytest`).
+    - tests/entry/test_wiring_container_extra.py: the human's answer in journal entry 14: gains only `sudo_stand_in` in its `usefixtures`.
+    - tests/entry/test_wiring_stage_environment.py: the human's answer in journal entry 14: gains only `usefixtures("sudo_stand_in")`.
