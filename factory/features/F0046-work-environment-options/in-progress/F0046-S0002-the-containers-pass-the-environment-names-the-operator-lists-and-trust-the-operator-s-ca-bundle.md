@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T15:48:20.341244Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -234,13 +230,19 @@ journal:
   kind: started
   at: '2026-10-26T15:48:20.341244Z'
   stage: review
+- number: 41
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T15:50:05.484268Z'
+  stage: review
+  run: 43083f11ce4d490abb2f9a1799581b38
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
 
 ## Description
 
-Every container the factory starts gets a closed environment: the agent's request is scrubbed to six names (`ALLOWED_ENVIRONMENT_NAMES`), the sync container gets `SYNC_ENVIRONMENT` and the check containers `CHECK_ENVIRONMENT`, and the factory's own environment reaches none of them. Behind a company proxy a container needs `HTTPS_PROXY`, `NO_PROXY`, a package mirror (`UV_INDEX_URL`, `NPM_CONFIG_REGISTRY`) and the company's CA certificate, and today none can be given. This story adds two settings. `FACTORY_CONTAINER_ENV` is a comma-separated list of environment variable names; each name that the factory's own environment holds is passed, with its value, into the agent, sync and check containers. `FACTORY_CA_BUNDLE` is the absolute path of a PEM file on the machine; it is mounted read-only into the same containers at its own path and named by `NODE_EXTRA_CA_CERTS`, `SSL_CERT_FILE` and `REQUESTS_CA_BUNDLE`. The allow-list stays closed for every other name, and the login names stay as they are (`without_login` still removes them). Unchanged: with neither setting the containers' command lines and environments are as today; the dataset, the take and the checks' rules; the hosting token, which no container gets. Left to later stories: the file for the operator's settings (S0003).
+Every container the factory starts gets a closed environment: the agent's request is scrubbed to six names (`ALLOWED_ENVIRONMENT_NAMES`), the sync container gets `SYNC_ENVIRONMENT` and the check containers `CHECK_ENVIRONMENT`, and the factory's own environment reaches none of them. Behind a company proxy a container needs `HTTPS_PROXY`, `NO_PROXY`, a package mirror (`UV_INDEX_URL`, `NPM_CONFIG_REGISTRY`) and the company's CA certificate, and today none can be given. This story adds two settings. `FACTORY_CONTAINER_ENV` is a comma-separated list of environment variable names; each name that the factory's own environment holds is passed, with its value, into the agent, sync and check containers, beneath the names the factory gives each container itself, which win: a listed `PATH` leaves each container's own `PATH`. `FACTORY_CA_BUNDLE` is the absolute path of a PEM file on the machine; it is mounted read-only into the same containers at its own path and named by `NODE_EXTRA_CA_CERTS`, `SSL_CERT_FILE` and `REQUESTS_CA_BUNDLE`. The allow-list stays closed for every other name, and the login names stay as they are (`without_login` still removes them). Unchanged: with neither setting the containers' command lines and environments are as today; the dataset, the take and the checks' rules; the hosting token, which no container gets. Left to later stories: the file for the operator's settings (S0003).
 
 ## Interface
 
@@ -648,3 +650,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 40. factory: started review as vm.
+41. reviewer: Round 2 review. I read the diff against `main` (src and tests) and the work item.
+
+    no findings
+
+    description corrected: "each name that the factory's own environment holds is passed, with its value, into the agent, sync and check containers." -> "... into the agent, sync and check containers, beneath the names the factory gives each container itself, which win: a listed `PATH` leaves each container's own `PATH`." The source is entry 4, answer 2, and round 0's finding 1. The code at `claude_runtime.py:466`, `opencode_runtime.py:683`, `stage_environment.py` and `make_commands.py` works this way.
+
+    What I checked:
+    - Group 1: criterion 9 is now tested by the row `spaces-around-names` in `tests/domain/test_settings_container_env.py`. Criteria 1 to 8 are as round 1 found them: each has its test, and every stated rule has its failing side. The last `make check` is green (entry 39). The `make types` crash before it was Error 139 with no mypy error, so it was not a test failure.
+    - Group 2: `extra_environment` and `bundle_mounts` are pure and live in `factory.domain.containers`, which imports `InstanceSettings` from within the domain. Only `factory.entry.wiring` reads `os.environ`. The extras reach `stage_environment_of` through `Boundaries.container_extra_environment`, so the application layer neither reads the host nor knows a tool.
+    - Group 3: no secrets and no suppression markers. Names are checked against the pattern and the reserved names when the settings are read, and the hosting token reaches no container (criterion 7).
+    - Group 4: `read_only_at_own_path` replaces the inline `Mount` in `agent_launch`, so it is not a copy. Docstrings are present and current. `make duplicates` shows 0 new findings. Each runtime holds `{**extras, **run_environment(...)}` and its bundle list. The coder decided against a shared helper for that one expression and gave the reason (entry 27); I accept it.
+    - Group 5: the journal explains the main choice and the alternatives it rejected (entries 27, 31, 39). The docs criterion still names what the reader must know.
+
+    For the next stages: the `## Interface` sentence on `factory.adapters.agent_launch` still says the extras go into `run_environment`'s runtime part. The constructor keywords are only in entry 9. Smoke test 1 still lacks `repository_url` and `instance`; run it in the form entry 9 gives (the coder confirmed that form passes, entry 23). The Description now states the rule the code follows.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`).
+
+    Notes:
+    - `tests/entry/test_wiring_container_extra.py:25` and `:37`: `_recording` and `_calls` copy `_recording_stand_in` and `_calls` from `tests/entry/test_wiring_stage_environment.py`.
+    - `tests/container_extra_support.py:26`: `CA_NAMES` repeats `factory.domain.containers.CA_BUNDLE_NAMES`.
+    - `tests/container_extra_support.py:12` and `tests/entry/test_wiring_container_extra.py:13`: `REPLY` is imported from test modules (`adapters.test_claude_runtime_login`, `entry.test_wiring_login`) and not from a support module.
