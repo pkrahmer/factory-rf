@@ -98,7 +98,10 @@ def test_the_extras_name_no_agent_user_and_no_sudo(
         pytest.param(
             {"agent_runtime": "opencode", "pinned_opencode_version": "1.19.3"},
             "none",
-            ["by hand as the factory user", "log in once as the factory user"],
+            [
+                "by hand as the factory user",
+                "put a key in the file FACTORY_API_LOGIN_FILE names",
+            ],
             id="opencode-no-login",
         ),
     ],

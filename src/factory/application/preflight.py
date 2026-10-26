@@ -260,11 +260,7 @@ def _opencode_login_hint(login: Login | None) -> str:
     # opencode reads no subscription token, so the token hint would send the operator astray.
     if login != "none":
         return ""
-    return (
-        "; the agent runs get no API key: log in once as "
-        "the factory user with the opencode build's own login, "
-        f"or put a key in the file {API_LOGIN_FILE_VARIABLE} names"
-    )
+    return f"; the agent runs get no API key: put a key in the file {API_LOGIN_FILE_VARIABLE} names"
 
 
 def _login_detail(settings: InstanceSettings, login: Login | None) -> str:
@@ -275,11 +271,13 @@ def _login_detail(settings: InstanceSettings, login: Login | None) -> str:
         return (
             f"the agent runs log in with the subscription token from {settings.claude_login_file}"
         )
-    if login == "none":
-        return (
-            "the agent runs get no login from a file; the runtime uses the login kept in its home"
-        )
-    return ""
+    if login != "none":
+        return ""
+    if settings.agent_runtime == "opencode":
+        # The rollback to the base clears the agent's home before every stage, so no login kept
+        # there reaches the next run.
+        return "the agent runs get no login from a file"
+    return "the agent runs get no login from a file; the runtime uses the login kept in its home"
 
 
 def _probe_request(
