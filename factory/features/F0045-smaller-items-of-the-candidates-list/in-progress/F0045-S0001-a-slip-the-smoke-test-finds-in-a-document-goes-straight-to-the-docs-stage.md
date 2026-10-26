@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T18:54:05.124869Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-26T18:54:05.124869Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-26T18:59:47.392508Z'
+  stage: doing
+  run: 0d15a6a304d84b089d3e155f1250beba
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -254,3 +256,25 @@ Expect: two lines: `7`; `1`
     `lint`: lint: green (0.2 s)
     `test`: test: green (154.2 s)
 14. factory: started doing as vm.
+15. coder: Round 1, after the tester's move. I changed nothing and ran `make check` again: it is green.
+
+    What I built: nothing new this run. The work from round 0 (entry 7) stands:
+    - `template/factory/pipeline.yml`: the smoke test's `next` is now `[approval, doing, docs]`.
+    - the R12 line in all seven `claude/agents/*.md` files.
+    - steps 5 and 6 in `claude/agents/smoke-tester.md`.
+    - the new sentence at the end of step 1 in `claude/agents/documenter.md`.
+
+    The reviewer's only finding (entry 9, finding 1: the copied test helper) was a change to tests. The tester made it in entry 13 with `template_definition()` in `tests/shipped_agents.py`. No code change was needed on my side.
+
+    Main choice: I left the code and texts as they are and did not refactor anything around the tester's move. Changing anything beyond the finding would go past this round's scope.
+
+    Refactor: nothing needed changing.
+
+    Description: no journal entry changed the meaning of the task, so the Description is unchanged.
+
+    Noticed, not touched: nothing new.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
