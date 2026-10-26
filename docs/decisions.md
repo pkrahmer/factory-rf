@@ -1146,6 +1146,7 @@ Date: 2026-10-24 (F0043; the design and the human's answers are `planning/v1.2-p
 - Rejected: the factory in a container with the podman socket (one more container and a socket that is nearly root, with no gain); the factory as root on the VM (a container escape would be root); a stage container that pushes with a token (the agent runs in that container).
 - Open: F0044 removes the Docker path (`image/`, the compose instance and the long-lived container's layers), and with it the chapters of the operator guide that describe them.
 - Done: F0044-S0010 removed the Docker path (`image/`, the compose instance and the long-lived container's layers) and the chapters of the operator guide that described them; the credential helper moved to `vm/git-credential-factory`.
+- Since v1.2 F0045-S0003 a later run names the operator's own copy as the way to install a changed unit or helper; removing the installed file is no longer advised.
 
 ## A company's provider for opencode
 

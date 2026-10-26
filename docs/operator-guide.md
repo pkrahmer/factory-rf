@@ -440,7 +440,27 @@ The checkout of the private repository needs the hosting token. When `/home/fact
 
 The token is written into no file. Git asks the askpass script (`/srv/factory/<instance>/askpass`) for it, and only that script reads the token file; the clone sets `core.askPass` on its own command line, not in any git configuration.
 
-The unit and the credential helper come from the checkout, and root installs them only in the run that made the clone (whose content is the remote's at `--ref`, before the service ever ran) or when the installed file is missing. So a first run that stopped after the clone is completed by the next. A later run that finds the installed file in place but different from the checkout installs nothing and prints `setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed` or `setup: service: /etc/systemd/system/factory@.service differs from the checkout; not installed` to standard error. To take the checkout's version, remove the installed file and run the script again.
+The unit and the credential helper come from the checkout, and root installs them only in the run that made the clone (whose content is the remote's at `--ref`, before the service ever ran) or when the installed file is missing. So a first run that stopped after the clone is completed by the next. A later run that finds the installed file in place but different from the checkout installs nothing and prints one of these two lines to standard error:
+
+```text
+setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed; install it from your own copy of vm/git-credential-factory (operator guide, "The rebuild after a merge")
+setup: service: /etc/systemd/system/factory@.service differs from the checkout; not installed; install it from your own copy of vm/factory.service (operator guide, "The rebuild after a merge")
+```
+
+Root installs nothing from the checkout, because `factory` can write it; your own copy of the ref is the trusted text. So install the new file yourself, from your copy, before you run the script again. On your own computer, in your checkout of the ref the instance runs, copy the script and both files to the VM:
+
+```bash
+gcloud compute scp --zone=europe-west3-a --tunnel-through-iap vm/setup.sh vm/factory.service vm/git-credential-factory factory-vm:
+```
+
+On the VM from your own account, install the file the script named:
+
+```bash
+sudo install -m 0644 factory.service /etc/systemd/system/factory@.service
+sudo install -m 0755 git-credential-factory /usr/local/bin/git-credential-factory
+```
+
+Then run the script as in *The rebuild after a merge*: it runs `systemctl daemon-reload` and reports the file found.
 
 #### The environment file
 
@@ -683,14 +703,14 @@ exit
 
 The new uuid in `image-id` is what tells the settings the image is new; the label is not its identity. Then run the setup script from a copy of your own, as root: copy `vm/setup.sh` from your checkout of the ref the instance runs, as in step 6 of *On GCP, step by step*, and run it from your own account with the arguments of the first run. Root runs nothing from `/srv/factory/vm/factory`, because `factory` can write that checkout.
 
-On your own computer, in your checkout, copy the script to the VM and open a shell there:
+On your own computer, in your checkout, copy the script and the two files it may need to install to the VM, and open a shell there:
 
 ```bash
-gcloud compute scp --zone=europe-west3-a --tunnel-through-iap vm/setup.sh factory-vm:
+gcloud compute scp --zone=europe-west3-a --tunnel-through-iap vm/setup.sh vm/factory.service vm/git-credential-factory factory-vm:
 gcloud compute ssh factory-vm --zone=europe-west3-a --tunnel-through-iap
 ```
 
-On a VM outside GCP, copy `vm/setup.sh` from your own checkout by your own means, such as `scp`, as *On any Ubuntu 24.04 VM* does.
+On a VM outside GCP, copy `vm/setup.sh`, `vm/factory.service` and `vm/git-credential-factory` from your own checkout by your own means, such as `scp`, as *On any Ubuntu 24.04 VM* does.
 
 On the VM from your own account, run the script and start the instance again:
 
@@ -700,7 +720,7 @@ sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
 sudo systemctl start factory@vm
 ```
 
-`vm/setup.sh` is idempotent, so run it after every merge: it carries a changed pin of `vm/Dockerfile` into the environment file, updates `uv` and the factory's virtual environment, and reports the rest found. It does not replace an installed `/etc/systemd/system/factory@.service` or `/usr/local/bin/git-credential-factory` that differs from the checkout: it prints that the file differs and leaves it. When a merge changed `vm/factory.service` or `vm/git-credential-factory`, remove the installed file and run the script again (see *The two passes*).
+`vm/setup.sh` is idempotent, so run it after every merge: it carries a changed pin of `vm/Dockerfile` into the environment file, updates `uv` and the factory's virtual environment, and reports the rest found. It does not replace an installed `/etc/systemd/system/factory@.service` or `/usr/local/bin/git-credential-factory` that differs from the checkout: it prints that the file differs and leaves it. When a merge changed `vm/factory.service` or `vm/git-credential-factory`, install it from your own copy with the commands of *The two passes* before you run the script.
 
 ## The preflight and the health check
 
