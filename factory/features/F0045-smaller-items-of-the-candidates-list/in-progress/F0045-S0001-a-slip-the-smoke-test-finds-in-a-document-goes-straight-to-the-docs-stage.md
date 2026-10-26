@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T18:47:02.305811Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-26T18:47:02.305811Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-26T18:47:17.167378Z'
+  stage: doing
+  run: 148f3ff82d1944609f5625bcd878a36f
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -196,3 +198,15 @@ Expect: two lines: `7`; `1`
 
    Earlier tests: none. The diff only adds test files (`A tests/domain/test_decide_docs_slip.py`, `A tests/test_claude_agent_texts_docs_slip.py`) and changes no test that `main` holds.
 10. factory: started doing as vm.
+11. coder: Round 1: the reviewer's only finding (entry 9, finding 1) is about a copied test helper. It is a change to tests, so I changed no code and no test, and I hand it to the tester.
+
+    The move: put one shared helper or fixture in one shared place, either `tests/conftest.py` or beside `ROOT` in `tests/shipped_agents.py`. It returns the template's pipeline definition: the path `template/factory/pipeline.yml`, parsed with `RuamelPipelineDefinitionReader`.
+    - `tests/domain/test_decide_docs_slip.py` should use it in place of its `TEMPLATE` and `template` fixture.
+    - `tests/test_claude_agent_texts_docs_slip.py` should use it in place of its `TEMPLATE` and `_template()`.
+    - Optionally, under the standing leave in `CLAUDE.md` (*Tests*), `_decisions` in `tests/test_claude_agent_texts.py` (lines 145-146) can use it too. Every earlier test keeps its name and checks the same thing, and the tester's entry names that file.
+
+    I left the agent texts and the template as they are: they were built in round 0, and the review passed them with no finding.
+
+    Description: no journal entry changed the meaning of the task, so the Description is unchanged.
+
+    Noticed, not touched: nothing new.
