@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T15:13:40.102396Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -146,6 +142,12 @@ journal:
   kind: started
   at: '2026-10-26T15:13:40.102396Z'
   stage: review
+- number: 25
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T15:15:30.148998Z'
+  stage: review
+  run: a1041024a7d3459a9c12e761fbdaec17
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -180,8 +182,9 @@ Tests (the tester writes them): `tests/domain/test_settings_container_env.py`, `
 5. The agent's container: with `container_env=("HTTPS_PROXY",)` in the source environment, the launch's `--env` words hold `HTTPS_PROXY=<value>`; a name outside the list that the source holds is absent; `ANTHROPIC_API_KEY` in the request's environment is still removed. With a bundle, the launch mounts it `:ro` at its own path and holds the three variables. Both runtimes, rows of one test.
 6. The sync container and the check containers hold the extra names and the bundle mount (`:ro`) exactly as in criterion 5, and every word before and after them is unchanged. A row with `FACTORY_CONTAINER_ENV=PATH` and a host value for `PATH` leaves the `PATH` of the sync and of the check containers as `SYNC_ENVIRONMENT` and `CHECK_ENVIRONMENT` give it.
 7. `build_boundaries` with both settings gives runtimes, a container environment and project commands that carry them (read from the `FakeContainerRuns` calls of one stage); the hosting token is in no container's environment.
-8. `make check` stays green.
-9. docs: `docs/operator-guide.md`: the two variables in the configuration table and a subsection *Behind a proxy* (the proxy and mirror names, the CA bundle and its mounts, the reserved names; that the bundle must hold the public certificates beside the company's, because `SSL_CERT_FILE` replaces Python's own list; and that `vm/setup.sh` and the stage image's build need the proxy in their own environment). `docs/project-guide/stage-environment.md`, *The podman adapter* and *The container environment*: the extras. `docs/project-guide/agents.md`, *Calls in a container*: the same sentence. `docs/decisions.md`: an entry *The containers' environment stays closed except for the operator's list*, from the feature's decisions 6 and 7. `README.md`: none.
+8. `FACTORY_CONTAINER_ENV` accepts the names the pattern allows beyond upper case: `http_proxy,_X` gives `("http_proxy", "_X")` (rows of criterion 2's test; curl and others read the lower-case proxy names).
+9. `make check` stays green.
+10. docs: `docs/operator-guide.md`: the two variables in the configuration table and a subsection *Behind a proxy* (the proxy and mirror names, the CA bundle and its mounts, the reserved names; that the bundle must hold the public certificates beside the company's, because `SSL_CERT_FILE` replaces Python's own list; and that `vm/setup.sh` and the stage image's build need the proxy in their own environment). `docs/project-guide/stage-environment.md`, *The podman adapter* and *The container environment*: the extras. `docs/project-guide/agents.md`, *Calls in a container*: the same sentence. `docs/decisions.md`: an entry *The containers' environment stays closed except for the operator's list*, from the feature's decisions 6 and 7. `README.md`: none.
 
 ## Smoke test
 
@@ -396,3 +399,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 24. factory: started review as vm.
+25. reviewer: Round 0 review. I read the diff against `main` (src and tests) and the work item. Group 1 (acceptance criteria) fails, so this report stops there.
+
+    1. `src/factory/adapters/claude_runtime.py:465` and `src/factory/adapters/opencode_runtime.py:682`: the runtimes put the extras into `run_environment`'s runtime part. That part overrides the request's own environment, so `FACTORY_CONTAINER_ENV=PATH` (also `LANG`, `TZ`, `LC_ALL`, `TERM`) replaces the agent container's `PATH` with the host's. The request builds that `PATH` itself in `production_environment` (`src/factory/entry/wiring.py:363`). This goes against the human's rule in entry 4, answer 2: "the factory's own `PATH` and `HOME` in a container must not come from the host". The sync and check containers follow that rule; the agent's container does not. Fix: put the extras below both the request's environment and the runtime's own names, e.g. `{**extra, **run_environment(request, runtime_part)}` passed to `container_launch`. The story is also missing the failing side of this rule for the agent: criterion 5 needs a row where `FACTORY_CONTAINER_ENV=PATH` with a host value leaves the agent's `PATH` as the request gives it, for both runtimes. That row needs this code change, so I did not add it as a criterion myself. The coder should hand it to the tester, or ask the human if the Interface's "runtime part" wording is meant literally.
+    2. criterion 8 added: it needs its test. The Interface's name pattern `[A-Za-z_][A-Za-z0-9_]*` is tested only with upper-case names on its accepted side. A pattern tightened to `[A-Z_][A-Z0-9_]*` would pass every test, yet curl and others read the lower-case `http_proxy`/`no_proxy`. The new criterion 8 asks for `http_proxy,_X` to give `("http_proxy", "_X")`, as rows of criterion 2's test in `tests/domain/test_settings_container_env.py`. I renumbered the closing criteria to 9 and 10.
+
+    Checked and fine for group 1:
+    - criteria 2, 3 and 4 have both sides of every refusal, the order rule and the later-value-wins row;
+    - criterion 5 covers both runtimes, the absent name, the removed `ANTHROPIC_API_KEY`, the `:ro` mount and the three variables;
+    - criterion 6 has the sync and check rows, including the `PATH` row;
+    - criterion 7 checks the three `podman run` calls through a recording stand-in, which is needed because `build_boundaries` builds `PodmanRuns`, plus the hosting token.
+
+    The journal's last `make check` is green (entry 23).
+
+    For the next round:
+    - Entry 23 says the coder updated the Interface's keyword sentence and the first smoke test after entry 9. The factory dropped that edit (outside the coder's write paths). The work item still shows the old Interface sentence and a smoke test without `repository_url`/`instance`; entry 9 holds the corrected form.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`).
