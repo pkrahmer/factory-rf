@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775, 6417568826]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-26T14:13:06.288697Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -186,6 +190,11 @@ journal:
   at: '2026-10-26T14:12:45.286961Z'
   stage: docs
   run: 4678213400e14c9886e57f3352ae388a
+- number: 33
+  speaker: factory
+  kind: started
+  at: '2026-10-26T14:13:06.288697Z'
+  stage: smoke-test
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -559,3 +568,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree a2c6429027ca at 2026-10-26T14:06:56Z)
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
+33. factory: started smoke-test as vm.
