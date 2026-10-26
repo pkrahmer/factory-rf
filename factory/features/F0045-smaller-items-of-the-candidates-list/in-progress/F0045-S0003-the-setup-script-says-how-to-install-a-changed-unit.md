@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 468
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T20:12:40.062195Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-26T20:12:40.062195Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-26T20:18:28.595943Z'
+  stage: tests
+  run: 02bd7ed9f1c24bda8cf54ee8074d9437
 ---
 
 # The setup script says how to install a changed unit
@@ -85,3 +87,13 @@ Expect: three lines: `syntax-ok`; `2`; `0`
    Architecture: no `src/factory` change. `vm/setup.sh` is the coder's write path, and the guide and decision log are the documenter's.
    Scope: it matches the S0003 line of `feature.md` and decision 17. Decision 23 says no earlier test changes. Nothing in Out of scope is touched.
 4. factory: started tests as vm.
+5. tester: Wrote the tests for the two lines on standard error and for the script's syntax. No earlier test changed.
+   criterion 1: tests/test_vm_setup_install_hint.py::test_a_differing_installed_file_names_the_operators_own_copy (rows `tools`, `service`). The test runs over the script's text with its comment lines dropped (the `code` fixture) and cuts the steps with `vm_support.step_texts`. Each step holds its exact line from the Interface once, on a line with `>&2`. The script has exactly two lines holding `differs from the checkout`, and each of them is one of the two new lines.
+   criterion 2: tests/test_vm_setup_text.py::test_the_checkout_files_are_installed_only_in_the_run_that_cloned (the existing test, unchanged).
+   criterion 3: tests/test_vm_setup_install_hint.py::test_the_setup_script_parses (`sh -n vm/setup.sh` exits 0).
+   criteria 4 and 5: `make check` and docs; no test.
+   Files created: tests/test_vm_setup_install_hint.py.
+   Modules not importable: none. Both rows of the criterion 1 test fail with `assert 0 == 1` because `vm/setup.sh` still prints the old lines (348 and 392). The syntax test passes now, as it should, since the story changes no syntax. `make lint` is green.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/test_vm_setup_install_hint.py::test_a_differing_installed_file_names_the_operators_own_copy[service] - assert 0 == 1
