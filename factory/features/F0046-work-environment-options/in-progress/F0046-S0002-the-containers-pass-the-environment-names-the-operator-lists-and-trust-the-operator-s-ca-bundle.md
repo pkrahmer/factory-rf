@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-26T15:52:51.250089Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -247,6 +251,11 @@ journal:
   at: '2026-10-26T15:52:30.216257Z'
   stage: docs
   run: 33ef930277bc496fbabdf1bb67a37e48
+- number: 44
+  speaker: factory
+  kind: started
+  at: '2026-10-26T15:52:51.250089Z'
+  stage: smoke-test
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -706,3 +715,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree a2076785d830 at 2026-10-26T15:45:05Z)
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
+44. factory: started smoke-test as vm.
