@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-26T22:49:55.236216Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-26T22:49:55.236216Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T22:50:40.343595Z'
+  stage: docs
+  run: 152e0176d2ee4ca8b8ca5d9d292631f1
 ---
 
 # The settings model refuses what the reading refuses
@@ -353,3 +355,21 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
       - `tests/domain/test_settings_paths.py` (`REQUIRED`)
       - `tests/domain/test_settings_stage_environment.py`
 18. factory: started docs as vm.
+19. documenter: Docs for F0045-S0006. I changed only documents, so I did not run `make check`. The factory's checks run right after this stage.
+
+    Files changed:
+    - `docs/project-guide/watching.md`: I replaced the sentence that said `agent_home` still carries `AGENT_HOME_DEFAULT`. It is now stale: the default is gone. The new text says the model refuses the same faults as the reading. `agent_home` is required and absolute. `container_env` is checked by `container_env_fault` with its three faults. The reading raises `SettingsInvalid` and a model built in code raises `ValidationError`.
+    - `docs/project-guide/README.md`: the `settings_support.py` line under *Shared test helpers* now names `AGENT_HOME`, `NOT_A_NAME` and `SET_BY_FACTORY`, as tester entry 13 says. Criterion 6 only says "the constant the tester added".
+    - `docs/decisions.md`: I added the closing line to the `FACTORY_CONTAINER_ENV` entry (F0046-S0002), word for word as criterion 6 gives it.
+
+    Cross-read and found current against the diff:
+    - `docs/operator-guide.md`: the `FACTORY_CONTAINER_ENV` rows and the `FACTORY_CLAUDE_HOME` text still describe the reading's behaviour, which is unchanged. Criterion 6 says to leave `operator-guide.md` and `README.md` alone.
+    - `docs/project-guide/stage-environment.md` and `docs/project-guide/agents.md`: they mention the container environment extras and the agent home only through the reading, which is unchanged.
+
+    No code finding. Smoke test and code match the Interface (round 1 reviewer: no findings).
+
+    Stale text I noticed but did not touch: none that belongs to this story. The remaining `/home/agent` mentions in `docs/decisions.md` (lines 442, 534, 729, 926) are dated decision entries about the image, not the settings model, so they are history and not mine to edit.
+
+    `check`: check: green (not run again: passed on tree efbdc90fd7e6 at 2026-10-26T22:45:46Z)
+    `secrets`: secrets: green (1.6 s)
+    `documents`: documents ok

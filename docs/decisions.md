@@ -1176,6 +1176,7 @@ Date: 2026-10-26 (F0046-S0002).
 - Why a file mounted at its own path: tools read the bundle from a path, and the path is then the same on the host and in the container.
 - Consequence: `SSL_CERT_FILE` replaces Python's list of authorities, so the bundle must hold the public certificates beside the company's.
 - Rejected: passing the whole environment; a fixed list of proxy names (mirrors and other names differ by company); computing the extras in the application layer (it would read the host's environment).
+- Since v1.2 F0045-S0006 the settings model checks the names too, with the same rule and texts.
 
 ## The operator's own environment file
 
