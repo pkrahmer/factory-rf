@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T16:33:30.165486Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-26T16:33:30.165486Z'
   stage: review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T16:34:05.305393Z'
+  stage: review
+  run: 291687bc507e49bc9587718e2e120f4e
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -325,3 +327,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 22. factory: started review as vm.
+23. reviewer: no findings
+
+    Round 1. The only finding from round 0 (entry 15) was the copied `code` fixture. It is closed: the fixture now lives once in `tests/conftest.py:79-82`. A grep of `tests/` finds no other `def code(`, and `tests/test_vm_setup_writes.py` drops the `setup_code` import it no longer uses.
+
+    Checked and found sound:
+    - Criterion 1: `test_the_unit_reads_the_local_file_after_the_environment_file_and_nothing_else` pins both `EnvironmentFile=` lines in order and the whole unit text, so a missing, extra or misplaced line fails.
+    - Criterion 2: `test_the_script_names_the_local_file_only_in_its_closing_line` requires exactly one naming line, inside the closing text. `test_no_command_of_the_script_mentions_the_local_file` covers the seven command words as rows of one parametrized test.
+    - Criterion 3: `test_the_closing_text_names_the_instance_s_local_file_after_done` has rows `vm` and `other`, and checks that the `setup: local:` line follows `setup: done:` on stdout.
+    - Criterion 4: `test_the_closing_text_leaves_the_local_file_as_it_found_it` has rows present (byte-identical afterwards) and absent (none created). Criteria 3 and 4 run the closing text as the human's answer in entry 6 asks.
+    - The diff to `vm/factory.service` and `vm/setup.sh` is exactly the one line each that the Interface names. The thirteen steps are untouched, and the closing line prints `$base` to stdout.
+    - `make check` after the coder was green (entry 21). `duplicates` reports 0 new findings.
+    - Nothing under `src/` changed, so the architecture and security checks have nothing to object to.
+    - The Description matches what was built. The journal explains the main choice (`$base`) and what was rejected. The docs criterion still says what the operator must know.
+
+    Earlier tests:
+    - `tests/test_vm_service.py`: changed under the human's leave in entry 9. The `service` row drops `EnvironmentFile`, and `[Service]` skips its `EnvironmentFile` keys. Nothing else changed.
+    - `tests/test_vm_setup_text.py`: changed under the standing leave to move a shared test helper. Only the `code` fixture moved out; every test keeps its name and what it checks.
+    - `tests/test_vm_setup_writes.py`: changed under the standing leave to move a shared test helper. The `code` fixture moved out and the unused `setup_code` import is gone; every test keeps its name and what it checks.
+    - `tests/conftest.py`: changed under the standing leave to move a shared test helper. It gains the moved `code` fixture and its `setup_code` import, and nothing else.
