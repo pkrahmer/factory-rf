@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T13:21:37.883929Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,13 @@ journal:
   kind: started
   at: '2026-10-26T13:21:37.883929Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: question
+  at: '2026-10-26T13:24:55.659059Z'
+  stage: doing
+  run: b688f39c285a49b1a91f3bef4718cbc9
+  blocked: question
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -311,3 +314,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (161.4 s)
 16. factory: started doing as vm.
+17. coder: `make check` is red in only one place, and no stage can fix it under the rules. Every other part is green: lint, types, layers and sast pass, and `make test` is `test: green (162.1 s)` with 99.56 % coverage. The tester's changes from entry 15 cleared every test file. `make secrets` still reports "Secret Keyword" twice at line 265 of this work item's file. That line is in coder entry 10 of the `## Journal`, which quotes the old test lines (`api_key_env` with a quoted value). The journal belongs to the factory (R5), and a pragma or a `.secrets.baseline` entry needs your leave (CLAUDE.md, "Not without asking"). Because the check stops at `secrets`, `make licenses` and the `make test` inside `make check` did not run; I ran `make test` on its own.
+
+    Code: no change this round. It is as built in 0bb1b395:
+    - `src/factory/domain/opencode_provider.py`
+    - `src/factory/domain/settings.py`
+    - `src/factory/adapters/opencode_runtime.py`
+    - `src/factory/entry/wiring.py`
+
+    Main choice, from entry 10: the provider file is read and validated at the start of every run, not in `__init__`. I rejected the `__init__` read because a bad file would then make `build_boundaries` fail. Refactor step: I read the diff again and nothing needs changing.
+
+    Question: how should the detect-secrets hit in journal entry 10 be cleared? I see three ways:
+    (a) You (or the factory) reword that journal line in a human commit, so it no longer pairs `api_key_env` with a quoted value. Nothing in `src/` or `tests/` changes.
+    (b) You allow a `.secrets.baseline` entry for that line of the work item. That needs your leave, and the entry goes stale when the line moves.
+    (c) You allow `# pragma: allowlist secret` on that journal line. That needs your leave, and the journal is not ours to edit, so it comes back to (a) anyway.
+    I would choose (a). Once the line is reworded, `make check` should be green with no code change, and the next doing round can end with `review`.
+
+    Noticed, not touched: nothing else.
