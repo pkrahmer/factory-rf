@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T17:35:34.509582Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-26T17:35:34.509582Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-26T17:41:28.691805Z'
+  stage: doing
+  run: 547f8308b10d487d84c2c4a32ce48bcd
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -294,3 +296,22 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
     `lint`: lint: green (0.2 s)
     `test`: test: green (157.1 s)
 21. factory: started doing as vm.
+22. coder: Round 1. The reviewer's findings in entry 16 were all about tests, and the tester handled them in entry 20. This round changed no code, and the working tree was clean when it started. I ran `make check` against the tester's changes and it is green.
+
+    What was built (already committed on the branch): `src/factory/application/preflight.py`.
+    - `_opencode_login_hint("none")` returns `"; the agent runs get no API key: put a key in the file FACTORY_API_LOGIN_FILE names"`. The variable's name comes from `API_LOGIN_FILE_VARIABLE`.
+    - `_login_detail` with `none` returns `"the agent runs get no login from a file"` under opencode. Under claude it returns the same text as before. A comment gives the lasting reason: the rollback to the base clears the agent's home before every stage.
+
+    Main choice: one runtime branch inside `_login_detail`. I rejected a separate opencode helper, like `_opencode_login_hint`, because it would hold only one line.
+
+    Refactor step: I read `git diff main -- src` again and found nothing to change.
+
+    Description: unchanged. The journal since round 0 changed only tests: the reviewer's findings and the tester's move of `probe_result` to tests/probe_support.py. It did not change what the task means.
+
+    Noticed but not touched: `docs/operator-guide.md` still quotes the old opencode hint. Updating it is criterion 5, the documenter's job.
+
+    `check`: check: green (test: green (157.6 s))
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
