@@ -1171,3 +1171,13 @@ Date: 2026-10-26 (F0046-S0002).
 - Consequence: `SSL_CERT_FILE` replaces Python's list of authorities, so the bundle must hold the public certificates beside the company's.
 - Rejected: passing the whole environment; a fixed list of proxy names (mirrors and other names differ by company); computing the extras in the application layer (it would read the host's environment).
 - Left to later stories of F0046: the file for the operator's settings.
+
+## The operator's own environment file
+
+Date: 2026-10-26 (F0046-S0003).
+
+- Decision: the unit `vm/factory.service` reads `/srv/factory/%i/factory.local.env` after `factory.env`, with the optional prefix (`EnvironmentFile=-`). A value in it wins, and its absence is no fault. `vm/setup.sh` never creates, changes, reads or removes the file, and says so in its closing line.
+- Why a second file: the script rewrites `factory.env` at every run from its arguments and the pins of `vm/Dockerfile`, so an edit by hand there is lost. The values of F0046 (a model map, a provider file, the proxy names) have no place in the script's arguments.
+- Why it is read second: systemd lets a later `EnvironmentFile=` override an earlier one, so the operator's value wins over the script's.
+- Why optional: an instance that never needed the file starts as before.
+- Rejected: a script option that writes the file (it would own the file again); merging the operator's values into `factory.env`.

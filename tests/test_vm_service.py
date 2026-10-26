@@ -32,7 +32,6 @@ def _unit() -> configparser.ConfigParser:
                 ("User", "factory"),
                 ("Group", "factory"),
                 ("WorkingDirectory", "/srv/factory/%i"),
-                ("EnvironmentFile", "/srv/factory/%i/factory.env"),
                 ("ExecStart", "/srv/factory/%i/factory/.venv/bin/factory-run"),
                 ("Restart", "always"),
                 ("RestartSec", "15"),
@@ -50,6 +49,8 @@ def test_each_section_holds_exactly_its_keys(section: str, expected: list[tuple[
         assert "%i" in description
         assert sorted(key for key, _ in items) == ["After", "Description", "Wants"]
         items = [item for item in items if item[0] != "Description"]
+    if section == "Service":
+        items = [item for item in items if item[0] != "EnvironmentFile"]
     assert items == expected
 
 

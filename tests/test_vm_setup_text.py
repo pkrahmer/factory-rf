@@ -40,12 +40,6 @@ SUBID_LINE = (
 VALUE_END = r"(?![\w/.:{$-])"
 
 
-@pytest.fixture
-def code() -> str:
-    """Return the setup script's text without its comment lines."""
-    return setup_code()
-
-
 @dataclass(frozen=True)
 class Script:
     """The setup script's text and its steps' texts."""
