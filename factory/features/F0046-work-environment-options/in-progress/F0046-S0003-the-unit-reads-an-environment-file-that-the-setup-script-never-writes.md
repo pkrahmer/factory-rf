@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 461
 comments_read: [6420707346]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T16:01:24.230072Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-10-26T16:01:24.230072Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-26T16:05:27.041476Z'
+  stage: tests
+  run: 2d2ef23351dd49b7b3e8c4d19496b520
+  blocked: question
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -116,3 +119,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Criteria 1 and 2 are clear, and I'll write them with the others once this is answered. No files were created in this stage.
 6. 2026-10-26 human: A, as you describe it: run the script's closing text (from the `setup: done:` printf to the end of `setup_code()`) with `sh` in `tmp_path`, for `instance=vm` and `instance=other`; `tmp_path` stands in for `/srv/factory/<instance>` in criterion 4. Criterion 2's static rows stay the check that no step touches the file. Read criteria 3 and 4 that way.
 7. factory: started tests as vm.
+8. tester: The tests for every criterion are written, as the answer in entry 6 asked. They are in the working tree, but I can't hand forward yet: another story's test will fail as soon as the coder adds the unit line that criterion 1 requires.
+
+   The conflict: `tests/test_vm_service.py::test_each_section_holds_exactly_its_keys[service]` reads the unit with `configparser` (`strict=False`) and expects exactly one `("EnvironmentFile", "/srv/factory/%i/factory.env")`. With the second line `EnvironmentFile=-/srv/factory/%i/factory.local.env`, that parser keeps only the last value. The row then fails, so `make check` (criterion 5) can't go green. The coder may not edit tests, and the standing leave doesn't cover this change, so it needs your word.
+
+   Options:
+   A. In that test's `service` row, leave `EnvironmentFile` out of the expected list and skip `EnvironmentFile` keys in `[Service]`, as it already does for `Description` in `[Unit]`. `test_the_unit_reads_the_local_file_after_the_environment_file_and_nothing_else` in the new file then pins both lines and their order.
+   B. Change the row's expected value to `-/srv/factory/%i/factory.local.env`. That is what `configparser` keeps, but it reads as if the unit had only that one file.
+   C. Leave the test as it is and drop or reword criterion 1. That goes against the story.
+
+   I'd choose A. If you agree, I'll make exactly that change in `tests/test_vm_service.py`.
+
+   Mapping, per entry 6 (3 and 4 run the script's closing text, from the `setup: done:` printf to the end of `setup_code()`, with `sh` in `tmp_path`):
+   criterion 1: tests/test_vm_local_environment.py::test_the_unit_reads_the_local_file_after_the_environment_file_and_nothing_else (the two lines in order, and the whole unit text pinned)
+   criterion 2: tests/test_vm_local_environment.py::test_the_script_names_the_local_file_only_in_its_closing_line, and tests/test_vm_local_environment.py::test_no_command_of_the_script_mentions_the_local_file (rows rm, cp, install, tee, touch, redirection, stage)
+   criterion 3: tests/test_vm_local_environment.py::test_the_closing_text_names_the_instance_s_local_file_after_done (rows vm, other; `base=/srv/factory/<instance>`)
+   criterion 4: tests/test_vm_local_environment.py::test_the_closing_text_leaves_the_local_file_as_it_found_it (rows present, absent; `base` and cwd are `tmp_path`, standing in for the instance folder)
+
+   Created: tests/test_vm_local_environment.py. No earlier test file was changed.
+
+   `make test` (one run): red as intended. It failed on the unit test, the closing-line-mention test and both closing-text rows, each on a wrong result (no `setup: local:` line, one `EnvironmentFile=` line). After that run I made one fix that the run did not cover: the closing-text test took the last two output lines by index, so the failure would have been an `IndexError`. It now pads the output so the failure is an assertion. The command-word rows and both criterion-4 rows already pass, because today nothing names or touches the file; they guard against the change rather than drive it.
+
+   `make lint`: green. No module failed to import, since nothing under `src/` is involved.
