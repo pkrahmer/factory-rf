@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T21:45:52.863088Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-10-26T21:45:52.863088Z'
   stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T21:46:31.808116Z'
+  stage: review
+  run: 36313dba11174b8fbae8854f4aff58f9
 ---
 
 # The stall reason left_branch is removed
@@ -439,3 +441,35 @@ Expect: two lines: `False 4.0`; `0`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 23. factory: started review as vm.
+24. reviewer: Round 2. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item and found nothing to send back.
+
+    The round-1 finding is fixed. The summary line of the `AfterAgent.process` docstring at `src/factory/application/stage.py:194` now reads "Test the work tree and the result, take, build the entry, check the form." Since round 1 nothing else under `src/` or `tests/` has changed.
+
+    Checks run, each holding:
+    - **Criterion 1:** `tests/domain/test_stall_reason_removed.py`. Its rows are `not-a-reason` and `no-sentence`, plus one row for each remaining value through `stall_cause`, which raises `KeyError` for a value without a sentence.
+    - **Criterion 2:** `tests/application/test_no_branch_check.py::test_the_early_stall_reads_only_the_runs_own_end`. Its rows are `died`, `time-limit` and `completed-doing`, and they run through `AfterAgent` on `boundaries`.
+    - **Criterion 3:** the `ast` test in the same module. The diff removes the only `.status(` call in `stage.py`.
+    - **Criterion 4:** the `checkout-back-on-the-branch` row of `tests/application/test_stall_environment.py`. It now stalls as `died`, and its branch and head checks are kept.
+    - **Criterion 5:** `tests/domain/test_contract_version_4.py`. It checks the version, that each of the five schemas equals `contract_schema`, and that no schema names `left_branch`.
+    - **Criterion 6:** `tests/test_left_branch_removed.py`.
+    - **Limits:** the Interface states no new rule or limit, so no failing side is left untested.
+    - **`make check`:** journal entry 22 records `check: green` and `duplicates: 0 new`.
+    - **Contract:** the version rises to `4.0` because a value was removed, which is a major step. The schemas were regenerated: they lose only the value and the version string.
+    - **Architecture and security:** no layer changes and no suppression markers. Apart from the two new test modules that check for the removed name, nothing in `src` or `tests` still names `left_branch` or its sentence.
+    - **Description:** it matches what was built.
+
+    no findings
+
+    Earlier tests (test files `main` already holds that the diff changes), each with the leave it was changed under:
+    - `tests/application/test_after_agent.py`: the human's leave, decision 24 of `feature.md`, named in the Interface. The test, `SwitchingRuntime`, `switching` and `ELSEWHERE` are deleted and the docstring is adjusted.
+    - `tests/application/test_stall_edges.py`: the human's leave, decision 24 of `feature.md`, named in the Interface. The `left-branch` row, `_left_branch`, `CommitThenLeaveRuntime` and `ELSEWHERE` are deleted and the docstring is adjusted.
+    - `tests/application/test_stall_environment.py`: the human's leave, decision 24 of `feature.md`, named in the Interface. The row's reason is now `died`.
+    - `tests/domain/test_stall_texts.py`: the human's leave, decision 24 of `feature.md`, named in the Interface. The `left_branch` row is deleted.
+    - `tests/domain/test_contract.py`: the human's leave, decision 24 of `feature.md` (`3.0` -> `4.0`).
+    - `tests/domain/test_contract_provider_limit.py`: the human's leave, decision 24 of `feature.md` (`3.0` -> `4.0`).
+    - `tests/domain/test_contract_version_2.py`: the human's leave, decision 24 of `feature.md` (`3.0` -> `4.0`), and the standing leave to move a shared test helper (its helpers replaced by `contract_support`; test name and row ids kept).
+    - `tests/domain/test_contract_version_3.py`: the human's leave, decision 24 of `feature.md` (`3.0` -> `4.0`), and the standing leave to move a shared test helper (its helpers replaced by `contract_support`; test name and row ids kept).
+    - `tests/contract_support.py`: the standing leave to move a shared test helper. It gains `SCHEMAS`, `committed_is_generated` and `schemas_naming`, and nothing it held before was changed.
+
+    Notes:
+    - `tests/domain/test_stall_reason_removed.py:28-33`: the `_has_its_sentence` rows partly overlap `tests/domain/test_stall_texts.py::test_each_stall_cause_is_its_sentence_alone_or_with_the_detail`. They are kept because criterion 1 asks for them.
