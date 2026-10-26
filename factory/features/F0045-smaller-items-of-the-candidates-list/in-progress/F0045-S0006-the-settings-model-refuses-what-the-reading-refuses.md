@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 471
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T22:19:14.869672Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-26T22:19:14.869672Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-26T22:19:36.280313Z'
+  stage: intake
+  run: b4e4d0e251484311822f38277e51780a
 ---
 
 # The settings model refuses what the reading refuses
@@ -72,3 +74,9 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
 
 1. 2026-10-26 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names `factory.domain.settings`, `AGENT_HOME_DEFAULT` (still at line 49 of `src/factory/domain/settings.py`, the only `/home/agent` under `src/factory`), the field `agent_home: Path` (line 106), the validator that already covers `checkout` and `state_directory`, and the reading's rule at lines 280-297 whose three texts the story quotes. Every behaviour it states has a criterion: required and absolute (1), the three name faults and the accepted order (2), the reading's `SettingsInvalid` (3), the removal (4).
+   - Criteria: each is one parametrized test with concrete rows. Both sides are covered: accepted and refused for `agent_home`, and for `container_env` the accepted lists, reserved names, the `FACTORY_` prefix, bad names and a duplicate. Criterion 3 covers the reading, with the variable and fault text per row. Criterion 4 covers the constant and the string. Criteria 5 and 6 close the list, and the docs criterion names its files and the exact closing line.
+   - Smoke test: runnable with `uv run python -`, no pytest, so the `-q` rule does not apply. I traced it against the code. `InstanceSettings` with only `repository_url` and `instance` gives `missing` first, whose message lacks the text, so `False`. `HOME` gives `value_error True`. The valid case prints `/srv/agents`. The `Expect:` line gives four lines that can be checked exactly.
+   - Architecture: both rules live in `factory.domain`, a pure model with no I/O, and `read_settings` stays in the same module. The story writes the rule once and uses it from both.
+   - Scope: within S0006 of `feature.md` (decisions 14 and 18, the human's answer 32 (b)). The leave for the earlier tests is decision 26, which the story cites. It changes no test beyond that leave and has nothing from "Out of scope".
