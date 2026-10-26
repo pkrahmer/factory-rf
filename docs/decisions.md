@@ -718,6 +718,7 @@ Date: 2026-10-19 (F0021-S0006). Readers outside the factory, first a page that r
 - Rejected: schemas written by hand (they drift from the models); a folder at the repository's root (it needs a write path of its own); the pipeline definition's `contract` as the records' version (it versions the definition's format and would tie two unrelated changes together).
 - The records contract's version is `2.0` since F0044-S0002: it removed `tool_paths` from the pipeline definition's schema, a change that can break a reader.
 - The records contract's version is `3.0` since F0044-S0006, which removed the stall reason `nested_repository`.
+- The records contract's version is `4.0` since F0045-S0004, which removed the stall reason `left_branch`; no agent can cause it on the dataset.
 
 ## An agent run logs in with an API key when its file holds one
 

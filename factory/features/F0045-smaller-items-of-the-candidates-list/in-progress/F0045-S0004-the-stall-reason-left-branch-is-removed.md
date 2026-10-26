@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-26T21:46:52.467032Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-10-26T21:46:52.467032Z'
   stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T21:47:45.010490Z'
+  stage: docs
+  run: bd90e42dc8f8423d80dadbd6f258904d
 ---
 
 # The stall reason left_branch is removed
@@ -483,3 +485,25 @@ Expect: two lines: `False 4.0`; `0`
     Notes:
     - `tests/domain/test_stall_reason_removed.py:28-33`: the `_has_its_sentence` rows partly overlap `tests/domain/test_stall_texts.py::test_each_stall_cause_is_its_sentence_alone_or_with_the_detail`. They are kept because criterion 1 asks for them.
 25. factory: started docs as vm.
+26. documenter: Round 2. I wrote the docs criterion and cross-read the other documents. I changed only documents, so I ran no `make check`; the factory's checks after the stage decide.
+
+    Files changed:
+    - `docs/project-guide/stages.md`: `left_branch` is gone from the list of `StallReason` values in `## Stalls`. In `## After the agent run` the step *Branch* is gone and the four steps after it are numbered 1 to 4. The reference to "the work item after step 3" in the `AgentAftermath` paragraph now says step 2, the take and restore.
+    - `docs/operator-guide.md`: in `## A stall: the stall note`, the reason "the agent left the work item's branch" is gone from the list of reasons. In `## The records contract`, *The version* now reads `4.0`, with why it rose: the stall reason `left_branch` was removed from the `reason` of the journal records in `work-item-state` and `acceptance-state`. This is a change that can break a reader, and it comes after the `2.0` and `3.0` of F0044.
+    - `docs/decisions.md`: the entry "The records carry generated JSON Schemas under `src/factory/contract/`" gains the line "The records contract's version is `4.0` since F0045-S0004, which removed the stall reason `left_branch`; no agent can cause it on the dataset."
+    - `README.md`: unchanged. The criterion says none.
+
+    Cross-read and found current against the diff:
+    - The `grep` for `left_branch` and "left the work item" over `README.md` and `docs/`, outside `docs/runs/`, finds only the new `4.0` lines.
+    - The stall sections of `docs/project-guide/stages.md`, apart from the lines above, including the remark that `SwitchingRuntime` is used by `test_stall_labels`. That helper still exists in `tests/stall_support.py`.
+    - The stall-service text in `docs/operator-guide.md`: the restore of the checkout to the work item's branch is kept by this story and is still accurate.
+
+    Findings for the coder: none. The code matches the Interface and the criteria.
+
+    Stale text noticed and not touched:
+    - `docs/operator-guide.md` around line 1774, in the F0044 summary, says the records contract "rose to `3.0`". That is true of F0044 and is history, so I left it.
+    - The comment at `src/factory/application/stalls.py:112` ("Whatever the agent left on the other branch is dropped") belongs to the restore that this story keeps, and it is not mine to edit.
+
+    `check`: check: green (not run again: passed on tree 5ff8c7541fb9 at 2026-10-26T21:42:37Z)
+    `secrets`: secrets: green (2.2 s)
+    `documents`: documents ok
