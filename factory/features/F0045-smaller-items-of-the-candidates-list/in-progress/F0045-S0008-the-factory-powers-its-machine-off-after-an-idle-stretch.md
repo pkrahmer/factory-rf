@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T23:53:19.165186Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-26T23:53:19.165186Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-26T23:54:14.914919Z'
+  stage: doing
+  run: 0b621df1d45444f08e996433280e5fbd
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -352,3 +354,18 @@ Expect: `-n /usr/bin/systemctl poweroff`
     Earlier tests:
     - `tests/test_wrapper_search.py` (M): changed under the human's leave, which the story's Interface names (decision 28 of `feature.md`). One module, `factory.adapters.power_off`, was added to the set, and the test keeps its name.
 16. factory: started doing as vm.
+17. coder: Round 1. I changed no code. The two findings in the reviewer's entry 15 call for one test and three criterion texts.
+
+    1. Criterion 10 needs only its test. The tester writes the test the reviewer added as criterion 10 in `## Acceptance criteria`. It is one parametrized test over `run_instance`, with rows for `idle_shutdown_minutes` `0` and `30`. It records `idle_shutdown_of` and `activity_tick` of `factory.entry.run` the way `tests/entry/test_run.py::test_run_instance_builds_one_tick_for_the_whole_run` records `build_tick`. It asserts that `idle_shutdown_of` is called once with the row's setting, and that what it returns reaches `activity_tick` as `idle`. The code it pins is already in place: `src/factory/entry/run.py`, where `run_instance` builds `activity_tick(tick, idle_shutdown_of(settings, boundaries))`. So nothing under `src/` changes.
+    2. Criteria 1, 5 and 8 were stale. I rewrote them in the work item's `## Acceptance criteria` to the reading in journal 9, which the existing tests already check:
+       - Criterion 1: the garbled row is now `"100000"` gives `100000`.
+       - Criterion 5: the standard-error row now asserts the detail `sudo: a password is required` as `failure_detail` gives it, with no exit status.
+       - Criterion 8: gains the behaviour check. After `boundaries.clock` moves on 30 minutes, an `idle` outcome makes the `sudo` stand-in record `-n /usr/bin/systemctl poweroff` once, and `factory.log` holds `idle shutdown: `.
+
+       I touched no other part of the work item. The meaning of `## Description` did not change, so I left it as it was.
+
+    Main choice: I handed criterion 10 to the tester, because I may not write tests and no code change was needed. The alternative was to also leave the stale criterion texts to the tester. I rejected it because rewriting them is a plain text fix to the work item that needs no test change.
+
+    Noticed but not touched: the 2 new `make duplicates` findings from journal 13 are still there. They are the `ProcessRequest` block in `power_off.py`, similar to the zfs and podman wrappers. I did not run `make check` this round, because I changed nothing that it reads.
+
+    The factory left out changes outside the write paths: factory/features/F0045-smaller-items-of-the-candidates-list/in-progress/F0045-S0008-the-factory-powers-its-machine-off-after-an-idle-stretch.md.
