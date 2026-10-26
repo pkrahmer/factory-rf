@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T19:26:17.344951Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-10-26T19:25:56.732951Z'
   stage: tests
   run: 310d1e335ef340959314d313873c18fe
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:26:17.344951Z'
+  stage: doing
 ---
 
 # The reset drops the page cache after the rollback
@@ -242,3 +251,4 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
 
     `lint`: lint: green (0.2 s)
     `test`: ERROR tests/test_vm_setup_text.py::test_the_folders_step_refuses_a_link_at_state_or_repo[exit-1] - AssertionError: no 'setup: caches: ' text
+12. factory: started doing as vm.
