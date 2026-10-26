@@ -157,7 +157,7 @@ def test_the_take_runs_after_the_checkout_is_back_and_before_the_sidecar_is_writ
         launched = launched_stage(boundaries, agent_runtime, ScriptedRun(result=DIED), runtime)
         environment = TakingEnvironment(lambda: statuses.append(boundaries.git.status()))
         context = stall_context(launched.started, pull_request=launched.started.pull_request)
-        reason: StallReason = "left_branch"
+        reason: StallReason = "died"
     else:
         launched = launched_stage(boundaries, agent_runtime, ScriptedRun(result=DIED))
         environment = TakingEnvironment((boundaries.checkout / sidecar).unlink)

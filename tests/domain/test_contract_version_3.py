@@ -18,13 +18,13 @@ SCHEMAS = SRC / "contract"
 
 
 def _version() -> None:
-    assert RECORDS_CONTRACT == "3.0"
+    assert RECORDS_CONTRACT == "4.0"
 
 
 def _committed_is_generated(entry: ContractEntry) -> Callable[[], None]:
     def check() -> None:
         text = (SCHEMAS / schema_file_name(entry)).read_text(encoding="utf-8")
-        assert f'"{CONTRACT_KEY}": "3.0"' in text
+        assert f'"{CONTRACT_KEY}": "4.0"' in text
         assert text == contract_schema(entry)
 
     return check

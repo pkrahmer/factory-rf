@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T21:06:01.875283Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-26T21:06:01.875283Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-26T21:13:13.729595Z'
+  stage: tests
+  run: bbfe2a14c75942d08fda25bffdffbb95
 ---
 
 # The stall reason left_branch is removed
@@ -95,3 +97,29 @@ Expect: two lines: `False 4.0`; `0`
    - Architecture: the changes sit in the layers they belong to (domain for the reason, sentence and contract; application for `AfterAgent`). The contract schemas are regenerated through `factory.entry.contract`, as `CLAUDE.md` requires. The stall service, `Git.status` and the restore stay as they are.
    - Scope: this matches S0004 in `feature.md` and decision 13, and nothing in its "Out of scope" is touched. The test changes are covered by the human's leave in decision 24.
 4. factory: started tests as vm.
+5. tester: I wrote the new tests and changed the earlier ones as the Interface lists them, under the leave in decision 24 of `feature.md`. One run of `make test` was red for the right reasons: `RECORDS_CONTRACT` and the committed schemas are still at `3.0`, `left_branch` is still in the schemas, the sentences and the source, and `stage.py` still calls `status`. The tail showed the `test_contract_version_4` failures. `make lint` is green. I skipped the type check, as this stage says.
+
+   Criterion → test:
+   - criterion 1: `tests/domain/test_stall_reason_removed.py::test_left_branch_is_no_stall_reason_and_every_other_keeps_its_sentence`. Its rows are `not-a-reason` (`get_args(StallReason)`) and `no-sentence` (no `left_branch` string literal in `factory.domain.post_texts`, read with `ast`, because the sentence table is private). Every remaining `StallReason` value then has a row that calls `stall_cause(reason)` and expects a non-empty sentence, so a missing entry fails that row.
+   - criterion 2: `tests/application/test_no_branch_check.py::test_the_early_stall_reads_only_the_runs_own_end`, with rows `died`, `time-limit` and `completed-doing`. It runs through `AfterAgent` on the `boundaries` fixture in stage `tests`. These rows already pass on today's code, because nothing in them moves the checkout. The branch check's removal is pinned by criterion 3.
+   - criterion 3: `tests/application/test_no_branch_check.py::test_the_stage_module_calls_no_status`.
+   - criterion 4: `tests/application/test_stall_environment.py::test_the_take_runs_after_the_checkout_is_back_and_before_the_sidecar_is_written[checkout-back-on-the-branch]`. Its reason is now `died` instead of `left_branch`; the branch and head assertions are unchanged.
+   - criterion 5: `tests/domain/test_contract_version_4.py::test_the_records_contract_is_at_version_4_without_left_branch`, with rows `version`, one per contract entry (committed schema holds `4.0` and equals `contract_schema`) and `no-left-branch`.
+   - criterion 6: `tests/test_left_branch_removed.py::test_no_source_or_schema_file_names_left_branch`.
+   - criteria 7 and 8: no test (`make check`; docs).
+
+   Files created: `tests/domain/test_stall_reason_removed.py`, `tests/domain/test_contract_version_4.py`, `tests/application/test_no_branch_check.py`, `tests/test_left_branch_removed.py`.
+
+   Earlier test files changed:
+   - `tests/application/test_after_agent.py`: deleted `test_a_checkout_left_on_another_branch_stalls_as_left_branch`, along with `SwitchingRuntime`, the `switching` keyword of `_launch`, `ELSEWHERE`, and the imports only they used (`replace`, `ObservingRuntime`, `AgentRunRequest`). The module docstring no longer says "the branch tested".
+   - `tests/application/test_stall_edges.py`: removed the `left-branch` row of `test_a_stall_without_a_detail_says_only_its_reason`, along with `_left_branch`, `CommitThenLeaveRuntime`, `ELSEWHERE` and the imports only they used. The docstring no longer names a commit before the agent left.
+   - `tests/domain/test_stall_texts.py`: removed the `left_branch` row from `SENTENCES`.
+   - `tests/application/test_stall_environment.py`: the row change for criterion 4.
+   - `tests/domain/test_contract.py`, `test_contract_provider_limit.py`, `test_contract_version_2.py` and `test_contract_version_3.py`: `3.0` → `4.0` in their version assertions only. Names and the other assertions are unchanged. The module docstring of `test_contract_version_3.py` still says "version 3.0", because it describes that story.
+
+   `SwitchingRuntime` in `tests/stall_support.py` stays, since the stall-environment row still uses it.
+
+   Modules the runner could not import: none. Every new module imports names that already exist, and the failures are wrong results.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/domain/test_contract_version_4.py::test_the_records_contract_is_at_version_4_without_left_branch[no-left-branch] - AssertionError: assert ['acceptance-....schema.json'] == []

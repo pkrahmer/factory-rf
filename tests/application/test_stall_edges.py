@@ -1,53 +1,22 @@
-"""The stalls at their edges: no detail, a commit before the agent left, a red check's files."""
+"""The stalls at their edges: no detail, a red check's files."""
 
 from collections.abc import Callable
-from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.adapters.fake_hosting import FakeHostingService
-from factory.application.agent_runtime import AgentRuntime
 from factory.application.boundaries import Boundaries
-from factory.application.git import Git
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.journal import entry_text
 from human_clone import HumanClone
 from stage_run_support import (
     BRANCH,
-    INSIDE,
     NOTES,
     PATH,
-    completed,
     open_story,
     run_stage,
 )
-
-ELSEWHERE = "elsewhere"
-
-
-class CommitThenLeaveRuntime(AgentRuntime):
-    """Commits a file on the work branch, checks out another branch, then delegates."""
-
-    def __init__(self, delegate: FakeAgentRuntime, git: Git) -> None:
-        """Run on `delegate`; commit and switch through `git`."""
-        self._delegate = delegate
-        self._git = git
-
-    def run(self, request: AgentRunRequest) -> AgentRunResult:
-        """Commit `INSIDE`, switch to `ELSEWHERE` at `HEAD`, then let the delegate play."""
-        target = request.working_directory / INSIDE
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text("written by the agent\n", encoding="utf-8")
-        self._git.commit("the agent's commit")
-        self._git.checkout(ELSEWHERE, start_point="HEAD")
-        return self._delegate.run(request)
-
-    def version(self) -> str:
-        """The delegate's version."""
-        return self._delegate.version()
-
 
 Setup = Callable[[Boundaries, HumanClone, Path, FakeAgentRuntime], Boundaries]
 
@@ -62,14 +31,6 @@ def _merge_conflict(
     return boundaries
 
 
-def _left_branch(
-    boundaries: Boundaries, human: HumanClone, agent_home: Path, agent_runtime: FakeAgentRuntime
-) -> Boundaries:
-    open_story(boundaries, human, agent_home)
-    agent_runtime.queue(ScriptedRun(result=completed()))
-    return replace(boundaries, agent_runtime=CommitThenLeaveRuntime(agent_runtime, boundaries.git))
-
-
 @pytest.mark.parametrize(
     ("setup", "note", "entry"),
     [
@@ -80,13 +41,6 @@ def _left_branch(
             "Stage tests stalled (attempt 1 of 2): merging the main branch conflicts and the"
             " merge was aborted",
             id="merge-conflict",
-        ),
-        pytest.param(
-            _left_branch,
-            "Stalled (attempt 1 of 2): the agent left the work item's branch."
-            " Retrying on the next tick.",
-            "Stage tests stalled (attempt 1 of 2): the agent left the work item's branch",
-            id="left-branch",
         ),
     ],
 )

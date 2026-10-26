@@ -1,6 +1,5 @@
-"""After the agent: the branch tested, unkept results stalled, undone, the entry, the form."""
+"""After the agent: unkept results stalled, undone, the entry, the form."""
 
-from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -17,7 +16,6 @@ from factory.application.stalls import StallResult
 from factory.application.task import StoryFormChecker
 from factory.domain.agent_runs import (
     QUESTION,
-    AgentRunRequest,
     AgentRunResult,
     EndReason,
     PermissionDenial,
@@ -28,13 +26,11 @@ from factory.domain.paths import cost_records_path
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
 from git_support import install_agents
 from human_clone import HumanClone
-from observing_runtime import ObservingRuntime
 from stage_run_support import ENVIRONMENT, INSTANCE, pushed, pushed_state
 from take_support import AGENT_TEXT
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)
-ELSEWHERE = "elsewhere"
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
 ROLES = ["tester", "reviewer"]
@@ -78,15 +74,6 @@ CREATED = JournalRecord(number=1, speaker="human", kind="created")
 CREATED_LINE = "\n1. 2026-10-12 human: created.\n"
 
 
-class SwitchingRuntime(ObservingRuntime):
-    """Leaves the checkout on another branch, then lets the delegate play the scripted run."""
-
-    def run(self, request: AgentRunRequest) -> AgentRunResult:
-        """Switch to `ELSEWHERE`, then play."""
-        self._checkout.checkout(ELSEWHERE, start_point="HEAD")
-        return super().run(request)
-
-
 def _completed(decision: str = "doing", entry: str = ENTRY) -> AgentRunResult:
     return AgentRunResult(
         end_reason="completed", decision=decision, entry=entry, duration=timedelta(minutes=1)
@@ -110,7 +97,6 @@ def _launch(
     run: ScriptedRun,
     stage: str = "tests",
     body: str = STORY,
-    switching: tuple[Path, FakeHostingService] | None = None,
 ) -> LaunchedStage:
     """Open the work item at `stage` with `body` and launch the stage with `run` queued."""
     install_agents(agent_home, ROLES)
@@ -124,14 +110,7 @@ def _launch(
     definition = pipeline_definition(boundaries)
     prepared = WorkItemOpening(boundaries, definition).prepare(WORK_ITEM, PATH)
     agent_runtime.queue(run)
-    used = boundaries
-    if switching is not None:
-        remote, hosting = switching
-        runtime = SwitchingRuntime(
-            agent_runtime, remote=remote, branch=BRANCH, hosting=hosting, checkout=boundaries.git
-        )
-        used = replace(boundaries, agent_runtime=runtime)
-    return StageLauncher(used, INSTANCE, definition, ENVIRONMENT).launch(prepared)
+    return StageLauncher(boundaries, INSTANCE, definition, ENVIRONMENT).launch(prepared)
 
 
 def _process(boundaries: Boundaries, launched: LaunchedStage) -> AgentAftermath | StallResult:
@@ -182,29 +161,6 @@ def test_a_completed_run_with_an_allowed_decision_gives_its_aftermath(
     assert aftermath.result == launched.result
     assert aftermath.started == launched.started
     assert aftermath.request == launched.request
-
-
-def test_a_checkout_left_on_another_branch_stalls_as_left_branch(
-    boundaries: Boundaries,
-    *,
-    human: HumanClone,
-    agent_home: Path,
-    agent_runtime: FakeAgentRuntime,
-    remote: Path,
-    hosting: FakeHostingService,
-) -> None:
-    launched = _launch(
-        boundaries,
-        human=human,
-        agent_home=agent_home,
-        agent_runtime=agent_runtime,
-        run=ScriptedRun(result=_completed("doing")),
-        switching=(remote, hosting),
-    )
-
-    stalled = _stalled(boundaries, launched)
-
-    assert stalled.reason == "left_branch"
 
 
 @pytest.mark.parametrize("end_reason", ["died", "time_limit", "budget", "no_result"])

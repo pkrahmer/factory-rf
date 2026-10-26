@@ -22,13 +22,13 @@ def _committed(entry: ContractEntry) -> str:
 
 
 def _version() -> None:
-    assert RECORDS_CONTRACT == "3.0"
+    assert RECORDS_CONTRACT == "4.0"
 
 
 def _schema_check(entry: ContractEntry) -> Callable[[], None]:
     def check() -> None:
         text = _committed(entry)
-        assert f'"{CONTRACT_KEY}": "3.0"' in text
+        assert f'"{CONTRACT_KEY}": "4.0"' in text
         assert text == contract_schema(entry)
 
     return check
