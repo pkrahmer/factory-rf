@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 464
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T17:51:14.578109Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-26T17:51:14.578109Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-26T17:54:19.965592Z'
+  stage: doing
+  run: e61cb36c3b0d480ea5d5def1eb31c405
 ---
 
 # The feature's documents agree with what was built and with each other
@@ -109,3 +111,12 @@ Expect: `documents ok`
    `lint`: lint: green (0.2 s)
    `test`: test: green (157.2 s)
 6. factory: started doing as vm.
+7. coder: No code written, and nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/` changed (criterion 1). The story's Interface is "None": all of the work is the documenter's, in `docs/decisions.md` and `docs/operator-guide.md`, and those two files are outside the coder's write paths.
+   Main choice: I handed forward with an empty diff. The alternative I rejected was writing the four document gaps myself; CLAUDE.md gives those documents to the documenter stage.
+   Refactor: there is no diff, so there was nothing to refactor. `git status --short` shows a clean working tree.
+   Description: no journal entry changed what the task means, so it is unchanged.
+   `make check`: check: green (`test: green (157.2 s)`, coverage 99.56 %).
+   Noticed, not touched: `docs/decisions.md:1161` and `:1173` still hold "Left to later stories of F0046" lines. Those are for the documenter to fix.
+
+   `check`: check: green (not run again: passed on tree 6c9e3830fbbb at 2026-10-26T17:38:40Z)
+   `duplicates`: duplicates: 0 new, 43 known, 0 gone
