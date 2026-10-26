@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "x-records-contract": "3.0",
+  "x-records-contract": "4.0",
   "additionalProperties": false,
   "description": "One event of a stop of the repository or the machine, as the remote keeps it.",
   "properties": {

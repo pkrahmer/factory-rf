@@ -235,8 +235,6 @@ class AfterAgent:
         )
 
     def _early_stall(self, launched: LaunchedStage) -> tuple[StallReason, str] | None:
-        if self._boundaries.git.status().branch != launched.started.branch:
-            return "left_branch", ""
         reason = stall_reason_of(launched.result)
         if reason is not None:
             return reason, _first_denial(launched.result)

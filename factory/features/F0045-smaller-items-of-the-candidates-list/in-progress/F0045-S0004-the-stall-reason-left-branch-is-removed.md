@@ -2,16 +2,12 @@
 stage: doing
 blocked: null
 round: 0
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T21:13:34.632643Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,19 @@ journal:
   kind: started
   at: '2026-10-26T21:13:34.632643Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-26T21:16:50.952418Z'
+  stage: doing
+  run: 10b2f27bb8154b0c9d0a6421da90697a
+- number: 8
+  speaker: factory
+  kind: stall
+  at: '2026-10-26T21:16:51.287328Z'
+  stage: doing
+  run: 10b2f27bb8154b0c9d0a6421da90697a
+  reason: check_red
 ---
 
 # The stall reason left_branch is removed
@@ -133,3 +142,30 @@ Expect: two lines: `False 4.0`; `0`
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/domain/test_contract_version_4.py::test_the_records_contract_is_at_version_4_without_left_branch[no-left-branch] - AssertionError: assert ['acceptance-....schema.json'] == []
 6. factory: started doing as vm.
+7. coder: I removed the stall reason `left_branch` as the Interface describes. `make check` is green (coverage 99.56 %).
+
+   What changed:
+   - `src/factory/domain/journal.py`: `"left_branch"` is gone from `StallReason`. The other values keep their order.
+   - `src/factory/domain/post_texts.py`: its entry in `_STALL_SENTENCES` is gone.
+   - `src/factory/application/stage.py`: `AfterAgent._early_stall` no longer compares `git.status().branch` with the work item's branch. It reads only `stall_reason_of(launched.result)`.
+   - `src/factory/domain/contract.py`: `RECORDS_CONTRACT = "4.0"`.
+   - `src/factory/contract/*.schema.json`: all five regenerated with `uv run python -m factory.entry.contract`, not edited by hand. `work-item-state` and `acceptance-state` lose the value, and every file now carries `x-records-contract` `4.0`.
+
+   Main choice: I removed the check outright and kept `_early_stall` as a method, so its call site stays as it is. I rejected the alternative of keeping a `status` call for some softer check (a log line or warning): the description says the check cannot fire on the dataset, and criterion 3 asks for no `status` call in the module. I also rejected turning `_early_stall` into a module-level function now that it no longer reads `self._boundaries`. That would be a restructuring beyond this story.
+
+   Refactor pass: I read the diff and found nothing to change.
+
+   Noticed, not touched:
+   - The comment at `src/factory/application/stalls.py:112` ("Whatever the agent left on the other branch is dropped") belongs to the stall service's restore. The description keeps that restore, so the comment stays.
+   - The docs criterion (operator guide, `stages.md`, `decisions.md`) is the documenter's.
+
+   No journal entry changed the meaning of the task.
+8. factory: Stage doing stalled (attempt 1 of 2): a check is red after the stage: `check`
+   Bytecode compiled 4164 files in 104ms
+   sync: green (0.1 s)
+   Bytecode compiled 4164 files in 74ms
+   All checks passed!
+   Bytecode compiled 4164 files in 70ms
+   lint: green (0.2 s)
+   Bytecode compiled 4164 files in 76ms
+   make: *** [Makefile:38: types] Error 139
