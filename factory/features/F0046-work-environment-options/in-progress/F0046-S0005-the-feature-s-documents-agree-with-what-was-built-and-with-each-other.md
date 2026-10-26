@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 464
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T17:47:17.615192Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-26T17:47:17.615192Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-26T17:47:39.497170Z'
+  stage: intake
+  run: 939a41bc92234ba09ef3fcb35d7d15d9
 ---
 
 # The feature's documents agree with what was built and with each other
@@ -70,3 +72,9 @@ Expect: `documents ok`
 
 1. 2026-10-26 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: "None" is stated and fits the story. Nothing changes under src/, tests/, vm/, template/ or claude/, and only docs/decisions.md and docs/operator-guide.md are named. There are no signatures or behaviours to pin.
+   Criteria: all four gaps in the Description have a docs bullet. The "Left to later stories of F0046" lines exist at docs/decisions.md:1161 and :1173. The decision 1 and decision 9 bullets, the agent-run-probe sentence and the factory.local.env sentence each have one. Criterion 1 covers the "nothing else changes" side. The story adds no rule with a failing side, because it states no limit, validation or rejected input, so none is missing. No test reads the documents; the docs criterion is checked by the smoke test and `make documents`.
+   Smoke test: the commands are runnable. The target sections exist: `### A company's provider` (operator-guide:289), `## A company's provider for opencode` (decisions:1149), *The environment file* (:442), *Behind a proxy* (:206) and *The probe of the agent run* (:748). Each Expect line is checkable: `0`, two numbers of at least 1, and `documents ok`. The story's smoke test runs no pytest, so the `-q` rule does not apply.
+   Architecture: the story touches documents only and leaves the layers alone. The documenter's write paths (README.md and docs/*) cover both files.
+   Scope: it fits F0046. feature.md lists S0005 as "from A0001". Its Out of scope items (a base_url, a secret store, any company value) are not touched, and the CA-on-host question is left to the human.
