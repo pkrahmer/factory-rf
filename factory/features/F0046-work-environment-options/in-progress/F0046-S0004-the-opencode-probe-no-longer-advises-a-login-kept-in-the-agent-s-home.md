@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T17:29:21.291816Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-26T17:29:00.581192Z'
   stage: doing
   run: 6f0d7b10e63c4a0f9a3df48829390e93
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:29:21.291816Z'
+  stage: tests
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -250,3 +259,4 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
     The Description is unchanged: the review findings do not change what the task means.
 
     Noticed but not touched: `docs/operator-guide.md` still quotes the old opencode hint. That is criterion 5, for the documenter.
+19. factory: started tests as vm.
