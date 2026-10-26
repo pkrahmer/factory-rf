@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-26T23:29:15.481152Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-26T23:29:15.475321Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-26T23:29:15.481152Z'
+  stage: intake
+---
+
 # The factory powers its machine off after an idle stretch
 
 ## Description
@@ -116,3 +143,6 @@ uv run python -c "from factory.adapters.power_off import SystemctlPowerOff; Syst
 Expect: `-n /usr/bin/systemctl poweroff`
 
 ## Journal
+
+1. 2026-10-26 human: created.
+2. factory: started intake as vm.
