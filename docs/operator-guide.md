@@ -82,6 +82,8 @@ One factory instance runs one project and is told what it needs through environm
 | `FACTORY_STAGE_IMAGE` | yes | The image the stage containers run (`factory-stage:1`). Missing or blank is refused when the boundaries are built, with `FACTORY_STAGE_IMAGE` as the variable and `missing`. |
 | `FACTORY_PODMAN` | no | The `podman` executable, one word. Default `podman`; unset or blank gives the default. |
 | `FACTORY_ZFS` | no | The `zfs` executable, one word. Default `zfs`; unset or blank gives the default. |
+| `FACTORY_CONTAINER_ENV` | no | Comma-separated names of environment variables of the factory's own environment that every agent, sync and check container also gets, with their values (`HTTPS_PROXY,NO_PROXY`). Each part is stripped and blank parts are left out; unset or blank gives none. A name must match `[A-Za-z_][A-Za-z0-9_]*` (`http_proxy` is fine), or it is refused with `FACTORY_CONTAINER_ENV` as the variable and `holds <name>, which is not a variable name`; a name twice is refused with `names <name> twice`; `HOME`, `ANTHROPIC_API_KEY`, `CLAUDE_CODE_OAUTH_TOKEN`, `OPENCODE_CONFIG`, `GIT_ASKPASS` and every name that starts with `FACTORY_` are refused with `holds <name>, which the factory sets itself`. A listed name the factory's environment lacks is skipped. See "Behind a proxy". |
+| `FACTORY_CA_BUNDLE` | no | The absolute path of a PEM file on the machine, the company's CA certificates. Every agent, sync and check container gets it mounted read-only at the same path, and `NODE_EXTRA_CA_CERTS`, `SSL_CERT_FILE` and `REQUESTS_CA_BUNDLE` name it. Unset or blank gives none; a relative path is refused with `FACTORY_CA_BUNDLE` as the variable and `is not an absolute path`. The file's existence is not checked when the settings are read: podman refuses to mount a missing file, and the container fails. See "Behind a proxy". |
 
 **The stage environment.** There is one: every stage runs on a ZFS dataset and its commands in throwaway Podman containers. Nothing chooses between ways: the setting that once did is under "Replaced in v1.2".
 
@@ -201,9 +203,22 @@ The call runs in a throwaway container. The words are `podman run --rm --userns=
 
 Every container (the sync, the agent and each check) has the same fence. It has no capabilities (`--cap-drop=all`), and no set-uid program gives it rights (`--security-opt=no-new-privileges`). It may start 4096 processes and use 4 GB of memory. It keeps podman's default network, because the sync and the check's `make sync` need the package index and the agent needs the model's API. A container the kernel kills for its memory before the time limit is an ordinary failure, not a time-out: a failed check, usually with make's exit status 2 when the kernel ended one of its children, or 137 when it ended the container's first process.
 
+### Behind a proxy
+
+A container's environment is closed: the factory's own environment reaches none of them. Two settings open it for what a company network needs.
+
+- `FACTORY_CONTAINER_ENV` lists names, for example `HTTPS_PROXY,NO_PROXY,UV_INDEX_URL,NPM_CONFIG_REGISTRY` (the proxy, the hosts that bypass it, a package mirror for `uv` and for `npm`). Each name that the factory's environment holds is passed, with its value, into the agent, sync and check containers. Put the variables where `factory.env` is (see "The environment file") and list their names in `FACTORY_CONTAINER_ENV`; the factory reads its environment when it starts, so restart the service after a change.
+- `FACTORY_CA_BUNDLE` is the PEM file with the company's CA certificate. It is mounted read-only into the same containers at its own path, and `NODE_EXTRA_CA_CERTS`, `SSL_CERT_FILE` and `REQUESTS_CA_BUNDLE` name it. If a listed name is one of those three, the bundle's value wins.
+
+The bundle must hold the public certificates beside the company's own: `SSL_CERT_FILE` replaces Python's own list of authorities instead of adding to it, so a file with the company's certificate alone breaks every connection to a public host.
+
+The names the factory gives a container itself win over the list: a listed `PATH` leaves each container's own `PATH`. `HOME`, the two login names, `OPENCODE_CONFIG`, `GIT_ASKPASS` and every `FACTORY_` name are refused when the settings are read, so the hosting token (`FACTORY_TOKEN_FILE`) reaches no container. The allow list stays closed for every other name, and the login names are still removed where they were before. With neither setting the containers are as before.
+
+`vm/setup.sh` and the build of the stage image run outside the factory and read none of these settings: give them the proxy (and the mirror) in their own environment.
+
 ### The agent run's `PATH` and `HOME`
 
-The factory builds the environment of an agent run itself, from an allow list of six names (see "The hosting-service token"). The agent runs in the stage image, so the two names that matter here are a `PATH` of the directory where the factory's console scripts are installed (the directory of the factory's Python) followed by `/usr/local/bin:/usr/bin:/bin`, and a `HOME` of `/work/home`, the dataset's. The `HOME` is the same whatever the instance's settings, and no preflight item checks it: it is a path inside the container, not a directory on the factory's machine. Nothing else reaches the agent but the locale and time-zone names `LANG`, `LC_ALL`, `TERM` and `TZ`, when the factory process has them. So the tools an agent needs must be in the stage image, in one of those four directories.
+The factory builds the environment of an agent run itself, from an allow list of six names (see "The hosting-service token"). The agent runs in the stage image, so the two names that matter here are a `PATH` of the directory where the factory's console scripts are installed (the directory of the factory's Python) followed by `/usr/local/bin:/usr/bin:/bin`, and a `HOME` of `/work/home`, the dataset's. The `HOME` is the same whatever the instance's settings, and no preflight item checks it: it is a path inside the container, not a directory on the factory's machine. Nothing else reaches the agent but the locale and time-zone names `LANG`, `LC_ALL`, `TERM` and `TZ`, when the factory process has them, and the names of `FACTORY_CONTAINER_ENV` and `FACTORY_CA_BUNDLE` (see "Behind a proxy"). So the tools an agent needs must be in the stage image, in one of those four directories.
 
 ### A provider's spend limit
 

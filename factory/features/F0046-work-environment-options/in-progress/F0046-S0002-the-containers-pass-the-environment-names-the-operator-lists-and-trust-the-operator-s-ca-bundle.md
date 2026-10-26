@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-26T15:50:26.217685Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -245,6 +241,12 @@ journal:
   kind: started
   at: '2026-10-26T15:50:26.217685Z'
   stage: docs
+- number: 43
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T15:52:30.216257Z'
+  stage: docs
+  run: 33ef930277bc496fbabdf1bb67a37e48
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -681,3 +683,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/container_extra_support.py:26`: `CA_NAMES` repeats `factory.domain.containers.CA_BUNDLE_NAMES`.
     - `tests/container_extra_support.py:12` and `tests/entry/test_wiring_container_extra.py:13`: `REPLY` is imported from test modules (`adapters.test_claude_runtime_login`, `entry.test_wiring_login`) and not from a support module.
 42. factory: started docs as vm.
+43. documenter: Docs round 2. The earlier docs run left no document changes on the branch (`git diff main...HEAD -- docs README.md` was empty), so I wrote the whole docs criterion. I read the Interface, the journal and the src diff first. I changed only documents, so I did not run `make check`; the factory's checks after this stage decide. I ran no example: the criterion's smoke tests are in the work item and the text I wrote has no new runnable snippet.
+
+    Files changed:
+    - `docs/operator-guide.md`: two rows in the configuration table (`FACTORY_CONTAINER_ENV`, `FACTORY_CA_BUNDLE`) with the name rules, the reserved names, the faults and their messages. A new subsection *Behind a proxy* covers the proxy and mirror names, the CA bundle and its mounts, that the factory's own names win (a listed `PATH` leaves each container's `PATH`), that the bundle must hold the public certificates beside the company's because `SSL_CERT_FILE` replaces Python's list, and that `vm/setup.sh` and the image build need the proxy in their own environment. One sentence in *The agent run's `PATH` and `HOME`* now names the extras.
+    - `docs/project-guide/stage-environment.md`: *The command line* (the extras and the bundle mount), *The container environment* (the new constructor keywords, `{**extra_environment, **SYNC_ENVIRONMENT}`, the bundle mount) and *The checks* (`ContainerMakeCommands`, `{**extra_environment, **CHECK_ENVIRONMENT}`, the bundle mount).
+    - `docs/project-guide/agents.md`: *Calls in a container* now has the environment `{**extras, **run_environment(...)}` and the bundle among the mounted files.
+    - `docs/decisions.md`: new entry *The containers' environment stays closed except for the operator's list*, with the decision, why, the consequence and what was rejected.
+    - `README.md`: none, as the criterion says.
+
+    Cross-read and found current: the rest of the operator guide's configuration section and *The hosting-service token*, `docs/project-guide/stage-environment.md`'s settings and wiring section, and `docs/project-guide/agents.md`. Nothing else in them contradicts the diff.
+
+    Not checked: whether `vm/setup.sh` and the image build take a proxy. I wrote only that they run outside the factory and read none of these settings, and I did not read those files.
+
+    Stale text I saw and did not touch (the work item is outside my write paths):
+    - The Interface sentence on `agent_launch` still says the extras go into `run_environment`'s runtime part. The code puts them beneath its result.
+    - Entry 9's constructor keywords and corrected smoke test are not in the work item.
+    - The Interface names `tests/adapters/test_make_commands_extra.py`, but the check rows are in `tests/application/test_container_environment_extra.py`.
+
+    Findings for the coder: none. The code matches the corrected Description.
+
+    `check`: check: green (not run again: passed on tree a2076785d830 at 2026-10-26T15:45:05Z)
+    `secrets`: secrets: green (2.4 s)
+    `documents`: documents ok
