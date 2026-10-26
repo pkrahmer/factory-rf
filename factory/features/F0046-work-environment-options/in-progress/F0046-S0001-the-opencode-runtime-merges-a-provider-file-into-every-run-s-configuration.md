@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775, 6417568826]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T13:56:18.262154Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-10-26T13:55:57.242746Z'
   stage: review
   run: d08e37e6c00d4316998042f49327a798
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-26T13:56:18.262154Z'
+  stage: doing
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -391,3 +400,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests: the diff changes, renames or deletes no test file that `main` already holds (every test file has status `A`).
 
     The Description, the Interface and the docs criterion still match what was built.
+23. factory: started doing as vm.
